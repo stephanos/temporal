@@ -107,6 +107,121 @@ Add `src/syscall/gomad_unix.go` with the three declarations for `gomadDeterminis
 
 Retain the environment reset inside `copyenv` and retain both syscall.Write body hooks for this low-risk relocation. The [seeded environment fixture](../../../tools/gomad3/internal/gomadtool/conformance/testdata/gotest/gotest_test.go) passed with seed 17 and still observed exactly `TZ=UTC`. Its disabled-mode compatibility fixture also passed. These runs prove the relocation compiles and preserves those exercised behaviors on darwin/arm64. They do not prove the syscall.Write guard's negative cases or Linux output path.
 
+### Crypto and syscall relocation implementation
+
+Task fn-110.3 regenerated the three-context-line patch on 2026-10-03. The
+checkout already contained a fourth syscall linkname declaration,
+`gomadIOProfileEnabled`, which `copyenv` reads next to
+`gomadDeterministicEnabled`. It moved with the other three, so the task
+relocated four declarations instead of the investigation's three.
+
+- [`src/crypto/rand/gomad.go`](../../../tools/gomad3/toolchain/runtime/overlay/src/crypto/rand/gomad.go)
+  holds the `init` function and its comment verbatim, with both
+  `Reader = gomadio.RandomReader()` and `rand.SetTestingReader(Reader)`. The
+  patch no longer touches `crypto/rand`, and the materialized `rand.go` is
+  byte-identical to the archive. The archive has no other non-test `init` in
+  the package, and `Reader` is a package-level variable, so it is initialized
+  before any `init` runs. The overlay file sorting before `rand.go` therefore
+  does not change when the reader is installed.
+- [`src/syscall/gomad_env_unix.go`](../../../tools/gomad3/toolchain/runtime/overlay/src/syscall/gomad_env_unix.go)
+  declares `gomadDeterministicEnabled` and `gomadIOProfileEnabled` under
+  `env_unix.go`'s constraint, `unix || (js && wasm) || plan9 || wasip1`.
+- [`src/syscall/gomad_unix.go`](../../../tools/gomad3/toolchain/runtime/overlay/src/syscall/gomad_unix.go)
+  declares `gomadCapabilityGuard` and `gomadWrite` (`runtime.gomadSyscallWrite`)
+  under `syscall_unix.go`'s `unix` constraint.
+
+Each declaration group uses its own file because one `unix` file would drop
+the environment declarations from js/wasm, plan9, and wasip1. One file with the
+wider constraint would add the write declarations where `syscall_unix.go`
+does not build. `go list` on the rebuilt toolchain selects the new files exactly
+where their source files build: both on linux, darwin, freebsd, aix, and
+solaris; only the environment file on js/wasm, wasip1, and plan9; and neither
+on windows. Names, linkname targets, and signatures are unchanged. The
+`copyenv` reset, both `Write` hooks, and the `rlimit.go` section remain in the
+patch.
+
+| Measurement | Task 3 start | Task 3 result | Delta |
+| --- | ---: | ---: | ---: |
+| Patch bytes (`-U3`) | 39,837 | 38,362 | -1,475 |
+| Patch lines | 1,169 | 1,112 | -57 |
+| Patched files / hunks | 21 / 85 | 20 / 81 | -1 / -4 |
+| Patch added / deleted lines | 341 / 103 | 318 / 103 | -23 / 0 |
+| New overlay files (bytes / lines) | — | 1,520 / 55 | +1,520 / +55 |
+
+The new overlay files are `crypto/rand/gomad.go` (469 bytes, 19 lines),
+`syscall/gomad_env_unix.go` (549 bytes, 18 lines), and `syscall/gomad_unix.go`
+(502 bytes, 18 lines). The overlay grows by more than the patch shrinks
+because each new file carries a license header, imports, and a constraint.
+This relocation reduces the upstream patch, not the total amount of source.
+The start patch was larger than the task 2 result because other runtime work
+was merged between tasks. That work was retained. The start patch SHA-256 was
+`11450b94d35ade1caddf9bbcdf564eda17d4a0573738f462a812fb014789e3ae`; the
+final `-U3` patch SHA-256 is
+`86def26a7f4d0b5c494a6a031c87bec284f7e76c91dcf437bc23fcc4c276ea5c`. Because
+the patch is an input to the generated choice implementation digest,
+`make generate` also rewrote `ImplementationSourceSHA256` in both choice wire
+codecs. The descriptor's allowlists drop `src/crypto/rand/rand.go` and add the
+three overlay paths.
+
+Only the `linux/arm64` development host was available. Local runs used a
+temporary uncommitted descriptor harness that adds that platform. Both the
+task 3 start tree and the candidate were rebuilt with that harness, and the
+archive-based overlay collision check passed in both builds. The following
+checks matched between the two trees:
+
+- Enabled-profile `io_entropy` (`rand.Read`, `rand.Text`, and ECDSA key generation through the FIPS override) gave identical output and transcript digests for seeds 1, 11, 17, and 999.
+- Profile-mode `environment` output also matched for those seeds.
+- In seeded runs without a profile (seeds 1 and 17), `os.Environ()` was exactly `["TZ=UTC"]` and host variables were hidden. `syscall.Write(9, …)` died with `GOMAD_CAPABILITY_DENIED`, while direct writes to descriptors 1 and 2 succeeded.
+- In disabled mode, host variables remained visible and `Write(9)` returned `EBADF`.
+- `gotest` passed `TestSeedReachesTestBinary` with seed 17 and `TestDisabledCompatibility` in disabled mode, with identical output.
+- Disabled-mode upstream `crypto/rand` and `syscall` tests reported identical per-test results across 378 cases. On both trees, the Linux-only `TestPrlimitFileLimit` failed because the existing `rlimit.go` hunk leaves the descriptor limit unchanged. That failure predates this task.
+
+On the candidate, `TestProfileEntropyIsIndependentOfScheduleSeed`,
+`TestToolchainLeavesFD5ForProcessesWithoutIOProfile`, and
+`TestIOProfileFailureArtifactReplaysExactly` passed. The darwin-only
+live-capability tests skipped. None of these local runs is native
+`darwin/arm64` or `linux/amd64` evidence. Those gates remain incomplete.
+
+### Canonical one-context-line patch
+
+Task fn-110.4 changed only the patch representation. `RegeneratePatch` now
+passes `--unified=1` to `git diff` explicitly through the
+`canonicalPatchContext` constant, so a `diff.context` setting no longer changes
+the patch. The `patch-regenerate` command gained no flag. Canonical headers,
+`validatePatch`, the `git apply --cached --check` step, and zero-fuzz
+materialization are unchanged. Tests reach the three-context form through the
+unexported `regeneratePatch` seam.
+
+The checked-in patch was regenerated from a fresh extraction with the task 3
+`-U3` patch applied. Two regenerations, and the canonical command writing to
+the descriptor path, produced byte-identical output.
+
+| Patch | Bytes | Lines | Hunks | SHA-256 |
+| --- | ---: | ---: | ---: | --- |
+| Final extracted source, `-U3` (task 3) | 38,362 | 1,112 | 81 | `86def26a7f4d0b5c494a6a031c87bec284f7e76c91dcf437bc23fcc4c276ea5c` |
+| Canonical `-U1` | 29,015 | 778 | 90 | `8497f8855011f13fb46ad36a02448d165d4bd65688ef00eed6ae09822306a90b` |
+
+The `-U1` patch is 9,347 bytes (24.4%) and 334 lines smaller than the final
+`-U3` patch. Both carry the same 318 added and 103 deleted lines in 20 files.
+Both patches applied with the builder's zero-fuzz commands to separate fresh
+extractions of the verified archive on the `linux/arm64` development host.
+`diff -r` found no difference between the two trees, and 20 files differ from
+pristine source. The same comparison now runs as
+`TestPinnedContextRepresentationsMaterializeIdenticalSource` in the
+`toolchain` package. That test regenerates both forms from the checked
+candidate, requires at most one context line around each change in the `-U1`
+form, and compares every allowlisted file.
+`TestRegenerateMatchesCheckedPatchForPinnedArchive` now reads the archive name
+and patch path from the descriptor and fails on a checksum mismatch. It skips
+only when the pinned archive is not cached, and it requires repeated
+regeneration to be byte-identical. It passed here; it had previously always
+skipped because it named `go1.26.4`. The unchanged negative tests still pass.
+Equivalence on native `darwin/arm64` and `linux/amd64` remains incomplete.
+
+Because the patch bytes changed, the toolchain build key and the generated
+choice implementation digest changed again. Artifacts recorded with earlier
+toolchains keep their original identities.
+
 ### Goroutine state
 
 Define `gomadGState` in the runtime overlay with the current four fields in the same order, then embed it at their current position after `goid`. Go's promoted field selectors preserve accesses such as `gp.gomadIdentity`. The embedded type's trailing alignment padding replaces the padding before `schedlink`. `gofmt` still realigns three fields after the anonymous embedding, so this proposal saves 11 patch lines rather than reducing the hunk to one added line. Sources are the archive's `src/runtime/runtime2.go` and [Gomad's goroutine-state consumers](../../../tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go).

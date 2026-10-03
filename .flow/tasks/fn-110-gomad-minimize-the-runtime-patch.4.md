@@ -66,8 +66,24 @@ The descriptor requires `patch_allowlist` and `overlay_allowlist` to equal the c
 
 
 ## Done summary
-TBD
+Blocked:
+Blocked: implementation, local developmental verification, and review (SHIP) are complete; only native darwin/arm64 and linux/amd64 gates remain.
 
+Done (commit fab9378c79 on gomad-fn110):
+- RegeneratePatch passes --unified=1 explicitly through canonicalPatchContext. No CLI flag was added, and the canonical headers, validatePatch, git apply --check, and zero-fuzz materialization are unchanged. The unexported regeneratePatch seam gives tests the -U3 form.
+- The checked-in patch was regenerated from the final task 3 source: -U3 38,362 B / 1,112 lines (sha256 86def26a…76ea5c) to -U1 29,015 B / 778 lines (sha256 8497f885…6a90b), -24.4% bytes. Repeated regeneration is byte-identical. Allowlists are unchanged. The choice implementation digest was regenerated. make generate validate is clean without the shim.
+- TestRegenerateMatchesCheckedPatchForPinnedArchive reads the archive and patch from the descriptor, fails on a checksum mismatch (TestPinnedArchiveFollowsDescriptorAndRejectsChecksumMismatch), and requires byte-identical repeats. It went red before regeneration and green after, with PASS rather than SKIP. TestPinnedContextRepresentationsMaterializeIdenticalSource proves -U3/-U1 zero-fuzz file equivalence in the toolchain package for Linux CI. TestRegenerateEmitsOneContextLine covers the synthetic hunk shape. The negative tests are unmodified and pass.
+
+Local evidence (linux/arm64 development host; the uncommitted shim was used only for builds and shim gates):
+- -U3 and -U1 applied with builder zero-fuzz commands to fresh extractions; diff -r found the trees identical.
+- Toolchain rebuild key 60e4051c…, 191 s, exit 0, collision check passed.
+- No-shim committed state: go test ./toolchain PASS (355 s) and make test-builder PASS.
+- With the shim, test-toolchain and test-builder fail only on the linux/arm64 inventory tests, and the baseline fails identically. test-host failures are a subset of the baseline+shim failures.
+- Evidence file: .flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task4-canonical-patch-evidence.md.
+
+Non-blocking review notes (P3, not applied): diff.interHunkContext would be caught by the pinned test as drift, and the spec says not to widen scope until a test shows drift. The two pinned tests overlap in extraction cost, and one helper could be shared.
+
+Remaining native gates: -U3/-U1 zero-fuzz equivalence plus toolchain rebuild, test-toolchain (pinned tests), and test-builder on darwin/arm64 and linux/amd64. linux/amd64 equivalence is incomplete.
 ## Evidence
 - Commits:
 - Tests:

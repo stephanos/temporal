@@ -70,8 +70,24 @@ The descriptor requires `patch_allowlist` and `overlay_allowlist` to equal the c
 
 
 ## Done summary
-TBD
+Blocked:
+Blocked: implementation, local developmental verification, and review (SHIP) are complete; only native darwin/arm64 and linux/amd64 gates remain.
 
+Done (commit 91ce1111ed on gomad-fn110):
+- crypto/rand init and its comment moved verbatim to overlay src/crypto/rand/gomad.go, with both Reader assignments kept. The patch has no crypto/rand section, and the materialized rand.go is byte-identical to the archive.
+- Four syscall linkname declarations moved to overlays. The fourth, gomadIOProfileEnabled, landed after planning and moved with the others. gomad_env_unix.go uses env_unix.go's constraint; gomad_unix.go uses unix. Splitting by origin keeps source selection identical: go list selects each file only where its origin file builds. The copyenv reset, both Write hooks, and rlimit.go stay in the patch.
+- version.json allowlists updated. make generate rewrote only the choice-wire ImplementationSourceSHA256, because the patch is an input. make generate validate is clean without the shim.
+- Patch -U3 went from 39,837 B / 1,169 lines to 38,362 B / 1,112 lines (-1,475 B / -57 lines; sha256 86def26a7f4d0b5c494a6a031c87bec284f7e76c91dcf437bc23fcc4c276ea5c). New overlay files add 1,520 B / 55 lines. A copy of the -U3 patch is saved at tools/gomad3/.toolchain/fn-110/final-U3.patch.
+
+Local evidence (linux/arm64 development host only; built with an uncommitted descriptor shim that adds linux/arm64; never committed):
+- Candidate toolchain key 6879442c… built in 225 s with exit 0; the archive overlay collision check passed. Baseline (HEAD 331b75bb6 plus the shim) key 464561b5… built in 359 s.
+- Baseline and candidate gave byte-identical results for: enabled-profile io_entropy (rand.Read, rand.Text, and ECDSA through the FIPS override) with seeds 1, 11, 17, and 999; profile environment; seeded env (exactly TZ=UTC) and Write(9) GOMAD_CAPABILITY_DENIED with seeds 1 and 17; disabled-mode env and EBADF; stdout/stderr writes; gotest seed 17 and TestDisabledCompatibility; and disabled-mode upstream crypto/rand and syscall dispositions (378 cases). TestPrlimitFileLimit fails on both trees: it is Linux-only, and the failure comes from the existing rlimit hunk.
+- Candidate: TestProfileEntropyIsIndependentOfScheduleSeed, TestToolchainLeavesFD5ForProcessesWithoutIOProfile, and TestIOProfileFailureArtifactReplaysExactly pass. livecap TestPinnedToolchain* skip because they are darwin-only.
+- `go test ./toolchain` passes against the committed (no-shim) descriptor and the candidate build source (99 s). make test-builder passes with the no-shim descriptor. With the shim, test-toolchain and test-builder fail only on linux/arm64 inventory entries, and the baseline fails identically.
+- test-host (350 s, exit 2): its 31 failures match baseline+shim (30 shared developmental host/shim failures). The exception is TestRunIOTerminalAfterTermination/watchdog_checksum ("supervisor could not be reaped after deadline" under load), which passed on 2 reruns.
+- The evidence file is .flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task3-relocation-evidence.md.
+
+Remaining native gates: toolchain build plus test-toolchain, test-builder, test-host, test-live-capability (env and Write guard), test-runtime, and test-upstream (crypto/rand, syscall) on darwin/arm64 and linux/amd64, compared with the fn-110.1 baseline dispositions. Linux execution is incomplete.
 ## Evidence
 - Commits:
 - Tests:

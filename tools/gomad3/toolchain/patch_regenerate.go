@@ -14,7 +14,19 @@ import (
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
 
+// canonicalPatchContext is the number of unchanged lines the checked-in patch
+// carries on each side of a change. It is explicit so ambient Git
+// configuration such as diff.context cannot change the patch bytes.
+const canonicalPatchContext = 1
+
 func RegeneratePatch(ctx context.Context, config PatchSpec) error {
+	return regeneratePatch(ctx, config, canonicalPatchContext)
+}
+
+// regeneratePatch emits the patch with contextLines unchanged lines around
+// each change. Only tests choose a context other than canonicalPatchContext,
+// to compare representations of the same candidate.
+func regeneratePatch(ctx context.Context, config PatchSpec, contextLines int) error {
 	root, err := filepath.Abs(config.Root)
 	if err != nil || root == string(filepath.Separator) {
 		return errors.Join(errors.New("patch set root must be an absolute non-root directory"), err)
@@ -73,7 +85,7 @@ func RegeneratePatch(ctx context.Context, config PatchSpec) error {
 		return err
 	}
 	result, err := runLimit(ctx, pristineRoot, []string{
-		"git", "diff", "--no-ext-diff", "--binary", "--src-prefix=a/", "--dst-prefix=b/", "--",
+		"git", "diff", "--no-ext-diff", "--binary", fmt.Sprintf("--unified=%d", contextLines), "--src-prefix=a/", "--dst-prefix=b/", "--",
 	}, nil, maximumPatchBytes)
 	if err != nil {
 		return fmt.Errorf("generate gomad3 patch: %w", err)
