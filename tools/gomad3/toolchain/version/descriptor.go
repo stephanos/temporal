@@ -302,7 +302,11 @@ func renderUpgradeGuide(descriptor Descriptor) []byte {
 	output.WriteString("```sh\nmake generate\nmake upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit>\n```\n\n")
 	output.WriteString("The command publishes `.toolchain/upgrade-dossier.json`, even when a behavioral gate or boundary approval fails. The dossier contains the complete upstream patch diff, semantic boundary-manifest diff, expected and applied interception evidence, archive-based overlay collision results, disabled-mode upstream results, mandatory-probe gates, host-clock escape audit, retained core-corpus report, and platform qualification. If the dossier reports boundary changes, rerun only after reviewing and approving the complete diff:\n\n")
 	output.WriteString("```sh\nmake upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit> GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256=<boundary_manifest_diff.sha256>\n```\n\n")
-	output.WriteString("CI uploads the dossier on every run.\n")
+	output.WriteString("CI uploads the dossier on every run.\n\n")
+	output.WriteString("## Dependency bumps\n\n")
+	output.WriteString("A bump of an adapted or compatibility-packed module keeps every pin exact. With the bump applied to the target module and not yet committed, run from the Gomad source module root:\n\n")
+	output.WriteString("```sh\ngo run ./cmd/gomadtool pin-impact\ngo run ./cmd/gomadtool adapter-regenerate --module=<adapted-module> --version=<new-version>\ngo run ./cmd/gomadtool adapter-regenerate --module=<adapted-module> --version=<new-version> --approve-review=<reviewed-digest>\ngo run ./cmd/gomadtool compatibility-pack refresh --root=.\n```\n\n")
+	output.WriteString("`pin-impact` lists the invalidated pins. Regenerate each adapter it names, reviewing the dry run's upstream diff before applying its digest; an anchor that no longer matches exactly once stops the command and needs a person. `compatibility-pack refresh` re-reviews every invalidated request and prints the `compatibility-pack generate --approve-review` command for each; each platform's host approves and qualifies its own requests with `make validate compatibility-pack-qualification`. After committing the bump, pass the revision before it with `--baseline-ref`. A changed adapter changes the target identity, so rebuild `.bin/gomad` and requalify its workloads.\n")
 	return []byte(output.String())
 }
 

@@ -465,6 +465,10 @@ The release descriptor, runtime changes, source overlay, interaction inventory, 
 
 Compatibility-pack development must follow discovery, human review, exact approval, generation, validation, and qualification. A pack must bind an exact dependency version, source inventories, platform scope, governance, and any approved deterministic adapter replacement.
 
+### [MAINTENANCE.DEPENDENCY] Dependency Bumps
+
+A dependency bump must keep every adapter and compatibility-pack pin exact. Before the build rejects a bump, the maintainer product must report every pin a candidate `go.mod` invalidates and must report a pin it cannot evaluate as unknown, never as unaffected. Re-deriving an adapter's anchors or a pack's evidence for the new version must stop at a person's review and publish only under the exact approval digest of the reviewed result; an anchor that no longer matches exactly once must fail without writing.
+
 ### [MAINTENANCE.UPGRADE] Upgrade Evidence
 
 A Go or product-boundary upgrade must produce a bounded dossier covering source and boundary differences, runtime changes, overlay collisions, generated evidence, mandatory probes, disabled upstream behavior, conformance, and platform qualification. The dossier must be retained even when a gate fails, and a boundary change must require approval of its exact identity.
@@ -483,7 +487,9 @@ The `gomadtool` command must expose the following maintainer workflows. Each row
 | `[COMMAND.GOMADTOOL.VERSION.GENERATE]` | `version-generate` | Generate or verify consumers of the canonical release descriptor. |
 | `[COMMAND.GOMADTOOL.BOUNDARY.GENERATE]` | `boundary-generate` | Discover, qualify, generate, refresh, or verify the reviewed host-capability boundary and its compiler conformance inputs. |
 | `[COMMAND.GOMADTOOL.PROTOCOL.GENERATE]` | `protocol-generate` | Generate or verify both endpoints of each declared cross-process protocol. |
-| `[COMMAND.GOMADTOOL.COMPATIBILITY.PACK]` | `compatibility-pack` | Discover, review, generate from exact approval, check, and qualify version-pinned compatibility packs. |
+| `[COMMAND.GOMADTOOL.COMPATIBILITY.PACK]` | `compatibility-pack` | Discover, review, generate from exact approval, check, and qualify version-pinned compatibility packs, and refresh every request a dependency bump invalidates up to approval. |
+| `[COMMAND.GOMADTOOL.PIN.IMPACT]` | `pin-impact` | Report every adapter, compatibility-pack, interception, and host-clock pin a candidate `go.mod` invalidates or leaves unknown, without changing the candidate. |
+| `[COMMAND.GOMADTOOL.ADAPTER.REGENERATE]` | `adapter-regenerate` | Re-derive a dependency adapter's anchors for a new exact module version, show the changed upstream source, and publish only with the exact approval digest. |
 | `[COMMAND.GOMADTOOL.SCRIPT.VALIDATE]` | `script-validate` | Enforce the approved ownership and policy boundary for repository scripts. |
 | `[COMMAND.GOMADTOOL.CHECKED.RUN]` | `checked-run` | Run a bounded external command, classify timeout and exit status, and retain bounded diagnostic output. |
 | `[COMMAND.GOMADTOOL.TEST]` | `test` | Execute a selected bounded conformance campaign and report the first failing evidence. |

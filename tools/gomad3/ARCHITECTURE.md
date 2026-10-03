@@ -701,6 +701,21 @@ canonicalizes complete manifest metadata, intercepts, and hook policies so a
 field unknown to an older comparator cannot disappear
 from upgrade evidence.
 
+Dependency bumps reuse the build's own pin owners rather than a second
+description of them. `upgrade/pinimpact` imports the adapter registry and the
+compatibility-pack loader and reads the boundary manifest and host-clock
+inventory, resolving the baseline and candidate module graphs in a scratch copy
+with a private module cache, so its verdict for each pin is the identity
+comparison the build makes. `upgrade/adapterregen` re-applies each adapter
+rewrite by its existing exact-occurrence anchor, computes every platform's
+prepared source set from build constraints, and publishes the adapter
+constants, descriptor entry, fixture modules, and generated outputs together
+from a verified scratch copy under a lock and a committed journal, only with
+the approval digest of the reviewed sources and anchors. Pack refresh runs
+the pin impact report per mapped working directory over the refreshed root's
+packs and reuses discovery, review, and exact-approval generation unchanged;
+it never approves. None of these widens a pin or grants a capability.
+
 Broader runtime or compiler changes require a minimized real workload showing
 that Runner, World, adapters, and records cannot satisfy the contract.
 Deterministic GC control, compiler checkpoints, multi-P execution, DPOR, and

@@ -1,0 +1,114 @@
+gomad3 adapter regeneration: google.golang.org/grpc v1.83.2 -> v1.84.0
+
+changed upstream source: 0 of 11 rewritten files
+  unchanged clientconn_disconnect_reason_noplan9.go
+  unchanged internal/channelz/syscall_linux.go
+  unchanged internal/channelz/syscall_nonlinux.go
+  unchanged internal/credentials/syscallconn.go
+  unchanged internal/resolver/dns/dns_resolver.go
+  unchanged internal/syscall/syscall_linux.go
+  unchanged internal/syscall/syscall_nonlinux.go
+  unchanged internal/tcp_keepalive_unix.go
+  unchanged internal/transport/readyreader/raw_conn_linux.go
+  unchanged internal/transport/readyreader/raw_conn_nonlinux.go
+  unchanged internal/transport/readyreader/ready_reader.go
+
+proposed anchors:
+  changed version
+          v1.83.2
+       -> v1.84.0
+  changed sum
+          h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU=
+       -> h1:soMyaPJ8pAak5PIQ0DGBUir0XRo2fRoMqhNWMLlLxO0=
+  changed original source inventory
+          sha256:53960aeb3f1d34cfe2340c30365456689710cd7bf32b6faf6e39d6f5306fc9a9
+       -> sha256:70fb408392c1bf8f770ff2299684b3035b365f21cd47ba2384e8ae4de15a344d
+  changed replacement source inventory
+          sha256:9098668e7b66e1d82f5ecbb302556cf9723775b19aa2db68ede45aa1a166adbf
+       -> sha256:b4a4d25a91c02e4109dbe9c19f0fdfac8aae3ee14458ba4c5903e1833228d2b9
+  same    internal/tcp_keepalive_unix.go source
+          sha256:e8bfe03234b391d24006a3a274590111f0f8705fc5b25d9a78391bfdde3df32c
+       -> sha256:e8bfe03234b391d24006a3a274590111f0f8705fc5b25d9a78391bfdde3df32c
+  same    internal/tcp_keepalive_unix.go replacement
+          sha256:8705566fa6ba58f69d8c8215227ddadad46794c333bca38fe6d5399d6be24e8c
+       -> sha256:8705566fa6ba58f69d8c8215227ddadad46794c333bca38fe6d5399d6be24e8c
+  same    internal/transport/readyreader/raw_conn_linux.go source
+          sha256:05a068012fd512ce4ad3c5471f9546349b4e9acdad30dde5df0f02917af58d3f
+       -> sha256:05a068012fd512ce4ad3c5471f9546349b4e9acdad30dde5df0f02917af58d3f
+  same    internal/transport/readyreader/raw_conn_linux.go base internal/transport/readyreader/raw_conn_nonlinux.go
+          sha256:b9f0cf777d60fa3acfb2c22d263738a361b30ed484885b039db1c555a8f53256
+       -> sha256:b9f0cf777d60fa3acfb2c22d263738a361b30ed484885b039db1c555a8f53256
+  same    internal/transport/readyreader/raw_conn_linux.go replacement
+          sha256:00d8188fbf97bb5b6d63c19a36dfce662d3486f344854c10b55b3041dac1d4ce
+       -> sha256:00d8188fbf97bb5b6d63c19a36dfce662d3486f344854c10b55b3041dac1d4ce
+  same    internal/channelz/syscall_linux.go source
+          sha256:6b90796f288344124b635c90237961789ca452ddf78e4b7f9c0417d0b458f61c
+       -> sha256:6b90796f288344124b635c90237961789ca452ddf78e4b7f9c0417d0b458f61c
+  same    internal/channelz/syscall_linux.go base internal/channelz/syscall_nonlinux.go
+          sha256:1be23873d86f82b13b2c7d8d2534b5380215120d15ce3e47bf8d25c9fbdf983c
+       -> sha256:1be23873d86f82b13b2c7d8d2534b5380215120d15ce3e47bf8d25c9fbdf983c
+  same    internal/channelz/syscall_linux.go replacement
+          sha256:caa7ee7b9b6e324d88ad72047b1a5ff1120d82ebb4256243b4910aebedc9e287
+       -> sha256:caa7ee7b9b6e324d88ad72047b1a5ff1120d82ebb4256243b4910aebedc9e287
+  same    internal/syscall/syscall_linux.go source
+          sha256:91096efdaa61581ac7b9d2d8076635d8ca5ac7ef3064094dab2f8efb70f003b2
+       -> sha256:91096efdaa61581ac7b9d2d8076635d8ca5ac7ef3064094dab2f8efb70f003b2
+  same    internal/syscall/syscall_linux.go base internal/syscall/syscall_nonlinux.go
+          sha256:3b74e0c3889ed8a826963f5f3bf9e7bf2bab3ee05f6d2739c9f1bb75cca8d490
+       -> sha256:3b74e0c3889ed8a826963f5f3bf9e7bf2bab3ee05f6d2739c9f1bb75cca8d490
+  same    internal/syscall/syscall_linux.go replacement
+          sha256:94aa678a38c485bfcdeb79f3e43a4df6db3d2755eadb15101acdc06579d222f0
+       -> sha256:94aa678a38c485bfcdeb79f3e43a4df6db3d2755eadb15101acdc06579d222f0
+  same    clientconn_disconnect_reason_noplan9.go source
+          sha256:23f1d780ca5185a832b94dc81111af6ea8916360631b450268adf288fad0e68a
+       -> sha256:23f1d780ca5185a832b94dc81111af6ea8916360631b450268adf288fad0e68a
+  same    clientconn_disconnect_reason_noplan9.go replacement
+          sha256:308091ae5dc8440b748302f3ba47442bec3f0e203b0d7707b444764b9bff5a6e
+       -> sha256:308091ae5dc8440b748302f3ba47442bec3f0e203b0d7707b444764b9bff5a6e
+  same    internal/credentials/syscallconn.go source
+          sha256:47cb93c2b159a3d1e9373a49a44dc50744e51f40ff3f16414cd15c7ceb390ef7
+       -> sha256:47cb93c2b159a3d1e9373a49a44dc50744e51f40ff3f16414cd15c7ceb390ef7
+  same    internal/credentials/syscallconn.go replacement
+          sha256:47138dcc61cefa213a4172c426bbf8230e22f0a6f59d8eb2cdef5d763aded021
+       -> sha256:47138dcc61cefa213a4172c426bbf8230e22f0a6f59d8eb2cdef5d763aded021
+  same    internal/transport/readyreader/ready_reader.go source
+          sha256:aefa4f5b55e10c0ff86d5cf5b5d77a44eb79ca00c412dc9218087f23537fdb00
+       -> sha256:aefa4f5b55e10c0ff86d5cf5b5d77a44eb79ca00c412dc9218087f23537fdb00
+  same    internal/transport/readyreader/ready_reader.go replacement
+          sha256:0d7d71fc3c499a71b9489fe1ebbe6f970af76636e2a8f4100341a965059e1510
+       -> sha256:0d7d71fc3c499a71b9489fe1ebbe6f970af76636e2a8f4100341a965059e1510
+  same    internal/resolver/dns/dns_resolver.go source
+          sha256:fae3828426c9cb90d31a0feafce53892434cfce8ec4ceb2f5cd7f823c2d67136
+       -> sha256:fae3828426c9cb90d31a0feafce53892434cfce8ec4ceb2f5cd7f823c2d67136
+  same    internal/resolver/dns/dns_resolver.go replacement
+          sha256:990c975b23005dd89b766c501b1a07a1c9735431a5cb29d2da83a70ecca3c7d5
+       -> sha256:990c975b23005dd89b766c501b1a07a1c9735431a5cb29d2da83a70ecca3c7d5
+  changed google.golang.org/grpc/internal prepared source set darwin/arm64
+          sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7
+       -> sha256:ecfe2f6ae1c22e7d590bc1c82a37492527b38159a60019631863fd0eef275061
+  changed google.golang.org/grpc/internal prepared source set linux/amd64
+          sha256:59a97baa8db98487dac40abe058ac89865e1ea2cf3d66c6d94cb622e7119d2a7
+       -> sha256:ecfe2f6ae1c22e7d590bc1c82a37492527b38159a60019631863fd0eef275061
+
+stale compatibility packs: none
+
+staged and verified; the apply publishes 7 files:
+  changed deterministicio/adapter_registry_test.go
+  changed deterministicio/boundary/upgrade-go1.27.1.md
+  changed deterministicio/grpc_adapter.go
+  changed deterministicio/grpc_adapter_test.go
+  changed deterministicio/requirements_test.go
+  changed toolchain/version/generated.go
+  changed toolchain/version/version.json
+
+applied sha256:aa24e74c811e22ffc48ff85190ea43c8e8fa3ecb2b3dd447f567ba52782d6187; published 7 files:
+  deterministicio/adapter_registry_test.go
+  deterministicio/boundary/upgrade-go1.27.1.md
+  deterministicio/grpc_adapter.go
+  deterministicio/grpc_adapter_test.go
+  deterministicio/requirements_test.go
+  toolchain/version/generated.go
+  toolchain/version/version.json
+references to google.golang.org/grpc@v1.83.2 left for review:
+  README.md:522
+rebuild .bin/gomad and requalify the adapter's workloads; the adapter changes target identity

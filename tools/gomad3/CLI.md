@@ -578,6 +578,17 @@ go -C tools/gomad3 run ./cmd/gomadtool checked-run \
 go -C tools/gomad3 run ./cmd/gomadtool script-validate --root=.
 ```
 
+### Bump a dependency
+
+A dependency bump never widens a pin; three commands find and re-derive the pins it breaks, and a person approves each re-derived pin. Apply the bump with `go get MODULE@VERSION` in the target module, leave it uncommitted, and run:
+
+1. `gomadtool pin-impact` to list the adapters, pack rules, interception fingerprints, and clock references the bump invalidates.
+2. For each named adapter, `gomadtool adapter-regenerate --module=PATH --version=VERSION`, review the printed upstream diff, then repeat with `--approve-review=DIGEST`. Hand-edit any other reference to the previous version it lists.
+3. `gomadtool compatibility-pack refresh --root=.`, review each printed report, and run the printed `compatibility-pack generate --approve-review=DIGEST` command per request. Each platform's host refreshes and approves its own requests.
+4. Rebuild `.bin/gomad` with `make gomad3`, run `make -C tools/gomad3 validate compatibility-pack-qualification` on each platform, and requalify the regenerated adapter's workloads.
+
+`pin-impact` and `refresh` compare against `HEAD` by default. After committing the bump, pass the revision before it with `--baseline-ref`, because a pack pinned to the replaced version is then reported as not selected rather than invalidated. A moved anchor and `modernc.org/libc` still need a person to edit the adapter. A Go release is not a dependency bump: it follows [`upgrade-dossier`](#close-the-loop-with-upgrade-dossier).
+
 ### Report the pins a dependency bump invalidates
 
 Before applying a dependency bump, report which exact-version pins it breaks:
@@ -668,7 +679,7 @@ If the reviewed boundary changed intentionally, review its reported digest and r
 | `protocol-generate` | Generate or check cross-process protocol endpoints and tests. |
 | `qualification-manifest-generate` | Generate or check qualification workloads from a package's top-level tests and declared dispositions. |
 | `boundary-generate` | Discover, qualify, generate, refresh, or check the capability boundary. |
-| `compatibility-pack` | Discover, review, generate from exact approval, qualify, and check compatibility packs. |
+| `compatibility-pack` | Discover, review, generate from exact approval, qualify, check, and, after a bump, refresh compatibility packs. |
 | `script-validate` | Enforce the reviewed script ownership and policy boundary. |
 | `checked-run` | Run and record one bounded external command with expected status. |
 | `diagnostic-diff` | Compare complete runtime diagnostic traces and locate the first divergence. |
