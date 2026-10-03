@@ -33,6 +33,11 @@ make umpire-check-model
 
 ### Execution constraints
 - Existing IR and Case bytes unchanged (new forms are additive).
+
+### Carried from fn-119.2 review (P3, deferred)
+- The scheduled-activity route index duplicates the Nexus route-index code; fold them into one generic index if this task touches either.
+- Scheduled-activity dispatch has no activation bound like the Nexus path (route capacity still limits it); add the same bound.
+- A standalone activity start already carrying the reserved scheduled-attempt header is not refused, so its Run fails without a clear message; refuse it at preparation with a named error.
 ## Acceptance
 - [ ] A realization can declare a workflow-scheduled activity, await it and finish with its outcome; the lifter lifts it and lowering emits the instructions of tasks 1-2 (positive and refusal fixtures).
 - [ ] The realization-declaration question is answered in the spec's Architecture section.
