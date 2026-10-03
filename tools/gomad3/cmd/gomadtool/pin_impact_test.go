@@ -147,6 +147,55 @@ func TestRunPinImpactReportsInvalidatedPinsWithoutTouchingTheModule(t *testing.T
 	}
 }
 
+// TestRunPinImpactReportsANewerGoDirectiveAsUnknownPins runs a candidate whose
+// go directive is newer than the resolving go command through the real
+// resolver: the report still renders, with the toolchain-bound pins unknown.
+func TestRunPinImpactReportsANewerGoDirectiveAsUnknownPins(t *testing.T) {
+	fixture := newPinImpactFixture(t)
+	baseline, candidate := t.TempDir(), t.TempDir()
+	writePinImpactModule(t, baseline, fixture.baseline)
+	writePinImpactModule(t, candidate, fixture.baseline)
+	goMod := filepath.Join(candidate, "go.mod")
+	contents, err := os.ReadFile(goMod)
+	if err != nil {
+		t.Fatal(err)
+	}
+	newer := strings.Replace(string(contents), "\ngo 1.27.0\n", "\ngo 1.99.0\n\ntoolchain go1.99.0\n", 1)
+	if newer == string(contents) {
+		t.Fatal("fixture go.mod has no go directive to raise")
+	}
+	if err := os.WriteFile(goMod, []byte(newer), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	before := readModuleSnapshot(t, candidate)
+	var stdout, stderr bytes.Buffer
+	status := run([]string{"pin-impact", "--root", fixture.root, "--module", candidate, "--baseline-module", baseline, "--go", fixture.goCommand, "--json"}, &stdout, &stderr)
+	if status != 1 {
+		t.Fatalf("status = %d, want 1; stderr:\n%s", status, stderr.String())
+	}
+	var report pinimpact.Report
+	if err := json.Unmarshal(stdout.Bytes(), &report); err != nil {
+		t.Fatal(err)
+	}
+	unknown := map[pinimpact.Class]int{}
+	for _, pin := range report.Pins {
+		if pin.Status == pinimpact.StatusUnknown {
+			unknown[pin.Class]++
+			if !strings.Contains(pin.Reason, "requires go 1.99.0") {
+				t.Fatalf("unknown pin reason = %q", pin.Reason)
+			}
+		} else if pin.Class == pinimpact.ClassAdapter {
+			t.Fatalf("adapter pin changed status without a version change: %+v", pin)
+		}
+	}
+	if !report.Invalidated || unknown[pinimpact.ClassInterception] == 0 || unknown[pinimpact.ClassClockReference] == 0 {
+		t.Fatalf("unknown pins = %v, want interception and clock-reference pins unknown", unknown)
+	}
+	if after := readModuleSnapshot(t, candidate); after != before {
+		t.Fatalf("candidate module changed:\n%s\nwant:\n%s", after, before)
+	}
+}
+
 func TestRunPinImpactReadsTheBaselineFromGit(t *testing.T) {
 	fixture := newPinImpactFixture(t)
 	repository := t.TempDir()

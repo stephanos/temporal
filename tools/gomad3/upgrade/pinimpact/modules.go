@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	goversion "go/version"
 	"io"
 	"io/fs"
 	"os"
@@ -151,6 +152,7 @@ type GoResolver struct {
 	command     string
 	environment []string
 	cache       string
+	version     string
 }
 
 // NewGoResolver returns a resolver that runs goCommand with environment, minus
@@ -195,6 +197,14 @@ func (resolver *GoResolver) Resolve(ctx context.Context, files ModuleFiles) (_ m
 	if err != nil {
 		return nil, &InputError{Err: err}
 	}
+	goVersion, err := resolver.goVersion(ctx)
+	if err != nil {
+		return nil, err
+	}
+	moduleFile, err = lowerGoDirective(moduleFile, goVersion)
+	if err != nil {
+		return nil, &InputError{Err: err}
+	}
 	scratch, err := os.MkdirTemp("", "gomad3-pin-impact-module-")
 	if err != nil {
 		return nil, fmt.Errorf("create scratch module: %w", err)
@@ -220,6 +230,62 @@ func (resolver *GoResolver) Resolve(ctx context.Context, files ModuleFiles) (_ m
 		return nil, errors.New("go list -m all output exceeds its bound")
 	}
 	return decodeModuleList(result.Stdout.RawBytes)
+}
+
+// goVersion reports the resolving go command's version without its "go"
+// prefix, for example "1.27.1".
+func (resolver *GoResolver) goVersion(ctx context.Context) (string, error) {
+	if resolver.version != "" {
+		return resolver.version, nil
+	}
+	result, err := hostexec.Run(ctx, hostexec.Request{
+		Command: []string{resolver.command, "env", "GOVERSION"}, Dir: resolver.cache, Env: resolver.environment,
+		Timeout: resolveTimeout, TerminateGrace: time.Second, OutputLimit: 4096,
+	})
+	if err != nil {
+		return "", fmt.Errorf("run go env: %w", err)
+	}
+	if result.Termination != hostexec.TerminationExit || result.ExitCode != 0 || result.WatchdogTimeout || result.Stdout.Truncated {
+		return "", fmt.Errorf("go env GOVERSION failed: %s", strings.TrimSpace(string(result.Stderr.RawBytes)))
+	}
+	version := strings.TrimSpace(string(result.Stdout.RawBytes))
+	// A development or experiment build reports extra fields after a space.
+	version, _, _ = strings.Cut(version, " ")
+	if !goversion.IsValid(version) {
+		return "", fmt.Errorf("resolving go command reports unsupported version %q", version)
+	}
+	resolver.version = strings.TrimPrefix(version, "go")
+	return resolver.version, nil
+}
+
+// lowerGoDirective caps the scratch module's go directive at the resolving
+// go command's version and drops its toolchain line. Under GOTOOLCHAIN=local
+// the go command refuses a newer directive outright, while the module graph a
+// pruned (go 1.17 or later) module selects does not depend on the directive,
+// so the report can still name the toolchain-bound pins unknown.
+func lowerGoDirective(moduleFile []byte, goVersion string) ([]byte, error) {
+	parsed, err := modfile.Parse("go.mod", moduleFile, nil)
+	if err != nil {
+		return nil, fmt.Errorf("parse go.mod: %w", err)
+	}
+	changed := false
+	if parsed.Go != nil && goversion.Compare("go"+parsed.Go.Version, "go"+goVersion) > 0 {
+		if goversion.Compare("go"+goVersion, "go1.17") < 0 {
+			return nil, fmt.Errorf("resolving go %s predates pruned module graphs", goVersion)
+		}
+		if err := parsed.AddGoStmt(goVersion); err != nil {
+			return nil, fmt.Errorf("lower go directive: %w", err)
+		}
+		changed = true
+	}
+	if parsed.Toolchain != nil {
+		parsed.DropToolchainStmt()
+		changed = true
+	}
+	if !changed {
+		return moduleFile, nil
+	}
+	return parsed.Format()
 }
 
 func decodeModuleList(output []byte) (map[string]string, error) {

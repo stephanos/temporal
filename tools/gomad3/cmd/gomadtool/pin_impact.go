@@ -78,11 +78,14 @@ func runPinImpact(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	if *goCommand == "" {
-		*goCommand, err = exec.LookPath("go")
-		if err != nil {
-			fmt.Fprintln(stderr, "gomad3 pin impact requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go")
-			return 3
-		}
+		*goCommand = "go"
+	}
+	// A bare name such as "go" is searched on PATH rather than taken
+	// relative to the working directory.
+	*goCommand, err = exec.LookPath(*goCommand)
+	if err != nil {
+		fmt.Fprintf(stderr, "gomad3 pin impact requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", err)
+		return 3
 	}
 	absoluteGo, err := filepath.Abs(*goCommand)
 	if err != nil {
