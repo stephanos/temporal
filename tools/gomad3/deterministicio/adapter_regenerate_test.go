@@ -284,9 +284,18 @@ func TestAdapterSourceEditsReplaceEveryAnchor(t *testing.T) {
 	}
 	root := t.TempDir()
 	copyFixtureTree(t, ".", filepath.Join(root, "deterministicio"))
+	// A test literal naming the module version, such as a go.mod replace
+	// directive, moves to the proposed version with the adapter.
+	reference := "package deterministicio\n\nconst memberlistReplaceFixture = \"replace " + memberlistModulePath + " " + memberlistVersion + " => ./memberlist\\n\"\n"
+	if err := os.WriteFile(filepath.Join(root, "deterministicio", "version_reference_test.go"), []byte(reference), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	edits, err := regeneration.SourceEdits(root)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if moved := edits["deterministicio/version_reference_test.go"]; !bytes.Contains(moved, []byte(memberlistModulePath+" v99.0.0-fixture => ./memberlist")) {
+		t.Fatalf("regenerated version reference = %q", moved)
 	}
 	adapter, found := edits["deterministicio/memberlist_adapter.go"]
 	if !found {

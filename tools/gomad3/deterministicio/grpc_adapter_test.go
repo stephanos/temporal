@@ -13,24 +13,22 @@ import (
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
 
-func TestPinnedGRPCModuleInventory(t *testing.T) {
-	toolchainRoot, err := filepath.Abs(filepath.Join("..", ".toolchain"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	command := exec.CommandContext(context.Background(), filepath.Join(toolchainRoot, "bin", "go"), "env", "GOMODCACHE")
-	moduleCache, err := command.Output()
-	if err != nil {
-		t.Fatal(err)
-	}
-	moduleRoot := filepath.Join(strings.TrimSpace(string(moduleCache)), "google.golang.org", "grpc@v1.83.2")
-	got, err := target.DigestAdapterSourceInventory(moduleRoot)
-	if err != nil {
-		t.Fatal(err)
-	}
-	const want = "sha256:53960aeb3f1d34cfe2340c30365456689710cd7bf32b6faf6e39d6f5306fc9a9"
-	if got != want {
-		t.Fatalf("gRPC module inventory = %q, want %q", got, want)
+// TestPinnedAdapterModuleInventories digests each adapted module in the
+// pinned toolchain's module cache against its reviewed source inventory.
+func TestPinnedAdapterModuleInventories(t *testing.T) {
+	moduleCache := pinnedModuleCache(t)
+	for _, test := range []struct{ name, moduleDirectory, want string }{
+		{name: "gRPC", moduleDirectory: "google.golang.org/grpc@v1.83.2", want: "sha256:53960aeb3f1d34cfe2340c30365456689710cd7bf32b6faf6e39d6f5306fc9a9"},
+		{name: "x/net", moduleDirectory: "golang.org/x/net@v0.58.0", want: xnetOriginalSourceInventorySHA256},
+		{name: "modernc memory", moduleDirectory: "modernc.org/memory@v1.11.0", want: memoryOriginalSourceInventorySHA256},
+	} {
+		got, err := target.DigestAdapterSourceInventory(filepath.Join(moduleCache, filepath.FromSlash(test.moduleDirectory)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got != test.want {
+			t.Fatalf("%s module inventory = %q, want %q", test.name, got, test.want)
+		}
 	}
 }
 
@@ -162,68 +160,6 @@ func TestPrepareGRPCReturnsTypedInventoryCapacityError(t *testing.T) {
 	var capacity *AdapterCapacityError
 	if !errors.As(err, &capacity) || capacity.Resource != "bytes" {
 		t.Fatalf("prepareGRPC() error = %#v", err)
-	}
-}
-
-func TestProfileRejectsUnsupportedGRPCVersion(t *testing.T) {
-	workingDirectory := t.TempDir()
-	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte("module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.80.1\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	_, _, err := Default().PrepareBuildAdapters(target.Spec{PreparationRoot: t.TempDir(), WorkingDir: workingDirectory}, t.TempDir())
-	if err == nil || !IsInvalidBuildAdapterConfiguration(err) || !strings.Contains(err.Error(), "unsupported google.golang.org/grpc version") {
-		t.Fatalf("PrepareBuildAdapters() error = %v", err)
-	}
-}
-
-func TestProfileRejectsExistingGRPCReplacement(t *testing.T) {
-	workingDirectory := t.TempDir()
-	moduleFile := "module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.83.2\n\nreplace google.golang.org/grpc => ./grpc\n"
-	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte(moduleFile), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	_, _, err := Default().PrepareBuildAdapters(target.Spec{PreparationRoot: t.TempDir(), WorkingDir: workingDirectory}, t.TempDir())
-	if err == nil || !IsInvalidBuildAdapterConfiguration(err) || !strings.Contains(err.Error(), "already replaces google.golang.org/grpc") {
-		t.Fatalf("PrepareBuildAdapters() error = %v", err)
-	}
-}
-
-func TestProfileRejectsExistingGRPCReplacementBlock(t *testing.T) {
-	workingDirectory := t.TempDir()
-	moduleFile := "module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.83.2\n\nreplace (\n\tgoogle.golang.org/grpc => ./grpc\n)\n"
-	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte(moduleFile), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	_, _, err := Default().PrepareBuildAdapters(target.Spec{PreparationRoot: t.TempDir(), WorkingDir: workingDirectory}, t.TempDir())
-	if err == nil || !IsInvalidBuildAdapterConfiguration(err) || !strings.Contains(err.Error(), "already replaces google.golang.org/grpc") {
-		t.Fatalf("PrepareBuildAdapters() error = %v", err)
-	}
-}
-
-func TestProfileRejectsChangedGRPCModuleSum(t *testing.T) {
-	workingDirectory := t.TempDir()
-	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte("module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.83.2\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(workingDirectory, "go.sum"), []byte("google.golang.org/grpc v1.83.2 h1:changed\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	_, _, err := Default().PrepareBuildAdapters(target.Spec{PreparationRoot: t.TempDir(), WorkingDir: workingDirectory}, pinnedModuleCache(t))
-	if err == nil || !IsInvalidBuildAdapterConfiguration(err) || !strings.Contains(err.Error(), "module sum") {
-		t.Fatalf("PrepareBuildAdapters() error = %v", err)
-	}
-}
-
-func TestProfileRejectsBuildModFileWithGRPCAdapter(t *testing.T) {
-	workingDirectory := t.TempDir()
-	if err := os.WriteFile(filepath.Join(workingDirectory, "go.mod"), []byte("module example.test\n\ngo 1.26.4\n\nrequire google.golang.org/grpc v1.83.2\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	_, _, err := Default().PrepareBuildAdapters(target.Spec{
-		PreparationRoot: t.TempDir(), WorkingDir: workingDirectory, BuildModFile: filepath.Join(workingDirectory, "existing.mod"),
-	}, t.TempDir())
-	if err == nil || !IsInvalidBuildAdapterConfiguration(err) || !strings.Contains(err.Error(), "existing build modfile") {
-		t.Fatalf("PrepareBuildAdapters() error = %v", err)
 	}
 }
 

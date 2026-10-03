@@ -1,0 +1,24 @@
+# fn-108 size-count.sh (counting rule v2), test-go rows; before = f144997bd in a shared clone, after = working tree
+before scope                    class                   files  physical      code  codebytes
+before tools/gomad3             test-go                   320     55478     51714    1744150
+before total                    test-go                   347     61127     57042    1909067
+after  tools/gomad3             test-go                   314     54302     50542    1704169
+after  total                    test-go                   341     59951     55870    1869086
+
+# changed test files: path, code before, code after, change, physical before, physical after
+tools/gomad3/architecture_test.go	478	320	-158	507	338
+tools/gomad3/deterministicio/adapter_regenerate_test.go	342	349	7	375	384
+tools/gomad3/deterministicio/adapter_rewrite_test.go	341	654	313	367	734
+tools/gomad3/deterministicio/cactusstatsd_adapter_test.go	178	0	-178	185	0
+tools/gomad3/deterministicio/filesystem_patch_test.go	35	0	-35	37	0
+tools/gomad3/deterministicio/grpc_adapter_test.go	242	181	-61	261	197
+tools/gomad3/deterministicio/hashicorpmetrics_adapter_test.go	177	59	-118	184	62
+tools/gomad3/deterministicio/host_dispatch_patch_test.go	0	56	56	0	63
+tools/gomad3/deterministicio/memberlist_adapter_test.go	268	104	-164	276	108
+tools/gomad3/deterministicio/memory_adapter_test.go	199	189	-10	211	200
+tools/gomad3/deterministicio/network_patch_test.go	35	0	-35	37	0
+tools/gomad3/deterministicio/pebble_adapter_test.go	210	0	-210	218	0
+tools/gomad3/deterministicio/sentry_adapter_test.go	203	0	-203	211	0
+tools/gomad3/deterministicio/sprig_adapter_test.go	183	0	-183	191	0
+tools/gomad3/deterministicio/validator_adapter_test.go	183	0	-183	191	0
+tools/gomad3/deterministicio/xnet_adapter_test.go	139	129	-10	148	137

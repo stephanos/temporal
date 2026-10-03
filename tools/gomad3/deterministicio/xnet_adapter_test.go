@@ -11,17 +11,6 @@ import (
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
 
-func TestPinnedXNetModuleInventory(t *testing.T) {
-	moduleRoot := filepath.Join(pinnedModuleCache(t), "golang.org", "x", "net@v0.58.0")
-	got, err := target.DigestAdapterSourceInventory(moduleRoot)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got != xnetOriginalSourceInventorySHA256 {
-		t.Fatalf("x/net module inventory = %q, want %q", got, xnetOriginalSourceInventorySHA256)
-	}
-}
-
 func TestRewriteXNetSocketDeniesRawSocketOptions(t *testing.T) {
 	sysSource, emptySource := readPinnedXNetSocketSources(t)
 	rewrittenSys, err := rewriteAdapterSource(xnetModulePath, xnetRewrites[0], sysSource)

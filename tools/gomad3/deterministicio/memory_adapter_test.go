@@ -11,17 +11,6 @@ import (
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
 
-func TestPinnedModerncMemoryModuleInventory(t *testing.T) {
-	moduleRoot := filepath.Join(pinnedModuleCache(t), "modernc.org", "memory@v1.11.0")
-	got, err := target.DigestAdapterSourceInventory(moduleRoot)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got != memoryOriginalSourceInventorySHA256 {
-		t.Fatalf("modernc memory module inventory = %q, want %q", got, memoryOriginalSourceInventorySHA256)
-	}
-}
-
 func TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings(t *testing.T) {
 	source := readPinnedModerncMemorySource(t)
 	rewritten, err := rewriteAdapterSource(memoryModulePath, memoryRewrites[0], source)
