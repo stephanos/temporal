@@ -40,9 +40,64 @@ No staging, commits, worktrees or recursive deletion: move a removed file to `.f
 
 
 ## Done summary
-TBD
+Part B is closed. The gate now generates only the IR's ScalaPB classes. `Gate.generateIr` packages ScalaPB's generator as a protoc plugin and runs the pinned protoc with it over the unchanged `ir.proto`. It compiles the output against `scalapb-runtime` 0.11.20 with Scala 3.9.0 into `model/gen/ir-scalapb.jar`, the jar the lifter already reads. The `--java_out` run, the protobuf-java packaging, its version constant and `model/gen/ir-proto.jar` are gone; the old jar was moved to `.flow/tmp/trash/fn113-4/`. I kept the name `ir-scalapb.jar`, which task 3 had already given the lifter. The stamp is now `<schema sha256> scalapb:0.11.20 scala:3.9.0`.
 
+R5, end to end, on the real tools:
+- I moved the jar and stamp to `.flow/tmp/fn113-4/`. `--generate-ir` regenerated them.
+- `--generate-ir --if-stale` then did nothing (0.42 s).
+- With the stamp's generator version perturbed to 0.11.19, `--if-stale` regenerated and restored the stamp.
+
+The gate suite (31 tests, stub tools) covers the failure messages:
+- a missing plugin: `the ScalaPB plugin model/gen/protoc-gen-scala is missing: scala-cli did not package it`
+- a stale plugin: `... is stale: scala-cli did not package it`
+- a missing jar: `model/gen/ir-scalapb.jar is missing: the IR schema <schema> was not packaged`
+- a stale jar: `... is stale: the IR schema <schema> was not packaged into it`
+
+It also covers regeneration on a schema or generator-version change, and that a failed generation writes no stamp.
+
+R6: `git grep -n "com.google.protobuf\|protobuf-java" -- model/lifter model/gate ':!model/lifter/testdata'` finds nothing. The comment on `javaKind` in `Realizations.scala` that named protobuf-java now names the kinds it spells (`FLOAT`, `DOUBLE`, `BYTE_STRING`).
+
+Makefile: `MODEL_PROTO_JARS` is the one ScalaPB jar again, with a single rule. Task 2's chained second rule is gone.
+
+R12 (lifter and gate half):
+- The gate's `generateIr` doc comment and usage header describe ScalaPB generation.
+- `Lift.scala`'s header says the IR is built as the gate's ScalaPB classes and written as ProtoJSON.
+- `model/README.md`'s Lifting row and its `model/gate` row say the same.
+- Nothing removed is named anywhere.
+
+R10 and gates:
+- `make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks` is ok, with no change under `model/ir`, `model/cases` or `model/lifter/testdata`.
+- `make lint-model` is ok and lints no generated source; the generated sources exist only in `model/gen/history`.
+- `make lint-code-fast` cannot judge this task here. Its base revision (`main`, last commit 2026-02-22) makes it lint every package the branch diverges in. It reports 718 findings, all in Temporal server packages this spec never touches: `tests/` 375, `tools/flakereport` 92, `service/worker/workerdeployment` 34, `service/matching` 24, and so on. This task changes no Go code.
+- The Makefile's own golangci-lint invocation over the Umpire Go packages reports 0 issues: `GOLANGCI_LINT_FIX=false make lint-code LINT_CODE_TARGETS="./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/..."`.
+
+R25: no library was weighed; the change only removes code.
+
+Conductor notes:
+- In `.plans/UMPIRE_MODULES.md`, the Lifter row's dependencies are now scalapb-runtime, scalapb-json4s and `model/gen/ir-scalapb.jar`, not protobuf-java or `ir-proto.jar`. The Gate row's `--generate-ir` now emits the ScalaPB jar.
+- The spec's R10 names `make lint-code-fast` as a closing gate; on this branch it needs a base revision at the branch point, or the scoped `lint-code` above.
+
+### Review (claude-opus-5-5, fresh context)
+
+Verdict SHIP, with nits only, applied:
+- The `flat_package` comment says what the option buys: the classes sit in the schema's java_package, which the lifter imports.
+- The `generateIr` doc comment is rewrapped.
+- The lifter's `javaKind` is renamed `kindName`.
+- The jar and stamp copies from the R5 proof are now in `.flow/tmp/trash/fn113-4/`.
+
+After the nits: the gate suite passes 31/31, `scala-cli test model/lifter` passes 14/14, and `make lint-model` is ok.
+
+Corrections:
+- `model/lifter/Realizations.scala` is outside this task's Touches. Clearing the R6 grep required rewording its comment, and the review renamed the helper.
+- With the real tools, a perturbed stamp regenerates the jar. The message naming the jar and the schema is shown by the stub tests, not by a real-tool run.
+
+Conductor notes, added:
+- `tools/umpire/model/isolation_test.go:195` still guards against `gen/ir-proto.jar`. It is harmless, but it names a file that no longer exists; it is for a later Go clean-up.
+- `.plans/` and `MILESTONES.md` still mention protobuf-java.
+- R10 says `lint-code-fast` passes, which cannot hold on this branch as configured. The conductor treats the scoped `lint-code` over the Umpire packages as R10's Go lint.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 843166868087fc426486cb727e184f0ceab993e2
+- Tests: mise exec -- scala-cli test --suppress-outdated-dependency-warning model/gate -> 31 passed (.flow/tmp/fn113-4-gate-suite.log), jar and stamp moved away; scala-cli run model/gate -- --generate-ir -> generated model/gen/ir-scalapb.jar (.flow/tmp/fn113-4/generate.log), scala-cli run model/gate -- --generate-ir --if-stale -> no work, 0.42 s (.flow/tmp/fn113-4/generate-ifstale.log), stamp perturbed to scalapb:0.11.19; --generate-ir --if-stale -> regenerated, stamp restored (.flow/tmp/fn113-4/generate-perturbed.log), git grep com.google.protobuf|protobuf-java in model/lifter model/gate (excluding testdata) -> none, make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks -> == ok, no change under model/ir, model/cases, model/lifter/testdata (.flow/tmp/fn113-4/check-model.log), make lint-model -> ok (.flow/tmp/fn113-4/lint-model.log), GOLANGCI_LINT_FIX=false make lint-code-fast -> 718 pre-existing findings in Temporal server packages outside this spec (base rev main is far behind the branch); no Go change in this task (.flow/tmp/fn113-4/lint-code-fast.log), GOLANGCI_LINT_FIX=false make lint-code LINT_CODE_TARGETS='./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/...' -> 0 issues (.flow/tmp/fn113-4/lint-code-umpire.log), after review nits: scala-cli test model/gate -> 31 passed; scala-cli test model/lifter -> 14/14; make lint-model -> ok, independent review (claude-opus-5-5, fresh context): SHIP; nits applied
 - PRs:
