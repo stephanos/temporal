@@ -538,7 +538,7 @@ other way meets the same rules at its reader.
 
 ## What the reader implements
 
-The rules for the [specimens](specimens/README.md)' constructs are above: channels and the
+The rules for the specimens' constructs are above: channels and the
 redeliveries derived from them, monitors, assumptions, holes, scoped replacement in a composition, the
 visible projection of a refinement, Claims and progress. An internal action (`internal`) is a step of
 the system that is not a timer. `tools/umpire/model` implements all of them: `Build` interprets Values through
@@ -636,7 +636,7 @@ The Scala framework's own composition starts from each member's first start only
 every start, as [Compositions](#compositions) says; bringing the front end in line
 is future work.
 
-Two narrowings came from the specimens' evidence in `specimens/README.md`:
+Two narrowings came from the specimens' evidence:
 
 - **Machines 6.** A stutter records no fact the product sees only where the refinement names what the
   product sees. `activityProtocol` names nothing, so its 240 stutters that record a product fact

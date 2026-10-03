@@ -281,7 +281,6 @@ requires exactly that of a live Run and of its replay.
 | `model/project.scala` | The build settings of the DSL and the Models |
 | [SEMANTICS.md](SEMANTICS.md) | The evaluation rules of the Umpire IR: what every construct means |
 | [specs/KNOWN_BUG.md](specs/KNOWN_BUG.md) | Proposed requirements for acknowledging a known bug; not implemented |
-| [specimens/](specimens/README.md) | Two reviewed design sketches, with their trace examples; no gate builds them |
 | `model/gen` | Build output of the gate; ignored by git |
 
 The module map, [.plans/UMPIRE_MODULES.md](../.plans/UMPIRE_MODULES.md), states each module's job,
