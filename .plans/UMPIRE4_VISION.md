@@ -2,6 +2,7 @@
 
 - define a single model for software behavior
 - very developer-friendly API to define models and tests
+- model should be beautiful
 - works in distributed processes where clock skew can happen
 
 ---
