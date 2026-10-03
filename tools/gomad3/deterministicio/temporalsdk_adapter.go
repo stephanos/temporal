@@ -15,10 +15,12 @@ const (
 	temporalSDKUtilsReplacementSHA256           = "sha256:32a474075bd195aebbc147d64d573a198a149562100dcc7d2c583c5193e3034d"
 )
 
-var temporalSDKPreparedSourceSetSHA256 = hostPin(map[string]string{
+var temporalSDKPreparedSourceSetSHA256ByHost = map[string]string{
 	"darwin/arm64": "sha256:45cd84114a3b540d08926dbfefc61619f1a1762a2c10572054ae585f356c57b6",
 	"linux/amd64":  "sha256:45cd84114a3b540d08926dbfefc61619f1a1762a2c10572054ae585f356c57b6",
-})
+}
+
+var temporalSDKPreparedSourceSetSHA256 = hostPin(temporalSDKPreparedSourceSetSHA256ByHost)
 
 // temporalSDKRewrites removes the SDK's interrupt channel from the host: the
 // deterministic build never delivers SIGINT or SIGTERM, so InterruptCh returns
@@ -43,15 +45,17 @@ var temporalSDKRewrites = []sourceRewrite{
 	},
 }
 
+var temporalSDKAdapter = rewrittenModule{
+	module: temporalSDKModulePath, version: temporalSDKVersion, sum: temporalSDKSum,
+	cacheElements:                 []string{"go.temporal.io", "sdk@" + temporalSDKVersion},
+	replacementDirectory:          "temporal-sdk",
+	originalInventorySHA256:       temporalSDKOriginalSourceInventorySHA256,
+	replacementInventorySHA256:    temporalSDKReplacementSourceInventorySHA256,
+	preparedPackage:               temporalSDKModulePath + "/internal",
+	preparedSourceSetSHA256ByHost: temporalSDKPreparedSourceSetSHA256ByHost,
+	rewrites:                      temporalSDKRewrites,
+}
+
 func prepareTemporalSDK(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
-	return prepareRewrittenModule(moduleCache, root, identity, rewrittenModule{
-		module: temporalSDKModulePath, version: temporalSDKVersion, sum: temporalSDKSum,
-		cacheElements:              []string{"go.temporal.io", "sdk@" + temporalSDKVersion},
-		replacementDirectory:       "temporal-sdk",
-		originalInventorySHA256:    temporalSDKOriginalSourceInventorySHA256,
-		replacementInventorySHA256: temporalSDKReplacementSourceInventorySHA256,
-		preparedPackage:            temporalSDKModulePath + "/internal",
-		preparedSourceSetSHA256:    temporalSDKPreparedSourceSetSHA256,
-		rewrites:                   temporalSDKRewrites,
-	})
+	return prepareRewrittenModule(moduleCache, root, identity, temporalSDKAdapter)
 }

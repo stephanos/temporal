@@ -11,17 +11,6 @@ import (
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
 
-func TestPinnedModerncMemoryModuleInventory(t *testing.T) {
-	moduleRoot := filepath.Join(pinnedModuleCache(t), "modernc.org", "memory@v1.11.0")
-	got, err := target.DigestAdapterSourceInventory(moduleRoot)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got != memoryOriginalSourceInventorySHA256 {
-		t.Fatalf("modernc memory module inventory = %q, want %q", got, memoryOriginalSourceInventorySHA256)
-	}
-}
-
 func TestRewriteModerncMemoryModelsOnlyAnonymousAllocatorMappings(t *testing.T) {
 	source := readPinnedModerncMemorySource(t)
 	rewritten, err := rewriteAdapterSource(memoryModulePath, memoryRewrites[0], source)
@@ -125,16 +114,9 @@ func TestPrepareModerncMemoryRejectsModuleDrift(t *testing.T) {
 
 func TestModerncMemoryRejectsChangedReplacementInventory(t *testing.T) {
 	identity := gomadversion.AdapterIdentity{Module: memoryModulePath, Version: memoryVersion, Sum: memorySum}
-	_, err := prepareRewrittenModule(pinnedModuleCache(t), t.TempDir(), identity, rewrittenModule{
-		module: memoryModulePath, version: memoryVersion, sum: memorySum,
-		cacheElements:              []string{"modernc.org", "memory@" + memoryVersion},
-		replacementDirectory:       "modernc-memory",
-		originalInventorySHA256:    memoryOriginalSourceInventorySHA256,
-		replacementInventorySHA256: memoryOriginalSourceInventorySHA256,
-		preparedPackage:            memoryModulePath,
-		preparedSourceSetSHA256:    memoryPreparedSourceSetSHA256,
-		rewrites:                   memoryRewrites,
-	})
+	changed := memoryAdapter
+	changed.replacementInventorySHA256 = memoryOriginalSourceInventorySHA256
+	_, err := prepareRewrittenModule(pinnedModuleCache(t), t.TempDir(), identity, changed)
 	if err == nil || !strings.Contains(err.Error(), "replacement inventory identity mismatch") {
 		t.Fatalf("changed modernc memory replacement inventory: %v", err)
 	}

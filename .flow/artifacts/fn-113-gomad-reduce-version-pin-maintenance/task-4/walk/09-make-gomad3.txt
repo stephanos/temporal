@@ -1,0 +1,15 @@
+make[1]: Entering directory '<scratch-clone>/tools/gomad3'
+GOCACHE=<scratch-clone>/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=<scratch-clone>/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+GOCACHE=<scratch-clone>/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+GOCACHE=<scratch-clone>/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=<scratch-clone>/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=<scratch-clone>/tools/gomad3
+gomad3 patch and overlay inputs are valid
+GOCACHE=<scratch-clone>/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=<scratch-clone>/tools/gomad3
+gomad3 script ownership is valid
+env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=<scratch-clone>/tools/gomad3/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
+	go run ./cmd/gomadtool toolchain-build --root=<scratch-clone>/tools/gomad3
+gomad3 toolchain is ready (linux/arm64, key 344ad460671b7504bb4a4c59a31f211dcc44e4461de0c0a6ef6866a8f6ff898b)
+env -u GOMADSEED -u GOMAD3_CHILD_SEED CGO_ENABLED=0 GOTOOLCHAIN=local TZ=UTC \
+	.toolchain/bin/go build -trimpath -o .bin/gomad ./cmd/gomad
+make[1]: Leaving directory '<scratch-clone>/tools/gomad3'

@@ -7,6 +7,7 @@ import (
 	"go/format"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -87,10 +88,50 @@ func publishGeneration(root string, rendered renderedGeneration) error {
 	if err := hostfs.Replace(filepath.Join(root, "generation.json"), rendered.state, 0o644); err != nil {
 		return fmt.Errorf("write compatibility-pack generation state: %w", err)
 	}
+	return removeUngeneratedOutputs(root, rendered.files)
+}
+
+// removeUngeneratedOutputs removes the packs and reports the generation no
+// longer renders: the pack of a request whose approval was cleared, and the
+// pack and report of a removed request. Requests are inputs and stay.
+func removeUngeneratedOutputs(root string, expected map[string][]byte) error {
+	for _, directory := range []string{"packs", "reports"} {
+		entries, err := os.ReadDir(filepath.Join(root, directory))
+		if errors.Is(err, os.ErrNotExist) {
+			continue
+		}
+		if err != nil {
+			return fmt.Errorf("read generated compatibility-pack directory %s: %w", directory, err)
+		}
+		for _, entry := range entries {
+			relative := directory + "/" + entry.Name()
+			if _, found := expected[relative]; found || !entry.Type().IsRegular() {
+				continue
+			}
+			if err := os.Remove(filepath.Join(root, directory, entry.Name())); err != nil {
+				return fmt.Errorf("remove ungenerated compatibility-pack artifact %s: %w", relative, err)
+			}
+		}
+	}
 	return nil
 }
 
+// Check requires root's generated packs to be current and, where root has a
+// working-directory table, the table to map exactly root's requests, each to
+// a directory holding a go.mod.
 func Check(root string) error {
+	return check(root, true)
+}
+
+// CheckStagedCopy is Check for a staged copy of the module made without the
+// repository around it, as adapter regeneration verifies before publishing.
+// The table must still map exactly root's requests, but the directories it
+// names lie outside the copy, so they are not required to hold a go.mod.
+func CheckStagedCopy(root string) error {
+	return check(root, false)
+}
+
+func check(root string, requireModules bool) error {
 	requests, err := loadRequests(root, false)
 	if err != nil {
 		return err
@@ -111,6 +152,42 @@ func Check(root string) error {
 	}
 	if err := rejectExtraGeneratedFiles(root, rendered.files); err != nil {
 		return err
+	}
+	// A root with a working-directory table must map exactly its requests.
+	if _, err := os.Lstat(filepath.Join(root, WorkingDirectoriesFile)); err == nil {
+		return checkWorkingDirectories(root, requests, requireModules)
+	}
+	return nil
+}
+
+// CheckWorkingDirectories requires root's working-directory table, which
+// refresh and qualify --all read, to exist and to map exactly root's
+// requests. With requireModules each mapped directory must hold a go.mod.
+// Check enforces the table only where it exists, because a downstream root
+// may never refresh.
+func CheckWorkingDirectories(root string, requireModules bool) error {
+	requests, err := loadRequests(root, false)
+	if err != nil {
+		return err
+	}
+	return checkWorkingDirectories(root, requests, requireModules)
+}
+
+func checkWorkingDirectories(root string, requests map[string]Request, requireModules bool) error {
+	directories, err := workingDirectoriesFor(root, requests)
+	if err != nil || !requireModules {
+		return err
+	}
+	ids := make([]string, 0, len(directories))
+	for id := range directories {
+		ids = append(ids, id)
+	}
+	slices.Sort(ids)
+	for _, id := range ids {
+		info, err := os.Stat(filepath.Join(directories[id], "go.mod"))
+		if err != nil || !info.Mode().IsRegular() {
+			return &InputError{Err: fmt.Errorf("compatibility-pack working directory of %s in %s holds no go.mod", id, WorkingDirectoriesFile)}
+		}
 	}
 	return nil
 }

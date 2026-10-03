@@ -528,9 +528,20 @@ go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack qualify \
 go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack check --root=.
 ```
 
-Calling `compatibility-pack generate --root=.` without a request or approval regenerates already approved packs; it does not approve a new request.
+Calling `compatibility-pack generate --root=.` without a request or approval regenerates already approved packs, and removes the packs and reports it no longer renders; it does not approve a new request.
 
-For a downstream module, pass `--compatibility-root=/absolute/pack-root` to these authoring commands. That root owns `requests/`, `reports/`, `packs/`, and `generation.json`; requests and review output must remain below it. Load the approved packs for user commands with `GOMAD3_COMPATIBILITY_PACKS=/absolute/pack-root/packs`. External packs undergo the same strict validation as embedded packs, and their exact identities must also be available for replay, resume, and shard execution.
+`internal/compatibilitypack/working-directories.json` maps every request to the module directory, relative to the compatibility directory, that it is discovered and qualified in. `check` rejects a request without an entry, an entry whose directory holds no `go.mod`, and, for this repository's root, a missing table. `adapter-regenerate` verifies its staged copy of the module with `check --staged-copy`, which still requires the table but not a `go.mod` in the directories it maps outside the copy. `compatibility-pack qualify --root=. --all` qualifies every request naming the host platform in its mapped directory, which is what `make compatibility-pack-qualification` runs.
+
+After a dependency bump is applied to the checkout, refresh every invalidated request up to approval in one command:
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh \
+  --root=. [--baseline-ref=REV] [--go=GO]
+```
+
+Refresh runs the pin impact report once per mapped directory (the working tree is the candidate, `--baseline-ref`, default `HEAD`, the baseline) over the packs in the refreshed root's `packs/`, whatever `GOMAD3_COMPATIBILITY_PACKS` names, and selects the requests whose pack rules it reports invalidated or unknown, every request without an approval, and every host-platform request bound to a deterministic I/O profile other than the current one. It discovers each selected request in its own directory into memory and compares: a request whose stored approval equals the review digest of the fresh evidence is current and untouched, so an approval of older evidence never counts. Otherwise the fresh evidence is written with its approval cleared only when it differs from what is stored, the reports and packs are regenerated, and refresh prints the review digest with the `generate --approve-review` command to run after reviewing the report. Approval stays per request; rerunning after approving some requests reports only the others. A request for another platform is reported `not-evaluable` and left untouched, and a pack whose directory no longer requires its modules is reported `unselected`. Status 0 means nothing is left to do, 1 that a request awaits approval, cannot be evaluated here, failed, or is unselected, 2 invalid input such as a request without a working directory, and 3 an infrastructure failure.
+
+For a downstream module, pass `--compatibility-root=/absolute/pack-root` to these authoring commands. That root owns `requests/`, `reports/`, `packs/`, `generation.json`, and, for `qualify --all` and `refresh`, `working-directories.json`; requests and review output must remain below it. Load the approved packs for user commands with `GOMAD3_COMPATIBILITY_PACKS=/absolute/pack-root/packs`. External packs undergo the same strict validation as embedded packs, and their exact identities must also be available for replay, resume, and shard execution.
 
 ### Run bounded conformance commands
 
@@ -566,6 +577,50 @@ go -C tools/gomad3 run ./cmd/gomadtool checked-run \
 ```sh
 go -C tools/gomad3 run ./cmd/gomadtool script-validate --root=.
 ```
+
+### Bump a dependency
+
+A dependency bump never widens a pin; three commands find and re-derive the pins it breaks, and a person approves each re-derived pin. Apply the bump with `go get MODULE@VERSION` in the target module, leave it uncommitted, and run:
+
+1. `gomadtool pin-impact` to list the adapters, pack rules, interception fingerprints, and clock references the bump invalidates. For a module other than the repository root module, pass its directory with `--module=DIR`.
+2. For each named adapter, `gomadtool adapter-regenerate --module=PATH --version=VERSION`, review the printed upstream diff, then repeat with `--approve-review=DIGEST`. Hand-edit any other reference to the previous version it lists.
+3. `gomadtool compatibility-pack refresh --root=.`, review each printed report, and run the printed `compatibility-pack generate --approve-review=DIGEST` command per request. Each platform's host refreshes and approves its own requests.
+4. Rebuild `.bin/gomad` with `make gomad3`, run `make -C tools/gomad3 validate compatibility-pack-qualification` on each platform, and requalify the regenerated adapter's workloads.
+
+`pin-impact` and `refresh` compare against `HEAD` by default. A pack pinned to the replaced version stays invalidated after the bump is committed, because its module still requires the pack's activation modules at other versions. A module the bump removes is reported stale, and its pack `unselected`, only against a baseline that still requires it, so after committing such a bump pass the revision before it with `--baseline-ref`. A moved anchor and `modernc.org/libc` still need a person to edit the adapter. A Go release is not a dependency bump: it follows [`upgrade-dossier`](#close-the-loop-with-upgrade-dossier).
+
+### Report the pins a dependency bump invalidates
+
+Before applying a dependency bump, report which exact-version pins it breaks:
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool pin-impact \
+  --root=. \
+  --module=/absolute/path/to/candidate-module
+```
+
+The candidate is the `go.mod` and `go.sum` in `--module`, by default the repository root module. The baseline is the same module at `--baseline-ref` (default `HEAD`), or the module in `--baseline-module`. The report reads adapter identities from the adapter registry, rules from the compatibility-pack loader, and the boundary manifest and reviewed host-clock inventory from `--root`, and judges each pin by exact module identity, so it covers every platform's packs. It lists invalidated adapters, pack rules with their source-set digests, and interception fingerprints and clock references, which only a candidate requiring a newer Go than the pinned release leaves unknown. When a dependency, not the candidate itself, requires a newer Go, the go command cannot resolve the module graph, so the adapter and pack pins the graph decides are unknown as well. Module graphs resolve in a scratch copy with a private module cache under the exported proxy settings, so the candidate's files never change. `--json` writes the path-free canonical report to stdout and `--output=FILE` also writes it to a file. Status 0 means no pin is invalidated, 1 means at least one pin is invalidated or unknown, 2 means invalid input, and 3 means an infrastructure failure such as an unreachable module proxy. A pin whose module the candidate no longer requires is reported stale and does not change the status. A pack that neither side selects although the candidate requires every one of its activation modules, at other versions, is invalidated, so a committed bump still reports the packs it stranded.
+
+### Regenerate an adapter for a new module version
+
+When the report names an adapter, re-derive its anchors for the new exact version. A dry run writes nothing:
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate \
+  --module=google.golang.org/grpc --version=v1.84.0
+```
+
+It downloads the pinned and the candidate version into a private module cache under the exported proxy settings and applies each of the adapter's rewrites by its existing exact-occurrence anchor. An anchor that matches zero or more than one time, or a rewritten file the candidate no longer provides, stops the run with status 1, because the adapter needs a person. Otherwise it prints the upstream diff of every file a rewrite reads, the proposed anchors (sum, source inventories, each rewritten file's source and replacement digests, and each platform's prepared source set, all computed from source), the compatibility-pack bindings the change leaves stale, and an approval digest over the anchors and the reviewed sources. The proposed anchors must pass the adapter's own fail-closed preparation before they are printed. `--go` must be the pinned Go release, whose release tags select each platform's prepared files; `--json` writes the review as JSON.
+
+Add `--stage-only` with the printed digest to stage and verify the regeneration and list every file the apply would publish, with the diff of each `go.mod` and `go.sum` that fixture tidying changed, without publishing anything. After reviewing the changed source, apply with the printed digest:
+
+```sh
+go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate \
+  --module=google.golang.org/grpc --version=v1.84.0 \
+  --approve-review=sha256:REVIEWED_DIGEST
+```
+
+An apply builds the complete output set in a scratch copy of the Gomad module first: the adapter constants and the tests that name the version, the `version.json` entry, the test fixture modules that require the module (then `go mod tidy`), and the outputs of the module-local `make generate` steps. It verifies the staged copy (the commands build, the adapter tests vet, generated files and packs check, and the staged adapter accepts the candidate under every pin) and then publishes under an exclusive lock, after checking that no checkout file changed since staging. Publication commits a journal under `.toolchain/adapter-regeneration` before it touches the checkout, so an interrupted publication is completed by the next apply or by `adapter-regenerate --recover`, and a journal that was never committed is discarded. A failed generation, a failed verification, a changed checkout, or a competing apply publishes nothing. A wrong digest is status 2. The apply lists any other references to the previous version for review; the stale packs are repaired by refreshing them, and `.bin/gomad` must be rebuilt and the adapter's workloads requalified because the adapter's identity changed. `modernc.org/libc`, whose rewrite is derived from parsed syntax, is not regenerated by this command.
 
 ### Close the loop with `upgrade-dossier`
 
@@ -624,9 +679,11 @@ If the reviewed boundary changed intentionally, review its reported digest and r
 | `protocol-generate` | Generate or check cross-process protocol endpoints and tests. |
 | `qualification-manifest-generate` | Generate or check qualification workloads from a package's top-level tests and declared dispositions. |
 | `boundary-generate` | Discover, qualify, generate, refresh, or check the capability boundary. |
-| `compatibility-pack` | Discover, review, generate from exact approval, qualify, and check compatibility packs. |
+| `compatibility-pack` | Discover, review, generate from exact approval, qualify, check, and, after a bump, refresh compatibility packs. |
 | `script-validate` | Enforce the reviewed script ownership and policy boundary. |
 | `checked-run` | Run and record one bounded external command with expected status. |
 | `diagnostic-diff` | Compare complete runtime diagnostic traces and locate the first divergence. |
+| `pin-impact` | Report every pin a candidate `go.mod` invalidates before the build rejects it. |
+| `adapter-regenerate` | Re-derive an adapter's anchors for a new module version behind an approval digest. |
 | `test` | Execute a selected conformance campaign. |
 | `upgrade-dossier` | Run upgrade gates and retain the complete acceptance evidence. |

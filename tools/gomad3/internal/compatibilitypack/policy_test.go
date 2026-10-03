@@ -150,14 +150,15 @@ func TestVerifyValidatedPackIdentitiesRejectsUnavailableOrModifiedPacks(t *testi
 }
 
 func TestSelectBindsExactPackIdentityAndCapabilities(t *testing.T) {
-	validated := loadGeneratedPackForTest(t, "modernc-libc-xsys-v041")
+	// Other packs also activate on x/sys v0.47.0, so select this one alone.
+	validated := loadGeneratedPackForTest(t, "modernc-libc-xsys-v047")
 	packages := generatedExactPackages(validated.pack)
-	selection, err := selectGeneratedPacksForTest(t, validated, packages)
+	selection, err := SelectPacksForPlatform([]ValidatedPack{validated}, packages, validated.pack.Governance.Platforms[0])
 	if err != nil {
 		t.Fatal(err)
 	}
 	identities := selection.Identities()
-	if len(identities) != 1 || identities[0].ID != "modernc-libc-xsys-v041" || identities[0].SHA256 == "" {
+	if len(identities) != 1 || identities[0].ID != "modernc-libc-xsys-v047" || identities[0].SHA256 == "" {
 		t.Fatalf("identities = %#v", identities)
 	}
 	xsys := generatedPackageForTest(t, packages, "golang.org/x/sys/unix")

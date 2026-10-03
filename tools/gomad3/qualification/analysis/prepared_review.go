@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime"
+	"slices"
 
 	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -58,4 +60,26 @@ func (prepared *PreparedCapabilityReview) Close() error {
 	root := prepared.root
 	prepared.root = ""
 	return os.RemoveAll(root)
+}
+
+// ReviewCompatibilityTarget prepares spec's adapters, reviews its target, and
+// releases the preparation, as compatibility-pack discovery does.
+func ReviewCompatibilityTarget(ctx context.Context, spec target.Spec) (target.CapabilityReview, error) {
+	prepared, err := PrepareCapabilityReview(ctx, spec)
+	if err != nil {
+		return target.CapabilityReview{}, err
+	}
+	return prepared.Review, prepared.Close()
+}
+
+// HostDeterministicProfile returns the identity of the deterministic I/O
+// profile adapter bindings carry on this host, or ok false when the host has
+// no deterministic I/O boundary.
+func HostDeterministicProfile() (name, implementationSHA256 string, ok bool) {
+	host := runtime.GOOS + "/" + runtime.GOARCH
+	if !slices.Contains(deterministicio.BoundaryPlatforms(), host) {
+		return "", "", false
+	}
+	profile := deterministicio.Default().Identity()
+	return profile.Name, string(profile.ImplementationSHA256), true
 }

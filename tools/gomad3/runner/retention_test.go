@@ -96,8 +96,6 @@ func TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit(t *testing.T) {
 			t.Fatal(err)
 		}
 		prepared.SHA256, prepared.Size = fmt.Sprintf("sha256:%x", sha256.Sum256(targetBytes)), uint64(len(targetBytes))
-		// Successes of one outcome signature are stored as one artifact, so each
-		// execution prints its own output.
 		config := testConfig(t, preparer, &fakeExecutor{result: func(seed uint64) execution.Result {
 			result := processResult(0, fmt.Sprint(seed), "")
 			result.IOTranscript = completeEmptyTranscript()
@@ -125,6 +123,58 @@ func TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit(t *testing.T) {
 	var hostError *HostError
 	if !errors.As(err, &hostError) || hostError.Reason != "success_retention_capacity" || summary.RetainedSuccesses != 1 {
 		t.Fatalf("summary = %#v, error = %v, want a capacity failure at the second success", summary, err)
+	}
+}
+
+// Two seeds of a target whose output does not depend on the seed complete with
+// one outcome signature. Each is kept as its own artifact, and the published
+// record opens with counts and bytes that match the artifacts on disk.
+func TestRunKeepsTwoSuccessesOfOneOutcomeSignatureApart(t *testing.T) {
+	preparer := newFakePreparer(t)
+	config := testConfig(t, preparer, &fakeExecutor{result: func(uint64) execution.Result {
+		result := processResult(0, "same output for every seed", "")
+		result.IOTranscript = completeEmptyTranscript()
+		return result
+	}}, "1-2", PolicyAll, 1)
+	config.KeepSuccesses = KeepSuccessesAll
+	config.SuccessArtifactLimit = 2
+	config.SuccessBytesLimit = 64 << 20
+	summary, err := Explore(context.Background(), config)
+	if err != nil || len(summary.SuccessArtifacts) != 2 || summary.SuccessArtifacts[0] == summary.SuccessArtifacts[1] {
+		t.Fatalf("summary = %#v, error = %v, want two success artifacts", summary, err)
+	}
+	opened, err := campaign.OpenCampaign(summary.CampaignPath)
+	if err != nil {
+		t.Fatalf("OpenCampaign() error = %v", err)
+	}
+	entries, err := os.ReadDir(filepath.Join(summary.CampaignPath, "successes"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if uint64(opened.Record.RetainedSuccesses) != 2 || len(entries) != 2 {
+		t.Fatalf("record retains %d successes, %d artifacts on disk, want 2 and 2", opened.Record.RetainedSuccesses, len(entries))
+	}
+	var storedBytes uint64
+	signatures := map[record.SHA256]struct{}{}
+	for _, run := range opened.Executions {
+		retained, err := artifact.OpenArtifact(filepath.Join(summary.CampaignPath, *run.SuccessArtifact))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := retained.Close(); err != nil {
+			t.Fatal(err)
+		}
+		if retained.Manifest.Seed != run.Seed {
+			t.Fatalf("execution of seed %d references the artifact of seed %d", run.Seed, retained.Manifest.Seed)
+		}
+		storedBytes += retained.StoredBytes
+		signatures[retained.Manifest.Outcome.FailureSignature] = struct{}{}
+	}
+	if len(signatures) != 1 {
+		t.Fatalf("outcome signatures = %v, want one shared by both successes", signatures)
+	}
+	if storedBytes != uint64(opened.Record.RetainedSuccessBytes) {
+		t.Fatalf("artifacts on disk store %d bytes, record says %d", storedBytes, opened.Record.RetainedSuccessBytes)
 	}
 }
 

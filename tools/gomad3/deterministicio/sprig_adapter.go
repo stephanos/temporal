@@ -13,10 +13,12 @@ const (
 	sprigNetworkReplacementSHA256         = "sha256:7783a960bbefa4e8bb28849af27de06c20e045bfb56c37dd9711f33030a4fc9e"
 )
 
-var sprigPreparedSourceSetSHA256 = hostPin(map[string]string{
+var sprigPreparedSourceSetSHA256ByHost = map[string]string{
 	"darwin/arm64": "sha256:8f08780f8a874f591ad9c945e49cc1662008b33114fb0e80f3167dd9283165fd",
 	"linux/amd64":  "sha256:8f08780f8a874f591ad9c945e49cc1662008b33114fb0e80f3167dd9283165fd",
-})
+}
+
+var sprigPreparedSourceSetSHA256 = hostPin(sprigPreparedSourceSetSHA256ByHost)
 
 var sprigRewrites = []sourceRewrite{
 	{
@@ -46,15 +48,17 @@ var sprigRewrites = []sourceRewrite{
 	},
 }
 
+var sprigAdapter = rewrittenModule{
+	module: sprigModulePath, version: sprigVersion, sum: sprigSum,
+	cacheElements:                 []string{"github.com", "!masterminds", "sprig", "v3@" + sprigVersion},
+	replacementDirectory:          "sprig",
+	originalInventorySHA256:       sprigOriginalSourceInventorySHA256,
+	replacementInventorySHA256:    sprigReplacementSourceInventorySHA256,
+	preparedPackage:               sprigModulePath,
+	preparedSourceSetSHA256ByHost: sprigPreparedSourceSetSHA256ByHost,
+	rewrites:                      sprigRewrites,
+}
+
 func prepareSprig(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
-	return prepareRewrittenModule(moduleCache, root, identity, rewrittenModule{
-		module: sprigModulePath, version: sprigVersion, sum: sprigSum,
-		cacheElements:              []string{"github.com", "!masterminds", "sprig", "v3@" + sprigVersion},
-		replacementDirectory:       "sprig",
-		originalInventorySHA256:    sprigOriginalSourceInventorySHA256,
-		replacementInventorySHA256: sprigReplacementSourceInventorySHA256,
-		preparedPackage:            sprigModulePath,
-		preparedSourceSetSHA256:    sprigPreparedSourceSetSHA256,
-		rewrites:                   sprigRewrites,
-	})
+	return prepareRewrittenModule(moduleCache, root, identity, sprigAdapter)
 }

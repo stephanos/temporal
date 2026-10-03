@@ -35,10 +35,12 @@ const (
 // through a downstream module's gossip membership, and no linux/amd64 target
 // has needed it yet, so a linux build fails closed.
 // Downstream workflow preparation now pins both qualified platforms.
-var sockaddrPreparedSourceSetSHA256 = hostPin(map[string]string{
+var sockaddrPreparedSourceSetSHA256ByHost = map[string]string{
 	"darwin/arm64": "sha256:05bad9b7f5550962a542a4b8c7101d135b1d0fdf199f2c01ce4cc9f33ab96f45",
 	"linux/amd64":  "sha256:08ac1f34ac338d5d5090f13f6a9dbed65cadb17c473cf6ed1f9b6b4813990b43",
-})
+}
+
+var sockaddrPreparedSourceSetSHA256 = hostPin(sockaddrPreparedSourceSetSHA256ByHost)
 
 const sockaddrRouteRefusal = "\n// routeCommandOutput refuses: the deterministic build has no host routing\n" +
 	"// table to read, so the default interface is unknown rather than a subprocess.\n" +
@@ -189,15 +191,17 @@ func (ifAddr IfAddr) MulticastAddrs() ([]net.Addr, error) {
 	},
 }
 
+var sockaddrAdapter = rewrittenModule{
+	module: sockaddrModulePath, version: sockaddrVersion, sum: sockaddrSum,
+	cacheElements:                 []string{"github.com", "hashicorp", "go-sockaddr@" + sockaddrVersion},
+	replacementDirectory:          "go-sockaddr",
+	originalInventorySHA256:       sockaddrOriginalSourceInventorySHA256,
+	replacementInventorySHA256:    sockaddrReplacementSourceInventorySHA256,
+	preparedPackage:               sockaddrModulePath,
+	preparedSourceSetSHA256ByHost: sockaddrPreparedSourceSetSHA256ByHost,
+	rewrites:                      sockaddrRewrites,
+}
+
 func prepareSockaddr(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
-	return prepareRewrittenModule(moduleCache, root, identity, rewrittenModule{
-		module: sockaddrModulePath, version: sockaddrVersion, sum: sockaddrSum,
-		cacheElements:              []string{"github.com", "hashicorp", "go-sockaddr@" + sockaddrVersion},
-		replacementDirectory:       "go-sockaddr",
-		originalInventorySHA256:    sockaddrOriginalSourceInventorySHA256,
-		replacementInventorySHA256: sockaddrReplacementSourceInventorySHA256,
-		preparedPackage:            sockaddrModulePath,
-		preparedSourceSetSHA256:    sockaddrPreparedSourceSetSHA256,
-		rewrites:                   sockaddrRewrites,
-	})
+	return prepareRewrittenModule(moduleCache, root, identity, sockaddrAdapter)
 }

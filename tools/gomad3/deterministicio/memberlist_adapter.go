@@ -10,10 +10,12 @@ const (
 	memberlistReplacementSourceInventorySHA256 = "sha256:7cb0e5713d95a57ecb5803cc4205f917b8c6ad972ba5c52cef4ddd6d95643eec"
 )
 
-var memberlistPreparedSourceSetSHA256 = hostPin(map[string]string{
+var memberlistPreparedSourceSetSHA256ByHost = map[string]string{
 	"darwin/arm64": "sha256:d1b8958261401506ac8134d4ceec0d937d19d971046c5184d33493f4743ed7aa",
 	"linux/amd64":  "sha256:d1b8958261401506ac8134d4ceec0d937d19d971046c5184d33493f4743ed7aa",
-})
+}
+
+var memberlistPreparedSourceSetSHA256 = hostPin(memberlistPreparedSourceSetSHA256ByHost)
 
 // memberlistRewrites refuse the native UDP transport before resource creation
 // while leaving caller-supplied Transport implementations intact.
@@ -125,15 +127,17 @@ var memberlistRewrites = []sourceRewrite{
 	},
 }
 
+var memberlistAdapter = rewrittenModule{
+	module: memberlistModulePath, version: memberlistVersion, sum: memberlistSum,
+	cacheElements:                 []string{"github.com", "hashicorp", "memberlist@" + memberlistVersion},
+	replacementDirectory:          "memberlist",
+	originalInventorySHA256:       memberlistOriginalSourceInventorySHA256,
+	replacementInventorySHA256:    memberlistReplacementSourceInventorySHA256,
+	preparedPackage:               memberlistModulePath,
+	preparedSourceSetSHA256ByHost: memberlistPreparedSourceSetSHA256ByHost,
+	rewrites:                      memberlistRewrites,
+}
+
 func prepareMemberlist(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
-	return prepareRewrittenModule(moduleCache, root, identity, rewrittenModule{
-		module: memberlistModulePath, version: memberlistVersion, sum: memberlistSum,
-		cacheElements:              []string{"github.com", "hashicorp", "memberlist@" + memberlistVersion},
-		replacementDirectory:       "memberlist",
-		originalInventorySHA256:    memberlistOriginalSourceInventorySHA256,
-		replacementInventorySHA256: memberlistReplacementSourceInventorySHA256,
-		preparedPackage:            memberlistModulePath,
-		preparedSourceSetSHA256:    memberlistPreparedSourceSetSHA256,
-		rewrites:                   memberlistRewrites,
-	})
+	return prepareRewrittenModule(moduleCache, root, identity, memberlistAdapter)
 }

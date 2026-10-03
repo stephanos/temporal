@@ -11,20 +11,13 @@ import (
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
 
-func TestPinnedXNetModuleInventory(t *testing.T) {
-	moduleRoot := filepath.Join(pinnedModuleCache(t), "golang.org", "x", "net@v0.58.0")
-	got, err := target.DigestAdapterSourceInventory(moduleRoot)
+func TestRewriteXNetSocketDeniesRawSocketOptions(t *testing.T) {
+	sysSource, emptySource := readPinnedXNetSocketSources(t)
+	rewrittenSys, err := rewriteAdapterSource(xnetModulePath, xnetRewrites[0], sysSource)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got != xnetOriginalSourceInventorySHA256 {
-		t.Fatalf("x/net module inventory = %q, want %q", got, xnetOriginalSourceInventorySHA256)
-	}
-}
-
-func TestRewriteXNetSocketDeniesRawSocketOptions(t *testing.T) {
-	sysSource, emptySource := readPinnedXNetSocketSources(t)
-	rewrittenSys, rewrittenEmpty, err := rewriteXNetSocket(sysSource, emptySource)
+	rewrittenEmpty, err := rewriteAdapterSource(xnetModulePath, xnetRewrites[1], emptySource)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,11 +51,11 @@ func TestRewriteXNetSocketDeniesRawSocketOptions(t *testing.T) {
 
 func TestRewriteXNetSocketRejectsSourceIdentityDrift(t *testing.T) {
 	sysSource, emptySource := readPinnedXNetSocketSources(t)
-	if _, _, err := rewriteXNetSocket(append(sysSource, '\n'), emptySource); err == nil {
-		t.Fatal("rewriteXNetSocket() accepted changed sys_unix.go")
+	if _, err := rewriteAdapterSource(xnetModulePath, xnetRewrites[0], append(sysSource, '\n')); err == nil {
+		t.Fatal("x/net rewrite accepted changed sys_unix.go")
 	}
-	if _, _, err := rewriteXNetSocket(sysSource, append(emptySource, '\n')); err == nil {
-		t.Fatal("rewriteXNetSocket() accepted changed empty.s")
+	if _, err := rewriteAdapterSource(xnetModulePath, xnetRewrites[1], append(emptySource, '\n')); err == nil {
+		t.Fatal("x/net rewrite accepted changed empty.s")
 	}
 }
 

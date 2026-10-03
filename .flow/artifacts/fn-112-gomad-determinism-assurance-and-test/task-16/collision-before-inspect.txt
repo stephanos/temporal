@@ -1,0 +1,1 @@
+inspect $SCRATCH/artifacts/v1/campaign-20261003T020330.210221428Z-b97e4d2b5043f4af41f6ce05fd782ed9: validate published campaign lifecycle: validate published success artifact 2: retained success artifact does not match its campaign execution

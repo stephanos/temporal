@@ -1,14 +1,6 @@
 package deterministicio
 
-import (
-	"bytes"
-	"errors"
-	"fmt"
-	"os"
-	"path/filepath"
-
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
-)
+import gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 
 const (
 	xnetModulePath                       = "golang.org/x/net"
@@ -24,136 +16,49 @@ const (
 	xnetEmptyPath                        = "internal/socket/empty.s"
 )
 
-var xnetPreparedSocketSourceSetSHA256 = hostPin(map[string]string{
+var xnetPreparedSocketSourceSetSHA256ByHost = map[string]string{
 	"darwin/arm64": "sha256:968ad4efba03776d6c3a6e453babac7447e8d9621ce084ac84364a521e108227",
 	"linux/amd64":  "sha256:0e4623e6b79e4340c7a3f7e750f73ccab334a4449365f3c1038bb18be7b773f1",
-})
+}
+
+var xnetPreparedSocketSourceSetSHA256 = hostPin(xnetPreparedSocketSourceSetSHA256ByHost)
+
+// xnetRewrites deny raw socket options: the socket package's linknamed
+// getsockopt and setsockopt become ENOTSUP, and the assembly stub that
+// enabled the linkname on darwin is excluded from every build.
+var xnetRewrites = []sourceRewrite{
+	{
+		path: xnetSocketPath, sourceSHA256: xnetSocketSourceSHA256, replacementSHA256: xnetSocketReplacementSHA256,
+		rewrites: []anchorRewrite{
+			{anchor: []byte("\t\"unsafe\"\n")},
+			{anchor: []byte("//go:linkname syscall_getsockopt syscall.getsockopt\nfunc syscall_getsockopt(s, level, name int, val unsafe.Pointer, vallen *uint32) error\n\n//go:linkname syscall_setsockopt syscall.setsockopt\nfunc syscall_setsockopt(s, level, name int, val unsafe.Pointer, vallen uintptr) error\n\n")},
+			{
+				anchor:      []byte("func getsockopt(s uintptr, level, name int, b []byte) (int, error) {\n\tl := uint32(len(b))\n\terr := syscall_getsockopt(int(s), level, name, unsafe.Pointer(&b[0]), &l)\n\treturn int(l), err\n}\n"),
+				replacement: []byte("func getsockopt(s uintptr, level, name int, b []byte) (int, error) {\n\treturn 0, unix.ENOTSUP\n}\n"),
+			},
+			{
+				anchor:      []byte("func setsockopt(s uintptr, level, name int, b []byte) error {\n\treturn syscall_setsockopt(int(s), level, name, unsafe.Pointer(&b[0]), uintptr(len(b)))\n}\n"),
+				replacement: []byte("func setsockopt(s uintptr, level, name int, b []byte) error {\n\treturn unix.ENOTSUP\n}\n"),
+			},
+		},
+	},
+	{
+		path: xnetEmptyPath, sourceSHA256: xnetEmptySourceSHA256, replacementSHA256: xnetEmptyReplacementSHA256,
+		rewrites: []anchorRewrite{{anchor: []byte("//go:build darwin"), replacement: []byte("//go:build ignore")}},
+	},
+}
+
+var xnetAdapter = rewrittenModule{
+	module: xnetModulePath, version: xnetVersion, sum: xnetSum,
+	cacheElements:                 []string{"golang.org", "x", "net@" + xnetVersion},
+	replacementDirectory:          "golang-x-net",
+	originalInventorySHA256:       xnetOriginalSourceInventorySHA256,
+	replacementInventorySHA256:    xnetReplacementSourceInventorySHA256,
+	preparedPackage:               xnetModulePath + "/internal/socket",
+	preparedSourceSetSHA256ByHost: xnetPreparedSocketSourceSetSHA256ByHost,
+	rewrites:                      xnetRewrites,
+}
 
 func prepareXNet(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
-	if identity.Module != xnetModulePath || identity.Version != xnetVersion || identity.Sum != xnetSum {
-		return adapterPreparation{}, errors.New("x/net adapter identity mismatch")
-	}
-	moduleSource, err := filepath.EvalSymlinks(filepath.Join(moduleCache, "golang.org", "x", "net@"+identity.Version))
-	if err != nil {
-		return adapterPreparation{}, fmt.Errorf("resolve pinned x/net module: %w", err)
-	}
-	if err := verifyXNetModule(moduleSource); err != nil {
-		return adapterPreparation{}, err
-	}
-	sysSource, err := readXNetAdapterSource(moduleSource, xnetSocketPath)
-	if err != nil {
-		return adapterPreparation{}, err
-	}
-	emptySource, err := readXNetAdapterSource(moduleSource, xnetEmptyPath)
-	if err != nil {
-		return adapterPreparation{}, err
-	}
-	rewrittenSys, rewrittenEmpty, err := rewriteXNetSocket(sysSource, emptySource)
-	if err != nil {
-		return adapterPreparation{}, err
-	}
-	moduleReplacement := filepath.Join(root, "golang-x-net")
-	replacements := map[string][]byte{xnetSocketPath: rewrittenSys, xnetEmptyPath: rewrittenEmpty}
-	if err := copyAdapterModule(moduleSource, moduleReplacement, replacements, defaultAdapterCopyLimits); err != nil {
-		return adapterPreparation{}, fmt.Errorf("copy x/net adapter module: %w", err)
-	}
-	replacementInventory, err := digestAdapterSourceInventory(moduleReplacement)
-	if err != nil {
-		return adapterPreparation{}, fmt.Errorf("hash x/net replacement inventory: %w", err)
-	}
-	if replacementInventory != xnetReplacementSourceInventorySHA256 {
-		return adapterPreparation{}, fmt.Errorf("x/net replacement inventory identity mismatch: got %s, want %s", replacementInventory, xnetReplacementSourceInventorySHA256)
-	}
-	return adapterPreparation{
-		replacement: moduleReplacement,
-		evidence: BuildAdapter{
-			Module: identity.Module, Version: identity.Version, Sum: identity.Sum,
-			Source: filepath.Join(moduleSource, filepath.FromSlash(xnetSocketPath)), ReplacementRoot: moduleReplacement, Replacement: filepath.Join(moduleReplacement, filepath.FromSlash(xnetSocketPath)),
-			PreparedPackage:                  xnetModulePath + "/internal/socket",
-			SourceSHA256:                     xnetSocketSourceSHA256,
-			ReplacementSHA256:                xnetSocketReplacementSHA256,
-			OriginalSourceInventorySHA256:    xnetOriginalSourceInventorySHA256,
-			ReplacementSourceInventorySHA256: replacementInventory,
-			PreparedSourceSetSHA256:          xnetPreparedSocketSourceSetSHA256,
-		},
-	}, nil
-}
-
-func verifyXNetModule(moduleRoot string) error {
-	inventory, err := digestAdapterSourceInventory(moduleRoot)
-	if err != nil {
-		return fmt.Errorf("hash pinned x/net source inventory: %w", err)
-	}
-	if inventory != xnetOriginalSourceInventorySHA256 {
-		return fmt.Errorf("pinned x/net source inventory identity mismatch: got %s, want %s", inventory, xnetOriginalSourceInventorySHA256)
-	}
-	return nil
-}
-
-func readXNetAdapterSource(moduleRoot, relative string) ([]byte, error) {
-	path := filepath.Join(moduleRoot, filepath.FromSlash(relative))
-	info, err := os.Lstat(path)
-	if err != nil || !info.Mode().IsRegular() {
-		return nil, fmt.Errorf("pinned x/net source is not a regular file: %s", relative)
-	}
-	contents, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("read pinned x/net source %s: %w", relative, err)
-	}
-	return contents, nil
-}
-
-func rewriteXNetSocket(sysSource, emptySource []byte) ([]byte, []byte, error) {
-	if digestBytes(sysSource) != xnetSocketSourceSHA256 || digestBytes(emptySource) != xnetEmptySourceSHA256 {
-		return nil, nil, errors.New("pinned x/net socket source identity mismatch")
-	}
-	rewrittenSys, err := rewriteXNetSocketSource(sysSource)
-	if err != nil {
-		return nil, nil, err
-	}
-	rewrittenEmpty, err := replaceXNetAnchor(emptySource, []byte("//go:build darwin"), []byte("//go:build ignore"))
-	if err != nil {
-		return nil, nil, err
-	}
-	if got := digestBytes(rewrittenSys); got != xnetSocketReplacementSHA256 {
-		return nil, nil, fmt.Errorf("x/net socket replacement identity mismatch: got %s, want %s", got, xnetSocketReplacementSHA256)
-	}
-	if got := digestBytes(rewrittenEmpty); got != xnetEmptyReplacementSHA256 {
-		return nil, nil, fmt.Errorf("x/net empty assembly replacement identity mismatch: got %s, want %s", got, xnetEmptyReplacementSHA256)
-	}
-	return rewrittenSys, rewrittenEmpty, nil
-}
-
-func rewriteXNetSocketSource(contents []byte) ([]byte, error) {
-	rewrites := []struct {
-		anchor      []byte
-		replacement []byte
-	}{
-		{anchor: []byte("\t\"unsafe\"\n")},
-		{anchor: []byte("//go:linkname syscall_getsockopt syscall.getsockopt\nfunc syscall_getsockopt(s, level, name int, val unsafe.Pointer, vallen *uint32) error\n\n//go:linkname syscall_setsockopt syscall.setsockopt\nfunc syscall_setsockopt(s, level, name int, val unsafe.Pointer, vallen uintptr) error\n\n")},
-		{
-			anchor:      []byte("func getsockopt(s uintptr, level, name int, b []byte) (int, error) {\n\tl := uint32(len(b))\n\terr := syscall_getsockopt(int(s), level, name, unsafe.Pointer(&b[0]), &l)\n\treturn int(l), err\n}\n"),
-			replacement: []byte("func getsockopt(s uintptr, level, name int, b []byte) (int, error) {\n\treturn 0, unix.ENOTSUP\n}\n"),
-		},
-		{
-			anchor:      []byte("func setsockopt(s uintptr, level, name int, b []byte) error {\n\treturn syscall_setsockopt(int(s), level, name, unsafe.Pointer(&b[0]), uintptr(len(b)))\n}\n"),
-			replacement: []byte("func setsockopt(s uintptr, level, name int, b []byte) error {\n\treturn unix.ENOTSUP\n}\n"),
-		},
-	}
-	result := append([]byte(nil), contents...)
-	for _, rewrite := range rewrites {
-		var err error
-		result, err = replaceXNetAnchor(result, rewrite.anchor, rewrite.replacement)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return result, nil
-}
-
-func replaceXNetAnchor(contents, anchor, replacement []byte) ([]byte, error) {
-	if bytes.Count(contents, anchor) != 1 {
-		return nil, fmt.Errorf("pinned x/net rewrite anchor mismatch for %q", anchor)
-	}
-	return bytes.Replace(contents, anchor, replacement, 1), nil
+	return prepareRewrittenModule(moduleCache, root, identity, xnetAdapter)
 }

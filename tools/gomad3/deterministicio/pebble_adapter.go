@@ -145,15 +145,17 @@ var pebbleRewrites = []sourceRewrite{
 	}},
 }
 
+var pebbleAdapter = rewrittenModule{
+	module: pebbleModulePath, version: pebbleVersion, sum: pebbleSum,
+	cacheElements:                 []string{"github.com", "cockroachdb", "pebble@" + pebbleVersion},
+	replacementDirectory:          "pebble",
+	originalInventorySHA256:       pebbleOriginalSourceInventorySHA256,
+	replacementInventorySHA256:    pebbleReplacementSourceInventorySHA256,
+	preparedPackage:               pebbleModulePath + "/vfs",
+	preparedSourceSetSHA256ByHost: pebblePreparedSourceSetSHA256ByHost,
+	rewrites:                      pebbleRewrites,
+}
+
 func preparePebble(moduleCache, root string, identity gomadversion.AdapterIdentity) (adapterPreparation, error) {
-	return prepareRewrittenModule(moduleCache, root, identity, rewrittenModule{
-		module: pebbleModulePath, version: pebbleVersion, sum: pebbleSum,
-		cacheElements:              []string{"github.com", "cockroachdb", "pebble@" + pebbleVersion},
-		replacementDirectory:       "pebble",
-		originalInventorySHA256:    pebbleOriginalSourceInventorySHA256,
-		replacementInventorySHA256: pebbleReplacementSourceInventorySHA256,
-		preparedPackage:            pebbleModulePath + "/vfs",
-		preparedSourceSetSHA256:    pebblePreparedSourceSetSHA256,
-		rewrites:                   pebbleRewrites,
-	})
+	return prepareRewrittenModule(moduleCache, root, identity, pebbleAdapter)
 }

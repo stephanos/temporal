@@ -17,7 +17,7 @@ func TestGRPCDNSRewrite(t *testing.T) {
 	downloadPinnedModule(t, grpcModulePath, grpcVersion)
 	rewrite := grpcDNSRewrites[0]
 	moduleRoot := filepath.Join(pinnedModuleCache(t), "google.golang.org", "grpc@"+grpcVersion)
-	source, err := readGRPCAdapterSource(moduleRoot, rewrite.path)
+	source, err := readAdapterSource(grpcModulePath, moduleRoot, rewrite.path)
 	if err != nil {
 		t.Fatal(err)
 	}

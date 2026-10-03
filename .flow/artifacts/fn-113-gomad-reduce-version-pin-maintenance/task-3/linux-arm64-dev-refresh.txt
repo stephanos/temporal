@@ -1,0 +1,48 @@
+# linux/arm64 development exercise of refresh with the real capability reviewer (harness on).
+# External pack root and module in the scratchpad (copy of testdata/xsys renamed example.test/xsysrefresh),
+# request platform linux/arm64; never committed and not a qualified-platform pack.
+denied newly observed facts: foreign:assembly:asm_linux_arm64.s
+auxv.go
+syscall_linux.go
+vgetrandom_linux.go
+review digest sha256:06816b5b6c60b1343f5fdb5f049cfca3f37d8b77480e5d945982ccb3b4f32748
+$ $SCRATCH/gomadtool compatibility-pack generate --root=$GOMAD3 --compatibility-root=$SCRATCH/packs-root --request=requests/xsys-linux-arm64-dev.json --approve-review=sha256:06816b5b6c60b1343f5fdb5f049cfca3f37d8b77480e5d945982ccb3b4f32748
+generated compatibility pack xsys-linux-arm64-dev
+[exit 0]
+--- bump: go get golang.org/x/sys@v0.48.0 in the target module
+ log.txt    | 1 +
+ mod/go.mod | 2 +-
+ mod/go.sum | 2 ++
+ 3 files changed, 4 insertions(+), 1 deletion(-)
+$ $SCRATCH/gomadtool compatibility-pack refresh --root=$GOMAD3 --compatibility-root=$SCRATCH/packs-root
+gomad3 compatibility-pack refresh on linux/arm64: 1 requests selected
+awaiting-approval xsys-linux-arm64-dev sha256:13726c6dbcf0221c46dddb8994a59eb1d6a086d700cd4ea79457c14668c3ed78 (invalidated golang.org/x/sys/unix: candidate requires golang.org/x/sys@v0.48.0; pinned v0.47.0)
+  review reports/xsys-linux-arm64-dev.md, then approve with:
+  gomadtool compatibility-pack generate --root=$GOMAD3 --compatibility-root=$SCRATCH/packs-root --request=requests/xsys-linux-arm64-dev.json --approve-review=sha256:13726c6dbcf0221c46dddb8994a59eb1d6a086d700cd4ea79457c14668c3ed78
+[exit 1]
+refreshed activation: golang.org/x/sys@v0.48.0 approval=""
+--- rerun before approval
+$ $SCRATCH/gomadtool compatibility-pack refresh --root=$GOMAD3 --compatibility-root=$SCRATCH/packs-root
+gomad3 compatibility-pack refresh on linux/arm64: 1 requests selected
+awaiting-approval xsys-linux-arm64-dev sha256:13726c6dbcf0221c46dddb8994a59eb1d6a086d700cd4ea79457c14668c3ed78 (request has no approval)
+  review reports/xsys-linux-arm64-dev.md, then approve with:
+  gomadtool compatibility-pack generate --root=$GOMAD3 --compatibility-root=$SCRATCH/packs-root --request=requests/xsys-linux-arm64-dev.json --approve-review=sha256:13726c6dbcf0221c46dddb8994a59eb1d6a086d700cd4ea79457c14668c3ed78
+[exit 1]
+--- older approval is refused
+$ $SCRATCH/gomadtool compatibility-pack generate --root=$GOMAD3 --compatibility-root=$SCRATCH/packs-root --request=requests/xsys-linux-arm64-dev.json --approve-review=sha256:06816b5b6c60b1343f5fdb5f049cfca3f37d8b77480e5d945982ccb3b4f32748
+compatibility-pack generation approval does not match the canonical review
+[exit 1]
+$ $SCRATCH/gomadtool compatibility-pack generate --root=$GOMAD3 --compatibility-root=$SCRATCH/packs-root --request=requests/xsys-linux-arm64-dev.json --approve-review=sha256:13726c6dbcf0221c46dddb8994a59eb1d6a086d700cd4ea79457c14668c3ed78
+generated compatibility pack xsys-linux-arm64-dev
+[exit 0]
+--- rerun after approval
+$ $SCRATCH/gomadtool compatibility-pack refresh --root=$GOMAD3 --compatibility-root=$SCRATCH/packs-root
+gomad3 compatibility-pack refresh on linux/arm64: 0 requests selected
+[exit 0]
+$ $SCRATCH/gomadtool compatibility-pack qualify --root=$GOMAD3 --compatibility-root=$SCRATCH/packs-root --all
+qualified compatibility-pack request xsys-linux-arm64-dev
+qualified 1 compatibility-pack requests for linux/arm64
+[exit 0]
+$ $SCRATCH/gomadtool compatibility-pack check --root=$GOMAD3 --compatibility-root=$SCRATCH/packs-root
+compatibility packs are current
+[exit 0]

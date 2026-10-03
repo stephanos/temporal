@@ -1,0 +1,72 @@
+## identity
+rev 6be0755fef727146f86bac6658436f6874680cc8
+rev_date 2026-10-02T19:15:38-07:00
+## go release (toolchain/version/version.json)
+go_version go1.27.1
+archive_sha256_pins 1
+supported_platforms 2 darwin/arm64 linux/amd64
+boundary_manifest_version go1.27.1-v1
+patch_allowlist_entries 20
+overlay_allowlist_entries 61
+adapter_identities 15
+## runtime patch and overlay
+patch_lines 1045
+patch_files 20
+patch_hunks 74
+overlay_files 61
+overlay_lines 18423
+## boundary manifest and interception fingerprints
+manifest_platforms darwin/arm64 linux/amd64
+intercepts 131
+intercept_platform_override_fingerprints 1
+declaration_fingerprints 132
+package_fingerprints 131
+hook_policies 1
+reviewed_candidates 102
+compiler_test_interceptions 3
+expected_intercepts_lines 131
+## toolchain inventories (test-pinned)
+clock_references 25
+clock_references_darwin/arm64 10
+clock_references_linux/amd64 15
+goroutine_creation_sites 10
+## dependency adapters (deterministicio/*_adapter.go)
+adapter_sha256_literals cactusstatsd_adapter.go 8
+adapter_sha256_literals fx_adapter.go 8
+adapter_sha256_literals grpc_adapter.go 23
+adapter_sha256_literals hashicorpmetrics_adapter.go 6
+adapter_sha256_literals libc_adapter.go 10
+adapter_sha256_literals memberlist_adapter.go 6
+adapter_sha256_literals memory_adapter.go 6
+adapter_sha256_literals otelsdk_adapter.go 10
+adapter_sha256_literals pebble_adapter.go 10
+adapter_sha256_literals sentry_adapter.go 6
+adapter_sha256_literals sockaddr_adapter.go 16
+adapter_sha256_literals sprig_adapter.go 6
+adapter_sha256_literals temporalsdk_adapter.go 6
+adapter_sha256_literals validator_adapter.go 6
+adapter_sha256_literals xnet_adapter.go 8
+adapter_sha256_literals_total 135
+adapter_platform_pins 30
+adapter_sha256_literals_unique 125
+adapter_template_files 2
+adapters_absent_from_root_go_mod 6 github.com/cockroachdb/pebble github.com/getsentry/sentry-go github.com/go-playground/validator/v10 github.com/hashicorp/go-metrics github.com/hashicorp/go-sockaddr github.com/hashicorp/memberlist
+adapters_moved_in_root_go_mod 0 
+## compatibility packs (internal/compatibilitypack)
+packs 12
+pack_rules 54
+pack_module_version_pins 19
+pack_modules 17
+pack_adapter_replacements 7
+pack_source_set_digests 54
+pack_go_source_digests 672
+pack_foreign_source_digests 58
+requests 12
+reports 12
+generation_outputs 37
+packs_for_darwin/arm64 9
+packs_for_linux/amd64 3
+## upstream go.mod churn (2026-04-01 to 2026-10-01, the assessment window)
+go_mod_commits_all 84
+go_mod_commits_upstream 73
+go_directive_bumps_upstream 4
