@@ -57,14 +57,13 @@ production dispatch fails closed.
 
 | Order | Spec | In one line | Waits for |
 | --- | --- | --- | --- |
-| 1 | fn-117 | Typed Temporal API in the Models, in place of proto names as strings | — |
-| 2 | fn-112 foundations | Settle declaration, step, composition and author-computed Query-total contracts | fn-117 |
-| 3 | fn-120 choices | Build named choices against the settled step surface, before branching Models are rewritten | fn-112 foundations |
-| 4 | fn-112 showcase | Rewrite the standalone activity Model, extract the shared task queue and build the realization kit | fn-120 choices |
-| 5 | fn-114 | Roll the final showcase constructs, including choices, out to every other Model | fn-112 showcase |
-| alongside 4 | fn-118 interface | Settle hint-aware realization helpers with the shared kit; no waiting-behavior changes yet | fn-117, shared-kit design |
-| after 5 | fn-118 behavior | Derive generated-test waits from API hints, as a separate behavioral change | structural Case-byte freeze verified |
-| after 5 | fn-120 tools | Add model lint, the IR explorer and ITF interchange using settled metadata and Model inventory | final reader contracts and fn-114 roots |
+| 1 | fn-112 foundations | Settle declaration, step, composition and author-computed Query-total contracts | — |
+| 2 | fn-120 choices | Build named choices against the settled step surface, before branching Models are rewritten | fn-112 foundations |
+| 3 | fn-112 showcase | Rewrite the standalone activity Model, extract the shared task queue and build the realization kit | fn-120 choices |
+| 4 | fn-114 | Roll the final showcase constructs, including choices, out to every other Model | fn-112 showcase |
+| alongside 3 | fn-118 interface | Settle hint-aware realization helpers with the shared kit; no waiting-behavior changes yet | shared-kit design |
+| after 4 | fn-118 behavior | Derive generated-test waits from API hints, as a separate behavioral change | structural Case-byte freeze verified |
+| after 4 | fn-120 tools | Add model lint, the IR explorer and ITF interchange using settled metadata and Model inventory | final reader contracts and fn-114 roots |
 | last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
 
 These are execution phases, not new specs. Build choices before the Model conversions so each
@@ -74,13 +73,6 @@ Case bytes, while fn-118 separately permits specified Program changes and freeze
 shared schema/reader changes settle, hint behavior and Go-only tools can run in parallel; fn-119's
 generic Driver primitives can also start independently before the final example integration.
 
-### fn-117: Type the Temporal API in the Models
-
-Implementation and regression checks pass; implementation review and spec completion remain.
-The implementation is committed and the owner has approved the local checkpoint. The committed-range
-review found scanner gaps and a documentation omission, now repaired with regression checks. Its
-receipt was invalidated by an unrelated commit during review; final review and spec closure remain.
-
 ### fn-112: Make the standalone activity Scala Model a DSL showcase
 
 Rewrites the standalone activity Model to read as the best Scala the DSL allows, without changing
@@ -89,7 +81,7 @@ compositions keyed by fields in place of strings, names taken from `val`s, and a
 for what the activity and Nexus realizations both use. Files are split by kind (`Model.scala`,
 `Properties.scala`, `Queries.scala`) and the system contract by subject into folders. The current
 feature has 2,830 lines; the targets are at most 1,600 lines and 60 string literals. Each new
-construct is built once in the lifter, and realization helpers use the typed API of fn-117.
+construct is built once in the lifter, and realization helpers use the typed Temporal API.
 Two additional tasks require author-computed Query totals for capacity review and extract the
 reusable task-queue entity, providers and shared properties into `temporal/taskqueue/`.
 

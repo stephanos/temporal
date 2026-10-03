@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-117-type-the-temporal-api-in-the-models",
   "spec_path": ".flow/tasks/fn-117-type-the-temporal-api-in-the-models.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Add typed constant messages, enum values and map entries",
   "updated_at": "2026-10-03T08:59:07.701048Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-117-type-the-temporal-api-in-the-models",
   "spec_path": ".flow/tasks/fn-117-type-the-temporal-api-in-the-models.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Type all existing path roots and symbolic operands",
   "updated_at": "2026-10-03T09:08:23.307305Z"
 }

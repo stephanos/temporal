@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-117-type-the-temporal-api-in-the-models",
   "spec_path": ".flow/tasks/fn-117-type-the-temporal-api-in-the-models.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Migrate the standalone activity to typed API declarations",
   "updated_at": "2026-10-03T14:02:30.065278Z"
 }
