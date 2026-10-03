@@ -182,6 +182,46 @@ On the candidate, `TestProfileEntropyIsIndependentOfScheduleSeed`,
 live-capability tests skipped. None of these local runs is native
 `darwin/arm64` or `linux/amd64` evidence. Those gates remain incomplete.
 
+### Canonical one-context-line patch
+
+Task fn-110.4 changed only the patch representation. `RegeneratePatch` now
+passes `--unified=1` to `git diff` explicitly through the
+`canonicalPatchContext` constant, so a `diff.context` setting no longer changes
+the patch. The `patch-regenerate` command gained no flag. Canonical headers,
+`validatePatch`, the `git apply --cached --check` step, and zero-fuzz
+materialization are unchanged. Tests reach the three-context form through the
+unexported `regeneratePatch` seam.
+
+The checked-in patch was regenerated from a fresh extraction with the task 3
+`-U3` patch applied. Two regenerations, and the canonical command writing to
+the descriptor path, produced byte-identical output.
+
+| Patch | Bytes | Lines | Hunks | SHA-256 |
+| --- | ---: | ---: | ---: | --- |
+| Final extracted source, `-U3` (task 3) | 38,362 | 1,112 | 81 | `86def26a7f4d0b5c494a6a031c87bec284f7e76c91dcf437bc23fcc4c276ea5c` |
+| Canonical `-U1` | 29,015 | 778 | 90 | `8497f8855011f13fb46ad36a02448d165d4bd65688ef00eed6ae09822306a90b` |
+
+The `-U1` patch is 9,347 bytes (24.4%) and 334 lines smaller than the final
+`-U3` patch. Both carry the same 318 added and 103 deleted lines in 20 files.
+Both patches applied with the builder's zero-fuzz commands to separate fresh
+extractions of the verified archive on the `linux/arm64` development host.
+`diff -r` found no difference between the two trees, and 20 files differ from
+pristine source. The same comparison now runs as
+`TestPinnedContextRepresentationsMaterializeIdenticalSource` in the
+`toolchain` package. That test regenerates both forms from the checked
+candidate, requires at most one context line around each change in the `-U1`
+form, and compares every allowlisted file.
+`TestRegenerateMatchesCheckedPatchForPinnedArchive` now reads the archive name
+and patch path from the descriptor and fails on a checksum mismatch. It skips
+only when the pinned archive is not cached, and it requires repeated
+regeneration to be byte-identical. It passed here; it had previously always
+skipped because it named `go1.26.4`. The unchanged negative tests still pass.
+Equivalence on native `darwin/arm64` and `linux/amd64` remains incomplete.
+
+Because the patch bytes changed, the toolchain build key and the generated
+choice implementation digest changed again. Artifacts recorded with earlier
+toolchains keep their original identities.
+
 ### Goroutine state
 
 Define `gomadGState` in the runtime overlay with the current four fields in the same order, then embed it at their current position after `goid`. Go's promoted field selectors preserve accesses such as `gp.gomadIdentity`. The embedded type's trailing alignment padding replaces the padding before `schedlink`. `gofmt` still realigns three fields after the anonymous embedding, so this proposal saves 11 patch lines rather than reducing the hunk to one added line. Sources are the archive's `src/runtime/runtime2.go` and [Gomad's goroutine-state consumers](../../../tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go).
