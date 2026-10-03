@@ -53,9 +53,36 @@ grep -rn 'TimeoutMilliseconds\|PollInterval' tools/umpire/lower common/testing/t
 - [ ] The three formerly parked questions are answered in the spec; adopted hints and exact IR fields are named.
 - [ ] The helper interface for fn-112.9 is recorded as signatures, with no realization, schema or Case change.
 ## Done summary
-TBD
+Inventory and interface for fn-118 R1, with no realization, schema or Case change.
 
+What changed
+- New `.plans/API_BEHAVIOR_HINTS.md`. It lists every wait, poll, interval and timeout (W-1..W-20 in the realizations, plus the DSL, the lowering and the Testpilot Temporal Driver), each with file:line, its value, the server fact it rests on and the proposed hint.
+- It classifies each wait as visibility, asynchronous cause or instruction timeout.
+- It maps every non-RPC command to its API method or cause kind, and lists every write->read pair on the 16 existing Cases, ordered by path across scripts.
+- It records the before-numbers with a reproducible jq command: 17 polls, at most 697 poll RPCs, 52 waits, 440,000 ms declared wait budget, 80,000 ms of it explicit.
+- The spec's Architecture and API Contracts now hold the three settled questions, the adopted hints, the exact Umpire and Testpilot IR fields, and the fn-112.9 seam.
+
+Decisions, and why
+- Visibility is method to method: every write commits its whole effect in one transaction and every read reads that execution's mutable state.
+- Bounds sit with the hint, and a Profile only scales them by a factor. Server latencies differ per cause; environment slowness does not.
+- The Testpilot IR gains `InstructionNode.wait_hints` and `ReadEvidence.once`. Provenance cannot carry the hint's position: Testpilot never reads it, its rows have no instruction key, and they are written at line 1.
+- Write/read classification uses the API's own `google.api.http` GET/POST binding instead of the read-only candidate.
+- Adopted: visibility (8 declarations, one of them eventual: handler reply -> DescribeWorkflowExecution) and cause bounds (delivery, activityAnswer, workflowTask, handlerReply, timer), plus ServerStep declarations.
+- Not adopted: not-yet errors (no Case tolerates an error, so no refusal test exists), the per-command instruction timeout, a retry cause, and the other candidates.
+- Driver awaits and `await-close` keep the Profile default.
+- Projected effect: three polls become single reads, and 14 polls remain.
+
+For the owner
+- The two `timeoutMs = 5000` are inert: the Driver never reads them. Recommend deleting them in fn-118.5.
+- The Nexus schedule-to-close timer comes from the Profile's default instruction timeout (`worker/typed.go:68`).
+- `wait_new_event` on the closing `history` read is inert.
+- `pending-attempts` relies on the retry backoff outlasting its interval, and on the default HSM attempt counting.
+- `.plans/umpire-api-wait-inventory.md` is superseded and can be deleted.
+
+Review: claude-fable-5-1 (high), round 1, SHIP. I applied its two P3 notes: the full Case-set hash plus the totals command, and the read-once preparation rule.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 48deb9b6f7, 797ba0c2d2
+- Tests: jq -c -f wait-budget.jq model/cases/*-case.json (exit 0; 17 polls, 440000 ms; Case set sha256 4fa0f35ab786b1e54c1f8de86cd12c551646ac1770cd66a0e8811dbf71a799cf), go run (scratch) HTTP-binding read of go.temporal.io/api WorkflowService descriptors (exit 0), flowctl claude impl-review --spec claude:claude-fable-5-1:high (VERDICT=SHIP, round 1)
 - PRs:
