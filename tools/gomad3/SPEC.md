@@ -205,6 +205,8 @@ Gomad must review the Target's reachable dependencies and host-capability bounda
 
 Capability analysis must support source-closure review and linked-program review without launching the Target. Linked review must fail closed if its build identity or reachability evidence cannot be validated.
 
+Closure capability mode performs dependency review without compiling `-gomadguard` guards; an exact compatibility-pack admission does not make host operations deterministic, and admitted code must stay within the declared deterministic boundaries. Only guarded mode compiles the guards.
+
 ### [TARGET.PROVENANCE] Executable Provenance
 
 A prebuilt executable must carry trusted provenance that binds the binary, package policy, dependency closure, build information, and compatibility review. Runtime arguments must be bound separately into Campaign and Artifact identity. Arbitrary or changed binaries must be rejected.
@@ -246,13 +248,30 @@ Enabled Targets must observe a process virtual clock with a fixed versioned epoc
 
 Gomad must optionally retain a bounded Choice Trace of logical scheduling and selection records. Exact runtime replay must derive a Decision Tape from complete trace evidence, force the recorded branching alternatives, validate each decision before applying it, consume the complete tape, and reject a tape whose Prepared Target, toolchain, platform, or controller identity differs.
 
+#### [RUNTIME.CHOICES.DIAGNOSTICS] Diagnostic Trace
+
+Gomad must optionally record, for fresh Executions, a bounded diagnostic trace with a runtime-state digest at every choice point: virtual time, allocation count, GC cycle and phase, run-queue length, and the seeded-stream draw counters. The trace must be a separately versioned record kind on its own bounded transport, must neither allocate on the Go heap nor draw from the seeded stream, and must be part of execution identity when enabled; with it disabled, recorded formats and canonical bytes must be unchanged. Overflow must be a Runner failure that supports no localisation. Gomad must compare two diagnostic traces and report the first differing ordinal and fields. A diagnostic trace must not be presented as replay evidence.
+
 ### [RUNTIME.ISOLATION] Execution Isolation
 
 Each Execution must run in a fresh contained process and working directory with controlled environment, bounded output capture, a wall-time watchdog, and complete process-group termination. Parallelism must come from independent processes rather than multiple deterministic processors inside one Target.
 
+### [RUNTIME.STREAMS] Seeded Stream Isolation
+
+Every draw site of the process-wide seeded stream must be classified as target-ordered or host-timed in a checked-in inventory, and the toolchain tier must fail on an unclassified, added, or removed draw site. Host-timed sites must draw from the M-local stream. In diagnostic mode, a host-timed path that reaches the seeded stream must fail the process. A remaining host-timed seeded draw that only a prohibited collector file can reroute must be recorded as such.
+
 ### [RUNTIME.TRUST] Trust Boundary
 
 Deterministic mode is for trusted tests, not production workloads. Gomad must not claim to be an operating-system sandbox. Direct raw system calls, native code, plugins, foreign threads, or other unmodeled host interactions remain outside the supported contract unless explicitly covered by a qualified adapter.
+
+#### [RUNTIME.TRUST.EXCLUSIONS] Declared Exclusions
+
+Each uncontrolled runtime channel must either have a seeded conformance fixture with a positive control or be named outside the contract. Equal-deadline timer ties and run-queue shuffles have fixtures. These are named outside it:
+
+- Real-socket and descriptor readiness delivered by host netpoll is outside the determinism contract; supported modeled loopback TCP uses deterministic in-memory readiness instead.
+- SIGPROF delivery and CPU profiling are outside the determinism contract because signal arrival and CPU samples depend on host execution.
+- Enabling block or mutex profiling is outside the determinism guarantee: host-dependent contention timing and profile sampling can change random draws, profile allocations, and subsequent runtime state, especially on linux/amd64.
+- `runtime.NumCPU` is not virtualized and reports OS-detected CPU availability at process startup; workloads that use this value require the same host CPU configuration for repeatability, and cross-host CPU-count equivalence is outside the contract.
 
 ## [INTERACTION] Deterministic Interactions
 
@@ -450,6 +469,12 @@ Gomad must compare validated baseline and candidate qualification reports as cle
 
 Maintainers must be able to run bounded conformance tiers for the builder, live capability review, deterministic runtime, and disabled upstream behavior. A release claim must require the complete platform-specific gate, not only platform-neutral host tests.
 
+Model conformance must compare generated operation sequences against the in-memory filesystem and loopback TCP models and against the host operating system on each qualified platform, comparing results and errors only for operations the model declares it supports. Declared differences must be listed in one place per platform, each with a test; an undeclared difference is a model defect or a new declared difference with a reason.
+
+### [QUALIFICATION.SOAK] Determinism Soak
+
+A scheduled soak must run a named workload selection, including at least one guarded-mode workload, as a stated number of fresh same-seed repetitions per seed under bounded unrelated host load, with choice and diagnostic traces enabled. It must compare every qualification batch with the baseline of its cohort (workload, seed, platform, and execution identity) within a run and across retained runs; a changed toolchain identity must start a new cohort. The gate must accept zero divergences, must report trace overflow, target failure, and infrastructure failure separately and never as a pass, and must retain both diagnostic traces and the differ output of a divergence. Its report must state repetitions, seeds, load, platform, toolchain identity, and per-cohort cumulative counts across retained runs; the quotable bound is that per-platform, per-cohort count, measured with diagnostics on. A platform with an open divergence finding may run the soak as informational only while its report names that finding.
+
 ## [COMMAND] Command-Line Products
 
 ### [COMMAND.GOMAD] User Command
@@ -522,6 +547,8 @@ The `gomadtool` command must expose the following maintainer workflows. Each row
 | `[COMMAND.GOMADTOOL.COMPATIBILITY.PACK.REFRESH]` | `compatibility-pack refresh` | Discover and review affected mapped requests per platform, including invalidated or unknown pins, up to per-request exact approval; retain only fresh approvals. |
 | `[COMMAND.GOMADTOOL.SCRIPT.VALIDATE]` | `script-validate` | Enforce the approved ownership and policy boundary for repository scripts. |
 | `[COMMAND.GOMADTOOL.CHECKED.RUN]` | `checked-run` | Run a bounded external command, classify timeout and exit status, and retain bounded diagnostic output. |
+| `[COMMAND.GOMADTOOL.DIAGNOSTIC.DIFF]` | `diagnostic-diff` | Validate two complete diagnostic traces and report the first differing ordinal and fields. |
+| `[COMMAND.GOMADTOOL.SOAK]` | `soak` | Run the determinism soak, compare batches per cohort against a retained ledger, and report cumulative per-cohort counts with divergence evidence. |
 | `[COMMAND.GOMADTOOL.TEST]` | `test` | Execute a selected bounded conformance campaign and report the first failing evidence. |
 | `[COMMAND.GOMADTOOL.UPGRADE.DOSSIER]` | `upgrade-dossier` | Run upgrade gates and publish the complete qualification dossier even when a completed gate rejects the upgrade. |
 

@@ -184,7 +184,9 @@ pinned linker record, and separates live blockers from closure blockers removed
 by final reachability. Closure analysis has a 30-second default wall bound and
 linked analysis has a two-minute default; `--timeout` can raise either explicit
 bound up to 30 minutes for large targets. Linked mode has no closure fallback:
-malformed records, identity mismatches, and capacity failures fail closed. The
+malformed records, identity mismatches, and capacity failures fail closed. Only
+guarded mode compiles `-gomadguard` capability guards into the target; closure
+and linked modes review without them (see [Contract](#contract)). The
 report uses exact compatibility-pack decisions, lists every active and
 eliminated blocker with a canonical shortest dependency path, and projects
 conservative deterministic I/O requirements over the full closure. To keep
@@ -869,6 +871,27 @@ target exited; both are deterministic and compared between repetitions.
 Qualification reports add each execution's `wall_elapsed_nanos`, which is
 informational and outside the evidence digest.
 
+An opt-in diagnostic trace (`--diagnostics` on `explore`, `plan`, and
+`qualify`) records a runtime-state digest at every choice point: the virtual
+time, allocation count, GC cycle and phase, run-queue length, and the draw
+counters of the seeded streams (run queue, scheduler, select, runtime rand,
+cheap rand, timer, and clock tick). A divergence on an untaped draw therefore
+shows as a counter delta at the next choice point. The trace is its own record
+kind, `gomad3-diagnostic-trace/v1`, on its own inherited descriptor; its
+capacity is derived from the choice capacity so that every choice record fits,
+and never exceeds 64 MiB. Overflow is a Runner failure and supports no
+localisation. Recording neither allocates on the Go heap nor draws from the
+seeded stream. Enabling it binds `GOMAD3_DIAGNOSTIC_PROFILE` in execution
+identity, like `--choices`; with it off, plans, Campaigns, Artifacts, and
+evidence keep their bytes. Each completed execution keeps its trace as a
+private sidecar under its Campaign's `diagnostics/`, even when its successful
+Artifact is discarded. `gomadtool diagnostic-diff` and a qualification report's
+`diagnostic_divergence` name the first ordinal whose digest differs, the
+differing fields, and both records; a fault fixture that injects one
+host-timed draw localises at ordinal 5, field `runtime_cheap_rand_draws`.
+Diagnostic traces compare fresh executions. Replay re-executes with collection
+off, and a diagnostic trace never establishes exact replay.
+
 The local run queue preserves the head's goroutine class on each dispatch.
 A runtime-owned head runs deterministically; a user head chooses only among
 queued user goroutines and records a decision only when at least two exist.
@@ -887,6 +910,55 @@ readiness are outside the contract. Launch targets compile with
 `CGO_ENABLED=0` and set `TZ=UTC`. The public `go-test` target preserves only
 explicit `--build-tag` values; Temporal's root wrapper selects `test_dep`
 explicitly.
+
+Closure capability mode performs dependency review without compiling
+`-gomadguard` guards; an exact compatibility-pack admission does not make host
+operations deterministic, and admitted code must stay within the declared
+deterministic boundaries. Pack admissions of `syscall` are per package, so
+admitted code runs live unless the workload qualifies in guarded mode, and the
+determinism soak includes one guarded-mode workload for that reason.
+
+These channels are declared outside the contract rather than given a fixture,
+because no host Gomad qualifies on can vary them as a positive control:
+
+- Real-socket and descriptor readiness delivered by host netpoll is outside the
+  determinism contract; supported modeled loopback TCP uses deterministic
+  in-memory readiness instead.
+- SIGPROF delivery and CPU profiling are outside the determinism contract
+  because signal arrival and CPU samples depend on host execution.
+- Enabling block or mutex profiling is outside the determinism guarantee:
+  host-dependent contention timing and profile sampling can change random
+  draws, profile allocations, and subsequent runtime state, especially on
+  linux/amd64.
+- `runtime.NumCPU` is not virtualized and reports OS-detected CPU availability
+  at process startup; workloads that use this value require the same host CPU
+  configuration for repeatability, and cross-host CPU-count equivalence is
+  outside the contract.
+
+Equal-deadline timer ties and overflowing run-queue shuffles, which draw from
+the seeded stream without a choice record, have seeded conformance fixtures
+(`timer_ties`, `runq_shuffle`) with positive controls: seeds 0 to 31 give 32
+distinct completion orders, and each seed repeats under bounded host load.
+
+The determinism claim is quoted from the scheduled soak, not from
+two-repetition qualification, which a defect at a one-in-26 rate usually
+passes. `gomadtool soak` runs fresh same-seed repetitions of the functional
+smoke suites and the guarded-mode frontend probe on seeds 11 and 17, in
+`qualify --diagnostics` batches of 32 under two busy host threads, and compares
+every batch with its cohort's baseline: one workload, seed, platform, and
+execution identity, so a new toolchain build key starts a new cohort. The gate
+accepts zero divergences; a trace overflow, target failure, or infrastructure
+failure is reported separately and is not a pass, and a divergence retains
+both diagnostic traces and the differ output. Its bound is per platform and per
+cohort: the cumulative fresh repetitions across retained scheduled runs with
+zero divergences, measured with diagnostics on. No native bound is retained
+yet. The soak's mechanics were exercised on an ARM64 Linux development host,
+where the patched toolchain does not build, against a stand-in `gomad
+qualify`; that run measured no Gomad bound. The first retained scheduled or
+dispatched run on each platform supplies the native bound, and linux/amd64
+stays informational while the
+[linux replay divergence](../../MILESTONES.md#open-findings) (fn-105 D12) is
+open.
 
 The runtime system monitor is disabled with asynchronous preemption, so a
 CPU-bound goroutine or `select` polling loop may run forever and prevent
@@ -917,6 +989,24 @@ plain host syscall (a pipe write, a read-only mount lookup) to return and
 queue itself as an arrival, so the collector's view of live memory does not
 depend on when the host answered; simulation transport reads are exempt
 because they block until the simulation advances.
+
+The seeded stream's draw sites are classified, not assumed.
+`toolchain/draw_inventory_test.go` lists every reference to the patched
+runtime's seeded random helpers on both qualified platforms (269 references in
+135 classified rows when it was taken) as target-ordered or host-timed, and the
+toolchain tier fails on an unclassified reference, a changed count, or a
+reference that disappeared, so a Go upgrade cannot add an unreviewed draw.
+Host-timed sites use the M-local stream, including host netpoll and no-P batch
+admission, which reach the run-queue shuffle through an explicit host batch
+origin while target admission keeps its seeded shuffle, and the linux CPU
+profiler's timer sample. In diagnostic mode the runtime fails the process when
+a path marked host-timed reaches the seeded stream. One host-timed seeded draw
+remains: the classic collector's `enlistWorker` in `runtime/mgcpacer.go`, a
+collector file the patch policy prohibits editing. Seeded activation rejects
+the Green Tea collector before user code, because its worker draw is outside
+the qualified profile. The inventory, its runtime check, and the rerouted sites
+are a merged candidate whose native darwin/arm64 and linux/amd64 gates have not
+yet run.
 
 At the start of every mark phase, while the world is still stopped, the
 runtime greys every M with its g0, gsignal and `self` handle, every P's `oldm`
@@ -1180,6 +1270,34 @@ overlay, simulation (`test-simulation`), and World tests, then the builder, live
 upstream tiers
 in that order. The focused targets reproduce the corresponding portion without
 weakening the full gate.
+
+`test-simulation` runs all six directly seeded `tools/gomad3sim` toolchain
+test files and ten of the eleven Runner transport cases;
+`TestProcessBackendSynchronizesNodeClockWithModelDelay` stays out with its open
+watchdog finding. `overlay-test` includes `internal/gomadsim`,
+`internal/gomadmodelwire`, `internal/gomadio`, `os`, and
+`cmd/internal/gomadcap`. In the host tier, `TestModelConformanceFilesystem` and
+`TestModelConformanceTCP` (`runner/internal/execution`) run 64-operation
+sequences generated from five fixed seeds against the in-memory filesystem and
+loopback TCP models and against stock Go on the host, and report the shortest
+reproducing prefix of a mismatch. `modelDeclaredDifferences` in
+`model_conformance_test.go` lists each platform's declared differences, today
+only directory allocation size on both, and each has a test. The `cmd/gomad`
+end-to-end tests drive `explore`, `replay`, and a SIGKILLed then resumed
+coordinator through the built CLI.
+
+The determinism soak runs from the repository root:
+
+```sh
+make gomad3-soak GOMAD3_SOAK_WORKLOAD=functional-activity GOMAD3_SOAK_SEED=11
+```
+
+It builds the Runner, runs `tools/gomad3integration/qualification/soak.json`,
+and writes its ledger, report, summary, and any divergence evidence under
+`tools/gomad3/.toolchain/soak`. The scheduled `determinism-soak-darwin` and
+`determinism-soak-linux` jobs of `gomad3.yml` run one workload and seed each,
+restore the ledger from the latest retained scheduled or dispatched run, and
+upload it again with the report.
 
 The suite compares disabled `go run` and `go test` behavior with a local stock
 Go 1.27.1 toolchain; benchmarks disabled clock reads against that toolchain;

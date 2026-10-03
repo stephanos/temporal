@@ -2,7 +2,8 @@
 
 This directory owns Temporal-specific use of the application-neutral Gomad v3
 module. It contains the `test_dep` wrapper fixture, the bounded representative
-Temporal qualification manifest, and outside-in tests of the root Make targets.
+Temporal qualification manifest, the smoke and determinism soak selections,
+and outside-in tests of the root Make targets.
 
 Run the wrapper contract and representative qualification with:
 
@@ -145,6 +146,26 @@ check is a branch-protection setting. Run it locally with:
 ```sh
 make gomad3-smoke-qualification
 ```
+
+### Determinism soak
+
+`qualification/soak.json` names the four smoke suites and the guarded-mode
+`frontend-system-info` probe, seeds 11 and 17, and the soak's size: each
+workload and seed runs at least two and at most sixteen `gomad qualify
+--diagnostics` batches of 32 fresh repetitions under two busy host threads,
+adding a batch only while the previous batch's measured cost fits a 300-minute
+budget. Its `sizing` field records that reasoning. `make gomad3-soak` runs it
+through `gomadtool soak` (see `tools/gomad3/CLI.md`); `GOMAD3_SOAK_WORKLOAD`
+and `GOMAD3_SOAK_SEED` select one workload and seed, as each scheduled job
+does. Every clean batch is compared with its cohort's baseline (workload, seed,
+platform, execution identity) in a ledger restored from the previous scheduled
+or dispatched run, so a cohort's count accumulates across weeks until the
+toolchain, Runner, or target changes. A divergence fails the darwin/arm64 job
+and retains both diagnostic traces and the differ output; an overflow, target
+failure, or infrastructure failure fails it separately. `informational_platforms`
+keeps linux/amd64 informational while fn-105 D12 is open; fn-105 R12 removes
+that entry with the other D12 allowances. No scheduled run has been retained
+yet, so the soak has no native bound to quote.
 
 ### Sharding the generated set
 

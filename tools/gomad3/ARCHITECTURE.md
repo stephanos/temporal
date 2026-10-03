@@ -286,6 +286,44 @@ equivalence or justify pruning an unexplored runtime prefix. Bound exhaustion
 reports the incomplete search envelope; completion is a claim only about the
 declared envelope.
 
+### Diagnostic traces and the determinism soak
+
+The diagnostic trace localises a difference between fresh same-seed
+Executions, which exact replay cannot do because replay forces the run-queue
+and select alternatives that would otherwise expose it. At every choice point
+the runtime appends a fixed-size digest of state the overlay can read without
+editing a collector file: virtual time, allocation count, GC cycle and phase,
+run-queue length, and per-purpose seeded draw counters. Draws without a choice
+record, such as timer ties and run-queue shuffles, therefore appear as a
+counter delta at the next choice point. The record goes to its own inherited,
+byte-bounded descriptor rather than the Choice Trace, its capacity is derived
+from the choice capacity so that it cannot fill before the Choice Trace, and
+recording neither allocates on the Go heap nor draws from the seeded stream,
+so the mode does not move the state it measures. A workload that
+qualifies with diagnostics off and diverges with them on is a diagnostics
+defect. The trace is part of execution identity when enabled and absent from
+it otherwise. Runner retains each complete trace as a Campaign sidecar; the
+differ validates both traces whole before naming the first differing ordinal
+and fields.
+
+The seeded-stream inventory (`toolchain/draw_inventory_test.go`) classifies
+every draw site as target-ordered or host-timed, and a per-M host scope lets
+the diagnostic mode fail the process when a host-timed path reaches the seeded
+stream.
+
+The determinism soak sits above qualification. A `qualify` batch compares its
+repetitions only with its own first Execution, so `gomadtool soak` also
+compares each clean batch's evidence digest with its cohort's baseline. A
+cohort is one workload, seed, platform, and execution identity; the identity
+hashes the Runner and toolchain builds, target, I/O profile, environment,
+limits, mounts, and choice and diagnostic profiles, so a toolchain change
+starts a new cohort instead of reporting a false divergence. Baselines and
+cumulative counts live in a ledger that each scheduled run restores from the
+previous run's artifact, so the comparison and the bound span runs. Batches
+are classified before comparison: an overflowed trace, then a runner or
+deadline failure, then disagreeing repetitions, then a target failure. Only a
+clean batch establishes or matches a baseline.
+
 ## Runner and process containment
 
 Runner prepares a Target once and launches each Execution of that Prepared

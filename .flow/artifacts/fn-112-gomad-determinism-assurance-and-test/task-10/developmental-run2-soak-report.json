@@ -1,0 +1,203 @@
+{
+  "schema": "gomad3.determinism-soak-report/v1",
+  "name": "developmental-core-soak",
+  "manifest_sha256": "sha256:e96035effaf0b611ac4fca4da6bd288f48a5919846cbdb8c793b4a15c2f7209b",
+  "run_id": "dev-2",
+  "platform": "linux/arm64",
+  "gate": "strict",
+  "toolchains": [
+    {
+      "go_version": "go1.27.1-stub",
+      "build_key": "stub",
+      "target_goos": "linux",
+      "target_goarch": "arm64"
+    }
+  ],
+  "seeds": [
+    "11",
+    "17"
+  ],
+  "workloads": [
+    "concurrency-state-invariant"
+  ],
+  "repeat": 4,
+  "minimum_batches": 2,
+  "maximum_batches": 3,
+  "batches": 3,
+  "stop_reason": "maximum_batches",
+  "repetitions_per_seed": 12,
+  "diagnostics": true,
+  "choices": true,
+  "load": {
+    "workers": 2,
+    "host_cpus": 12
+  },
+  "sizing": "developmental: N = 8 per seed (two batches of 4) to exercise batching, cross-batch comparison, ledger accumulation, and retention; not a bound",
+  "started": "2026-10-03T20:04:47Z",
+  "elapsed_nanos": 1347469834,
+  "totals": {
+    "batches": 6,
+    "repetitions": 24,
+    "divergences": 0,
+    "overflows": 0,
+    "target_failures": 0,
+    "infrastructure_failures": 0
+  },
+  "ledger_runs": 2,
+  "passed": true,
+  "verdict": "pass",
+  "results": [
+    {
+      "workload": "concurrency-state-invariant",
+      "seed": "11",
+      "batch": 1,
+      "outcome": "clean",
+      "comparison": "matches_baseline",
+      "qualify_classification": "qualified",
+      "repetitions": 4,
+      "evidence_digest": "sha256:1839c9371b25427170030a95458e6ea724086b4226083e1a5af88666ba0bfee5",
+      "cohort": "a9f9779fb69e64f0",
+      "elapsed_nanos": 109739666,
+      "execution_wall_nanos": 81881833,
+      "report": "batches/concurrency-state-invariant-seed-11-batch-1.json"
+    },
+    {
+      "workload": "concurrency-state-invariant",
+      "seed": "17",
+      "batch": 1,
+      "outcome": "clean",
+      "comparison": "matches_baseline",
+      "qualify_classification": "qualified",
+      "repetitions": 4,
+      "evidence_digest": "sha256:ef2179e55d7257341b357b77a6c8d8537a64ddacb4d2dfd12547ba8b259d3492",
+      "cohort": "ee9a684f58edd47b",
+      "elapsed_nanos": 130322751,
+      "execution_wall_nanos": 83834043,
+      "report": "batches/concurrency-state-invariant-seed-17-batch-1.json"
+    },
+    {
+      "workload": "concurrency-state-invariant",
+      "seed": "11",
+      "batch": 2,
+      "outcome": "clean",
+      "comparison": "matches_baseline",
+      "qualify_classification": "qualified",
+      "repetitions": 4,
+      "evidence_digest": "sha256:1839c9371b25427170030a95458e6ea724086b4226083e1a5af88666ba0bfee5",
+      "cohort": "a9f9779fb69e64f0",
+      "elapsed_nanos": 160312458,
+      "execution_wall_nanos": 83834543,
+      "report": "batches/concurrency-state-invariant-seed-11-batch-2.json"
+    },
+    {
+      "workload": "concurrency-state-invariant",
+      "seed": "17",
+      "batch": 2,
+      "outcome": "clean",
+      "comparison": "matches_baseline",
+      "qualify_classification": "qualified",
+      "repetitions": 4,
+      "evidence_digest": "sha256:ef2179e55d7257341b357b77a6c8d8537a64ddacb4d2dfd12547ba8b259d3492",
+      "cohort": "ee9a684f58edd47b",
+      "elapsed_nanos": 210484750,
+      "execution_wall_nanos": 105634876,
+      "report": "batches/concurrency-state-invariant-seed-17-batch-2.json"
+    },
+    {
+      "workload": "concurrency-state-invariant",
+      "seed": "11",
+      "batch": 3,
+      "outcome": "clean",
+      "comparison": "matches_baseline",
+      "qualify_classification": "qualified",
+      "repetitions": 4,
+      "evidence_digest": "sha256:1839c9371b25427170030a95458e6ea724086b4226083e1a5af88666ba0bfee5",
+      "cohort": "a9f9779fb69e64f0",
+      "elapsed_nanos": 450670542,
+      "execution_wall_nanos": 83942833,
+      "report": "batches/concurrency-state-invariant-seed-11-batch-3.json"
+    },
+    {
+      "workload": "concurrency-state-invariant",
+      "seed": "17",
+      "batch": 3,
+      "outcome": "clean",
+      "comparison": "matches_baseline",
+      "qualify_classification": "qualified",
+      "repetitions": 4,
+      "evidence_digest": "sha256:ef2179e55d7257341b357b77a6c8d8537a64ddacb4d2dfd12547ba8b259d3492",
+      "cohort": "ee9a684f58edd47b",
+      "elapsed_nanos": 192710584,
+      "execution_wall_nanos": 90295792,
+      "report": "batches/concurrency-state-invariant-seed-17-batch-3.json"
+    }
+  ],
+  "cohorts": [
+    {
+      "id": "a9f9779fb69e64f0",
+      "key": {
+        "workload": "concurrency-state-invariant",
+        "seed": "11",
+        "platform": "linux/arm64",
+        "execution_identity": "sha256:92caf71296bbb84d61d153b359187dd9f3bba8a2082d97bd00fa2b948a3914f9"
+      },
+      "toolchain": {
+        "go_version": "go1.27.1-stub",
+        "build_key": "stub",
+        "target_goos": "linux",
+        "target_goarch": "arm64"
+      },
+      "run": {
+        "batches": 3,
+        "repetitions": 12,
+        "divergences": 0,
+        "overflows": 0,
+        "target_failures": 0,
+        "infrastructure_failures": 0
+      },
+      "cumulative": {
+        "batches": 6,
+        "repetitions": 24,
+        "divergences": 0,
+        "overflows": 0,
+        "target_failures": 0,
+        "infrastructure_failures": 0
+      },
+      "runs": 2,
+      "bound": 24
+    },
+    {
+      "id": "ee9a684f58edd47b",
+      "key": {
+        "workload": "concurrency-state-invariant",
+        "seed": "17",
+        "platform": "linux/arm64",
+        "execution_identity": "sha256:a989b198e1fa25e6bf7425c82497d711759551d58949e53e0d20f8d32a8519d6"
+      },
+      "toolchain": {
+        "go_version": "go1.27.1-stub",
+        "build_key": "stub",
+        "target_goos": "linux",
+        "target_goarch": "arm64"
+      },
+      "run": {
+        "batches": 3,
+        "repetitions": 12,
+        "divergences": 0,
+        "overflows": 0,
+        "target_failures": 0,
+        "infrastructure_failures": 0
+      },
+      "cumulative": {
+        "batches": 6,
+        "repetitions": 24,
+        "divergences": 0,
+        "overflows": 0,
+        "target_failures": 0,
+        "infrastructure_failures": 0
+      },
+      "runs": 2,
+      "bound": 24
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "equal": false,
+  "divergence": {
+    "ordinal": 0,
+    "fields": [
+      "runtime_cheap_rand_draws"
+    ],
+    "expected": {
+      "Ordinal": 0,
+      "VirtualTime": 0,
+      "Allocations": 0,
+      "GCCycle": 0,
+      "GCPhase": 0,
+      "RunQueueLength": 0,
+      "RunqDraws": 0,
+      "SchedulerDraws": 0,
+      "SelectDraws": 0,
+      "RuntimeRandDraws": 0,
+      "RuntimeCheapRandDraws": 0,
+      "TimerDraws": 0,
+      "ClockTickDraws": 0
+    },
+    "actual": {
+      "Ordinal": 0,
+      "VirtualTime": 0,
+      "Allocations": 0,
+      "GCCycle": 0,
+      "GCPhase": 0,
+      "RunQueueLength": 0,
+      "RunqDraws": 0,
+      "SchedulerDraws": 0,
+      "SelectDraws": 0,
+      "RuntimeRandDraws": 0,
+      "RuntimeCheapRandDraws": 1,
+      "TimerDraws": 0,
+      "ClockTickDraws": 0
+    }
+  }
+}
