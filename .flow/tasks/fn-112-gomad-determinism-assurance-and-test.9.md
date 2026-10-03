@@ -40,8 +40,19 @@ Shrink tests that detect change more than defects into table-driven or generated
 - [ ] Test code lines and test counts before and after are reported with the fn-108 counting script
 - [ ] `make -C tools/gomad3 test-host` and `validate` pass on darwin/arm64; linux status recorded
 ## Done summary
-TBD
+Blocked:
+Blocked: only the native darwin/arm64 and linux/amd64 gates remain for task 9; both parts are implemented and reviewed.
 
+Done: the deterministicio/architecture part (97f221c7ea) and the CLI/Runner part, now that fn-109 tasks 2 to 12 have merged (ebc5ea1e09, plus review fix 7ba322acc8 on gomad-fn112-9 over 59ca3d1739). The CLI forwarded-field and outcome tests are now one table per command. The runner preparation, resume, coordinator-response, replay-preflight and cancellation tests are now tables, and one canned coordinator helper replaces six. Seven validation tests are removed because golden rows pin their error text, and one golden row is added. completion_test.go no longer pins the same error text twice.
+
+Local evidence (linux/arm64, development harness on, not native evidence):
+- Behavior pin: `go test -json` on cli (361 -> 364 names) and runner (679 -> 654). `mapping-check.py` covers all four packages with exit 0 and problems: 0, and checks each validation mapping against the golden error. The failure sets match before and after.
+- fn-108 size-count.sh: this part takes test-go code from 64394 to 64168 (-226) and top-level tests from 1605 to 1565 (-40). Both parts together: -1398 code lines and -88 tests.
+- `make -C tools/gomad3 validate`: exit 0 (5 s).
+- `GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host`: exit 2 (258 s, harness key 60e4051c...). The cli and runner failures are the baseline ones. The other failures are in packages this task does not touch and come from the harness or host (`test-host-cli-runner.txt`).
+- Impl-review (claude:claude-fable-5-1:high): SHIP with three P3s. One is fixed; the other two (test shape) are left as is.
+
+Remaining native gates: on darwin/arm64 and on linux/amd64, run `make -C tools/gomad3 validate` and `GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host`.
 ## Evidence
 - Commits:
 - Tests:
