@@ -349,6 +349,7 @@ selectors. For example:
 
 ```scala
 import io.temporal.api.workflowservice.v1.{StartActivityExecutionRequest, WorkflowServiceGrpc}
+import umpire.*
 import umpire.realize.*
 
 val start = action("start", Party("caller")).schema[StartActivityExecutionRequest]

@@ -38,6 +38,9 @@ The final compiler-refusal matrix includes both wrong-request poll assignment an
 ### Review context
 The owner supplied checkpoint f3ed2083b8 after approving the local checkpoint. Review the committed fn-117 task-8 implementation relative to d72de724b8, including the pinned-Run/companion/test repair documented in `.flow/tmp/fn117-record-repair/evidence.md` and `.flow/tmp/fn117-8/summary.md`. The same commit also contains unrelated fn-112/114/118/119/120 planning, owner VISION/TLA/KNOWN_BUG edits and the requested test relocation; do not treat those as task-8 implementation. Passing current-source gates are recorded in `.flow/tmp/fn117-8/evidence.json`; no production Go validation or IR schema changed.
 
+### Review repair checkpoint
+The committed-range fan-out in `.flow/review-fanout/7adbf24cdc6f4870802b4cfd110521e9/` identified R8 scanner false positives/misses and an R12 README import omission. Its finalization was refused because the unrelated owner VISION commit `4a4da7aab1` moved HEAD during review; those draws have no finalized receipt and do not establish SHIP. Scoped repair checks and regression evidence are in `.flow/tmp/fn117-review-fix/summary.md` and `evidence.json`. Retain the applicable original closure evidence for unchanged Go/runtime/schema/artifact scopes. Final implementation review and spec completion remain required before this task/spec can be marked complete.
+
 ## Acceptance
 - [ ] All free-text proto author routes are removed, and the focused Model check rejects proto names while allowing Model IDs and data values; the complete positive/negative typing matrix passes.
 - [ ] Required full coverage, frozen goldens, lint and artifact checks pass with applicable reused evidence identified; no Go validation/schema/meaning change exists.

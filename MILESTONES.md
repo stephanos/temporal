@@ -77,9 +77,9 @@ generic Driver primitives can also start independently before the final example 
 ### fn-117: Type the Temporal API in the Models
 
 Implementation and regression checks pass; implementation review and spec completion remain.
-The current review wrapper reads committed ranges, but task 8's changes are uncommitted under its
-no-commit constraint. Owner direction on a local checkpoint is required before that review can
-inspect the implementation.
+The implementation is committed and the owner has approved the local checkpoint. The committed-range
+review found scanner gaps and a documentation omission, now repaired with regression checks. Its
+receipt was invalidated by an unrelated commit during review; final review and spec closure remain.
 
 ### fn-112: Make the standalone activity Scala Model a DSL showcase
 

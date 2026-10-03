@@ -151,6 +151,33 @@
       "task": "fn-117-type-the-temporal-api-in-the-models.8",
       "timestamp": "2026-10-03T17:21:40.515399Z",
       "verdict": "NEEDS_HUMAN"
+    },
+    {
+      "artifact_sha256": "44fe0b54e6b7177bb6bc9eb0c0aa5ffe292549465b1d10271d0888fec3081142",
+      "backend": "codex",
+      "base_sha": "d72de724b80c3ebc35f0b017391f58f046b299c7",
+      "counter_kind": "impl",
+      "failure_class": "head_moved",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": true,
+      "hash_epoch": 0,
+      "head_sha": "09155f5e432ec807d49cb656aa27c9d3460d0b02",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 65,
+      "output_sha256": "bb436235c59938516aef592baca64f7c387ef45319ee0059cb52a6e644d576c9",
+      "reservation_id": "7adbf24cdc6f4870802b4cfd110521e9",
+      "round_consumed": false,
+      "scope": "impl:fn-117-type-the-temporal-api-in-the-models.8",
+      "superseded_by": null,
+      "task": "fn-117-type-the-temporal-api-in-the-models.8",
+      "timestamp": "2026-10-03T18:40:41.217985Z",
+      "verdict": null
     }
   ],
   "review_hash_epoch": {
@@ -160,7 +187,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
-    "impl:fn-117-type-the-temporal-api-in-the-models.8": 0,
+    "impl:fn-117-type-the-temporal-api-in-the-models.8": 1,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-117-type-the-temporal-api-in-the-models.md",
@@ -177,5 +204,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T17:21:40.522399Z"
+  "updated_at": "2026-10-03T18:40:41.218506Z"
 }
