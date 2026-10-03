@@ -35,6 +35,15 @@ Apply these instructions when implementing the milestones:
   if the timings implicate them. Preserve independent assertions and immutable fixtures; shared
   test setup must not leak mutable state. Compare timings on equivalent inputs before claiming a
   speedup. Do not add a profiling or caching framework without evidence it is needed.
+- Commands that hold: run the full Go tooling suite with `-tags test_dep -p 2 -timeout 30m` (the
+  lower, model and export test binaries take 3.5-5 GB each, so never more than two at once, and
+  `-p 1` doubles wall time); run the model gate with `MODEL_GATE_ARGS=--skip-go-checks` when the Go
+  suite runs separately, since its Go phase repeats it. Agents sharing one machine serialize heavy
+  suites with one `flock` lock file. After any Model or lifter change, run `make umpire-gen-model` and
+  the original-baseline check from fn-112.1: `go test -tags test_dep -count=1 -p 2 -run
+  OriginalBaseline ./tools/umpire/internal/golden ./tools/umpire/model ./tools/umpire/lower`. Its
+  allowed differences are listed in `tools/umpire/internal/golden/original.json`, which only the
+  task introducing a difference extends.
 - Keep handovers concise and link existing evidence. Add audits, inventories or verification gates
   only for an explicit requirement or a concrete uncovered risk. Move to the next implementation
   task once the required checks and review pass.
@@ -61,17 +70,31 @@ production dispatch fails closed.
 | 2 | fn-120 choices | Build named choices against the settled step surface, before branching Models are rewritten | fn-112 foundations |
 | 3 | fn-112 showcase | Rewrite the standalone activity Model, extract the shared task queue and build the realization kit | fn-120 choices |
 | 4 | fn-114 | Roll the final showcase constructs, including choices, out to every other Model | fn-112 showcase |
-| alongside 3 | fn-118 interface | Settle hint-aware realization helpers with the shared kit; no waiting-behavior changes yet | shared-kit design |
+| alongside 3 | fn-118 interface | Settle hint-aware realization helpers with the shared kit; no waiting-behavior changes yet | done in fn-118.1 |
 | after 4 | fn-118 behavior | Derive generated-test waits from API hints, as a separate behavioral change | structural Case-byte freeze verified |
-| after 4 | fn-120 tools | Add model lint, the IR explorer and ITF interchange using settled metadata and Model inventory | final reader contracts and fn-114 roots |
+| after 4 | fn-120 tools | Add model lint (including specification holes), the IR explorer and ITF interchange | final reader contracts and fn-114 roots |
+| alongside 4 | fn-122 | Capabilities and their laws: shared Temporal promises stated once, adopted per entity | fn-112.10 |
+| after 3 | fn-121 | Shard generated Cases per Case in CI, with HSM/CHASM per Nexus Case | fn-112.10 |
 | last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
 
 These are execution phases, not new specs. Build choices before the Model conversions so each
 branching step uses its final syntax once. Coordinate settled schema additions and compatibility
 handling; do not guess API-hint fields before their inventory. The structural migrations still freeze
 Case bytes, while fn-118 separately permits specified Program changes and freezes Contracts. After
-shared schema/reader changes settle, hint behavior and Go-only tools can run in parallel; fn-119's
-generic Driver primitives can also start independently before the final example integration.
+shared schema/reader changes settle, hint behavior and Go-only tools can run in parallel. fn-119's
+generic Driver primitives are done (fn-119.1-.2); the rest waits for fn-114, fn-118 and fn-120.
+Flow records dependencies only within a spec, so the conductor holds the cross-spec gates: fn-112.6
+waits for fn-120.1, fn-112.9 builds against the interface in `.plans/API_BEHAVIOR_HINTS.md`, and
+fn-121 and fn-122 wait for fn-112.10.
+
+Design decisions taken on 2026-10-03 and folded into the specs: operator policy
+(`.plans/DSL_OPERATORS.md`: words for logic, symbols only where every programmer knows them);
+syntactic sugar lives in separate `Syntax.scala` files in the framework, the Temporal kit and the
+lifter, each form lifting to the same IR as its core spelling; three-level temporal claims
+(`.plans/TEMPORAL_PATTERNS.md`: named patterns now, `always`/`eventually` deferred, raw IR as the
+backend form); reusable behavioral protocols (`.plans/SEMANTIC_PROTOCOLS.md`, vision #PROTOCOLS);
+MUST/MAY/MUST NOT as generated views with a specification-hole lint rather than author keywords
+(`.plans/MODALITIES.md`).
 
 ### fn-112: Make the standalone activity Scala Model a DSL showcase
 
@@ -83,7 +106,15 @@ for what the activity and Nexus realizations both use. Files are split by kind (
 feature has 2,830 lines; the targets are at most 1,600 lines and 60 string literals. Each new
 construct is built once in the lifter, and realization helpers use the typed Temporal API.
 Two additional tasks require author-computed Query totals for capacity review and extract the
-reusable task-queue entity, providers and shared properties into `temporal/taskqueue/`.
+reusable task-queue entity, providers and shared properties into `temporal/taskqueue/`. Shared
+claims are written with named patterns (`once(...).keeps(...)`, `never(...).from(...)`,
+`stays(...).unless(...)`) as parameterized definitions fn-122 turns into laws.
+
+Task 1 is done: the original-baseline archive and equivalence check, the DefinitionScope probe and
+the starting metrics (2,830 lines, 462 string literals). Task 2 is next. Task 6 also makes the 168
+state/action pairs disabled only by a default arm explicit; two Properties that are false on 120
+rows each and seven pause/unpause rows the server rejects are recorded follow-ups, because the
+behavior freeze forbids changing them here.
 
 ### fn-114: State every Scala Model declaration once
 
@@ -94,6 +125,9 @@ with one lifter run writing all of them. Every Model folder gets the same file n
 activity, and no `Claims.scala` remains.
 
 ### fn-118: Declare how Temporal APIs behave once, and let the generated tests use it
+
+Task 1 is done: the inventory (16 Cases, 17 polls, 52 waits, 440 s declared wait budget) and the
+hint-aware kit interface in `.plans/API_BEHAVIOR_HINTS.md`. The rest waits for the Case freeze.
 
 Realizations hand-write their waiting today: three polls with a literal 250 ms interval and two
 literal 5,000 ms timeouts. This spec declares how an API behaves once, as metadata beside the typed
@@ -110,7 +144,9 @@ alternatives of a nondeterministic step and the IR records the names, which is a
 lint command reports model-quality findings from the IR (an unreachable case, an action never
 enabled, a Property no Query names, a fact with no evidence) and the gate fails on a new one. An
 explorer steps through a machine from the IR and says why a class is disabled, at its Scala line.
-Umpire traces convert to and from ITF. Temporal operators, Scenario combinators and Queries answered
+Umpire traces convert to and from ITF. The lint also reports specification holes (a pair disabled only by a
+default arm, an enabled class no Property constrains, a Property only pinned Queries ask), with a
+per-operation rules table and a per-state view of MAY, MUST and MUST NOT. Temporal operators, Scenario combinators and Queries answered
 by Quint, Apalache or TLC are recorded as later work with their own specs.
 
 ### fn-119: Show one Go SDK workflow driven end to end from the IRs
@@ -122,4 +158,21 @@ and a check fails if any Go file names the example. A walkthrough follows one Qu
 declaration to the Verdict. The Testpilot Driver realizes only one workflow command today
 (scheduling a Nexus operation), so the spec adds the general primitives an activity workflow needs.
 The workflow is the Driver's interpreter executing the Case; testing a hand-written workflow
-function is out of scope.
+function is out of scope. Tasks 1 and 2 are done: the Driver schedules an activity, routes its
+retries to the Case's script and can withhold an attempt so the server times it out.
+
+### fn-121: Shard generated Cases per Case in CI
+
+CI shards functional tests by test name, and the salt optimizer balances by depth-2 names. Today
+every generated Case runs inside `TestTestpilotGeneratedCases/<hsm|chasm>`, so two blocks hold all
+Cases, standalone activity Cases run twice, and the Testpilot tests run only in the unsharded
+`umpire-check-live-tests`. The spec names each Case at depth 2, runs HSM and CHASM only for Nexus
+Cases, pins the names to the manifest and runs the generated Cases in the sharded functional job.
+
+### fn-122: Capabilities and their laws
+
+An entity declares capabilities (`Closable`, `Terminable`, `Pausable`, `Pollable`, `Describable`)
+and their bindings; each capability brings laws, and pairs bring interaction laws without being
+listed. The pilots lift `terminalIsFinal` into `terminalStatesAreFinal` and `pausedIsNotDispatched`
+into a `Pausable × Pollable` law, on standalone activity and a minimal Nexus operation Model. A law
+joins only once two entities adopt it; an entity that differs overrides it with a recorded reason.
