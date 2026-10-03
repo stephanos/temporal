@@ -70,7 +70,7 @@ func TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures(t *testing.T)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if opened.Manifest.Target.BuildTags == nil {
+	if opened.Manifest().Target.BuildTags == nil {
 		t.Fatal("empty target build tags encoded as null")
 	}
 	if _, err := os.Stat(filepath.Join(summary.CampaignPath, "campaign.json")); err != nil {
@@ -222,8 +222,8 @@ func TestRunRetainsOnlyProbeNovelSuccessesWithinExplicitBounds(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if opened.Manifest.ArtifactKind != record.ArtifactSuccess || opened.Manifest.Outcome.Domain != "success" || opened.Manifest.ReplayMode != record.ReplayExact {
-			t.Fatalf("retained success = %#v", opened.Manifest)
+		if opened.Manifest().ArtifactKind != record.ArtifactSuccess || opened.Manifest().Outcome.Domain != "success" || opened.Manifest().ReplayMode != record.ReplayExact {
+			t.Fatalf("retained success = %#v", opened.Manifest())
 		}
 		if err := opened.Close(); err != nil {
 			t.Fatal(err)
@@ -743,8 +743,8 @@ func TestRunPublishesConnectedWorldBundle(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if opened.Manifest.World.Initial.Schema != "gomad3.world.snapshot/v1" || opened.Manifest.World.Transitions.Count != 1 || opened.Manifest.World.Terminal.Kind != "idle" {
-		t.Fatalf("recorded World = %#v", opened.Manifest.World)
+	if opened.Manifest().World.Initial.Schema != "gomad3.world.snapshot/v1" || opened.Manifest().World.Transitions.Count != 1 || opened.Manifest().World.Terminal.Kind != "idle" {
+		t.Fatalf("recorded World = %#v", opened.Manifest().World)
 	}
 }
 
@@ -781,8 +781,8 @@ func TestRunClassifiesConnectedWorldDeadlock(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if opened.Manifest.Outcome.Reason != "world_deadlock" || opened.Manifest.World.Terminal.Kind != "deadlock" {
-		t.Fatalf("World deadlock manifest = %#v", opened.Manifest)
+	if opened.Manifest().Outcome.Reason != "world_deadlock" || opened.Manifest().World.Terminal.Kind != "deadlock" {
+		t.Fatalf("World deadlock manifest = %#v", opened.Manifest())
 	}
 }
 
@@ -842,8 +842,8 @@ func TestRunRejectsInvalidConnectedWorldBeforePublication(t *testing.T) {
 	if openErr != nil {
 		t.Fatal(openErr)
 	}
-	if opened.Manifest.ArtifactKind != record.ArtifactRunnerFailure || opened.Manifest.Outcome.Reason != "world_record" || opened.Manifest.ReplayMode != record.ReplayNone {
-		t.Fatalf("Runner failure manifest = %#v", opened.Manifest)
+	if opened.Manifest().ArtifactKind != record.ArtifactRunnerFailure || opened.Manifest().Outcome.Reason != "world_record" || opened.Manifest().ReplayMode != record.ReplayNone {
+		t.Fatalf("Runner failure manifest = %#v", opened.Manifest())
 	}
 }
 
@@ -921,8 +921,8 @@ func TestRunPassesChoiceProfileToExecutorAndArtifact(t *testing.T) {
 			t.Error(err)
 		}
 	})
-	if opened.Manifest.ChoiceProfile == nil || opened.Manifest.ChoiceProfile.Trace.Schema != "gomad3.choice-trace/v3" || opened.Manifest.ChoiceProfile.Trace.Limit != record.Uint64String(limit) || opened.Manifest.ChoiceProfile.Trace.TapeSHA256 == "" {
-		t.Fatalf("artifact choice profile = %#v", opened.Manifest.ChoiceProfile)
+	if opened.Manifest().ChoiceProfile == nil || opened.Manifest().ChoiceProfile.Trace.Schema != "gomad3.choice-trace/v3" || opened.Manifest().ChoiceProfile.Trace.Limit != record.Uint64String(limit) || opened.Manifest().ChoiceProfile.Trace.TapeSHA256 == "" {
+		t.Fatalf("artifact choice profile = %#v", opened.Manifest().ChoiceProfile)
 	}
 }
 
@@ -1042,15 +1042,15 @@ func TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure(t *te
 		t.Fatal(err)
 	}
 	defer opened.Close()
-	profile := opened.Manifest.SimulationProfile
+	profile := opened.Manifest().SimulationProfile
 	if profile == nil {
 		t.Fatal("simulation exploration failure artifact omitted simulation exploration evidence")
 	}
-	plan, err := artifact.ReadPayload(opened, profile.Plan.File, uint64(profile.Plan.Bytes))
+	plan, err := opened.ReadPayload(profile.Plan.File, uint64(profile.Plan.Bytes))
 	if err != nil {
 		t.Fatal(err)
 	}
-	record, err := artifact.ReadPayload(opened, profile.Record.File, uint64(profile.Record.Bytes))
+	record, err := opened.ReadPayload(profile.Record.File, uint64(profile.Record.Bytes))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1390,7 +1390,7 @@ func distinctSuccessStdoutOutcomes(t *testing.T, paths []string) map[record.SHA2
 		if err != nil {
 			t.Fatal(err)
 		}
-		outcomes[artifact.Manifest.Streams.Stdout.FullSHA256] = struct{}{}
+		outcomes[artifact.Manifest().Streams.Stdout.FullSHA256] = struct{}{}
 		if err := artifact.Close(); err != nil {
 			t.Fatal(err)
 		}
@@ -1454,8 +1454,8 @@ func TestRunPublishesValidatedChoiceTraceOverflowAsRunnerFailure(t *testing.T) {
 	if err := opened.Close(); err != nil {
 		t.Fatal(err)
 	}
-	if opened.Manifest.ArtifactKind != record.ArtifactRunnerFailure || opened.Manifest.Outcome.Reason != "choice_trace_overflow" || opened.Manifest.ChoiceProfile == nil || opened.Manifest.ChoiceProfile.Trace.TerminalState != "overflow" {
-		t.Fatalf("overflow manifest = %#v", opened.Manifest)
+	if opened.Manifest().ArtifactKind != record.ArtifactRunnerFailure || opened.Manifest().Outcome.Reason != "choice_trace_overflow" || opened.Manifest().ChoiceProfile == nil || opened.Manifest().ChoiceProfile.Trace.TerminalState != "overflow" {
+		t.Fatalf("overflow manifest = %#v", opened.Manifest())
 	}
 
 	resumedExecutor := &fakeExecutor{result: func(uint64) execution.Result {
@@ -2436,7 +2436,7 @@ func (replayer *matchingReplayer) Replay(_ context.Context, config ReplaySpec) (
 		return ReplayResult{}, err
 	}
 	defer opened.Close()
-	return ReplayResult{Artifact: opened.Detached(), Verified: true, Match: true}, nil
+	return ReplayResult{Artifact: opened.Snapshot(), Verified: true, Match: true}, nil
 }
 
 func newOutOfOrderExecutor(t *testing.T) *outOfOrderExecutor {
@@ -2793,8 +2793,8 @@ func TestRunClassifiesWatchdogTimeoutBeforeUnterminatedChoiceTrace(t *testing.T)
 	if err := opened.Close(); err != nil {
 		t.Fatal(err)
 	}
-	if opened.Manifest.ArtifactKind != record.ArtifactWatchdogTimeout || opened.Manifest.Outcome.Reason != "watchdog_timeout" || opened.Manifest.ChoiceProfile != nil {
-		t.Fatalf("watchdog manifest = %#v", opened.Manifest)
+	if opened.Manifest().ArtifactKind != record.ArtifactWatchdogTimeout || opened.Manifest().Outcome.Reason != "watchdog_timeout" || opened.Manifest().ChoiceProfile != nil {
+		t.Fatalf("watchdog manifest = %#v", opened.Manifest())
 	}
 }
 

@@ -140,7 +140,7 @@ func observeCompletion(t *testing.T, summary CampaignResult, err error) completi
 		if openErr != nil {
 			t.Fatal(openErr)
 		}
-		manifest := opened.Manifest
+		manifest := opened.Manifest()
 		if closeErr := opened.Close(); closeErr != nil {
 			t.Fatal(closeErr)
 		}

@@ -111,7 +111,7 @@ func TestPublishSharesOneTargetAcrossTheStoresOfOnePool(t *testing.T) {
 			t.Fatal(err)
 		}
 		copied := filepath.Join(t.TempDir(), "target")
-		if err := CopyPayload(opened, "target", copied, 0o500); err != nil {
+		if err := opened.CopyPayload("target", copied, 0o500); err != nil {
 			t.Fatal(err)
 		}
 		if content, err := os.ReadFile(copied); err != nil || string(content) != "target bytes" {
@@ -230,7 +230,7 @@ func TestDamagedSharedTargetFailsOpenAndLaterPublication(t *testing.T) {
 			published := publishSeed(t, store, 7)
 			test.damage(t, published.Path, poolEntries(t, store.TargetPool)[0])
 			if opened, err := OpenArtifact(published.Path); err == nil {
-				t.Fatalf("OpenArtifact() opened a damaged artifact: %#v", opened.Manifest.Target)
+				t.Fatalf("OpenArtifact() opened a damaged artifact: %#v", opened.Manifest().Target)
 			}
 			_, err := store.PublishArtifact(seededInput(t, 8))
 			if test.poisoned && (err == nil || !strings.Contains(err.Error(), "shared target pool entry")) {
@@ -260,11 +260,11 @@ func TestCopiedArtifactOpensWithoutItsStore(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer opened.Close()
-	content, err := ReadPayload(opened, "target", 64)
+	content, err := opened.ReadPayload("target", 64)
 	if err != nil || string(content) != "target bytes" {
 		t.Fatalf("exported target = %q, %v", content, err)
 	}
-	if opened.Manifest.RecordHash != published.Manifest.RecordHash {
+	if opened.Manifest().RecordHash != published.Manifest.RecordHash {
 		t.Fatal("exported artifact identity changed")
 	}
 }
@@ -325,7 +325,7 @@ func TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				content, err := ReadPayload(opened, "target", 64)
+				content, err := opened.ReadPayload("target", 64)
 				if err != nil || !bytes.Equal(content, []byte("target bytes")) {
 					t.Fatalf("private target = %q, %v", content, err)
 				}

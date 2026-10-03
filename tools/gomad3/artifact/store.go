@@ -55,6 +55,10 @@ type Publication struct {
 	Payloads []Payload
 }
 
+// Artifact is a detached reference to an artifact in a store: where it is and
+// what its manifest records. It holds no open resource, so copying or dropping
+// it releases nothing; OpenArtifact returns the owned handle (Opened) that
+// reads payloads.
 type Artifact struct {
 	Path     string
 	Manifest record.ExecutionRecord
@@ -64,7 +68,6 @@ type Artifact struct {
 	StoredBytes uint64
 	// TargetSharing is set by publication and is empty on an opened artifact.
 	TargetSharing TargetSharing
-	root          *os.Root
 }
 
 type CapacityError struct {
@@ -182,11 +185,11 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 		if openErr != nil {
 			return Artifact{}, fmt.Errorf("existing artifact %s failed validation: %w", finalPath, openErr)
 		}
-		existingIdentity, identityErr := storeIdentity(key, existing.Manifest)
+		existingIdentity, identityErr := storeIdentity(key, existing.manifest)
 		if identityErr != nil {
 			return Artifact{}, errors.Join(identityErr, existing.Close())
 		}
-		if existingIdentity == identity && store.Key == StoreKeyExecution && !sameExecution(existing.Manifest, manifest) {
+		if existingIdentity == identity && store.Key == StoreKeyExecution && !sameExecution(existing.manifest, manifest) {
 			if closeErr := existing.Close(); closeErr != nil {
 				return Artifact{}, fmt.Errorf("close artifact of another execution: %w", closeErr)
 			}
@@ -194,7 +197,7 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 			continue
 		}
 		if existingIdentity == identity {
-			if key == StoreKeyFailureSignature && manifest.ArtifactKind == record.ArtifactSuccess && existing.Manifest.RecordHash != manifest.RecordHash {
+			if key == StoreKeyFailureSignature && manifest.ArtifactKind == record.ArtifactSuccess && existing.manifest.RecordHash != manifest.RecordHash {
 				if closeErr := existing.Close(); closeErr != nil {
 					return Artifact{}, fmt.Errorf("close colliding success artifact: %w", closeErr)
 				}
@@ -202,7 +205,8 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 				finalPath = filepath.Join(store.Root, identityDirectory(identity, false))
 				continue
 			}
-			identity := Artifact{Path: existing.Path, Manifest: existing.Manifest, StoredBytes: existing.StoredBytes, TargetSharing: store.sharingOf(existing)}
+			identity := existing.Snapshot()
+			identity.TargetSharing = store.sharingOf(identity)
 			if closeErr := existing.Close(); closeErr != nil {
 				return Artifact{}, fmt.Errorf("close existing artifact: %w", closeErr)
 			}

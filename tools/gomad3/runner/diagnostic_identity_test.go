@@ -57,7 +57,7 @@ func TestDiagnosticsOffPreservesExistingCanonicalIdentities(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			manifest := opened.Manifest
+			manifest := opened.Manifest()
 			if err := opened.Close(); err != nil {
 				t.Fatal(err)
 			}

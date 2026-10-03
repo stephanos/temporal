@@ -42,7 +42,7 @@ func TestPublishWritesPrivateAtomicArtifactAndOpenValidatesIt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if opened.Manifest.RecordHash != published.Manifest.RecordHash || opened.Manifest.Outcome.FailureSignature != published.Manifest.Outcome.FailureSignature {
+	if opened.Manifest().RecordHash != published.Manifest.RecordHash || opened.Manifest().Outcome.FailureSignature != published.Manifest.Outcome.FailureSignature {
 		t.Fatal("opened artifact identity changed")
 	}
 	for path, mode := range map[string]os.FileMode{
@@ -195,13 +195,13 @@ func TestPublishKeepsEachExecutionOfOneOutcomeSignature(t *testing.T) {
 		if err := opened.Close(); err != nil {
 			t.Fatal(err)
 		}
-		if opened.Manifest.Seed != artifact.Manifest.Seed || opened.Manifest.SelectionOrdinal != record.Uint64String(index) {
-			t.Fatalf("artifact %d at %s records seed %d ordinal %d", index, artifact.Path, opened.Manifest.Seed, opened.Manifest.SelectionOrdinal)
+		if opened.Manifest().Seed != artifact.Manifest.Seed || opened.Manifest().SelectionOrdinal != record.Uint64String(index) {
+			t.Fatalf("artifact %d at %s records seed %d ordinal %d", index, artifact.Path, opened.Manifest().Seed, opened.Manifest().SelectionOrdinal)
 		}
 		if index == 0 {
 			continue
 		}
-		if want := filepath.Join(root, identityDirectory(executionIdentity(opened.Manifest), true)); artifact.Path != want {
+		if want := filepath.Join(root, identityDirectory(executionIdentity(opened.Manifest()), true)); artifact.Path != want {
 			t.Fatalf("artifact %d path = %s, want its execution's directory %s", index, artifact.Path, want)
 		}
 	}
@@ -317,7 +317,7 @@ func TestOpenedArtifactRemainsPinnedAcrossPathReplacement(t *testing.T) {
 	if err := os.Symlink(t.TempDir(), published.Path); err != nil {
 		t.Fatal(err)
 	}
-	stdout, err := ReadPayload(opened, "stdout", 64)
+	stdout, err := opened.ReadPayload("stdout", 64)
 	if err != nil {
 		t.Fatal(err)
 	}

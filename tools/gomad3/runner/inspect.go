@@ -399,8 +399,8 @@ func Inspect(path string, options InspectOptions) (Inspection, error) {
 			return Inspection{}, err
 		}
 		defer opened.Close()
-		projected := projectArtifact(opened.Manifest, absolute)
-		sharing, err := artifact.TargetSharingOf(opened)
+		projected := projectArtifact(opened.Manifest(), absolute)
+		sharing, err := opened.TargetSharing()
 		if err != nil {
 			return Inspection{}, err
 		}
@@ -545,16 +545,17 @@ func projectCampaignLifecycle(status campaign.LifecycleStatus) CampaignLifecycle
 	}
 }
 
-func projectChoices(opened artifact.Artifact) (Choices, error) {
-	profile := opened.Manifest.ChoiceProfile
+func projectChoices(opened *artifact.Opened) (Choices, error) {
+	manifest := opened.Manifest()
+	profile := manifest.ChoiceProfile
 	if profile == nil {
 		return Choices{}, fmt.Errorf("artifact has no choice trace")
 	}
-	payload, err := artifact.ReadPayload(opened, profile.Trace.File, uint64(profile.Trace.Limit))
+	payload, err := opened.ReadPayload(profile.Trace.File, uint64(profile.Trace.Limit))
 	if err != nil {
 		return Choices{}, fmt.Errorf("read choice trace: %w", err)
 	}
-	targetIdentity, err := opened.Manifest.Target.SHA256.Bytes()
+	targetIdentity, err := manifest.Target.SHA256.Bytes()
 	if err != nil {
 		return Choices{}, fmt.Errorf("decode target identity for choice trace: %w", err)
 	}
@@ -586,7 +587,7 @@ func projectChoices(opened artifact.Artifact) (Choices, error) {
 	exactReplay := profile.Name == choice.Profile && profile.Trace.TapeSHA256 != ""
 	var decisions []ChoiceDecision
 	if exactReplay {
-		decisions, err = projectReplayDecisions(opened.Manifest, trace, targetIdentity, profile.Trace.TapeSHA256)
+		decisions, err = projectReplayDecisions(manifest, trace, targetIdentity, profile.Trace.TapeSHA256)
 		if err != nil {
 			return Choices{}, err
 		}

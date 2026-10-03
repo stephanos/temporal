@@ -199,10 +199,10 @@ func restoreResumeSummary(batchPath string, selection SeedSelection, runs []camp
 				if err != nil {
 					return resumeSummaryState{}, fmt.Errorf("open resumable failure artifact %d: %w", index+1, err)
 				}
-				if opened.StoredBytes > ^uint64(0)-state.failureArtifactBytes {
+				if opened.StoredBytes() > ^uint64(0)-state.failureArtifactBytes {
 					return resumeSummaryState{}, errors.Join(errors.New("resumable failure artifact bytes overflow"), opened.Close())
 				}
-				state.failureArtifactBytes += opened.StoredBytes
+				state.failureArtifactBytes += opened.StoredBytes()
 				if err := opened.Close(); err != nil {
 					return resumeSummaryState{}, fmt.Errorf("close resumable failure artifact %d: %w", index+1, err)
 				}

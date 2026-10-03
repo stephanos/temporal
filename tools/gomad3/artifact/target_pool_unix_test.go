@@ -104,7 +104,7 @@ func TestPruneTargetPoolRemovesOnlyEntriesNothingShares(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := ReadPayload(opened, "target", 64); err != nil {
+	if _, err := opened.ReadPayload("target", 64); err != nil {
 		t.Fatal(err)
 	}
 	if err := opened.Close(); err != nil {

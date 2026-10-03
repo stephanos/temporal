@@ -38,7 +38,7 @@ func TestGuidedCorpusSeedReproducesRetainedExecution(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(original.Manifest.Outcome, repeated.Manifest.Outcome) || !reflect.DeepEqual(original.Manifest.Streams, repeated.Manifest.Streams) || original.Manifest.IOProfile.Transcript.SHA256 != repeated.Manifest.IOProfile.Transcript.SHA256 {
+	if !reflect.DeepEqual(original.Manifest().Outcome, repeated.Manifest().Outcome) || !reflect.DeepEqual(original.Manifest().Streams, repeated.Manifest().Streams) || original.Manifest().IOProfile.Transcript.SHA256 != repeated.Manifest().IOProfile.Transcript.SHA256 {
 		t.Fatalf("corpus seed did not reproduce its retained execution")
 	}
 }

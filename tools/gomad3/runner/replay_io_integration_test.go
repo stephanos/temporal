@@ -142,7 +142,7 @@ func TestLinkedCapabilityArtifactRevalidatesRetainedExecutableBeforeReplay(t *te
 	if err != nil {
 		t.Fatal(err)
 	}
-	payload, err := artifact.ReadPayload(opened, "target-capabilities.json", uint64(published.Manifest.Target.CapabilityManifest.Bytes))
+	payload, err := opened.ReadPayload("target-capabilities.json", uint64(published.Manifest.Target.CapabilityManifest.Bytes))
 	closeErr := opened.Close()
 	if err != nil || closeErr != nil {
 		t.Fatal(errors.Join(err, closeErr))

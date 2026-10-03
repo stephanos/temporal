@@ -247,18 +247,19 @@ func mergeQualificationRun(result *SeedReport, run qualification.QualificationEx
 		coverage, artifactErr = projectArtifactChoice(opened)
 	}
 	if artifactErr == nil {
-		result.ElapsedNanos += record.Uint64String(opened.Manifest.Host.ElapsedNanos)
-		result.ArtifactBytes += record.Uint64String(opened.StoredBytes)
-		if opened.Manifest.ChoiceProfile != nil {
-			result.TraceBytes += opened.Manifest.ChoiceProfile.Trace.Bytes
+		manifest := opened.Manifest()
+		result.ElapsedNanos += record.Uint64String(manifest.Host.ElapsedNanos)
+		result.ArtifactBytes += record.Uint64String(opened.StoredBytes())
+		if manifest.ChoiceProfile != nil {
+			result.TraceBytes += manifest.ChoiceProfile.Trace.Bytes
 			result.Choice, artifactErr = mergeChoiceCoverage(result.Choice, coverage)
 		}
 	}
 	return errors.Join(artifactErr, opened.Close())
 }
 
-func validateArtifactIdentity(opened artifact.Artifact, seed uint64, analysis capabilityanalysis.Report) error {
-	manifest := opened.Manifest
+func validateArtifactIdentity(opened *artifact.Opened, seed uint64, analysis capabilityanalysis.Report) error {
+	manifest := opened.Manifest()
 	if uint64(manifest.Seed) != seed || manifest.Toolchain.BuildKey != analysis.Toolchain.BuildKey || manifest.Toolchain.GoVersion != analysis.Toolchain.GoVersion || manifest.Toolchain.TargetGOOS != analysis.Toolchain.TargetGOOS || manifest.Toolchain.TargetGOARCH != analysis.Toolchain.TargetGOARCH {
 		return errors.New("retained artifact identity does not match capability analysis")
 	}
@@ -268,16 +269,17 @@ func validateArtifactIdentity(opened artifact.Artifact, seed uint64, analysis ca
 	return nil
 }
 
-func projectArtifactChoice(opened artifact.Artifact) (ChoiceCoverage, error) {
-	profile := opened.Manifest.ChoiceProfile
+func projectArtifactChoice(opened *artifact.Opened) (ChoiceCoverage, error) {
+	manifest := opened.Manifest()
+	profile := manifest.ChoiceProfile
 	if profile == nil {
 		return emptyChoiceCoverage(), nil
 	}
-	payload, err := artifact.ReadPayload(opened, profile.Trace.File, uint64(profile.Trace.Limit))
+	payload, err := opened.ReadPayload(profile.Trace.File, uint64(profile.Trace.Limit))
 	if err != nil {
 		return ChoiceCoverage{}, err
 	}
-	targetIdentity, err := opened.Manifest.Target.SHA256.Bytes()
+	targetIdentity, err := manifest.Target.SHA256.Bytes()
 	if err != nil {
 		return ChoiceCoverage{}, err
 	}

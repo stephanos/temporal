@@ -29,8 +29,8 @@ func TestMinimizePublishesLinkedExactScheduleAndFaultReduction(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	parentRecordHash := parent.Manifest.RecordHash
-	parentFailureSignature := parent.Manifest.Outcome.FailureSignature
+	parentRecordHash := parent.Manifest().RecordHash
+	parentFailureSignature := parent.Manifest().Outcome.FailureSignature
 	if err := parent.Close(); err != nil {
 		t.Fatal(err)
 	}
@@ -65,8 +65,8 @@ func TestMinimizePublishesLinkedExactScheduleAndFaultReduction(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if reopened.Manifest.RecordHash != parentRecordHash || reopened.Manifest.Minimization != nil {
-		t.Fatalf("parent artifact changed = %#v", reopened.Manifest)
+	if reopened.Manifest().RecordHash != parentRecordHash || reopened.Manifest().Minimization != nil {
+		t.Fatalf("parent artifact changed = %#v", reopened.Manifest())
 	}
 	if err := reopened.Close(); err != nil {
 		t.Fatal(err)
@@ -549,7 +549,7 @@ func (replayer *minimizationReplayer) Replay(_ context.Context, spec ReplaySpec)
 	if err != nil {
 		return ReplayResult{}, err
 	}
-	detached := opened.Detached()
+	detached := opened.Snapshot()
 	if err := opened.Close(); err != nil {
 		return ReplayResult{}, err
 	}

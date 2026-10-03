@@ -343,8 +343,8 @@ func (corpus *Corpus) validateEntry(entry Entry) (artifact.SharedTarget, error) 
 		return artifact.SharedTarget{}, fmt.Errorf("open guided corpus case: %w", err)
 	}
 	defer opened.Close()
-	manifest := opened.Manifest
-	if manifest.RecordHash != entry.RecordHash || manifest.Seed != entry.Seed || opened.StoredBytes != uint64(entry.StoredBytes) {
+	manifest := opened.Manifest()
+	if manifest.RecordHash != entry.RecordHash || manifest.Seed != entry.Seed || opened.StoredBytes() != uint64(entry.StoredBytes) {
 		return artifact.SharedTarget{}, errors.New("guided corpus case identity does not match its entry")
 	}
 	payloadBytes, err := artifactPayloadBytes(manifest)
