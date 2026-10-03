@@ -51,9 +51,19 @@ fn-114 tasks 5, 6, 8–12, 15, and 16 and fn-112 tasks 14 and 15 were completed 
 on darwin/arm64. Milestone execution is paused again at the user's request after fn-114.12.
 On resumption, fn-114.13 (runtime-owned goroutine ordering) precedes the fn-114.14
 qualification, then fn-112.16. Every task completed on 2026-10-02 still needs a native Linux
-run, which a push to the fork's CI provides. Reviews now use the `claude` backend
-(claude-opus-5-5, the same model as the implementer), so they are not cross-family
+run, which a push to the fork's CI provides. Reviews now use the `codex` backend
+(gpt-6-astra, the same model as the implementer), so they are not cross-family
 verdicts. Runtime extraction and pin maintenance retain their existing qualification requirements.
+
+On 2026-10-03 a session without a qualified host (linux/arm64 sandbox, no CI credentials)
+implemented further tasks on unmerged side branches, each independently reviewed, with
+linux/arm64 development-harness evidence only. No task is marked done: every one still owes its
+darwin/arm64 and linux/amd64 gates, and the branches need merging into `gomad`.
+- `gomad-next` (runtime): fn-114.13, fn-112.5 with review fixes (netpoll batch shuffles
+  rerouted; Green Tea GC refused under GOMADSEED). fn-110.2 is unfinished and not committed.
+- `gomad-next-b` (host): fn-112.16, fn-113.1–4 with review fixes, fn-112.9 (CLI and Runner
+  consolidation deferred until fn-109 lands).
+- `gomad-next-c` (architecture): fn-109.2–6; fn-109.6 fulfils fn-105.3 (D3).
 
 ## Verification instructions for agents
 
