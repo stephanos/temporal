@@ -163,6 +163,15 @@ func TestPublishKeepsEachExecutionOfOneOutcomeSignature(t *testing.T) {
 	if reused.Path != published[1].Path || reused.Manifest.CreatedAt != published[1].Manifest.CreatedAt {
 		t.Fatalf("published execution again at %s (created %s), want reuse of %s", reused.Path, reused.Manifest.CreatedAt, published[1].Path)
 	}
+	first := execution(0, 7)
+	first.Record.CreatedAt, first.Record.Host.StartedAt, first.Record.Host.FinishedAt = "2026-08-10T13:00:00Z", "2026-08-10T13:00:00Z", "2026-08-10T13:00:01Z"
+	reusedFirst, err := store.PublishArtifact(first)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reusedFirst.Path != published[0].Path || reusedFirst.Manifest.CreatedAt != published[0].Manifest.CreatedAt {
+		t.Fatalf("published first execution again at %s (created %s), want reuse of %s", reusedFirst.Path, reusedFirst.Manifest.CreatedAt, published[0].Path)
+	}
 	entries, err := os.ReadDir(root)
 	if err != nil || len(entries) != 3 {
 		t.Fatalf("store entries = %v, %v, want three artifacts", entries, err)

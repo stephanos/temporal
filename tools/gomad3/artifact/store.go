@@ -34,13 +34,10 @@ type StoreKey uint8
 const (
 	StoreKeyFailureSignature StoreKey = iota
 	StoreKeyRecord
-	// StoreKeyExecution keeps one artifact per execution, as retained
-	// successes need: two seeds can complete with one outcome signature, and
-	// each must replay as itself. An artifact is named by its outcome
-	// signature, as under StoreKeyFailureSignature, and an existing one is
-	// reused only for the same execution: the same campaign, selection
-	// ordinal, and seed. Another execution with that signature is named by
-	// executionIdentity, so publishing it again finds it there.
+	// StoreKeyExecution keeps one artifact per execution because a retained
+	// success must replay as itself even when another seed completed with the
+	// same outcome signature. The first keeps the signature's directory, so
+	// campaigns without a collision keep their references.
 	StoreKeyExecution
 )
 
