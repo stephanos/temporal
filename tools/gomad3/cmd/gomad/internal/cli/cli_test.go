@@ -963,7 +963,8 @@ func TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure(t *
 
 // qualifyObservation is what one qualify request hands its dependencies: the
 // toolchain roots it resolved, every Campaign and replay request, and the
-// report it retained, if any.
+// report it retained, if any. Every request that runs a Campaign retains a
+// report.
 type qualifyObservation struct {
 	requested []string
 	runs      []runner.CampaignSpec
@@ -1124,7 +1125,7 @@ func TestRunQualifyForwardsFlagsAndClassifiesOutcome(t *testing.T) {
 			var stdout, stderr bytes.Buffer
 			status := runQualifyWith(test.arguments, &stdout, &stderr, dependencies)
 			observed.requested = *installation.requested
-			if status != test.wantStatus || stderr.Len() != 0 || test.check != nil && !test.check(t, observed) {
+			if status != test.wantStatus || stderr.Len() != 0 || observed.written != (test.run != nil) || test.check != nil && !test.check(t, observed) {
 				t.Fatalf("status=%d observed=%#v stdout=%q stderr=%q", status, observed, stdout.String(), stderr.String())
 			}
 			for _, want := range test.wantOutput {

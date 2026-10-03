@@ -12,7 +12,7 @@ removed name. Re-anchored against the merged tree, the map below changed as foll
 - Applied: section 2 rows for preparation partials, isolated-runner responses, the canned
   coordinator helper, cancellation, resume rejections, replay before target start, and the
   supervision-rejected trace rows. The golden table is now `TestCampaignOptionsLegacyCharacterization`
-  (125 rows), not `TestCampaignOptionsCharacterization`. It gains `all retention without bytes`, the
+  (125 rows before this task, 126 after), not `TestCampaignOptionsCharacterization`. It gains `all retention without bytes`, the
   one rejection with no golden row.
 - Applied: section 3 as written.
 - Not applied: `TestRunFirstFailureCancelsActiveTargetsWithoutPublishingThem` and
