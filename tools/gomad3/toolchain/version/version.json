@@ -93,7 +93,6 @@
     "src/cmd/compile/internal/gc/main.go",
     "src/cmd/dist/buildtool.go",
     "src/cmd/link/internal/ld/lib.go",
-    "src/crypto/rand/rand.go",
     "src/runtime/lock_spinbit.go",
     "src/runtime/os_linux.go",
     "src/runtime/panic.go",
@@ -123,6 +122,7 @@
     "src/cmd/internal/gomadcap/encode_test.go",
     "src/cmd/internal/gomadcap/protocol_generated.go",
     "src/cmd/link/internal/ld/gomadcap.go",
+    "src/crypto/rand/gomad.go",
     "src/internal/gomadchoicewire/diagnostic_runtime_test.go",
     "src/internal/gomadchoicewire/hash.go",
     "src/internal/gomadchoicewire/hash_test.go",
@@ -173,6 +173,8 @@
     "src/runtime/gomad_aslr_darwin_arm64.s",
     "src/runtime/gomad_aslr_other.go",
     "src/runtime/gomad_choicewire_generated.go",
-    "src/runtime/gomad_iowire_generated.go"
+    "src/runtime/gomad_iowire_generated.go",
+    "src/syscall/gomad_env_unix.go",
+    "src/syscall/gomad_unix.go"
   ]
 }

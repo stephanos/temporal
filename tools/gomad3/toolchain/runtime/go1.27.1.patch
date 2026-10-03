@@ -50,34 +50,6 @@ index 9cbc129..b98bc90 100644
  
  	// Recalculate pe parameters now that we have ctxt.LinkMode set.
  	if ctxt.HeadType == objabi.Hwindows {
-diff --git a/src/crypto/rand/rand.go b/src/crypto/rand/rand.go
-index 018fe01..cfaed04 100644
---- a/src/crypto/rand/rand.go
-+++ b/src/crypto/rand/rand.go
-@@ -10,6 +10,7 @@ import (
- 	"crypto/internal/boring"
- 	"crypto/internal/fips140/drbg"
- 	"crypto/internal/rand"
-+	"internal/gomadio"
- 	"io"
- 	_ "unsafe"
- 
-@@ -33,6 +34,15 @@ import (
- // Deterministric Random Bit Generator (DRBG).
- var Reader io.Reader = rand.Reader
- 
-+func init() {
-+	if gomadio.Enabled() {
-+		Reader = gomadio.RandomReader()
-+		// Key generation and other internal consumers read the FIPS DRBG,
-+		// which ignores Reader and otherwise draws from the host.
-+		rand.SetTestingReader(Reader)
-+	}
-+}
-+
- // fatal is [runtime.fatal], pushed via linkname.
- //
- //go:linkname fatal
 diff --git a/src/runtime/lock_spinbit.go b/src/runtime/lock_spinbit.go
 index 6f21c54..2e53160 100644
 --- a/src/runtime/lock_spinbit.go
@@ -1030,27 +1002,11 @@ index 58161de..c4f1bb0 100644
  		}
  	}
 diff --git a/src/syscall/env_unix.go b/src/syscall/env_unix.go
-index e1d7e21..2502ebf 100644
+index e1d7e21..aa0802a 100644
 --- a/src/syscall/env_unix.go
 +++ b/src/syscall/env_unix.go
-@@ -11,6 +11,7 @@ package syscall
- import (
- 	"runtime"
- 	"sync"
-+	_ "unsafe"
- )
+@@ -30,6 +30,9 @@ func runtime_envs() []string // in package runtime
  
- var (
-@@ -28,8 +29,17 @@ var (
- 
- func runtime_envs() []string // in package runtime
- 
-+//go:linkname gomadDeterministicEnabled runtime.gomadDeterministicEnabled
-+func gomadDeterministicEnabled() bool
-+
-+//go:linkname gomadIOProfileEnabled runtime.gomadIOProfileEnabled
-+func gomadIOProfileEnabled() bool
-+
  var copyenv = sync.OnceFunc(func() {
  	env = make(map[string]int)
 +	if gomadDeterministicEnabled() && !gomadIOProfileEnabled() {
@@ -1089,7 +1045,7 @@ index 3812303..708cd42 100644
  
  func Setrlimit(resource int, rlim *Rlimit) error {
 diff --git a/src/syscall/syscall_unix.go b/src/syscall/syscall_unix.go
-index ffe4112..20695f2 100644
+index ffe4112..d3c6f96 100644
 --- a/src/syscall/syscall_unix.go
 +++ b/src/syscall/syscall_unix.go
 @@ -199,6 +199,9 @@ func Read(fd int, p []byte) (n int, err error) {
@@ -1114,19 +1070,6 @@ index ffe4112..20695f2 100644
  	} else {
  		n, err = write(fd, p)
  	}
-@@ -222,6 +230,12 @@ func Write(fd int, p []byte) (n int, err error) {
- 	return
- }
- 
-+//go:linkname gomadCapabilityGuard runtime.gomadCapabilityGuard
-+func gomadCapabilityGuard()
-+
-+//go:linkname gomadWrite runtime.gomadSyscallWrite
-+func gomadWrite(fd int, p []byte) (int, uintptr, bool)
-+
- func Pread(fd int, p []byte, offset int64) (n int, err error) {
- 	n, err = pread(fd, p, offset)
- 	if race.Enabled {
 diff --git a/src/testing/testing.go b/src/testing/testing.go
 index 832d9e5..da0007a 100644
 --- a/src/testing/testing.go
