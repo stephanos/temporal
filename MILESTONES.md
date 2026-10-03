@@ -52,7 +52,7 @@ on darwin/arm64. Milestone execution is paused again at the user's request after
 On resumption, fn-114.13 (runtime-owned goroutine ordering) precedes the fn-114.14
 qualification, then fn-112.16. Every task completed on 2026-10-02 still needs a native Linux
 run, which a push to the fork's CI provides. Reviews now use the `claude` backend
-(claude-fable-5-1, the same model family as the implementer), so they are not cross-family
+(claude-opus-5-5, the same model as the implementer), so they are not cross-family
 verdicts. Runtime extraction and pin maintenance retain their existing qualification requirements.
 
 ## Verification instructions for agents
