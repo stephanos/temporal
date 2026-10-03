@@ -292,7 +292,7 @@
       "line": 269
     },
     "params": [ {
-      "name": "_$3",
+      "name": "step",
       "type": {
         "named": "umpire.Step"
       }
@@ -327,7 +327,7 @@
                         "file": "model/temporal/nexuscaller/Claims.scala",
                         "line": 269
                       },
-                      "var": "_$3"
+                      "var": "step"
                     },
                     "field": "state"
                   }
