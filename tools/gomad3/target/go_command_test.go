@@ -106,18 +106,7 @@ func TestBuildGoTargetReleasesCacheAfterCommandFailure(t *testing.T) {
 
 func TestReadToolchainIdentityRejectsMalformedAndOverflowedEnvironment(t *testing.T) {
 	root := t.TempDir()
-	key := strings.Repeat("0", 64)
-	for _, path := range []string{filepath.Join(root, "bin", "go"), filepath.Join(root, "builds", key, "bin", "go")} {
-		if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(path, []byte("#!/bin/sh\n"), 0o700); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if err := os.WriteFile(filepath.Join(root, "build-key"), []byte(key+"\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
+	writeToolchainInstallation(t, root, strings.Repeat("0", 64))
 	for _, test := range []struct {
 		name         string
 		output       hostexec.Output
