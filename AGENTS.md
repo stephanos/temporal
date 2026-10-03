@@ -160,35 +160,43 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
      produced. Prefer a different family than the writer: a same-family review
      is not an independent verdict. Advice, not enforcement. -->
 
-<!-- The implementer below is the same Codex model, so the review is
-     same-model and is separated from the writer by a fresh context only. -->
+<!-- Reviews are cross-family: Claude implements in-session and Codex reviews
+     through the `codex` review backend (`review.backend` in .flow/config.json),
+     so the verdict is independent of the writer. Restored 2026-09-27 after the
+     Codex budget returned; between 2026-09-09 and 2026-09-27 reviews ran on the
+     same-family `claude` backend, whose receipts say `mode: "claude"`.
+     Since 2026-10-02 all tiers are Claude models at the owner's request, so
+     reviews are same-family again (`review.backend` is `claude`); the reviewer
+     runs in a fresh context. Since 2026-10-03 every tier uses a Claude Opus
+     model at the owner's request (`review.backend` is `claude:claude-opus-5-5`);
+     reviews are same-family and run in a fresh context. Name the model
+     explicitly when dispatching. -->
 
-reviewer: gpt-6-sol at high
+reviewer: claude-opus-5-5 at high
 
 <!-- implementer: <model> at <effort> - work handed to another harness (plan
      here, implement cheaper or faster there). Absent = the session model
      implements. -->
 
-<!-- Pinned rather than left unset: the worker implements through the Codex
-     bridge, and these are patched-runtime and
-     determinism tasks that degrade badly on a cheaper tier, so the pin holds even
-     if the session model is switched down.
-     Gnarly determinism-divergence tasks (tracing same-seed divergence to
-     a runtime channel) stay on gpt-6-sol at high. -->
+<!-- Pinned rather than left unset, so the pin holds even if the session model is
+     switched down. -->
 
-implementer: gpt-6-sol at high
+implementer: claude-opus-5-5 at high
 
 <!-- fast scout: <model> - mechanical inventory scanning, where
      the cheapest tier is the correct one. -->
 
-fast scout: gpt-6-luna at low
+fast scout: claude-opus-5-5 at low
 
 <!-- thinking scout: <model> - analysis that degrades badly on a
      fast tier. -->
 
-<!-- Spec writing, planning, and design decisions. -->
+<!-- Spec writing, task breakdown (/flow-next:plan) and mid-flight design
+     decisions run here: they are low-volume, and a gap they miss surfaces
+     later as rework in implementation. Reviews stay on the cross-family
+     reviewer above, never on this tier. -->
 
-thinking scout: gpt-6-sol at high
+thinking scout: claude-opus-5-5 at high
 
 <!-- Unset is the default and the doctrine: planning, capture, interview,
      requirement analysis, every verdict, and the worker run on the session
