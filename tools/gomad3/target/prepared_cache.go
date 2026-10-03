@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 	targetbuild "go.temporal.io/server/tools/gomad3/target/internal/build"
 	"go.temporal.io/server/tools/gomad3/toolchain/installation"
@@ -154,7 +155,7 @@ func newPreparedTargetIdentity(spec Spec, tags []string, toolchain ToolchainIden
 			if pkg.Dir == "" || filepath.IsAbs(name) || strings.HasPrefix(filepath.ToSlash(name), "../") {
 				return preparedTargetIdentity{}, fmt.Errorf("inspect target embedded file %s: invalid path %q", pkg.ImportPath, name)
 			}
-			contents, err := readBoundedRegularFile(filepath.Join(pkg.Dir, filepath.FromSlash(name)), maximumEmbeddedFileBytes)
+			contents, err := hostfs.ReadBounded(filepath.Join(pkg.Dir, filepath.FromSlash(name)), maximumEmbeddedFileBytes)
 			if err != nil {
 				return preparedTargetIdentity{}, fmt.Errorf("inspect target embedded file %s: unreadable %s: %w", pkg.ImportPath, name, err)
 			}
@@ -236,7 +237,7 @@ func overlayDigest(path, commandDirectory string) (record.SHA256, error) {
 	sort.Strings(replacements)
 	hasher := sha256.New()
 	for _, original := range replacements {
-		contents, err := readBoundedRegularFile(overlay[original], maximumCapabilitySourceBytes)
+		contents, err := hostfs.ReadBounded(overlay[original], maximumCapabilitySourceBytes)
 		if err != nil {
 			return "", fmt.Errorf("read target build overlay replacement: %w", err)
 		}
@@ -251,7 +252,7 @@ func overlayDigest(path, commandDirectory string) (record.SHA256, error) {
 func filesDigest(paths ...string) (record.SHA256, error) {
 	hasher := sha256.New()
 	for _, path := range paths {
-		contents, err := readBoundedRegularFile(path, maximumCapabilitySourceBytes)
+		contents, err := hostfs.ReadBounded(path, maximumCapabilitySourceBytes)
 		if errors.Is(err, os.ErrNotExist) {
 			fmt.Fprintf(hasher, "%s\x00absent\n", filepath.Base(path))
 			continue
@@ -275,7 +276,7 @@ func (cache *preparedTargetCache) entry() string {
 func (cache *preparedTargetCache) restore(targetPath string) (bool, error) {
 	entry := cache.entry()
 	recordPath := filepath.Join(entry, "record.json")
-	contents, err := readBoundedRegularFile(recordPath, 1<<20)
+	contents, err := hostfs.ReadBounded(recordPath, 1<<20)
 	if errors.Is(err, os.ErrNotExist) {
 		return false, nil
 	}

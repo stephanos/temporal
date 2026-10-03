@@ -1,0 +1,25 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.11",
+  "base": "5d093b214d",
+  "commits": ["58095d83a9", "c1cf9565fe"],
+  "host": "linux/arm64 (developmental only; not darwin/arm64 or linux/amd64 evidence)",
+  "developmental_shim": "Local-only, never committed: the task-10 linux/arm64 supported_platforms shim (9 regenerated files) was applied to every run below, both base and after.",
+  "goldens_captured_at_base": "target/testdata/capability-review/*.json were generated from the base implementation before any source edit; TestCapabilityReviewGoldenCanonicalBytes passes on base and after each commit",
+  "inventory_digest_pin": "TestDigestPinsInventoryEncoding digest computed with base target.DigestAdapterSourceInventory",
+  "real_review_equivalence": {"what": "canonical ReviewCapabilities JSON for the simulation fixture, the gomad3sim test variant, and linked/guarded os/exec and os.Readlink targets (scratch test, not committed)", "base_runs_identical": true, "after_identical_to_base": true},
+  "quick_baseline": {"command": ".toolchain/bin/go test -count=1 -tags test_dep ./target/... ./deterministicio/... ./internal/compatibilitypack/...", "exit": 1, "elapsed_s": 309, "failing_tests": 12},
+  "quick_after": {"command": "same plus ./internal/sourceinventory", "exit": 1, "elapsed_s": 135, "failing_tests": 12, "same_failure_set_as_baseline": true},
+  "pre_existing_non_shim_failures": ["TestBuiltInSimulationLinknamesPinCurrentFirstPartySources", "TestClosureReviewSupportsSimulationFixtureAndRefusesHarnessTests"],
+  "pre_existing_cause": "tools/gomad3sim/runtime_time_toolchain.go gained a gomadSimulationTimeCurrent directive in ad90b462e0 without a pin update; pins left unchanged as the acceptance requires",
+  "architecture": {"command": ".toolchain/bin/go test -count=1 -tags test_dep . -run 'TestPackageArchitecture|TestExactModuleEdges|TestCapabilityEvaluationHasNoHostEffect|TestPublicPackagesDoNotExportTypeAliases|TestMakeTargets'", "exit": 0, "mutation_check": "purity rule rejected injected loadCompatibilityPolicy/filepath.Join values and compatibility.LoadPacks"},
+  "validate": {"command": "make validate (includes validate-compatibility: compatibility packs are current)", "exit": 0, "elapsed_s": 17},
+  "test_live_capability": {"command": "make test-live-capability (native go1.27.1 on PATH)", "exit": 0, "result": "gomad3 live-capability tier passed"},
+  "vet_gofmt": {"command": "go vet -tags test_dep . ./target/... ./deterministicio/... ./internal/...; gofmt -l", "exit": 0},
+  "lint": {"status": "not run", "reason": "repository golangci-lint binary is a darwin build; no linux golangci-lint on PATH"},
+  "full_host_gate": [
+    {"revision": "58095d83a9 (pre-commit tree)", "command": "GOFLAGS='-tags=test_dep -count=1' make test-host", "exit": 2, "elapsed_s": 163, "packages_ok": 45, "packages_fail": 7, "note": "All 22 failing tests are baseline: target/deterministicio failures match the Quick baseline, and the 10 failures in cli, runner, runner/internal/execution, qualification/analysis and internal/preparation reproduce on base sources extracted with git archive plus the same shim."},
+    {"revision": "c1cf9565fe (pre-commit tree)", "command": "same", "exit": 2, "elapsed_s": 263, "packages_ok": 44, "packages_fail": 8, "note": "Same failure set plus three process-reaping/timing failures under load (TestCLIWatchdogDiagnosticReplay, TestWatchdogDiagnosticReplayUsesCapturedInputs, TestRunIOTerminalAfterTermination); all three pass on an isolated rerun."}
+  ],
+  "review": {"backend": "claude:claude-fable-5-1:high", "round_1": "SHIP with three P3 findings, all fixed in c1cf9565fe", "round_2": "SHIP, no introduced findings"},
+  "native_gates_remaining": ["darwin/arm64 and linux/amd64: full make -C tools/gomad3 test-host, task Quick commands, make validate-compatibility, make test-live-capability, scoped golangci-lint (task 21)"]
+}

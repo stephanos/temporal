@@ -9,7 +9,6 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/target"
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
 
@@ -22,7 +21,7 @@ func TestPinnedAdapterModuleInventories(t *testing.T) {
 		{name: "x/net", moduleDirectory: "golang.org/x/net@v0.58.0", want: xnetOriginalSourceInventorySHA256},
 		{name: "modernc memory", moduleDirectory: "modernc.org/memory@v1.11.0", want: memoryOriginalSourceInventorySHA256},
 	} {
-		got, err := target.DigestAdapterSourceInventory(filepath.Join(moduleCache, filepath.FromSlash(test.moduleDirectory)))
+		got, err := digestAdapterSourceInventory(filepath.Join(moduleCache, filepath.FromSlash(test.moduleDirectory)))
 		if err != nil {
 			t.Fatal(err)
 		}

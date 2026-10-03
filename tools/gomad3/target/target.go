@@ -337,11 +337,9 @@ func (prepared Prepared) Verify() error {
 }
 
 func ReadCapabilityManifest(path string, identity ToolchainIdentity) (*CapabilityManifest, error) {
-	record, err := livecap.Read(path, livecap.Expectation{
-		GoVersion: identity.GoVersion, ToolchainBuildKey: identity.BuildKey, GOOS: identity.TargetGOOS, GOARCH: identity.TargetGOARCH,
-	})
+	record, err := readLinkedCapabilityRecord(path, identity)
 	if err != nil {
-		return nil, linkedCapabilityError(err)
+		return nil, err
 	}
 	return capabilityManifest(record), nil
 }
@@ -568,21 +566,19 @@ func prepareExec(ctx context.Context, spec Spec, identity pinnedToolchain, targe
 	}
 	prepared := preparation{buildInfo: provenance.BuildInfo, compatibility: recordCompatibility(provenance.CapabilityClosure.Compatibility)}
 	if provenance.CapabilityMode != CapabilityModeClosure {
-		record, err := livecap.Read(targetPath, livecap.Expectation{
-			GoVersion: identity.GoVersion, ToolchainBuildKey: identity.BuildKey, GOOS: identity.TargetGOOS, GOARCH: identity.TargetGOARCH,
-		})
+		record, err := readLinkedCapabilityRecord(targetPath, identity.ToolchainIdentity)
 		if err != nil {
-			return preparation{}, fmt.Errorf("extract exec target capability manifest: %w", linkedCapabilityError(err))
+			return preparation{}, fmt.Errorf("extract exec target capability manifest: %w", err)
 		}
 		actual := capabilityManifest(record)
 		if !sameCapabilityManifest(provenance.CapabilityManifest, actual) {
 			return preparation{}, errors.New("exec target capability manifest does not match provenance")
 		}
-		selection, err := validateCapabilityReviewStructure(provenance.CapabilityClosure)
+		review, err := reviewRecordedClosure(provenance.CapabilityClosure, nil)
 		if err != nil {
 			return preparation{}, fmt.Errorf("exec provenance capability closure: %w", err)
 		}
-		review := projectExecutableCapabilityReview(capabilityReviewFromClosure(provenance.CapabilityClosure, nil, selection), record, provenance.CapabilityMode)
+		review = projectLinkedCapabilityReview(review, record, provenance.CapabilityMode)
 		if len(review.Findings) != 0 {
 			return preparation{}, unsupportedFinding(review.Findings[0])
 		}
@@ -776,13 +772,11 @@ func buildGoTargetWith(
 func finishGoTarget(spec Spec, identity ToolchainIdentity, targetPath string, review CapabilityReview, policy unsupportedPolicy) (preparation, error) {
 	prepared := preparation{compatibility: recordCompatibility(review.Closure.Compatibility), review: review}
 	if spec.CapabilityMode != CapabilityModeClosure {
-		record, err := livecap.Read(targetPath, livecap.Expectation{
-			GoVersion: identity.GoVersion, ToolchainBuildKey: identity.BuildKey, GOOS: identity.TargetGOOS, GOARCH: identity.TargetGOARCH,
-		})
+		record, err := readLinkedCapabilityRecord(targetPath, identity)
 		if err != nil {
-			return preparation{}, fmt.Errorf("extract linked target capability manifest: %w", linkedCapabilityError(err))
+			return preparation{}, fmt.Errorf("extract linked target capability manifest: %w", err)
 		}
-		prepared.review = projectExecutableCapabilityReview(review, record, spec.CapabilityMode)
+		prepared.review = projectLinkedCapabilityReview(review, record, spec.CapabilityMode)
 		prepared.manifest = capabilityManifest(record)
 		if policy == rejectUnsupported && len(prepared.review.Findings) != 0 {
 			return preparation{}, unsupportedFinding(prepared.review.Findings[0])
@@ -826,15 +820,12 @@ func validateProvenance(provenance provenanceWire) error {
 	if err := validateDeterministicBuildInfo(provenance.BuildInfo); err != nil {
 		return err
 	}
-	selection, err := validateCapabilityReviewStructure(provenance.CapabilityClosure)
+	review, err := reviewRecordedClosure(provenance.CapabilityClosure, nil)
 	if err != nil {
 		return fmt.Errorf("exec provenance capability closure: %w", err)
 	}
-	if provenance.CapabilityMode == CapabilityModeClosure {
-		review := capabilityReviewFromClosure(provenance.CapabilityClosure, nil, selection)
-		if len(review.Findings) != 0 {
-			return fmt.Errorf("exec provenance capability closure: %w", unsupportedFinding(review.Findings[0]))
-		}
+	if provenance.CapabilityMode == CapabilityModeClosure && len(review.Findings) != 0 {
+		return fmt.Errorf("exec provenance capability closure: %w", unsupportedFinding(review.Findings[0]))
 	}
 	return nil
 }
@@ -939,28 +930,6 @@ func copyRegularFile(source, destination string) error {
 		return fmt.Errorf("close prepared exec target: %w", err)
 	}
 	return nil
-}
-
-func readBoundedRegularFile(path string, maximum uint64) (_ []byte, retErr error) {
-	file, info, err := hostfs.OpenPath(path)
-	if err != nil {
-		if errors.Is(err, hostfs.ErrSymbolicLink) {
-			return nil, fmt.Errorf("%s is not a regular file", path)
-		}
-		return nil, err
-	}
-	defer func() { retErr = errors.Join(retErr, file.Close()) }()
-	if info.Size() < 0 || uint64(info.Size()) > maximum {
-		return nil, fmt.Errorf("%s exceeds its size bound", path)
-	}
-	data, err := io.ReadAll(io.LimitReader(file, int64(maximum)+1))
-	if err != nil {
-		return nil, err
-	}
-	if uint64(len(data)) > maximum {
-		return nil, fmt.Errorf("%s exceeds its size bound", path)
-	}
-	return data, nil
 }
 
 func writePreparedFile(path string, data []byte, mode os.FileMode) error {
