@@ -80,3 +80,90 @@ branches on a hidden `--__plan` flag. A private `parseCampaignRequest(campaignOp
 parses the shared grammar into a `campaignRequest`; `runExploreWith` calls `runner.Explore` and
 `runPlanWith` calls `runner.CreateCampaignPlan`. Plan's fixed `--on-failure=all` is set on the
 flag set before parsing instead of being prepended to argv.
+
+## fn-109.6 private executor dependencies (fulfils fn-105.3 D3)
+
+**Status: inventory written before the edits (source revision 8364bd6a0).**
+
+### Removed exported declarations
+
+All in `go.temporal.io/server/tools/gomad3/runner`. Each mentions `runner/internal/execution`
+(`execution.Spec`, `execution.Result`), which no package outside `tools/gomad3/runner/...` can
+import, so no consumer outside the Runner subtree can implement them.
+
+| Declaration | Location (pre-change) |
+| --- | --- |
+| `type Executor interface { Run(context.Context, execution.Spec) (execution.Result, error) }` | `runner.go:120` |
+| `type ReplayExecutor interface { Run(context.Context, execution.Spec) (execution.Result, error) }` | `replay_operation.go:28` |
+| `CampaignSpec.Executor Executor` | `runner.go:178` |
+| `ResumeSpec.Executor Executor` | `resume.go:30` (missing from the task's inventory; found by the consumer search) |
+| `CampaignShardSpec.Executor Executor` | `campaign_shard_execution.go:30` |
+| `MinimizeSpec.Executor Executor` | `minimize_operation.go:35` |
+| `ReplaySpec.Executor ReplayExecutor` | `replay_operation.go:41` |
+
+No exported declaration is added or changed. `Preparer`, `ArtifactReplayer` and the
+`Preparer`/`Replayer` fields of `CampaignSpec`, `ResumeSpec`, `CampaignShardSpec` and
+`MinimizeSpec` stay public and unchanged. `CampaignPlanSpec` never had an executor.
+
+### Consumers (searched across the whole repository)
+
+- Production code outside `runner/`: none sets or names these declarations.
+  `cmd/gomad/internal/cli` (`cli.go`, `resume.go`, `campaign_shards.go`) injects whole operations
+  (`runner.Explore`, `runner.CreateCampaignPlan`, `runner.Resume`, `runner.RunCampaignShard`,
+  `runner.Replay`, `runner.Minimize`) as functions. `qualification/workload/workload.go:115-118`
+  injects `runner.Explore` and `runner.Replay` as functions. Neither changes.
+- `tools/gomad3sim`, `tools/gomad3integration` and every other module of the repository: no
+  import of `tools/gomad3/runner`. (`qualification/set/prune_test.go`'s
+  `qualifiedWithoutReplayExecutor` is an unrelated local name.)
+- Inside `runner` (production): `campaign_options.go` (`campaignRun.Executor`), `runner.go`
+  (`Explore`'s isolated rejection, `runLocal`, `validateConfig` x2, `runSeed`,
+  `simulationCapabilityForJob`), `choice_exploration_campaign.go`,
+  `simulation_exploration_campaign.go`, `resume.go` (`Resume`, `resumeConfiguration`'s toolchain
+  identity check), `campaign_shard_execution.go` (`RunCampaignShard`'s toolchain identity check),
+  `minimize_operation.go` (session executor, `replayExecutor` hand-over to replay),
+  `replay_operation.go` (`Replay`'s default and `replayProcessExecutor` simulation role).
+- Tests (all package `runner`, 75 sites): `runner_test.go` (`testConfig` and resume calls),
+  `replay_operation_test.go`, `minimize_operation_test.go`, `portable_plan_test.go`,
+  `inspect_test.go`, `watchdog_replay_test.go`, `guided_selection_test.go`, `diagnostics_test.go`,
+  `coverage_replay_test.go`, `choice_exploration_divergence_test.go`,
+  `choice_exploration_divergence_unix_test.go`, `completion_characterization_test.go`,
+  `retention_characterization_test.go`, `campaign_options_characterization_test.go` (two table
+  rows: "isolated injected executor", "injected executor without supervisor command") and
+  `coordinator_transport_test.go` (the `Executor` row of `coordinatorLocalOnlyFields`).
+
+### Replacement construction
+
+House pattern of `toolchain.Build`/`buildWith`: a private `dependencies` value and private
+`...With` entry points. The zero `dependencies` is production.
+
+- `type targetExecutor interface { Run(context.Context, execution.Spec) (execution.Result, error) }`
+  (private) replaces both `Executor` and `ReplayExecutor`, which had the same method set.
+- `type dependencies struct { executor targetExecutor }` (private). A nil executor means the
+  supervisor process (`processExecutor`, or `replayProcessExecutor` for replay), exactly as a nil
+  public field did, so every check that keyed on injection keys on `dependencies.executor`:
+  `Explore`'s "isolated Runner does not accept injected preparation or execution", resume's and
+  validation's "supervisor command is required" only without an executor, the toolchain identity
+  checks of resume and shard runs, `simulationCapabilityForJob`'s coordinator role for the process
+  executor and replay's `replayProcessExecutor` simulation role.
+- `Explore`, `Resume`, `RunCampaignShard`, `Replay` and `Minimize` keep their signatures and call
+  `exploreWith`, `resumeWith`, `runCampaignShardWith`, `replayWith` and `minimizeWith` with
+  `dependencies{}`. `campaignRun` embeds `dependencies`, so resume, shard and minimize delegation
+  carry the executor into the campaign they build.
+- Minimize used to forward its executor to replay through `ReplaySpec.Executor`. The default
+  replayer becomes `artifactReplayer{dependencies}`, which calls `replayWith`, so a minimization's
+  candidate replays still run through the same executor. A caller-supplied `Replayer` receives the
+  same `ReplaySpec` minus the removed field. Guidance replay never forwarded an executor and keeps
+  `artifactReplayer{}`.
+- No package-level variable holds dependencies or a hook.
+
+### Caller migration
+
+- Repository production callers: none needed.
+- Same-package tests pass fakes through the private entry points with unchanged fakes and
+  assertions.
+- External callers that set one of the removed fields could not have implemented the interface,
+  but could have passed nil explicitly or forwarded a value obtained from the package: they must
+  delete the field. This is a source-incompatible change, permitted by the fn-109 spec (R5).
+- A new external-consumer compile fixture outside the Runner subtree constructs `CampaignSpec`,
+  `ResumeSpec`, `CampaignShardSpec`, `ReplaySpec`, `MinimizeSpec`, a custom `Preparer` and an
+  `ArtifactReplayer` and compiles in a separate module.
