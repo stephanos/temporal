@@ -780,11 +780,71 @@
       "task": "fn-112-gomad-determinism-assurance-and-test.10",
       "timestamp": "2026-10-03T20:26:43.542972Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "738e6af1eb3cf6689b2d5ac75262a7754ee646bcd4d897bc3f8d73f9241e0acc",
+      "backend": "claude",
+      "base_sha": "fb12c4be78bd13032c703d88151da0c8972b93d2",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8685a57e09db3cb49d2310784e191853",
+            "classification": "introduced",
+            "findingId": "finding-8685a57e09db3cb49d2310784e191853",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-938a6e3a2315021d4af8433c6f932411",
+            "classification": "introduced",
+            "findingId": "finding-938a6e3a2315021d4af8433c6f932411",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-200ab2a3a79e0d0189da6f35adca764b",
+            "classification": "introduced",
+            "findingId": "finding-200ab2a3a79e0d0189da6f35adca764b",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "9bc745d1e6c91e70c02498bf7f7d7f53397c766e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 2805,
+      "output_sha256": "6e97ba1c0db5ec5684f46cbdb9aa95724223324b2baaac8fdfb9678f109a249d",
+      "reservation_id": "c204f1deabd44b798fc01d50b8273fa6",
+      "round_consumed": true,
+      "scope": "impl:fn-112-gomad-determinism-assurance-and-test.10",
+      "superseded_by": null,
+      "task": "fn-112-gomad-determinism-assurance-and-test.10",
+      "timestamp": "2026-10-03T20:31:02.733105Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-112-gomad-determinism-assurance-and-test.1": 1,
-    "impl:fn-112-gomad-determinism-assurance-and-test.10": 1,
+    "impl:fn-112-gomad-determinism-assurance-and-test.10": 2,
     "impl:fn-112-gomad-determinism-assurance-and-test.11": 1,
     "impl:fn-112-gomad-determinism-assurance-and-test.12": 1,
     "impl:fn-112-gomad-determinism-assurance-and-test.13": 1,
@@ -831,5 +891,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T20:26:43.577518Z"
+  "updated_at": "2026-10-03T20:31:02.757293Z"
 }
