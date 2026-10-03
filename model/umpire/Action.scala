@@ -1,5 +1,12 @@
 package umpire
 
+/**
+ * The root a model's Definition IDs hang off, such as `temporal.nexus.caller`. A Model names it
+ * explicitly; it is not derived from the Scala package.
+ */
+final case class Family(root: String):
+  override def toString: String = root
+
 /** Who performs an action. `system` is reserved for timers, which a machine owns. */
 final case class Party(name: String)
 
@@ -43,14 +50,6 @@ final case class ActionDecl(
     delivers: String = "",
     loses: String = ""
 ):
-  /** Every class of the action: the product of its input domains, the last input varying fastest. */
-  def classes: List[Class] =
-    domains
-      .foldLeft(List(List.empty[Any])) { (prefixes, d) =>
-        for prefix <- prefixes; v <- d.values.toList yield prefix :+ v
-      }
-      .map(Class(this, _))
-
   // Equality is by declaration, as Go compares declaration pointers: two actions may share a name
   // only across families, and a restriction keeps the declarations it names.
   override def equals(that: Any): Boolean = that match
@@ -113,14 +112,7 @@ def internal(name: String): Action[EmptyTuple] = Action(
 )
 
 /** One class of an action: the action with one assignment of its inputs. */
-final case class Class(decl: ActionDecl, values: List[Any]):
-  /** The class key: the action name followed by its input keys, joined by "-". */
-  def key: String = (decl.name :: values.map(Keys.of)).mkString("-")
+final case class Class(decl: ActionDecl, values: List[Any])
 
 /** What a Scenario lists: a class, or an action with no input written bare. */
 type ClassRef = Class | Action[EmptyTuple]
-
-object ClassRef:
-  def resolve(r: ClassRef): Class = r match
-    case c: Class     => c
-    case a: Action[?] => Class(a.decl, Nil)

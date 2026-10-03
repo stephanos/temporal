@@ -358,8 +358,16 @@ func legacyArtifacts(t *testing.T) map[string][]byte {
 	model := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal(baseline["original/inputs/ir/nexus-caller.json"], model))
 	lower.MigrationComparativeModel(t, model)
-	require.Len(t, model.GetQueries(), 7)
+	// The functional Queries are the ones the legacy producer realized; a verify Query has nothing to
+	// realize and no oracle.
+	var functional []*umpirespb.Query
 	for _, declaration := range model.GetQueries() {
+		if declaration.GetForm() == umpirespb.Query_FORM_FIND {
+			functional = append(functional, declaration)
+		}
+	}
+	require.Len(t, functional, 7)
+	for _, declaration := range functional {
 		name := declaration.GetName()
 		original := "oracles/nexus/" + name + "/typed"
 		var identity cp.Identity

@@ -54,8 +54,9 @@ func lowered(t *testing.T, p *Producer, query string) *testpilotspb.Case {
 func TestTheFunctionalSetIsEveryFindQueryOfTheNexusCallerModel(t *testing.T) {
 	var declared []string
 	for _, q := range loaded(t, "nexus-caller").GetQueries() {
-		require.Equal(t, umpirespb.Query_FORM_FIND, q.GetForm())
-		declared = append(declared, q.GetName())
+		if q.GetForm() == umpirespb.Query_FORM_FIND {
+			declared = append(declared, q.GetName())
+		}
 	}
 	require.ElementsMatch(t, functionalQueries, declared)
 }
@@ -279,6 +280,10 @@ func TestALoweredCaseIsTheComparativeGoModelsCase(t *testing.T) {
 	MigrationComparativeModel(t, original)
 	var compared []string
 	for _, query := range original.GetQueries() {
+		// A verify Query has nothing to realize, so the comparative model has no Case for it.
+		if query.GetForm() != umpirespb.Query_FORM_FIND {
+			continue
+		}
 		name := query.GetName()
 		compared = append(compared, name)
 		t.Run(name, func(t *testing.T) {

@@ -24,8 +24,8 @@ def assumes(as: Assumption*)(using m: MachineScope[?, ?, ?]): Unit = m.assumptio
  */
 final class Hole private[umpire] (val name: String):
   /**
-   * Where a step function reaches the hole. Only the IR interpreter reads holes, so this
-   * framework's table fails at the row that reaches one.
+   * Where a step function reaches the hole. Only the IR interpreter reads holes; a step function
+   * run as Scala stops here.
    */
   def reached: Nothing = throw HoleReached(this)
 
@@ -55,5 +55,4 @@ extension [S, O, F](m: Machine[S, O, F])
   def leadsTo(
       name: String
   )(from: S => Boolean, to: S => Boolean, within: Int, under: Assumption*): Progress[S] =
-    m.names.declare("progress", name)
     Progress(name, m, from, to, within, under.toList)

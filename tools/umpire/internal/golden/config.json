@@ -139,8 +139,8 @@
       "new": "model: fixture.specimens.closereset.CloseReset$package$.ackByOriginalQueries, fixture.specimens.closereset.CloseReset$package$.rejectAfterCloseQueries, fixture.specimens.closereset.CloseReset$package$.retainAndRouteQueries"
     },
     {
-      "old": "model/scalav2: temporal.nexuscaller.Claims$package$.functionalQueries, temporal.nexuscaller.Model$package$.handlerWorker, temporal.nexuscaller.Model$package$.nexusProduct, temporal.nexuscaller.Model$package$.nexusProtocol, temporal.nexuscaller.NexusRealization$.asyncNexus, temporal.worker.Worker$package$.polling",
-      "new": "model: temporal.nexuscaller.Claims$package$.functionalQueries, temporal.nexuscaller.Model$package$.handlerWorker, temporal.nexuscaller.Model$package$.nexusProduct, temporal.nexuscaller.Model$package$.nexusProtocol, temporal.nexuscaller.NexusRealization$.asyncNexus, temporal.worker.Worker$package$.polling"
+      "old": "model/scalav2: temporal.nexuscaller.Claims$package$.functionalQueries, temporal.nexuscaller.Claims$package$.stoppedWorkerRepliesNothing, temporal.nexuscaller.Claims$package$.terminalHolds, temporal.nexuscaller.Model$package$.handlerWorker, temporal.nexuscaller.Model$package$.nexusCaller, temporal.nexuscaller.Model$package$.nexusProduct, temporal.nexuscaller.Model$package$.nexusProtocol, temporal.nexuscaller.NexusRealization$.asyncNexus, temporal.worker.Worker$package$.polling",
+      "new": "model: temporal.nexuscaller.Claims$package$.functionalQueries, temporal.nexuscaller.Claims$package$.stoppedWorkerRepliesNothing, temporal.nexuscaller.Claims$package$.terminalHolds, temporal.nexuscaller.Model$package$.handlerWorker, temporal.nexuscaller.Model$package$.nexusCaller, temporal.nexuscaller.Model$package$.nexusProduct, temporal.nexuscaller.Model$package$.nexusProtocol, temporal.nexuscaller.NexusRealization$.asyncNexus, temporal.worker.Worker$package$.polling"
     },
     {
       "old": "model/scalav2: temporal.nexuscaller.Control$.forgedCompletion, temporal.nexuscaller.NexusRealization$.forgedCompletion",

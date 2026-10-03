@@ -8,43 +8,31 @@ import scala.collection.mutable
  */
 final case class Step[S, O, F](outcome: O, state: S, facts: List[F] = Nil, because: String = "")
 
-/** Anything with a finite table: a declared, derived or composed machine. */
+/** A declared, derived or composed machine. */
 trait Model:
   def name: String
-  def table: Checked[Table]
 
-/** An action bound to its step function, in the uniform shape `(state, class) => results`. */
-final case class StepBinding[S, O, F](decl: ActionDecl, run: (S, Class) => List[Step[S, O, F]])
+/** An action bound to its step function. */
+final case class StepBinding[S, O, F](decl: ActionDecl, function: AnyRef)
 
 /**
  * `action ~> stepFunction`. One extension per arity, each typed by the action's inputs, so a step
  * function written for another action's inputs does not compile.
  */
 extension (a: Action[EmptyTuple])
-  infix def ~>[S, O, F](f: S => List[Step[S, O, F]]): StepBinding[S, O, F] =
-    StepBinding(a.decl, (s, _) => f(s))
+  infix def ~>[S, O, F](f: S => List[Step[S, O, F]]): StepBinding[S, O, F] = StepBinding(a.decl, f)
 
 extension [A](a: Action[A *: EmptyTuple])
   infix def ~>[S, O, F](f: (S, A) => List[Step[S, O, F]]): StepBinding[S, O, F] =
-    StepBinding(
-      a.decl,
-      (s, c) => f(s, c.values(0).asInstanceOf[A])
-    ) // scalafix:ok DisableSyntax.asInstanceOf
+    StepBinding(a.decl, f)
 
 extension [A, B](a: Action[(A, B)])
   infix def ~>[S, O, F](f: (S, A, B) => List[Step[S, O, F]]): StepBinding[S, O, F] =
-    StepBinding(
-      a.decl,
-      (s, c) => f(s, c.values(0).asInstanceOf[A], c.values(1).asInstanceOf[B])
-    ) // scalafix:ok DisableSyntax.asInstanceOf
+    StepBinding(a.decl, f)
 
 extension [A, B, C](a: Action[(A, B, C)])
   infix def ~>[S, O, F](f: (S, A, B, C) => List[Step[S, O, F]]): StepBinding[S, O, F] =
-    StepBinding(
-      a.decl,
-      (s, c) =>
-        f(s, c.values(0).asInstanceOf[A], c.values(1).asInstanceOf[B], c.values(2).asInstanceOf[C])
-    ) // scalafix:ok DisableSyntax.asInstanceOf
+    StepBinding(a.decl, f)
 
 /**
  * The machine-declaration scope. Inside `machine(...) { ... }` the entry points below are bare
@@ -124,10 +112,7 @@ def visible[F](using m: MachineScope[?, ?, F])(sees: F => Boolean): Unit = m.vis
 def visibleOutcomes[O](using m: MachineScope[?, O, ?])(sees: O => Boolean): Unit =
   m.visibleOutcomes = Some(sees)
 
-/**
- * A machine. Its table is computed once, on first use, and every failure is a `ModelError` naming
- * the machine rather than an exception out of an object initialiser.
- */
+/** A machine: its declaration, as the scope above recorded it. */
 final class Machine[S, O, F] private[umpire] (
     val family: Family,
     val name: String,
@@ -147,15 +132,6 @@ final class Machine[S, O, F] private[umpire] (
     private[umpire] val fo: Finite[O],
     private[umpire] val ff: Finite[F]
 ) extends Model:
-  private[umpire] val names = ClaimNames()
-
-  lazy val table: Checked[Table] = build
-
-  def hasRefinement: Boolean = refinement.isDefined
-
-  /** The declared refinement, checked once. */
-  lazy val refinementCheck: Checked[Refinement] = Refinement.of(this)
-
   /**
    * A machine that keeps the rows of the named actions and drops the rest.
    * It keeps the state type, starts and ends, owns its own name
@@ -179,93 +155,3 @@ final class Machine[S, O, F] private[umpire] (
       monitorList,
       assumptions
     )
-
-  private def build: Checked[Table] = checked {
-    val states = fs.values.toVector
-    val stateValue = states.map(s => Keys.of(s) -> (s: Any)).toMap
-    val refinedField = refinement.map(_.product.name)
-    val stateFields = states.headOption.map(Keys.fieldNames).getOrElse(Nil).toVector ++ refinedField
-    val bound = bind
-    val rows = enumerate(states, stateValue, bound)
-    val startKeys = startStates.map(Keys.of).toVector
-    for k <- startKeys if !stateValue.contains(k) do
-      fail(name, s"start $k is outside the state domain")
-    if startKeys.isEmpty then fail(name, "the machine declares no start")
-    Table(
-      machine = name,
-      owner = name,
-      family = family,
-      states = states.map(Keys.of),
-      actions = bound.map(_._1.key),
-      outcomes = fo.values.toVector.map(Keys.of),
-      facts = ff.values.toVector.map(Keys.of),
-      starts = startKeys,
-      ends = states.filter(isEnd).map(Keys.of),
-      rows = rows,
-      stateFields = stateFields,
-      refinedField = refinedField,
-      stateValue = stateValue,
-      classes = bound.map((c, _) => c.key -> c).toMap
-    )
-  }
-
-  /** Every class of every bound action, sorted by key; a class two steps bind is rejected. */
-  private def bind(using Fails): Vector[(Class, StepBinding[S, O, F])] =
-    // A channel's delivery or loss is rejected too: only the IR interpreter derives its rows.
-    for b <- bindings; channel = b.decl.delivers + b.decl.loses if channel.nonEmpty do
-      fail(
-        name,
-        s"it binds ${b.decl.name}, which only the IR interpreter derives from channel $channel: lift the " +
-          "machine and check its IR"
-      )
-    val bound = bindings.flatMap(b => b.decl.classes.map(_ -> b)).sortBy(_._1.key).toVector
-    for case Vector((a, _), (b, _)) <- bound.sliding(2) if a.key == b.key do
-      fail(name, s"two steps bind the action class \"${a.key}\"")
-    bound
-
-  /**
-   * Evaluates every step function once per state and class, states-major, keeping the enabled
-   * pairs as rows and rejecting a result outside the state domain.
-   */
-  private def enumerate(
-      states: Vector[S],
-      stateValue: Map[String, Any],
-      bound: Vector[(Class, StepBinding[S, O, F])]
-  )(using
-      Fails
-  ): Vector[Row] =
-    for
-      s <- states
-      (c, b) <- bound
-      results = run(b, s, c)
-      if results.nonEmpty
-    yield
-      val key = Table.rowKey(Keys.of(s), c.key)
-      Row(
-        key,
-        Keys.of(s),
-        c.key,
-        results.toVector.map { step =>
-          val next = Keys.of(step.state)
-          if !stateValue.contains(next) then
-            fail(name, s"row $key lands in $next, which is outside the state domain")
-          RowResult(
-            Keys.of(step.outcome),
-            next,
-            step.facts.toVector.map(Keys.of),
-            step,
-            step.because
-          )
-        }
-      )
-
-  /** One step function's results, failing at a row that reaches a declared hole. */
-  private def run(b: StepBinding[S, O, F], s: S, c: Class)(using Fails): List[Step[S, O, F]] =
-    try b.run(s, c)
-    catch
-      case HoleReached(h) =>
-        fail(
-          name,
-          s"the row '${Table.rowKey(Keys.of(s), c.key)}' reaches the hole ${h.name}, which only the IR " +
-            "interpreter reads: lift the machine and check its IR"
-        )

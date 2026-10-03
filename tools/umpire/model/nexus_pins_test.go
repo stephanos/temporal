@@ -15,98 +15,41 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// nexusCallerClaims are the declarations of model/temporal/nexuscaller that no root of the gate lifts
-// into nexus-caller.json, written in the lifter's shape with declaration positions only: the
-// composition with the handler's worker and its cross-entity claim (Model.scala:205,
-// Claims.scala:319-342), the product claim read on a protocol path (Claims.scala:19, 245), and the
-// two Queries the pins asked of the product claim (NexusCallerPins.test.scala:191, 199).
-const nexusCallerClaims = `{
-  "types": [{"name": "temporal.nexuscaller.NexusCallerState",
-    "position": {"file": "model/temporal/nexuscaller/Model.scala", "line": 203},
-    "record": {"fields": [
-      {"name": "operation", "type": {"named": "temporal.nexuscaller.kernel.ProtocolState"}},
-      {"name": "worker", "type": {"named": "temporal.worker.State"}}]}}],
-  "compositions": [{"family": "temporal.nexus.caller", "name": "nexusCaller",
-    "position": {"file": "model/temporal/nexuscaller/Model.scala", "line": 205},
-    "stateType": "temporal.nexuscaller.NexusCallerState",
-    "members": [{"field": "operation", "machine": "nexusProtocol"}, {"field": "worker", "machine": "handlerWorker"}],
-    "syncs": [
-      {"name": "workerStop", "first": {"member": "operation", "action": "workerStop"}, "second": {"member": "worker", "action": "workerStop"}},
-      {"name": "handlerReply", "first": {"member": "operation", "action": "handlerReply"}, "second": {"member": "worker", "action": "serve"}}],
-    "ends": {"lambda": {"params": [{"name": "s", "type": {"named": "temporal.nexuscaller.NexusCallerState"}}],
-      "body": {"call": {"function": "temporal.nexuscaller.kernel.Protocol$.terminalPhase",
-        "args": [{"field": {"base": {"field": {"base": {"var": "s"}, "field": "operation"}}, "field": "phase"}}]}}}}}],
+// productClaimProbes are the two Queries the Scala pins asked of the product claim, which no Model
+// declares: its verification over every protocol trace within four steps, and a product Property
+// about an action the protocol machine lacks. They are written in the lifter's shape, with
+// declaration positions only, and read the lifted product claim terminalIsFinal.
+const productClaimProbes = `{
   "functions": [
-    {"name": "nexusProduct.property.terminalIsFinal",
-      "position": {"file": "model/temporal/nexuscaller/Claims.scala", "line": 19},
-      "params": [{"name": "before", "type": {"named": "temporal.nexuscaller.kernel.ProductState"}},
-        {"name": "after", "type": {"named": "umpire.Step"}}],
-      "body": {"binary": {"op": "OP_OR",
-        "left": {"unary": {"op": "OP_NOT", "operand": {"call": {"function": "temporal.nexuscaller.kernel.Product$.productTerminal", "args": [{"var": "before"}]}}}},
-        "right": {"binary": {"op": "OP_EQ",
-          "left": {"field": {"base": {"field": {"base": {"var": "after"}, "field": "state"}}, "field": "phase"}},
-          "right": {"field": {"base": {"var": "before"}, "field": "phase"}}}}}}},
     {"name": "nexusProduct.property.timesOut",
-      "position": {"file": "model/temporal/test/NexusCallerPins.test.scala", "line": 200},
+      "position": {"file": "tools/umpire/model/nexus_pins_test.go"},
       "params": [{"name": "after", "type": {"named": "umpire.Step"}}],
       "body": {"binary": {"op": "OP_EQ",
         "left": {"field": {"base": {"field": {"base": {"var": "after"}, "field": "state"}}, "field": "phase"}},
-        "right": {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.ProductPhase", "case": "timedOut"}}}}}},
-    {"name": "nexusCaller.property.repliedByPollingWorker",
-      "position": {"file": "model/temporal/nexuscaller/Claims.scala", "line": 319},
-      "params": [{"name": "after", "type": {"named": "umpire.Step"}}],
-      "body": {"binary": {"op": "OP_EQ",
-        "left": {"field": {"base": {"field": {"base": {"field": {"base": {"var": "after"}, "field": "state"}}, "field": "worker"}}, "field": "phase"}},
-        "right": {"literal": {"enum": {"type": "temporal.worker.Phase", "case": "polling"}}}}}}],
+        "right": {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.ProductPhase", "case": "timedOut"}}}}}}],
   "properties": [
-    {"machine": "nexusProduct", "name": "terminalIsFinal", "transition": true, "holds": "nexusProduct.property.terminalIsFinal",
-      "position": {"file": "model/temporal/nexuscaller/Claims.scala", "line": 19}},
     {"machine": "nexusProduct", "name": "timesOut", "holds": "nexusProduct.property.timesOut",
       "whenClass": {"action": "temporal.nexuscaller.Model$package$.timeout"},
-      "position": {"file": "model/temporal/test/NexusCallerPins.test.scala", "line": 200}},
-    {"machine": "nexusCaller", "name": "repliedByPollingWorker", "whenAction": "handlerReply", "holds": "nexusCaller.property.repliedByPollingWorker",
-      "position": {"file": "model/temporal/nexuscaller/Claims.scala", "line": 319}}],
+      "position": {"file": "tools/umpire/model/nexus_pins_test.go"}}],
   "scenarios": [
     {"machine": "nexusProtocol", "name": "everywhere", "free": true,
-      "position": {"file": "model/temporal/test/NexusCallerPins.test.scala", "line": 191},
+      "position": {"file": "tools/umpire/model/nexus_pins_test.go"},
       "start": {"construct": {"type": "temporal.nexuscaller.kernel.ProtocolState", "args": [
         {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.Phase", "case": "unscheduled"}}},
         {"literal": {"int": "0"}},
         {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.Timeout", "case": "unset"}}},
         {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.Timeout", "case": "unset"}}},
-        {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.Timeout", "case": "unset"}}}]}}},
-    {"machine": "nexusCaller", "name": "repliedThenStopped",
-      "position": {"file": "model/temporal/nexuscaller/Claims.scala", "line": 328},
-      "start": {"construct": {"type": "temporal.nexuscaller.NexusCallerState", "args": [
-        {"construct": {"type": "temporal.nexuscaller.kernel.ProtocolState", "args": [
-          {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.Phase", "case": "unscheduled"}}},
-          {"literal": {"int": "0"}},
-          {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.Timeout", "case": "unset"}}},
-          {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.Timeout", "case": "unset"}}},
-          {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.Timeout", "case": "unset"}}}]}},
-        {"construct": {"type": "temporal.worker.State", "args": [
-          {"literal": {"enum": {"type": "temporal.worker.Phase", "case": "polling"}}}]}}]}},
-      "keys": ["operation_schedule-unset-expires-unset", "handlerReply-handlerError-true", "workerStop", "operation_scheduleToStart"]}],
+        {"literal": {"enum": {"type": "temporal.nexuscaller.kernel.Timeout", "case": "unset"}}}]}}}],
   "queries": [
-    {"name": "terminalHolds", "form": "FORM_VERIFY", "through": true,
-      "position": {"file": "model/temporal/nexuscaller/Claims.scala", "line": 245},
-      "property": {"machine": "nexusProduct", "name": "terminalIsFinal"},
-      "scenario": {"machine": "nexusProtocol", "name": "asyncThenSucceeded"},
-      "limits": {"name": "three", "steps": 3, "actions": 3, "search": 4096}},
     {"name": "terminalHoldsEverywhere", "form": "FORM_VERIFY", "through": true,
-      "position": {"file": "model/temporal/test/NexusCallerPins.test.scala", "line": 193},
+      "position": {"file": "tools/umpire/model/nexus_pins_test.go"},
       "property": {"machine": "nexusProduct", "name": "terminalIsFinal"},
       "scenario": {"machine": "nexusProtocol", "name": "everywhere"},
-      "limits": {"name": "four", "steps": 4, "actions": 4, "search": 32768}},
-    {"name": "stoppedWorkerRepliesNothing", "form": "FORM_VERIFY",
-      "position": {"file": "model/temporal/nexuscaller/Claims.scala", "line": 339},
-      "property": {"machine": "nexusCaller", "name": "repliedByPollingWorker"},
-      "scenario": {"machine": "nexusCaller", "name": "repliedThenStopped"},
       "limits": {"name": "four", "steps": 4, "actions": 4, "search": 32768}}]
 }`
 
 const timesOutOnProtocol = `{"queries": [{"name": "timesOutOnProtocol", "form": "FORM_VERIFY", "through": true,
-  "position": {"file": "model/temporal/test/NexusCallerPins.test.scala", "line": 201},
+  "position": {"file": "tools/umpire/model/nexus_pins_test.go"},
   "property": {"machine": "nexusProduct", "name": "timesOut"},
   "scenario": {"machine": "nexusProtocol", "name": "asyncThenSucceeded"},
   "limits": {"name": "three", "steps": 3, "actions": 3, "search": 4096}}]}`
@@ -227,7 +170,7 @@ func TestNexusRefinement(t *testing.T) {
 }
 
 func TestNexusQueries(t *testing.T) {
-	r := checked(t, withDeclarations(t, load(t), nexusCallerClaims))
+	r := checked(t, load(t))
 	// Each functional Query finds its claim on its path, and a Scenario names its classed actions with
 	// their inputs, a timer like any action, where it fires.
 	paths := map[string][]string{
@@ -256,14 +199,14 @@ func TestNexusQueries(t *testing.T) {
 // The search keeps one fired bit per Property and visits 111 product states. The count is a search
 // statistic.
 func TestNexusProductPropertyOverEveryTraceWithinFour(t *testing.T) {
-	r := checked(t, withDeclarations(t, load(t), nexusCallerClaims))
+	r := checked(t, withDeclarations(t, load(t), productClaimProbes))
 	everywhere := receiptOf(t, r, "query nexusProtocol terminalHoldsEverywhere")
 	require.Equal(t, []any{Verified, 111}, []any{everywhere.Kind, everywhere.Explored})
 }
 
 // A product Property about an action the protocol machine does not have cannot be read there.
 func TestNexusProductPropertyOnAMissingAction(t *testing.T) {
-	r := checked(t, withDeclarations(t, load(t), nexusCallerClaims, timesOutOnProtocol))
+	r := checked(t, withDeclarations(t, load(t), productClaimProbes, timesOutOnProtocol))
 	refused := receiptOf(t, r, "query nexusProtocol timesOutOnProtocol")
 	require.Equal(t, DeclarationError, refused.Kind)
 	require.EqualError(t, refused.Cause, "query timesOutOnProtocol: the Property names the action 'timeout' of "+
@@ -272,7 +215,7 @@ func TestNexusProductPropertyOnAMissingAction(t *testing.T) {
 }
 
 func TestNexusCallerComposition(t *testing.T) {
-	m := withDeclarations(t, load(t), nexusCallerClaims)
+	m := load(t)
 	require.Equal(t, []string{"serve", "workerStop"}, built(t, m)["handlerWorker"].Table.Actions)
 	realizer, err := NewRealizer(m, DefaultScope)
 	require.NoError(t, err)
@@ -331,16 +274,9 @@ func TestNexusCallerComposition(t *testing.T) {
 // Every declaration the IR carries passes the checks: no admission or declaration error, no rejected
 // refinement and no counterexample, and every Query answered.
 func TestNexusCallerChecksClean(t *testing.T) {
-	for name, m := range map[string]*umpirespb.Model{
-		"lifted":                       load(t),
-		"with the unlifted claims too": withDeclarations(t, load(t), nexusCallerClaims),
-	} {
-		t.Run(name, func(t *testing.T) {
-			r := checked(t, m)
-			require.NotEmpty(t, r.Receipts)
-			for _, x := range r.Receipts {
-				require.Contains(t, []ReceiptKind{Verified, Found}, x.Kind, "%s: %v", receiptKey(x), x.Cause)
-			}
-		})
+	r := checked(t, load(t))
+	require.NotEmpty(t, r.Receipts)
+	for _, x := range r.Receipts {
+		require.Contains(t, []ReceiptKind{Verified, Found}, x.Kind, "%s: %v", receiptKey(x), x.Cause)
 	}
 }

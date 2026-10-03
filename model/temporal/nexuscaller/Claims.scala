@@ -276,10 +276,10 @@ val repliedThenStopped: Scenario[NexusCallerState] = nexusCaller
   .scenario("repliedThenStopped")
   .starts(NexusCallerState(unscheduled, pollingWorker))
   .actionKeys(
-    nexusCaller.own("operation", schedule(unset, expires, unset)),
-    nexusCaller.synced("handlerReply", handlerReply(Reply.handlerError(true))),
+    "operation_schedule-unset-expires-unset",
+    "handlerReply-handlerError-true",
     "workerStop",
-    nexusCaller.own("operation", scheduleToStart)
+    "operation_scheduleToStart"
   )
 
 /** The cross-entity claim, verified over that path. */

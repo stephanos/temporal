@@ -1,12 +1,8 @@
-/* The Scala implementation of the Umpire model layer. A Model is ordinary Scala 3: domains are
- * enums and case classes, actions and machines are vals, step functions are plain defs with total
- * matches, and the finite table, the refinement and the Queries are computed and checked when a
- * test asks.
- *
- * The orders and key spellings are the ones the Go reader (tools/umpire/model) derives from the
- * lifted IR, because the Definition IDs, witnesses and exploration targets the tests pin here are
- * the ones its goldens hold. Where a rule is non-obvious, the comment says what depends on it; the
- * Go reader is the executable reference each rule is checked against.
+/* The Scala declarations of the Umpire model layer. A Model is ordinary Scala 3: domains are enums
+ * and case classes, actions and machines are vals, and step functions are plain defs with total
+ * matches. The lifter (model/lifter) reads the declarations into the IR, and the Go reader
+ * (tools/umpire/model) builds the tables, checks the refinements and answers the Queries from it;
+ * nothing here computes them.
  */
 package umpire
 
@@ -83,36 +79,3 @@ object Finite:
     fields.foldLeft(List(List.empty[Any])) { (prefixes, f) =>
       for prefix <- prefixes; v <- f.values.toList yield prefix :+ v
     }
-
-/** Overrides the key a value is spelled with in state, action, row and Definition keys. */
-trait Keyed:
-  def key: String
-
-/**
- * Keys as Definition IDs spell them: an enum case by its name, a parametrised case by its name
- * followed by its fields, a Boolean as true or false, a counter in decimal, and a state case class
- * by its fields in declaration order, all joined by "-".
- */
-object Keys:
-  def of(v: Any): String = v match
-    case k: Keyed   => k.key
-    case b: Boolean => b.toString
-    case i: Int     => i.toString
-    case s: String  => s
-    // An optional value is spelled as the enum case of its constructor would be.
-    case None                  => "None"
-    case Some(v)               => s"Some-${of(v)}"
-    case e: scala.reflect.Enum =>
-      if e.productArity == 0 then e.toString
-      else (e.productPrefix :: e.productIterator.map(of).toList).mkString("-")
-    case p: Product => p.productIterator.map(of).mkString("-")
-    case other      => other.toString
-
-  /** The field names a state has in Definition IDs, in declaration order. */
-  def fieldNames(v: Any): List[String] = v match
-    case _: scala.reflect.Enum => Nil
-    case p: Product            => p.productElementNames.toList
-    case _                     => Nil
-
-  /** The action a class key belongs to: the key before its first "-". */
-  def actionName(key: String): String = key.takeWhile(_ != '-')

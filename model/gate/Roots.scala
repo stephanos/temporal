@@ -7,12 +7,17 @@ package umpire.gate
 object Roots:
   // The functional Queries and the realization that runs them are roots beside the machines: Go
   // lowers each Query's witness through the realization into a Testpilot Case (tools/umpire/lower).
+  // The product claim read on a protocol path and the cross-entity Query, which carries the
+  // composition with the handler's worker and its claim, are roots too.
   private val nexusCaller = Seq(
     "temporal.nexuscaller.Model$package$.nexusProduct",
     "temporal.nexuscaller.Model$package$.nexusProtocol",
     "temporal.nexuscaller.Model$package$.handlerWorker",
+    "temporal.nexuscaller.Model$package$.nexusCaller",
     "temporal.worker.Worker$package$.polling",
     "temporal.nexuscaller.Claims$package$.functionalQueries",
+    "temporal.nexuscaller.Claims$package$.terminalHolds",
+    "temporal.nexuscaller.Claims$package$.stoppedWorkerRepliesNothing",
     "temporal.nexuscaller.NexusRealization$.asyncNexus"
   )
   private val nexusControl = Seq(

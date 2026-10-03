@@ -691,13 +691,13 @@ func TestQuintReadsPropertiesAboutAnAction(t *testing.T) {
 	require.Less(t, r.About, r.Reads)
 }
 
-// Every composition the reader builds is exported: the eight of the lifted slices but the two whose
-// replacement the reader rejects, with their 18 Properties but those two's none.
+// Every composition the reader builds is exported: the nine of the lifted slices but the two whose
+// replacement the reader rejects, with their 19 Properties but those two's none.
 func TestCompositionsAreExported(t *testing.T) {
 	exportedOf := map[string][]string{
 		"activity":        {"standaloneActivity"},
 		"activity-system": {"currentOverLossyMatching", "currentOverMatching", "currentOverQueue", "staleOverMatching", "staleOverQueue"},
-		"nexus-caller":    nil,
+		"nexus-caller":    {"nexusCaller"},
 		"nexus-close":     nil,
 	}
 	properties := 0
@@ -709,7 +709,7 @@ func TestCompositionsAreExported(t *testing.T) {
 			properties += len(s.properties(c))
 		}
 	}
-	require.Equal(t, 18, properties)
+	require.Equal(t, 19, properties)
 }
 
 // A composition past the scope's ceiling is a resource-limit receipt: Go builds no table of it, and

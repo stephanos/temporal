@@ -1126,6 +1126,15 @@
       "model": "nexus-caller.json",
       "query": {
         "Family": "temporal.nexus.caller",
+        "Owner": "nexusCaller",
+        "Name": "stoppedWorkerRepliesNothing"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-caller.json",
+      "query": {
+        "Family": "temporal.nexus.caller",
         "Owner": "nexusProtocol",
         "Name": "syncCompletion"
       },
@@ -1140,6 +1149,15 @@
           }
         ]
       }
+    },
+    {
+      "model": "nexus-caller.json",
+      "query": {
+        "Family": "temporal.nexus.caller",
+        "Owner": "nexusProtocol",
+        "Name": "terminalHolds"
+      },
+      "standing": "nothing-to-realize"
     },
     {
       "model": "nexus-close.json",

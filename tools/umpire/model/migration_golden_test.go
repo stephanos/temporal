@@ -728,9 +728,17 @@ func TestMigrationDefinitionGoldenIncludesUnrealizedClaims(t *testing.T) {
 	after, err := golden.JSON(changed)
 	require.NoError(t, err)
 	require.Error(t, golden.Compare(map[string][]byte{"declarations": before}, map[string][]byte{"declarations": after}))
+	// A composition's claim and a transition claim are searched and verified, never realized, so they
+	// have no fingerprint; every other declaration has one.
+	neverRealized := map[string]bool{"repliedByPollingWorker": true, "terminalIsFinal": true}
 	for _, entry := range changed {
 		require.NotEmpty(t, entry.ID)
-		require.NotEmpty(t, entry.Fingerprint)
+		if entry.Kind == "property" && neverRealized[entry.Name] {
+			require.Empty(t, entry.Fingerprint, entry.Name)
+			require.Contains(t, entry.Error, "is searched and verified, never realized", entry.Name)
+			continue
+		}
+		require.NotEmpty(t, entry.Fingerprint, entry.Name)
 	}
 	for _, mutate := range []func(*migrationDefinition){
 		func(d *migrationDefinition) { d.ID += "-changed" },

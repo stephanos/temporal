@@ -26,8 +26,7 @@ final case class Delivery[M](message: M, redeliveries: Int)
  * A machine holds it in a state field of type `Inbox[M]`, sends with `Inbox.send`, and binds
  * `deliver` to what receiving a message does and, for a lossy channel, `lose` to what losing one
  * does. When a message can be delivered or lost, and the redelivery after a lost acknowledgment,
- * are derived from this declaration by the IR interpreter (model/SEMANTICS.md, Channels);
- * this framework's table does not derive them and refuses a machine that binds either.
+ * are derived from this declaration by the IR interpreter (model/SEMANTICS.md, Channels).
  */
 final class Channel[M] private[umpire] (
     val name: String,
@@ -103,8 +102,7 @@ def channel[M](name: String, capacity: Int, order: Order, loss: Loss, duplicates
  * What a channel holds: its deliveries in send order, or in catalog order for an unordered channel,
  * so that sending the same messages in another order reaches the same state.
  */
-final case class Inbox[M] private[umpire] (channel: Channel[M], deliveries: List[Delivery[M]])
-    extends Keyed:
+final case class Inbox[M] private[umpire] (channel: Channel[M], deliveries: List[Delivery[M]]):
   /**
    * The contents with `m` added: at the end, or at its catalog position for an unordered channel.
    * Sending to a full channel leaves the channel's contents, so the step lands outside the domain.
@@ -121,7 +119,3 @@ final case class Inbox[M] private[umpire] (channel: Channel[M], deliveries: List
 
   /** Whether it holds as many messages as the channel's capacity. */
   def isFull: Boolean = deliveries.size >= channel.capacity
-
-  /** Its deliveries, each a message followed by its redeliveries, as a list is spelled. */
-  def key: String =
-    deliveries.map(d => s"${Keys.of(d.message)}-${d.redeliveries}").mkString("[", ",", "]")

@@ -2,8 +2,8 @@ package temporal
 package nexuscaller
 package closepolicy
 
-// `Answer` here is the designs' delivery answer, not the framework's answer to a Query.
-import umpire.{Answer as _, *}
+// `Answer` here is the designs' delivery answer.
+import umpire.*
 
 // ### What the designs promise
 //

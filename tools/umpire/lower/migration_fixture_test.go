@@ -22,6 +22,10 @@ func TestOriginalNexusFixturesThroughAdmittedIR(t *testing.T) {
 	actual := map[string][]byte{}
 	expected := map[string][]byte{}
 	for _, query := range m.GetQueries() {
+		// A verify Query has nothing to realize, so it has no original fixture.
+		if query.GetForm() != umpirespb.Query_FORM_FIND {
+			continue
+		}
 		name := query.GetName()
 		key := "oracles/nexus/" + name + "/typed"
 		var identity cp.Identity

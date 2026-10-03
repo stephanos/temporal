@@ -1,6 +1,25 @@
 {
-  "source": "model: temporal.nexuscaller.Claims$package$.functionalQueries, temporal.nexuscaller.Model$package$.handlerWorker, temporal.nexuscaller.Model$package$.nexusProduct, temporal.nexuscaller.Model$package$.nexusProtocol, temporal.nexuscaller.NexusRealization$.asyncNexus, temporal.worker.Worker$package$.polling",
+  "source": "model: temporal.nexuscaller.Claims$package$.functionalQueries, temporal.nexuscaller.Claims$package$.stoppedWorkerRepliesNothing, temporal.nexuscaller.Claims$package$.terminalHolds, temporal.nexuscaller.Model$package$.handlerWorker, temporal.nexuscaller.Model$package$.nexusCaller, temporal.nexuscaller.Model$package$.nexusProduct, temporal.nexuscaller.Model$package$.nexusProtocol, temporal.nexuscaller.NexusRealization$.asyncNexus, temporal.worker.Worker$package$.polling",
   "types": [ {
+    "name": "temporal.nexuscaller.NexusCallerState",
+    "position": {
+      "file": "model/temporal/nexuscaller/Model.scala",
+      "line": 203
+    },
+    "record": {
+      "fields": [ {
+        "name": "operation",
+        "type": {
+          "named": "temporal.nexuscaller.kernel.ProtocolState"
+        }
+      }, {
+        "name": "worker",
+        "type": {
+          "named": "temporal.worker.State"
+        }
+      } ]
+    }
+  }, {
     "name": "temporal.nexuscaller.kernel.Outcome",
     "position": {
       "file": "model/temporal/nexuscaller/kernel/Nexus.scala",
@@ -267,6 +286,73 @@
     }
   } ],
   "functions": [ {
+    "name": "nexusCaller.property.repliedByPollingWorker",
+    "position": {
+      "file": "model/temporal/nexuscaller/Claims.scala",
+      "line": 269
+    },
+    "params": [ {
+      "name": "_$3",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/nexuscaller/Claims.scala",
+        "line": 269
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/temporal/nexuscaller/Claims.scala",
+            "line": 269
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/nexuscaller/Claims.scala",
+                "line": 269
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/nexuscaller/Claims.scala",
+                    "line": 269
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/nexuscaller/Claims.scala",
+                        "line": 269
+                      },
+                      "var": "_$3"
+                    },
+                    "field": "state"
+                  }
+                },
+                "field": "worker"
+              }
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/nexuscaller/Claims.scala",
+            "line": 269
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.worker.Phase",
+              "case": "polling"
+            }
+          }
+        }
+      }
+    }
+  }, {
     "name": "nexusProduct.evidence",
     "position": {
       "file": "model/temporal/nexuscaller/Model.scala",
@@ -400,6 +486,107 @@
             }
           }
         } ]
+      }
+    }
+  }, {
+    "name": "nexusProduct.property.terminalIsFinal",
+    "position": {
+      "file": "model/temporal/nexuscaller/Claims.scala",
+      "line": 20
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "temporal.nexuscaller.kernel.ProductState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/nexuscaller/Claims.scala",
+        "line": 21
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/temporal/nexuscaller/Claims.scala",
+            "line": 21
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/temporal/nexuscaller/Claims.scala",
+                "line": 21
+              },
+              "call": {
+                "function": "temporal.nexuscaller.kernel.Product$.productTerminal",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/nexuscaller/Claims.scala",
+                    "line": 21
+                  },
+                  "var": "before"
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/nexuscaller/Claims.scala",
+            "line": 21
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/temporal/nexuscaller/Claims.scala",
+                "line": 21
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/nexuscaller/Claims.scala",
+                    "line": 21
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/nexuscaller/Claims.scala",
+                        "line": 21
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/nexuscaller/Claims.scala",
+                "line": 21
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/nexuscaller/Claims.scala",
+                    "line": 21
+                  },
+                  "var": "before"
+                },
+                "field": "phase"
+              }
+            }
+          }
+        }
       }
     }
   }, {
@@ -5944,7 +6131,110 @@
       }
     } ]
   } ],
+  "compositions": [ {
+    "family": "temporal.nexus.caller",
+    "name": "nexusCaller",
+    "position": {
+      "file": "model/temporal/nexuscaller/Model.scala",
+      "line": 206
+    },
+    "stateType": "temporal.nexuscaller.NexusCallerState",
+    "members": [ {
+      "field": "operation",
+      "machine": "nexusProtocol"
+    }, {
+      "field": "worker",
+      "machine": "handlerWorker"
+    } ],
+    "syncs": [ {
+      "name": "workerStop",
+      "first": {
+        "member": "operation",
+        "action": "workerStop"
+      },
+      "second": {
+        "member": "worker",
+        "action": "workerStop"
+      }
+    }, {
+      "name": "handlerReply",
+      "first": {
+        "member": "operation",
+        "action": "handlerReply"
+      },
+      "second": {
+        "member": "worker",
+        "action": "serve"
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/temporal/nexuscaller/Model.scala",
+        "line": 212
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "temporal.nexuscaller.NexusCallerState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/temporal/nexuscaller/Model.scala",
+            "line": 212
+          },
+          "call": {
+            "function": "temporal.nexuscaller.kernel.Protocol$.terminalPhase",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/nexuscaller/Model.scala",
+                "line": 212
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/nexuscaller/Model.scala",
+                    "line": 212
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/nexuscaller/Model.scala",
+                        "line": 212
+                      },
+                      "var": "s"
+                    },
+                    "field": "operation"
+                  }
+                },
+                "field": "phase"
+              }
+            } ]
+          }
+        }
+      }
+    }
+  } ],
   "properties": [ {
+    "machine": "nexusCaller",
+    "name": "repliedByPollingWorker",
+    "position": {
+      "file": "model/temporal/nexuscaller/Claims.scala",
+      "line": 267
+    },
+    "whenAction": "handlerReply",
+    "holds": "nexusCaller.property.repliedByPollingWorker"
+  }, {
+    "machine": "nexusProduct",
+    "name": "terminalIsFinal",
+    "position": {
+      "file": "model/temporal/nexuscaller/Claims.scala",
+      "line": 19
+    },
+    "holds": "nexusProduct.property.terminalIsFinal",
+    "transition": true
+  }, {
     "machine": "nexusProtocol",
     "name": "completionFails",
     "position": {
@@ -6056,6 +6346,105 @@
     "holds": "nexusProtocol.property.syncSucceeds"
   } ],
   "scenarios": [ {
+    "machine": "nexusCaller",
+    "name": "repliedThenStopped",
+    "position": {
+      "file": "model/temporal/nexuscaller/Claims.scala",
+      "line": 275
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/nexuscaller/Claims.scala",
+        "line": 277
+      },
+      "construct": {
+        "type": "temporal.nexuscaller.NexusCallerState",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/nexuscaller/Model.scala",
+            "line": 153
+          },
+          "construct": {
+            "type": "temporal.nexuscaller.kernel.ProtocolState",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/nexuscaller/Model.scala",
+                "line": 153
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Phase",
+                  "case": "unscheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/nexuscaller/Model.scala",
+                "line": 153
+              },
+              "literal": {
+                "int": "0"
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/nexuscaller/Model.scala",
+                "line": 153
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Timeout",
+                  "case": "unset"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/nexuscaller/Model.scala",
+                "line": 153
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Timeout",
+                  "case": "unset"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/nexuscaller/Model.scala",
+                "line": 153
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.kernel.Timeout",
+                  "case": "unset"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/Model.scala",
+            "line": 214
+          },
+          "construct": {
+            "type": "temporal.worker.State",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/nexuscaller/Model.scala",
+                "line": 214
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.worker.Phase",
+                  "case": "polling"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "keys": [ "operation_schedule-unset-expires-unset", "handlerReply-handlerError-true", "workerStop", "operation_scheduleToStart" ]
+  }, {
     "machine": "nexusProtocol",
     "name": "asyncThenFailed",
     "position": {
@@ -6915,6 +7304,27 @@
       "conformance": "CONFORMANCE_CONFORMANT"
     }
   }, {
+    "name": "stoppedWorkerRepliesNothing",
+    "position": {
+      "file": "model/temporal/nexuscaller/Claims.scala",
+      "line": 287
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "nexusCaller",
+      "name": "repliedByPollingWorker"
+    },
+    "scenario": {
+      "machine": "nexusCaller",
+      "name": "repliedThenStopped"
+    },
+    "limits": {
+      "name": "four",
+      "steps": 4,
+      "actions": 4,
+      "search": 32768
+    }
+  }, {
     "name": "syncCompletion",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
@@ -7033,6 +7443,28 @@
       "runs": 1,
       "edits": 1,
       "dropPrefix": true
+    }
+  }, {
+    "name": "terminalHolds",
+    "position": {
+      "file": "model/temporal/nexuscaller/Claims.scala",
+      "line": 246
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "nexusProduct",
+      "name": "terminalIsFinal"
+    },
+    "scenario": {
+      "machine": "nexusProtocol",
+      "name": "asyncThenSucceeded"
+    },
+    "through": true,
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 4096
     }
   } ],
   "realizations": [ {
