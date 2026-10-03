@@ -158,7 +158,7 @@ func installIOConfig(configuration []byte) error {
 	if readDescriptor == targetIOConfigFD {
 		return nil
 	}
-	if err := syscall.Dup2(readDescriptor, targetIOConfigFD); err != nil {
+	if err := dup2(readDescriptor, targetIOConfigFD); err != nil {
 		return errors.Join(fmt.Errorf("install target I/O configuration descriptor: %w", err), closeDescriptors(readDescriptor))
 	}
 	if err := syscall.Close(readDescriptor); err != nil {
