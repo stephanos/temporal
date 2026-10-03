@@ -15,36 +15,18 @@ type Refinement struct {
 	Rows    []RefinementRow
 	// MapState reads a refining state key as the product state it stands for.
 	MapState func(string) (string, error)
-	// mapValue reads a refining state key as the typed product state.
-	mapValue func(string) (any, error)
-	stepOfFn func(state any, outcome string, facts []string) (any, error)
 	// source and product are the tables RefineTables checked, which a Query over keys reads through.
 	source, product *Table
 }
 
-// keyLevel reports whether the refinement reads keys only: RefineTables checked it and no machine
-// gave it typed states.
-func (r *Refinement) keyLevel() bool { return r.stepOfFn == nil }
-
-// checkKeyRefined rejects a refined Query that reads a Property over keys through typed states, or
-// a typed one through keys, and a refinement over keys of other tables than the Query's.
+// checkKeyRefined rejects a refinement over keys of other tables than the Query's.
 func (q *Query) checkKeyRefined(t *Table, ref *Refinement) error {
 	p := q.Property
-	switch {
-	case p.keyLevel() && !ref.keyLevel():
-		return errorf(q.decl(), "%s reads keys, and the refinement of %s by %s reads typed states",
-			p.Name, ref.Product, ref.Machine)
-	case !p.keyLevel() && ref.keyLevel():
-		return errorf(q.decl(), "%s reads typed states, and the refinement of %s by %s reads keys",
-			p.Name, ref.Product, ref.Machine)
-	case !p.keyLevel():
-		return nil
-	case ref.source != t || ref.product == nil || ref.product.model != p.Machine:
+	if ref.source != t || ref.product == nil || ref.product.model != p.Machine {
 		return errorf(q.decl(), "the refinement of %s by %s is not the one checked of the table %s runs on by "+
 			"the table %s is declared on", ref.Product, ref.Machine, q.Scenario.Name, p.Name)
-	default:
-		return nil
 	}
+	return nil
 }
 
 // RefinementRow pairs one row result with its product action, "" for a stutter.
@@ -284,10 +266,6 @@ func carrierOf(dst *Table, row Row, res Result, from, to string, seen seen) (str
 		return carriers[0], true
 	}
 	return "", false
-}
-
-func (r *Refinement) stepOf(state any, outcome string, facts []string) (any, error) {
-	return r.stepOfFn(state, outcome, facts)
 }
 
 // sameNamedKey is the product key a key names by default: the same key, or the constructor it

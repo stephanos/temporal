@@ -1,8 +1,7 @@
 package checker
 
 // Claims over a table's keys, for a table computed outside this package (NewTable, ComposeTables):
-// such a table has no typed states or steps, so its Properties, Scenarios and Monitors read keys.
-// They build the same declarations the typed constructors build, which one search answers.
+// its Properties, Scenarios and Monitors read keys, and one search answers them.
 
 // tableModel is a table as the Model its key-level claims name.
 type tableModel struct {
@@ -72,7 +71,7 @@ func KeyVerifyRefined(name string, p *PropertyDecl, s *ScenarioDecl, ref *Refine
 		}}
 }
 
-// keyLevel reports whether the Property reads keys rather than typed steps.
+// keyLevel reports whether the Property names a function that says whether it holds.
 func (p *PropertyDecl) keyLevel() bool { return p.keyHolds != nil || p.keyHolds2 != nil }
 
 // checkKeyClaims rejects a claim over a table's keys that names no function, or whose name its table

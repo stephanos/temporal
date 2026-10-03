@@ -38,8 +38,7 @@ type ComposeCeiling struct {
 	Results     int64
 }
 
-// ComposeSpec declares a composition of tables computed outside this package, as Compose declares
-// one of typed machines.
+// ComposeSpec declares a composition of tables computed outside this package.
 type ComposeSpec struct {
 	Family  Family
 	Name    string
@@ -88,9 +87,8 @@ func (e *ComposeLimitError) Error() string {
 		e.Composition, e.Ceiling, e.Resource, needed)
 }
 
-// ComposeTables builds the reachable composition of member tables as Compose builds one of typed
-// machines: the same starts, actions, results, keys, layout, assumptions and replacement rule. A
-// state and an action a member leaves unknown are an unknown pair of the composition, unless
+// ComposeTables builds the reachable composition of member tables: its starts, actions, results,
+// keys, layout, assumptions and replacement rule. A state and an action a member leaves unknown are an unknown pair of the composition, unless
 // another move of the step is disabled, which disables it. The error is a *ComposeLimitError when the
 // composition does not fit the ceiling, a *RefinementError when a replacing member does not refine
 // what it replaces, and an *Error otherwise.
@@ -161,9 +159,6 @@ func (b *composing) resolveTables(members []ComposeMember) error {
 		if err != nil {
 			return err
 		}
-		if len(t.Starts) == 0 {
-			return errorf(b.owner, "the member %s has no start", m.Field)
-		}
 		b.members = append(b.members, member)
 		b.tables = append(b.tables, t)
 	}
@@ -194,7 +189,6 @@ func (b *composing) assembleKeys(starts [][]string, reached map[string]bool,
 	ends func(key string, parts []string) (bool, error)) (*Table, error) {
 	t := b.catalogs(reached)
 	for _, s := range t.States {
-		t.stateValue[s] = s
 		t.Rows = append(t.Rows, b.keyRowsFrom(t, s)...)
 	}
 	if err := b.startsAndAssumptions(t, starts); err != nil {

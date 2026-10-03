@@ -28,8 +28,7 @@ type memberMove struct {
 	action string
 }
 
-// composing is the part of building a composition that reads keys only, which a typed composition
-// and one of key-only tables (ComposeTables) share, so the two cannot drift apart.
+// composing is the part of building a composition that reads keys only.
 type composing struct {
 	family    Family
 	name      string
@@ -322,8 +321,7 @@ func (b *composing) explore(starts [][]string) map[string]bool {
 // catalogs starts the composed table: its states sorted by key with the member states each stands
 // for, its actions, and its outcomes, facts and state fields prefixed per member.
 func (b *composing) catalogs(reached map[string]bool) *Table {
-	t := &Table{Machine: b.name, Owner: b.owner, Family: b.family, stateValue: map[string]any{},
-		parts: map[string][]string{}}
+	t := &Table{Machine: b.name, Owner: b.owner, Family: b.family, parts: map[string][]string{}}
 	for k := range reached {
 		t.States = append(t.States, k)
 		t.parts[k] = b.split[k]

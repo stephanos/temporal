@@ -34,8 +34,8 @@ func records(fact string) func(umpire.Result) (bool, error) {
 	return func(r umpire.Result) (bool, error) { return slices.Contains(r.Facts, fact), nil }
 }
 
-// A Property over a table's keys lowers to the clauses a typed one does: a value is fixed where every
-// accepted step carries it and the predicate rejects every accepted step with it changed.
+// A Property over a table's keys lowers to clauses: a value is fixed where every accepted step
+// carries it and the predicate rejects every accepted step with it changed.
 func TestAKeyLevelPropertyLowersToItsClauses(t *testing.T) {
 	state := umpire.Requirement{Label: "state-s2", Kind: umpire.StateRequirement, Value: "s2"}
 	outcome := umpire.Requirement{Label: "outcome-ok", Kind: umpire.OutcomeRequirement, Value: "ok"}
@@ -99,9 +99,9 @@ func TestAKeyLevelPropertyThatCannotBeReadIsNotLowered(t *testing.T) {
 	}
 }
 
-// What a typed Property is refused for, a key-level one is refused for in the same words; a
-// transition claim is never lowered.
-func TestAKeyLevelPropertyIsRefusedAsATypedOneIs(t *testing.T) {
+// A key-level Property whose predicate no clauses carry is refused with the reason; a transition
+// claim is never lowered.
+func TestAKeyLevelPropertyThatNoClausesCarryIsRefused(t *testing.T) {
 	tb := lowerable()
 	for _, c := range []struct {
 		name string
@@ -136,8 +136,7 @@ func TestAPropertyOfAComposedTableIsNotLowered(t *testing.T) {
 	require.EqualError(t, err, "property p: a claim of a composition is searched and verified, never realized")
 }
 
-// A keyed table carries the state fields and the Abstraction Claims its spec gives it, which a typed
-// table derives from its declarations.
+// A keyed table carries the state fields and the Abstraction Claims its spec gives it.
 func TestAKeyedTableCarriesItsFieldValuesAndClaims(t *testing.T) {
 	fields := map[string][]umpire.Atom{"s0": {{ID: "test.lower.state-field.steps.phase", Value: "zero"}},
 		"s1": {{ID: "test.lower.state-field.steps.phase", Value: "one"}}}

@@ -1,6 +1,9 @@
 package checker
 
-import "fmt"
+import (
+	"fmt"
+	"slices"
+)
 
 // Answer searches the Query. The search is breadth-first over the product of the machine state,
 // the Scenario's progress through its pinned schedule, and the Property monitor, with a visited
@@ -49,7 +52,7 @@ func (q *Query) searcher() (*searcher, error) {
 }
 
 func (q *Query) checkScenario(t *Table) error {
-	if _, ok := t.stateValue[q.Scenario.Start]; !ok {
+	if !slices.Contains(t.States, q.Scenario.Start) {
 		return errorf(q.decl(), "%s starts at %s, which is not a state of %s",
 			q.Scenario.Name, q.Scenario.Start, t.Machine)
 	}
@@ -295,14 +298,13 @@ func (s *searcher) answers(n node) bool {
 // and the ones after it as they were. With an error of the Property's, there is no node.
 func (s *searcher) step(i int, row Row, res Result) (node, error) {
 	n := s.nodes[i]
-	mon, err := s.observe(n, row, res)
+	mon, err := s.observeKeys(n, row, res)
 	if err != nil {
 		return node{}, err
 	}
-	before := s.t.stateValue[n.state]
 	mons := make([]monitorState, len(n.mons))
 	for k, m := range s.q.monitors {
-		ms, err := s.watch(k, m, n, before, res)
+		ms, err := s.watch(k, m, n, res)
 		if err != nil {
 			copy(mons[k:], n.mons[k:])
 			mons[k].unknown = true
@@ -316,52 +318,23 @@ func (s *searcher) step(i int, row Row, res Result) (node, error) {
 
 // watch advances one watching Monitor over a step from n, reading its verdict where its evaluation
 // point says.
-func (s *searcher) watch(k int, m *Monitor, n node, before any, res Result) (monitorState, error) {
+func (s *searcher) watch(k int, m *Monitor, n node, res Result) (monitorState, error) {
 	ms := n.mons[k]
 	var err error
-	if ms.key, err = m.next(ms.key, n.state, before, res); err != nil {
+	if ms.key, err = m.keyNext(ms.key, n.state, res); err != nil {
 		return ms, err
 	}
 	reads, err := m.At.reads(res, s.ends)
 	if err != nil || !reads {
 		return ms, err
 	}
-	violated, err := m.violated(ms.key)
+	violated, err := m.keyViolated(ms.key)
 	if err != nil {
 		return ms, err
 	}
 	ms.read, s.monRead[k] = true, true
 	ms.violated = ms.violated || violated
 	return ms, nil
-}
-
-// observe advances the Property monitor over one step.
-func (s *searcher) observe(n node, row Row, res Result) (monitor, error) {
-	p, mon := s.q.Property, n.mon
-	switch {
-	case p.keyLevel():
-		return s.observeKeys(n, row, res)
-	case p.isTransition():
-		before, err := s.readState(n.state)
-		if err != nil {
-			return mon, err
-		}
-		after, err := s.readStep(res)
-		if err != nil {
-			return mon, err
-		}
-		mon.fired, mon.held = true, mon.held && p.holds2(before, after)
-		s.exercised = true
-	case p.triggers(row.Action):
-		step, err := s.readStep(res)
-		if err != nil {
-			return mon, err
-		}
-		mon.fired, mon.held = true, mon.held && p.holds(step)
-		s.exercised = true
-	default:
-	}
-	return mon, nil
 }
 
 // record notes whether a new node answers the Query: a completed trace on which a find's claim
@@ -448,25 +421,6 @@ func (s *searcher) explored() []MonitorVerdict {
 	return out
 }
 
-// readState turns a state into what the Property reads: the typed state, or the refined machine's
-// typed state through the refinement.
-func (s *searcher) readState(key string) (any, error) {
-	if s.ref != nil {
-		return s.ref.mapValue(key)
-	}
-	v := s.t.stateValue[key]
-	return v, nil
-}
-
-// readStep turns a step into what the Property reads: the typed step, or the refined machine's
-// typed step through the refinement.
-func (s *searcher) readStep(res Result) (any, error) {
-	if s.ref == nil {
-		return res.Step, nil
-	}
-	return s.ref.productStep(res)
-}
-
 func (s *searcher) rowsOf(j int) []string {
 	var rows []string
 	for ; s.nodes[j].parent >= 0; j = s.nodes[j].parent {
@@ -500,14 +454,4 @@ func indexOf(xs []string, x string) (int, bool) {
 		}
 	}
 	return -1, false
-}
-
-// productStep reads a refining result as the refined machine's typed step: its state through the
-// map, and its outcome and facts by name, which is all a refined Property reads.
-func (r *Refinement) productStep(res Result) (any, error) {
-	v, err := r.mapValue(res.State)
-	if err != nil {
-		return nil, err
-	}
-	return r.stepOf(v, res.Outcome, res.Facts)
 }

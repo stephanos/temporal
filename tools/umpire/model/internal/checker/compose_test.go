@@ -32,14 +32,6 @@ func TestACompositionStartsInEveryAdmittedStart(t *testing.T) {
 	require.NotContains(t, single.Reachable, "open-true_holding", "no step oils the door")
 }
 
-func TestASyncNamingAnActionItsMemberLacksIsRejected(t *testing.T) {
-	spec := houseOf(doorTable("door"), umpire.ComposeMember{Table: keyholderTable("keyholder")})
-	spec.Name = "bad"
-	spec.Syncs = []umpire.ComposeSync{{Name: "fly", FirstMember: "door", FirstAction: "fly", SecondMember: "key", SecondAction: "useKey"}}
-	_, err := umpire.ComposeTables(spec)
-	require.EqualError(t, err, "compose-bad: sync fly names door.fly, and door has no action fly")
-}
-
 // An opaque keyholder that may use or lose the key, and a detailed one that also wears it down.
 
 var keyIsOpaque = umpire.Assumption{Name: "keyIsOpaque"}
@@ -143,9 +135,12 @@ func TestAReplacementAccountsForEveryOpaqueStart(t *testing.T) {
 	detailed := detailedKeyTable("detailedKey", false, refining("opaqueKey"))
 	_, err := umpire.RefineTables(detailed, opaque, umpire.RefinementSpec{MapState: keyOfWornKey})
 	require.NoError(t, err, "on its own, the refinement may start in fewer states")
-	_, err = umpire.ComposeTables(houseOf(doorTable("door"), replacing(detailed, opaque)))
+	tb, err := umpire.ComposeTables(houseOf(doorTable("door"), replacing(detailed, opaque)))
 	require.EqualError(t, err, "detailedKey refines opaqueKey: opaqueKey starts at 'lost', which no start of detailedKey reads as")
-	require.Equal(t, umpire.RefinementInitial, refinementError(t, err).Kind)
+	re := refinementError(t, err)
+	require.Equal(t, umpire.RefinementInitial, re.Kind)
+	require.NoError(t, opaque.Replay(re.ProductWitness))
+	require.Nil(t, tb)
 }
 
 func TestAReplacementIsDeclaredAgainstARefinementOfAMember(t *testing.T) {

@@ -85,7 +85,7 @@ func (t *Table) replay(w *Trace) ([]edge, error) {
 		return nil, errorf(t.Machine, "there is no witness to replay")
 	}
 	state := w.Initial.Value
-	if _, ok := t.stateValue[state]; !ok {
+	if !slices.Contains(t.States, state) {
 		return nil, errorf(t.Machine, "the witness starts at '%s', which is not a state", state)
 	}
 	if err := t.binds("the start", "state", w.Initial); err != nil {

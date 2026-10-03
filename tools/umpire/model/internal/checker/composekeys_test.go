@@ -9,7 +9,7 @@ import (
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 )
 
-// composition is what a composed table says, without the typed steps only a typed one carries.
+// composition is what a composed table says, without the steps its results carry.
 type composition struct {
 	States, Actions, Outcomes, Facts, StateFields, Starts, Ends, Reachable []string
 	Rows                                                                   []umpire.Row
@@ -75,7 +75,7 @@ func replacing(detailed, opaque *umpire.Table) umpire.ComposeMember {
 	return umpire.ComposeMember{Table: detailed, Replaces: opaque, Refinement: umpire.RefinementSpec{MapState: keyOfWornKey}}
 }
 
-func TestComposeTablesMatchesTypedComposition(t *testing.T) {
+func TestComposeTablesMatchesPinnedComposition(t *testing.T) {
 	fairDoor := umpire.Assumption{Name: "doorIsFair", Fair: []string{"push", "lock"}}
 	plainHouse := pinned{Fingerprint: "sha256:54d1eff41b8b7d65efc9fd6cf04bb29ece24fcd29a5da624cd9d5dea12bbfcee",
 		Order:  "sha256:4fe8dadb0037cfdd85f6cf51991eac2ebb06890d01d2123839d3177b239add72",
@@ -183,39 +183,6 @@ func TestComposeTablesStartsInEveryMemberStart(t *testing.T) {
 	require.Contains(t, tb.Reachable, "open-true_lost", "an oiled door opens from its own start")
 }
 
-func TestComposeTablesReplacementCoversEveryOpaqueStart(t *testing.T) {
-	opaque := opaqueKeyTable(startsAt("holding", "lost"))
-	member := replacing(detailedKeyTable("detailedKey", false, refining("opaqueKey")), opaque)
-	_, err := umpire.RefineTables(member.Table, member.Replaces, member.Refinement)
-	require.NoError(t, err, "on its own, the refinement may start in fewer states")
-	tb, err := umpire.ComposeTables(houseOf(doorTable("door"), member))
-	require.EqualError(t, err, "detailedKey refines opaqueKey: opaqueKey starts at 'lost', which no start of detailedKey reads as")
-	re := refinementError(t, err)
-	require.Equal(t, umpire.RefinementInitial, re.Kind)
-	require.NoError(t, member.Replaces.Replay(re.ProductWitness))
-	require.Nil(t, tb)
-}
-
-func TestComposeTablesViolatingProviderFails(t *testing.T) {
-	member := replacing(detailedKeyTable("finderKey", true, refining("opaqueKey")), opaqueKeyTable())
-	_, err := umpire.ComposeTables(houseOf(doorTable("door"), member))
-	re := refinementError(t, err)
-	require.Equal(t, umpire.RefinementUnmatched, re.Kind)
-	require.ErrorContains(t, err, "finderKey refines opaqueKey: the row 'lost-false-findKey'")
-	require.Equal(t, []string{"loseKey", "findKey"}, actionsOf(re.Witness))
-	require.NoError(t, member.Table.Replay(re.Witness))
-	require.Contains(t, member.Table.Starts, re.Witness.Initial.Value)
-}
-
-func TestComposeTablesRejectsCollidingKeys(t *testing.T) {
-	heads := joinTable("heads", []string{"a", "a_b"}, []string{"a_b", "a"})
-	tails := joinTable("tails", []string{"c", "b_c"}, []string{"c", "b_c"})
-	_, err := umpire.ComposeTables(umpire.ComposeSpec{Family: "test.join", Name: "joint", Ceiling: roomy,
-		Members: []umpire.ComposeMember{{Field: "head", Table: heads}, {Field: "tail", Table: tails}}})
-	require.EqualError(t, err, "compose-joint: the member states [a_b c] and [a b_c] are both keyed 'a_b_c', "+
-		"so the composed key does not tell them apart")
-}
-
 func TestComposeTablesDeclarationsAreChecked(t *testing.T) {
 	doors, keys := doorTable("door"), keyholderTable("keyholder")
 	plain := func() umpire.ComposeSpec { return houseOf(doors, umpire.ComposeMember{Table: keys}) }
@@ -247,7 +214,7 @@ func TestComposeTablesDeclarationsAreChecked(t *testing.T) {
 		"compose-house: a member has no field":       func(s *umpire.ComposeSpec) { s.Members[1].Field = "" },
 		"compose-house: two members are at door":     func(s *umpire.ComposeSpec) { s.Members[1].Field = "door" },
 		"compose-house: the member key has no table": func(s *umpire.ComposeSpec) { s.Members[1].Table = nil },
-		"compose-house: the member key has no start": func(s *umpire.ComposeSpec) { s.Members[1].Table = umpire.NewTable(startless) },
+		"keyholder: the table has no start":          func(s *umpire.ComposeSpec) { s.Members[1].Table = umpire.NewTable(startless) },
 		"keyholder: the unknown pair 'nowhere-useKey' is at 'nowhere', which is not a state": func(s *umpire.ComposeSpec) {
 			s.Members[1].Table = umpire.NewTable(malformed)
 		},

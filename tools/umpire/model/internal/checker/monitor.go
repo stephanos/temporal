@@ -8,7 +8,6 @@ import (
 // Evaluation is where a Monitor's verdict is read.
 type Evaluation struct {
 	kind     evaluationKind
-	after    func(Result) bool
 	afterKey func(Result) (bool, error)
 }
 
@@ -27,45 +26,21 @@ func EveryStep() Evaluation { return Evaluation{kind: everyStep} }
 func AtEnds() Evaluation { return Evaluation{kind: atEnds} }
 
 // Monitor is a passive observer of a machine's steps over a finite state, as the IR's `Monitor`:
-// Next turns its state, the typed state before a step and the step's result into its state after
-// the step, and Violated says whether a state violates it where At reads it. It never disables a
-// step; the search keeps its state in the product state, so two histories that leave it in
-// different states stay apart.
+// keyNext turns its state, the key of the state before a step and the step's result into its state
+// after the step, and keyViolated says whether a state violates it where At reads it. It never
+// disables a step; the search keeps its state in the product state, so two histories that leave it
+// in different states stay apart.
 type Monitor struct {
-	Name     string
-	Initial  string
-	Next     func(monitor string, before any, step Result) (string, error)
-	Violated func(monitor string) bool
-	At       Evaluation
-	err      error
+	Name    string
+	Initial string
+	At      Evaluation
 	// keyNext and keyViolated are the functions of a Monitor declared over a table's keys.
 	keyNext     func(monitor, before string, step Result) (string, error)
 	keyViolated func(monitor string) (bool, error)
 }
 
-// next is the Monitor's state after a step from the state keyed state, whose typed value is before.
-func (m *Monitor) next(key, state string, before any, res Result) (string, error) {
-	if m.keyNext != nil {
-		return m.keyNext(key, state, res)
-	}
-	return m.Next(key, before, res)
-}
-
-func (m *Monitor) violated(key string) (bool, error) {
-	if m.keyViolated != nil {
-		return m.keyViolated(key)
-	}
-	return m.Violated(key), nil
-}
-
 func (m *Monitor) check() error {
-	if m.err != nil {
-		return m.err
-	}
-	if m.keyNext != nil && m.keyViolated != nil {
-		return nil
-	}
-	if m.Next == nil || m.Violated == nil {
+	if m.keyNext == nil || m.keyViolated == nil {
 		return errorf("monitor "+m.Name, "a Monitor names its next and violated functions")
 	}
 	return nil
@@ -78,10 +53,7 @@ func (e Evaluation) reads(res Result, ends map[string]bool) (bool, error) {
 	case atEnds:
 		return ends[res.State], nil
 	case afterSteps:
-		if e.afterKey != nil {
-			return e.afterKey(res)
-		}
-		return e.after(res), nil
+		return e.afterKey(res)
 	default:
 		return true, nil
 	}

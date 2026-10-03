@@ -228,7 +228,7 @@ func TestAFairCycleWhoseTourExceedsTheCeilingIsLimitReached(t *testing.T) {
 	require.LessOrEqual(t, a.Explored, 10)
 }
 
-func TestProgressOnATypedMachine(t *testing.T) {
+func TestProgressOnADoor(t *testing.T) {
 	tb := doorTable("door")
 	shuts := umpire.KeyProgress("shuts", doorIs("open"), doorIs("closed"), 1)
 	a, err := umpire.CheckProgress(tb, shuts, wide)

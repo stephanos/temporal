@@ -48,7 +48,8 @@ func (p *PropertyDecl) Lower() ([]Group, error) {
 	if err != nil {
 		return nil, err
 	}
-	if t.alter.state == nil {
+	// A composition, and no other table, records the member states its states stand for.
+	if t.parts != nil {
 		return nil, errorf("property "+p.Name, "a claim of a composition is searched and verified, never realized")
 	}
 	ask := &asking{p: p}
@@ -84,17 +85,14 @@ func (p *PropertyDecl) Lower() ([]Group, error) {
 	return groups, nil
 }
 
-// asking asks a Property about steps while it is lowered. A typed predicate always answers. One over
-// a table's keys may fail: the first failure is kept as unread, and nothing asked after it counts.
+// asking asks a Property about steps while it is lowered. Its predicate over a table's keys may fail:
+// the first failure is kept as unread, and nothing asked after it counts.
 type asking struct {
 	p      *PropertyDecl
 	unread error
 }
 
 func (p *asking) accepts(step Result) bool {
-	if p.p.keyHolds == nil {
-		return p.p.holds(step.Step)
-	}
 	if p.unread != nil {
 		return false
 	}
@@ -118,7 +116,7 @@ func (p *asking) fixedRequirements(t *Table, results []Result) ([]Requirement, e
 		return nil, errors.New("the predicate holds on no step of this machine")
 	}
 	first := accepted[0]
-	alter := t.alterer()
+	alter := keyAlterer()
 	state := first.State
 	stateFixed := slices.ContainsFunc(t.States, func(s string) bool { return s != state })
 	outcome := first.Outcome
@@ -165,16 +163,12 @@ func (p *asking) fixedRequirements(t *Table, results []Result) ([]Requirement, e
 	return out, nil
 }
 
-// alterer rebuilds a result with its state, outcome or one fact changed, typed, so the predicate
-// can be asked about it. The table supplies the typed values behind each key.
+// alterer rebuilds a result with its state, outcome or one fact changed, so the predicate can be
+// asked about it.
 type alterer struct {
 	state   func(Result, string) Result
 	outcome func(Result, string) Result
 	without func(Result, string) Result
-}
-
-func (t *Table) alterer() alterer {
-	return t.alter
 }
 
 // keyAlterer rebuilds a result of a table over keys with its state, outcome or one fact changed. The

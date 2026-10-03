@@ -81,7 +81,7 @@ func walk(tb *umpire.Table, start string, rows ...string) *umpire.Trace {
 
 // A table keeps the order its spec gives its catalogs and rows, and computes what it reaches from its
 // starts by sweeping the rows in that order.
-func TestTableOrdersActionsByKeyAndRowsStatesMajor(t *testing.T) {
+func TestATableKeepsItsSpecOrderAndSweepsWhatItReaches(t *testing.T) {
 	tb := doorTable("door")
 	require.NoError(t, tb.Err())
 	require.Equal(t, []string{"lock", "push", "turn-left", "turn-right-false", "turn-right-true"}, tb.Actions)

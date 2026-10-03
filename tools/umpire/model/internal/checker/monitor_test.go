@@ -7,9 +7,6 @@ import (
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 )
 
-// countOpenings counts the door's openings, up to two: its states are "0", "1" and "2".
-func countOpenings(at umpire.Evaluation) *umpire.Monitor { return countOpeningKeys(at) }
-
 var four = umpire.Limits{Name: "four", Steps: 4, Actions: 4, Search: 64}
 
 func anything(m *umpire.Table) *umpire.Query {
@@ -23,7 +20,7 @@ func TestAMonitorKeepsDistinctHistoriesApart(t *testing.T) {
 	require.Equal(t, umpire.VerifiedWithinLimits, plain.Outcome)
 	require.Equal(t, 4, plain.Explored, "the start, and closed, open and locked after a step, whatever the path")
 
-	q := anything(doorTable("door")).Watch(countOpenings(umpire.EveryStep()))
+	q := anything(doorTable("door")).Watch(countOpeningKeys(umpire.EveryStep()))
 	a, err := q.Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.CounterexampleFound, a.Outcome,
@@ -43,7 +40,7 @@ func TestAMonitorNeverDisablesAStep(t *testing.T) {
 	plain, err := umpire.KeyFind("q", opensTwice, path, four).Answer()
 	require.NoError(t, err)
 
-	q := umpire.KeyFind("q", opensTwice, path, four).Watch(countOpenings(umpire.EveryStep()))
+	q := umpire.KeyFind("q", opensTwice, path, four).Watch(countOpeningKeys(umpire.EveryStep()))
 	a, err := q.Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.Found, a.Outcome, "the violated monitor takes nothing away from the find")
@@ -92,7 +89,7 @@ func TestAMonitorIsReadOnlyAtItsEvaluationPoint(t *testing.T) {
 }
 
 func TestAReplayRejectsAWitnessTheModelDoesNotTake(t *testing.T) {
-	q := anything(doorTable("door")).Watch(countOpenings(umpire.EveryStep()))
+	q := anything(doorTable("door")).Watch(countOpeningKeys(umpire.EveryStep()))
 	a, err := q.Answer()
 	require.NoError(t, err)
 
@@ -116,7 +113,7 @@ func TestAReplayRejectsAWitnessTheModelDoesNotTake(t *testing.T) {
 }
 
 func TestAQueryRejectsTwoMonitorsOfOneName(t *testing.T) {
-	q := anything(doorTable("door")).Watch(countOpenings(umpire.EveryStep()), countOpenings(umpire.AtEnds()))
+	q := anything(doorTable("door")).Watch(countOpeningKeys(umpire.EveryStep()), countOpeningKeys(umpire.AtEnds()))
 	_, err := q.Answer()
 	require.EqualError(t, err, "query q: two monitors are named openedTwice")
 }
@@ -130,7 +127,7 @@ func TestAMonitorWithoutItsNextFunctionIsRejected(t *testing.T) {
 }
 
 func TestAMonitorWithoutANameIsRejected(t *testing.T) {
-	unnamed := countOpenings(umpire.EveryStep())
+	unnamed := countOpeningKeys(umpire.EveryStep())
 	unnamed.Name = ""
 	_, err := anything(doorTable("door")).Watch(unnamed).Answer()
 	require.EqualError(t, err, "query q: a monitor has no name")
@@ -171,7 +168,7 @@ func TestACounterexampleFoundBeforeTheLimitStands(t *testing.T) {
 	m := doorTable("door")
 	holds := umpire.KeyTransitionProperty(m, "always", always)
 	q := umpire.KeyVerify("q", holds, umpire.KeyFreeScenario(m, "anything", "closed-false"), cramped).
-		Watch(countOpenings(umpire.EveryStep()))
+		Watch(countOpeningKeys(umpire.EveryStep()))
 	a, err := q.Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.CounterexampleFound, a.Outcome, "the monitor failed at the sixth state, within the limit")
@@ -186,7 +183,7 @@ func TestAViolationOnlyBeyondTheLimitIsLimitReached(t *testing.T) {
 	m := doorTable("door")
 	holds := umpire.KeyTransitionProperty(m, "always", always)
 	a, err := umpire.KeyVerify("q", holds, umpire.KeyFreeScenario(m, "anything", "closed-false"), short).
-		Watch(countOpenings(umpire.EveryStep())).Answer()
+		Watch(countOpeningKeys(umpire.EveryStep())).Answer()
 	require.NoError(t, err)
 	require.Equal(t, umpire.LimitReached, a.Outcome, "the monitor fails only at the sixth state, past the limit")
 	require.Empty(t, a.Monitor)

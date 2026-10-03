@@ -21,7 +21,7 @@ func (f Family) ID(kind, owner, member string) string {
 func (f Family) Target(machine string) string { return string(f) + ".target." + machine }
 
 // Result is one outcome of a row: the outcome, the next state, and the recorded facts, all as keys.
-// Step holds the typed step a Property reads.
+// Step holds what the table's builder carries with the result, such as a ComposedStep.
 type Result struct {
 	Outcome string   `json:"outcome"`
 	State   string   `json:"state"`
@@ -39,7 +39,7 @@ type Row struct {
 }
 
 // Table is a machine's finite table in Lean's catalog and row order. States, actions, outcomes
-// and facts are keys; the typed values they stand for are kept for Properties and compositions.
+// and facts are keys.
 type Table struct {
 	Machine   string   `json:"machine"`
 	States    []string `json:"states"`
@@ -69,11 +69,9 @@ type Table struct {
 	// recorded kind that confirms it.
 	Evidence    [][2]string
 	Assumptions []Assumption
-	alter       alterer
 	fieldValues map[string][]Atom
 	// keyClaims is the Abstraction Claims a table built from keys was given.
 	keyClaims   []Claim
-	stateValue  map[string]any // state key to typed state
 	rowsFrom    map[string][]int
 	unknownFrom map[string][]int
 	parts       map[string][]string
@@ -326,11 +324,10 @@ func errorf(decl, format string, args ...any) error {
 func rowKey(state, action string) string { return state + "-" + action }
 
 // TableSpec is a machine's table computed outside this package, such as by an interpreter of the
-// Umpire IR (tools/umpire/model). It carries only what a table's keys say; a table built from it has
-// no typed values. It serves identities, reachability and fingerprints, and claims declared over its
-// keys (KeyProperty, KeyScenario, KeyFind): such a Property's predicate reads a result's keys, is
-// searched, and lowers to clauses as a typed one does. The state fields and Abstraction Claims a
-// typed table derives from its declarations are given with the spec.
+// Umpire IR (tools/umpire/model). It carries only what a table's keys say. It serves identities,
+// reachability and fingerprints, and claims declared over its keys (KeyProperty, KeyScenario,
+// KeyFind): such a Property's predicate reads a result's keys, is searched, and lowers to clauses.
+// The state fields and Abstraction Claims are given with the spec.
 type TableSpec struct {
 	Machine     string
 	Owner       string
@@ -353,39 +350,35 @@ type TableSpec struct {
 	// machine: a reading of its state a composition does not carry.
 	RefinedField string
 	// FieldValues is each state's fields as atoms, by the state's key, for a table whose states are
-	// structured: what a typed table derives from its state type. Every key is a state.
+	// structured. Every key is a state.
 	FieldValues map[string][]Atom
-	// Claims lists the Abstraction Claims of the actions the table's classes are of, in claim order:
-	// what a typed table derives from its action declarations. Every Member is an action class's
-	// Definition ID.
+	// Claims lists the Abstraction Claims of the actions the table's classes are of, in claim order.
+	// Every Member is an action class's Definition ID.
 	Claims []Claim
 }
 
 // NewTable builds a table from keys, indexing its rows and computing reachability and the stuck
-// state as a declared machine's table does.
-// A spec whose unknown pairs or refined field do not fit the table still builds one, whose Err every
-// check of it reports.
+// state.
+// A spec that does not fit together (see checkSpec) still builds a table, whose Err every check of
+// it reports.
 func NewTable(spec TableSpec) *Table {
 	t := &Table{Machine: spec.Machine, Owner: spec.Owner, Family: spec.Family, States: spec.States,
 		Actions: spec.Actions, Outcomes: spec.Outcomes, Facts: spec.Facts, Starts: spec.Starts, Ends: spec.Ends,
-		Rows: spec.Rows, StateFields: spec.StateFields, Entity: spec.Entity, Evidence: spec.Evidence,
-		stateValue: map[string]any{}}
+		Rows: spec.Rows, StateFields: spec.StateFields, Entity: spec.Entity, Evidence: spec.Evidence}
 	t.Assumptions = spec.Assumptions
 	t.Unknown, t.refinedField = spec.Unknown, spec.RefinedField
-	t.alter, t.fieldValues, t.keyClaims = keyAlterer(), spec.FieldValues, spec.Claims
+	t.fieldValues, t.keyClaims = spec.FieldValues, spec.Claims
 	t.err = t.checkSpec()
 	if t.Facts == nil {
 		t.Facts = []string{}
-	}
-	for _, s := range t.States {
-		t.stateValue[s] = s
 	}
 	t.finish()
 	return t
 }
 
 // checkSpec rejects unknown pairs and a refined field that do not fit the table's catalogs and rows.
-// It rejects field values of what is no state and a claim of what is no action class the same way.
+// It rejects field values of what is no state and a claim of what is no action class the same way,
+// and then a table with no start and rows that do not fit its catalogs.
 func (t *Table) checkSpec() error {
 	if t.refinedField != "" && !slices.Contains(t.StateFields, t.refinedField) {
 		return errorf(t.Machine, "the refined field %s is not a state field", t.refinedField)
@@ -422,6 +415,39 @@ func (t *Table) checkSpec() error {
 			return errorf(t.Machine, "the pair '%s' is unknown twice", u.Row)
 		default:
 			seen[u.Row], seenPairs[at] = true, true
+		}
+	}
+	return t.checkRows()
+}
+
+// checkRows rejects a table with no start, and a row that is not at a state, takes no action class,
+// shares its key with another, or leads to what is no state. The IR's interpreter builds no such
+// table; a declared machine's are rejected before they are listed.
+func (t *Table) checkRows() error {
+	if len(t.Starts) == 0 {
+		return errorf(t.Machine, "the table has no start")
+	}
+	states, actions, keys := map[string]bool{}, map[string]bool{}, map[string]bool{}
+	for _, s := range t.States {
+		states[s] = true
+	}
+	for _, a := range t.Actions {
+		actions[a] = true
+	}
+	for _, r := range t.Rows {
+		switch {
+		case !states[r.Source]:
+			return errorf(t.Machine, "the row '%s' is at '%s', which is not a state", r.Key, r.Source)
+		case !actions[r.Action]:
+			return errorf(t.Machine, "the row '%s' takes %s, which is not an action class", r.Key, r.Action)
+		case keys[r.Key]:
+			return errorf(t.Machine, "the row '%s' is listed twice", r.Key)
+		}
+		keys[r.Key] = true
+		for _, res := range r.Results {
+			if !states[res.State] {
+				return errorf(t.Machine, "the row '%s' leads to '%s', which is not a state", r.Key, res.State)
+			}
 		}
 	}
 	return nil

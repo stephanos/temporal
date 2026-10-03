@@ -5,26 +5,24 @@ import (
 	"strings"
 )
 
-// PropertyDecl is a Property's untyped part, which Queries and the search read.
+// PropertyDecl is a Property, which Queries and the search read.
 type PropertyDecl struct {
 	Name      string
 	Machine   Model
 	when      func(action string) bool
 	whenLabel string
-	holds     func(step any) bool
-	holds2    func(before, after any) bool
 	// keyHolds and keyHolds2 are the claim of a Property declared over a table's keys.
 	keyHolds  func(step Result) (bool, error)
 	keyHolds2 func(before string, step Result) (bool, error)
 }
 
 // isTransition reports whether the Property relates a step to the state before it.
-func (p *PropertyDecl) isTransition() bool { return p.holds2 != nil || p.keyHolds2 != nil }
+func (p *PropertyDecl) isTransition() bool { return p.keyHolds2 != nil }
 
 // triggers reports whether a same-step Property is about the step of this action class.
 func (p *PropertyDecl) triggers(action string) bool { return p.when == nil || p.when(action) }
 
-// ScenarioDecl is a Scenario's untyped part.
+// ScenarioDecl is a Scenario.
 type ScenarioDecl struct {
 	Name    string
 	Machine Model

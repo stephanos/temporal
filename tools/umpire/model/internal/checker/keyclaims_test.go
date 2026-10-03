@@ -10,8 +10,7 @@ import (
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 )
 
-// keyCopy is a table as the spec of a table that carries only its keys: no typed state and no typed
-// step.
+// keyCopy is a table as the spec of a table that carries only its keys: no step.
 func keyCopy(tb *umpire.Table) umpire.TableSpec {
 	spec := umpire.TableSpec{Machine: tb.Machine, Owner: tb.Owner, Family: tb.Family, States: tb.States,
 		Actions: tb.Actions, Outcomes: tb.Outcomes, Facts: tb.Facts, Starts: tb.Starts, Ends: tb.Ends,
@@ -34,6 +33,7 @@ func phaseOf(key string) string {
 
 func always(string, umpire.Result) (bool, error) { return true, nil }
 
+// countOpeningKeys counts the door's openings, up to two: its states are "0", "1" and "2".
 func countOpeningKeys(at umpire.Evaluation) *umpire.Monitor {
 	return umpire.KeyMonitor("openedTwice", "0",
 		func(n, before string, step umpire.Result) (string, error) {
@@ -68,7 +68,7 @@ func (a answered) on(tb *umpire.Table) umpire.Answer {
 	return want
 }
 
-func TestKeyLevelQueryMatchesTypedQuery(t *testing.T) {
+func TestKeyLevelQueryMatchesPinnedAnswer(t *testing.T) {
 	opensLoudlyKeys := opensLoudlyOn
 	turnThenPushKeys := func(tb *umpire.Table) *umpire.ScenarioDecl {
 		return umpire.KeyScenario(tb, "turnThenPush", "closed-false", "turn-right-true", "push")
@@ -567,6 +567,39 @@ func TestMalformedUnknownPairsAreRejected(t *testing.T) {
 		_, err = umpire.CheckProgress(tb, umpire.KeyProgress("p", is("s0"), is("s1"), 1), wide)
 		require.Equal(t, tb.Err(), err)
 		_, err = umpire.RefineTables(tb, tb, umpire.RefinementSpec{MapState: func(s string) (string, error) { return s, nil }})
+		require.Equal(t, tb.Err(), err)
+	}
+	require.NoError(t, umpire.NewTable(base).Err())
+}
+
+func TestARowThatDoesNotFitItsTableIsRejected(t *testing.T) {
+	base := keyCopy(keyTable("chain", []string{"s0"}, [3]string{"s0", "go", "s1"}))
+	for _, c := range []struct {
+		want   string
+		change func(*umpire.TableSpec)
+	}{
+		{"chain: the table has no start", func(s *umpire.TableSpec) { s.Starts = nil }},
+		{"chain: the row 's9-go' is at 's9', which is not a state", func(s *umpire.TableSpec) {
+			s.Rows = append(s.Rows, rowOf("s9", "go", resultOf("ok", "s0")))
+		}},
+		{"chain: the row 's1-fly' takes fly, which is not an action class", func(s *umpire.TableSpec) {
+			s.Rows = append(s.Rows, rowOf("s1", "fly", resultOf("ok", "s0")))
+		}},
+		{"chain: the row 's0-go' is listed twice", func(s *umpire.TableSpec) {
+			s.Rows = append(s.Rows, rowOf("s0", "go", resultOf("ok", "s0")))
+		}},
+		{"chain: the row 's1-go' leads to 's9', which is not a state", func(s *umpire.TableSpec) {
+			s.Rows = append(s.Rows, rowOf("s1", "go", resultOf("ok", "s0"), resultOf("ok", "s9")))
+		}},
+	} {
+		spec := base
+		spec.Rows = slices.Clone(base.Rows)
+		c.change(&spec)
+		tb := umpire.NewTable(spec)
+		require.EqualError(t, tb.Err(), c.want)
+		require.ErrorAs(t, tb.Err(), new(*umpire.Error))
+		_, err := umpire.KeyVerify("q", umpire.KeyTransitionProperty(tb, "holds", always),
+			umpire.KeyFreeScenario(tb, "anything", "s0"), four).Answer()
 		require.Equal(t, tb.Err(), err)
 	}
 	require.NoError(t, umpire.NewTable(base).Err())
