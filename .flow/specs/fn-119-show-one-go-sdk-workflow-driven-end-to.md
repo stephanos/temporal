@@ -16,6 +16,8 @@ It serves two readers: the developer evaluating whether to model a feature, and 
 
 **What exists.** `fn-107-scala-umpire-prototype-for-standalone` task 22 generates lowered Case files and runs them with one generic live runner, so no Go test is written per scenario. Testpilot's Temporal Driver already runs a workflow through the Go SDK without a workflow function per Case: a dynamic workflow interprets the Case's script and issues each command through the SDK. So the mechanism is in place.
 
+**Where it lives.** The example's Model lives in the `examples` folder the module map reserves for it, beside the Temporal Models and wired into the same gate.
+
 **What is missing.** The Driver realizes one workflow command type today, scheduling a Nexus operation. An ordinary workflow needs more. The example is chosen to need the fewest new primitives that still read as a real workflow.
 
 **The example.** A workflow that runs one activity and completes with its result, with the activity failing once and succeeding on retry in a second path, and timing out in a third. It is the workflow a Go SDK tutorial starts with.
@@ -30,7 +32,7 @@ It serves two readers: the developer evaluating whether to model a feature, and 
 | Test | the generic live runner discovers and runs the Cases | no |
 | Verdict and assessment | Testpilot evaluates the Contract, conformance explains the Run by the Model | no |
 
-**New Driver primitives.** Scheduling an activity from a workflow, awaiting its result and completing the workflow with it. Each is a general primitive of the Driver, declared in the Profile like the existing one, and usable by any later Model. None is written for this example alone.
+**New Driver primitives.** Scheduling an activity from a workflow, awaiting its result, completing the workflow with it, and an activity attempt that withholds its answer so the server times it out (the Driver refuses an attempt with no answer today). Each is a general primitive of the Driver, declared in the Profile like the existing one, and usable by any later Model. None is written for this example alone.
 
 ## API Contracts
 <!-- scope: technical -->
@@ -80,13 +82,37 @@ The owner asked on 2026-10-01 for an example of a Go SDK workflow driven fully e
 
 **Partly covered already.** fn-107 task 22 removes per-scenario Go tests, and the Driver already interprets a workflow from a Case. What no spec covered is a workflow-centred example, the Driver primitives an ordinary workflow needs, and a walkthrough.
 
-**An activity workflow.** It is the workflow every Go SDK user has written, it needs only three new primitives, and its retry and timeout paths show the Model earning its keep. A timer-only workflow would need fewer primitives and would show less. A workflow with signals and child workflows would show more and would turn the spec into Driver work.
+**An activity workflow.** It is the workflow every Go SDK user has written, it needs only four new primitives, and its retry and timeout paths show the Model earning its keep. A timer-only workflow would need fewer primitives and would show less. A workflow with signals and child workflows would show more and would turn the spec into Driver work.
 
 **The check for zero Go.** Without an enforced check, a helper slips in and the example keeps claiming what it no longer shows.
 
 **After the cleanup.** The example is what newcomers copy. Written before the DSL settles, it would teach the old forms and have to be rewritten.
 
-## Parked unknowns
+**Plan amendment (2026-10-03, task breakdown).** The former Parked unknowns are settled or scheduled. Location: the module map already reserves an `examples` folder for this spec, recorded under Architecture. Whether the lowering can place a workflow's activity attempts with the existing realization declarations is scheduled work for task .3, which records the answer under Architecture. The spec keeps its dependencies on fn-114, fn-118 and fn-120, which gate the example; tasks .1 and .2 (generic Driver primitives) may be claimed explicitly before those close, as Edge Cases allows. Plan review found the timeout path has no mechanism today; the withhold-answer attempt is added as the fourth general primitive, and the Decision Context count is updated. No requirement changed.
 
-- Whether the lowering can place a workflow's activity attempts with the existing realization declarations or needs a new one. R1 and R3 answer it.
-- Whether the example's Model lives with the Temporal Models or in an `examples` folder of its own. The module map of fn-115 decides.
+## Quick commands
+
+```bash
+make umpire-check-model
+go test -count=1 -tags test_dep ./common/testing/testpilot/...
+make umpire-check-live-tests
+```
+
+## Early proof point
+
+Task fn-119-show-one-go-sdk-workflow-driven-end-to.1 validates the core approach (the Driver's dynamic workflow can schedule an activity, await it and complete with its result as a general primitive). If it fails, re-evaluate the choice of an activity workflow as the example before continuing with .2+.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | A Model of the example workflow exists beside the other Models, with a product machine, at least three Queries (completion, retry then completion, timeout) and a realization, and it passes the model gate. Errors: a construct it needs that the DSL lacks is a finding against the DSL, and the example does not work around it in Go. | fn-119-show-one-go-sdk-workflow-driven-end-to.4 | — |
+| R2 | The Testpilot Temporal Driver realizes the workflow commands the example needs through the Go SDK, as general primitives a Profile authorizes. Errors: a Case carrying a command the Profile does not list is rejected at preparation with the command named, as today; a command the Driver cannot realize yet is listed with its type. | fn-119-show-one-go-sdk-workflow-driven-end-to.1, fn-119-show-one-go-sdk-workflow-driven-end-to.2, fn-119-show-one-go-sdk-workflow-driven-end-to.3 | — |
+| R3 | Every Query of the example lowers to a Case, and the generic live runner runs each against the in-process cluster with a satisfied Verdict and a conforming assessment, live and replayed. Errors: a Query that does not lower is listed with the located reason and blocks the spec's close. | fn-119-show-one-go-sdk-workflow-driven-end-to.4 | — |
+| R4 | No Go source file in the repository names the example, its workflow type, its activity type or any of its Queries, and a check in the gates fails on one. Errors: generated files and the walkthrough are exempt and are listed by path pattern in the check. | fn-119-show-one-go-sdk-workflow-driven-end-to.5 | — |
+| R5 | One Query runs against a deliberately faulty variant and yields a counterexample at the model level and a violated Verdict at the run level, each shown in the walkthrough. Errors: a faulty variant that passes means the example proves nothing and blocks the close. | fn-119-show-one-go-sdk-workflow-driven-end-to.5 | — |
+| R6 | A walkthrough follows one Query from its Scala declaration through the Umpire IR, the lowered Case and the Run's workflow history to the Verdict, naming the command that produces each artifact. The model's README links to it. Errors: a fresh reader with no context (a subagent given only the walkthrough and the commands) reproduces the Run and states what was authored and what was generated; whatever it cannot do is fixed in the page. | fn-119-show-one-go-sdk-workflow-driven-end-to.6 | — |
+| R7 | One documented command runs the whole example. The done summary states its wall-clock time, the lines of Scala authored, and the lines of Go added for general Driver primitives (no error surface beyond the command's exit status). | fn-119-show-one-go-sdk-workflow-driven-end-to.6 | — |
+| R8 | The example runs in the model gate and in the live test job, so a change that breaks it fails a gate (no error surface). | fn-119-show-one-go-sdk-workflow-driven-end-to.4, fn-119-show-one-go-sdk-workflow-driven-end-to.5 | — |
+| R9 | The done summary lists every place the example needed something the pipeline did not have, with what was done about each: built as a general primitive, or left as a named gap. | fn-119-show-one-go-sdk-workflow-driven-end-to.3, fn-119-show-one-go-sdk-workflow-driven-end-to.6 | — |
+

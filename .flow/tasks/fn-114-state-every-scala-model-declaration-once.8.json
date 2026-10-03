@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T19:38:05.125215Z",
+  "depends_on": [
+    "fn-114-state-every-scala-model-declaration-once.7"
+  ],
+  "id": "fn-114-state-every-scala-model-declaration-once.8",
+  "priority": null,
+  "spec": "fn-114-state-every-scala-model-declaration-once",
+  "spec_path": ".flow/tasks/fn-114-state-every-scala-model-declaration-once.8.md",
+  "status": "todo",
+  "title": "Close fn-114 with literal and line counts and full gates",
+  "updated_at": "2026-10-03T19:46:28.359306Z"
+}

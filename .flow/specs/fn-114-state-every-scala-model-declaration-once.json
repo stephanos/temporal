@@ -1,13 +1,215 @@
 {
   "branch_name": "fn-114-state-every-scala-model-declaration-once",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-02T05:20:46.073780Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-112-make-the-standalone-activity-scala"
   ],
   "id": "fn-114-state-every-scala-model-declaration-once",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-03T19:50:00.003209Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "be82932c647658eaa1718fe7330c790824bd21efb3122638e5b2518fd0354e67",
+      "backend": "claude",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-933442845b3c7030b4a3b309a2afa6cb",
+            "classification": "introduced",
+            "findingId": "finding-933442845b3c7030b4a3b309a2afa6cb",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-13fcdefc557c03801ee8a0b15295157f",
+            "classification": "introduced",
+            "findingId": "finding-13fcdefc557c03801ee8a0b15295157f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-cbf2930450af28a43ae612f7deb5906c",
+            "classification": "introduced",
+            "findingId": "finding-cbf2930450af28a43ae612f7deb5906c",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-bdf7a182563c16e28fb6890fe01a383c",
+            "classification": "introduced",
+            "findingId": "finding-bdf7a182563c16e28fb6890fe01a383c",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-91c9c258334f771c948a26a8e2822452",
+            "classification": "introduced",
+            "findingId": "finding-91c9c258334f771c948a26a8e2822452",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-806862ddcdbe9ef51844bb914159f3b5",
+            "classification": "introduced",
+            "findingId": "finding-806862ddcdbe9ef51844bb914159f3b5",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b5f405e68a4b6807fb654e888ea41fb8fcab0b50",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 9104,
+      "output_sha256": "211e83cf606a6a07c9772d1f4c73789a6f8181883469e426e996aa117ab5be9a",
+      "reservation_id": "51a6635846aa46d9859b54dd4cd5b9b3",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-03T19:44:33.208018Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ec3a4dd727ff35aea8b1c5a5e88b0daa064768d551e04fecb6bfc2ed840e7e44",
+      "backend": "claude",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-933442845b3c7030b4a3b309a2afa6cb",
+            "classification": "introduced",
+            "findingId": "finding-933442845b3c7030b4a3b309a2afa6cb",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-13fcdefc557c03801ee8a0b15295157f",
+            "classification": "introduced",
+            "findingId": "finding-13fcdefc557c03801ee8a0b15295157f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-cbf2930450af28a43ae612f7deb5906c",
+            "classification": "introduced",
+            "findingId": "finding-cbf2930450af28a43ae612f7deb5906c",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-bdf7a182563c16e28fb6890fe01a383c",
+            "classification": "introduced",
+            "findingId": "finding-bdf7a182563c16e28fb6890fe01a383c",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-91c9c258334f771c948a26a8e2822452",
+            "classification": "introduced",
+            "findingId": "finding-91c9c258334f771c948a26a8e2822452",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-806862ddcdbe9ef51844bb914159f3b5",
+            "classification": "introduced",
+            "findingId": "finding-806862ddcdbe9ef51844bb914159f3b5",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-91397603028483b1b79bc5aed29a8a3f",
+            "classification": "introduced",
+            "findingId": "finding-91397603028483b1b79bc5aed29a8a3f",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b13b240319f5ac056ebdc10f46de41d6",
+            "classification": "introduced",
+            "findingId": "finding-b13b240319f5ac056ebdc10f46de41d6",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "00b27c2db2f450a34615a79da8e8e055f5d84739",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3658,
+      "output_sha256": "07f9b635e2e737744c920ed18e4d51990fd5b99449c6f6b2914731d3bae94d86",
+      "reservation_id": "b4e654a77ff74a69b3a0b613b43d724e",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-03T19:49:59.997215Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-114-state-every-scala-model-declaration-once.md",
   "status": "open",
   "title": "State every Scala Model declaration once",
@@ -22,5 +224,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T17:19:00.938769Z"
+  "updated_at": "2026-10-03T19:50:30.875679Z"
 }

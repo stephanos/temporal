@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T19:38:05.862735Z",
+  "depends_on": [
+    "fn-119-show-one-go-sdk-workflow-driven-end-to.5"
+  ],
+  "id": "fn-119-show-one-go-sdk-workflow-driven-end-to.6",
+  "priority": null,
+  "spec": "fn-119-show-one-go-sdk-workflow-driven-end-to",
+  "spec_path": ".flow/tasks/fn-119-show-one-go-sdk-workflow-driven-end-to.6.md",
+  "status": "todo",
+  "title": "Write the walkthrough, the one-command entry point and the fn-119 done summary",
+  "updated_at": "2026-10-03T19:46:32.373033Z"
+}

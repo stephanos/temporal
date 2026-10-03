@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T19:38:05.500426Z",
+  "depends_on": [
+    "fn-118-declare-how-temporal-apis-behave-once.1"
+  ],
+  "id": "fn-118-declare-how-temporal-apis-behave-once.3",
+  "priority": null,
+  "spec": "fn-118-declare-how-temporal-apis-behave-once",
+  "spec_path": ".flow/tasks/fn-118-declare-how-temporal-apis-behave-once.3.md",
+  "status": "todo",
+  "title": "Make Testpilot wait by condition within a declared bound and report the bound",
+  "updated_at": "2026-10-03T19:46:29.475792Z"
+}

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T19:38:05.123085Z",
+  "depends_on": [
+    "fn-114-state-every-scala-model-declaration-once.2"
+  ],
+  "id": "fn-114-state-every-scala-model-declaration-once.4",
+  "priority": null,
+  "spec": "fn-114-state-every-scala-model-declaration-once",
+  "spec_path": ".flow/tasks/fn-114-state-every-scala-model-declaration-once.4.md",
+  "status": "todo",
+  "title": "Convert the Nexus close-policy declarations to the final DSL in place",
+  "updated_at": "2026-10-03T19:46:26.940863Z"
+}

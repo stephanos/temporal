@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-03T19:38:05.500532Z",
+  "depends_on": [
+    "fn-118-declare-how-temporal-apis-behave-once.2",
+    "fn-118-declare-how-temporal-apis-behave-once.3"
+  ],
+  "id": "fn-118-declare-how-temporal-apis-behave-once.4",
+  "priority": null,
+  "spec": "fn-118-declare-how-temporal-apis-behave-once",
+  "spec_path": ".flow/tasks/fn-118-declare-how-temporal-apis-behave-once.4.md",
+  "status": "todo",
+  "title": "Derive Case waiting from hints in the lowering and refuse undeclared visibility",
+  "updated_at": "2026-10-03T19:50:27.595920Z"
+}

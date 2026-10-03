@@ -16,18 +16,20 @@ It serves the feature developer, who writes what a run does and no longer how lo
 
 **A hint is a fact about an API, declared once.** It is attached to the typed method or message `fn-117-type-the-temporal-api-in-the-models` provides, and lives in the shared Temporal kit that fn-112 creates. A Model does not repeat it. The inventory first settles the helper interface fn-112 task 9 must leave available; it does not yet change a realization or a Case.
 
-**A relationship is a hint between two APIs.** The most important one is visibility: the effect of a write becomes visible to a read, at once or eventually. "A pause is visible to DescribeActivityExecution eventually" is a relationship between two methods, and it is what tells the lowering that a read after that write has to wait for a condition.
+**A relationship is a hint between two APIs.** The most important one is visibility: the effect of a write becomes visible to a read, at once or eventually. "A pause is visible to DescribeActivityExecution at once" is a relationship between two methods (the code indicates at once: both go through the same server component; the inventory confirms it). An eventual relationship is what tells the lowering that a read after that write has to wait for a condition.
+
+**A cause is a hint about what a read waits for.** Most hand-written waits today are not visibility waits. A read waits for an asynchronous cause on the path: another party's step (a worker's answer, a workflow command, a Nexus handler's reply), a server timer such as a deadline the realization sets, a server retry, or a workflow task. The lowering finds the cause in path order across scripts, and a declared wait bound for that kind of cause (for a timer, the realization's deadline plus a declared slack) bounds the wait. An instruction timeout on a performed command takes a declared bound for that kind of command, or keeps its explicit form with a reason (R4).
 
 **Hints travel through the IR.** The lowering is Go and reads only the IR, so a hint that changes a generated Case has to be in the IR. This spec adds the fields for the hints it adopts. That is an IR schema change, and it is in scope.
 
-**The lowering applies them.** Where a path reads after a write whose effect is eventually visible, the generated Case polls for the condition within the declared bound. Where the effect is visible at once, it reads once. Where a call is declared safe to repeat, a transient error is retried within its bound. The realization author writes the read and the condition; the wait follows from the declarations.
+**The lowering applies them.** Where a path reads after a write whose effect is eventually visible, or after an asynchronous cause, the generated Case polls for the condition within the declared bound. Where the effect is visible at once, it reads once. Where a call is declared safe to repeat, a transient error is retried within its bound. The realization author writes the read and the condition; the wait follows from the declarations.
 
 **First hints, and candidates.** The first task inventories what the existing realizations and the Testpilot Driver already assume. The table is the starting point. A hint is adopted only when a Case that exists today needs it.
 
 | Hint | What it says | What the lowering does with it | Status |
 | --- | --- | --- | --- |
-| Visibility of a write to a read | at once, or eventually within a bound | read once, or poll for the condition | adopt: replaces the three hand-written polls |
-| Wait bounds | how long a condition may take, per kind of wait | sets the Case's instruction limits | adopt: replaces the literal 250 and 5,000 |
+| Visibility of a write to a read | at once, or eventually within a bound | read once, or poll for the condition | adopt: governs reads after writes; together with wait bounds it replaces the three hand-written polls |
+| Wait bounds | how long a condition may take, per kind of wait: per asynchronous cause and per kind of performed command | sets the Case's instruction limits | adopt: replaces the literal 250 and 5,000 |
 | Not-yet errors | which error of a read means the effect is not visible yet | keeps polling instead of failing | adopt if the inventory finds one in use |
 | Repeatable call | the call is idempotent, by which key | retries a transient failure | candidate |
 | Blocking read | the call returns when something happens | waits on it once instead of polling | candidate |
@@ -42,7 +44,8 @@ A sketch of the author surface. The task that builds it settles the spelling and
 ```scala
 // in the shared Temporal kit, once
 WorkflowService.pauseActivityExecution
-  .visibleTo(WorkflowService.describeActivityExecution, eventually(within = statusRead))
+  .visibleTo(WorkflowService.describeActivityExecution, atOnce)
+workerAnswer.boundedBy(statusRead) // a read that waits for a worker's answer
 
 val statusRead = waitBound(interval = 250.millis, atMost = 10.seconds)
 
@@ -63,7 +66,7 @@ onPath(control(Control.pause))(
 - **Efficiency.** A read after a write that is visible at once is not polled. The done summary states how many polls the existing Cases issue before and after.
 - **Existing Cases keep their meaning.** A Case lowered after this spec asserts the same Contract as before. Its Program may differ where a hand-written wait became a derived one, and each such difference is listed.
 - **Model and reality.** A hint describes how the real system behaves between two calls. It is not part of what a machine says, and it changes no table, Property or Query answer.
-- **Order.** Inventory and helper-interface settlement follow fn-117 and finish before fn-112 task 9 finalizes the shared-kit interface. Hint schema, lowering and derived waits start only after fn-112 task 10 closes its structural Case freeze. These are entry gates for the tasks when this spec is planned; its spec dependency is fn-117 alone so the inventory can run while fn-112 is open. The inventory decides the exact hint fields before any schema edit; Query.total and choice-name schema changes may already have landed and must remain compatible.
+- **Order.** Inventory and helper-interface settlement follow fn-117 and finish before fn-112 task 9 finalizes the shared-kit interface. Hint schema, lowering and derived waits start only after fn-112 task 10 closes its structural Case freeze and after fn-114 closes, since fn-114 freezes Case bytes through its last task. These are entry gates for the tasks when this spec is planned; its spec dependency is fn-117 alone so the inventory can run while fn-112 is open. The inventory decides the exact hint fields before any schema edit; Query.total and choice-name schema changes may already have landed and must remain compatible.
 - **Schema compatibility.** Any adopted hint field regenerates the IR bindings and the linked API jar. Extend the historical descriptor/wire coverage to account for every current field while preserving historical readability; do not update a stored historical descriptor as a substitute for compatibility evidence.
 
 ## Acceptance Criteria
@@ -93,7 +96,7 @@ onPath(control(Control.pause))(
 
 The owner raised this on 2026-10-01: some actions are eventually consistent, the tests that are generated have to account for it, and other hints of the same kind would help process actions correctly and efficiently.
 
-**Metadata on the API, not on the realization.** That a pause is visible to a describe only eventually is true for every Model that pauses and describes. Declared on the API pair it is written once. Declared per realization it is rediscovered each time, which is today's state.
+**Metadata on the API, not on the realization.** How soon a pause is visible to a describe is true for every Model that pauses and describes. Declared on the API pair it is written once. Declared per realization it is rediscovered each time, which is today's state.
 
 **Through the IR.** Go builds every Case from the IR alone. A hint kept only in Scala would have to be turned into explicit commands by Scala helpers, which hides it from the lowering and from a failure message. The cost is an IR schema change.
 
@@ -101,8 +104,33 @@ The owner raised this on 2026-10-01: some actions are eventually consistent, the
 
 **Start with three hints.** A general annotation system invites hints nobody uses. The three adopted ones replace code that exists today, and the rest wait for a Case that needs them.
 
-## Parked unknowns
+**Plan amendment (2026-10-03, task breakdown).** The Order bullet gated the behavior phase only on fn-112 task 10, while MILESTONES places it after fn-114 ("after 4"), and fn-114 freezes Case bytes through its last task and rewrites the Nexus realization. Running both at once would break fn-114's freeze, so the Order bullet now also names fn-114's close. No requirement changed. Plan review then found that most of today's waits are for an asynchronous cause rather than visibility, that Pause->Describe is visible at once, and that the writes causing a read often live in another script with no method. Architecture now names causes as a hint kind bounded by the already-adopted wait-bound hint, the sketch shows the Pause relationship as at once, and the table rows say what each adopted hint governs. R1-R8 are unchanged; the claims they rest on are corrected. The three former Parked unknowns are scheduled work for task .1, which records each answer under Architecture or API Contracts:
+- whether a visibility relationship is declared between two methods, or between a write and the field a read returns;
+- whether wait bounds belong with the hint, scaled by a Profile, or with the Profile;
+- whether the Testpilot IR needs a new field for the hint's position, or the Case's provenance can carry it.
 
-- Whether a visibility relationship is declared between two methods, or between a write and the field a read returns. The inventory shows which the existing waits need.
-- Whether wait bounds belong with the hint or with the Profile of the environment a Case runs in. The proposal is a declared bound that a Profile may scale.
-- Whether the Testpilot IR needs a new field to carry the hint's position for the failure message, or the Case's provenance already can.
+## Quick commands
+
+```bash
+make umpire-check-model
+go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/...
+make umpire-check-live-tests
+```
+
+## Early proof point
+
+Task fn-118-declare-how-temporal-apis-behave-once.1 validates the core approach (every existing wait and write->read pair rests on a stateable API fact that a small set of hints can carry). If it fails, re-evaluate whether the hints belong on the API or whether some waits must stay explicit in realizations before continuing with .2+.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | A committed inventory lists every wait, poll, retry, interval and timeout in the realizations, in the lowering and in the Testpilot Temporal Driver, with the fact about the API each one rests on, and proposes the hint that would carry it. Errors: a wait whose reason nobody can state is listed as unexplained, and the owner decides whether it stays. | fn-118-declare-how-temporal-apis-behave-once.1 | — |
+| R2 | The hints marked "adopt" are declarable once on a typed API in the shared kit, lift into the IR, and are validated by the Go reader. Errors: a hint that names a method or message the descriptors do not have, a relationship between a write and a read with no bound where one is required, and a bound of zero or less are each rejected at their Scala line. | fn-118-declare-how-temporal-apis-behave-once.2 | — |
+| R3 | The lowering derives waiting from the hints. A read after an eventually visible write lowers to a bounded wait for the condition; a read after a write visible at once lowers to one read. Errors: a path that reads after a write with no declared visibility is refused with both methods named, so a missing hint is found at lowering and never as a flaky test. | fn-118-declare-how-temporal-apis-behave-once.4 | — |
+| R4 | No realization contains a literal interval or timeout, and none writes an explicit poll for a condition a hint covers. Errors: a wait no hint covers is listed with its reason and keeps its explicit form. | fn-118-declare-how-temporal-apis-behave-once.5 | — |
+| R5 | The Go framework that runs a lowered Case waits by condition within the declared bound and holds no default of its own for a wait a hint covers. Errors: a wait that runs out fails with the condition, the bound and the hint's Scala position named; a Profile that scales bounds states the factor in the Run. | fn-118-declare-how-temporal-apis-behave-once.3 | — |
+| R6 | Every Contract of an existing lowered Case is unchanged, proven by the baseline goldens (`tools/umpire/model/testdata/migration`, `tools/umpire/lower/testdata/migration`) with the Program differences listed. Errors: a changed Contract stops the task. | fn-118-declare-how-temporal-apis-behave-once.5 | — |
+| R7 | Each adopted hint has a test that fails when the hint is removed: the affected Case is refused at lowering (R3). Each has a comment citing what it rests on in the server (no error surface beyond the test). | fn-118-declare-how-temporal-apis-behave-once.2, fn-118-declare-how-temporal-apis-behave-once.4 | — |
+| R8 | The done summary states, for the existing Cases, the number of polls and the total declared wait budget before and after, and lists the candidate hints that were not adopted with the Case that would have needed each (no error surface). | fn-118-declare-how-temporal-apis-behave-once.5 | — |
+
