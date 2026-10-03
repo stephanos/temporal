@@ -221,6 +221,15 @@ type Realization struct {
 	CorrelatedObservation string
 	Sources               []*EvidenceSource
 	ProjectionLimits      ProjectionLimits
+	// Target is the Behavior Fingerprint of a table, when the caller holds it already.
+	Target Fingerprinted
+}
+
+// Fingerprinted is a table with its Behavior Fingerprint. A caller that lowers many Queries of one
+// bound table computes it once; a production of a Query on any other table computes its own.
+type Fingerprinted struct {
+	Table       *umpiremodel.Table
+	Fingerprint string
 }
 
 // Source is where a Model is declared, as Case provenance names it.
@@ -254,6 +263,21 @@ type production struct {
 	initial  umpiremodel.Atom
 	opening  umpiremodel.Atom
 	schedule []string // the pinned schedule's action ids, in trace order
+	// fingerprint is the table's Behavior Fingerprint, once it has been read.
+	fingerprint string
+}
+
+// targetFingerprint is the table's Behavior Fingerprint: the caller's, when it is of this table, and
+// otherwise computed once for the production, which names it three times.
+func (p *production) targetFingerprint() string {
+	switch {
+	case p.fingerprint != "":
+	case p.r.Target.Table == p.t && p.r.Target.Fingerprint != "":
+		p.fingerprint = p.r.Target.Fingerprint
+	default:
+		p.fingerprint = p.t.TargetFingerprint()
+	}
+	return p.fingerprint
 }
 
 func newProduction(q *umpiremodel.Query, identity Identity, r *Realization, source Source) (*production, error) {
@@ -387,12 +411,12 @@ func (p *production) produce() (*testpilotspb.Case, error) {
 	propertyFingerprint, plan, contract, program := d.propertyFingerprint, d.plan, d.contract, d.program
 	scenarioSemantic := p.q.Scenario.ScenarioSemantic(p.t)
 	propertySemantic := p.t.PropertySemantic(propertyID, groups)
-	queryFingerprint := umpiremodel.Fingerprint(p.q.QueryCanonical(p.t, umpiremodel.Fingerprint(propertySemantic)))
+	queryFingerprint := umpiremodel.Fingerprint(p.q.QueryCanonicalOf(p.t, umpiremodel.Fingerprint(propertySemantic), p.targetFingerprint()))
 	provenance := &testpilotspb.CaseProvenance{
 		ProducerId:      p.r.ProducerID,
 		ProducerVersion: p.r.ProducerVersion,
 		Definitions: []*testpilotspb.DefinitionBinding{
-			{DefinitionId: p.t.IDs().Target, BehaviorFingerprint: p.t.TargetFingerprint(), Kind: testpilotspb.DEFINITION_KIND_TARGET},
+			{DefinitionId: p.t.IDs().Target, BehaviorFingerprint: p.targetFingerprint(), Kind: testpilotspb.DEFINITION_KIND_TARGET},
 			{DefinitionId: p.q.Scenario.ScenarioID(p.t), BehaviorFingerprint: umpiremodel.Fingerprint(scenarioSemantic),
 				Kind: testpilotspb.DEFINITION_KIND_SCENARIO},
 			{DefinitionId: string(p.t.Family) + ".query." + p.q.Name, BehaviorFingerprint: queryFingerprint,

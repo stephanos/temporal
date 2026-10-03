@@ -759,6 +759,7 @@ func (p *Producer) check(a *asked, identity Identity) (*lowering, []error) {
 	l := &lowering{a: a, mm: mm, query: query, keys: query.Scenario.Actions, adapter: newAdapter(a.r, table, p.realizer.ClassKey, identity.Fixture)}
 	var problems []error
 	l.realization, problems = l.adapter.realization()
+	l.realization.Target = cp.Fingerprinted{Table: table, Fingerprint: p.realizer.TargetFingerprint(table)}
 	sound := len(problems) == 0
 	if err := l.performed(); err != nil {
 		problems = append(problems, err)

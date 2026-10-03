@@ -285,7 +285,11 @@ func (b *binding) spelled(v Value) string {
 // pairs. That table also carries each state's fields and the machine's Abstraction Claims. It gives
 // only what the Model declares, by the key Check gives a Query's receipt, so nothing it binds is
 // without one.
-type Realizer struct{ b *binding }
+type Realizer struct {
+	b *binding
+	// prints holds each table's Behavior Fingerprint, as a checker's do.
+	prints map[*Table]string
+}
 
 // NewRealizer admits a Model and binds it within a scope. A Model Validate rejects is not bound.
 func NewRealizer(m *umpirespb.Model, scope Scope) (*Realizer, error) {
@@ -294,7 +298,16 @@ func NewRealizer(m *umpirespb.Model, scope Scope) (*Realizer, error) {
 	}
 	b := bind(m, scope)
 	b.realizing = true
-	return &Realizer{b}, nil
+	return &Realizer{b: b, prints: map[*Table]string{}}, nil
+}
+
+// TargetFingerprint is the Behavior Fingerprint of a table the Realizer binds, computed once for each:
+// a bound table is not changed after it is bound, and every Case lowered from it names its fingerprint.
+func (r *Realizer) TargetFingerprint(t *Table) string {
+	if _, ok := r.prints[t]; !ok {
+		r.prints[t] = t.TargetFingerprint()
+	}
+	return r.prints[t]
 }
 
 // Declared is one Query of the bound Model with the Property and the Scenario it names.

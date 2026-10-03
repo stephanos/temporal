@@ -189,7 +189,7 @@ func (p *production) projectionCanonical(sorted []resolvedRule, sources []string
 		strconv.FormatInt(l.Keys, 10), strconv.FormatInt(l.Support, 10),
 		strconv.FormatInt(l.Work, 10), strconv.FormatInt(l.EventSize, 10)}
 	return jsonArray([]string{quote("checked-projection/v2"), quote(p.r.ProjectionID),
-		quote(p.t.TargetFingerprint()), quote(p.t.SetupKey()), quote(p.initial.Value),
+		quote(p.targetFingerprint()), quote(p.t.SetupKey()), quote(p.initial.Value),
 		jsonArray([]string{quote(p.r.ScopeField)}), quote(p.r.OperationKey),
 		jsonArray(quotedAll(sources)), jsonArray(ruleJSON), jsonArray(limits)})
 }

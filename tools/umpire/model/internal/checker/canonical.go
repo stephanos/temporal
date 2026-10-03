@@ -306,6 +306,12 @@ func (t *Table) propertyHeader(propertyID string) string {
 // QueryCanonical is the Query's canonical form (`Umpire.Query.Check`), which its fingerprint hashes
 // whole.
 func (q *Query) QueryCanonical(t *Table, propertyFingerprint string) string {
+	return q.QueryCanonicalOf(t, propertyFingerprint, t.TargetFingerprint())
+}
+
+// QueryCanonicalOf is QueryCanonical for a caller that holds the table's Behavior Fingerprint
+// already: computing it is most of the work.
+func (q *Query) QueryCanonicalOf(t *Table, propertyFingerprint, targetFingerprint string) string {
 	form := "find"
 	if q.Form == VerifyForm {
 		form = "verify"
@@ -329,7 +335,7 @@ func (q *Query) QueryCanonical(t *Table, propertyFingerprint string) string {
 		`,"limits":{"steps":` + limit(q.Limits.Steps, "steps") + `,"actions":` + limit(q.Limits.Actions, "actions") +
 		`,"search":` + limit(q.Limits.Search, "search") + `}` +
 		`,"policy":{"strategy":"shortest","seed":17}` +
-		`,"target":{"id":` + Quote(t.Family.Target(t.owner())) + `,"behaviorFingerprint":` + Quote(t.TargetFingerprint()) +
+		`,"target":{"id":` + Quote(t.Family.Target(t.owner())) + `,"behaviorFingerprint":` + Quote(targetFingerprint) +
 		`,"composition":[` + Quote(t.capabilityID()) + `,` + Quote(t.providerID()) + `],"kernel":{"id":` +
 		Quote(t.kernelID()) + `}}` +
 		`,"finiteCompleteness":{"roleDomainFingerprint":` + Quote(roleFP) + `,"actionDomainFingerprint":` +

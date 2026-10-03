@@ -6,6 +6,7 @@ package model
 
 import (
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -706,6 +707,32 @@ func TestTheRealizersTableIsTheCheckTableWithFieldsAndClaims(t *testing.T) {
 		table.FieldValues("succeeded-1-unset-unset-unset"))
 	require.Contains(t, table.Claims(), Claim{Member: "temporal.nexus.caller.action.nexusProtocol.handlerReply-handlerError-false",
 		Action: "temporal.nexus.caller.action.handlerReply", Field: "reply", ClassName: "handlerError (retryable := false)", Example: "BadRequest"})
+}
+
+// A Realizer reads the Behavior Fingerprint of each table it binds once, and it is the table's own.
+// A changed copy of a bound table is another table to it, fingerprinted afresh, and the bound
+// table keeps its own.
+func TestARealizerFingerprintsEachBoundTableOnce(t *testing.T) {
+	realizer, err := NewRealizer(load(t), DefaultScope)
+	require.NoError(t, err)
+	tables := 0
+	for name := range realizer.b.machines {
+		table := realizer.b.subject(name).table
+		if table == nil {
+			continue
+		}
+		tables++
+		want := table.TargetFingerprint()
+		require.Equal(t, want, realizer.TargetFingerprint(table), name)
+		require.Equal(t, want, realizer.TargetFingerprint(table), name)
+		changed := *table
+		changed.Facts = append(slices.Clone(table.Facts), "unbound")
+		require.NotEqual(t, want, changed.TargetFingerprint(), name)
+		require.Equal(t, changed.TargetFingerprint(), realizer.TargetFingerprint(&changed), name)
+		require.Equal(t, want, realizer.TargetFingerprint(table), name)
+	}
+	require.Positive(t, tables)
+	require.Len(t, realizer.prints, 2*tables, "one fingerprint for each bound table and each changed copy")
 }
 
 // A Realizer binds only a Model admission lets through, and gives only the Queries that Model
