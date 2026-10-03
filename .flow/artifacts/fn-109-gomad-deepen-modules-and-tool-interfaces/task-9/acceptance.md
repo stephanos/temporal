@@ -1,0 +1,5 @@
+- [x] Target compilation, Go identity queries and listing run through one private Go-command adapter built on `hostexec`; `target` no longer calls `exec.Command` directly for them.
+- [x] Structured-output overflow is rejected and never decoded; compiler diagnostics are bounded head/tail with full hashes.
+- [x] Tests through the adapter cover cancellation and process termination, long diagnostics, structured overflow, malformed listing, build failure and build-cache lock release on every path.
+- [x] Timeout, unsupported capability, invalid-input diagnostics and cleanup failure remain distinct errors with their existing wrapping and precedence.
+- [x] Fresh and cached preparation produce the same `Prepared` value and provenance as before for a fixed fixture.

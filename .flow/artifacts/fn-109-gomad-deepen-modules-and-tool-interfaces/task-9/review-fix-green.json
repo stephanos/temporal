@@ -1,0 +1,17 @@
+{
+  "argv": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./target",
+    "-run",
+    "TestPrepareExecRequiresMatchingProvenance/relative_toolchain_root",
+    "-v"
+  ],
+  "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+  "exit": 0,
+  "duration_seconds": 3.4901738750049844,
+  "log": "review-fix-green.log"
+}

@@ -1,0 +1,6 @@
+=== RUN   TestPrepareExecRequiresMatchingProvenance
+=== RUN   TestPrepareExecRequiresMatchingProvenance/relative_toolchain_root
+--- PASS: TestPrepareExecRequiresMatchingProvenance (1.89s)
+    --- PASS: TestPrepareExecRequiresMatchingProvenance/relative_toolchain_root (0.21s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/target	2.262s

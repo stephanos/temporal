@@ -1,0 +1,18 @@
+{
+  "argv": [
+    ".toolchain/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "./target",
+    "-run",
+    "TestPrepareExecRequiresMatchingProvenance/relative_toolchain_root",
+    "-v"
+  ],
+  "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+  "exit": 1,
+  "duration_seconds": 4.548163792002015,
+  "log": "review-fix-red.log",
+  "source": "round1 production plus added regression"
+}

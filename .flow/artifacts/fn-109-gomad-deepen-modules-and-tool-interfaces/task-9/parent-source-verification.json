@@ -1,101 +1,136 @@
 {
-  "timestamp": "2026-10-03T15:05:26.923171+00:00",
+  "timestamp": "2026-10-03T15:18:39.288131+00:00",
   "source_mismatches": [],
   "preimage_mismatches": [],
   "removed_original_comments": {},
   "prepared_projection_equal": true,
-  "installed_cli_sha256": "ee1dedd767dcc4f63fc860e782bbc2027e9b0e77de08d9fd0768e797c147c06b",
-  "task_patch_sha256": "f5a8a4f7a0a26221168da58eba6a09063bb5ba0cd19b0d5fe80b3c5bf2e31c83",
-  "gates": {
-    "adapter-red.json": {
-      "exit": 1,
-      "duration_seconds": 0.3910387080104556,
-      "log": "adapter-red.log"
-    },
-    "baseline-live-capability.json": {
+  "binary_sha256": "c2ce3e6c9e479739b0087d130cd2b9b1a7a31e9d0c96822e9975078e577dd1fe",
+  "patch_sha256": "dca354b3804bf11a5d6bc2da48afcdeaf5a7f5aa8c94f2c6a89ae6d8592bad17",
+  "log_bindings": {
+    "review-fix-cli-build.json": {
       "exit": 0,
-      "duration_seconds": 14.383449665998342,
-      "log": "baseline-live-capability.log"
+      "bytes": 1516,
+      "sha256": "308d007f356c883e45f7e9bf00bd8e299c45180d5a647af1b8543dfd02552a02"
     },
-    "baseline-overlap.json": {
+    "review-fix-cli-smoke.json": {
       "exit": 0,
-      "duration_seconds": 159.2874312079948,
-      "log": "baseline-overlap.log"
-    },
-    "baseline-preparation.json": {
-      "exit": 0,
-      "duration_seconds": 14.375474250002299,
-      "log": "baseline-preparation.log"
-    },
-    "baseline-target.json": {
-      "exit": 0,
-      "duration_seconds": 23.553540208013146,
-      "log": "baseline-target.log"
-    },
-    "cli-build.json": {
-      "exit": 0,
-      "duration_seconds": 5.0763593330048025,
-      "log": "cli-build.log"
-    },
-    "cli-smoke.json": {
-      "exit": 0,
-      "duration_seconds": 0.8619126669946127,
-      "log": "cli-smoke.log"
+      "bytes": 5730,
+      "sha256": "115783c7f0012c63735492d81be3666724c09c1584c4da85a055a0a0ce2bad03"
     },
     "final-architecture.json": {
       "exit": 0,
-      "duration_seconds": 1.2288009579933714,
-      "log": "final-architecture.log"
-    },
-    "final-full-host.json": {
-      "exit": 0,
-      "duration_seconds": 238.54255179200845,
-      "log": "final-full-host.log"
-    },
-    "final-lint.json": {
-      "exit": 0,
-      "duration_seconds": 1.8747192919981899,
-      "log": "final-lint.log"
-    },
-    "final-live-capability.json": {
-      "exit": 0,
-      "duration_seconds": 20.17303466699377,
-      "log": "final-live-capability.log"
-    },
-    "final-preparation.json": {
-      "exit": 0,
-      "duration_seconds": 15.100797999999486,
-      "log": "final-preparation.log"
-    },
-    "final-target.json": {
-      "exit": 0,
-      "duration_seconds": 38.25929154100595,
-      "log": "final-target.log"
+      "bytes": 47,
+      "sha256": "9d3dc134ac2a072e4a008343adf4abc2554b8297856aa559c3279502f4b8998b"
     },
     "final-vet.json": {
       "exit": 0,
-      "duration_seconds": 0.22937787500268314,
-      "log": "final-vet.log"
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     },
-    "new-prepared-receipt.json": {
+    "baseline-preparation.json": {
       "exit": 0,
-      "duration_seconds": 0.6766677080013324,
-      "log": null
+      "bytes": 55,
+      "sha256": "a9c47f26cea31b8deadfe44f390da94a3afe31562ca48e3378d702828e82e4fa"
     },
-    "old-prepared-receipt.json": {
+    "baseline-live-capability.json": {
       "exit": 0,
-      "duration_seconds": 1.6358015419973526,
-      "log": null
+      "bytes": 1655,
+      "sha256": "5dbc8feb6714fabc1fd800bc1609d246a90fc37e94655d997a9e8bc327c62409"
+    },
+    "adapter-red.json": {
+      "exit": 1,
+      "bytes": 699,
+      "sha256": "aebdf2acf10152ae1ea711db502276e1f723bab3710c4fb4547d16e7c3a40ed9"
+    },
+    "final-live-capability.json": {
+      "exit": 0,
+      "bytes": 1655,
+      "sha256": "5dbc8feb6714fabc1fd800bc1609d246a90fc37e94655d997a9e8bc327c62409"
+    },
+    "cli-smoke.json": {
+      "exit": 0,
+      "bytes": 5730,
+      "sha256": "b7f300b9dbd8e53c97e2c97d6cef8c07350264d4dfbb9e561d8c821a48813722"
+    },
+    "cli-build.json": {
+      "exit": 0,
+      "bytes": 1516,
+      "sha256": "308d007f356c883e45f7e9bf00bd8e299c45180d5a647af1b8543dfd02552a02"
+    },
+    "review-fix-vet.json": {
+      "exit": 0,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "baseline-overlap.json": {
+      "exit": 0,
+      "bytes": 752,
+      "sha256": "262961773e17ad9ff378b302a2fa07d00a9acca2640cf781efbf41f7c0951e39"
+    },
+    "final-target.json": {
+      "exit": 0,
+      "bytes": 487,
+      "sha256": "b7dab892998ff9cd2c054a55445194cc47a958255b33ebaf7679980c7c1d32d6"
+    },
+    "review-fix-lint.json": {
+      "exit": 0,
+      "bytes": 10,
+      "sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
+    },
+    "review-fix-red.json": {
+      "exit": 1,
+      "bytes": 490,
+      "sha256": "f90c9316ac6098bd84346e6fcb5619fcf6e908eef83e44bf4d98bc3d019cbc8d"
+    },
+    "baseline-target.json": {
+      "exit": 0,
+      "bytes": 414,
+      "sha256": "e6d9a80a024d5f41641f3f599f7f77dc2f2ff0bf4ee7cde56695098249f005b0"
+    },
+    "final-full-host.json": {
+      "exit": 0,
+      "bytes": 4631,
+      "sha256": "650ad201a852661524697d435ccb4e154e78c67a9448fe0de01c3440527c07f6"
+    },
+    "review-fix-green.json": {
+      "exit": 0,
+      "bytes": 335,
+      "sha256": "1cdcc0ad6aa15b1b3f73716f57bef5f6c965c76d3e4969ac5479850854bdbc86"
+    },
+    "review-fix-architecture.json": {
+      "exit": 0,
+      "bytes": 47,
+      "sha256": "a89485abbab8dcc54f503f3966a23faafce4f50596883904f8d77edc5d1b25fc"
+    },
+    "final-lint.json": {
+      "exit": 0,
+      "bytes": 10,
+      "sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
+    },
+    "final-preparation.json": {
+      "exit": 0,
+      "bytes": 55,
+      "sha256": "9f080621b3df00234e87651b914bd248c1dabef96451979b4f3aa64f698db051"
+    },
+    "review-fix-target.json": {
+      "exit": 0,
+      "bytes": 55,
+      "sha256": "a68f269ba783fa9455228d276aed16c5a810256992c68b0eddd01c7459a83c71"
     }
   },
-  "reverse_task_patch_check": {
+  "reverse_patch": {
     "exit": 0,
-    "stdout": "",
-    "stderr": ""
+    "output": ""
   },
-  "git_diff_check": {
+  "diff_check": {
+    "exit": 2,
+    "output": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/task-only-module.patch:444: space before tab in indent.\n+ \t} else if info.Mode().Perm() != 0o400 {\n.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/task-only-module.patch:445: space before tab in indent.\n+ \t\tt.Fatalf(\"prepared provenance mode = %#o, want 0400\", info.Mode().Perm())\n.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/task-only-module.patch:446: space before tab in indent.\n+ \t}\n.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/task-only-module.patch:462: trailing whitespace.\n+ \n.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/task-only-module.patch:463: space before tab in indent.\n+ \tforgedClosure := closure\n.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/task-only-module.patch:464: space before tab in indent.\n+ \tforgedClosure.Packages = append([]CapabilityPackage(nil), closure.Packages...)\n.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/task-only.patch:444: space before tab in indent.\n+ \t} else if info.Mode().Perm() != 0o400 {\n.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/task-only.patch:445: space before tab in indent.\n+ \t\tt.Fatalf(\"prepared provenance mode = %#o, want 0400\", info.Mode().Perm())\n.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/task-only.patch:446: space before tab in indent.\n+ \t}\n.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/task-only.patch:462: trailing whitespace.\n+ \n.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/task-only.patch:463: space before tab in indent.\n+ \tforgedClosure := closure\n.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/task-only.patch:464: space before tab in indent.\n+ \tforgedClosure.Packages = append([]CapabilityPackage(nil), closure.Packages...)\n"
+  },
+  "diff_check_excluding_patch_payloads": {
     "exit": 0,
-    "stdout": "",
-    "stderr": ""
-  }
+    "output": "",
+    "reason": "Tracked unified patch context lines carry required space prefixes followed by original tabs/blank context; source and document whitespace checked separately."
+  },
+  "head_after_external_wip_commit": "a3b9f80efab9356c0be2080779133337e2471ac0",
+  "no_agent_commit": true
 }

@@ -1,0 +1,8 @@
+=== RUN   TestPrepareExecRequiresMatchingProvenance
+=== RUN   TestPrepareExecRequiresMatchingProvenance/relative_toolchain_root
+    target_test.go:610: inspect pinned standard packages: start command ".toolchain/bin/go": fork/exec .toolchain/bin/go: no such file or directory: 
+--- FAIL: TestPrepareExecRequiresMatchingProvenance (2.03s)
+    --- FAIL: TestPrepareExecRequiresMatchingProvenance/relative_toolchain_root (0.03s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/target	2.464s
+FAIL

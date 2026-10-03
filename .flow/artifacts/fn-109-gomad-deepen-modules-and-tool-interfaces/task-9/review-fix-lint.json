@@ -1,0 +1,20 @@
+{
+  "argv": [
+    "../../.bin/golangci-lint-v2.13.0",
+    "run",
+    "--config",
+    "../../.github/.golangci.yml",
+    "--build-tags",
+    "test_dep",
+    "--timeout",
+    "10m",
+    "--new-from-patch=../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/task-only-module.patch",
+    ".",
+    "./target/...",
+    "./internal/hostexec/..."
+  ],
+  "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+  "exit": 0,
+  "duration_seconds": 2.7342465830006404,
+  "log": "review-fix-lint.log"
+}

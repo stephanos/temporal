@@ -600,21 +600,6 @@ func TestPrepareExecRequiresMatchingProvenance(t *testing.T) {
 	} else if info.Mode().Perm() != 0o400 {
 		t.Fatalf("prepared provenance mode = %#o, want 0400", info.Mode().Perm())
 	}
-	t.Run("relative toolchain root", func(t *testing.T) {
-		t.Chdir("..")
-		relative, err := Prepare(context.Background(), Spec{
-			Kind: KindExec, Source: binary, Provenance: provenance, Args: []string{"value"},
-			PreparationRoot: t.TempDir(), ToolchainRoot: ".toolchain",
-		})
-		if err != nil {
-			t.Fatal(err)
-		}
-		absolute := prepared
-		absolute.Path, relative.Path = "", ""
-		if !reflect.DeepEqual(relative, absolute) {
-			t.Fatalf("relative-root Prepare() = %#v, want %#v", relative, absolute)
-		}
-	})
 
 	forgedClosure := closure
 	forgedClosure.Packages = append([]CapabilityPackage(nil), closure.Packages...)

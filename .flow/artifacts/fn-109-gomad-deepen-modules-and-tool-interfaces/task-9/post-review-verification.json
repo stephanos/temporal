@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-10-03T15:22:57.787212+00:00",
+  "source_mismatches": [],
+  "binary_sha256": "c2ce3e6c9e479739b0087d130cd2b9b1a7a31e9d0c96822e9975078e577dd1fe",
+  "review_verdict": "SHIP",
+  "review_timestamp": "2026-10-03T15:21:25.887103Z",
+  "old_final_projection_equal": true
+}

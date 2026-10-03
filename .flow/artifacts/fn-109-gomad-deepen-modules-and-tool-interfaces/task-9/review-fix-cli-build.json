@@ -1,0 +1,10 @@
+{
+  "argv": [
+    "make",
+    "runner"
+  ],
+  "cwd": "/Users/stephan/Workspace/temporal/gomad/tools/gomad3",
+  "exit": 0,
+  "duration_seconds": 7.853439208993223,
+  "log": "review-fix-cli-build.log"
+}

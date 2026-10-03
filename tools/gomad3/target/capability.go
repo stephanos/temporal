@@ -876,6 +876,10 @@ func forbiddenImport(importPath string) bool {
 }
 
 func validateExecStandardPackages(ctx context.Context, goCommand string, closure CapabilityClosure) error {
+	goCommand, err := filepath.Abs(goCommand)
+	if err != nil {
+		return fmt.Errorf("inspect pinned standard packages: %w", err)
+	}
 	result, err := gocommand.Default().Structured(ctx, gocommand.Request{
 		Command: []string{goCommand, "list", "std"}, Dir: filepath.Dir(filepath.Dir(goCommand)),
 		Env: targetbuild.Environment(), OutputLimit: maximumStandardPackagesBytes,

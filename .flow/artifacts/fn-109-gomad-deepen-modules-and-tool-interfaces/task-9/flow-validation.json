@@ -1,0 +1,10 @@
+{
+  "success": true,
+  "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "valid": true,
+  "errors": [],
+  "warnings": [
+    "Task fn-109-gomad-deepen-modules-and-tool-interfaces.1: evidence commit 97bdba0fd is not reachable from HEAD (orphaned by a history rewrite; recorded value left as-is)"
+  ],
+  "task_count": 22
+}

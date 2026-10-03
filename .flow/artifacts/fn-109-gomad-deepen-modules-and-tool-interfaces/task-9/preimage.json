@@ -14,5 +14,9 @@
   "tools/gomad3/target/internal/capabilityreview/list_test.go": {
     "sha256": "1a29a95006f29c6666e860a549f8933fe618ff2fbc4ab2b82e72c1ed97f9dee7",
     "bytes": 671
+  },
+  "tools/gomad3/target/target_test.go": {
+    "sha256": "16aef365cbc3d5f4456a1ce39113b732a6faceed662e544e633850125538853a",
+    "bytes": 32760
   }
 }

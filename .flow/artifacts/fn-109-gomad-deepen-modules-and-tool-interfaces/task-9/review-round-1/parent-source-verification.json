@@ -1,0 +1,193 @@
+{
+  "timestamp": "2026-10-03T15:07:11.872171+00:00",
+  "source_mismatches": [],
+  "preimage_mismatches": [],
+  "removed_original_comments": {},
+  "prepared_projection_equal": true,
+  "installed_cli_sha256": "ee1dedd767dcc4f63fc860e782bbc2027e9b0e77de08d9fd0768e797c147c06b",
+  "task_patch_sha256": "f5a8a4f7a0a26221168da58eba6a09063bb5ba0cd19b0d5fe80b3c5bf2e31c83",
+  "gates": {
+    "adapter-red.json": {
+      "exit": 1,
+      "duration_seconds": 0.3910387080104556,
+      "log": "adapter-red.log"
+    },
+    "baseline-live-capability.json": {
+      "exit": 0,
+      "duration_seconds": 14.383449665998342,
+      "log": "baseline-live-capability.log"
+    },
+    "baseline-overlap.json": {
+      "exit": 0,
+      "duration_seconds": 159.2874312079948,
+      "log": "baseline-overlap.log"
+    },
+    "baseline-preparation.json": {
+      "exit": 0,
+      "duration_seconds": 14.375474250002299,
+      "log": "baseline-preparation.log"
+    },
+    "baseline-target.json": {
+      "exit": 0,
+      "duration_seconds": 23.553540208013146,
+      "log": "baseline-target.log"
+    },
+    "cli-build.json": {
+      "exit": 0,
+      "duration_seconds": 5.0763593330048025,
+      "log": "cli-build.log"
+    },
+    "cli-smoke.json": {
+      "exit": 0,
+      "duration_seconds": 0.8619126669946127,
+      "log": "cli-smoke.log"
+    },
+    "final-architecture.json": {
+      "exit": 0,
+      "duration_seconds": 1.2288009579933714,
+      "log": "final-architecture.log"
+    },
+    "final-full-host.json": {
+      "exit": 0,
+      "duration_seconds": 238.54255179200845,
+      "log": "final-full-host.log"
+    },
+    "final-lint.json": {
+      "exit": 0,
+      "duration_seconds": 1.8747192919981899,
+      "log": "final-lint.log"
+    },
+    "final-live-capability.json": {
+      "exit": 0,
+      "duration_seconds": 20.17303466699377,
+      "log": "final-live-capability.log"
+    },
+    "final-preparation.json": {
+      "exit": 0,
+      "duration_seconds": 15.100797999999486,
+      "log": "final-preparation.log"
+    },
+    "final-target.json": {
+      "exit": 0,
+      "duration_seconds": 38.25929154100595,
+      "log": "final-target.log"
+    },
+    "final-vet.json": {
+      "exit": 0,
+      "duration_seconds": 0.22937787500268314,
+      "log": "final-vet.log"
+    },
+    "new-prepared-receipt.json": {
+      "exit": 0,
+      "duration_seconds": 0.6766677080013324,
+      "log": null
+    },
+    "old-prepared-receipt.json": {
+      "exit": 0,
+      "duration_seconds": 1.6358015419973526,
+      "log": null
+    }
+  },
+  "reverse_task_patch_check": {
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "git_diff_check": {
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "log_bindings": {
+    "final-architecture.json": {
+      "log": "final-architecture.log",
+      "bytes": 47,
+      "sha256": "9d3dc134ac2a072e4a008343adf4abc2554b8297856aa559c3279502f4b8998b",
+      "exit": 0
+    },
+    "final-vet.json": {
+      "log": "final-vet.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit": 0
+    },
+    "baseline-preparation.json": {
+      "log": "baseline-preparation.log",
+      "bytes": 55,
+      "sha256": "a9c47f26cea31b8deadfe44f390da94a3afe31562ca48e3378d702828e82e4fa",
+      "exit": 0
+    },
+    "baseline-live-capability.json": {
+      "log": "baseline-live-capability.log",
+      "bytes": 1655,
+      "sha256": "5dbc8feb6714fabc1fd800bc1609d246a90fc37e94655d997a9e8bc327c62409",
+      "exit": 0
+    },
+    "adapter-red.json": {
+      "log": "adapter-red.log",
+      "bytes": 699,
+      "sha256": "aebdf2acf10152ae1ea711db502276e1f723bab3710c4fb4547d16e7c3a40ed9",
+      "exit": 1
+    },
+    "final-live-capability.json": {
+      "log": "final-live-capability.log",
+      "bytes": 1655,
+      "sha256": "5dbc8feb6714fabc1fd800bc1609d246a90fc37e94655d997a9e8bc327c62409",
+      "exit": 0
+    },
+    "cli-smoke.json": {
+      "log": "cli-smoke.log",
+      "bytes": 5730,
+      "sha256": "b7f300b9dbd8e53c97e2c97d6cef8c07350264d4dfbb9e561d8c821a48813722",
+      "exit": 0
+    },
+    "cli-build.json": {
+      "log": "cli-build.log",
+      "bytes": 1516,
+      "sha256": "308d007f356c883e45f7e9bf00bd8e299c45180d5a647af1b8543dfd02552a02",
+      "exit": 0
+    },
+    "baseline-overlap.json": {
+      "log": "baseline-overlap.log",
+      "bytes": 752,
+      "sha256": "262961773e17ad9ff378b302a2fa07d00a9acca2640cf781efbf41f7c0951e39",
+      "exit": 0
+    },
+    "final-target.json": {
+      "log": "final-target.log",
+      "bytes": 487,
+      "sha256": "b7dab892998ff9cd2c054a55445194cc47a958255b33ebaf7679980c7c1d32d6",
+      "exit": 0
+    },
+    "baseline-target.json": {
+      "log": "baseline-target.log",
+      "bytes": 414,
+      "sha256": "e6d9a80a024d5f41641f3f599f7f77dc2f2ff0bf4ee7cde56695098249f005b0",
+      "exit": 0
+    },
+    "final-full-host.json": {
+      "log": "final-full-host.log",
+      "bytes": 4631,
+      "sha256": "650ad201a852661524697d435ccb4e154e78c67a9448fe0de01c3440527c07f6",
+      "exit": 0
+    },
+    "final-lint.json": {
+      "log": "final-lint.log",
+      "bytes": 10,
+      "sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+      "exit": 0
+    },
+    "final-preparation.json": {
+      "log": "final-preparation.log",
+      "bytes": 55,
+      "sha256": "9f080621b3df00234e87651b914bd248c1dabef96451979b4f3aa64f698db051",
+      "exit": 0
+    }
+  },
+  "full_host": {
+    "exit": 0,
+    "duration_seconds": 238.54255179200845,
+    "ok_packages": 47,
+    "fail_lines": []
+  }
+}

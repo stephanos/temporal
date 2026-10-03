@@ -11,7 +11,7 @@
   "old_new_prepared_equal": true,
   "prepared_projection_sha256": "56047e5fc6978eb16f778020bd8a92aa4d2bb196790c8325cc0fb5866f2b6916",
   "toolchain_build_key": "2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457",
-  "cli_sha256": "c2ce3e6c9e479739b0087d130cd2b9b1a7a31e9d0c96822e9975078e577dd1fe",
+  "cli_sha256": "ee1dedd767dcc4f63fc860e782bbc2027e9b0e77de08d9fd0768e797c147c06b",
   "full_host_ok_packages": 47,
   "commands": {
     "baseline-target": {
@@ -91,55 +91,7 @@
       "exit": 0,
       "duration_seconds": 238.54255179200845,
       "log": "final-full-host.log"
-    },
-    "review-fix-red": {
-      "exit": 1,
-      "duration_seconds": 4.548163792002015,
-      "log": "review-fix-red.log"
-    },
-    "review-fix-green": {
-      "exit": 0,
-      "duration_seconds": 3.4901738750049844,
-      "log": "review-fix-green.log"
-    },
-    "review-fix-target": {
-      "exit": 0,
-      "duration_seconds": 22.74782075000985,
-      "log": "review-fix-target.log"
-    },
-    "review-fix-architecture": {
-      "exit": 0,
-      "duration_seconds": 1.493540416995529,
-      "log": "review-fix-architecture.log"
-    },
-    "review-fix-vet": {
-      "exit": 0,
-      "duration_seconds": 0.17093608299910557,
-      "log": "review-fix-vet.log"
-    },
-    "review-fix-lint": {
-      "exit": 0,
-      "duration_seconds": 2.7342465830006404,
-      "log": "review-fix-lint.log"
-    },
-    "review-fix-cli-build": {
-      "exit": 0,
-      "duration_seconds": 7.853439208993223,
-      "log": "review-fix-cli-build.log"
-    },
-    "review-fix-cli-smoke": {
-      "exit": 0,
-      "duration_seconds": 0.37380487500922754,
-      "log": "review-fix-cli-smoke.log"
-    },
-    "review-fix-prepared-receipt": {
-      "exit": 0,
-      "duration_seconds": 1.1086448330024723
     }
   },
-  "linux_native_gate": "not run on darwin/arm64; task21 remains incomplete",
-  "review_round_1": "review-round-1/working-tree-review.json",
-  "review_fix": "relative toolchain root in exec-target standard package validation",
-  "source_file_count": 8,
-  "full_host_scope": "238.54s full host gate passed on round-1 freeze; reviewed fix is limited to absolute resolution of go list std path and one exec-target regression, covered by focused target/architecture/vet/lint/CLI gates"
+  "linux_native_gate": "not run on darwin/arm64; task21 remains incomplete"
 }

@@ -1,0 +1,71 @@
+{
+  "type": "impl_review",
+  "id": "branch",
+  "mode": "codex",
+  "base": "HEAD",
+  "verdict": "NEEDS_WORK",
+  "session_id": "01a1024d-4b24-74a0-a780-fed3ead85b24",
+  "model": "gpt-6-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6-sol:high",
+  "timestamp": "2026-10-03T15:11:14.887100Z",
+  "review": "I\u2019ll review the frozen task9 patch against its recorded preimages, then check the task requirements and evidence. I\u2019ll keep the review read-only and limited to the specified files.\nThe patch routes the target command sites through the private adapter and keeps separate structured and diagnostic result types. I\u2019m tracing `hostexec` and the preparation call paths now, especially where failures or output limits could change existing behavior.\nI found one concrete regression in exec-target preparation: a relative toolchain root now becomes both the command path and its working directory, so the command resolves under the root twice. I\u2019m checking that against the preimage and keeping the final verdict tied to the frozen patch.\n## Findings\n\n- **Severity:** P2  \n  **Confidence:** 100  \n  **Classification:** introduced  \n  **File:Line:** `tools/gomad3/target/capability.go:880`  \n  **R-IDs:** `[R10]`  \n  **Problem:** For an exec target with a relative `ToolchainRoot` such as `.toolchain`, `goCommand` is `.toolchain/bin/go` and the new working directory is `.toolchain`. The command is then resolved under that directory, so valid exec-target preparation fails. The preimage ran the command from the caller\u2019s working directory.  \n  **Suggestion:** Make `goCommand` absolute before deriving its working directory.\n\n## Pre-existing issues (not blocking this verdict)\n\n- [P2, confidence 75, introduced=false] `tools/gomad3/target/capability.go:233` \u2014 Linked capability review calls `ReadToolchainIdentity` without its caller context. Cancellation during that identity query waits for the command\u2019s watchdog. Use the private context-aware identity helper at this call site.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R10 | partial | The frozen patch routes the specified commands through `gocommand`; overflow is rejected before structured decoding, diagnostic captures retain bounded output and full hashes, and the adapter tests cover cancellation, malformed data, build failure, and cache release. The recorded target, preparation, live capability, architecture, vet, scoped lint, CLI, and full host gates exited 0. Old and new fixed-fixture `Prepared` and provenance projections are byte identical. The relative-root regression remains. |\n\nUnaddressed R-IDs: []  \nClassification counts: 1 introduced, 1 pre_existing.\n\n```json\n{\"classification_counts\":{\"introduced\":1,\"pre_existing\":1},\"unaddressed\":[]}\n```\n\n<verdict>NEEDS_WORK</verdict>",
+  "focus": "Review ONLY the frozen task9 implementation satisfying fn-109-gomad-deepen-modules-and-tool-interfaces.9 R10. The actual patch is .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/task-only.patch and actual original four source files plus hashes are under preimage/ and preimage.json, not git HEAD (the checkout contains many previously reviewed task changes). Seven current frozen source hashes are in source-freeze.json. Read the task markdown and design-decision.md and verify all five acceptance checks against code and evidence. Scope target compilation, Go env identity/module cache, go mod download JSON, go list std/package JSON through one private hostexec adapter; structured output rejects overflow before decode, diagnostics retain bounded head/tail and full stream hashes, timeouts/cancellation/process group cleanup, malformed data, existing wrapping/error classifications and build-cache Release priority, fake fresh/cache preparation and complete Prepared/provenance equivalence. Preserve comments/public target APIs; no new dependency or global injection.\nGreen gate evidence: final-target.json/log, final-preparation.json/log, final-live-capability.json/log, final-architecture.json/log, final-vet.json/log, final-lint.json/log, cli-build.json/log, cli-smoke.json/log. final-full-host.json/log records actual make test-host exit0 238.54s; it replaces duplicate final Runner/analysis Quick. All four baseline Quick receipts are exit0; live capability baseline was run with the new unreferenced adapter package present but unchanged production callsites (note retained), and adapter-red is a missing-symbol compile red, not a behavioral assertion. Real original and current actual target.Prepare projection: old-prepared.json vs new-prepared.json, normalize Path only, byte identical whole Prepared+RecordTarget+RecordToolchain; saved probe source in prepared-fixture.go.txt. Fake fresh/cache test also compares whole values against real preparation. Parent independently matched all hashes and preimages and preserved comments, reverse apply and git diff --check, projection and installed binary; parent-source-verification.json. Handover will be available in same directory. Scoped task lint0 is not global lint cleanliness. Native linux qualification stays incomplete under task21. Tasks10/11 installation/capability decomposition and unrelated previous dirty files are out of scope; no scope expansion or new tasks. Review read-only. DO NOT run tests/build/make/go/lint/format or mutate caches, files, git or Flow state. DO NOT delegate or spawn subagents/bridges. Use existing raw evidence. Model gpt-6-sol high matches writer family in a fresh context; this limitation is acknowledged. User asked to wrap current task and stop; no later task starts. Report actual findings/verdict, no invented approval gate.\n",
+  "introduced_count": 1,
+  "pre_existing_count": 1,
+  "unaddressed": [],
+  "findings": {
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-927621f35b1e008d1bbfcbca2b42df417b93b8276e8554c51249e46d90fea5bf",
+    "reviewKind": "implementation",
+    "backend": "codex",
+    "round": 1,
+    "baseSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "headSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+    "items": [
+      {
+        "id": "finding-6c8636c0388a96988f20229304ae1e9e",
+        "ordinal": 1,
+        "severity": "P2",
+        "confidence": 100,
+        "classification": "introduced",
+        "status": "open",
+        "title": "For an exec target with a relative `ToolchainRoot` such as `",
+        "body": "For an exec target with a relative `ToolchainRoot` such as `.toolchain`, `goCommand` is `.toolchain/bin/go` and the new working directory is `.toolchain`. The command is then resolved under that directory, so valid exec-target preparation fails. The preimage ran the command from the caller\u2019s working directory.",
+        "rIds": [
+          "R10"
+        ],
+        "anchor": {
+          "path": "tools/gomad3/target/capability.go",
+          "side": "head",
+          "startLine": 880,
+          "baseSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+          "headSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025"
+        },
+        "suggestion": "Make `goCommand` absolute before deriving its working directory.",
+        "firstSeenReceiptId": "review-927621f35b1e008d1bbfcbca2b42df417b93b8276e8554c51249e46d90fea5bf",
+        "lastSeenReceiptId": "review-927621f35b1e008d1bbfcbca2b42df417b93b8276e8554c51249e46d90fea5bf"
+      },
+      {
+        "id": "finding-5788705a75e2ee5ca6f8dac7a2970f3f",
+        "ordinal": 2,
+        "severity": "P2",
+        "confidence": 75,
+        "classification": "pre_existing",
+        "status": "open",
+        "title": "Linked capability review calls `ReadToolchainIdentity` without its caller context",
+        "body": "Linked capability review calls `ReadToolchainIdentity` without its caller context. Cancellation during that identity query waits for the command\u2019s watchdog. Use the private context-aware identity helper at this call site.",
+        "rIds": [],
+        "anchor": {
+          "path": "tools/gomad3/target/capability.go",
+          "side": "head",
+          "startLine": 233,
+          "baseSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025",
+          "headSha": "d635e23f00d926a43b942f25a9d05bd0ccb72025"
+        },
+        "firstSeenReceiptId": "review-927621f35b1e008d1bbfcbca2b42df417b93b8276e8554c51249e46d90fea5bf",
+        "lastSeenReceiptId": "review-927621f35b1e008d1bbfcbca2b42df417b93b8276e8554c51249e46d90fea5bf"
+      }
+    ]
+  }
+}

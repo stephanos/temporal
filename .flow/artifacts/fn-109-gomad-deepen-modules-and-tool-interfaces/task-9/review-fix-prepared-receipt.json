@@ -1,0 +1,12 @@
+{
+  "argv": [
+    ".toolchain/bin/go",
+    "run",
+    "/tmp/gomad-task9-old-fixture.go"
+  ],
+  "exit": 0,
+  "duration_seconds": 1.1086448330024723,
+  "old_new_identical": true,
+  "stdout": "review-fix-prepared.json",
+  "stderr": "review-fix-prepared.stderr.log"
+}

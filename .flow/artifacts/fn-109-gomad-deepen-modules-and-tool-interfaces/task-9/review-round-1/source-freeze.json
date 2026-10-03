@@ -4,8 +4,8 @@
     "bytes": 38374
   },
   "tools/gomad3/target/capability.go": {
-    "sha256": "8a839ba3be821347a24d13a94d4e6eb7ad89ca51bfbfd22af6261d7d9fa3b473",
-    "bytes": 57134
+    "sha256": "38d4c147be87eb3390c8db92e17021cdc606a4bd5fad1e5d67f74c159c9fc611",
+    "bytes": 57006
   },
   "tools/gomad3/target/internal/capabilityreview/list.go": {
     "sha256": "f1a81f69054ea5b962731238c5ec89b2ed375082061f78a9e3252d8fe7500164",
@@ -14,10 +14,6 @@
   "tools/gomad3/target/internal/capabilityreview/list_test.go": {
     "sha256": "e9c8292a64539af41b505750bd59603e27b7058bd4d898cdbb9c9c920d8e9305",
     "bytes": 2729
-  },
-  "tools/gomad3/target/target_test.go": {
-    "sha256": "6f6287653f0530023c37dd51f53b6ef3119cd3fa2f0b070eee3e8ef1a56891d3",
-    "bytes": 33267
   },
   "tools/gomad3/target/go_command_test.go": {
     "sha256": "025b857a796a9546df6a237822fd3467d54380326a57cbd9c16d094f08e0d008",

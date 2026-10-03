@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-10-03T15:24:10.703285+00:00",
+  "path": "MILESTONES.md",
+  "line_count": 472,
+  "sha256": "a1f41a703303462e3b04dc86d9f5cfef7e14ce6f092a11754a73d63be3e31caf",
+  "missing_local_links": [],
+  "fence_count_even": true,
+  "source_document_diff_check_exit": 0,
+  "patch_payload_excluded": true,
+  "overthinking_reminder_retained": true,
+  "completed_task9_absent_from_remaining_scope": true,
+  "removed": "Completed milestone rows, delivered-behavior tables, task completion narratives, obsolete assessment gaps and completed fn111 section. Flow acceptance/evidence retained. Open platform gates and blockers retained."
+}
