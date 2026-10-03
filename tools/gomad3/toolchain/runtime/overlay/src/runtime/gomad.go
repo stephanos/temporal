@@ -69,6 +69,11 @@ var gomadDiagnosticMappingBytes uint64
 var gomadDiagnosticPerturb bool
 var gomadDiagnosticPerturbOrdinal uint64
 
+// gomadDiagnosticPerturbHostTimed selects the host-timed form of the fault
+// switch, and gomadDiagnosticHostFault is armed once its ordinal is reached.
+var gomadDiagnosticPerturbHostTimed bool
+var gomadDiagnosticHostFault atomic.Uint32
+
 // gomadDiagnosticDraws counts the draws taken from each seeded stream since
 // the process started. The counts are kept whether or not a diagnostic trace
 // is recorded, so a traced run executes the same draw paths as an untraced one.
@@ -174,6 +179,7 @@ func gomadClockTickInit(seed uint64) {
 }
 
 func gomadClockTickDraw() int64 {
+	gomadSeededDrawCheck()
 	gomadDiagnosticDraws.clockTick++
 	gomadClockTickState += 0x9e3779b97f4a7c15
 	value := gomadClockTickState
@@ -334,6 +340,10 @@ func gomadDiagnosticInit() {
 	bytesValue, bytesPresent := gomadEnvEarly("GOMAD3_DIAGNOSTIC_TRACE_BYTES=")
 	descriptor, descriptorOK := gomadParseSeed(descriptorValue)
 	mappingBytes, bytesOK := gomadParseSeed(bytesValue)
+	perturbHostTimed := len(perturbValue) > len(gomadDiagnosticPerturbHostTimedPrefix) && perturbValue[:len(gomadDiagnosticPerturbHostTimedPrefix)] == gomadDiagnosticPerturbHostTimedPrefix
+	if perturbHostTimed {
+		perturbValue = perturbValue[len(gomadDiagnosticPerturbHostTimedPrefix):]
+	}
 	perturbOrdinal, perturbOK := gomadParseSeed(perturbValue)
 	if !enabled || !gomadChoiceEnabled || !bytesPresent || !descriptorOK || !bytesOK || perturbPresent && !perturbOK || descriptor > 1<<31-1 || mappingBytes < gomadDiagnosticHeaderBytes+gomadDiagnosticRecordBytes || mappingBytes > gomadDiagnosticMaximumBytes {
 		print("runtime: invalid Gomad diagnostic trace configuration\n")
@@ -360,7 +370,12 @@ func gomadDiagnosticInit() {
 	gomadDiagnosticMappingBytes = mappingBytes
 	gomadDiagnosticPerturb = perturbPresent
 	gomadDiagnosticPerturbOrdinal = perturbOrdinal
+	gomadDiagnosticPerturbHostTimed = perturbHostTimed
 }
+
+// gomadDiagnosticPerturbHostTimedPrefix selects the host-timed fault:
+// GOMAD3_DIAGNOSTIC_PERTURB_DRAW=host-timed:N arms it at choice record N.
+const gomadDiagnosticPerturbHostTimedPrefix = "host-timed:"
 
 // gomadDiagnosticAppend writes the digest for the choice record just appended
 // at ordinal, into the slot with the same ordinal. It reads runtime state and
@@ -373,7 +388,11 @@ func gomadDiagnosticAppend(ordinal uint64) {
 	// The perturbation stands in for a host-timed draw from the process-wide
 	// stream, so that a fixture can show the differ naming this ordinal.
 	if gomadDiagnosticPerturb && ordinal == gomadDiagnosticPerturbOrdinal {
-		gomadRuntimeCheapRand()
+		if gomadDiagnosticPerturbHostTimed {
+			gomadDiagnosticHostFault.Store(1)
+		} else {
+			gomadRuntimeCheapRand()
+		}
 	}
 	bytes := unsafe.Slice((*byte)(gomadDiagnosticMapping), int(gomadDiagnosticMappingBytes))
 	offset := gomadDiagnosticHeaderBytes + ordinal*gomadDiagnosticRecordBytes
@@ -592,6 +611,7 @@ var gomadTimerRandom uint32
 
 //go:nosplit
 func gomadTimerRand() uint32 {
+	gomadSeededDrawCheck()
 	gomadDiagnosticDraws.timer++
 	gomadTimerRandom += 0xa0761d65
 	value := uint64(gomadTimerRandom) * 0xe7037ed1a0b428db
@@ -611,6 +631,7 @@ var gomadRuntimeCheapRandom uint32
 
 //go:nosplit
 func gomadRuntimeRand(mp *m) uint64 {
+	gomadSeededDrawCheck()
 	gomadDiagnosticDraws.runtimeRand++
 	for {
 		x, ok := gomadRuntimeRandom.Next()
@@ -625,6 +646,7 @@ func gomadRuntimeRand(mp *m) uint64 {
 
 //go:nosplit
 func gomadRuntimeCheapRand() uint32 {
+	gomadSeededDrawCheck()
 	gomadDiagnosticDraws.runtimeCheapRand++
 	gomadRuntimeCheapRandom += 0x53c5ca59
 	hi, lo := bits.Mul32(gomadRuntimeCheapRandom, gomadRuntimeCheapRandom^0x74743c1b)
@@ -642,6 +664,14 @@ func gomadRuntimeCheapRand() uint32 {
 //go:nosplit
 func gomadHostCheapRand() uint32 {
 	mp := getg().m
+	if gomadDiagnosticEnabled && gomadDiagnosticHostFault.Load() != 0 {
+		// The host-timed fault stands in for a site left on the seeded
+		// stream, so the check below stops the process.
+		mp.gomadHostTimed++
+		value := gomadRuntimeCheapRand()
+		mp.gomadHostTimed--
+		return value
+	}
 	mp.cheaprand += 0x53c5ca59
 	hi, lo := bits.Mul32(mp.cheaprand, mp.cheaprand^0x74743c1b)
 	return hi ^ lo
@@ -650,6 +680,39 @@ func gomadHostCheapRand() uint32 {
 //go:nosplit
 func gomadHostCheapRandN(n uint32) uint32 {
 	return uint32(uint64(gomadHostCheapRand()) * uint64(n) >> 32)
+}
+
+// gomadHostTimedEnter and gomadHostTimedExit bracket a path classified
+// host-timed in the draw-site inventory, so that a seeded draw inside it stops
+// the process. They count only while a diagnostic trace is recorded, which
+// keeps runs without one on the code path they had before.
+//
+//go:nosplit
+func gomadHostTimedEnter() {
+	if gomadDiagnosticEnabled {
+		getg().m.gomadHostTimed++
+	}
+}
+
+//go:nosplit
+func gomadHostTimedExit() {
+	if gomadDiagnosticEnabled {
+		getg().m.gomadHostTimed--
+	}
+}
+
+// gomadSeededDrawCheck runs before every draw from a seeded stream. The draw
+// would move every later seeded decision by host timing, so the process
+// stops before taking it.
+//
+//go:nosplit
+func gomadSeededDrawCheck() {
+	if getg().m.gomadHostTimed != 0 {
+		systemstack(func() {
+			print("runtime: Gomad host-timed path drew from the seeded stream\n")
+			exit(125)
+		})
+	}
 }
 
 // gomadLockProfileStart stands in for mLockProfile.start where lock2 is about
@@ -696,6 +759,7 @@ func gomadChoiceShuffleSeeded(n uint32) uint32 {
 }
 
 func gomadChoiceRandom(random *chacha8rand.State, n uint32) uint32 {
+	gomadSeededDrawCheck()
 	for {
 		value, ok := random.Next()
 		if ok {
@@ -709,6 +773,7 @@ func gomadChoiceSelectSeeded(n uint32) uint32 {
 	if !gomadEnabled {
 		return cheaprandn(n)
 	}
+	gomadSeededDrawCheck()
 	gomadDiagnosticDraws.selectPoll++
 	gomadChoiceSelectRandom += 0xa0761d6478bd642f
 	if goarch.IsAmd64|goarch.IsArm64|goarch.IsPpc64|
