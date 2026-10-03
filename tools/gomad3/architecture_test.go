@@ -233,6 +233,18 @@ func TestExactModuleEdges(t *testing.T) {
 			t.Errorf("upgrade orchestration does not depend on %s", required)
 		}
 	}
+	// One installation description supplies build, cache and adapter
+	// locations to the builder and to their ordinary consumers.
+	for _, consumer := range []string{modulePath + "/toolchain", modulePath + "/target", modulePath + "/deterministicio"} {
+		if !slices.Contains(imports[consumer], modulePath+"/toolchain/installation") {
+			t.Errorf("%s does not read installation locations from toolchain/installation", consumer)
+		}
+	}
+	for _, imported := range imports[modulePath+"/toolchain/installation"] {
+		if strings.HasPrefix(imported, modulePath+"/") {
+			t.Errorf("toolchain/installation imports module package %s", imported)
+		}
+	}
 }
 
 func TestDomainModulesDoNotExportWireFraming(t *testing.T) {
@@ -309,7 +321,7 @@ func listHostPackages(t *testing.T) []listedPackage {
 		"./cmd/...", "./runner/...", "./qualification/...", "./target/...",
 		"./record/...", "./artifact/...", "./choice/...", "./deterministicio/...", "./world/...",
 		"./upgrade/...",
-		"./toolchain", "./toolchain/version", "./internal/...",
+		"./toolchain", "./toolchain/version", "./toolchain/installation", "./internal/...",
 	}
 	command := exec.Command("go", arguments...)
 	command.Env = append(command.Environ(), "GOWORK=off")
@@ -396,8 +408,10 @@ func ownerMayImport(owner, importedOwner, importing, imported string) bool {
 	if !slices.Contains(allowed[owner], importedOwner) {
 		return false
 	}
+	// Target preparation and deterministic I/O read the pinned version and the
+	// validated installation layout; the builder stays out of their reach.
 	if (owner == "target" || owner == "deterministicio") && importedOwner == "toolchain" {
-		return imported == modulePath+"/toolchain/version"
+		return imported == modulePath+"/toolchain/version" || imported == modulePath+"/toolchain/installation"
 	}
 	// Only the maintenance engines read adapters and compatibility packs.
 	// The public compatibility facade also serializes its report as JSON.

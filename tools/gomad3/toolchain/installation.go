@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"go.temporal.io/server/tools/gomad3/toolchain/installation"
 )
 
 const InstallationManifestName = "gomad3-install.json"
@@ -73,8 +75,8 @@ func ResolveInstallation(config InstallationSpec) (Installation, error) {
 		}, nil
 	}
 	fallbacks := []string{
-		filepath.Join(executableDirectory, ".toolchain"),
-		filepath.Join(filepath.Dir(executableDirectory), ".toolchain"),
+		filepath.Join(executableDirectory, installation.CheckoutDirectory),
+		filepath.Join(filepath.Dir(executableDirectory), installation.CheckoutDirectory),
 	}
 	root := fallbacks[0]
 	for _, candidate := range fallbacks {

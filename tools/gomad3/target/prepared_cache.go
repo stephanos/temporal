@@ -18,6 +18,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	targetbuild "go.temporal.io/server/tools/gomad3/target/internal/build"
+	"go.temporal.io/server/tools/gomad3/toolchain/installation"
 )
 
 const preparedTargetSchema = "gomad3.prepared-target/v2"
@@ -87,8 +88,8 @@ type preparedTargetRecord struct {
 
 // preparedTargetCacheRoot places the cache beside the toolchain build's
 // target build cache; tests redirect it.
-var preparedTargetCacheRoot = func(toolchainRoot, buildKey string) string {
-	return filepath.Join(toolchainRoot, "builds", buildKey, "prepared-targets")
+var preparedTargetCacheRoot = func(toolchain installation.Description) string {
+	return toolchain.PinnedBuild().PreparedTargets()
 }
 
 type preparedTargetCache struct {
@@ -97,8 +98,8 @@ type preparedTargetCache struct {
 	digest   string
 }
 
-func openPreparedTargetCache(spec Spec, tags []string, toolchain ToolchainIdentity, commandDirectory, packageArgument string, review CapabilityReview, packages []listedPackage) (*preparedTargetCache, error) {
-	identity, err := newPreparedTargetIdentity(spec, tags, toolchain, commandDirectory, packageArgument, review, packages)
+func openPreparedTargetCache(spec Spec, tags []string, toolchain pinnedToolchain, commandDirectory, packageArgument string, review CapabilityReview, packages []listedPackage) (*preparedTargetCache, error) {
+	identity, err := newPreparedTargetIdentity(spec, tags, toolchain.ToolchainIdentity, commandDirectory, packageArgument, review, packages)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +108,7 @@ func openPreparedTargetCache(spec Spec, tags []string, toolchain ToolchainIdenti
 		return nil, fmt.Errorf("encode prepared target identity: %w", err)
 	}
 	digest := sha256.Sum256(encoded)
-	root := preparedTargetCacheRoot(spec.ToolchainRoot, toolchain.BuildKey)
+	root := preparedTargetCacheRoot(toolchain.installation)
 	if err := os.MkdirAll(root, 0o700); err != nil {
 		return nil, fmt.Errorf("create prepared target cache: %w", err)
 	}

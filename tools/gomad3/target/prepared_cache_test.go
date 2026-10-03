@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"go.temporal.io/server/tools/gomad3/toolchain/installation"
 )
 
 func TestPrepareRestoresCachedTargetForIdenticalInputs(t *testing.T) {
@@ -175,7 +177,7 @@ func isolatePreparedTargetCache(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
 	previous := preparedTargetCacheRoot
-	preparedTargetCacheRoot = func(string, string) string { return root }
+	preparedTargetCacheRoot = func(installation.Description) string { return root }
 	t.Cleanup(func() { preparedTargetCacheRoot = previous })
 	return root
 }
@@ -246,7 +248,7 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
-	preparedTargetCacheRoot = func(string, string) string { return root }
+	preparedTargetCacheRoot = func(installation.Description) string { return root }
 	status := m.Run()
 	if err := os.RemoveAll(root); err != nil {
 		panic(err)

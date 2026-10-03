@@ -100,8 +100,9 @@ func Environment() []string {
 	return append(environment, "CGO_ENABLED=0", "GOENV=off", "GOEXPERIMENT="+experiment, "GOFLAGS=", "GOTOOLCHAIN=local", "GOWORK=off", "TZ=UTC")
 }
 
-func PrepareCache(toolchainRoot, buildKey string) (string, error) {
-	cache := filepath.Join(toolchainRoot, "builds", buildKey, "target-cache")
+// PrepareCache makes the toolchain build's target cache directory private,
+// creating it when absent.
+func PrepareCache(cache string) (string, error) {
 	info, err := os.Lstat(cache)
 	if errors.Is(err, os.ErrNotExist) {
 		if err := os.Mkdir(cache, 0o700); err != nil {
