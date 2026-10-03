@@ -338,7 +338,7 @@ func TestAdmissionRejectsCrossedTypes(t *testing.T) {
 		}, admChannelsAt + "55: " + admChannelsPkg + "flashStep steps talk, so its parameter s takes fixture.channels.Note, not fixture.channels.Signal"},
 		{"step input of a range", "channels", func(m *umpirespb.Model) {
 			function(m, "counted").GetParams()[1].Type = &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Bool{Bool: &umpirespb.Empty{}}}
-		}, admChannelsAt + "85: " + admChannelsPkg + "counted steps tallyDelivery, so its parameter n takes 0..2, not Boolean"},
+		}, admChannelsAt + "87: " + admChannelsPkg + "counted steps tallyDelivery, so its parameter n takes 0..2, not Boolean"},
 		{"watched state", "declarations", func(m *umpirespb.Model) {
 			admMachine(m, "store").Monitors = []string{admDeclaredPkg + "storedOnce"}
 		}, admDeclaredAt + "37: store names monitor storedOnce, whose next takes fixture.declarations.Disk, not the state fixture.declarations.Store"},
@@ -483,10 +483,10 @@ func TestAdmissionRejectsChannelMisuse(t *testing.T) {
 		}, admChannelsAt + "22: fixture.channels.Relay holds channel " + admChannelsPkg + "wire in two fields"},
 		{"delivery of a channel the state does not hold", "channels", func(m *umpirespb.Model) {
 			admMachine(m, "tallying").GetSteps()[1].Action = admChannelsPkg + "wire.deliver"
-		}, admChannelsAt + "85: tallying binds a delivery of channel " + admChannelsPkg + "wire, which its state fixture.channels.Tally does not hold"},
+		}, admChannelsAt + "87: tallying binds a delivery of channel " + admChannelsPkg + "wire, which its state fixture.channels.Tally does not hold"},
 		{"loss of a channel the state does not hold", "channels", func(m *umpirespb.Model) {
 			admMachine(m, "tallying").GetSteps()[1].Action = admChannelsPkg + "radio.lose"
-		}, admChannelsAt + "85: tallying binds a loss of channel " + admChannelsPkg + "radio, which its state fixture.channels.Tally does not hold"},
+		}, admChannelsAt + "87: tallying binds a loss of channel " + admChannelsPkg + "radio, which its state fixture.channels.Tally does not hold"},
 		{"lossy channel with no loss", "channels", func(m *umpirespb.Model) {
 			relay := admMachine(m, "relay")
 			relay.Steps = relay.GetSteps()[:4]
@@ -513,7 +513,7 @@ func TestAdmissionRejectsReadingsWithoutARefinement(t *testing.T) {
 		}, admDeclaredAt + "163: query putStoresThroughDisk pairs a Property of store with a Scenario of pair"},
 		{"product property without through", "admission", func(m *umpirespb.Model) {
 			admQuery(m, "currentAdmission.product.pausedIsNotDispatched").Through = false
-		}, admAdmissionAt + "202: query currentAdmission.product.pausedIsNotDispatched pairs a Property of activityProduct with a Scenario of currentAdmission"},
+		}, admAdmissionAt + "288: query currentAdmission.product.pausedIsNotDispatched pairs a Property of activityProduct with a Scenario of currentAdmission"},
 	})
 }
 
@@ -532,25 +532,25 @@ func TestAdmissionRejectsRecursion(t *testing.T) {
 		{"direct", "admission", func(m *umpirespb.Model) {
 			f := function(m, "oneMore")
 			f.Body = admCall(f.GetBody(), oneMore, admVar(f.GetBody(), "a"))
-		}, admAdmissionAt + "63: " + oneMore + " calls itself"},
+		}, admAdmissionAt + "99: " + oneMore + " calls itself"},
 		{"through others", "admission", func(m *umpirespb.Model) {
 			f := function(m, "Admission$package$.admitted")
 			f.Body = admCall(f.GetBody(), admAdmissionPkg+"admitCurrent", admVar(f.GetBody(), "s"))
-		}, admAdmissionAt + "84: " + admAdmissionPkg + "admitCurrent calls itself through " + admAdmissionPkg + "admitted"},
+		}, admAdmissionAt + "137: " + admAdmissionPkg + "admitCurrent calls itself through " + admAdmissionPkg + "admitted"},
 		{"in a lambda", "admission", func(m *umpirespb.Model) {
 			f := function(m, "oneMore")
 			f.Body = &umpirespb.Expr{Position: f.GetBody().GetPosition(), Kind: &umpirespb.Expr_Lambda{Lambda: &umpirespb.Lambda{
 				Params: f.GetParams(), Body: admCall(f.GetBody(), oneMore, admVar(f.GetBody(), "a"))}}}
-		}, admAdmissionAt + "63: " + oneMore + " calls itself"},
+		}, admAdmissionAt + "99: " + oneMore + " calls itself"},
 		{"in a precondition", "admission", func(m *umpirespb.Model) {
 			f := function(m, "oneMore")
 			f.Requires = admCall(f.GetBody(), oneMore, admVar(f.GetBody(), "a"))
-		}, admAdmissionAt + "63: " + oneMore + " calls itself"},
+		}, admAdmissionAt + "99: " + oneMore + " calls itself"},
 	})
 	m := admFixture(t, "admission")
 	f := function(m, "Admission$package$.admitted")
 	f.Body = admCall(f.GetBody(), admAdmissionPkg+"admitCurrent", admVar(f.GetBody(), "s"))
-	require.ErrorContains(t, Validate(m), admAdmissionAt+"73: "+admAdmissionPkg+"admitted calls itself through "+admAdmissionPkg+"admitCurrent",
+	require.ErrorContains(t, Validate(m), admAdmissionAt+"111: "+admAdmissionPkg+"admitted calls itself through "+admAdmissionPkg+"admitCurrent",
 		"every function on the cycle is reported")
 }
 
@@ -565,7 +565,7 @@ func TestAdmissionReportsEveryProblem(t *testing.T) {
 		"version 2 is not a version this reader knows")
 	require.ErrorContains(t, err, admChannelsAt+"14: channel "+admChannelsPkg+"wire has capacity 0, below 1")
 	require.ErrorContains(t, err, admChannelsAt+"16: "+admChannelsPkg+"radio.lose loses channel "+admChannelsPkg+"radio, which is not lossy")
-	require.ErrorContains(t, err, admChannelsAt+"85: no function nowhere")
+	require.ErrorContains(t, err, admChannelsAt+"87: no function nowhere")
 	require.Len(t, strings.Split(err.Error(), "\n"), 4, "each problem once, and nothing else")
 }
 
@@ -670,7 +670,7 @@ func TestAdmissionRejectsMisaddressedSelectors(t *testing.T) {
 		{"scenario input of a crossed type", "admission", func(m *umpirespb.Model) {
 			admScenario(m, "currentAdmission", "staleDeliveryAfterPause").GetActions()[1].Inputs[0] = admEnum(
 				"fixture.specimens.admission.AdmissionPhase", "paused")
-		}, admAdmissionAt + "188: currentAdmission.staleDeliveryAfterPause: " + control + " takes a temporal.standaloneactivity.Control for control, not paused"},
+		}, admAdmissionAt + "267: currentAdmission.staleDeliveryAfterPause: " + control + " takes a temporal.standaloneactivity.Control for control, not paused"},
 		{"scenario input outside its range", "channels", func(m *umpirespb.Model) {
 			admTallyScenario(m, 3)
 		}, "generic:1: tallying.counts: " + admChannelsPkg + "tally.deliver takes a 0..2 for message, not 3"},
