@@ -11,7 +11,9 @@
     "fn-117-type-the-temporal-api-in-the-models"
   ],
   "id": "fn-112-make-the-standalone-activity-scala",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-112-make-the-standalone-activity-scala.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -282,15 +284,52 @@
       "task": null,
       "timestamp": "2026-10-03T17:33:10.855318Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "c948e0c828c319b2ddf67a0fadb08f524bb50a8537e5c6ce852902786a17da47",
+      "backend": "claude",
+      "base_sha": "b5f405e68a4b6807fb654e888ea41fb8fcab0b50",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "85dac83c5a0cacbad7afb57c3c8a44cd25c823c7",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 6614,
+      "output_sha256": "b04a1e6fa55134558d785b8b50f83503b64bbdf35b31a136c796695acd766a7b",
+      "reservation_id": "73e143f3aca74798ba27c5b4cb38fdf2",
+      "round_consumed": true,
+      "scope": "impl:fn-112-make-the-standalone-activity-scala.1",
+      "superseded_by": null,
+      "task": "fn-112-make-the-standalone-activity-scala.1",
+      "timestamp": "2026-10-03T21:30:36.090329Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-112-make-the-standalone-activity-scala.1": 1,
     "plan": 2,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-112-make-the-standalone-activity-scala.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-112-make-the-standalone-activity-scala.md",
@@ -307,5 +346,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T21:01:42.872395Z"
+  "updated_at": "2026-10-03T21:34:43.524543Z"
 }
