@@ -13,7 +13,8 @@
   ],
   "id": "fn-119-show-one-go-sdk-workflow-driven-end-to",
   "impl_review_rounds": {
-    "fn-119-show-one-go-sdk-workflow-driven-end-to.1": 0
+    "fn-119-show-one-go-sdk-workflow-driven-end-to.1": 0,
+    "fn-119-show-one-go-sdk-workflow-driven-end-to.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -183,10 +184,40 @@
       "task": "fn-119-show-one-go-sdk-workflow-driven-end-to.1",
       "timestamp": "2026-10-03T20:36:59.608682Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b6abd798097c12380148b0b567147905a393f570ee633627dc65f0f7d3897f6d",
+      "backend": "claude",
+      "base_sha": "8cadc2f942f6059b62d70428f54d1033b8742fe1",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b420fdeed5db11d1d2c80c0085f629c60c3a3507",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5611,
+      "output_sha256": "63f27cd30f0ec7dd28cc332b5ce9763ec1158a4185a2da8f16f724ca4138d6f5",
+      "reservation_id": "1a94857564fe4c02a5edf33d27676844",
+      "round_consumed": true,
+      "scope": "impl:fn-119-show-one-go-sdk-workflow-driven-end-to.2",
+      "superseded_by": null,
+      "task": "fn-119-show-one-go-sdk-workflow-driven-end-to.2",
+      "timestamp": "2026-10-03T21:42:43.054025Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-119-show-one-go-sdk-workflow-driven-end-to.1": 1,
+    "impl:fn-119-show-one-go-sdk-workflow-driven-end-to.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -194,6 +225,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-119-show-one-go-sdk-workflow-driven-end-to.1": 0,
+    "impl:fn-119-show-one-go-sdk-workflow-driven-end-to.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-119-show-one-go-sdk-workflow-driven-end-to.md",
@@ -210,5 +242,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T20:36:59.786021Z"
+  "updated_at": "2026-10-03T21:42:43.095452Z"
 }
