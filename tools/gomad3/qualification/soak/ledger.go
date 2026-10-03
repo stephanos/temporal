@@ -215,7 +215,7 @@ func (ledger *Ledger) observe(batch observation) (outcome, comparison string, co
 			comparison = ComparisonEstablished
 			cohort.Baseline = &Baseline{EvidenceDigest: batch.digest, Run: batch.run, Batch: batch.batch}
 			if batch.retainBaseline != nil && batch.retainBaseline(cohort) != nil {
-				cohort.Baseline, outcome = nil, OutcomeInfrastructure
+				cohort.Baseline, outcome, comparison = nil, OutcomeInfrastructure, ""
 			}
 		case cohort.Baseline.EvidenceDigest == batch.digest:
 			comparison = ComparisonMatches

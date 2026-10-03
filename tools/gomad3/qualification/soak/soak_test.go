@@ -460,9 +460,9 @@ func TestOverflowRepetitionsDoNotEnterTheBound(t *testing.T) {
 func TestFailedBaselineRetentionIsInfrastructureAndLeavesNoBaseline(t *testing.T) {
 	ledger := newLedger()
 	cohortKey := key(t, "one")
-	outcome, _, cohort := ledger.observe(observation{run: "1", key: cohortKey, outcome: OutcomeClean, digest: "sha256:a", repetitions: 32,
+	outcome, comparison, cohort := ledger.observe(observation{run: "1", key: cohortKey, outcome: OutcomeClean, digest: "sha256:a", repetitions: 32,
 		retainBaseline: func(*Cohort) error { return errors.New("disk full") }})
-	if outcome != OutcomeInfrastructure || cohort.Baseline != nil || cohort.Counts.CleanRepetitions != 0 || cohort.Counts.InfrastructureFailures != 1 {
+	if outcome != OutcomeInfrastructure || comparison != "" || cohort.Baseline != nil || cohort.Counts.CleanRepetitions != 0 || cohort.Counts.InfrastructureFailures != 1 {
 		t.Fatalf("outcome %s, cohort %+v", outcome, cohort)
 	}
 	if outcome, comparison, _ := ledger.observe(observation{run: "1", key: cohortKey, outcome: OutcomeClean, digest: "sha256:b", repetitions: 32}); outcome != OutcomeClean || comparison != ComparisonEstablished {
