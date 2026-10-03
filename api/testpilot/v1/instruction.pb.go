@@ -953,8 +953,9 @@ func (x *AwaitSlot) GetSlotId() string {
 	return ""
 }
 
-// AwaitInstruction waits, in a workflow, for the Nexus operation an earlier schedule command
-// (`WorkflowCommand`) of the same entrypoint started; its outcome value is the operation's result.
+// AwaitInstruction waits, in a workflow, for the Nexus operation or the activity an earlier schedule
+// command (`WorkflowCommand`) of the same entrypoint started; its outcome value is the payload the
+// operation or the activity answered.
 type AwaitInstruction struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Instruction   *InstructionReference  `protobuf:"bytes,1,opt,name=instruction,proto3" json:"instruction,omitempty"`
@@ -1194,8 +1195,9 @@ func (x *InjectFault) GetKind() FaultKind {
 // names. The Driver maps the attributes to the SDK call that issues the command, so the Profile
 // admits commands per command type, and a field the Driver cannot set through the SDK rejects at
 // preparation naming it. An attributes field that names a Nexus endpoint names the Case's endpoint
-// role rather than a resource; the role's binding supplies the resource at dispatch. A schedule
-// timeout the attributes leave absent is the instruction's own timeout.
+// role rather than a resource, and one that names an activity's task queue names a task-queue role;
+// the role's binding supplies the resource at dispatch. A schedule-to-close timeout the attributes
+// leave absent is the instruction's own timeout.
 type WorkflowCommand struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Command       *v11.Command           `protobuf:"bytes,1,opt,name=command,proto3" json:"command,omitempty"`

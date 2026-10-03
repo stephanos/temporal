@@ -20,10 +20,12 @@ import (
 type programDefinition struct {
 	snapshot *testpilotspb.Program
 	// limits is the Profile's Program ceilings the Program was prepared under.
-	limits          *testpilotspb.ProgramLimits
-	entries         map[string]entryDefinition
-	registrations   []queueRegistration
-	endpoints       map[string]string
+	limits        *testpilotspb.ProgramLimits
+	entries       map[string]entryDefinition
+	registrations []queueRegistration
+	endpoints     map[string]string
+	// queues are the task queues the task-queue roles an activity schedule names bind.
+	queues          map[string]string
 	queueWorkflows  map[string]map[string]struct{}
 	queueActivities map[string]map[string]struct{}
 	outages         OutagePlan

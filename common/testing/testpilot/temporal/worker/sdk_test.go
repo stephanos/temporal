@@ -358,7 +358,7 @@ func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
 				if err != nil {
 					return "", err
 				}
-				i := workflowInterpreter{session: &Session{definition: definition}, ctx: ctx, state: state, futures: make(map[string]workflow.NexusOperationFuture)}
+				i := workflowInterpreter{session: &Session{definition: definition}, ctx: ctx, state: state, futures: make(map[string]workflow.Future)}
 				instructions := entry.Instructions()
 				_, enabled, err := state.Evaluate(context.Background(), 0)
 				if err != nil || !enabled {
@@ -372,7 +372,7 @@ func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
 					return "", fmt.Errorf("await evaluation: enabled=%t: %w", enabled, err)
 				}
 				before := workflow.Now(ctx)
-				if err := i.awaitNexus(1, instructions[1]); err != nil {
+				if err := i.await(1, instructions[1]); err != nil {
 					return "", err
 				}
 				expected := min(tc.start, tc.await, tc.completion)

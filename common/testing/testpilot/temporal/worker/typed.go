@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"maps"
+	"slices"
 	"time"
 
 	"github.com/nexus-rpc/sdk-go/nexus"
@@ -13,6 +14,7 @@ import (
 	failurepb "go.temporal.io/api/failure/v1"
 	nexuspb "go.temporal.io/api/nexus/v1"
 	"go.temporal.io/sdk/converter"
+	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/workflow"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	commonnexus "go.temporal.io/server/common/nexus"
@@ -23,7 +25,9 @@ import (
 
 // The typed worker instructions carry Temporal API messages, and this Driver realizes each through
 // the SDK call that produces it: a ScheduleNexusOperationCommandAttributes becomes
-// workflow.ExecuteNexusOperation with the command's input and timeouts; a StartOperationResponse
+// workflow.ExecuteNexusOperation with the command's input and timeouts; a
+// ScheduleActivityTaskCommandAttributes becomes workflow.ExecuteActivity with the command's
+// activity, task queue, input, timeouts and retry policy; a StartOperationResponse
 // becomes the handler's return, synchronous with its payload or asynchronous through the completion
 // authority the Driver publishes; a HandlerError becomes the error the handler returns with its type
 // and retry behavior; and a completion Payload or Failure becomes the completion callback's body.
@@ -33,13 +37,19 @@ import (
 // CommandTypes are the workflow command types this Driver realizes. DeriveProfile admits exactly
 // these, so a Case carrying another command type rejects at preparation.
 func CommandTypes() []enumspb.CommandType {
-	return []enumspb.CommandType{enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION}
+	return []enumspb.CommandType{enumspb.COMMAND_TYPE_SCHEDULE_ACTIVITY_TASK, enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION}
 }
 
 // scheduleNexusOperation is the schedule command an instruction carries, or nil for any other
 // instruction.
 func scheduleNexusOperation(instruction *testpilotspb.Instruction) *commandpb.ScheduleNexusOperationCommandAttributes {
 	return instruction.GetWorkflowCommand().GetCommand().GetScheduleNexusOperationCommandAttributes()
+}
+
+// scheduleActivity is the activity schedule command an instruction carries, or nil for any other
+// instruction.
+func scheduleActivity(instruction *testpilotspb.Instruction) *commandpb.ScheduleActivityTaskCommandAttributes {
+	return instruction.GetWorkflowCommand().GetCommand().GetScheduleActivityTaskCommandAttributes()
 }
 
 // startsNexusOperation reports whether an instruction starts a Nexus operation the Driver must
@@ -88,10 +98,75 @@ func (i *workflowInterpreter) scheduleNexus(index int, instruction testpilot.Ins
 	return i.state.Admit(context.Background(), index, outcomeForError(err))
 }
 
-// awaitedPayload reads a scheduled operation's result as the payload the handler answered, whole,
-// as the Await's VALUE: an Any of the payload, or of an empty payload when the operation answered
-// none.
-func awaitedPayload(ctx workflow.Context, future workflow.NexusOperationFuture) (*testpilotspb.Value, error) {
+// issueCommand issues the workflow command an instruction carries through the SDK call that
+// produces it.
+func (i *workflowInterpreter) issueCommand(index int, instruction testpilot.InstructionPlan) error {
+	source := instruction.Source().GetInstruction()
+	switch {
+	case scheduleNexusOperation(source) != nil:
+		return i.scheduleNexus(index, instruction)
+	case scheduleActivity(source) != nil:
+		return i.scheduleActivity(index, instruction)
+	default:
+		return ErrInvalid
+	}
+}
+
+// scheduleActivity issues the activity schedule command: the activity's input is the carried
+// payloads, passed through the data converter unconverted, its task queue is the one the named
+// task-queue role binds, and its timeouts and retry policy are the carried ones, the
+// schedule-to-close timeout defaulting to the instruction's own. The SDK settles the activity's
+// future with whatever ends it, a refused schedule included, so the instruction succeeds once the
+// command is issued and the Await reads how the activity ended.
+func (i *workflowInterpreter) scheduleActivity(index int, instruction testpilot.InstructionPlan) error {
+	source := instruction.Source()
+	attributes := scheduleActivity(source.GetInstruction())
+	queue := i.session.definition.queues[attributes.GetTaskQueue().GetName()]
+	if attributes == nil || queue == "" {
+		return ErrInvalid
+	}
+	options := workflow.ActivityOptions{
+		TaskQueue:              queue,
+		ActivityID:             attributes.GetActivityId(),
+		ScheduleToCloseTimeout: time.Duration(instruction.TimeoutMilliseconds()) * time.Millisecond,
+		// The carried command requests no eager execution, so neither does the one issued.
+		DisableEagerExecution: true,
+	}
+	if attributes.GetScheduleToCloseTimeout() != nil {
+		options.ScheduleToCloseTimeout = attributes.GetScheduleToCloseTimeout().AsDuration()
+	}
+	if attributes.GetScheduleToStartTimeout() != nil {
+		options.ScheduleToStartTimeout = attributes.GetScheduleToStartTimeout().AsDuration()
+	}
+	if attributes.GetStartToCloseTimeout() != nil {
+		options.StartToCloseTimeout = attributes.GetStartToCloseTimeout().AsDuration()
+	}
+	if attributes.GetHeartbeatTimeout() != nil {
+		options.HeartbeatTimeout = attributes.GetHeartbeatTimeout().AsDuration()
+	}
+	if policy := attributes.GetRetryPolicy(); policy != nil {
+		options.RetryPolicy = &temporal.RetryPolicy{
+			InitialInterval:        policy.GetInitialInterval().AsDuration(),
+			BackoffCoefficient:     policy.GetBackoffCoefficient(),
+			MaximumInterval:        policy.GetMaximumInterval().AsDuration(),
+			MaximumAttempts:        policy.GetMaximumAttempts(),
+			NonRetryableErrorTypes: slices.Clone(policy.GetNonRetryableErrorTypes()),
+		}
+	}
+	input := make([]any, 0, len(attributes.GetInput().GetPayloads()))
+	for _, payload := range attributes.GetInput().GetPayloads() {
+		input = append(input, converter.NewRawValue(payload))
+	}
+	activityCtx := workflow.WithActivityOptions(workflow.WithValue(i.ctx, workflowSourceKey{}, source.GetInstructionId()), options)
+	future := workflow.ExecuteActivity(activityCtx, attributes.GetActivityType().GetName(), input...)
+	i.futures[source.GetInstructionId()] = future
+	return i.state.Admit(context.Background(), index, outcomeForError(nil))
+}
+
+// awaitedPayload reads a scheduled command's result as the payload the handler or the activity
+// answered, whole, as the Await's VALUE: an Any of the payload, or of an empty payload when it
+// answered none.
+func awaitedPayload(ctx workflow.Context, future workflow.Future) (*testpilotspb.Value, error) {
 	var raw converter.RawValue
 	if err := future.Get(ctx, &raw); err != nil {
 		return nil, err

@@ -60,11 +60,13 @@ not evaluated: preparation admits it against the Driver-reach table in
 it does not, so a field the Driver cannot set rejects `unsupported` at the field's own path, an
 invalid or over-ceiling duration rejects `malformed` or `limit_exceeded` at its field, a reply the
 activation does not admit rejects at its node, and a command whose type the Profile's
-`CommandTypes` does not list rejects `unsupported` at `command_type`. `temporal.DeriveProfile` lists
-the command types the worker Driver realizes (`worker.CommandTypes`) and nothing more. A command's
-endpoint field names the Case's endpoint role; the Driver resolves it to the bound resource. The
-Await of a scheduled command yields the handler's payload whole, as an `Any`, where the Await of the
-untyped start yields text.
+`CommandTypes` does not list rejects `unsupported` at `command_type`, naming the type.
+`temporal.DeriveProfile` lists the command types the worker Driver realizes (`worker.CommandTypes`:
+scheduling a Nexus operation and scheduling an activity) and nothing more. A command's endpoint
+field names the Case's endpoint role, and an activity schedule's task queue a task-queue role; the
+Driver resolves each to the bound resource. The Await of a scheduled command yields the payload the
+handler or the activity answered, whole, as an `Any`, where the Await of the untyped start yields
+text.
 
 A Case may also declare where its operation-correlated evidence comes from. A response read can
 lift a projected value into a declared `CorrelatedEvidence` Observation through guarded rules, which is
@@ -222,9 +224,9 @@ Verdict and admission.
    (`temporal/worker/interpreter.go`); a Nexus-handler instruction in `Session.interpretNexus`; an
    activity instruction in `Session.executeActivity`. An
    instruction that starts a Nexus operation is also named by `execution.startsNexusOperation`,
-   which the carrier route derivation and `bindAwait` read, and by the worker's
-   `startsNexusOperation` and `addInstructionBindings`, which prepare its dispatch route and
-   endpoint. An instruction that carries a public API message gets a row per carried message in the
+   which the carrier route derivation reads, and by the worker's `startsNexusOperation` and
+   `addInstructionBindings`, which prepare its dispatch route and endpoint; one that schedules
+   anything an Await may read, by `execution.startsAwaitable`, which `bindAwait` reads. An instruction that carries a public API message gets a row per carried message in the
    Driver-reach table (`internal/execution/typed.go`), which `TestDriverReachTableNamesEveryField` requires to
    name every field of every carried message, and the Driver's interpreter reads only the fields
    the row names realized.

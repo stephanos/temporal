@@ -6,7 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	commandpb "go.temporal.io/api/command/v1"
+	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
+	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/internal/testsupport/facadetest"
@@ -56,7 +58,7 @@ func commandCase(command *commandpb.Command) *testpilotspb.Case {
 }
 
 // DeriveProfile admits exactly the command types the Case carries that the worker Driver
-// realizes: a schedule command is admitted, and a command type the Driver cannot realize is left
+// realizes: a Nexus or activity schedule command is admitted, and a command type the Driver cannot realize is left
 // out, so the Case rejects at preparation as one the Profile does not admit.
 func TestDeriveProfileAdmitsOnlyRealizableCommandTypes(t *testing.T) {
 	catalog, err := temporal.NewWorkflowServiceCatalog()
@@ -74,6 +76,18 @@ func TestDeriveProfileAdmitsOnlyRealizableCommandTypes(t *testing.T) {
 	require.Equal(t, []enumspb.CommandType{enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION}, profile.CommandTypes)
 	require.Contains(t, profile.Opcodes, testpilot.WorkflowCommand)
 	_, err = testpilot.Prepare(schedule, profile)
+	require.NoError(t, err)
+
+	activity := commandCase(&commandpb.Command{
+		CommandType: enumspb.COMMAND_TYPE_SCHEDULE_ACTIVITY_TASK,
+		Attributes: &commandpb.Command_ScheduleActivityTaskCommandAttributes{ScheduleActivityTaskCommandAttributes: &commandpb.ScheduleActivityTaskCommandAttributes{
+			ActivityType: &commonpb.ActivityType{Name: "activity-type"}, TaskQueue: &taskqueuepb.TaskQueue{Name: "queue"}, StartToCloseTimeout: durationpb.New(1000000000),
+		}},
+	})
+	profile, err = temporal.DeriveProfile(activity, catalog, environment)
+	require.NoError(t, err)
+	require.Equal(t, []enumspb.CommandType{enumspb.COMMAND_TYPE_SCHEDULE_ACTIVITY_TASK}, profile.CommandTypes)
+	_, err = testpilot.Prepare(activity, profile)
 	require.NoError(t, err)
 
 	timer := commandCase(&commandpb.Command{

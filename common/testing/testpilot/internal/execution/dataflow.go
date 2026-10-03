@@ -213,8 +213,9 @@ func bindAttemptFailure(g *graph, n *node) error {
 	return checkReach(failure, path)
 }
 
-// bindAwait admits an Await of an earlier Nexus start of the same entrypoint. A scheduled command's
-// result is whatever payload the handler answered, so its VALUE is that payload, whole.
+// bindAwait admits an Await of an earlier Nexus or activity schedule of the same entrypoint. A
+// scheduled command's result is whatever payload the handler or the activity answered, so its VALUE
+// is that payload, whole.
 func (a *admission) bindAwait(g *graph, n *node) error {
 	reference := n.source.Instruction.GetAwaitInstruction().GetInstruction()
 	dependency, exists := g.index[reference.GetInstructionId()]
@@ -222,8 +223,8 @@ func (a *admission) bindAwait(g *graph, n *node) error {
 		return ir.Invalid(ir.Unavailable, nodePath(g, n), "Await requires an earlier local instruction")
 	}
 	started := g.nodes[dependency].source.Instruction
-	if !startsNexusOperation(started) {
-		return ir.Invalid(ir.TypeMismatch, nodePath(g, n), "Await requires a Nexus schedule command")
+	if !startsAwaitable(started) {
+		return ir.Invalid(ir.TypeMismatch, nodePath(g, n), "Await requires a Nexus or activity schedule command")
 	}
 	n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE] = a.outcomeTypes.any
 	return nil

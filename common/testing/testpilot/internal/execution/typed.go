@@ -8,6 +8,7 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	failurepb "go.temporal.io/api/failure/v1"
 	nexuspb "go.temporal.io/api/nexus/v1"
+	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
@@ -33,11 +34,30 @@ type messageReach struct {
 // driverReach is the Driver-reach table, keyed by carried message.
 var driverReach = map[protoreflect.FullName]messageReach{
 	(&commandpb.Command{}).ProtoReflect().Descriptor().FullName(): {
-		realized:   []protoreflect.Name{"command_type", "schedule_nexus_operation_command_attributes"},
-		unrealized: []protoreflect.Name{"user_metadata", "event_group_markers", "schedule_activity_task_command_attributes", "start_timer_command_attributes", "complete_workflow_execution_command_attributes", "fail_workflow_execution_command_attributes", "request_cancel_activity_task_command_attributes", "cancel_timer_command_attributes", "cancel_workflow_execution_command_attributes", "request_cancel_external_workflow_execution_command_attributes", "record_marker_command_attributes", "continue_as_new_workflow_execution_command_attributes", "start_child_workflow_execution_command_attributes", "signal_external_workflow_execution_command_attributes", "upsert_workflow_search_attributes_command_attributes", "protocol_message_command_attributes", "modify_workflow_properties_command_attributes", "request_cancel_nexus_operation_command_attributes"},
+		realized:   []protoreflect.Name{"command_type", "schedule_nexus_operation_command_attributes", "schedule_activity_task_command_attributes"},
+		unrealized: []protoreflect.Name{"user_metadata", "event_group_markers", "start_timer_command_attributes", "complete_workflow_execution_command_attributes", "fail_workflow_execution_command_attributes", "request_cancel_activity_task_command_attributes", "cancel_timer_command_attributes", "cancel_workflow_execution_command_attributes", "request_cancel_external_workflow_execution_command_attributes", "record_marker_command_attributes", "continue_as_new_workflow_execution_command_attributes", "start_child_workflow_execution_command_attributes", "signal_external_workflow_execution_command_attributes", "upsert_workflow_search_attributes_command_attributes", "protocol_message_command_attributes", "modify_workflow_properties_command_attributes", "request_cancel_nexus_operation_command_attributes"},
 	},
 	(&commandpb.ScheduleNexusOperationCommandAttributes{}).ProtoReflect().Descriptor().FullName(): {
 		realized: []protoreflect.Name{"endpoint", "service", "operation", "input", "schedule_to_close_timeout", "nexus_header", "schedule_to_start_timeout", "start_to_close_timeout"},
+	},
+	(&commandpb.ScheduleActivityTaskCommandAttributes{}).ProtoReflect().Descriptor().FullName(): {
+		realized: []protoreflect.Name{"activity_id", "activity_type", "task_queue", "input", "schedule_to_close_timeout", "schedule_to_start_timeout", "start_to_close_timeout", "heartbeat_timeout", "retry_policy"},
+		// The SDK writes the header from its context propagators; the Driver requests no eager
+		// execution, and sets no build id or priority.
+		unrealized: []protoreflect.Name{"header", "request_eager_execution", "use_workflow_build_id", "priority"},
+	},
+	(&commonpb.ActivityType{}).ProtoReflect().Descriptor().FullName(): {
+		realized: []protoreflect.Name{"name"},
+	},
+	(&taskqueuepb.TaskQueue{}).ProtoReflect().Descriptor().FullName(): {
+		realized:   []protoreflect.Name{"name"},
+		unrealized: []protoreflect.Name{"kind", "normal_name"},
+	},
+	(&commonpb.Payloads{}).ProtoReflect().Descriptor().FullName(): {
+		realized: []protoreflect.Name{"payloads"},
+	},
+	(&commonpb.RetryPolicy{}).ProtoReflect().Descriptor().FullName(): {
+		realized: []protoreflect.Name{"initial_interval", "backoff_coefficient", "maximum_interval", "maximum_attempts", "non_retryable_error_types"},
 	},
 	(&nexuspb.StartOperationResponse{}).ProtoReflect().Descriptor().FullName(): {
 		realized:   []protoreflect.Name{"sync_success", "async_success", "failure"},
@@ -121,31 +141,68 @@ func (a *admission) bindWorkflowCommand(g *graph, n *node) error {
 		return ir.Invalid(ir.Malformed, path+".command_type", "command type does not name the attributes the command carries")
 	}
 	if !a.commandTypes[denoted] {
-		return ir.Invalid(ir.Unsupported, path+".command_type", "command type the Profile does not admit")
+		return ir.Invalid(ir.Unsupported, path+".command_type", "command type "+enumspb.CommandType_name[int32(denoted)]+" the Profile does not admit")
 	}
 	if err := checkReach(command, path); err != nil {
 		return err
 	}
-	attributes := command.GetScheduleNexusOperationCommandAttributes()
-	attributesPath := path + ".schedule_nexus_operation_command_attributes"
+	switch denoted {
+	case enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION:
+		return a.bindScheduleNexus(command.GetScheduleNexusOperationCommandAttributes(), path+".schedule_nexus_operation_command_attributes")
+	case enumspb.COMMAND_TYPE_SCHEDULE_ACTIVITY_TASK:
+		return a.bindScheduleActivity(command.GetScheduleActivityTaskCommandAttributes(), path+".schedule_activity_task_command_attributes")
+	default:
+		// The reach table already rejects every other attributes arm; a Profile that admits its type
+		// still names a command no Driver realizes.
+		return ir.Invalid(ir.Unsupported, path+".command_type", "command type "+enumspb.CommandType_name[int32(denoted)]+" the Driver cannot realize")
+	}
+}
+
+// bindScheduleNexus admits a Nexus schedule: a valid service and operation on a declared endpoint
+// role, header keys that name something, and timeouts within the Profile's ceiling.
+func (a *admission) bindScheduleNexus(attributes *commandpb.ScheduleNexusOperationCommandAttributes, path string) error {
 	if !ir.ValidID(attributes.GetService()) || !ir.ValidID(attributes.GetOperation()) {
-		return ir.Invalid(ir.Malformed, attributesPath, "invalid Nexus service or operation")
+		return ir.Invalid(ir.Malformed, path, "invalid Nexus service or operation")
 	}
 	if err := a.role(attributes.GetEndpoint(), testpilotspb.ROLE_KIND_ENDPOINT); err != nil {
 		return err
 	}
 	for key := range attributes.GetNexusHeader() {
 		if key == "" {
-			return ir.Invalid(ir.Malformed, attributesPath+".nexus_header", "empty Nexus header key")
+			return ir.Invalid(ir.Malformed, path+".nexus_header", "empty Nexus header key")
 		}
 	}
-	reflection := attributes.ProtoReflect()
-	for _, name := range []protoreflect.Name{"schedule_to_close_timeout", "schedule_to_start_timeout", "start_to_close_timeout"} {
+	return a.checkDurations(attributes, path, "schedule_to_close_timeout", "schedule_to_start_timeout", "start_to_close_timeout")
+}
+
+// bindScheduleActivity admits an activity schedule: a valid activity type on a declared task-queue
+// role, which the SDK emits on every schedule, and timeouts and retry intervals within the
+// Profile's ceiling.
+func (a *admission) bindScheduleActivity(attributes *commandpb.ScheduleActivityTaskCommandAttributes, path string) error {
+	if !ir.ValidID(attributes.GetActivityType().GetName()) {
+		return ir.Invalid(ir.Malformed, path+".activity_type", "invalid activity type")
+	}
+	if err := a.role(attributes.GetTaskQueue().GetName(), testpilotspb.ROLE_KIND_TASK_QUEUE); err != nil {
+		return err
+	}
+	if err := a.checkDurations(attributes, path, "schedule_to_close_timeout", "schedule_to_start_timeout", "start_to_close_timeout", "heartbeat_timeout"); err != nil {
+		return err
+	}
+	if policy := attributes.GetRetryPolicy(); policy != nil {
+		return a.checkDurations(policy, path+".retry_policy", "initial_interval", "maximum_interval")
+	}
+	return nil
+}
+
+// checkDurations admits each named duration field the message carries.
+func (a *admission) checkDurations(message proto.Message, path string, names ...protoreflect.Name) error {
+	reflection := message.ProtoReflect()
+	for _, name := range names {
 		field := reflection.Descriptor().Fields().ByName(name)
 		if !reflection.Has(field) {
 			continue
 		}
-		if err := a.checkDuration(reflection.Get(field).Message().Interface(), attributesPath+"."+string(name)); err != nil {
+		if err := a.checkDuration(reflection.Get(field).Message().Interface(), path+"."+string(name)); err != nil {
 			return err
 		}
 	}
@@ -246,13 +303,28 @@ func nexusOperationOf(instruction *testpilotspb.Instruction) nexusOperation {
 	return nexusOperation{service: attributes.GetService(), operation: attributes.GetOperation()}
 }
 
-// startsNexusOperation reports whether an instruction starts a Nexus operation an AwaitInstruction
-// of the same entrypoint may await: a workflow command scheduling one.
+// startsNexusOperation reports whether an instruction starts a Nexus operation a reserved handler
+// may answer: a workflow command scheduling one.
 func startsNexusOperation(instruction *testpilotspb.Instruction) bool {
-	switch InstructionOpcode(instruction) {
-	case contract.WorkflowCommand:
-		return commandTypeOf(instruction.GetWorkflowCommand().GetCommand()) == enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION
+	return scheduledCommandType(instruction) == enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION
+}
+
+// startsAwaitable reports whether an instruction starts what an AwaitInstruction of the same
+// entrypoint may await: a workflow command scheduling a Nexus operation or an activity.
+func startsAwaitable(instruction *testpilotspb.Instruction) bool {
+	switch scheduledCommandType(instruction) {
+	case enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION, enumspb.COMMAND_TYPE_SCHEDULE_ACTIVITY_TASK:
+		return true
 	default:
 		return false
 	}
+}
+
+// scheduledCommandType is the command type a workflow command instruction issues, or UNSPECIFIED
+// for any other instruction.
+func scheduledCommandType(instruction *testpilotspb.Instruction) enumspb.CommandType {
+	if InstructionOpcode(instruction) != contract.WorkflowCommand {
+		return enumspb.COMMAND_TYPE_UNSPECIFIED
+	}
+	return commandTypeOf(instruction.GetWorkflowCommand().GetCommand())
 }

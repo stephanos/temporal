@@ -236,7 +236,7 @@ func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, limi
 		return programDefinition{}, ErrInvalid
 	}
 	roles := preparedRolesByID(preparedRoles)
-	definition := programDefinition{snapshot: snapshot, limits: limits, entries: make(map[string]entryDefinition), endpoints: make(map[string]string), queueWorkflows: make(map[string]map[string]struct{}), queueActivities: make(map[string]map[string]struct{})}
+	definition := programDefinition{snapshot: snapshot, limits: limits, entries: make(map[string]entryDefinition), endpoints: make(map[string]string), queues: make(map[string]string), queueWorkflows: make(map[string]map[string]struct{}), queueActivities: make(map[string]map[string]struct{})}
 	if err := h.validateSymbolicRoles(roles, requireWorker); err != nil {
 		return programDefinition{}, err
 	}
@@ -367,6 +367,15 @@ func (h *Driver) addInstructionBindings(definition *programDefinition, plan test
 				return ErrInvalid
 			}
 			definition.endpoints[endpointRole] = role.Resource
+		}
+		if schedule := scheduleActivity(source); schedule != nil {
+			// A workflow schedules its activities in its own namespace.
+			queueRole := schedule.GetTaskQueue().GetName()
+			role, ok := roles[queueRole]
+			if !ok || role.Kind != testpilotspb.ROLE_KIND_TASK_QUEUE || role.ResourceBindingID == "" || role.Resource == "" || role.Namespace != roles[h.options.workerRoleID].Namespace {
+				return ErrInvalid
+			}
+			definition.queues[queueRole] = role.Resource
 		}
 		if err := h.validateRPCBindings(instruction, roles, program); err != nil {
 			return err

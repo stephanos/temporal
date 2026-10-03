@@ -55,7 +55,8 @@ type workflowInterpreter struct {
 	session *Session
 	ctx     workflow.Context
 	state   *activation.State
-	futures map[string]workflow.NexusOperationFuture
+	// futures are the scheduled commands' results an Await may read, by schedule instruction.
+	futures map[string]workflow.Future
 }
 
 func (s *Session) executeWorkflow(ctx workflow.Context, delivered delivery.Activation) (*testpilotspb.Value, error) {
@@ -67,7 +68,7 @@ func (s *Session) executeWorkflow(ctx workflow.Context, delivered delivery.Activ
 	if err != nil {
 		return nil, err
 	}
-	interpreter := workflowInterpreter{session: s, ctx: ctx, state: state, futures: make(map[string]workflow.NexusOperationFuture)}
+	interpreter := workflowInterpreter{session: s, ctx: ctx, state: state, futures: make(map[string]workflow.Future)}
 	instructions := entry.plan.Instructions()
 	for _, index := range entry.plan.Order() {
 		if err := ctx.Err(); err != nil {
@@ -91,9 +92,9 @@ func (s *Session) executeWorkflow(ctx workflow.Context, delivered delivery.Activ
 func (i *workflowInterpreter) execute(index int, instruction testpilot.InstructionPlan, input *testpilotspb.Value) (*testpilotspb.Value, bool, error) {
 	switch instruction.Opcode() {
 	case testpilot.WorkflowCommand:
-		return nil, false, i.scheduleNexus(index, instruction)
+		return nil, false, i.issueCommand(index, instruction)
 	case testpilot.Await:
-		return nil, false, i.awaitNexus(index, instruction)
+		return nil, false, i.await(index, instruction)
 	case testpilot.Finish:
 		if err := i.state.Admit(context.Background(), index, terminalOutcome()); err != nil {
 			return nil, false, err
@@ -104,7 +105,7 @@ func (i *workflowInterpreter) execute(index int, instruction testpilot.Instructi
 	}
 }
 
-func (i *workflowInterpreter) awaitNexus(index int, instruction testpilot.InstructionPlan) error {
+func (i *workflowInterpreter) await(index int, instruction testpilot.InstructionPlan) error {
 	await := instruction.Source().GetInstruction().GetAwaitInstruction()
 	future := i.futures[await.GetInstruction().GetInstructionId()]
 	if future == nil {

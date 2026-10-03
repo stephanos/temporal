@@ -883,7 +883,7 @@ func TestWholeRequestAssignments(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestAwaitRequiresNexusStart(t *testing.T) {
+func TestAwaitRequiresAScheduleCommand(t *testing.T) {
 	for _, target := range []string{"start", "await", "finish"} {
 		t.Run(target, func(t *testing.T) {
 			c, catalog, p := handleFixture(t)
@@ -897,7 +897,7 @@ func TestAwaitRequiresNexusStart(t *testing.T) {
 			if target == "start" {
 				require.NoError(t, err)
 			} else {
-				require.ErrorContains(t, err, "Nexus schedule command")
+				require.ErrorContains(t, err, "Nexus or activity schedule command")
 			}
 		})
 	}

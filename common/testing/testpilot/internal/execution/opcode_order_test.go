@@ -79,7 +79,7 @@ func TestPrepareRejectsTheFirstOfTwoDefects(t *testing.T) {
 		{"a later instruction's binding before an earlier node's dataflow", handleFixture, func(c *testpilotspb.Case, p *Profile) {
 			c.Program.Entrypoints[0].Instructions[2].Guard = alwaysRuns()
 			p.CommandTypes = nil
-		}, ir.Error{Category: ir.Unsupported, Path: "program.entrypoints[workflow].instructions[start].instruction.workflow_command.command.command_type", Detail: "command type the Profile does not admit"}},
+		}, ir.Error{Category: ir.Unsupported, Path: "program.entrypoints[workflow].instructions[start].instruction.workflow_command.command.command_type", Detail: "command type COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION the Profile does not admit"}},
 		{"guard before RPC assignments", handleFixture, func(c *testpilotspb.Case, _ *Profile) {
 			call := c.Program.Entrypoints[0].Instructions[0]
 			call.Guard = missingSlot

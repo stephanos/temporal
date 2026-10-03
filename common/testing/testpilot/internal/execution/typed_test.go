@@ -14,6 +14,7 @@ import (
 	failurepb "go.temporal.io/api/failure/v1"
 	nexuspb "go.temporal.io/api/nexus/v1"
 	sdkpb "go.temporal.io/api/sdk/v1"
+	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
@@ -266,4 +267,127 @@ func TestCarriedCompletionIsThePayloadOrFailure(t *testing.T) {
 	failure := &testpilotspb.NexusOperationCompletion{HandleSlotId: "handle", Result: &testpilotspb.NexusOperationCompletion_Failure{Failure: &failurepb.Failure{Message: "failed"}}}
 	require.True(t, proto.Equal(failure.GetFailure(), carriedCompletion(failure)))
 	require.Nil(t, carriedCompletion(&testpilotspb.NexusOperationCompletion{}))
+}
+
+func activityScheduleCommand() *commandpb.Command {
+	return &commandpb.Command{
+		CommandType: enumspb.COMMAND_TYPE_SCHEDULE_ACTIVITY_TASK,
+		Attributes: &commandpb.Command_ScheduleActivityTaskCommandAttributes{ScheduleActivityTaskCommandAttributes: &commandpb.ScheduleActivityTaskCommandAttributes{
+			ActivityId: "activity", ActivityType: &commonpb.ActivityType{Name: "activity-type"}, TaskQueue: &taskqueuepb.TaskQueue{Name: "queue"},
+			Input:               &commonpb.Payloads{Payloads: []*commonpb.Payload{{Metadata: map[string][]byte{"encoding": []byte("json/plain")}, Data: []byte(`"request"`)}}},
+			StartToCloseTimeout: durationpb.New(2 * time.Second),
+			HeartbeatTimeout:    durationpb.New(time.Second),
+			RetryPolicy:         &commonpb.RetryPolicy{InitialInterval: durationpb.New(time.Second), BackoffCoefficient: 2, MaximumAttempts: 3, NonRetryableErrorTypes: []string{"fatal"}},
+		}},
+	}
+}
+
+// scheduledActivityFixture is a controller that starts a workflow which schedules an activity, awaits it and
+// finishes with its result, under a Profile that admits activity schedules.
+func scheduledActivityFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
+	t.Helper()
+	c, catalog, p := fixture(t)
+	addWorker(c, &p)
+	p.CommandTypes = []enumspb.CommandType{enumspb.COMMAND_TYPE_SCHEDULE_ACTIVITY_TASK}
+	start := rpcNode("start")
+	start.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_WorkflowCommand{WorkflowCommand: &testpilotspb.WorkflowCommand{Command: activityScheduleCommand()}}}
+	await := rpcNode("await")
+	await.Guard = alwaysRuns()
+	await.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotspb.AwaitInstruction{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "start"}}}}
+	finish := rpcNode("finish")
+	finish.Guard = succeeded("workflow", "await")
+	finish.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Reference{Reference: &testpilotspb.Reference{Reference: &testpilotspb.Reference_Outcome{Outcome: &testpilotspb.InstructionOutcomeReference{Instruction: &testpilotspb.InstructionReference{EntrypointId: "workflow", InstructionId: "await"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}}}}}}}}
+	c.Program.Entrypoints[1].Instructions = []*testpilotspb.InstructionNode{start, await, finish}
+	return c, catalog, p
+}
+
+// An activity schedule is admitted beside a Nexus one: its Await yields the activity's payload
+// whole, as an Any, and a Finish completes the workflow with it.
+func TestPrepareAdmitsAnActivityScheduleAwaitAndFinish(t *testing.T) {
+	c, catalog, p := scheduledActivityFixture(t)
+	prepared, err := Prepare(c, catalog, p)
+	require.NoError(t, err)
+	await := prepared.Entrypoints()[1].Instructions()[1]
+	value, ok := outcomeType(await, testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
+	require.True(t, ok)
+	require.NotNil(t, value.GetSingular().GetAny())
+}
+
+// An activity schedule rejects at the field it names: a command type the Profile does not admit,
+// named in the detail; an activity type or task-queue role that does not resolve; a field the SDK
+// cannot set; and a duration out of bounds, in the schedule or its retry policy.
+func TestPrepareRejectsActivitySchedules(t *testing.T) {
+	const attributes = "program.entrypoints[workflow].instructions[start].instruction.workflow_command.command.schedule_activity_task_command_attributes"
+	schedule := func(c *testpilotspb.Case) *commandpb.ScheduleActivityTaskCommandAttributes {
+		return c.Program.Entrypoints[1].Instructions[0].Instruction.GetWorkflowCommand().GetCommand().GetScheduleActivityTaskCommandAttributes()
+	}
+	for _, tc := range []struct {
+		name     string
+		mutate   func(*testpilotspb.Case, *Profile)
+		category ir.ErrorCategory
+		path     string
+	}{
+		{"command type the Profile does not admit", func(_ *testpilotspb.Case, p *Profile) {
+			p.CommandTypes = []enumspb.CommandType{enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION}
+		}, ir.Unsupported, "program.entrypoints[workflow].instructions[start].instruction.workflow_command.command.command_type"},
+		{"no activity type", func(c *testpilotspb.Case, _ *Profile) { schedule(c).ActivityType = nil }, ir.Malformed, attributes + ".activity_type"},
+		{"no task queue", func(c *testpilotspb.Case, _ *Profile) { schedule(c).TaskQueue = nil }, ir.Unknown, "role"},
+		{"task queue naming no task-queue role", func(c *testpilotspb.Case, _ *Profile) { schedule(c).TaskQueue.Name = "worker" }, ir.Unknown, "role"},
+		{"task queue kind", func(c *testpilotspb.Case, _ *Profile) {
+			schedule(c).TaskQueue.Kind = enumspb.TASK_QUEUE_KIND_NORMAL
+		}, ir.Unsupported, attributes + ".task_queue.kind"},
+		{"header", func(c *testpilotspb.Case, _ *Profile) { schedule(c).Header = &commonpb.Header{} }, ir.Unsupported, attributes + ".header"},
+		{"eager execution", func(c *testpilotspb.Case, _ *Profile) { schedule(c).RequestEagerExecution = true }, ir.Unsupported, attributes + ".request_eager_execution"},
+		{"priority", func(c *testpilotspb.Case, _ *Profile) { schedule(c).Priority = &commonpb.Priority{} }, ir.Unsupported, attributes + ".priority"},
+		{"zero heartbeat timeout", func(c *testpilotspb.Case, _ *Profile) {
+			schedule(c).HeartbeatTimeout = durationpb.New(0)
+		}, ir.Malformed, attributes + ".heartbeat_timeout"},
+		{"start-to-close timeout over the Profile ceiling", func(c *testpilotspb.Case, _ *Profile) {
+			schedule(c).StartToCloseTimeout = durationpb.New(31 * time.Second)
+		}, ir.LimitExceeded, attributes + ".start_to_close_timeout"},
+		{"negative retry interval", func(c *testpilotspb.Case, _ *Profile) {
+			schedule(c).RetryPolicy.MaximumInterval = durationpb.New(-time.Second)
+		}, ir.Malformed, attributes + ".retry_policy.maximum_interval"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			c, catalog, p := scheduledActivityFixture(t)
+			tc.mutate(c, &p)
+			_, err := Prepare(c, catalog, p)
+			var diagnostic *ir.Error
+			require.ErrorAs(t, err, &diagnostic)
+			require.Equal(t, tc.category, diagnostic.Category, diagnostic.Detail)
+			require.Equal(t, tc.path, diagnostic.Path, diagnostic.Detail)
+		})
+	}
+}
+
+// R2: a Case whose command the Profile does not list is rejected naming the command type.
+func TestPrepareNamesTheCommandTypeTheProfileDoesNotAdmit(t *testing.T) {
+	for name, build := range map[string]func(*testing.T) (*testpilotspb.Case, *ir.Catalog, Profile){"activity": scheduledActivityFixture, "Nexus": handleFixture} {
+		t.Run(name, func(t *testing.T) {
+			c, catalog, p := build(t)
+			denoted := c.Program.Entrypoints[1].Instructions[0].Instruction.GetWorkflowCommand().GetCommand().GetCommandType()
+			p.CommandTypes = nil
+			_, err := Prepare(c, catalog, p)
+			var diagnostic *ir.Error
+			require.ErrorAs(t, err, &diagnostic)
+			require.Contains(t, diagnostic.Detail, enumspb.CommandType_name[int32(denoted)])
+		})
+	}
+}
+
+// A Profile may admit a command type no Driver realizes; its attributes reject at the field the
+// reach table names, so the Case never reaches a Driver with it.
+func TestPrepareRejectsAnAdmittedCommandTypeNoDriverRealizes(t *testing.T) {
+	c, catalog, p := scheduledActivityFixture(t)
+	p.CommandTypes = []enumspb.CommandType{enumspb.COMMAND_TYPE_START_TIMER}
+	c.Program.Entrypoints[1].Instructions[0].Instruction.GetWorkflowCommand().Command = &commandpb.Command{
+		CommandType: enumspb.COMMAND_TYPE_START_TIMER,
+		Attributes:  &commandpb.Command_StartTimerCommandAttributes{StartTimerCommandAttributes: &commandpb.StartTimerCommandAttributes{TimerId: "timer"}},
+	}
+	_, err := Prepare(c, catalog, p)
+	var diagnostic *ir.Error
+	require.ErrorAs(t, err, &diagnostic)
+	require.Equal(t, ir.Unsupported, diagnostic.Category, diagnostic.Detail)
+	require.Equal(t, "program.entrypoints[workflow].instructions[start].instruction.workflow_command.command.start_timer_command_attributes", diagnostic.Path)
 }

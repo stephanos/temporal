@@ -378,6 +378,9 @@ func runtimeTestSessionWithDisposition(t *testing.T, host *Driver, definition pr
 	origin := testpilot.Coordinate{RunID: runID, EntrypointID: "controller", ActivationID: "controller-1", InstructionID: "call", Attempt: 1}
 	var handles []testpilot.ReservationHandle
 	for _, entrypoint := range []string{"workflow", "handler"} {
+		if _, declared := definition.entries[entrypoint]; !declared {
+			continue
+		}
 		reserved, err := session.Reserve(t.Context(), testpilot.ReservationRequest{Origin: origin, EntrypointID: entrypoint, Count: 1})
 		require.NoError(t, err)
 		handles = append(handles, reserved...)

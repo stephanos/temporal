@@ -173,9 +173,9 @@ Worker adapters use the root `EntrypointPlan.RuntimeWorkLimit` and `InstructionP
 `EvaluateInput`, `ValidateOutcome`, `TimeoutMilliseconds`, `MaxAttempts` and
 `Reservations`. An instruction's outcome fields are derived from it: every instruction has a status and
 a detail, `InvokeRpc` and `NexusOperationCompletion` a protocol code, a
-workflow, activity or Nexus-handler instruction an SDK failure code, and `AwaitInstruction` its operation's
-result as VALUE: the handler's payload as an `Any`, carried back from the `WorkflowCommand` that
-scheduled the operation.
+workflow, activity or Nexus-handler instruction an SDK failure code, and `AwaitInstruction` its
+operation's or activity's result as VALUE: the payload the handler or the activity answered, as an
+`Any`, carried back from the `WorkflowCommand` that scheduled it.
 `ValidateOutcome` checks an outcome against those derived fields and returns an activation-owned
 `contract.OutcomeSnapshot` with independently copied outcome and derived fields. Mutating that result
 cannot mutate the plan or a subsequent validation result. An RPC response is read only through

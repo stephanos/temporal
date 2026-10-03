@@ -37,7 +37,10 @@ to the Contract.
 The typed worker instructions (fn-85 R10) reach the SDK through `typed.go`: a `WorkflowCommand`
 carrying `ScheduleNexusOperationCommandAttributes` becomes `workflow.ExecuteNexusOperation` with the
 carried payload as an unconverted `converter.RawValue`, the carried timeouts, and the carried Nexus
-header merged under the Run's routing header; a `NexusHandlerReply` becomes the handler's return, a
+header merged under the Run's routing header; a `WorkflowCommand` carrying
+`ScheduleActivityTaskCommandAttributes` becomes `workflow.ExecuteActivity` on the queue its
+task-queue role binds, with the carried payloads unconverted, the carried timeouts and retry policy,
+and no eager execution; an `AwaitInstruction` reads either future's payload; a `NexusHandlerReply` becomes the handler's return, a
 synchronous payload unconverted, an asynchronous reply through the completion authority the Session
 publishes under its own token, a handler error with its type and retry behavior, or a failed start
 as an operation error; and a `NexusOperationCompletion` becomes the completion callback's body, a
