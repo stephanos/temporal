@@ -19,7 +19,7 @@ import (
 // validates the evidence shape and projects the decisions into the review.
 
 // evaluateCollectedCapabilities records the packs policy selects for freshly
-// collected packages and evaluates the resulting closure.
+// collected packages and reviews the resulting closure.
 func evaluateCollectedCapabilities(policy capabilitypolicy.Policy, packages []CapabilityPackage, tags []string) (CapabilityReview, error) {
 	evaluation, err := evaluateCapabilityPolicy(policy, packages)
 	if err != nil {
@@ -30,10 +30,14 @@ func evaluateCollectedCapabilities(policy capabilitypolicy.Policy, packages []Ca
 		Compatibility: projectCompatibilityIdentities(evaluation.Selection.Identities()),
 		Packages:      packages,
 	}
-	return evaluateCapabilityClosure(policy, closure, tags)
+	if err := validateCapabilityClosureIdentity(closure); err != nil {
+		return CapabilityReview{}, err
+	}
+	return reviewEvaluatedClosure(closure, tags, evaluation)
 }
 
-// evaluateCapabilityClosure validates a closure against policy and reviews it.
+// evaluateCapabilityClosure validates a recorded closure against policy and
+// reviews it.
 func evaluateCapabilityClosure(policy capabilitypolicy.Policy, closure CapabilityClosure, tags []string) (CapabilityReview, error) {
 	if err := validateCapabilityClosureIdentity(closure); err != nil {
 		return CapabilityReview{}, err
@@ -42,6 +46,13 @@ func evaluateCapabilityClosure(policy capabilitypolicy.Policy, closure Capabilit
 	if err != nil {
 		return CapabilityReview{}, err
 	}
+	return reviewEvaluatedClosure(closure, tags, evaluation)
+}
+
+// reviewEvaluatedClosure checks that the closure records the packs its
+// evaluation selected and that its packages are canonical, then projects the
+// evaluation into the review.
+func reviewEvaluatedClosure(closure CapabilityClosure, tags []string, evaluation capabilitypolicy.Evaluation) (CapabilityReview, error) {
 	if !slices.Equal(evaluation.Selection.Identities(), internalCompatibilityIdentities(closure.Compatibility)) {
 		return CapabilityReview{}, errors.New("target capability closure compatibility pack identity does not match its package closure")
 	}

@@ -932,28 +932,6 @@ func copyRegularFile(source, destination string) error {
 	return nil
 }
 
-func readBoundedRegularFile(path string, maximum uint64) (_ []byte, retErr error) {
-	file, info, err := hostfs.OpenPath(path)
-	if err != nil {
-		if errors.Is(err, hostfs.ErrSymbolicLink) {
-			return nil, fmt.Errorf("%s is not a regular file", path)
-		}
-		return nil, err
-	}
-	defer func() { retErr = errors.Join(retErr, file.Close()) }()
-	if info.Size() < 0 || uint64(info.Size()) > maximum {
-		return nil, fmt.Errorf("%s exceeds its size bound", path)
-	}
-	data, err := io.ReadAll(io.LimitReader(file, int64(maximum)+1))
-	if err != nil {
-		return nil, err
-	}
-	if uint64(len(data)) > maximum {
-		return nil, fmt.Errorf("%s exceeds its size bound", path)
-	}
-	return data, nil
-}
-
 func writePreparedFile(path string, data []byte, mode os.FileMode) error {
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, mode)
 	if err != nil {

@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/internal/sourceinventory"
 	targetbuild "go.temporal.io/server/tools/gomad3/target/internal/build"
 	"go.temporal.io/server/tools/gomad3/target/internal/capabilitypolicy"
@@ -150,7 +151,7 @@ func projectCapabilitySource(pkg listedPackage, overlay map[string]string, name 
 	if replacement, found := overlay[filepath.Clean(path)]; found {
 		path = replacement
 	}
-	contents, err := readBoundedRegularFile(path, maximumCapabilitySourceBytes)
+	contents, err := hostfs.ReadBounded(path, maximumCapabilitySourceBytes)
 	if err != nil {
 		return CapabilitySource{}, fmt.Errorf("inspect target capability source %s: unreadable source %s: %w", pkg.ImportPath, name, err)
 	}
@@ -191,7 +192,7 @@ func loadBuildOverlay(path, commandDirectory string) (map[string]string, error) 
 	if !filepath.IsAbs(path) {
 		path = filepath.Join(commandDirectory, path)
 	}
-	contents, err := readBoundedRegularFile(path, 4<<20)
+	contents, err := hostfs.ReadBounded(path, 4<<20)
 	if err != nil {
 		return nil, fmt.Errorf("read target build overlay: %w", err)
 	}
@@ -272,7 +273,7 @@ func projectForeignSources(pkg listedPackage, overlay map[string]string) ([]Capa
 			if replacement, found := overlay[filepath.Clean(path)]; found {
 				path = replacement
 			}
-			contents, err := readBoundedRegularFile(path, maximumCapabilitySourceBytes)
+			contents, err := hostfs.ReadBounded(path, maximumCapabilitySourceBytes)
 			if err != nil {
 				return nil, fmt.Errorf("inspect target capability source %s: unreadable source %s: %w", pkg.ImportPath, name, err)
 			}

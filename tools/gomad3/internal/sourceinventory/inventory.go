@@ -8,7 +8,6 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"path/filepath"
 	"strings"
@@ -68,7 +67,7 @@ func digest(root string, maximumFiles int, maximumBytes uint64) (string, error) 
 		if size > maximumBytes-total {
 			return &CapacityError{Resource: "bytes", Limit: maximumBytes}
 		}
-		contents, err := readBoundedRegularFile(filePath, maximumBytes-total)
+		contents, err := hostfs.ReadBounded(filePath, maximumBytes-total)
 		if err != nil {
 			return err
 		}
@@ -91,26 +90,4 @@ func digest(root string, maximumFiles int, maximumBytes uint64) (string, error) 
 		return "", errors.New("adapter source inventory is empty")
 	}
 	return fmt.Sprintf("sha256:%x", hasher.Sum(nil)), nil
-}
-
-func readBoundedRegularFile(path string, maximum uint64) (_ []byte, retErr error) {
-	file, info, err := hostfs.OpenPath(path)
-	if err != nil {
-		if errors.Is(err, hostfs.ErrSymbolicLink) {
-			return nil, fmt.Errorf("%s is not a regular file", path)
-		}
-		return nil, err
-	}
-	defer func() { retErr = errors.Join(retErr, file.Close()) }()
-	if info.Size() < 0 || uint64(info.Size()) > maximum {
-		return nil, fmt.Errorf("%s exceeds its size bound", path)
-	}
-	data, err := io.ReadAll(io.LimitReader(file, int64(maximum)+1))
-	if err != nil {
-		return nil, err
-	}
-	if uint64(len(data)) > maximum {
-		return nil, fmt.Errorf("%s exceeds its size bound", path)
-	}
-	return data, nil
 }

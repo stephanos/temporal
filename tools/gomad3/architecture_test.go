@@ -283,6 +283,12 @@ func TestCapabilityEvaluationHasNoHostEffect(t *testing.T) {
 	if !found {
 		t.Fatalf("%s is not listed", policyPackage)
 	}
+	// Policy data types and constants; LoadPacks, Select and VerifyIdentities
+	// read the environment and pack files, so neither evaluator names them.
+	compatibilityData := []string{
+		"AdapterEvidence", "Decision", "Fact", "FactCapability", "FactLinkname", "FactMalformedLinkname", "FactNoReviewedGoSource",
+		"ForeignSource", "Identity", "Module", "PackEvidence", "Package", "Selection", "Source", "ValidatedPack",
+	}
 	entries, err := os.ReadDir(filepath.Join("target", "internal", "capabilitypolicy"))
 	if err != nil {
 		t.Fatal(err)
@@ -292,19 +298,21 @@ func TestCapabilityEvaluationHasNoHostEffect(t *testing.T) {
 			continue
 		}
 		checkPureFile(t, filepath.Join("target", "internal", "capabilitypolicy", entry.Name()), map[string][]string{
-			"slices": nil, "sort": nil, "strings": nil, compatibilityPackage: {"SelectPacksForPlatform"},
+			"slices": nil, "sort": nil, "strings": nil, compatibilityPackage: append(compatibilityData, "SelectPacksForPlatform"),
 		}, nil)
 	}
 	checkPureFile(t, filepath.Join("target", "capability_evaluation.go"), map[string][]string{
 		"errors": nil, "slices": nil, "sort": nil, "strings": nil, "fmt": {"Errorf"}, "path/filepath": {"Base"},
-		modulePath + "/record": {"ParseSHA256"}, compatibilityPackage: {"DigestSources", "Identity"}, policyPackage: {"Evaluate"},
+		modulePath + "/record": {"ParseSHA256"}, compatibilityPackage: append(compatibilityData, "DigestSources"),
+		policyPackage: {"Evaluate", "Evaluation", "Finding", "Package", "Policy", "Source"},
 	}, packageFunctions(t, "target"))
 }
 
-// checkPureFile rejects an import outside allowed and a call or conversion
-// through an import that names an identifier outside its listed ones (nil
-// allows the whole package). With local, it also rejects calls to package-level functions
-// declared in another file of the package.
+// checkPureFile rejects an import outside allowed and a reference through an
+// import to an identifier outside its listed ones (nil allows the whole
+// package), whether called, converted to or taken as a value. With local, it
+// also rejects references to package-level functions declared in another file
+// of the package; a local name that shadows such a function is reported too.
 func checkPureFile(t *testing.T, path string, allowed map[string][]string, local map[string]string) {
 	t.Helper()
 	file, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
@@ -326,29 +334,40 @@ func checkPureFile(t *testing.T, path string, allowed map[string][]string, local
 		}
 		importsByName[name] = importPath
 	}
-	ast.Inspect(file, func(node ast.Node) bool {
-		call, ok := node.(*ast.CallExpr)
-		if !ok {
-			return true
-		}
-		switch function := call.Fun.(type) {
+	var inspect func(ast.Node) bool
+	inspect = func(node ast.Node) bool {
+		switch node := node.(type) {
 		case *ast.SelectorExpr:
-			receiver, ok := function.X.(*ast.Ident)
-			if !ok {
-				return true
+			if receiver, ok := node.X.(*ast.Ident); ok {
+				if importPath, imported := importsByName[receiver.Name]; imported {
+					if allowed[importPath] != nil && !slices.Contains(allowed[importPath], node.Sel.Name) {
+						t.Errorf("%s references %s.%s", path, importPath, node.Sel.Name)
+					}
+					return false
+				}
 			}
-			importPath, imported := importsByName[receiver.Name]
-			if imported && allowed[importPath] != nil && !slices.Contains(allowed[importPath], function.Sel.Name) {
-				t.Errorf("%s calls %s.%s", path, importPath, function.Sel.Name)
+			ast.Inspect(node.X, inspect)
+			return false
+		case *ast.KeyValueExpr:
+			if _, field := node.Key.(*ast.Ident); field {
+				ast.Inspect(node.Value, inspect)
+				return false
 			}
+		case *ast.FuncDecl:
+			if node.Body != nil {
+				ast.Inspect(node.Type, inspect)
+				ast.Inspect(node.Body, inspect)
+			}
+			return false
 		case *ast.Ident:
-			if declaredIn, declared := local[function.Name]; declared && declaredIn != filepath.Base(path) {
-				t.Errorf("%s calls %s from %s", path, function.Name, declaredIn)
+			if declaredIn, declared := local[node.Name]; declared && declaredIn != filepath.Base(path) {
+				t.Errorf("%s references %s from %s", path, node.Name, declaredIn)
 			}
 		default:
 		}
 		return true
-	})
+	}
+	ast.Inspect(file, inspect)
 }
 
 // packageFunctions maps each package-level function of a package directory to

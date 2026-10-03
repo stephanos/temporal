@@ -35,16 +35,23 @@ pack errors. Both pack loading and selection failures keep the
 
 Inventory: `internal/sourceinventory` (architectural owner `sourceinventory`, may import only
 `hostfs`) owns `Digest`. `target` and `deterministicio` import it and map its
-`CapacityError` to their own `AdapterCapacityError`.
+`CapacityError` to their own `AdapterCapacityError`. The bounded regular-file reader that
+`target` and the inventory both need moved from `target.readBoundedRegularFile` to
+`hostfs.ReadBounded`, with the same error text.
+
+A fresh review evaluates its collected packages once and records the selected packs. A
+recorded closure is evaluated once against the packs it names.
 
 ## Enforcement
 
 - `TestCapabilityEvaluationHasNoHostEffect`: `capabilitypolicy` imports only `slices`,
   `sort`, `strings` and `internal/compatibilitypack`, and calls only `SelectPacksForPlatform`
   from it. `capability_evaluation.go` may import only an allowlist (`fmt` only for `Errorf`,
-  `filepath` only for `Base`, `record` only for `ParseSHA256`) and calls no package-level
-  `target` function declared in another file. A mutation check confirmed that calling
-  `readBoundedRegularFile` or `filepath.Join` from the evaluator fails the test.
+  `filepath` only for `Base`, `record` only for `ParseSHA256`, and only the listed
+  compatibility data types plus `DigestSources`). It references no package-level `target`
+  function declared in another file. The check covers calls, conversions and function values.
+  A mutation check confirmed that it rejects `loadCompatibilityPolicy` or `filepath.Join`
+  taken as values in the evaluator, and `compatibility.LoadPacks` in `capabilitypolicy`.
 - `TestExactModuleEdges`: `target` and `deterministicio` import `internal/sourceinventory`,
   that package imports only `internal/hostfs` from the module, and `target` no longer exports
   `DigestAdapterSourceInventory`.
