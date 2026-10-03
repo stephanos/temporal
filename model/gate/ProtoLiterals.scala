@@ -8,10 +8,10 @@ import scala.jdk.CollectionConverters.*
 /** Proto names written as text in Models bypass compiler checking even when no old constructor uses them. */
 private[gate] object ProtoLiterals:
   final case class Problem(line: Int, category: String, value: String)
-  final private case class Literal(value: String, line: Int, start: Int, end: Int)
-  final private case class Scanned(values: Vector[Literal], comments: Vector[(Int, Int)])
+  final private[gate] case class Literal(value: String, line: Int, start: Int, end: Int)
+  final private[gate] case class Scanned(values: Vector[Literal], comments: Vector[(Int, Int)])
 
-  private def literals(source: String): Scanned =
+  private[gate] def literals(source: String): Scanned =
     @tailrec def skipLine(offset: Int): Int =
       if offset >= source.length || source(offset) == '\n' then offset
       else skipLine(offset + 1)
@@ -68,7 +68,7 @@ private[gate] object ProtoLiterals:
     val closingEvidence = s"\\bcloses\\s*=\\s*Vector\\s*\\([^)]*\\b$quoted\\b"
     Pattern.compile(s"(?:$firstArgument|$namedArgument|$closingEvidence)").matcher(code).find()
 
-  private def category(value: String, context: String, code: String): Option[String] =
+  private[gate] def category(value: String, context: String, code: String): Option[String] =
     val declaration = "(?s).*\\b(?:val|var)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*(?::[^=\\n]*)?=\\s*".r
     val declaredName = context match
       case declaration(name) => Some(name)
@@ -98,16 +98,21 @@ private[gate] object ProtoLiterals:
     else if value.matches("[a-z][a-z0-9_]*") && fieldContext then Some("field path")
     else None
 
-  def problems(source: String): Vector[Problem] =
-    val scanned = literals(source)
-    val values = scanned.values
-    val spans = (scanned.comments ++ values.map(value => value.start -> value.end)).sortBy(_._1)
+  /** The source with its comments and string literals blanked, offsets unchanged. */
+  private[gate] def code(source: String, scanned: Scanned): String =
+    val spans =
+      (scanned.comments ++ scanned.values.map(value => value.start -> value.end)).sortBy(_._1)
     val builder = new StringBuilder(source.length)
     val end = spans.foldLeft(0): (at, span) =>
       builder.append(source.substring(at, span._1))
       builder.append(" " * (span._2 - span._1))
       span._2
-    val code = builder.append(source.substring(end)).result()
+    builder.append(source.substring(end)).result()
+
+  def problems(source: String): Vector[Problem] =
+    val scanned = literals(source)
+    val values = scanned.values
+    val code = this.code(source, scanned)
     @tailrec def joined(last: Int, value: String): (Int, String) =
       if last + 1 < values.length &&
         source.substring(values(last).end, values(last + 1).start).matches("\\s*\\+\\s*")

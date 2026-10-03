@@ -1,0 +1,14 @@
+{
+  "explorations/ir/activity-race.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "explorations/ir/activity-system.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "explorations/ir/activity.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "explorations/ir/nexus-caller.json": "b26801d8e1903f14020c1d54f78d838e8b262eb6bdddc23034327fecb4a2a5c4",
+  "explorations/ir/nexus-close.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "explorations/ir/nexus-control.json": "bb2cc3e4b2d82f0072653faabb4db8f0c4a5cacf20227e3910a1a3d2e55568bb",
+  "explorations/lifts/admission.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "explorations/lifts/channels.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "explorations/lifts/closereset.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "explorations/lifts/declarations.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "explorations/lifts/presence.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "explorations/lifts/realizations.json": "da6508e9b3af12607b34a812865677cb29795eb0a0b81a6917e7647eab3d9887"
+}

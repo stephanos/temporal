@@ -113,8 +113,17 @@ func migrationMeaning(t *testing.T, m *umpirespb.Model) migrationSemantics {
 }
 
 func migrationMeaningOf(b *binding) migrationSemantics {
+	var out migrationSemantics
+	out.Receipts = migrationMeaningEach(b, func(s migrationSubject) { out.Subjects = append(out.Subjects, s) },
+		func(p migrationProperty) { out.Properties = append(out.Properties, p) })
+	return out
+}
+
+// migrationMeaningEach reads a Model's meaning one subject and one Property at a time, so a caller can
+// digest a Model whose meaning is too large to hold, and answers its receipts.
+func migrationMeaningEach(b *binding, subjectOf func(migrationSubject), propertyOf func(migrationProperty)) []migrationReceipt {
 	m := b.model
-	out := migrationSemantics{Receipts: migrationReceipts(checkWithBinding(m, b.scope, m, b.checking()).Receipts)}
+	receipts := migrationReceipts(checkWithBinding(m, b.scope, m, b.checking()).Receipts)
 	var subjects []string
 	for _, machine := range m.GetMachines() {
 		subjects = append(subjects, machine.GetName())
@@ -135,7 +144,7 @@ func migrationMeaningOf(b *binding) migrationSemantics {
 		if table != nil {
 			entry.Table = migrationTableOf(table)
 		}
-		out.Subjects = append(out.Subjects, entry)
+		subjectOf(entry)
 	}
 	for _, p := range m.GetProperties() {
 		subject := b.subject(p.GetMachine())
@@ -160,9 +169,9 @@ func migrationMeaningOf(b *binding) migrationSemantics {
 				}
 			}
 		}
-		out.Properties = append(out.Properties, entry)
+		propertyOf(entry)
 	}
-	return out
+	return receipts
 }
 
 func migrationKey(path string) string { return strings.TrimPrefix(path, "model/scalav2/") }
@@ -271,14 +280,12 @@ func TestMigrationProjectionPreservesSemantics(t *testing.T) {
 			// The original and the mapped Model are each interpreted once, and apart.
 			read, readMapped := migrationBinding(t, original), migrationBinding(t, mapped)
 			migrate := locationMigrator(cfg)
-			before := migrationMeaningOf(read)
-			after := migrationMeaningOf(readMapped)
-			migrateSemanticLocations(&before, migrate)
-			want, err := golden.JSON(before)
-			require.NoError(t, err)
-			got, err := golden.JSON(after)
-			require.NoError(t, err)
-			require.NoError(t, golden.Compare(map[string][]byte{path: want}, map[string][]byte{path: got}))
+			// nexus-close's meaning is hundreds of megabytes of JSON, so each side is digested part by
+			// part rather than held.
+			project := locationProjection(cfg)
+			before := meaningDigests(t, read, migrate, project)
+			after := meaningDigests(t, readMapped, func(s string) string { return s })
+			requireSameMeaning(t, before[0], after[0])
 			definitions := migrationDefinitionsOf(t, read)
 			for i := range definitions {
 				definitions[i].Error = migrate(definitions[i].Error)
@@ -291,9 +298,32 @@ func TestMigrationProjectionPreservesSemantics(t *testing.T) {
 			require.Equal(t, refined, migrationRefinedPropertiesOf(readMapped))
 			// The current IR, which Match admits under the projection, reads as the original does. The
 			// projection names a path the same in each spelling, so it applies over the migration.
-			project := locationProjection(cfg)
-			frozen := projectedSnapshots(t, before, definitions, refined, project)
-			require.Equal(t, string(frozen), string(projectedMeaning(t, migrationBinding(t, models[path]), project)))
+			current := migrationBinding(t, models[path])
+			requireSameMeaning(t, before[1], meaningDigests(t, current, project)[0])
+			for i := range definitions {
+				definitions[i].Error = project(definitions[i].Error)
+			}
+			for i := range refined {
+				refined[i].Error = project(refined[i].Error)
+			}
+			want, err := golden.JSON(struct {
+				Definitions []migrationDefinition
+				Refined     []migrationRefinedProperty
+			}{definitions, refined})
+			require.NoError(t, err)
+			currentDefinitions, currentRefined := migrationDefinitionsOf(t, current), migrationRefinedPropertiesOf(current)
+			for i := range currentDefinitions {
+				currentDefinitions[i].Error = project(currentDefinitions[i].Error)
+			}
+			for i := range currentRefined {
+				currentRefined[i].Error = project(currentRefined[i].Error)
+			}
+			got, err := golden.JSON(struct {
+				Definitions []migrationDefinition
+				Refined     []migrationRefinedProperty
+			}{currentDefinitions, currentRefined})
+			require.NoError(t, err)
+			require.Equal(t, string(want), string(got))
 		})
 	}
 }
@@ -573,33 +603,77 @@ func locationMigrator(cfg golden.Config) func(string) string {
 
 func migrateSemanticLocations(s *migrationSemantics, replace func(string) string) {
 	for i := range s.Subjects {
-		subject := &s.Subjects[i]
-		subject.Error, subject.Rejected = replace(subject.Error), replace(subject.Rejected)
-		if subject.Table != nil {
-			for j := range subject.Table.Unknown {
-				subject.Table.Unknown[j] = replace(subject.Table.Unknown[j])
-			}
-		}
+		migrateSubjectLocations(&s.Subjects[i], replace)
 	}
 	for i := range s.Properties {
-		p := &s.Properties[i]
-		p.Error = replace(p.Error)
-		for j := range p.Rows {
-			p.Rows[j].Error = replace(p.Rows[j].Error)
+		migratePropertyLocations(&s.Properties[i], replace)
+	}
+	migrateReceiptLocations(s.Receipts, replace)
+}
+
+func migrateSubjectLocations(subject *migrationSubject, replace func(string) string) {
+	subject.Error, subject.Rejected = replace(subject.Error), replace(subject.Rejected)
+	if subject.Table != nil {
+		for j := range subject.Table.Unknown {
+			subject.Table.Unknown[j] = replace(subject.Table.Unknown[j])
 		}
 	}
-	var receipts func([]migrationReceipt)
-	receipts = func(rows []migrationReceipt) {
-		for i := range rows {
-			r := &rows[i]
-			r.Position, r.Explanation, r.Cause = replace(r.Position), replace(r.Explanation), replace(r.Cause)
-			for j := range r.Holes {
-				r.Holes[j].Position = replace(r.Holes[j].Position)
-			}
-			receipts(r.Also)
+}
+
+func migratePropertyLocations(p *migrationProperty, replace func(string) string) {
+	p.Error = replace(p.Error)
+	for j := range p.Rows {
+		p.Rows[j].Error = replace(p.Rows[j].Error)
+	}
+}
+
+func migrateReceiptLocations(rows []migrationReceipt, replace func(string) string) {
+	for i := range rows {
+		r := &rows[i]
+		r.Position, r.Explanation, r.Cause = replace(r.Position), replace(r.Explanation), replace(r.Cause)
+		for j := range r.Holes {
+			r.Holes[j].Position = replace(r.Holes[j].Position)
+		}
+		migrateReceiptLocations(r.Also, replace)
+	}
+}
+
+// meaningDigests digests a binding's meaning one part at a time: the i-th stream reads each part with
+// its located strings mapped by locates[0] through locates[i], in turn.
+func meaningDigests(t *testing.T, b *binding, locates ...func(string) string) []*golden.Stream {
+	t.Helper()
+	streams := make([]*golden.Stream, len(locates))
+	for i := range streams {
+		streams[i] = &golden.Stream{Keep: true, Verbatim: true}
+	}
+	add := func(name string, v any, locate func(int)) {
+		for i, s := range streams {
+			locate(i)
+			require.NoError(t, s.Add(name, v))
 		}
 	}
-	receipts(s.Receipts)
+	receipts := migrationMeaningEach(b,
+		func(x migrationSubject) {
+			add("subject "+x.Name, &x, func(i int) { migrateSubjectLocations(&x, locates[i]) })
+		},
+		func(x migrationProperty) {
+			add("property "+x.Owner+"."+x.Name, &x, func(i int) { migratePropertyLocations(&x, locates[i]) })
+		})
+	add("receipts", receipts, func(i int) { migrateReceiptLocations(receipts, locates[i]) })
+	return streams
+}
+
+// requireSameMeaning compares two digested meanings and names the first part where they differ.
+func requireSameMeaning(t *testing.T, want, got *golden.Stream) {
+	t.Helper()
+	if want.Digest() == got.Digest() {
+		return
+	}
+	for i := range min(len(want.Parts), len(got.Parts)) {
+		require.Equal(t, want.Parts[i], got.Parts[i], "the first part that differs")
+	}
+	require.Len(t, got.Parts, len(want.Parts))
+	require.Fail(t, "the meanings differ in their framing")
 }
 
 func TestMigrationGoldenReadsPropertiesWithNoQuery(t *testing.T) {

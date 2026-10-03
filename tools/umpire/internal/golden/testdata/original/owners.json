@@ -1,0 +1,181 @@
+{
+  "fixture.channels.Channels$package$": {
+    "action": [
+      "count",
+      "flash",
+      "radio.deliver",
+      "radio.lose",
+      "talk",
+      "tally.deliver",
+      "wire.deliver"
+    ],
+    "channel": [
+      "radio",
+      "tally",
+      "wire"
+    ]
+  },
+  "fixture.declarations.Declarations$package$": {
+    "action": [
+      "crash",
+      "flush",
+      "put"
+    ],
+    "assumption": [
+      "flushRuns",
+      "storeOpaque"
+    ],
+    "hole": [
+      "crashUnmodeled"
+    ],
+    "monitor": [
+      "endsDurable",
+      "stagedBeforeDurable",
+      "storedOnce"
+    ]
+  },
+  "fixture.presence.Presence$package$": {
+    "action": [
+      "forget",
+      "keep",
+      "poll",
+      "send"
+    ]
+  },
+  "fixture.realizations.Realizations$package$": {
+    "action": [
+      "answer",
+      "deliver",
+      "push",
+      "request"
+    ],
+    "channel": [
+      "dispatchChannel"
+    ],
+    "realization": [
+      "doorRealization",
+      "errandRealization",
+      "learnedRun",
+      "pauseRace",
+      "tallyRealization"
+    ]
+  },
+  "fixture.specimens.admission.Admission$package$": {
+    "action": [
+      "dispatch"
+    ],
+    "monitor": [
+      "atMostOneActiveAttempt",
+      "terminalFinality"
+    ]
+  },
+  "fixture.specimens.closereset.CloseReset$package$": {
+    "action": [
+      "callerClose",
+      "handlerFinish",
+      "requestCancel",
+      "reset"
+    ],
+    "monitor": [
+      "ownerAcknowledgment",
+      "retainedOutcome"
+    ]
+  },
+  "temporal.nexuscaller.Control$": {
+    "action": [
+      "inspect"
+    ]
+  },
+  "temporal.nexuscaller.Model$package$": {
+    "action": [
+      "backoff",
+      "complete",
+      "handlerReply",
+      "schedule",
+      "scheduleToClose",
+      "scheduleToStart",
+      "startToClose",
+      "timeout",
+      "transportFault"
+    ]
+  },
+  "temporal.nexuscaller.NexusRealization$": {
+    "realization": [
+      "asyncNexus",
+      "forgedCompletion"
+    ]
+  },
+  "temporal.nexuscaller.closepolicy.Model$package$": {
+    "action": [
+      "callerClose",
+      "deliverCancel",
+      "handlerFinish",
+      "requestCancel",
+      "reset"
+    ],
+    "assumption": [
+      "deadlineExpires",
+      "deliveryFair",
+      "recovery",
+      "reporting",
+      "retentionDurable",
+      "retryFair"
+    ],
+    "monitor": [
+      "cancelPrincipal",
+      "ownerAcknowledgment",
+      "retainedOutcome",
+      "singleOutcome"
+    ]
+  },
+  "temporal.standaloneactivity.ActivityRealization$": {
+    "realization": [
+      "heldDelivery",
+      "lostAdmissionResponse",
+      "standalone"
+    ]
+  },
+  "temporal.standaloneactivity.Model$package$": {
+    "action": [
+      "attemptResult",
+      "attemptStart",
+      "backoff",
+      "control",
+      "scheduleToClose",
+      "scheduleToStart",
+      "start",
+      "startToClose",
+      "timeout"
+    ]
+  },
+  "temporal.standaloneactivity.System$package$": {
+    "action": [
+      "ackLoss",
+      "acknowledge",
+      "addActivityTask",
+      "answerDelivery",
+      "crash",
+      "deliver",
+      "dispatch",
+      "enqueue",
+      "persistTask",
+      "storageLoss",
+      "syncMatch"
+    ],
+    "assumption": [
+      "queueOpaque",
+      "storageLossAssumed"
+    ],
+    "monitor": [
+      "atMostOneActiveAttempt",
+      "terminalFinality"
+    ]
+  },
+  "temporal.worker.Worker$package$": {
+    "action": [
+      "serve",
+      "workerResume",
+      "workerStop"
+    ]
+  }
+}
