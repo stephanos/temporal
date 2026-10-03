@@ -15,7 +15,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/upgrade/adapterregen"
 )
 
-const adapterRegenerateUsage = "usage: gomadtool adapter-regenerate [--root=DIR] --module=PATH --version=VERSION [--approve-review=SHA256] [--go=GO] [--json]\n" +
+const adapterRegenerateUsage = "usage: gomadtool adapter-regenerate [--root=DIR] --module=PATH --version=VERSION [--approve-review=SHA256 [--stage-only]] [--go=GO] [--json]\n" +
 	"       gomadtool adapter-regenerate [--root=DIR] --recover\n" +
 	"       gomadtool adapter-regenerate --verify --module=PATH --module-dir=DIR [--go=GO]"
 
@@ -33,6 +33,7 @@ func runAdapterRegenerate(arguments []string, stdout, stderr io.Writer) int {
 	approval := flags.String("approve-review", "", "review digest a dry run printed; applies the regeneration")
 	goCommand := flags.String("go", os.Getenv("GOMAD3_BOOTSTRAP_GO"), "pinned Go release command")
 	jsonOutput := flags.Bool("json", false, "write the review as JSON")
+	stageOnly := flags.Bool("stage-only", false, "with --approve-review, stage and verify the regeneration and list every file the apply publishes, without publishing")
 	recoverOnly := flags.Bool("recover", false, "complete an interrupted publication and exit")
 	verify := flags.Bool("verify", false, "check the compiled adapter against --module-dir")
 	moduleDirectory := flags.String("module-dir", "", "module source directory for --verify")
@@ -81,7 +82,7 @@ func runAdapterRegenerate(arguments []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	result, err := adapterregen.Run(ctx, adapterregen.Spec{
-		Root: absoluteRoot, Module: *module, Version: *version, GoCommand: *goCommand, Environment: os.Environ(), Approval: *approval,
+		Root: absoluteRoot, Module: *module, Version: *version, GoCommand: *goCommand, Environment: os.Environ(), Approval: *approval, StageOnly: *stageOnly,
 	})
 	if err != nil {
 		fmt.Fprintln(stderr, err)

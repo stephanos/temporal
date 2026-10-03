@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -71,64 +72,126 @@ type journal struct {
 	Entries []journalEntry `json:"entries"`
 }
 
-func apply(ctx context.Context, spec Spec, regeneration deterministicio.AdapterRegeneration, candidate string) ([]string, []string, error) {
+func apply(ctx context.Context, spec Spec, regeneration deterministicio.AdapterRegeneration, candidate string) (publication, error) {
 	state := filepath.Join(spec.Root, filepath.FromSlash(stateDirectory))
 	if err := os.MkdirAll(state, 0o700); err != nil {
-		return nil, nil, err
+		return publication{}, err
 	}
 	lock, err := hostfs.Try(filepath.Join(state, "lock"))
 	if err != nil {
 		if errors.Is(err, hostfs.ErrContended) {
-			return nil, nil, fmt.Errorf("another adapter regeneration holds %s: %w", filepath.Join(stateDirectory, "lock"), err)
+			return publication{}, fmt.Errorf("another adapter regeneration holds %s: %w", filepath.Join(stateDirectory, "lock"), err)
 		}
-		return nil, nil, err
+		return publication{}, err
 	}
 	defer lock.Release()
-	if completed, err := recoverPublication(spec.Root); err != nil {
-		return nil, nil, err
+	if spec.StageOnly {
+		if pending, err := publicationPending(spec.Root); err != nil || pending {
+			return publication{}, errors.Join(err, &BlockedError{Err: errors.New("an interrupted adapter publication is pending; run with --recover to complete it")})
+		}
+	} else if completed, err := recoverPublication(spec.Root); err != nil {
+		return publication{}, err
 	} else if completed {
-		return nil, nil, &BlockedError{Err: errors.New("completed an interrupted adapter publication; run the dry run again before applying")}
+		return publication{}, &BlockedError{Err: errors.New("completed an interrupted adapter publication; run the dry run again before applying")}
 	}
 	work, err := os.MkdirTemp("", "gomad3-adapter-stage-")
 	if err != nil {
-		return nil, nil, err
+		return publication{}, err
 	}
 	defer removeWritable(work)
 	stage := filepath.Join(work, "root")
 	read, err := copyCheckout(spec.Root, stage)
 	if err != nil {
-		return nil, nil, err
+		return publication{}, err
 	}
 	if err := stageRegeneration(ctx, spec, regeneration, stage, candidate); err != nil {
-		return nil, nil, &BlockedError{Err: fmt.Errorf("staged regeneration failed; nothing was published: %w", err)}
+		return publication{}, &BlockedError{Err: fmt.Errorf("staged regeneration failed; nothing was published: %w", err)}
 	}
 	if spec.afterStage != nil {
 		if err := spec.afterStage(); err != nil {
-			return nil, nil, err
+			return publication{}, err
 		}
 	}
 	entries, err := stagedChanges(stage, read)
 	if err != nil {
-		return nil, nil, err
+		return publication{}, err
+	}
+	staged, err := summarizeStaged(spec.Root, stage, entries)
+	if err != nil {
+		return publication{}, err
+	}
+	if spec.StageOnly {
+		return publication{staged: staged}, nil
 	}
 	if err := revalidate(spec.Root, read); err != nil {
-		return nil, nil, &BlockedError{Err: fmt.Errorf("the checkout changed after staging; nothing was published: %w", err)}
+		return publication{}, &BlockedError{Err: fmt.Errorf("the checkout changed after staging; nothing was published: %w", err)}
 	}
 	if err := writeJournal(state, stage, entries); err != nil {
-		return nil, nil, err
+		return publication{}, err
 	}
 	if err := completeJournal(spec.Root, spec.beforeApplyFile); err != nil {
-		return nil, nil, err
+		return publication{}, err
 	}
-	published := make([]string, len(entries))
+	result := publication{staged: staged, published: make([]string, len(entries))}
 	for index, entry := range entries {
-		published[index] = entry.Path
+		result.published[index] = entry.Path
 	}
-	residual, err := residualReferences(spec.Root, regeneration)
-	if err != nil {
-		return nil, nil, err
+	// The publication is complete; a failed scan for leftover references
+	// must not report it as failed.
+	scan := spec.residualScan
+	if scan == nil {
+		scan = residualReferences
 	}
-	return published, residual, nil
+	if result.residual, err = scan(spec.Root, regeneration); err != nil {
+		result.warnings = append(result.warnings, fmt.Sprintf("published, but scanning for references to %s@%s failed: %v", regeneration.Module, regeneration.Previous.Version, err))
+		result.residual = nil
+	}
+	return result, nil
+}
+
+// publication is what an apply staged and, unless it only staged, published.
+type publication struct {
+	staged    []StagedFile
+	published []string
+	residual  []string
+	warnings  []string
+}
+
+// summarizeStaged lists every staged change with the module-file diffs a
+// person reviews before approving: tidy can move requirements beyond the
+// adapted module.
+func summarizeStaged(root, stage string, entries []journalEntry) ([]StagedFile, error) {
+	staged := make([]StagedFile, len(entries))
+	for index, entry := range entries {
+		file := StagedFile{Path: entry.Path, Change: "changed"}
+		switch {
+		case entry.Previous == "":
+			file.Change = "added"
+		case entry.Next == "":
+			file.Change = "removed"
+		}
+		if name := path.Base(entry.Path); name == "go.mod" || name == "go.sum" {
+			previous, err := readOptional(filepath.Join(root, filepath.FromSlash(entry.Path)))
+			if err != nil {
+				return nil, err
+			}
+			next, err := readOptional(filepath.Join(stage, filepath.FromSlash(entry.Path)))
+			if err != nil {
+				return nil, err
+			}
+			file.Diff = unifiedDiff(entry.Path, previous, next)
+		}
+		staged[index] = file
+	}
+	return staged, nil
+}
+
+func readOptional(path string) ([]byte, error) {
+	contents, err := os.ReadFile(path)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, nil
+	}
+	return contents, err
 }
 
 // Recover completes an interrupted publication under the transaction lock.
@@ -164,13 +227,28 @@ func recoverPublication(root string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	for _, directory := range pending {
+	retired, err := filepath.Glob(filepath.Join(state, "done-*"))
+	if err != nil {
+		return false, err
+	}
+	for _, directory := range append(pending, retired...) {
 		if err := os.RemoveAll(directory); err != nil {
 			return false, err
 		}
 	}
-	if committed, err := publicationPending(root); err != nil || !committed {
+	committed, err := publicationPending(root)
+	if err != nil {
 		return false, err
+	}
+	if !committed {
+		// A journal directory without its manifest is the remainder of a
+		// completed publication whose removal was interrupted: the manifest
+		// is written before the commit rename, so no uncommitted or
+		// incomplete journal lacks it.
+		if err := os.RemoveAll(filepath.Join(state, journalDirectory)); err != nil {
+			return false, err
+		}
+		return false, nil
 	}
 	return true, completeJournal(root, nil)
 }
@@ -201,6 +279,13 @@ func completeJournal(root string, beforeApplyFile func(int) error) error {
 			}
 		}
 		path := filepath.Join(root, filepath.FromSlash(entry.Path))
+		// A file already holding its next contents was published before an
+		// interruption; its blob may be gone with a partially removed journal.
+		if current, err := fileDigest(path); err != nil {
+			return err
+		} else if current == entry.Next {
+			continue
+		}
 		if entry.Next == "" {
 			if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
 				return err
@@ -218,7 +303,35 @@ func completeJournal(root string, beforeApplyFile func(int) error) error {
 			return fmt.Errorf("publish %s: %w", entry.Path, err)
 		}
 	}
-	return os.RemoveAll(directory)
+	return retireJournal(filepath.Dir(directory), directory)
+}
+
+// retireJournal removes a completed journal by first renaming it out of the
+// way, so an interrupted removal never leaves a partial journal/ behind; the
+// next run sweeps the retired directory.
+func retireJournal(state, directory string) error {
+	retired, err := os.MkdirTemp(state, "done-")
+	if err != nil {
+		return err
+	}
+	if err := os.Remove(retired); err != nil {
+		return err
+	}
+	if err := os.Rename(directory, retired); err != nil {
+		return fmt.Errorf("retire adapter publication journal: %w", err)
+	}
+	if err := syncDirectory(state); err != nil {
+		return err
+	}
+	return os.RemoveAll(retired)
+}
+
+func syncDirectory(path string) error {
+	directory, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	return errors.Join(directory.Sync(), directory.Close())
 }
 
 // writeJournal records every staged change and its contents in a pending
@@ -252,11 +365,7 @@ func writeJournal(state, stage string, entries []journalEntry) error {
 	if err := os.Rename(pending, filepath.Join(state, journalDirectory)); err != nil {
 		return fmt.Errorf("commit adapter publication journal: %w", err)
 	}
-	directory, err := os.Open(state)
-	if err != nil {
-		return err
-	}
-	return errors.Join(directory.Sync(), directory.Close())
+	return syncDirectory(state)
 }
 
 // copyCheckout copies root into stage and returns the digest of every file it

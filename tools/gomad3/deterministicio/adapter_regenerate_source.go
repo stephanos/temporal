@@ -166,18 +166,22 @@ func (regeneration AdapterRegeneration) literalAnchors() ([]*literalAnchor, erro
 
 type versionSubstring struct {
 	previous, proposed string
+	// standalone matches only where no module path character precedes, so
+	// a base name never matches inside another module's path: sdk@v1 in
+	// go.opentelemetry.io/otel/sdk@v1 is not go.temporal.io/sdk@v1.
+	standalone bool
 }
 
 func (regeneration AdapterRegeneration) versionSubstrings() []versionSubstring {
 	module := regeneration.Module
 	previous, proposed := regeneration.Previous, regeneration.Proposed
 	substrings := []versionSubstring{
-		{module + " " + previous.Version, module + " " + proposed.Version},
-		{module + "@" + previous.Version, module + "@" + proposed.Version},
-		{path.Base(module) + "@" + previous.Version, path.Base(module) + "@" + proposed.Version},
+		{previous: module + " " + previous.Version, proposed: module + " " + proposed.Version},
+		{previous: module + "@" + previous.Version, proposed: module + "@" + proposed.Version},
+		{previous: path.Base(module) + "@" + previous.Version, proposed: path.Base(module) + "@" + proposed.Version, standalone: true},
 	}
 	if previous.GoModSum != "" && proposed.GoModSum != "" {
-		substrings = append(substrings, versionSubstring{previous.GoModSum, proposed.GoModSum})
+		substrings = append(substrings, versionSubstring{previous: previous.GoModSum, proposed: proposed.GoModSum})
 	}
 	return substrings
 }
@@ -277,14 +281,7 @@ func (regeneration AdapterRegeneration) fileEdits(name string, contents []byte, 
 			walkErr = replace(literal, matched[0].proposed)
 			return false
 		}
-		next := value
-		for _, substring := range substrings {
-			next = replaceVersionSubstring(next, substring.previous, substring.proposed)
-		}
-		if strings.Contains(next, regeneration.Previous.Sum) {
-			next = strings.ReplaceAll(next, regeneration.Previous.Sum, regeneration.Proposed.Sum)
-		}
-		if next != value {
+		if next := regeneration.rewriteVersionReferences(value, substrings); next != value {
 			walkErr = replace(literal, next)
 		}
 		return false
@@ -292,23 +289,42 @@ func (regeneration AdapterRegeneration) fileEdits(name string, contents []byte, 
 	return edits, versions, walkErr
 }
 
+// rewriteVersionReferences moves every reference to the previous module
+// identity in one string literal to the proposed identity.
+func (regeneration AdapterRegeneration) rewriteVersionReferences(value string, substrings []versionSubstring) string {
+	next := value
+	for _, substring := range substrings {
+		next = replaceVersionSubstring(next, substring)
+	}
+	if regeneration.Previous.Sum == "" {
+		return next
+	}
+	return strings.ReplaceAll(next, regeneration.Previous.Sum, regeneration.Proposed.Sum)
+}
+
 // replaceVersionSubstring replaces previous where it is not followed by more
-// version characters, so v1.2.3 never rewrites v1.2.30.
-func replaceVersionSubstring(value, previous, proposed string) string {
+// version characters, so v1.2.3 never rewrites v1.2.30, and, for a standalone
+// substring, where no module path character precedes it.
+func replaceVersionSubstring(value string, substring versionSubstring) string {
 	var result strings.Builder
+	consumed := ""
 	for {
-		index := strings.Index(value, previous)
+		index := strings.Index(value, substring.previous)
 		if index < 0 {
 			result.WriteString(value)
 			return result.String()
 		}
-		end := index + len(previous)
+		end := index + len(substring.previous)
 		result.WriteString(value[:index])
-		if end < len(value) && strings.ContainsRune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.+-", rune(value[end])) {
-			result.WriteString(previous)
+		before := consumed + value[:index]
+		continues := end < len(value) && strings.ContainsRune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.+-", rune(value[end]))
+		joined := substring.standalone && before != "" && strings.ContainsRune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-_~/", rune(before[len(before)-1]))
+		if continues || joined {
+			result.WriteString(substring.previous)
 		} else {
-			result.WriteString(proposed)
+			result.WriteString(substring.proposed)
 		}
+		consumed = before + substring.previous
 		value = value[end:]
 	}
 }

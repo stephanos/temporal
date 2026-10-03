@@ -196,6 +196,59 @@ func TestRunPinImpactReportsANewerGoDirectiveAsUnknownPins(t *testing.T) {
 	}
 }
 
+// TestRunPinImpactReportsADependencyRequiringNewerGoAsUnknownPins runs a
+// candidate whose own go directive is supported but whose dependency requires
+// a newer Go, which keeps the go command from resolving the module graph
+// under GOTOOLCHAIN=local. Every pin that depends on the graph is unknown.
+func TestRunPinImpactReportsADependencyRequiringNewerGoAsUnknownPins(t *testing.T) {
+	fixture := newPinImpactFixture(t)
+	baseline, candidate := t.TempDir(), t.TempDir()
+	writePinImpactModule(t, baseline, fixture.baseline)
+	writePinImpactModule(t, candidate, fixture.baseline)
+	dependency := filepath.Join(candidate, "dep")
+	if err := os.Mkdir(dependency, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(dependency, "go.mod"), []byte("module example.test/dep\n\ngo 1.99.0\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	goMod := filepath.Join(candidate, "go.mod")
+	contents, err := os.ReadFile(goMod)
+	if err != nil {
+		t.Fatal(err)
+	}
+	contents = append(contents, "\nrequire example.test/dep v0.0.0\n\nreplace example.test/dep => ./dep\n"...)
+	if err := os.WriteFile(goMod, contents, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	before := readModuleSnapshot(t, candidate)
+	var stdout, stderr bytes.Buffer
+	status := run([]string{"pin-impact", "--root", fixture.root, "--module", candidate, "--baseline-module", baseline, "--go", fixture.goCommand, "--json"}, &stdout, &stderr)
+	if status != 1 {
+		t.Fatalf("status = %d, want 1; stderr:\n%s", status, stderr.String())
+	}
+	var report pinimpact.Report
+	if err := json.Unmarshal(stdout.Bytes(), &report); err != nil {
+		t.Fatal(err)
+	}
+	unknown := map[pinimpact.Class]int{}
+	for _, pin := range report.Pins {
+		if pin.Status != pinimpact.StatusUnknown {
+			t.Fatalf("pin %s is %s, want unknown", pin.ID, pin.Status)
+		}
+		if !strings.Contains(pin.Reason, "module graph requires go 1.99.0") {
+			t.Fatalf("unknown pin reason = %q", pin.Reason)
+		}
+		unknown[pin.Class]++
+	}
+	if !report.Invalidated || unknown[pinimpact.ClassAdapter] != 1 || unknown[pinimpact.ClassInterception] == 0 || unknown[pinimpact.ClassClockReference] == 0 {
+		t.Fatalf("unknown pins = %v, want the sentry adapter and the toolchain-bound pins unknown", unknown)
+	}
+	if after := readModuleSnapshot(t, candidate); after != before {
+		t.Fatalf("candidate module changed:\n%s\nwant:\n%s", after, before)
+	}
+}
+
 func TestRunPinImpactReadsTheBaselineFromGit(t *testing.T) {
 	fixture := newPinImpactFixture(t)
 	repository := t.TempDir()

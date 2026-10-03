@@ -11,10 +11,12 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
+	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 	"golang.org/x/mod/modfile"
 	"golang.org/x/mod/module"
 )
@@ -29,17 +31,37 @@ const (
 // graph selects.
 type moduleState struct {
 	goDirective string
-	required    map[string][]string
-	replaced    map[string]bool
-	sums        map[string]map[string][]string
-	selected    map[string]string
+	// unresolved explains why the module graph could not be selected, such
+	// as a dependency requiring a newer Go than the resolving go command;
+	// then no pin that depends on the graph can be judged.
+	unresolved string
+	// graphGo is the newer Go a dependency requires, when one does.
+	graphGo  string
+	required map[string][]string
+	replaced map[string]bool
+	sums     map[string]map[string][]string
+	selected map[string]string
 }
 
 type moduleMatch struct {
-	ok     bool
-	absent bool
-	reason string
+	ok      bool
+	absent  bool
+	unknown bool
+	reason  string
 }
+
+// NewerGoError reports a module graph that a dependency's go directive keeps
+// the resolving go command from selecting under GOTOOLCHAIN=local.
+type NewerGoError struct {
+	Version string
+	Detail  string
+}
+
+func (err *NewerGoError) Error() string {
+	return fmt.Sprintf("module graph requires go %s: %s", err.Version, err.Detail)
+}
+
+var newerGoPattern = regexp.MustCompile(`requires go >= ([0-9][^ ]*) \(running go`)
 
 func loadModule(ctx context.Context, name string, files ModuleFiles, resolver Resolver) (moduleState, error) {
 	parsed, err := parseModule(files)
@@ -47,6 +69,12 @@ func loadModule(ctx context.Context, name string, files ModuleFiles, resolver Re
 		return moduleState{}, &InputError{Err: fmt.Errorf("%s: %w", name, err)}
 	}
 	parsed.selected, err = resolver.Resolve(ctx, files)
+	var newer *NewerGoError
+	if name == "candidate" && errors.As(err, &newer) {
+		parsed.selected, parsed.graphGo = nil, newer.Version
+		parsed.unresolved = fmt.Sprintf("candidate module graph requires go %s, newer than the pinned %s, so it cannot be resolved; a Go upgrade re-derives this pin through upgrade-dossier", newer.Version, gomadversion.GoVersion)
+		return parsed, nil
+	}
 	if err != nil {
 		return moduleState{}, fmt.Errorf("resolve %s module graph: %w", name, err)
 	}
@@ -129,6 +157,9 @@ func (target moduleState) match(path, version, sum string) moduleMatch {
 		return moduleMatch{reason: "candidate requires " + path + " more than once"}
 	case versions[0] != version:
 		return moduleMatch{reason: fmt.Sprintf("candidate requires %s@%s; pinned %s", path, versions[0], version)}
+	}
+	if target.unresolved != "" {
+		return moduleMatch{unknown: true, reason: target.unresolved}
 	}
 	if selected := target.selected[path]; selected != version {
 		return moduleMatch{reason: fmt.Sprintf("candidate module graph selects %s@%s although go.mod requires %s", path, selected, version)}
@@ -224,7 +255,11 @@ func (resolver *GoResolver) Resolve(ctx context.Context, files ModuleFiles) (_ m
 		return nil, fmt.Errorf("run go list: %w", err)
 	}
 	if result.Termination != hostexec.TerminationExit || result.ExitCode != 0 || result.WatchdogTimeout {
-		return nil, fmt.Errorf("go list -m all failed: %s", strings.TrimSpace(string(result.Stderr.RawBytes)))
+		detail := strings.TrimSpace(string(result.Stderr.RawBytes))
+		if match := newerGoPattern.FindStringSubmatch(detail); match != nil && !result.WatchdogTimeout && goversion.Compare("go"+match[1], "go"+goVersion) > 0 {
+			return nil, &NewerGoError{Version: match[1], Detail: detail}
+		}
+		return nil, fmt.Errorf("go list -m all failed: %s", detail)
 	}
 	if result.Stdout.Truncated {
 		return nil, errors.New("go list -m all output exceeds its bound")

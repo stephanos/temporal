@@ -351,3 +351,25 @@ func TestVerifyRegisteredAdapterChecksEveryPin(t *testing.T) {
 		t.Fatal("VerifyRegisteredAdapter() accepted a changed module")
 	}
 }
+
+func TestVersionReferencesNeverMatchInsideAnotherModulePath(t *testing.T) {
+	regeneration := AdapterRegeneration{
+		Module:   "go.temporal.io/sdk",
+		Previous: AdapterAnchors{Version: "v1.48.0", Sum: "h1:previous="},
+		Proposed: AdapterAnchors{Version: "v1.49.0", Sum: "h1:proposed="},
+	}
+	substrings := regeneration.versionSubstrings()
+	for value, want := range map[string]string{
+		"sdk@v1.48.0":                             "sdk@v1.49.0",
+		"go.temporal.io/sdk@v1.48.0":              "go.temporal.io/sdk@v1.49.0",
+		"go.temporal.io/sdk v1.48.0 h1:previous=": "go.temporal.io/sdk v1.49.0 h1:proposed=",
+		"go.opentelemetry.io/otel/sdk@v1.48.0":    "go.opentelemetry.io/otel/sdk@v1.48.0",
+		"othersdk@v1.48.0":                        "othersdk@v1.48.0",
+		"sdk@v1.48.0 and otel/sdk@v1.48.0":        "sdk@v1.49.0 and otel/sdk@v1.48.0",
+		"sdk@v1.48.01":                            "sdk@v1.48.01",
+	} {
+		if got := regeneration.rewriteVersionReferences(value, substrings); got != want {
+			t.Errorf("rewrite %q = %q, want %q", value, got, want)
+		}
+	}
+}

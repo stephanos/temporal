@@ -217,6 +217,8 @@ func (evaluation *evaluation) evaluateAdapters() {
 			pin.Status, pin.Reason = StatusStale, "candidate no longer requires "+identity.Module
 		case match.absent:
 			pin.Status = StatusNotSelected
+		case match.unknown:
+			pin.Status, pin.Reason = StatusUnknown, match.reason
 		default:
 			pin.Status, pin.Reason = StatusInvalidated, match.reason
 		}
@@ -269,6 +271,8 @@ func (evaluation *evaluation) evaluatePacks(packs []compatibility.ValidatedPack,
 				pin.Status = StatusUnaffected
 			case match.absent:
 				pin.Status, pin.Reason = StatusStale, "candidate no longer requires "+rule.Module.Path
+			case match.unknown || candidateActivation.unknown:
+				pin.Status, pin.Reason = StatusUnknown, evaluation.candidate.unresolved
 			case !match.ok:
 				pin.Status, pin.Reason = StatusInvalidated, match.reason
 			default:
@@ -358,8 +362,11 @@ func digest(contents []byte) string {
 // candidate, or returns "" when it can. Builds run with GOTOOLCHAIN=local, so
 // only the go directive matters.
 func (target moduleState) toolchainReason() string {
-	if target.goDirective == "" || goversion.Compare("go"+target.goDirective, gomadversion.GoVersion) <= 0 {
-		return ""
+	if target.goDirective != "" && goversion.Compare("go"+target.goDirective, gomadversion.GoVersion) > 0 {
+		return fmt.Sprintf("candidate requires go %s, newer than the pinned %s; a Go upgrade re-derives this pin through upgrade-dossier", target.goDirective, gomadversion.GoVersion)
 	}
-	return fmt.Sprintf("candidate requires go %s, newer than the pinned %s; a Go upgrade re-derives this pin through upgrade-dossier", target.goDirective, gomadversion.GoVersion)
+	if target.graphGo != "" && goversion.Compare("go"+target.graphGo, gomadversion.GoVersion) > 0 {
+		return fmt.Sprintf("candidate module graph requires go %s, newer than the pinned %s; a Go upgrade re-derives this pin through upgrade-dossier", target.graphGo, gomadversion.GoVersion)
+	}
+	return ""
 }

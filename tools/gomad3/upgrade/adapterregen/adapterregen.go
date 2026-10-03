@@ -65,10 +65,14 @@ type Spec struct {
 	// Tidy runs in each staged test fixture module whose requirement moved;
 	// nil selects "go mod tidy".
 	Tidy []string
+	// StageOnly, with Approval, stages and verifies the regeneration and
+	// reports every file the apply would publish, then publishes nothing.
+	StageOnly bool
 
-	// afterStage and beforeApplyFile are test seams.
+	// afterStage, beforeApplyFile, and residualScan are test seams.
 	afterStage      func() error
 	beforeApplyFile func(index int) error
+	residualScan    func(string, deterministicio.AdapterRegeneration) ([]string, error)
 }
 
 // Result is a dry run's review or an apply's publication.
@@ -78,9 +82,21 @@ type Result struct {
 	StalePacks   []StalePack                         `json:"stale_packs"`
 	Applied      bool                                `json:"applied"`
 	Published    []string                            `json:"published,omitempty"`
+	// Staged lists every file the apply publishes, with the diff of each
+	// go.mod and go.sum, for a stage-only run and an apply.
+	Staged []StagedFile `json:"staged,omitempty"`
 	// Residual lists checked-in references to the previous module version
 	// that the transaction left for a person, as path:line.
 	Residual []string `json:"residual,omitempty"`
+	// Warnings are problems after a complete publication.
+	Warnings []string `json:"warnings,omitempty"`
+}
+
+// StagedFile is one file a staged regeneration adds, changes, or removes.
+type StagedFile struct {
+	Path   string `json:"path"`
+	Change string `json:"change"`
+	Diff   string `json:"diff,omitempty"`
 }
 
 // SourceDiff is one rewritten upstream file's change between the versions.
@@ -107,9 +123,12 @@ func Run(ctx context.Context, spec Spec) (Result, error) {
 	if !filepath.IsAbs(spec.Root) || !filepath.IsAbs(spec.GoCommand) {
 		return Result{}, &InputError{Err: errors.New("adapter regeneration root and go command must be absolute paths")}
 	}
+	if spec.StageOnly && spec.Approval == "" {
+		return Result{}, &InputError{Err: errors.New("a stage-only run needs the approval digest of the dry run it stages")}
+	}
 	if pending, err := publicationPending(spec.Root); err != nil {
 		return Result{}, err
-	} else if pending && spec.Approval == "" {
+	} else if pending && (spec.Approval == "" || spec.StageOnly) {
 		return Result{}, &BlockedError{Err: errors.New("an interrupted adapter publication is pending; run with --recover to complete it")}
 	}
 	var pinned *gomadversion.AdapterIdentity
@@ -165,11 +184,15 @@ func Run(ctx context.Context, spec Spec) (Result, error) {
 	if spec.Approval != regeneration.ApprovalSHA256 {
 		return Result{}, &InputError{Err: fmt.Errorf("approval %s does not match the review digest %s of %s@%s", spec.Approval, regeneration.ApprovalSHA256, spec.Module, spec.Version)}
 	}
-	published, residual, err := apply(ctx, spec, regeneration, candidate.Dir)
+	published, err := apply(ctx, spec, regeneration, candidate.Dir)
 	if err != nil {
 		return Result{}, err
 	}
-	result.Applied, result.Published, result.Residual = true, published, residual
+	result.Staged = published.staged
+	if spec.StageOnly {
+		return result, nil
+	}
+	result.Applied, result.Published, result.Residual, result.Warnings = true, published.published, published.residual, published.warnings
 	return result, nil
 }
 
@@ -288,9 +311,10 @@ func requirePinnedGo(ctx context.Context, spec Spec) error {
 }
 
 // goEnvironment passes the caller's environment through, minus the settings
-// this package owns.
+// this package owns and those extra sets. The caller's module cache passes
+// through to staged commands; only download sets a private one.
 func goEnvironment(environment []string, extra ...string) []string {
-	owned := map[string]bool{"GOFLAGS": true, "GOMODCACHE": true, "GOTOOLCHAIN": true, "GOWORK": true, "GO111MODULE": true, "GOMADSEED": true, "GOMAD3_CHILD_SEED": true}
+	owned := map[string]bool{"GOFLAGS": true, "GOTOOLCHAIN": true, "GOWORK": true, "GO111MODULE": true, "GOMADSEED": true, "GOMAD3_CHILD_SEED": true}
 	for _, entry := range extra {
 		name, _, _ := strings.Cut(entry, "=")
 		owned[name] = true

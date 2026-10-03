@@ -11,10 +11,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 	"golang.org/x/mod/module"
@@ -575,5 +577,140 @@ func TestUnifiedDiff(t *testing.T) {
 	}
 	if got := unifiedDiff("x", []byte(previous), []byte(previous)); got != "" {
 		t.Fatalf("equal diff = %q", got)
+	}
+}
+
+// A completed publication whose journal removal was interrupted after the
+// blobs went leaves a manifest whose files all hold their next contents; the
+// next run completes it without reading a blob.
+func TestJournalManifestWithoutBlobsCompletes(t *testing.T) {
+	fixture := newFixture(t)
+	path := "deterministicio/profile.go"
+	journalPath := filepath.Join(fixture.root, filepath.FromSlash(stateDirectory), journalDirectory)
+	if err := os.MkdirAll(journalPath, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	current, err := fileDigest(filepath.Join(fixture.root, filepath.FromSlash(path)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoded, err := json.Marshal(journal{Schema: journalSchema, Entries: []journalEntry{
+		{Path: path, Previous: "sha256:old", Next: current, Blob: "blob-0", Mode: 0o644},
+		{Path: "deterministicio/removed.go", Previous: "sha256:old", Next: ""},
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(journalPath, journalManifest), encoded, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	before := fixture.snapshot()
+	if err := Recover(fixture.root); err != nil {
+		t.Fatal(err)
+	}
+	requireUnchanged(t, before, fixture.snapshot())
+	requireNoJournal(t, fixture.root)
+}
+
+// Blobs without a manifest are the rest of a journal whose removal was
+// interrupted after the manifest went; they must not block the next apply.
+func TestJournalBlobsWithoutManifestDoNotBlockTheNextApply(t *testing.T) {
+	fixture := newFixture(t)
+	state := filepath.Join(fixture.root, filepath.FromSlash(stateDirectory))
+	for _, directory := range []string{journalDirectory, "done-1"} {
+		if err := os.MkdirAll(filepath.Join(state, directory), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(state, directory, "blob-0"), []byte("stale"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	review := fixture.dryRun(goodVersion)
+	if _, err := Run(context.Background(), fixture.spec(goodVersion, review.Regeneration.ApprovalSHA256)); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(fixture.read("deterministicio/sentry_adapter.go"), `"`+goodVersion+`"`) {
+		t.Fatal("apply did not publish")
+	}
+	requireNoJournal(t, fixture.root)
+}
+
+func requireNoJournal(t *testing.T, root string) {
+	t.Helper()
+	entries, err := os.ReadDir(filepath.Join(root, filepath.FromSlash(stateDirectory)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, entry := range entries {
+		if entry.Name() != "lock" {
+			t.Fatalf("transaction state retains %s", entry.Name())
+		}
+	}
+}
+
+func TestStageOnlyListsEveryPublishedFileAndPublishesNothing(t *testing.T) {
+	fixture := newFixture(t)
+	before := fixture.snapshot()
+	review := fixture.dryRun(goodVersion)
+	spec := fixture.spec(goodVersion, review.Regeneration.ApprovalSHA256)
+	spec.StageOnly = true
+	staged, err := Run(context.Background(), spec)
+	if err != nil {
+		t.Fatal(err)
+	}
+	requireUnchanged(t, before, fixture.snapshot())
+	if staged.Applied || len(staged.Staged) == 0 {
+		t.Fatalf("stage-only result = %+v", staged)
+	}
+	var rendered bytes.Buffer
+	if err := Render(&rendered, staged); err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"would publish", "changed deterministicio/testdata/sentry/go.mod", "+require " + sentryModule + " " + goodVersion, "staged only; nothing was published"} {
+		if !strings.Contains(strings.Join(strings.Fields(rendered.String()), " "), strings.Join(strings.Fields(want), " ")) {
+			t.Fatalf("stage-only output lacks %q:\n%s", want, rendered.String())
+		}
+	}
+	spec.Approval = ""
+	if _, err := Run(context.Background(), spec); err == nil || !strings.Contains(err.Error(), "needs the approval digest") {
+		t.Fatalf("stage-only without approval = %v", err)
+	}
+	applied, err := Run(context.Background(), fixture.spec(goodVersion, review.Regeneration.ApprovalSHA256))
+	if err != nil {
+		t.Fatal(err)
+	}
+	stagedPaths := make([]string, len(staged.Staged))
+	for index, file := range staged.Staged {
+		stagedPaths[index] = file.Path
+	}
+	if strings.Join(stagedPaths, "\n") != strings.Join(applied.Published, "\n") {
+		t.Fatalf("stage-only listed %v, apply published %v", stagedPaths, applied.Published)
+	}
+}
+
+func TestResidualScanFailureAfterPublicationIsAWarning(t *testing.T) {
+	fixture := newFixture(t)
+	review := fixture.dryRun(goodVersion)
+	spec := fixture.spec(goodVersion, review.Regeneration.ApprovalSHA256)
+	spec.residualScan = func(string, deterministicio.AdapterRegeneration) ([]string, error) {
+		return nil, errors.New("scan failed")
+	}
+	result, err := Run(context.Background(), spec)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.Applied || len(result.Warnings) != 1 || !strings.Contains(result.Warnings[0], "scan failed") {
+		t.Fatalf("result = %+v", result)
+	}
+}
+
+func TestStagedCommandsKeepTheCallersModuleCache(t *testing.T) {
+	environment := goEnvironment([]string{"GOMODCACHE=/caller", "GOFLAGS=-x", "HOME=/home"})
+	if !slices.Contains(environment, "GOMODCACHE=/caller") || slices.Contains(environment, "GOFLAGS=-x") {
+		t.Fatalf("staged environment = %v", environment)
+	}
+	private := goEnvironment([]string{"GOMODCACHE=/caller"}, "GOMODCACHE=/private")
+	if slices.Contains(private, "GOMODCACHE=/caller") || !slices.Contains(private, "GOMODCACHE=/private") {
+		t.Fatalf("download environment = %v", private)
 	}
 }

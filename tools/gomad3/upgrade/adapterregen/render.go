@@ -61,9 +61,27 @@ func Render(w io.Writer, result Result) error {
 			fmt.Fprintf(&out, "  %s (%s, %s): %s\n", stale.File, stale.ID, strings.Join(stale.Platforms, ","), stale.Location)
 		}
 	}
-	if !result.Applied {
-		fmt.Fprintf(&out, "\napproval: %s\nreview the changed source above, then apply with:\n  gomadtool adapter-regenerate --module=%s --version=%s --approve-review=%s\n", regeneration.ApprovalSHA256, regeneration.Module, proposed.Version, regeneration.ApprovalSHA256)
-	} else {
+	if len(result.Staged) != 0 {
+		verb := "publishes"
+		if !result.Applied {
+			verb = "would publish"
+		}
+		fmt.Fprintf(&out, "\nstaged and verified; the apply %s %d files:\n", verb, len(result.Staged))
+		for _, file := range result.Staged {
+			fmt.Fprintf(&out, "  %-7s %s\n", file.Change, file.Path)
+		}
+		for _, file := range result.Staged {
+			if file.Diff != "" {
+				out.WriteString("\n" + file.Diff)
+			}
+		}
+	}
+	switch {
+	case !result.Applied && len(result.Staged) != 0:
+		fmt.Fprintf(&out, "\nstaged only; nothing was published. Apply with:\n  gomadtool adapter-regenerate --module=%s --version=%s --approve-review=%s\n", regeneration.Module, proposed.Version, regeneration.ApprovalSHA256)
+	case !result.Applied:
+		fmt.Fprintf(&out, "\napproval: %s\nreview the changed source above, then see every file the apply publishes with:\n  gomadtool adapter-regenerate --module=%s --version=%s --approve-review=%s --stage-only\nand apply with:\n  gomadtool adapter-regenerate --module=%s --version=%s --approve-review=%s\n", regeneration.ApprovalSHA256, regeneration.Module, proposed.Version, regeneration.ApprovalSHA256, regeneration.Module, proposed.Version, regeneration.ApprovalSHA256)
+	default:
 		fmt.Fprintf(&out, "\napplied %s; published %d files:\n", regeneration.ApprovalSHA256, len(result.Published))
 		for _, path := range result.Published {
 			fmt.Fprintf(&out, "  %s\n", path)
@@ -73,6 +91,9 @@ func Render(w io.Writer, result Result) error {
 			for _, location := range result.Residual {
 				fmt.Fprintf(&out, "  %s\n", location)
 			}
+		}
+		for _, warning := range result.Warnings {
+			fmt.Fprintf(&out, "warning: %s\n", warning)
 		}
 		out.WriteString("rebuild .bin/gomad and requalify the adapter's workloads; the adapter changes target identity\n")
 	}
