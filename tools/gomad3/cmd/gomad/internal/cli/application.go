@@ -36,8 +36,10 @@ const toolchainEnvironment = "GOMAD3_TOOLCHAIN_DIR"
 type application struct {
 	executable  func() (string, error)
 	environment func(string) string
-	// privateInput and privateOutput carry a private child mode's protocol.
-	// They are the process's standard streams, not a command's writers.
+	// privateInput and privateOutput carry the coordinator's request and
+	// response protocol; the supervisor and target bootstrap modes ignore
+	// them and read their fixed descriptors. They are the process's standard
+	// streams, not a command's writers.
 	privateInput  io.Reader
 	privateOutput io.Writer
 	dispatch      func(mode string, input io.Reader, output io.Writer) error

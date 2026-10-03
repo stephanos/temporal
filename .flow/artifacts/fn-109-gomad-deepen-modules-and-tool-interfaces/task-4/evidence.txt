@@ -34,11 +34,15 @@ Design
   are observable without a toolchain; behavior unchanged (captures below are identical).
 - Runner build digest: the doctor check's streaming digest (open, regular+executable check, SHA-256)
   is now the single owner, used by both doctor's Check and install. Previously install read the
-  whole executable with os.ReadFile. The digest bytes are identical ("sha256:%x"); only the error
-  text of an unreachable failure (the running executable cannot be opened or is not executable)
-  changes from "hash gomad executable: open ..." to "hash gomad executable: open Runner: ..." (or
-  "... Runner is not a regular executable: PATH"); classification (status 3, runner_failure) is
-  unchanged. Pinned by TestApplicationInstallFailsClosed.
+  whole executable with os.ReadFile. The digest bytes are identical ("sha256:%x"). Two failure
+  behaviors change. (1) When the running executable cannot be opened, the text changes from
+  "hash gomad executable: open ..." to "hash gomad executable: open Runner: ...". (2) The
+  regular-executable check is new for install: a running executable that stops being a regular
+  executable file after startup (for example `chmod -x` on the binary while gomad starts) used to
+  be hashed and accepted, and now fails with "hash gomad executable: Runner is not a regular
+  executable: PATH". Both exit 3 with classification runner_failure. Pinned by
+  TestApplicationInstallFailsClosed. (Reworded after the fn-109.4 review: an earlier version of
+  this note called the case unreachable.)
 
 Acceptance
 - One construction path: grep over non-test CLI sources finds os.Executable, os.Stdin/os.Stdout,
