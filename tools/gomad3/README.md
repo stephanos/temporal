@@ -950,8 +950,9 @@ execution identity, so a new toolchain build key starts a new cohort. The gate
 accepts zero divergences; a trace overflow, target failure, or infrastructure
 failure is reported separately and is not a pass, and a divergence retains
 both diagnostic traces and the differ output. Its bound is per platform and per
-cohort: the cumulative fresh repetitions across retained scheduled runs with
-zero divergences, measured with diagnostics on. No native bound is retained
+cohort: the cumulative fresh repetitions of clean batches across retained
+scheduled runs while the cohort has no divergence, measured with diagnostics
+on; repetitions of overflowed or failed batches never count toward it. No native bound is retained
 yet. The soak's mechanics were exercised on an ARM64 Linux development host,
 where the patched toolchain does not build, against a stand-in `gomad
 qualify`; that run measured no Gomad bound. The first retained scheduled or

@@ -84,7 +84,7 @@ func TestCohortBatchSequenceAAThenBBIsADivergence(t *testing.T) {
 	if want := []string{ComparisonEstablished, ComparisonMatches, ComparisonDiffers, ComparisonDiffers}; !slices.Equal(comparisons, want) {
 		t.Fatalf("comparisons = %v, want %v", comparisons, want)
 	}
-	if len(ledger.Cohorts) != 1 || ledger.Cohorts[0].Counts != (Counts{Batches: 4, Repetitions: 128, Divergences: 2}) {
+	if len(ledger.Cohorts) != 1 || ledger.Cohorts[0].Counts != (Counts{Batches: 4, Repetitions: 128, CleanRepetitions: 64, Divergences: 2}) {
 		t.Fatalf("cohorts = %+v", ledger.Cohorts)
 	}
 }
@@ -127,7 +127,7 @@ func TestCumulativeCountsAccumulateAcrossRetainedRuns(t *testing.T) {
 	restored.observe(observation{run: "run-2", key: cohortKey, outcome: OutcomeClean, digest: "sha256:a", repetitions: 64})
 	restored.observe(observation{run: "run-2", key: cohortKey, outcome: OutcomeOverflow, repetitions: 3})
 	cohort := restored.Cohorts[0]
-	if cohort.Counts != (Counts{Batches: 3, Repetitions: 131, Overflows: 1}) || !slices.Equal(cohort.Runs, []string{"run-1", "run-2"}) {
+	if cohort.Counts != (Counts{Batches: 3, Repetitions: 131, CleanRepetitions: 128, Overflows: 1}) || !slices.Equal(cohort.Runs, []string{"run-1", "run-2"}) {
 		t.Fatalf("cohort = %+v", cohort)
 	}
 }
@@ -289,7 +289,7 @@ func TestRunRetainsBothTracesAndDifferOutputForACrossBatchDivergence(t *testing.
 	if err != nil {
 		t.Fatal(err)
 	}
-	if report.Passed || report.Verdict != "fail" || ExitStatus(report) != 1 || report.Totals != (Counts{Batches: 2, Repetitions: 6, Divergences: 1}) {
+	if report.Passed || report.Verdict != "fail" || ExitStatus(report) != 1 || report.Totals != (Counts{Batches: 2, Repetitions: 6, CleanRepetitions: 3, Divergences: 1}) {
 		t.Fatalf("report = %+v", report)
 	}
 	diverged := report.BatchReports[1]
@@ -444,5 +444,28 @@ func TestSelectedManifestIsValid(t *testing.T) {
 		if _, ok := manifest.InformationalPlatforms["linux/amd64"]; !ok {
 			t.Fatal("linux/amd64 must stay informational while fn-105 D12 is open")
 		}
+	}
+}
+
+func TestOverflowRepetitionsDoNotEnterTheBound(t *testing.T) {
+	ledger := newLedger()
+	cohortKey := key(t, "one")
+	ledger.observe(observation{run: "1", key: cohortKey, outcome: OutcomeClean, digest: "sha256:a", repetitions: 32})
+	ledger.observe(observation{run: "1", key: cohortKey, outcome: OutcomeOverflow, repetitions: 32})
+	if counts := ledger.Cohorts[0].Counts; counts.CleanRepetitions != 32 || counts.Repetitions != 64 {
+		t.Fatalf("counts = %+v", counts)
+	}
+}
+
+func TestFailedBaselineRetentionIsInfrastructureAndLeavesNoBaseline(t *testing.T) {
+	ledger := newLedger()
+	cohortKey := key(t, "one")
+	outcome, _, cohort := ledger.observe(observation{run: "1", key: cohortKey, outcome: OutcomeClean, digest: "sha256:a", repetitions: 32,
+		retainBaseline: func(*Cohort) error { return errors.New("disk full") }})
+	if outcome != OutcomeInfrastructure || cohort.Baseline != nil || cohort.Counts.CleanRepetitions != 0 || cohort.Counts.InfrastructureFailures != 1 {
+		t.Fatalf("outcome %s, cohort %+v", outcome, cohort)
+	}
+	if outcome, comparison, _ := ledger.observe(observation{run: "1", key: cohortKey, outcome: OutcomeClean, digest: "sha256:b", repetitions: 32}); outcome != OutcomeClean || comparison != ComparisonEstablished {
+		t.Fatalf("next batch outcome %s, comparison %s", outcome, comparison)
 	}
 }

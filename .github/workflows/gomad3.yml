@@ -358,6 +358,7 @@ jobs:
           path: tools/gomad3/.toolchain/soak/ledger
           if-no-files-found: ignore
           retention-days: 90
+          overwrite: true
 
       - name: Upload the soak report and divergence evidence
         if: ${{ always() }}
@@ -367,6 +368,7 @@ jobs:
           path: tools/gomad3/.toolchain/soak/output
           if-no-files-found: warn
           retention-days: 90
+          overwrite: true
 
   # The linux/amd64 counterpart. soak.json lists linux/amd64 under
   # informational_platforms while fn-105 D12 is open, so this job's report says
@@ -434,6 +436,7 @@ jobs:
           path: tools/gomad3/.toolchain/soak/ledger
           if-no-files-found: ignore
           retention-days: 90
+          overwrite: true
 
       - name: Upload the soak report and divergence evidence
         if: ${{ always() }}
@@ -443,3 +446,4 @@ jobs:
           path: tools/gomad3/.toolchain/soak/output
           if-no-files-found: warn
           retention-days: 90
+          overwrite: true

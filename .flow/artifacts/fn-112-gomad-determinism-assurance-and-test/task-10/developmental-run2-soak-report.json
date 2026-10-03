@@ -33,11 +33,12 @@
     "host_cpus": 12
   },
   "sizing": "developmental: N = 8 per seed (two batches of 4) to exercise batching, cross-batch comparison, ledger accumulation, and retention; not a bound",
-  "started": "2026-10-03T20:04:47Z",
-  "elapsed_nanos": 1347469834,
+  "started": "2026-10-03T20:24:36Z",
+  "elapsed_nanos": 759664292,
   "totals": {
     "batches": 6,
     "repetitions": 24,
+    "clean_repetitions": 24,
     "divergences": 0,
     "overflows": 0,
     "target_failures": 0,
@@ -57,8 +58,8 @@
       "repetitions": 4,
       "evidence_digest": "sha256:1839c9371b25427170030a95458e6ea724086b4226083e1a5af88666ba0bfee5",
       "cohort": "a9f9779fb69e64f0",
-      "elapsed_nanos": 109739666,
-      "execution_wall_nanos": 81881833,
+      "elapsed_nanos": 122648750,
+      "execution_wall_nanos": 89345250,
       "report": "batches/concurrency-state-invariant-seed-11-batch-1.json"
     },
     {
@@ -71,8 +72,8 @@
       "repetitions": 4,
       "evidence_digest": "sha256:ef2179e55d7257341b357b77a6c8d8537a64ddacb4d2dfd12547ba8b259d3492",
       "cohort": "ee9a684f58edd47b",
-      "elapsed_nanos": 130322751,
-      "execution_wall_nanos": 83834043,
+      "elapsed_nanos": 111321542,
+      "execution_wall_nanos": 83288958,
       "report": "batches/concurrency-state-invariant-seed-17-batch-1.json"
     },
     {
@@ -85,8 +86,8 @@
       "repetitions": 4,
       "evidence_digest": "sha256:1839c9371b25427170030a95458e6ea724086b4226083e1a5af88666ba0bfee5",
       "cohort": "a9f9779fb69e64f0",
-      "elapsed_nanos": 160312458,
-      "execution_wall_nanos": 83834543,
+      "elapsed_nanos": 129384083,
+      "execution_wall_nanos": 82778250,
       "report": "batches/concurrency-state-invariant-seed-11-batch-2.json"
     },
     {
@@ -99,8 +100,8 @@
       "repetitions": 4,
       "evidence_digest": "sha256:ef2179e55d7257341b357b77a6c8d8537a64ddacb4d2dfd12547ba8b259d3492",
       "cohort": "ee9a684f58edd47b",
-      "elapsed_nanos": 210484750,
-      "execution_wall_nanos": 105634876,
+      "elapsed_nanos": 122826917,
+      "execution_wall_nanos": 83582209,
       "report": "batches/concurrency-state-invariant-seed-17-batch-2.json"
     },
     {
@@ -113,8 +114,8 @@
       "repetitions": 4,
       "evidence_digest": "sha256:1839c9371b25427170030a95458e6ea724086b4226083e1a5af88666ba0bfee5",
       "cohort": "a9f9779fb69e64f0",
-      "elapsed_nanos": 450670542,
-      "execution_wall_nanos": 83942833,
+      "elapsed_nanos": 131324875,
+      "execution_wall_nanos": 82121958,
       "report": "batches/concurrency-state-invariant-seed-11-batch-3.json"
     },
     {
@@ -127,8 +128,8 @@
       "repetitions": 4,
       "evidence_digest": "sha256:ef2179e55d7257341b357b77a6c8d8537a64ddacb4d2dfd12547ba8b259d3492",
       "cohort": "ee9a684f58edd47b",
-      "elapsed_nanos": 192710584,
-      "execution_wall_nanos": 90295792,
+      "elapsed_nanos": 116646375,
+      "execution_wall_nanos": 82284791,
       "report": "batches/concurrency-state-invariant-seed-17-batch-3.json"
     }
   ],
@@ -150,6 +151,7 @@
       "run": {
         "batches": 3,
         "repetitions": 12,
+        "clean_repetitions": 12,
         "divergences": 0,
         "overflows": 0,
         "target_failures": 0,
@@ -158,6 +160,7 @@
       "cumulative": {
         "batches": 6,
         "repetitions": 24,
+        "clean_repetitions": 24,
         "divergences": 0,
         "overflows": 0,
         "target_failures": 0,
@@ -183,6 +186,7 @@
       "run": {
         "batches": 3,
         "repetitions": 12,
+        "clean_repetitions": 12,
         "divergences": 0,
         "overflows": 0,
         "target_failures": 0,
@@ -191,6 +195,7 @@
       "cumulative": {
         "batches": 6,
         "repetitions": 24,
+        "clean_repetitions": 24,
         "divergences": 0,
         "overflows": 0,
         "target_failures": 0,

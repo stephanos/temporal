@@ -48,8 +48,11 @@ type CohortKey struct {
 }
 
 type Counts struct {
-	Batches                uint64 `json:"batches"`
+	Batches uint64 `json:"batches"`
+	// Repetitions counts every completed execution; CleanRepetitions only
+	// those of clean batches, the repetitions a bound may quote.
 	Repetitions            uint64 `json:"repetitions"`
+	CleanRepetitions       uint64 `json:"clean_repetitions"`
 	Divergences            uint64 `json:"divergences"`
 	Overflows              uint64 `json:"overflows"`
 	TargetFailures         uint64 `json:"target_failures"`
@@ -60,6 +63,8 @@ func (counts *Counts) add(outcome string, repetitions uint64) {
 	counts.Batches++
 	counts.Repetitions += repetitions
 	switch outcome {
+	case OutcomeClean:
+		counts.CleanRepetitions += repetitions
 	case OutcomeDivergence:
 		counts.Divergences++
 	case OutcomeOverflow:
@@ -188,6 +193,10 @@ type observation struct {
 	outcome     string
 	digest      record.SHA256
 	repetitions uint64
+	// retainBaseline stores the files of a newly established baseline; when
+	// it fails the batch is an infrastructure failure and the cohort keeps no
+	// baseline, so the next clean batch establishes one with its files.
+	retainBaseline func(*Cohort) error
 }
 
 // observe records a batch in its cohort. A clean batch is compared with the
@@ -205,6 +214,9 @@ func (ledger *Ledger) observe(batch observation) (outcome, comparison string, co
 		case cohort.Baseline == nil:
 			comparison = ComparisonEstablished
 			cohort.Baseline = &Baseline{EvidenceDigest: batch.digest, Run: batch.run, Batch: batch.batch}
+			if batch.retainBaseline != nil && batch.retainBaseline(cohort) != nil {
+				cohort.Baseline, outcome = nil, OutcomeInfrastructure
+			}
 		case cohort.Baseline.EvidenceDigest == batch.digest:
 			comparison = ComparisonMatches
 		default:

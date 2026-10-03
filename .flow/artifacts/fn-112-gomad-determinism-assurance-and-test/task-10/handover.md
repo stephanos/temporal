@@ -36,7 +36,10 @@ Host: linux/arm64 (developmental). None of the results below is darwin/arm64 or 
   - No Gomad determinism bound was measured. The native bound comes from the first retained CI run per platform.
 - The developmental run found a real defect: relative work, ledger, and output paths escaped the batch working
   directory. It is fixed, and `TestRunGivesBatchesAbsolutePaths` covers it.
-- `go test -count=1 -tags test_dep ./qualification/soak`: 14 tests pass. A mutation check confirmed coverage: with
+- Review round 1 (NEEDS_WORK) fixes: the bound now counts only clean-batch repetitions (`clean_repetitions`); a
+  failed baseline retention is infrastructure and leaves no baseline; `runBatch` is a `soakRun` method; the ledger
+  is saved after every batch; soak uploads set `overwrite: true` for re-run attempts.
+- `go test -count=1 -tags test_dep ./qualification/soak`: 16 tests pass. A mutation check confirmed coverage: with
   the cross-batch divergence assignment removed, `TestCohortBatchSequenceAAThenBBIsADivergence` and two run tests
   fail.
 - With stock Go 1.27.1, `go test -tags test_dep . ./cmd/gomadtool ./qualification/...` passes, except

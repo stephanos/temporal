@@ -111,8 +111,8 @@ type CohortReport struct {
 	Run        Counts `json:"run"`
 	Cumulative Counts `json:"cumulative"`
 	Runs       uint64 `json:"runs"`
-	// Bound is the quotable result: fresh repetitions with zero divergences,
-	// zero when the cohort has diverged.
+	// Bound is the quotable result: the cohort's repetitions in clean batches,
+	// zero once the cohort has diverged.
 	Bound uint64 `json:"bound"`
 }
 
@@ -310,7 +310,7 @@ func (run *soakRun) executeRounds(ctx context.Context) {
 		run.report.Batches = batch
 		for _, plan := range run.plans {
 			for _, seed := range run.seeds {
-				run.record(runBatch(ctx, run.spec, run.manifest, plan, seed, batch, run.batchTimeout, run.deadline, run.ledger, &run.report))
+				run.record(run.runBatch(ctx, plan, seed, batch))
 			}
 		}
 		previousRound = run.spec.Now().Sub(roundStarted)
@@ -319,6 +319,9 @@ func (run *soakRun) executeRounds(ctx context.Context) {
 }
 
 func (run *soakRun) record(batch BatchReport) {
+	// Saving after every batch keeps the run's evidence if the job is killed
+	// before it publishes; publish reports a save failure.
+	_ = run.ledger.save(run.spec.LedgerDir)
 	run.report.BatchReports = append(run.report.BatchReports, batch)
 	run.report.Totals.add(batch.Outcome, batch.Repetitions)
 	if batch.Cohort == "" {
@@ -339,7 +342,7 @@ func (run *soakRun) publish() (Report, error) {
 		if !ok {
 			continue
 		}
-		bound := cohort.Counts.Repetitions
+		bound := cohort.Counts.CleanRepetitions
 		if cohort.Counts.Divergences != 0 {
 			bound = 0
 		}
@@ -368,16 +371,17 @@ func (run *soakRun) publish() (Report, error) {
 	return *report, os.WriteFile(filepath.Join(run.spec.OutputDir, "soak-summary.md"), []byte(Summary(*report)), 0o644)
 }
 
-func runBatch(ctx context.Context, spec Spec, manifest Manifest, plan workloadPlan, seed, batch uint64, batchTimeout time.Duration, deadline time.Time, ledger *Ledger, report *Report) BatchReport {
+func (run *soakRun) runBatch(ctx context.Context, plan workloadPlan, seed, batch uint64) BatchReport {
+	spec, ledger, report := run.spec, run.ledger, &run.report
 	name := fmt.Sprintf("%s-seed-%d-batch-%d", plan.workload.ID, seed, batch)
 	result := BatchReport{Workload: plan.workload.ID, Seed: record.Uint64String(seed), Batch: batch}
 	grace, _ := time.ParseDuration(plan.setManifest.TerminateGrace)
-	remaining := deadline.Sub(spec.Now())
+	remaining := run.deadline.Sub(spec.Now())
 	if remaining <= grace+time.Minute {
 		result.Outcome, result.Message = OutcomeInfrastructure, "soak budget exhausted before the batch could start"
 		return result
 	}
-	overall := min(batchTimeout, remaining-grace-30*time.Second)
+	overall := min(run.batchTimeout, remaining-grace-30*time.Second)
 	artifacts := filepath.Join(spec.WorkRoot, name)
 	if err := os.RemoveAll(artifacts); err != nil {
 		result.Outcome, result.Message = OutcomeInfrastructure, err.Error()
@@ -388,7 +392,7 @@ func runBatch(ctx context.Context, spec Spec, manifest Manifest, plan workloadPl
 	}
 	started := spec.Now()
 	executed := spec.Execute(ctx, Command{
-		Executable: spec.GomadPath, Args: set.SoakQualifyArguments(plan.setManifest, plan.workload, seed, manifest.BatchRepeat, overall, artifacts),
+		Executable: spec.GomadPath, Args: set.SoakQualifyArguments(plan.setManifest, plan.workload, seed, run.manifest.BatchRepeat, overall, artifacts),
 		Dir: plan.workingDir, Timeout: overall + grace + 30*time.Second, Grace: grace,
 	})
 	result.ElapsedNanos = uint64(spec.Now().Sub(started))
@@ -423,18 +427,19 @@ func runBatch(ctx context.Context, spec Spec, manifest Manifest, plan workloadPl
 	if !slices.Contains(report.Toolchains, qualified.Evidence.Toolchain) {
 		report.Toolchains = append(report.Toolchains, qualified.Evidence.Toolchain)
 	}
+	var retainErr error
 	outcome, comparison, cohort := ledger.observe(observation{
 		run: spec.RunID, batch: batch, toolchain: qualified.Evidence.Toolchain, outcome: result.Outcome, digest: qualified.EvidenceDigest, repetitions: result.Repetitions,
 		key: CohortKey{Workload: plan.workload.ID, Seed: record.Uint64String(seed), Platform: platform, ExecutionIdentity: identity},
+		retainBaseline: func(cohort *Cohort) error {
+			retainErr = retainBaseline(spec.LedgerDir, cohort, qualified)
+			return retainErr
+		},
 	})
 	result.Outcome, result.Comparison, result.Cohort = outcome, comparison, cohort.ID
 	switch {
-	case comparison == ComparisonEstablished:
-		// The digest alone keeps later comparisons working; a missing file
-		// only leaves a later divergence without the baseline's copy.
-		if err := retainBaseline(spec.LedgerDir, cohort, qualified); err != nil {
-			result.Message = fmt.Sprintf("cohort baseline files were not retained: %v", err)
-		}
+	case retainErr != nil:
+		result.Message = fmt.Sprintf("cohort baseline files were not retained: %v", retainErr)
 	case comparison == ComparisonDiffers:
 		result.Message = fmt.Sprintf("evidence %s differs from cohort baseline %s (run %s batch %d)", qualified.EvidenceDigest, cohort.Baseline.EvidenceDigest, cohort.Baseline.Run, cohort.Baseline.Batch)
 		retained, divergence, err := retainBaselineDivergence(spec, name, cohort, qualified)
@@ -727,7 +732,7 @@ func Summary(report Report) string {
 	}
 	seeds := make([]string, len(report.Seeds))
 	for index, seed := range report.Seeds {
-		seeds[index] = string(strconv.AppendUint(nil, uint64(seed), 10))
+		seeds[index] = strconv.FormatUint(uint64(seed), 10)
 	}
 	fmt.Fprintf(&builder, "- N = %d fresh repetitions per workload and seed (%d batches of %d; minimum %d, maximum %d, stopped at %s), seeds %s, choice tracing and diagnostics on\n",
 		report.RepetitionsPerSeed, report.Batches, report.BatchRepeat, report.MinimumBatches, report.MaximumBatches, report.StopReason, strings.Join(seeds, ", "))
