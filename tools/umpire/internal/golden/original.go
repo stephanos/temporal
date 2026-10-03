@@ -343,7 +343,8 @@ func OriginalCurrent(root string) (map[string][]byte, error) {
 func OriginalModels(files map[string][]byte) (map[string]*umpirespb.Model, error) {
 	out := map[string]*umpirespb.Model{}
 	for key, encoded := range files {
-		if !strings.HasSuffix(key, ".json") || !(strings.HasPrefix(key, OriginalIR) || strings.HasPrefix(key, OriginalLifts)) {
+		modelKey := strings.HasPrefix(key, OriginalIR) || strings.HasPrefix(key, OriginalLifts)
+		if !strings.HasSuffix(key, ".json") || !modelKey {
 			continue
 		}
 		m := new(umpirespb.Model)

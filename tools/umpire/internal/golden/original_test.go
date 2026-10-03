@@ -70,7 +70,7 @@ func TestOriginalBaselineInputs(t *testing.T) {
 
 // owner splits a symbol-based Definition ID into the compiler owner the lifter took it from, which
 // ends at the last segment that names an object or a file's package object, and the captured name.
-func owner(id string) (string, string, bool) {
+func owner(id string) (at, name string, ok bool) {
 	segments := strings.Split(id, ".")
 	for i := len(segments) - 1; i > 0; i-- {
 		if strings.HasSuffix(segments[i-1], "$") {
@@ -150,14 +150,14 @@ func TestOriginalBaselineOwnerMapIsTheArchives(t *testing.T) {
 
 // originalJob is a baseline and its current spelling: moved to another file and line, lifted from
 // other roots, with one Function renamed as the delta records.
-func originalJob(t *testing.T) (Delta, *umpirespb.Model, *umpirespb.Model) {
+func originalJob(t *testing.T) (delta Delta, baseline, current *umpirespb.Model) {
 	t.Helper()
-	baseline := JobModel("once", "submit", "take", "finish")
+	baseline = JobModel("once", "submit", "take", "finish")
 	baseline.Actions[0].Examples = []*umpirespb.Example{
 		{Value: &umpirespb.Value{Kind: &umpirespb.Value_Text{Text: "a"}}},
 		{Value: &umpirespb.Value{Kind: &umpirespb.Value_Text{Text: "b"}}},
 	}
-	current := proto.CloneOf(baseline)
+	current = proto.CloneOf(baseline)
 	current.Source = "model: moved roots"
 	require.NoError(t, positions(current.ProtoReflect(), func(at protoreflect.Message) error {
 		at.Set(at.Descriptor().Fields().ByName("file"), protoreflect.ValueOfString("moved.scala"))
@@ -272,8 +272,8 @@ func TestOriginalDeltaIsClosed(t *testing.T) {
 
 func TestOriginalLocatedDropsOnlyPositions(t *testing.T) {
 	require.Equal(t,
-		`{"path":"<source>","note":"<source>: no Query x","at":"<source>","rows":"model/ir/a.json"}`,
-		string(Located([]byte(`{"path":"model/temporal/a/Claims.scala","note":"model: roots a, b: no Query x","at":"model/lifter/testdata/lifts/Rejects.scala:12:4","rows":"model/ir/a.json"}`), "model: roots a, b")))
+		"path <source>; note <source>: no Query x; at <source>; rows model/ir/a.json",
+		string(Located([]byte("path model/temporal/a/Claims.scala; note model: roots a, b: no Query x; at model/lifter/testdata/lifts/Rejects.scala:12:4; rows model/ir/a.json"), "model: roots a, b")))
 }
 
 func TestOriginalInventoryIsClosed(t *testing.T) {
