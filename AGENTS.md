@@ -160,10 +160,10 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
      produced. Prefer a different family than the writer: a same-family review
      is not an independent verdict. Advice, not enforcement. -->
 
-<!-- The implementer below is a Claude model too, so the review is same-family
-     and is separated from the writer by model and by a fresh context only. -->
+<!-- The implementer below is the same Claude model, so the review is
+     same-model and is separated from the writer by a fresh context only. -->
 
-reviewer: claude-fable-5-1 at high
+reviewer: claude-opus-5-5 at high
 
 <!-- implementer: <model> at <effort> - work handed to another harness (plan
      here, implement cheaper or faster there). Absent = the session model
@@ -173,8 +173,8 @@ reviewer: claude-fable-5-1 at high
      subagent, and these are patched-runtime and
      determinism tasks that degrade badly on a cheaper tier, so the pin holds even
      if the session model is switched down.
-     Escalate gnarly determinism-divergence tasks (tracing same-seed divergence to
-     a runtime channel) to claude-fable-5-1 at high. -->
+     Gnarly determinism-divergence tasks (tracing same-seed divergence to
+     a runtime channel) stay on claude-opus-5-5 at high. -->
 
 implementer: claude-opus-5-5 at high
 
@@ -188,7 +188,7 @@ fast scout: claude-haiku-4-5-20251001
 
 <!-- Spec writing, planning, and design decisions. -->
 
-thinking scout: claude-fable-5-1 at high
+thinking scout: claude-opus-5-5 at high
 
 <!-- Unset is the default and the doctrine: planning, capture, interview,
      requirement analysis, every verdict, and the worker run on the session
