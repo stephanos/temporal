@@ -1,0 +1,71 @@
+fn-109.3 Give the seed controller one atomic completion transition -- evidence
+
+Host: linux/arm64 with the local development harness ON (adds linux/arm64 to version.json and
+the boundary manifest, shims syscall.Dup2). This is development evidence only; it is NOT
+darwin/arm64 or linux/amd64 evidence.
+Base revision: 7e5e06814 (branch gomad-next-c, after fn-109.2). Characterization commit
+(pre-refactor code, tables pinned and passing): 48a2c8cd9. Refactor commit: the commit that adds
+this file.
+
+Design
+- runner/internal/campaign/controller.go: FinishAttempt + RecordSuccess/RecordCancelled/
+  RecordFailure are replaced by Complete(Completion) bool. Completion is an opaque value built by
+  CompletedSuccess, CompletedCancelled, CompletedFailure(domain, reason, distinctFailures) or
+  CompletedUnclassified (an attempt that ended before classification; counts as attempted only).
+  One call releases the slot, increments Attempted and the classified counter, sets
+  DistinctFailures and applies the first/budget stop, returning whether active work must be
+  cancelled. Next, Stop, Stopped, Active, Done, Finalize, Statistics, ordinal scheduling and the
+  restored-policy check in NewSeedController are untouched. The controller stays pure.
+- Invariant violation: completing without active work, or with the zero Completion, panics
+  before any mutation (as FinishAttempt did). Chosen over an error return because runLocal has
+  no error slot for it that would not add a new HostError reason or reorder its precedence; the
+  loop only receives completions of jobs it launched, so the panic is unreachable.
+- runner/runner.go seed loop: the per-completion body runs in a closure (continue -> return;
+  `git diff -w` shows the logic change: 41+/28-). A local `complete` helper applies
+  Complete once and synchronizes the summary; classified completions call it where the old
+  Record* call sat (cancelled before partial preservation, success only when hostFailure is nil,
+  failure before the artifact path/journal append so first-failure StopReason and cancel are
+  unchanged). Any completion the body did not count is counted as unclassified after the
+  closure, so no early return loses an attempt. The two early returns that publish a Runner
+  failure (supervision error, World record) count first: publishRunnerFailure writes
+  summary.DistinctFailures directly, and counting afterwards would overwrite it with the
+  controller's value (pinned by the "supervision failure" and "malformed World" rows; a
+  mutation removing the early count fails TestSeedCompletionKeepsCampaignStatistics).
+- Timing note: an unclassified attempt is now counted at the end of its completion's handling
+  instead of on receipt. Nothing between reads Attempted/Active or the synced summary counters
+  (single goroutine; Done() is evaluated only at loop top), so observable statistics are equal.
+  Crash/resume windows are unaffected: the controller is in-memory and resume restores
+  statistics from the journal (restoreResumeSummary), whose writes are unchanged.
+
+Characterization (added in 48a2c8cd9 on the old API, unchanged expectations after refactor)
+- runner/internal/campaign/controller_completion_test.go: 13 rows comparing whole
+  CampaignStatistics, stop state, per-completion active count and cancel result: success,
+  cancellation, unclassified, watchdog, replay divergence, distinct+duplicate failures, first
+  (cancel once, drained failure keeps first_failure), budget (incl. watchdog distinct),
+  budget with unclassified only, all, externally stopped, resume-seeded budget, resume-seeded
+  first. Plus completion without active work for every kind (panic, controller unchanged).
+  After refactor: + zero Completion rejected; old helper mapped to Complete.
+- runner/seed_completion_characterization_test.go: seed campaigns with whole statistics plus
+  error reason/cause, artifacts, journal order and partials: successes, distinct/duplicate
+  failures, first failure cancelling 2 active, budget, supervision failure, supervision failure
+  draining a cancelled / successful / failing attempt (counted in selection order), prepared
+  target integrity, campaign cancelled while running; and statistics for malformed World,
+  supervision-rejected choice trace, watchdog, cancelled execution.
+- Existing: TestCompletionFaultsKeepReasonPrecedenceAndEvidence (16 seed rows with counts),
+  TestRunFirstFailure..., TestRunBudget..., resume tests, retention bounded 10/100-job test.
+
+Commands and results (tools/gomad3, GOWORK=off, -tags test_dep, harness ON)
+- go test ./runner/internal/campaign -run 'SeedController|Controller'        ok (old API, 48a2c8cd9; and after refactor)
+- go test -count=5 ./runner -run TestSeedCompletion (pre-refactor)          ok
+- go test -count=3 ./runner -run 'TestSeedCompletion|TestCompletion|TestShardedSeedController|TestRunFirstFailure|TestRunBudget'  ok (after refactor)
+- go test ./runner/...  : runner FAIL once on TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard
+  (partial_write at 81 attempts after 10 s = the test's OverallTimeout, while execution package
+  tests and other worktrees loaded the host); rerun -count=3 passes in ~1.3 s; passes inside
+  test-host below. runner/internal/execution failures are BASELINE (process termination, adapter digest).
+- go test . -run TestPackageArchitecture                                       ok
+- make validate                                                                exit 0 (12 s)
+- GOFLAGS='-tags=test_dep -count=1' make test-host                             exit 2 (309 s); exactly the 21
+  BASELINE.md failures, none new; runner and runner/internal/campaign ok.
+
+Owed (not runnable here): darwin/arm64 and linux/amd64 runs of the focused commands,
+TestPackageArchitecture, make validate and make test-host.

@@ -30,3 +30,14 @@ resource limits, observation and retention from process wiring (`SupervisorComma
 `Executor`, `Replayer`). Regrouping the exported fields is a source-incompatible change for
 `cmd/gomad/internal/cli` and every other `CampaignSpec` literal, so it needs the consumer inventory
 that the executor-injection task owns. fn-109.2 did not do it.
+
+## fn-109.3 atomic seed completion
+
+**Exported changes: none.** The seed controller lives in `tools/gomad3/runner/internal/campaign`,
+which only `runner` imports.
+
+Internal change: `SeedController.FinishAttempt`, `RecordSuccess`, `RecordCancelled` and
+`RecordFailure(domain, reason, distinct)` are replaced by one `Complete(Completion) bool`.
+A `Completion` is built by `CompletedSuccess`, `CompletedCancelled`, `CompletedUnclassified` or
+`CompletedFailure(domain, reason, distinctFailures)`; its zero value is rejected. The only caller
+is the seed completion loop in `runner/runner.go`.

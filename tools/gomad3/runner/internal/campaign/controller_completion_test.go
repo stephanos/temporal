@@ -3,34 +3,22 @@ package campaign
 import "testing"
 
 type completionStep struct {
-	kind     string
-	domain   string
-	reason   string
-	distinct uint64
-	cancel   bool
+	completion Completion
+	cancel     bool
 }
 
 var (
-	succeeded    = completionStep{kind: "success"}
-	cancelled    = completionStep{kind: "cancelled"}
-	unclassified = completionStep{kind: "unclassified"}
+	succeeded    = completionStep{completion: CompletedSuccess()}
+	cancelled    = completionStep{completion: CompletedCancelled()}
+	unclassified = completionStep{completion: CompletedUnclassified()}
 )
 
 func failed(domain, reason string, distinct uint64, cancel bool) completionStep {
-	return completionStep{kind: "failure", domain: domain, reason: reason, distinct: distinct, cancel: cancel}
+	return completionStep{completion: CompletedFailure(domain, reason, distinct), cancel: cancel}
 }
 
 func completeStep(controller *SeedController, step completionStep) bool {
-	controller.FinishAttempt()
-	switch step.kind {
-	case "success":
-		controller.RecordSuccess()
-	case "cancelled":
-		controller.RecordCancelled()
-	case "failure":
-		return controller.RecordFailure(step.domain, step.reason, step.distinct)
-	}
-	return false
+	return controller.Complete(step.completion)
 }
 
 // Each row schedules as many jobs as it completes, completes them in order and
@@ -150,6 +138,30 @@ func TestSeedControllerCompletionKeepsWholeStatistics(t *testing.T) {
 				t.Fatal("controller did not drain")
 			}
 		})
+	}
+}
+
+func TestSeedControllerRejectsCompletionWithoutClassification(t *testing.T) {
+	controller, err := NewSeedController(SeedControllerConfig{
+		Next: func() (SeedJob, bool) { return SeedJob{}, true }, Parallel: 1, Policy: FailurePolicyAll,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := controller.Next(); !ok {
+		t.Fatal("job was not scheduled")
+	}
+	func() {
+		defer func() {
+			if recovered := recover(); recovered != "gomad3: completed a campaign attempt without a classification" {
+				t.Fatalf("zero completion recovered %#v", recovered)
+			}
+		}()
+		controller.Complete(Completion{})
+		t.Fatal("zero completion succeeded")
+	}()
+	if got := controller.Statistics(); got != (CampaignStatistics{}) || controller.Active() != 1 {
+		t.Fatalf("rejected completion changed the controller: statistics = %#v, active = %d", got, controller.Active())
 	}
 }
 
