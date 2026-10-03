@@ -177,7 +177,7 @@ reviewer: gpt-6-sol at high
 <!-- Pinned rather than left unset, so the pin holds even if the session model is
      switched down. -->
 
-implementer: gpt-6-luna at high; gpt-6-sol at high for demanding tasks
+implementer: gpt-6-sol at high
 
 <!-- fast scout: <model> - mechanical inventory scanning, where
      the cheapest tier is the correct one. -->
