@@ -50,8 +50,26 @@ env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1
 - [ ] Publication bytes, manifests and store identities for fixed inputs are unchanged.
 
 ## Done summary
-TBD
+Blocked:
+Blocked: R13 is implemented and reviewed (SHIP, two rounds). Only native darwin/arm64 and linux/amd64 gates remain, and they belong to task 21.
 
+Done (commits 3a3c31b0a7 and 6a52807659 on gomad-fn109, base 48c95c0c97):
+- `artifact.Artifact` is now only a detached reference. It loses its private `root`, keeps the same exported fields, and has no Close.
+- `OpenArtifact` returns an owned `*artifact.Opened`. Its path, manifest, stored bytes and pinned root are private. `Close` is idempotent and nil-safe.
+- `Manifest()` and `Snapshot()` (which replaces `Detached()`) return deep copies through the reflective `cloneManifest`.
+- `OpenPayload`, `ReadPayload`, `CopyPayload` and `TargetSharing` (which replaces `TargetSharingOf`) are now handle methods. Their bodies, check order and error texts are unchanged. Use after close fails with `artifact is not open`.
+- All consumers are migrated: runner replay, minimize, inspect, resume, corpus, campaign retained evidence and qualification/set. The declarations, consumers and migrations are recorded in go-interface-changes.md.
+- Migration fix: `runner.preflight` never closed a rejected artifact's root, because its deferred close saw the zeroed named result. It now closes it.
+
+Local evidence (linux/arm64, developmental only, with the uncommitted shim; details in task-12/local-evidence.json):
+- Fixed-input publication bytes, manifests and store identities are byte-identical to base across 12 store configurations, checked with a scratch test.
+- Eight new artifact tests cover published and detached references, open/close, use after close, directory replacement, snapshot isolation, valid access, and the rejection matrix (unlisted, bound, mode, size, hash, symlink, escape). A mutation check showed they catch a shallow snapshot and a close that keeps the root.
+- Quick commands: exit 1 at baseline (122s, 21 failures) and after (133s). The run after has the same 21 failures plus 4 timing tests that pass on an isolated rerun.
+- Architecture tests: exit 0. go vet and gofmt: clean.
+- Full `make test-host`: exit 2 (244s). Every failure is in the baseline or in the task-11 shim/pin-drift set, in packages that do not depend on artifact, apart from one watchdog timing test that passes when rerun alone.
+- golangci-lint: not run, because the repository binary is a darwin build.
+
+Remaining native gates: on darwin/arm64 and linux/amd64 hosts (task 21), full `make -C tools/gomad3 test-host`, the task Quick commands and scoped golangci-lint.
 ## Evidence
 - Commits:
 - Tests:

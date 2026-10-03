@@ -1,0 +1,18 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.12",
+  "base": "48c95c0c97",
+  "commits": ["3a3c31b0a7", "6a52807659"],
+  "host": "linux/arm64 (developmental only; not darwin/arm64 or linux/amd64 evidence)",
+  "developmental_shim": "Local-only, never committed: the task-10 linux/arm64 supported_platforms shim (9 regenerated files) was applied to every run below, both base and after.",
+  "publication_bytes": {"what": "scratch test (not committed) publishing 12 fixed-input store configurations: failure, reuse, success collisions, execution and record keys, pool shared, pool reuse, reuse without pool", "compared": "directory name, manifest.json SHA-256, record hash, stored bytes, target sharing", "base_vs_after": "identical"},
+  "quick_baseline": {"command": ".toolchain/bin/go test -count=1 -tags test_dep ./artifact/... ./runner/... ./qualification/... ./cmd/gomad/...", "exit": 1, "elapsed_s": 122, "failing_tests": 21},
+  "quick_after": {"command": "same", "exit": 1, "elapsed_s": 133, "failing_tests": 25, "note": "the 21 baseline failures plus four process/watchdog timing tests (TestRunTimesOutAndRemovesTermIgnoringProcessGroup, TestRunIOTerminalAfterTermination in runner/internal/execution, which does not import artifact; TestCLIWatchdogRetainsIncompleteEvidence, TestCLIWatchdogDiagnosticReplay in cmd/gomad); all four pass on an isolated rerun"},
+  "artifact_package": {"command": "go test ./artifact/...", "exit": 0, "new_tests": ["TestArtifactReferenceHoldsNoOpenResource", "TestPublishedReferenceMatchesOpenedHandle", "TestOpenedArtifactPayloadAccess", "TestClosedArtifactRejectsPayloadAccess", "TestManifestCopiesCannotChangeOpenedHandle", "TestCloneManifestSharesNoMemory", "TestOpenedArtifactReadsPinnedDirectoryAfterReplacement", "TestOpenedArtifactRejectsChangedPayloads"], "mutation_check": "a shallow Snapshot fails TestManifestCopiesCannotChangeOpenedHandle; a Close that keeps the root fails TestClosedArtifactRejectsPayloadAccess"},
+  "architecture": {"command": ".toolchain/bin/go test -count=1 -tags test_dep . -run 'TestRecordAndArtifactHaveSeparateOwners|TestPackageArchitecture|TestRunnerExternalConsumerCompiles|TestExactModuleEdges|TestPublicPackagesDoNotExportTypeAliases'", "exit": 0, "note": "TestRecordAndArtifactHaveSeparateOwners named by the task does not exist in the tree; the others pass at base and after"},
+  "vet_gofmt": {"command": "go vet -tags test_dep on every non-overlay package; gofmt -l", "exit": 0},
+  "validate": {"status": "not run", "reason": "no generated code, protocol or toolchain input changed"},
+  "lint": {"status": "not run", "reason": "repository golangci-lint binary is a darwin build; no linux golangci-lint on PATH"},
+  "full_host_gate": {"revision": "3a3c31b0a7 (pre-commit tree)", "command": "GOFLAGS='-tags=test_dep -count=1' make test-host", "exit": 2, "elapsed_s": 244, "packages_ok": 44, "packages_fail": 8, "note": "runner, cli, qualification/analysis and execution failures are in the quick baseline; target, deterministicio and internal/preparation failures are the shim/pin-drift set recorded by task 11, and none of those packages depends on artifact; cmd/gomad TestCLIWatchdogDiagnosticReplay passes on an isolated rerun"},
+  "review": {"backend": "claude:claude-fable-5-1:high", "round_1": "SHIP with two P3 findings; nil ReadPayload fixed in 6a52807659, repeated test Manifest() calls left as is", "round_2": "SHIP, no new findings"},
+  "native_gates_remaining": ["darwin/arm64 and linux/amd64: full make -C tools/gomad3 test-host, task Quick commands, scoped golangci-lint (task 21)"]
+}
