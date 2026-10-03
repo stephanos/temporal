@@ -1,17 +1,19 @@
 # Umpire vision
 
-- Define expected software behavior once and reuse it for design checks, executable tests,
-  exploration, and assessment of real executions.
-- Give developers a friendly API and beautiful, readable models that expose the feature's promises.
-- Keep models small and composable, with explicit relationships between product promises,
-  descriptions of implementation behavior, and views at different levels of detail.
-- Work across distributed processes without relying on synchronized wall clocks.
+- Describe expected software behavior once, then use it to check designs, generate tests,
+  explore possible failures, and check what the running system did.
+- Give developers a friendly API and beautiful, readable models that make a feature's promises clear.
+- Keep models small and easy to combine. Show how product promises relate to actual behavior
+  and how detailed models relate to simpler ones.
+- Work across distributed processes whose clocks may disagree.
 
-This is the product direction, including capabilities beyond the current implementation. The
-[shared specification](UMPIRE4_SPEC.md) defines the architectural rules, and
-[model semantics](../model/SEMANTICS.md) records supported behavior and current limitations.
-[Industry research](UMPIRE4_INSPIRE.md) supplies the rationale for small models, explicit
-implementation mappings, controlled faults, independent correctness checks, and qualified results.
+This vision includes goals not yet implemented. The [shared specification](UMPIRE4_SPEC.md)
+defines the architectural rules; [model semantics](../model/SEMANTICS.md) describes what works today
+and its limits. [Industry research](UMPIRE4_INSPIRE.md) explains the lessons behind these choices.
+
+A **Model** describes allowed behavior. A **Property** states a promise that behavior must meet.
+A **Query** asks a question about the Model. A **Case** is a generated test, and a **Run** records
+one execution of that test.
 
 ## Requirements
 
@@ -19,387 +21,392 @@ implementation mappings, controlled faults, independent correctness checks, and 
 
 #### What
 
-Testpilot executes a generated Case containing a Program and a Contract. The Program instructs the
-controller and SDK workers; the Contract evaluates declared observations. The executor and Driver
-supply generic execution and authorized effects without adding feature-specific behavior or assertions.
+Testpilot runs a generated Case containing a Program and a Contract. The Program tells the controller
+and SDK workers what to do; the Contract checks the required observations. The executor and Driver
+carry out allowed instructions without adding their own feature-specific behavior or assertions.
 
 #### Why
 
-A generated Case should carry the behavior all the way to execution. Handwritten worker scripts or
-assertions for each test would create additional definitions that can drift from the Model.
+The test's instructions and checks should come from the generated Case. Separate handwritten worker
+scripts or assertions would duplicate behavior and could get out of sync with the Model.
 
 #### Acceptance Test
 
-Drive a Go SDK worker against a real Temporal server from a generated Case, with no
-handwritten workflow, activity, or test code for the example. Show the Model, both IRs, recorded
-history, Contract Verdict, and model assessment. State that this demonstrates a programmable worker;
-testing an independently handwritten workflow is a separate capability.
+Drive a Go SDK worker against a real Temporal server from a generated Case, with no handwritten
+workflow, activity, or test code for the example. Show the Model source, compiled Model, generated
+Case, recorded history, and results of both Contract and Model checks. This demonstrates a programmable
+worker; testing an independently handwritten workflow is a separate capability.
 
 ### Define regression tests (#REGRESSION)
 
 #### What
 
-Developers retain named Queries whose selected paths become executable Cases checked into version
-control. Identical Model definitions, inputs, bounds, strategy, and seed where applicable produce
-identical Case bytes. Regressions run independently of exploration budgets.
+Developers save named Queries and check their generated Cases into version control. The same Model
+definitions, inputs, bounds, strategy, and random seed, where used, produce exactly the same Case
+files. Regression tests run regardless of the time or resources allocated to exploration.
 
 #### Why
 
-Known behavior needs dependable checks on every change, regardless of what an exploratory campaign
-chooses to run. Stable artifacts make changes reviewable and let existing test infrastructure run them.
+Known behavior needs dependable checks on every change, regardless of which tests exploration selects.
+Stable test files make changes easy to review and work with existing test infrastructure.
 
 #### Acceptance Test
 
-Regenerate a regression without a diff and run it without invoking the Model's
-authoring toolchain. A behavior change produces a reviewable artifact change with its provenance.
+Regenerate a regression without a diff and run it without the tools used to author the Model.
+A behavior change produces a reviewable test change that identifies the Model definitions it came from.
 
 ### Replace behavior-focused functional tests (#REPLACE)
 
 #### What
 
-Developers can replace functional suites that exercise modeled product behavior, including relevant
-metric and log assertions. Those assertions use declared observations with explicit meaning,
-correlation, and observation windows. Specialized unit, race, persistence, schema, authorization,
-performance, and handler tests remain complementary. Keep operational instrumentation details outside
-the behavior Model unless a concrete Property needs them.
+Developers can replace functional tests for behavior covered by the Model, including relevant metric
+and log checks. Each observation defines what it means, which operation it belongs to, and when it
+must be collected. Specialized unit, race, persistence, schema, authorization, performance, and handler
+tests still have a role. Keep monitoring details outside the behavior Model unless a Property needs them.
 
 #### Why
 
-Maintaining the same promise in a Model and in handwritten tests duplicates work and invites drift.
-Replacement must preserve failure detection, while specialized tests cover concerns outside the Model.
+Maintaining the same promise in a Model and in handwritten tests duplicates work and can lead to
+disagreement. Replacement must still catch the same failures; specialized tests cover other concerns.
 
 #### Acceptance Test
 
-Replace a complete behavior-focused functional test file, account for every existing
-assertion, and demonstrate equivalent failure detection. List unsupported assertions explicitly;
-deleting them does not establish replacement.
+Replace a complete behavior-focused functional test file. Account for every existing assertion and
+show that the replacement catches the same failures. List any unsupported assertions; deleting them
+does not count as replacing them.
 
 ### Model new features (#DESIGN)
 
 #### What
 
-Developers check a feature's declared safety and progress Properties before implementing it. Each
-answer states the assumptions, finite domains, and Limits under which it holds. Exhausted search
-budgets, unsupported constructs, unknown behavior, and unsatisfiable Scenarios cannot become success.
-Checking a Model establishes claims about that Model; execution evidence tests its correspondence
-with the implementation. Product promises remain independent of descriptions of a buggy implementation.
+Before implementing a feature, developers check what it must never do and what it must eventually do.
+Each result states its assumptions, finite sets of inputs and states, and search limits.
+Reaching a search limit, encountering unsupported or unknown behavior, or finding no path that
+meets a Scenario cannot count as success. Checking a Model does not prove that the implementation
+matches it; that needs execution evidence. Product promises stay separate from descriptions of
+how a buggy implementation behaves.
 
 #### Why
 
-Design errors are easier to investigate before they are spread across services and SDKs. Small Models
-expose competing decisions, while explicit assumptions and bounds tell developers what was checked.
+Design errors are easier to investigate before they spread across services and SDKs. Small Models
+make design choices easier to compare. Stated assumptions and limits tell developers what was checked.
 
 #### Acceptance Test
 
-Find a counterexample in a deliberately faulty design, correct the design while
-keeping the Property, and report the checked scope. A truncated search remains unresolved.
+Find a path that breaks a Property in a deliberately faulty design. Fix the design without weakening
+the Property and report what was checked. An unfinished search remains unresolved.
 
 ### Assess implementation behavior (#CONFORMANCE)
 
 #### What
 
-Developers can both execute model-selected paths and assess implementation-originated observations
-against the Model. The mapping names actions, committed effects, identities, and causal relationships.
-Within its declared scope, assessment keeps every execution compatible with partial evidence and
-reports inconclusive results when that evidence cannot settle a Property. Reaching an assessment
-limit cannot establish success. A satisfied Contract, model conformance, Property satisfaction, and
-execution or cleanup success remain separate results.
+Developers can run tests selected by the Model and check observed behavior, including paths the
+generator did not choose. A mapping connects observations to Model actions, committed changes,
+operation identities, and cause-and-effect relationships. Within the stated scope, the check keeps
+all possible executions that fit the evidence. If that evidence cannot settle a Property, the result
+is inconclusive. Reaching a checking limit cannot count as success. Report separately whether the
+Contract passed, the behavior matched the Model, the Properties held, execution succeeded, and cleanup
+succeeded.
 
 #### Why
 
-The implementation can take paths the test generator never selected. Assessing observed behavior
-reveals discrepancies in code, the Model, or their mapping, and preserves uncertainty when evidence
-cannot distinguish a correct execution from an incorrect one.
+The running system can behave in ways the test generator never selected. Checking what happened can
+reveal mistakes in the code, the Model, or the mapping between them. Missing evidence must not turn
+a possible failure into a pass.
 
 #### Acceptance Test
 
-Detect an unexpected implementation transition and identify its first divergence.
-Missing commit evidence, crossed operation identities, or ambiguous ordering cannot establish a claim
-that depends on them. Changing unrelated source timestamps leaves a causally identical assessment
-unchanged. Independently faulty implementations and evidence bundles exercise the oracle as well as
-faulty Model variants.
+Detect unexpected behavior and show the first step that differs from the Model. Missing evidence of
+a commit, mixed-up operation identities, or unclear event ordering cannot prove a claim that depends
+on them. Changing unrelated source timestamps without changing causal order leaves the result unchanged. Test the
+checker with independently faulty code and evidence records, as well as faulty Models.
 
 ### Faults and recovery (#FAULTS)
 
 #### What
 
-Faults are easy-to-author Model actions with explicit runtime controls and evidence of realization.
-A requested fault counts only when it occurs on the intended resource at the relevant interruption
-point. Missing controls reject before target I/O; an unrealized ordering is reported separately from
-a product violation. Faulting Runs use authorized, isolated resources.
+Faults are easy-to-write Model actions linked to controls in the running system. A requested fault
+counts only when evidence confirms it happened to the intended resource at the intended point.
+Reject tests with missing controls before contacting the target. Report a fault that missed its
+intended timing separately from a product bug. Fault tests use authorized, isolated resources.
 
-Recovery Properties state which workers, routes, and persistence services must be usable, which
-failures may remain permanent, and the bound within which progress is expected. Safety remains
-checked when a progress premise fails or cannot be observed.
+Recovery Properties state which workers, routes, and storage services must work, which may stay
+broken, and how soon progress is expected. Keep checking safety even when a condition needed for
+progress is missing or cannot be observed.
 
 #### Why
 
-Many distributed failures depend on a precise interruption or lost acknowledgment. Observing the
-fault and its timing makes the test meaningful; explicit recovery premises distinguish a stuck
-implementation from an environment in which progress is impossible.
+Many distributed failures depend on a precisely timed interruption or lost acknowledgment. Confirming
+the fault and its timing makes the test meaningful. Stating what recovery needs helps distinguish
+a stuck implementation from an environment where progress is impossible.
 
 #### Acceptance Test
 
-Hold an activity dispatch, commit pause, and release the stale delivery. Confirm the
-actual ordering and authoritative admission result. After a fault phase, restore the resources needed
-for progress while leaving an unrelated worker unavailable, and distinguish a stuck implementation
-from missing environmental prerequisites.
+Hold an activity task, commit a pause, then release the old task. Confirm the actual order and the
+server's decision to accept or reject it. After the faults, restore the resources needed for progress
+while leaving an unrelated worker unavailable. Distinguish a stuck implementation from missing
+resources needed for recovery.
 
 ### Exploration (#EXPLORE)
 
 #### What
 
-Developers declare scenarios, variations, faults, and bounds, such as exercising Nexus with a worker
-restart. Broad, inexpensive Model Search selects witnesses for targeted implementation execution.
-Runtime campaigns report which intended paths actually occurred and remain sampled even when they
-attempt every declared target. These mechanisms support design exploration and nightly bug finding.
+Developers choose scenarios, variations, faults, and limits, such as testing Nexus with a worker
+restart. Searching the Model finds example paths to run against the implementation. Test runs report
+which intended paths actually happened. They sample real behavior rather than exhaustively checking
+it, even if they attempt every selected target. Use this both to explore designs and to find bugs
+in nightly runs.
 
-The current executable exploration enumerates finite edits to pinned Queries. General constraints
-over executions and adaptive strategies are later capabilities that need their own supported scope.
+Today, executable exploration tries a finite set of changes to Queries with fixed paths. More general
+conditions on allowed executions, and strategies that adapt to results, are later goals. Each must
+state what it supports and where its limits lie.
 
 #### Why
 
-Handwritten scenarios cover only the combinations their authors anticipate. Searching the Model
-cheaply lets developers examine more combinations and spend expensive deployment time on selected
-witnesses with a clear purpose.
+Handwritten scenarios cover only the combinations their authors anticipate. Model searches are cheap
+enough to explore more combinations, then spend expensive deployment time on useful examples.
 
 #### Acceptance Test
 
-Under a fixed budget, find a seeded defect and report Model coverage, executable
-candidates, realized targets, lowering refusals, and inconclusive Runs separately.
+Find a deliberately introduced bug within a fixed budget. Report separately what the Model search
+covered, which Cases could run, which targets actually occurred, which paths could not become
+executable Cases, and which Runs were inconclusive.
 
 ### Guided exploration (#GUIDANCE)
 
 #### What
 
-Model-owned coverage goals guide selection toward useful new conditions. Reports distinguish Model
-states and edges, realized runtime targets, input-class members, fault/control conditions,
-observation coverage, and Property activation. An attempted Case or an obligation never activated
-does not count as a successfully exercised runtime target.
+Coverage goals in the Model guide test selection toward untested conditions. Report Model states and
+transitions, targets reached during execution, inputs tried within each declared class, fault and
+control conditions, observations collected, and which Properties were triggered. Attempting a Case
+does not mean its target occurred. A requirement whose triggering conditions never occurred was not
+tested.
 
-Challenge representative inputs and generator assumptions with independently constructed workloads,
-including concurrent operations, duplicate deliveries, and unusual identity relationships.
+Also use independently written workloads to challenge the generator's assumptions. Include concurrent
+operations, duplicate deliveries, and unusual relationships between operation or task identities.
 
 #### Why
 
-A campaign can repeatedly exercise familiar behavior while missing the same race or input relation.
-Coverage feedback directs the next attempt toward untested conditions, and independent workloads
-challenge blind spots shared by the Model's examples and generator.
+Tests can repeat familiar behavior while missing the same race or combination of inputs. Coverage
+feedback helps choose what to try next. Independent workloads can reveal blind spots shared by the
+Model's examples and the generator.
 
 #### Acceptance Test
 
-Compare guided selection with a baseline under the same budget. Demonstrate more
-realized conditions or confirmed defects, and retain a defect missed by the original input generator.
+Compare guided selection with a baseline under the same budget. Reach more conditions in actual
+execution or find more confirmed bugs. Keep a regression for a bug the original input generator missed.
 
 ### Replay, reduction, and promotion (#REPLAY)
 
 #### What
 
-Developers can take a discovered violation through offline evaluation of its recorded Run, fresh
-implementation reruns, Model-admitted reduction, and reviewed promotion into a permanent regression.
-Artifacts retain the Model and Case identities, Profile, implementation/runtime versions, and any
-controlled schedule or seed needed for reproduction. Deterministic generation and evaluation do not
-promise an identical internal schedule in a fresh distributed execution.
+Developers can recheck a saved failing Run offline, rerun the test against the implementation, shorten
+it while keeping it valid under the Model, and review it for use as a permanent regression. Saved
+records include the Model and Case identities, execution Profile, code and runtime versions, and any
+controlled schedule or random seed needed to reproduce the failure. Repeatable test generation and
+evaluation do not guarantee that a fresh distributed run follows the same internal schedule.
 
 #### Why
 
-A discovered failure becomes useful when a developer can explain it, reproduce it, and retain a
-focused regression. Keeping the execution basis prevents a changed environment or Model from
-silently changing what a replay establishes.
+A failure becomes useful when a developer can explain it, reproduce it, and keep a focused regression.
+Saving the versions, settings, and controls prevents a changed environment or Model from silently
+changing what a replay proves.
 
 #### Acceptance Test
 
-Reevaluate a recorded violation, reproduce its failure key in two fresh Runs, reduce
-it without losing the failure, and produce a reviewable regression. Report failures to reproduce
-explicitly and reject incompatible stale artifacts.
+Recheck a recorded violation and reproduce the same failure, identified by its failure key, in two
+fresh Runs. Shorten the test without losing that failure and produce a reviewable regression. Report
+when reproduction fails, and reject saved records that are no longer compatible.
 
 ### Feature composition and reuse (#COMPOSE)
 
 #### What
 
-Features compose through dependencies such as CHASM and task delivery and through interactions such
-as Nexus with Update. Each component declares the interface behavior it supplies, what other
-components must preserve, and the progress it depends on. Local results are reusable only where
-those obligations are met; remaining assumptions stay visible.
+Features combine through shared dependencies, such as CHASM and task delivery, and through interactions,
+such as Nexus with Update. Each component states what it promises, what other components must leave
+intact, and what progress it needs from them. Reuse a component's results only when those requirements
+are met, and keep any remaining assumptions visible.
 
-Executable composition is a separate milestone from checking composed Models. Current Composition
-Queries are verification-only, and current lowering covers one operation, with limits on evidence
-from multiple activities. General cross-feature execution must close those gaps explicitly.
+Checking combined Models and running combined features are separate milestones. Today, Composition
+Queries check Models but cannot generate executable Cases. Case generation supports one operation,
+with limits on evidence from multiple activities. Cross-feature execution must address those gaps.
 
 #### Why
 
-Features share infrastructure and affect each other's state and progress. Explicit component
-obligations allow reuse while exposing interference that isolated feature checks would miss.
+Features share infrastructure and affect each other's state and progress. Clear component requirements
+allow reuse and reveal conflicts that testing each feature alone would miss.
 
 #### Acceptance Test
 
-Reuse a provider in two feature Models, reject an incompatible provider, and execute
-a regression with interacting features or concurrent operations. One operation's completion cannot
-discharge another's obligation.
+Reuse a shared dependency model (a provider) in two feature Models, and reject an incompatible provider.
+Run a regression with interacting features or concurrent operations. One operation's completion cannot
+satisfy another operation's requirement.
 
 ### Select the level of detail (#ZOOM)
 
 #### What
 
-Developers select detail per module and question, keeping unrelated components coarse. A selection
-that changes Search records its exact variants, interfaces, projections, assumptions, and bounds.
-The relationship between variants must justify the claims reused; a state mapping alone does not
-preserve every witness or progress bound. Presentation-only simplification leaves the checked Model
-unchanged. Tools report the selected scope's complexity and the limits of that estimate.
+Developers choose how much detail each module needs for the question being checked. Unrelated modules
+stay simple. If a choice changes the search, record the exact model variants, interfaces, mappings
+between levels of detail, assumptions, and limits. Show why each reused claim still holds: matching
+states alone does not preserve every example path or progress bound. Simplifying only the display
+leaves the checked Model unchanged. Tools estimate the chosen Model's complexity and explain the
+estimate's limits.
 
 #### Why
 
-Expanding every subsystem makes a Model difficult to understand and explore. Choosing detail around
-the question preserves relevant interruption points without multiplying unrelated state spaces.
+Adding detail everywhere makes a Model hard to understand and search. Focusing on the question keeps
+important interruption points visible without adding unrelated combinations of states.
 
 #### Acceptance Test
 
-Replace an opaque queue with a detailed provider for an activity-admission check.
-Expose a meaningful interruption without expanding unrelated features, preserve the applicable
-product Property, and reject a provider that loses committed work.
+Replace a simple queue model with a detailed provider to check whether an activity can start. Expose
+an important interruption without adding detail to unrelated features. Preserve the relevant product
+Property and reject a provider that loses committed work.
 
 ### White-box and black-box environments (#PORTABILITY)
 
 #### What
 
-Developers reuse Model definitions, Properties, and compatible Cases locally, in CI, against deployed
-clusters, and in production canaries. Each environment admits the subset its permissions, controls,
-observations, isolation, and impact limits support. Missing declared capabilities reject before
-target I/O, and at compile time where the relevant environment is already known. Incomplete runtime
-evidence remains inconclusive even after successful admission.
+Developers reuse Models, Properties, and compatible Cases locally, in CI, against deployed clusters,
+and in limited production checks (canaries). White-box environments expose internal controls and
+evidence; black-box environments expose only public interfaces. Each environment accepts only tests
+its permissions, controls, observations, isolation, and impact limits support. Reject tests with
+missing capabilities before contacting the target, and at compile time when the environment is known.
+A test that is allowed to run may still produce too little evidence for a conclusion.
 
 #### Why
 
-A feature's promise should remain consistent from local development to production. Environments
-provide different controls and evidence, so admission and result qualification must make those
-differences visible without redefining the promise.
+A feature's promise should stay the same from local development to production. Environments provide
+different controls and evidence. Checks before execution and clear limits on results make those
+differences visible without changing the promise.
 
 #### Acceptance Test
 
-Run one unchanged Case locally and against a black-box deployment with explicit
-environment bindings. Reject a white-box-only Case before I/O in that deployment. Show how weaker
-evidence limits a claim, without changing the promised behavior or trusting cross-host timestamps.
+Run one unchanged Case locally and against a black-box deployment, stating which resources it uses
+in each environment. Reject a white-box-only Case before contacting that deployment. Show how less
+evidence limits a claim without changing the promise or assuming different machines' clocks agree.
 
 ### Simulated workers and real SDK workers (#WORKERS)
 
 #### What
 
-Before SDK support exists, a simulated worker can stand in for the missing participant. Results name
-that substitution and its limits. These workers are not used in production, and migration to a real
-SDK worker preserves the product Properties while making any changed controls and evidence explicit.
+Before SDK support exists, a simulated worker can stand in for it. Results identify that substitution
+and its limits. Simulated workers are not used in production. Moving to a real SDK worker preserves
+the product Properties and makes any changes to controls and evidence clear.
 
 #### Why
 
-Server feature development can precede SDK support. A simulated participant lets design and server
-checks proceed, while an explicit migration shows when the real SDK's behavior has been exercised.
+Server feature development can start before SDK support. A simulated worker lets design and server
+checks proceed. Moving to a real worker then shows which checks cover the SDK itself.
 
 #### Acceptance Test
 
-Run a set of tests with a simulated worker, migrate it to a real SDK worker, and
-show which claims now have evidence from the real SDK.
+Run a set of tests with a simulated worker, move them to a real SDK worker, and show which claims
+now have evidence from the real SDK.
 
 ### Explore real implementation code under controlled dependencies (#SIMULATION)
 
 #### What
 
-A separate experiment called "Umpire" runs actual Temporal component code with controlled queue,
-clock, or storage dependencies. Its schedules vary independently of model-selected witnesses, and
-its observations are assessed against the same Properties. This supplies evidence beyond a simulated worker or a
-Driver returning expected answers. Begin with one admission or retention boundary; broader simulation
-depends on demonstrated value and the cost of maintaining the dependency models.
+A separate experiment called "Umpire" runs real Temporal component code with controlled queues,
+clocks, or storage. It varies execution schedules independently of the Model's chosen paths and checks
+the observed behavior against the same Properties. The real code makes the decisions, rather than a
+simulated worker or Driver returning expected answers. Start with one point where the system accepts
+or retains work. Expand only if the value justifies maintaining models of more dependencies.
 
 #### Why
 
-Abstract Models omit implementation details that can contain bugs. Running real component code
-under controlled dependencies can expose those defects and make their schedules repeatable, while
-the shared Properties supply the correctness checks.
+Models leave out implementation details that can contain bugs. Running real code with controlled
+dependencies can expose those bugs and repeat the schedules that caused them. The same Properties
+still define correct behavior.
 
 #### Acceptance Test
 
-Discover and repeat a code defect that abstract search alone did not expose. Retain
-the source revision and controlled schedule or seed, and state which dependencies and scheduling
-choices remain outside the experiment.
+Find and reproduce a code bug that searching the Model alone did not expose. Save the source revision
+and controlled schedule or random seed. State which dependencies and scheduling choices remain
+outside the experiment.
 
 ### Feature ownership and lifecycle (#OWNERSHIP)
 
 #### What
 
-Teams and subteams own Model definitions and their implementation mappings. Findings identify the
-relevant definitions and owners, including failures at a boundary shared by teams. Ownership changes
-must not erase the identities and provenance of retained regressions.
+Teams and subteams own Model definitions and the mappings that connect them to code. Findings identify
+the relevant definitions and owners, including failures that span teams. Ownership changes must not
+lose saved regressions' identities or records of where they came from.
 
-Rewrites, migrations, and deprecations preserve explicit version scopes. Compatibility checks cover
-the behavior promised during a transition, including in-flight work where applicable.
+Rewrites, migrations, and deprecations state which versions each promise covers. Compatibility checks
+cover behavior during the transition, including work already in progress where relevant.
 
 #### Why
 
-Models need to evolve with the teams and implementations they describe. Clear ownership makes
-findings actionable, and version scopes keep a rewrite or migration from losing an existing promise.
+Models need to change with the teams and code they describe. Clear ownership tells people who can
+act on a finding. Version-specific promises keep rewrites and migrations from losing guarantees.
 
 #### Acceptance Test
 
-Attribute a cross-feature failure to the relevant owners. Retain regressions across
-an implementation rewrite and demonstrate a version transition without silently weakening the
-existing promise or applying an old acknowledgment to new behavior.
+Identify the owners of a cross-feature failure. Keep regressions through an implementation rewrite
+and test a version transition without weakening the existing promise or treating new behavior as
+an already acknowledged bug.
 
 ### Known bugs (#KNOWNBUGS)
 
 #### What
 
-Developers can acknowledge a discovered violation without fixing it immediately. While a Known Bug
-is active, matching occurrences within its declared Model or implementation scope produce warnings
-instead of failing the check. The violation and its evidence remain visible, and the correct Property,
-regression, safety stops, and cleanup behavior stay intact. After reviewing fix evidence, a developer
-explicitly marks the bug fixed; the retained regression makes recurrence an error. Unrelated failures
-and missing evidence retain their ordinary treatment. Stale or ambiguous matches cannot suppress
-errors; incomplete or inconclusive results establish neither recurrence nor a fix. A clean run can
-prompt review but cannot automatically mark a bug fixed.
+Developers can acknowledge a violation without fixing it immediately. While a Known Bug is active,
+matching failures produce warnings instead of failing the check, but only for the stated Model or
+implementation scope. Keep the violation and evidence visible, and preserve the correct Property,
+regression, safety stops, and cleanup. A developer reviews fix evidence and explicitly marks the bug
+fixed; if it returns, the regression fails. Unrelated failures and missing evidence are handled as
+usual. Outdated or uncertain matches cannot hide errors. Incomplete or inconclusive results prove
+neither that the bug returned nor that it was fixed. A clean run can prompt review, but cannot
+automatically mark the bug fixed.
 
 #### Why
 
-Teams need to continue checking correct behavior while a fix is pending, without hiding new failures
-or weakening the promise. The Model and implementation can be fixed at different times, so evidence
-of a fix in one cannot establish that the other is fixed.
+Teams need to keep testing while a fix is pending, without hiding new failures or weakening the
+promise. The Model and implementation can be fixed at different times; fixing one does not prove
+the other is fixed.
 
 ### Developer experience (#AUTHORING)
 
 #### What
 
-An ordinary Temporal developer can author, review, and change a Model without understanding checker
-or executor internals. Errors and counterexamples identify the declaration, expected behavior,
-observed evidence, and first divergence. Readability and the ability to explain a result are part of
-the API's quality.
+A Temporal developer can write, review, and change a Model without knowing how the checker or executor
+works internally. Errors and failing examples point to the relevant declaration, explain what was
+expected and observed, and show the first difference. The API should make Models easy to read and
+results easy to explain.
 
 #### Why
 
-The Model stays useful only if feature developers can maintain it as part of ordinary work. Readable
-declarations and understandable failures make review and diagnosis possible beyond the Umpire team.
+The Model stays useful only if feature developers can maintain it as part of ordinary work. Clear
+definitions and failure reports let people outside the Umpire team review Models and investigate bugs.
 
 #### Acceptance Test
 
-A developer outside the Umpire team adds a variation, explains a seeded
-counterexample, and retains a regression without changing framework internals. Measure edit-to-answer
-time, review effort, and the additional mapping work required for a second feature.
+A developer outside the Umpire team adds a variation, explains a deliberately introduced failure, and
+saves a regression without changing framework internals. Measure time from edit to result, review
+effort, and the extra work to map a second feature's observations to its Model.
 
 ## Delivery and acceptance
 
 ### What
 
-Use one small Temporal promise as the reference demonstration, reusing existing prototype support
-and reporting its remaining gaps. Activity admission supplies a concrete starting boundary. Then
-demonstrate reuse with a second feature and a checked provider replacement. Executable
-cross-feature composition, general exploration constraints, adaptive guidance, and implementation
-simulation are distinct follow-on milestones. Each needs its own acceptance evidence; successful
-Case generation or a worker demonstration does not establish all of them.
+Demonstrate one small Temporal promise end to end, reusing the prototype and reporting what is still
+missing. Start with activity admission: deciding whether an activity may start. Then add a second
+feature and show that a replacement dependency model preserves the required promises. Running combined
+features, supporting more general exploration conditions, adapting test selection to results, and
+simulating real code are separate later milestones. Each needs its own acceptance evidence; generating
+a Case or demonstrating a worker does not prove all of them.
 
 ### Why
 
-A complete example reveals whether authoring, checking, execution, evidence, and regression retention
-work together. A second feature then tests whether those mechanisms are reusable before the scope
-expands to broader exploration and composition.
+A complete example shows whether writing a Model, checking it, running tests, collecting evidence,
+and saving regressions work together. A second feature tests reuse before expanding to broader
+exploration and combined features.
 
 ### Acceptance Test
 
-A developer states the Property, finds a faulty design, realizes the relevant failure against real
-code, fixes the implementation without weakening the promise, and retains a regression. The second
-feature reuses the same pipeline and makes the additional authoring and mapping effort visible.
+A developer states the Property, finds a faulty design, triggers the relevant failure against real
+code, fixes the implementation without weakening the promise, and saves a regression. The second
+feature follows the same process and shows how much extra Model-writing and mapping work it needs.
