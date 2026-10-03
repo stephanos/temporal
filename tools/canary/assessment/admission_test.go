@@ -19,7 +19,12 @@ import (
 // cluster's Run is the only one ever written.
 func recorded(t *testing.T) recordedrun.Decoded {
 	t.Helper()
-	encoded, err := os.ReadFile(filepath.Join("testdata", "nexusCallerCanary-syncCompletion-run.json"))
+	return recordedIn(t, "nexus-caller-syncCompletion-run.json")
+}
+
+func recordedIn(t *testing.T, name string) recordedrun.Decoded {
+	t.Helper()
+	encoded, err := os.ReadFile(filepath.Join("testdata", name))
 	require.NoError(t, err)
 	decoded, err := recordedrun.Decode(encoded)
 	require.NoError(t, err)
@@ -56,6 +61,48 @@ func TestAdmitRecordsAClosedRunAndAdmitsIt(t *testing.T) {
 	require.NoError(t, err)
 	decision := evaluation.Assess(subject, *profile)
 	require.Equal(t, evaluation.DecisionAccepted, decision.Outcome)
+}
+
+// The Run recorded of the Case the canary pinned before is kept unchanged, with that Case beside it.
+// Under the identities it was recorded with it is admitted and accepted as it was; under the
+// committed policy it is crossed, so it is never read as a Run of the Case pinned now.
+func TestTheRunOfThePriorPinnedCaseKeepsItsDecision(t *testing.T) {
+	prior, err := os.ReadFile(filepath.Join("testdata", "nexusCallerCanary-syncCompletion-case.json"))
+	require.NoError(t, err)
+	fixture := recordedIn(t, "nexusCallerCanary-syncCompletion-run.json")
+	identity, err := recordedrun.CaseIdentity(prior)
+	require.NoError(t, err)
+	require.Equal(t, fixture.Case, identity)
+	canary := committed(t)
+	require.NotEqual(t, canary.CaseIdentity, fixture.Case)
+	before := proto.CloneOf(fixture.Run)
+
+	then := *canary
+	then.CaseIdentity = fixture.Case
+	subject, err := admit(prior, &then, fixture.Driver, fixture.Run)
+	require.NoError(t, err)
+	require.Equal(t, fixture.Driver, subject.Driver)
+	require.Equal(t, fixture.Case, subject.CaseIdentity)
+	profile, err := LoadProfile(canary.EvaluationProfile)
+	require.NoError(t, err)
+	require.Equal(t, evaluation.DecisionAccepted, evaluation.Assess(subject, *profile).Outcome)
+
+	for name, caseBytes := range map[string][]byte{"the prior Case": prior, "the pinned Case": nil} {
+		t.Run(name, func(t *testing.T) {
+			var crossed *evaluation.Subject
+			var err error
+			if caseBytes == nil {
+				crossed, err = Admit(canary, fixture.Driver, fixture.Run)
+			} else {
+				crossed, err = admit(caseBytes, canary, fixture.Driver, fixture.Run)
+			}
+			require.Nil(t, crossed)
+			rejection, ok := evaluation.IsRejection(err)
+			require.True(t, ok, "not a rejection: %v", err)
+			require.Equal(t, evaluation.ReasonCrossed, rejection.Reason, rejection.Detail)
+		})
+	}
+	require.True(t, proto.Equal(before, fixture.Run), "admission never changes the Run")
 }
 
 // Every iteration that is not a closed Run of the pinned Case under the canary's Profile and the

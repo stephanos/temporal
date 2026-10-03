@@ -16,16 +16,19 @@ import (
 // Case added to a Model file is covered the moment its fixture is generated.
 func checkedInFixtures(t *testing.T) []string {
 	t.Helper()
-	entries, err := os.ReadDir("testdata")
-	require.NoError(t, err)
 	var fixtures []string
-	for _, entry := range entries {
-		if entry.IsDir() || !strings.HasSuffix(entry.Name(), "-case.json") {
-			continue
+	for _, directory := range []string{"", generatedFixtures} {
+		entries, err := os.ReadDir(filepath.Join("testdata", directory))
+		require.NoError(t, err)
+		retained := len(fixtures)
+		for _, entry := range entries {
+			if entry.IsDir() || !strings.HasSuffix(entry.Name(), "-case.json") {
+				continue
+			}
+			fixtures = append(fixtures, filepath.Join(directory, entry.Name()))
 		}
-		fixtures = append(fixtures, entry.Name())
+		require.Greater(t, len(fixtures), retained)
 	}
-	require.NotEmpty(t, fixtures)
 	return fixtures
 }
 
@@ -57,7 +60,7 @@ func TestEveryCheckedInFixtureDecodesPreparesAndCarriesItsIdentity(t *testing.T)
 			seenCaseIDs[source.GetCaseId()] = fixture
 
 			profile, deriveErr := temporal.DeriveProfile(source, catalog, temporal.Environment{
-				Identity:      strings.TrimSuffix(fixture, "-case.json") + "-profile",
+				Identity:      strings.TrimSuffix(filepath.Base(fixture), "-case.json") + "-profile",
 				Namespace:     "namespace",
 				TaskQueue:     "task-queue",
 				NexusEndpoint: "nexus-endpoint",

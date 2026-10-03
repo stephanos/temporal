@@ -2,12 +2,12 @@ package model
 
 // The standalone activity's system contract, lifted from scala/temporal/standaloneactivity/System.scala
 // into ir/activity-system.json and checked here through Check alone. What each test expects is the
-// trace oracle of model/scalav2/specimens/activity.md it names, in the keys of the lifted Model: the
+// trace oracle of model/specimens/activity.md it names, in the keys of the lifted Model: the
 // specimen's supported sketch folds the delivery into the record's state, and this Model keeps the
 // record and the queue apart, so a row is keyed by the record's state, or by both members' states.
 //
 // No expectation here is an explored-state count: the specimen's counts are those of its sketch, which
-// lifter/testdata/lifts/Admission.scala.fixture is and checking_test.go pins.
+// lifter/testdata/lifts/Admission.scala is and checking_test.go pins.
 
 import (
 	"slices"

@@ -25,6 +25,10 @@ var ErrLost = errors.New("a lost iteration has no recorded Run")
 // unchanged. The recorded Verdict, disposition and cleanup are the subject's unchanged; authority,
 // isolation and cleanup facts enter only the provenance.
 func Admit(canary *policy.Policy, driver testpilot.DriverIdentity, run *testpilotspb.Run) (*evaluation.Subject, error) {
+	return admit(casebinding.Case(), canary, driver, run)
+}
+
+func admit(caseBytes []byte, canary *policy.Policy, driver testpilot.DriverIdentity, run *testpilotspb.Run) (*evaluation.Subject, error) {
 	if canary == nil {
 		return nil, errors.New("a canary policy is required")
 	}
@@ -37,7 +41,7 @@ func Admit(canary *policy.Policy, driver testpilot.DriverIdentity, run *testpilo
 	if driver.Profile != canary.CaseProfile {
 		return crossed("the Run was prepared under Profile %q, the policy's is %q", driver.Profile, canary.CaseProfile)
 	}
-	caseIdentity, err := casebinding.Identity()
+	caseIdentity, err := recordedrun.CaseIdentity(caseBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +56,7 @@ func Admit(canary *policy.Policy, driver testpilot.DriverIdentity, run *testpilo
 	if err != nil {
 		return nil, &evaluation.Rejection{Reason: evaluation.ReasonMalformed, Detail: err.Error()}
 	}
-	subject, err := evaluation.Admit(casebinding.Case(), recorded, catalog.Identity())
+	subject, err := evaluation.Admit(caseBytes, recorded, catalog.Identity())
 	if err != nil {
 		return nil, err
 	}

@@ -53,14 +53,26 @@ layer, then the Models.
 
 ## Planned
 
-fn-115 has four tasks remaining. The live model and Go tooling occupy their final directories;
+fn-115 has one task remaining. The live model and Go tooling occupy their final directories;
 archives are isolated, dependency checks are enforced, and Make/CI cleanup is complete. Immutable
 semantic goldens remain the baseline. The reader is split into loading and validation files, the
 checker and lowering surfaces are trimmed, and the unused Scala framework code of fn-113 Part A is
 removed. The lifter is ten files by concern around one typed context, and the IR namespace is
-`umpire/v1`. Replacing the model's shell scripts with a Scala gate is in progress.
-The later specs have no tasks yet.
-Each starts after the spec it waits for closes; Flow records the dependencies.
+`umpire/v1`. One Scala gate at `model/gate` replaces the model's shell scripts, and the functional
+fixtures and the canary's pinned Case are lowered from the Scala model. The import rules are
+enforced by tests, and build, CI and ignore rules match the layout. Documentation and the complete
+validation, which close the spec, are in progress. Deferred by the owner: `make
+umpire-check-backends`, which needs P and .NET installed. Open for the owner: the canary policy's
+`workflowPath` names the deleted production-canary workflow, so production dispatch fails closed.
+
+fn-113 has sixteen tasks planned in three streams that can run side by side (the ScalaPB port, the
+evaluator retirement and the Go checker tests). The other later specs have no tasks yet. Each
+starts after the spec it waits for closes; Flow records the dependencies.
+
+The CEL spike (fn-116) is closed. Its [report](.plans/UMPIRE_CEL_SPIKE.md) recommends keeping the
+IR's own expressions: CEL matched the current evaluator on every Model, but adoption grows the IR
+1.8-3.7x, slows table derivation up to about 6x and adds more code than it removes. Adopting CEL
+would be a new spec the owner opens after reading the report.
 
 | Order | Spec | In one line | Waits for |
 | --- | --- | --- | --- |
@@ -72,7 +84,6 @@ Each starts after the spec it waits for closes; Flow records the dependencies.
 | after 4 | fn-118 | API behavior hints (eventual consistency, wait bounds) that the generated tests use | fn-112 |
 | after 5 | fn-120 | Named choices, a model linter, an explorer over the IR and ITF trace interchange | fn-114 |
 | last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
-| any time after 1 | fn-116 | Spike: should the IR's expressions be CEL | fn-115 |
 
 ### fn-115: Make the Scala model the model and archive the Lean-era work
 
@@ -95,9 +106,10 @@ Changes the layout to say what is true.
   one worked example from a Scala declaration to a Verdict, and a Mermaid diagram.
 
 The [reviewed module map](.plans/UMPIRE_MODULES.md) records live helper ownership, public interfaces
-and the migration sequence. The fixture inventory covers 47 Cases: nine legacy execution fixtures
-have Scala Query replacements, 22 retain explicit compatibility exceptions, and 16 are already
-Scala-generated. The 1,411 semantic and artifact snapshots now provide the baseline for restructuring.
+and the migration sequence. Of the 47 Case fixtures, 25 are lowered from the Scala model (the nine
+former legacy execution fixtures among them, including the canary's pinned Case) and 22 keep their
+bytes as explicit compatibility exceptions. The 1,411 semantic and artifact snapshots are the
+baseline for the remaining restructuring.
 
 ### fn-113: Clean up the Scala model layer around the IR
 
@@ -176,11 +188,3 @@ declaration to the Verdict. The Testpilot Driver realizes only one workflow comm
 (scheduling a Nexus operation), so the spec adds the general primitives an activity workflow needs.
 The workflow is the Driver's interpreter executing the Case; testing a hand-written workflow
 function is out of scope.
-
-### fn-116: Decide whether the Umpire IR's expressions become CEL
-
-A spike with a report and no change on the main branch. It translates the expressions of two Models
-to CEL, evaluates them with `cel-go` and `cel-java`, and measures the result against the IR's own
-expression tree. The saving would be the Go expression evaluator (671 lines) and its semantics
-document. The cost is that CEL has no pattern matching, user functions or record update, which the
-lifter would have to compile away.

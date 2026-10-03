@@ -846,7 +846,7 @@ func TestParseConfigDerivesTheBridgeFromTheModelRoot(t *testing.T) {
 }
 
 // The default flags name the bridge relative to the model root, and the bridge runs in that
-// root: the command must find `model/.lake/build/bin/umpire-explore` from the invoking directory,
+// root: the command must find `.build/umpire-ir-bridge` from the invoking directory,
 // not from inside `model`.
 func TestOpenCampaignFindsTheDefaultBridgeFromTheInvokingDirectory(t *testing.T) {
 	invokedIn := t.TempDir()

@@ -11,3 +11,6 @@
 // the test scope only, so the file is compiled beside the lifter, which does not use it.
 //> using file ../gate/Tools.scala
 //> using test.dep org.scalameta::munit:1.2.0
+// The fixtures under testdata are their own builds, and some must not compile; the tests copy them
+// out and build each apart.
+//> using exclude testdata

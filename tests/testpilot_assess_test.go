@@ -14,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/common/testing/testpilot/evaluation"
+	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
 )
 
 // assessSummary is the part of umpire-assess's summary the live proof reads.
@@ -56,7 +57,7 @@ func TestTestpilotAssessRecordedRuns(t *testing.T) {
 	ctx, cancel := context.WithTimeout(env.Context(), 5*time.Minute)
 	defer cancel()
 
-	casePath := filepath.Join("testcore", "testpilot", "testdata", "nexusCallerTests-asyncCompletion-case.json")
+	casePath := testpilotFixturePath(testpilotcore.NexusCallerAsyncCompletionFixture)
 	runPath := filepath.Join(t.TempDir(), "run.json")
 	record := exec.CommandContext(ctx, runBinary,
 		"--case", casePath, "--record", runPath,
@@ -94,7 +95,7 @@ func TestTestpilotAssessRecordedRuns(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, recorded, unchanged, "assessment reads the recorded Run and never changes it")
 
-	controlCase := filepath.Join("testcore", "testpilot", "testdata", "nexusCallerControl-forgedCompletion-case.json")
+	controlCase := filepath.Join("..", "common", "testing", "testpilot", "replay", "testdata", "nexusCallerControl-forgedCompletion-case.json")
 	controlRun := filepath.Join("..", "common", "testing", "testpilot", "replay", "testdata", "nexusCallerControl-forgedCompletion-run.json")
 	code, control := assess(t, ctx, assessBinary, controlCase, controlRun, root, modelRoot)
 	require.Equal(t, 1, code, "%+v", control)

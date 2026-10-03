@@ -41,7 +41,7 @@ func TestPTracesCarryGoVerdicts(t *testing.T) {
 		return tr.violated == 4 && slices.EqualFunc(tr.steps, a4, func(st pstep, class string) bool { return st.class == class })
 	})
 	require.GreaterOrEqual(t, i, 0)
-	// What the traces say of it is what goir's checker says: the path replays through a fresh
+	// What the traces say of it is what the reader's checker says: the path replays through a fresh
 	// interpretation, and the checker finds a monitor violated over its classes.
 	table := mm.Table
 	witness := &umpiremodel.Trace{Initial: table.StateAtom(traces[i].steps[0].before.Key())}

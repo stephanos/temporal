@@ -19,10 +19,10 @@ val terminalIsFinal: Property[ProductState] =
 /**
  * A paused activity is dispatched to no worker: nothing moves it straight to started.
  *
- * Lean rejects this Property: its elaborator lowers a predicate into clauses that each fix a state,
- * outcome or fact, and "not started" fixes none, so it reports that the predicate claims nothing.
- * Scala keeps the predicate as a function and verifies it; it fails the moment a row from paused to
- * started appears, which is the regression it guards.
+ * The predicate fixes no state, outcome or fact: "not started" only says what must not follow
+ * paused. It is kept as a function and verified as one, so it claims something all the same:
+ * it fails the moment a row from paused to started appears, which is the regression it
+ * guards.
  */
 val pausedIsNotDispatched: Property[ProductState] =
   activityProduct.property("pausedIsNotDispatched") holdsAcross { (before, after) =>

@@ -417,6 +417,61 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 	}
 }
 
+// Two bindings of the generated Case are independent. Prepared under two environments' names, they
+// run concurrently, each against a Driver that answers only its own namespace and queue, and every
+// Run is satisfied; a prepared Case handed the other binding's Driver is refused before it opens.
+func TestGeneratedAsyncNexusCaseRunsUnderIndependentBindingsConcurrently(t *testing.T) {
+	source := loadLeanCase(t, NexusCallerAsyncCompletionFixture)
+	catalog, err := temporal.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	prepared := make([]*testpilot.PreparedCase, 2)
+	drivers := make([]*artifactDriver, 2)
+	for index, suffix := range []string{"a", "b"} {
+		environment := NexusCallerEnvironment{
+			Namespace: "namespace-" + suffix, TaskQueue: "task-queue-" + suffix,
+			HandlerTaskQueue: "task-queue-" + suffix + "-handler", NexusEndpoint: "nexus-endpoint-" + suffix,
+		}
+		prepared[index] = prepareUnchanged(t, source, NexusCallerProfile(catalog, environment))
+		drivers[index] = &artifactDriver{
+			identity: prepared[index].Identity(), mode: artifactSuccess,
+			namespace: environment.Namespace, taskQueue: environment.TaskQueue,
+		}
+	}
+	require.NotEqual(t, prepared[0].Identity().Bindings, prepared[1].Identity().Bindings)
+
+	crossed, verdict, err := prepared[0].Run(t.Context(), drivers[1])
+	require.Error(t, err)
+	require.Nil(t, crossed)
+	require.Nil(t, verdict)
+	require.Zero(t, drivers[1].opens.Load(), "nothing opens for another binding's Driver")
+
+	const runsPerBinding = 4
+	results := make(chan artifactRunResult, len(prepared)*runsPerBinding)
+	var concurrent sync.WaitGroup
+	for index := range prepared {
+		for range runsPerBinding {
+			concurrent.Go(func() {
+				actual, verdict, err := prepared[index].Run(t.Context(), drivers[index])
+				results <- artifactRunResult{run: actual, verdict: verdict, err: err}
+			})
+		}
+	}
+	concurrent.Wait()
+	close(results)
+
+	identities := make(map[string]struct{}, len(prepared)*runsPerBinding)
+	for result := range results {
+		require.NoError(t, result.err)
+		require.Equal(t, testpilotspb.RUN_DISPOSITION_COMPLETED, result.run.GetDisposition())
+		require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, result.verdict.GetStatus())
+		identities[result.run.GetRunId()] = struct{}{}
+	}
+	require.Len(t, identities, len(prepared)*runsPerBinding)
+	for _, driver := range drivers {
+		require.Equal(t, int64(runsPerBinding), driver.opens.Load())
+	}
+}
+
 func definitionIDs(definitions []*testpilotspb.DefinitionBinding) []string {
 	result := make([]string, len(definitions))
 	for index, definition := range definitions {
@@ -489,6 +544,10 @@ type artifactDriver struct {
 	identity testpilot.DriverIdentity
 	mode     artifactMode
 	opens    atomic.Int64
+	// namespace and taskQueue are the names every request must carry; empty is the artifact
+	// Profile's.
+	namespace string
+	taskQueue string
 }
 
 func (h *artifactDriver) Identity(context.Context) (testpilot.DriverIdentity, error) {
@@ -498,14 +557,18 @@ func (h *artifactDriver) Identity(context.Context) (testpilot.DriverIdentity, er
 func (h *artifactDriver) Validate(context.Context, testpilot.PreparedProgram) error { return nil }
 
 func (h *artifactDriver) Open(_ context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
-	if program.Snapshot().GetProgramId() != "temporal.case.nexusCallerTests.asyncCompletion.program" {
+	if program.Snapshot().GetProgramId() != "temporal.case.scala.nexus-caller.asyncCompletion.program" {
 		return nil, temporal.ErrInvalid
 	}
 	ordinal := h.opens.Add(1)
 	bridge := &artifactBridge{ready: make(chan struct{}), handle: &struct{}{}}
 	close(bridge.ready)
+	namespace, taskQueue := h.namespace, h.taskQueue
+	if namespace == "" {
+		namespace, taskQueue = asyncNexusArtifactNamespace, asyncNexusArtifactTaskQueue
+	}
 	return &scriptedSession{
-		runID: runID, namespace: asyncNexusArtifactNamespace, taskQueue: asyncNexusArtifactTaskQueue, bridge: bridge,
+		runID: runID, namespace: namespace, taskQueue: taskQueue, bridge: bridge,
 		start: func(*workflowservice.StartWorkflowExecutionRequest) (*testpilotspb.InstructionOutcome, error) {
 			switch h.mode {
 			case artifactNonSuccess:
@@ -757,7 +820,7 @@ func closedEvent(id int64) *historypb.HistoryEvent {
 
 func loadLeanCase(t testing.TB, name string) *testpilotspb.Case {
 	t.Helper()
-	encoded, err := os.ReadFile(filepath.Join("testdata", name+"-case.json"))
+	encoded, err := os.ReadFile(FixturePath("testdata", name))
 	require.NoError(t, err)
 	decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
 	require.NoError(t, err)

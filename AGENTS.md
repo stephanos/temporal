@@ -4,8 +4,8 @@ Before starting the implementation of any request, you MUST REVIEW the following
 # Core Mandates
 
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
-- **Lean:** Before any task involving Lean code, read and follow [Lean Authoring Guidelines](.plans/lean/LEAN_GUIDELINES.md) and the [Lean front end specification](.plans/lean/UMPIRE4_SPEC_LEAN.md).
-- **Umpire:** Before any task involving Umpire code, read and follow [UMPIRE4 Spec](.plans/UMPIRE4_SPEC.md).
+- **Model:** The behavior model is written in Scala under `model/` and checked by its gate, `make umpire-check-model`. Before any task involving it, read [model/README.md](model/README.md) and [model/SEMANTICS.md](model/SEMANTICS.md). After changing a Model, run `make umpire-gen-model` and review the diff of `model/ir` and `model/cases`.
+- **Umpire:** Before any task involving Umpire code (`model/`, `tools/umpire/`, `common/testing/testpilot/`, `tools/canary/`), read and follow [UMPIRE4 Spec](.plans/UMPIRE4_SPEC.md) and the [module map](.plans/UMPIRE_MODULES.md), which states each module's job, public interface and permitted imports.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, and 'go.mod') before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
 - **Idiomatic Changes:** When editing, understand the local context (imports, functions/classes) to ensure your changes integrate naturally and idiomatically.
@@ -41,8 +41,10 @@ Before starting the implementation of any request, you MUST REVIEW the following
 - `/common/nexus`: Nexus service client and utilities
 - `/common/persistence`: persistence layer abstractions and implementations
 - `/components`: nexus components
+- `/common/testing/testpilot`: Testpilot, the runtime that prepares, runs and evaluates a Case
 - `/config`: configuration files and templates
 - `/docs`: documentation
+- `/model`: the Scala behavior model (DSL, Temporal Models, lifter, checked-in IR and Cases) and its gate; it holds no Go
 - `/proto`: proto definitions for internal services
 - `/schema`: database schema definitions for core databases store and visibility store
 - `/service`: main services (frontend, history, matching, worker, etc.)
@@ -50,6 +52,8 @@ Before starting the implementation of any request, you MUST REVIEW the following
 - `/service/history`: history service implementation
 - `/service/matching`: matching service implementation
 - `/service/worker`: worker service implementation
+- `/tools/canary`: runs one pinned Case against a deployment
+- `/tools/umpire`: Go tooling that reads the model's IR: reader, lowering to Cases, conformance, export, exploration and their commands
 
 ## Important Commands:
 
@@ -59,6 +63,10 @@ Before starting the implementation of any request, you MUST REVIEW the following
 - Code generation: `make proto`
 - Update API proto: `make update-go-api`
 - Unit Testing: `make unit-test`
+- Model gate (build, lift, compare with the checked-in IR and Cases, Go checks): `make umpire-check-model`
+- Regenerate the model's IR and Cases: `make umpire-gen-model`
+- Model linting and formatting (Scala): `make lint-model`, `make fmt-model`, `make fix-model`
+- Go tests of the model tooling: `go test -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/...`
 
 ## Best Practices:
 

@@ -3,7 +3,7 @@
   "types": [{
     "name": "fixture.specimens.admission.Active",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 28
     },
     "enum": {
@@ -18,7 +18,7 @@
   }, {
     "name": "fixture.specimens.admission.AdmissionFact",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 35
     },
     "enum": {
@@ -39,7 +39,7 @@
   }, {
     "name": "fixture.specimens.admission.AdmissionPhase",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 18
     },
     "enum": {
@@ -58,7 +58,7 @@
   }, {
     "name": "fixture.specimens.admission.AdmissionState",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 31
     },
     "record": {
@@ -82,7 +82,7 @@
   }, {
     "name": "fixture.specimens.admission.Finality",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 132
     },
     "enum": {
@@ -97,7 +97,7 @@
   }, {
     "name": "fixture.specimens.admission.Message",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 23
     },
     "enum": {
@@ -532,7 +532,7 @@
   }, {
     "name": "currentAdmission.evidence",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 155
     },
     "params": [{
@@ -543,14 +543,14 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 155
       },
       "call": {
         "function": "fixture.specimens.admission.Admission$package$.admissionEvidence",
         "args": [{
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 155
           },
           "var": "f"
@@ -560,7 +560,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.admissionEnds",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 117
     },
     "params": [{
@@ -571,27 +571,27 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 117
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 117
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 117
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 117
                   },
                   "var": "s"
@@ -601,7 +601,7 @@
             },
             "right": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 117
               },
               "literal": {
@@ -615,20 +615,20 @@
         },
         "right": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 117
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 117
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 117
                   },
                   "var": "s"
@@ -638,7 +638,7 @@
             },
             "right": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 117
               },
               "literal": {
@@ -655,7 +655,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.admissionEvidence",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 108
     },
     "params": [{
@@ -666,13 +666,13 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 108
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 108
           },
           "var": "f"
@@ -688,7 +688,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 109
             },
             "literal": {
@@ -706,7 +706,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 110
             },
             "literal": {
@@ -724,7 +724,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 111
             },
             "literal": {
@@ -742,7 +742,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 112
             },
             "literal": {
@@ -760,7 +760,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 113
             },
             "literal": {
@@ -778,7 +778,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 114
             },
             "literal": {
@@ -791,7 +791,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.admitCurrent",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 84
     },
     "params": [{
@@ -802,19 +802,19 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 84
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 84
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 84
               },
               "var": "s"
@@ -833,7 +833,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 85
             },
             "list": {
@@ -861,26 +861,26 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 87
             },
             "if": {
               "condition": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 87
                 },
                 "binary": {
                   "op": "OP_EQ",
                   "left": {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 87
                     },
                     "field": {
                       "base": {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 87
                         },
                         "var": "s"
@@ -890,7 +890,7 @@
                   },
                   "right": {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 87
                     },
                     "literal": {
@@ -904,14 +904,14 @@
               },
               "then": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 87
                 },
                 "call": {
                   "function": "fixture.specimens.admission.Admission$package$.admitted",
                   "args": [{
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 87
                     },
                     "var": "s"
@@ -920,20 +920,20 @@
               },
               "else": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 88
                 },
                 "list": {
                   "items": [{
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 88
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [{
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 88
                         },
                         "literal": {
@@ -944,13 +944,13 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 88
                         },
                         "copy": {
                           "base": {
                             "position": {
-                              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                              "file": "model/lifter/testdata/lifts/Admission.scala",
                               "line": 88
                             },
                             "var": "s"
@@ -959,7 +959,7 @@
                             "name": "message",
                             "value": {
                               "position": {
-                                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                                "file": "model/lifter/testdata/lifts/Admission.scala",
                                 "line": 88
                               },
                               "literal": {
@@ -973,13 +973,13 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 88
                         },
                         "list": {
                           "items": [{
                             "position": {
-                              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                              "file": "model/lifter/testdata/lifts/Admission.scala",
                               "line": 88
                             },
                             "literal": {
@@ -992,7 +992,7 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 88
                         },
                         "literal": {
@@ -1011,7 +1011,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.admitStale",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 91
     },
     "params": [{
@@ -1022,19 +1022,19 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 91
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 91
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 91
               },
               "var": "s"
@@ -1053,7 +1053,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 92
             },
             "list": {
@@ -1081,14 +1081,14 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 93
             },
             "call": {
               "function": "fixture.specimens.admission.Admission$package$.admitted",
               "args": [{
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 93
                 },
                 "var": "s"
@@ -1101,7 +1101,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.admitted",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 73
     },
     "params": [{
@@ -1112,20 +1112,20 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 74
       },
       "let": {
         "name": "next",
         "value": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 74
           },
           "copy": {
             "base": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 74
               },
               "var": "s"
@@ -1134,7 +1134,7 @@
               "name": "phase",
               "value": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 74
                 },
                 "literal": {
@@ -1148,20 +1148,20 @@
               "name": "active",
               "value": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 74
                 },
                 "call": {
                   "function": "fixture.specimens.admission.Admission$package$.oneMore",
                   "args": [{
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 74
                     },
                     "field": {
                       "base": {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 74
                         },
                         "var": "s"
@@ -1176,26 +1176,26 @@
         },
         "body": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 75
           },
           "if": {
             "condition": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 75
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 75
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 75
                       },
                       "var": "s"
@@ -1205,7 +1205,7 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 75
                   },
                   "literal": {
@@ -1219,20 +1219,20 @@
             },
             "then": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 76
               },
               "list": {
                 "items": [{
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 76
                   },
                   "construct": {
                     "type": "umpire.Step",
                     "args": [{
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 76
                       },
                       "literal": {
@@ -1243,13 +1243,13 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 76
                       },
                       "copy": {
                         "base": {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 76
                           },
                           "var": "next"
@@ -1258,7 +1258,7 @@
                           "name": "message",
                           "value": {
                             "position": {
-                              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                              "file": "model/lifter/testdata/lifts/Admission.scala",
                               "line": 76
                             },
                             "literal": {
@@ -1272,13 +1272,13 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 76
                       },
                       "list": {
                         "items": [{
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 76
                           },
                           "literal": {
@@ -1289,7 +1289,7 @@
                           }
                         }, {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 76
                           },
                           "literal": {
@@ -1302,7 +1302,7 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 76
                       },
                       "literal": {
@@ -1315,20 +1315,20 @@
             },
             "else": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 77
               },
               "list": {
                 "items": [{
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 78
                   },
                   "construct": {
                     "type": "umpire.Step",
                     "args": [{
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 78
                       },
                       "literal": {
@@ -1339,13 +1339,13 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 78
                       },
                       "copy": {
                         "base": {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 78
                           },
                           "var": "next"
@@ -1354,7 +1354,7 @@
                           "name": "message",
                           "value": {
                             "position": {
-                              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                              "file": "model/lifter/testdata/lifts/Admission.scala",
                               "line": 78
                             },
                             "literal": {
@@ -1368,13 +1368,13 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 78
                       },
                       "list": {
                         "items": [{
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 78
                           },
                           "literal": {
@@ -1385,7 +1385,7 @@
                           }
                         }, {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 78
                           },
                           "literal": {
@@ -1398,7 +1398,7 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 78
                       },
                       "literal": {
@@ -1408,14 +1408,14 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 79
                   },
                   "construct": {
                     "type": "umpire.Step",
                     "args": [{
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 79
                       },
                       "literal": {
@@ -1426,13 +1426,13 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 79
                       },
                       "copy": {
                         "base": {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 79
                           },
                           "var": "next"
@@ -1441,7 +1441,7 @@
                           "name": "message",
                           "value": {
                             "position": {
-                              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                              "file": "model/lifter/testdata/lifts/Admission.scala",
                               "line": 79
                             },
                             "literal": {
@@ -1455,13 +1455,13 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 79
                       },
                       "list": {
                         "items": [{
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 79
                           },
                           "literal": {
@@ -1472,7 +1472,7 @@
                           }
                         }, {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 79
                           },
                           "literal": {
@@ -1485,7 +1485,7 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 80
                       },
                       "literal": {
@@ -1503,7 +1503,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.atMostOneActive",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 175
     },
     "params": [{
@@ -1514,26 +1514,26 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 175
       },
       "binary": {
         "op": "OP_NE",
         "left": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 175
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 175
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 175
                   },
                   "var": "after"
@@ -1546,7 +1546,7 @@
         },
         "right": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 175
           },
           "literal": {
@@ -1561,7 +1561,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.atMostOneActiveAttempt.after",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 129
     },
     "params": [{
@@ -1572,14 +1572,14 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 129
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 129
           },
           "literal": {
@@ -1591,13 +1591,13 @@
         },
         "right": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 129
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 129
               },
               "var": "after"
@@ -1610,7 +1610,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.atMostOneActiveAttempt.violated",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 129
     },
     "params": [{
@@ -1621,21 +1621,21 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 129
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 129
           },
           "var": "_$1"
         },
         "right": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 129
           },
           "literal": {
@@ -1650,7 +1650,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.countActive",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 122
     },
     "params": [{
@@ -1671,20 +1671,20 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 123
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 123
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 123
               },
               "literal": {
@@ -1696,13 +1696,13 @@
             },
             "right": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 123
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 123
                   },
                   "var": "after"
@@ -1714,14 +1714,14 @@
         },
         "then": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 123
           },
           "call": {
             "function": "fixture.specimens.admission.Admission$package$.oneMore",
             "args": [{
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 123
               },
               "var": "active"
@@ -1730,20 +1730,20 @@
         },
         "else": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 124
           },
           "if": {
             "condition": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 124
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 124
                   },
                   "literal": {
@@ -1755,13 +1755,13 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 124
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 124
                       },
                       "var": "after"
@@ -1773,14 +1773,14 @@
             },
             "then": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 124
               },
               "call": {
                 "function": "fixture.specimens.admission.Admission$package$.oneLess",
                 "args": [{
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 124
                   },
                   "var": "active"
@@ -1789,7 +1789,7 @@
             },
             "else": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 125
               },
               "var": "active"
@@ -1801,7 +1801,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.dispatchStep",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 48
     },
     "params": [{
@@ -1812,33 +1812,33 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 49
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 49
           },
           "binary": {
             "op": "OP_OR",
             "left": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 49
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 49
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 49
                       },
                       "var": "s"
@@ -1848,7 +1848,7 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 49
                   },
                   "literal": {
@@ -1862,20 +1862,20 @@
             },
             "right": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 49
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 49
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 49
                       },
                       "var": "s"
@@ -1885,7 +1885,7 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 49
                   },
                   "literal": {
@@ -1901,7 +1901,7 @@
         },
         "then": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 49
           },
           "list": {
@@ -1909,20 +1909,20 @@
         },
         "else": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 50
           },
           "list": {
             "items": [{
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 50
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [{
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 50
                   },
                   "literal": {
@@ -1933,13 +1933,13 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 50
                   },
                   "copy": {
                     "base": {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 50
                       },
                       "var": "s"
@@ -1948,7 +1948,7 @@
                       "name": "message",
                       "value": {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 50
                         },
                         "literal": {
@@ -1962,13 +1962,13 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 50
                   },
                   "list": {
                     "items": [{
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 50
                       },
                       "literal": {
@@ -1981,7 +1981,7 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 50
                   },
                   "literal": {
@@ -1997,7 +1997,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.finality",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 135
     },
     "params": [{
@@ -2018,13 +2018,13 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 135
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 135
           },
           "var": "f"
@@ -2040,7 +2040,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 136
             },
             "literal": {
@@ -2057,32 +2057,32 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 138
             },
             "if": {
               "condition": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 138
                 },
                 "binary": {
                   "op": "OP_EQ",
                   "left": {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 138
                     },
                     "field": {
                       "base": {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 138
                         },
                         "field": {
                           "base": {
                             "position": {
-                              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                              "file": "model/lifter/testdata/lifts/Admission.scala",
                               "line": 138
                             },
                             "var": "after"
@@ -2095,7 +2095,7 @@
                   },
                   "right": {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 138
                     },
                     "literal": {
@@ -2109,7 +2109,7 @@
               },
               "then": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 138
                 },
                 "literal": {
@@ -2121,27 +2121,27 @@
               },
               "else": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 139
                 },
                 "if": {
                   "condition": {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 139
                     },
                     "binary": {
                       "op": "OP_EQ",
                       "left": {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 139
                         },
                         "var": "f"
                       },
                       "right": {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 139
                         },
                         "literal": {
@@ -2155,7 +2155,7 @@
                   },
                   "then": {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 139
                     },
                     "literal": {
@@ -2167,7 +2167,7 @@
                   },
                   "else": {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 140
                     },
                     "literal": {
@@ -2187,7 +2187,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.notAdmittedWhilePaused",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 172
     },
     "params": [{
@@ -2203,27 +2203,27 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 173
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 173
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 173
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 173
                   },
                   "var": "before"
@@ -2233,7 +2233,7 @@
             },
             "right": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 173
               },
               "literal": {
@@ -2247,26 +2247,26 @@
         },
         "right": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 173
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 173
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 173
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 173
                       },
                       "var": "after"
@@ -2279,7 +2279,7 @@
             },
             "right": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 173
               },
               "literal": {
@@ -2296,7 +2296,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.oneLess",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 67
     },
     "params": [{
@@ -2307,13 +2307,13 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 67
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 67
           },
           "var": "a"
@@ -2329,7 +2329,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 68
             },
             "literal": {
@@ -2346,7 +2346,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 69
             },
             "literal": {
@@ -2362,7 +2362,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.oneMore",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 63
     },
     "params": [{
@@ -2373,13 +2373,13 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 63
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 63
           },
           "var": "a"
@@ -2395,7 +2395,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 64
             },
             "literal": {
@@ -2412,7 +2412,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 65
             },
             "literal": {
@@ -2428,7 +2428,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.pauseStep",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 53
     },
     "params": [{
@@ -2444,13 +2444,13 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 53
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 53
           },
           "var": "c"
@@ -2466,19 +2466,19 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 55
             },
             "match": {
               "scrutinee": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 55
                 },
                 "field": {
                   "base": {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 55
                     },
                     "var": "s"
@@ -2497,20 +2497,20 @@
                 },
                 "body": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 57
                   },
                   "list": {
                     "items": [{
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 57
                       },
                       "construct": {
                         "type": "umpire.Step",
                         "args": [{
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 57
                           },
                           "literal": {
@@ -2521,13 +2521,13 @@
                           }
                         }, {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 57
                           },
                           "copy": {
                             "base": {
                               "position": {
-                                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                                "file": "model/lifter/testdata/lifts/Admission.scala",
                                 "line": 57
                               },
                               "var": "s"
@@ -2536,7 +2536,7 @@
                               "name": "phase",
                               "value": {
                                 "position": {
-                                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                                  "file": "model/lifter/testdata/lifts/Admission.scala",
                                   "line": 57
                                 },
                                 "literal": {
@@ -2550,13 +2550,13 @@
                           }
                         }, {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 57
                           },
                           "list": {
                             "items": [{
                               "position": {
-                                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                                "file": "model/lifter/testdata/lifts/Admission.scala",
                                 "line": 57
                               },
                               "literal": {
@@ -2569,7 +2569,7 @@
                           }
                         }, {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 57
                           },
                           "literal": {
@@ -2591,20 +2591,20 @@
                 },
                 "body": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 59
                   },
                   "list": {
                     "items": [{
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 59
                       },
                       "construct": {
                         "type": "umpire.Step",
                         "args": [{
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 59
                           },
                           "literal": {
@@ -2615,13 +2615,13 @@
                           }
                         }, {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 59
                           },
                           "copy": {
                             "base": {
                               "position": {
-                                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                                "file": "model/lifter/testdata/lifts/Admission.scala",
                                 "line": 59
                               },
                               "var": "s"
@@ -2630,7 +2630,7 @@
                               "name": "phase",
                               "value": {
                                 "position": {
-                                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                                  "file": "model/lifter/testdata/lifts/Admission.scala",
                                   "line": 59
                                 },
                                 "literal": {
@@ -2644,13 +2644,13 @@
                           }
                         }, {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 59
                           },
                           "list": {
                             "items": [{
                               "position": {
-                                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                                "file": "model/lifter/testdata/lifts/Admission.scala",
                                 "line": 59
                               },
                               "literal": {
@@ -2663,7 +2663,7 @@
                           }
                         }, {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Admission.scala",
                             "line": 59
                           },
                           "literal": {
@@ -2681,7 +2681,7 @@
                 },
                 "body": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 60
                   },
                   "list": {
@@ -2719,7 +2719,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 61
             },
             "list": {
@@ -2731,7 +2731,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.productOfAdmission",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 102
     },
     "params": [{
@@ -2742,19 +2742,19 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 102
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 102
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 102
               },
               "var": "s"
@@ -2773,14 +2773,14 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 103
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
               "args": [{
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 103
                 },
                 "literal": {
@@ -2814,14 +2814,14 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 104
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
               "args": [{
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 104
                 },
                 "literal": {
@@ -2844,14 +2844,14 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 105
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
               "args": [{
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 105
                 },
                 "literal": {
@@ -2874,14 +2874,14 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 106
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
               "args": [{
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 106
                 },
                 "literal": {
@@ -2899,7 +2899,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.resultStep",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 95
     },
     "params": [{
@@ -2915,13 +2915,13 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 95
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 95
           },
           "var": "r"
@@ -2937,26 +2937,26 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 97
             },
             "if": {
               "condition": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 97
                 },
                 "binary": {
                   "op": "OP_NE",
                   "left": {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 97
                     },
                     "field": {
                       "base": {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 97
                         },
                         "var": "s"
@@ -2966,7 +2966,7 @@
                   },
                   "right": {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 97
                     },
                     "literal": {
@@ -2980,7 +2980,7 @@
               },
               "then": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 97
                 },
                 "list": {
@@ -2988,20 +2988,20 @@
               },
               "else": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Admission.scala",
                   "line": 98
                 },
                 "list": {
                   "items": [{
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Admission.scala",
                       "line": 98
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [{
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 98
                         },
                         "literal": {
@@ -3012,13 +3012,13 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 98
                         },
                         "copy": {
                           "base": {
                             "position": {
-                              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                              "file": "model/lifter/testdata/lifts/Admission.scala",
                               "line": 98
                             },
                             "var": "s"
@@ -3027,7 +3027,7 @@
                             "name": "phase",
                             "value": {
                               "position": {
-                                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                                "file": "model/lifter/testdata/lifts/Admission.scala",
                                 "line": 98
                               },
                               "literal": {
@@ -3041,20 +3041,20 @@
                             "name": "active",
                             "value": {
                               "position": {
-                                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                                "file": "model/lifter/testdata/lifts/Admission.scala",
                                 "line": 98
                               },
                               "call": {
                                 "function": "fixture.specimens.admission.Admission$package$.oneLess",
                                 "args": [{
                                   "position": {
-                                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                                    "file": "model/lifter/testdata/lifts/Admission.scala",
                                     "line": 98
                                   },
                                   "field": {
                                     "base": {
                                       "position": {
-                                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                                        "file": "model/lifter/testdata/lifts/Admission.scala",
                                         "line": 98
                                       },
                                       "var": "s"
@@ -3068,13 +3068,13 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 99
                         },
                         "list": {
                           "items": [{
                             "position": {
-                              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                              "file": "model/lifter/testdata/lifts/Admission.scala",
                               "line": 99
                             },
                             "literal": {
@@ -3087,7 +3087,7 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Admission.scala",
                           "line": 98
                         },
                         "literal": {
@@ -3124,7 +3124,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Admission.scala",
               "line": 100
             },
             "list": {
@@ -3136,7 +3136,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.terminalFinality.violated",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 144
     },
     "params": [{
@@ -3147,21 +3147,21 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 144
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 144
           },
           "var": "_$2"
         },
         "right": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 144
           },
           "literal": {
@@ -3176,7 +3176,7 @@
   }, {
     "name": "fixture.specimens.admission.Admission$package$.terminalStays",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 177
     },
     "params": [{
@@ -3192,27 +3192,27 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 178
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 178
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 178
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 178
                   },
                   "var": "before"
@@ -3222,7 +3222,7 @@
             },
             "right": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 178
               },
               "literal": {
@@ -3236,26 +3236,26 @@
         },
         "right": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 178
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 178
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Admission.scala",
                     "line": 178
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Admission.scala",
                         "line": 178
                       },
                       "var": "after"
@@ -3268,7 +3268,7 @@
             },
             "right": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 178
               },
               "literal": {
@@ -3285,7 +3285,7 @@
   }, {
     "name": "staleAdmission.evidence",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 166
     },
     "params": [{
@@ -3296,14 +3296,14 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 166
       },
       "call": {
         "function": "fixture.specimens.admission.Admission$package$.admissionEvidence",
         "args": [{
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 166
           },
           "var": "f"
@@ -4942,7 +4942,7 @@
     "id": "fixture.specimens.admission.Admission$package$.dispatch",
     "name": "dispatch",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 42
     },
     "party": "system",
@@ -5134,7 +5134,7 @@
     "family": "temporal.activity.standalone.admission",
     "name": "currentAdmission",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 149
     },
     "entity": "activity",
@@ -5143,14 +5143,14 @@
     "factType": "fixture.specimens.admission.AdmissionFact",
     "starts": [{
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 44
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [{
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5161,7 +5161,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5172,7 +5172,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5186,7 +5186,7 @@
     }],
     "ends": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 154
       },
       "lambda": {
@@ -5198,14 +5198,14 @@
         }],
         "body": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 154
           },
           "call": {
             "function": "fixture.specimens.admission.Admission$package$.admissionEnds",
             "args": [{
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 154
               },
               "var": "s"
@@ -5218,28 +5218,28 @@
       "action": "fixture.specimens.admission.Admission$package$.dispatch",
       "function": "fixture.specimens.admission.Admission$package$.dispatchStep",
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 156
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.control",
       "function": "fixture.specimens.admission.Admission$package$.pauseStep",
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 156
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart",
       "function": "fixture.specimens.admission.Admission$package$.admitCurrent",
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 156
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptResult",
       "function": "fixture.specimens.admission.Admission$package$.resultStep",
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 156
       }
     }],
@@ -5253,7 +5253,7 @@
     "family": "temporal.activity.standalone.admission",
     "name": "staleAdmission",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 160
     },
     "entity": "activity",
@@ -5262,14 +5262,14 @@
     "factType": "fixture.specimens.admission.AdmissionFact",
     "starts": [{
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 44
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [{
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5280,7 +5280,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5291,7 +5291,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5305,7 +5305,7 @@
     }],
     "ends": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 165
       },
       "lambda": {
@@ -5317,14 +5317,14 @@
         }],
         "body": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 165
           },
           "call": {
             "function": "fixture.specimens.admission.Admission$package$.admissionEnds",
             "args": [{
               "position": {
-                "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Admission.scala",
                 "line": 165
               },
               "var": "s"
@@ -5337,28 +5337,28 @@
       "action": "fixture.specimens.admission.Admission$package$.dispatch",
       "function": "fixture.specimens.admission.Admission$package$.dispatchStep",
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 167
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.control",
       "function": "fixture.specimens.admission.Admission$package$.pauseStep",
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 167
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart",
       "function": "fixture.specimens.admission.Admission$package$.admitStale",
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 167
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptResult",
       "function": "fixture.specimens.admission.Admission$package$.resultStep",
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 167
       }
     }],
@@ -5373,7 +5373,7 @@
     "id": "fixture.specimens.admission.Admission$package$.atMostOneActiveAttempt",
     "name": "atMostOneActiveAttempt",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 127
     },
     "state": {
@@ -5381,7 +5381,7 @@
     },
     "initial": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 128
       },
       "literal": {
@@ -5398,7 +5398,7 @@
     "id": "fixture.specimens.admission.Admission$package$.terminalFinality",
     "name": "terminalFinality",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 142
     },
     "state": {
@@ -5406,7 +5406,7 @@
     },
     "initial": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 143
       },
       "literal": {
@@ -5434,7 +5434,7 @@
     "machine": "currentAdmission",
     "name": "atMostOneActive",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 186
     },
     "holds": "fixture.specimens.admission.Admission$package$.atMostOneActive"
@@ -5442,7 +5442,7 @@
     "machine": "currentAdmission",
     "name": "notAdmittedWhilePaused",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 185
     },
     "holds": "fixture.specimens.admission.Admission$package$.notAdmittedWhilePaused",
@@ -5451,7 +5451,7 @@
     "machine": "currentAdmission",
     "name": "terminalStays",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 187
     },
     "holds": "fixture.specimens.admission.Admission$package$.terminalStays",
@@ -5460,7 +5460,7 @@
     "machine": "staleAdmission",
     "name": "atMostOneActive",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 186
     },
     "holds": "fixture.specimens.admission.Admission$package$.atMostOneActive"
@@ -5468,7 +5468,7 @@
     "machine": "staleAdmission",
     "name": "notAdmittedWhilePaused",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 185
     },
     "holds": "fixture.specimens.admission.Admission$package$.notAdmittedWhilePaused",
@@ -5477,7 +5477,7 @@
     "machine": "staleAdmission",
     "name": "terminalStays",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 187
     },
     "holds": "fixture.specimens.admission.Admission$package$.terminalStays",
@@ -5487,19 +5487,19 @@
     "machine": "currentAdmission",
     "name": "admittedBeforePause",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 190
     },
     "start": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 44
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [{
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5510,7 +5510,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5521,7 +5521,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5550,19 +5550,19 @@
     "machine": "currentAdmission",
     "name": "any",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 193
     },
     "start": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 44
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [{
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5573,7 +5573,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5584,7 +5584,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5601,19 +5601,19 @@
     "machine": "currentAdmission",
     "name": "duplicateDelivery",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 192
     },
     "start": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 44
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [{
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5624,7 +5624,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5635,7 +5635,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5658,19 +5658,19 @@
     "machine": "currentAdmission",
     "name": "staleDeliveryAfterPause",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 188
     },
     "start": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 44
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [{
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5681,7 +5681,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5692,7 +5692,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5721,19 +5721,19 @@
     "machine": "staleAdmission",
     "name": "admittedBeforePause",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 190
     },
     "start": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 44
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [{
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5744,7 +5744,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5755,7 +5755,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5784,19 +5784,19 @@
     "machine": "staleAdmission",
     "name": "any",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 193
     },
     "start": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 44
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [{
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5807,7 +5807,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5818,7 +5818,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5835,19 +5835,19 @@
     "machine": "staleAdmission",
     "name": "duplicateDelivery",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 192
     },
     "start": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 44
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [{
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5858,7 +5858,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5869,7 +5869,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5892,19 +5892,19 @@
     "machine": "staleAdmission",
     "name": "staleDeliveryAfterPause",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 188
     },
     "start": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Admission.scala",
         "line": 44
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [{
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5915,7 +5915,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5926,7 +5926,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Admission.scala",
             "line": 44
           },
           "literal": {
@@ -5955,7 +5955,7 @@
   "queries": [{
     "name": "currentAdmission.admittedBeforePause",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 196
     },
     "form": "FORM_VERIFY",
@@ -5976,7 +5976,7 @@
   }, {
     "name": "currentAdmission.any.atMostOneActive",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 199
     },
     "form": "FORM_VERIFY",
@@ -5997,7 +5997,7 @@
   }, {
     "name": "currentAdmission.any.notAdmittedWhilePaused",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 198
     },
     "form": "FORM_VERIFY",
@@ -6018,7 +6018,7 @@
   }, {
     "name": "currentAdmission.any.terminalStays",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 200
     },
     "form": "FORM_VERIFY",
@@ -6039,7 +6039,7 @@
   }, {
     "name": "currentAdmission.duplicateDelivery",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 197
     },
     "form": "FORM_VERIFY",
@@ -6060,7 +6060,7 @@
   }, {
     "name": "currentAdmission.product.pausedIsNotDispatched",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 202
     },
     "form": "FORM_VERIFY",
@@ -6082,7 +6082,7 @@
   }, {
     "name": "currentAdmission.staleDelivery",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 195
     },
     "form": "FORM_VERIFY",
@@ -6103,7 +6103,7 @@
   }, {
     "name": "staleAdmission.admittedBeforePause",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 196
     },
     "form": "FORM_VERIFY",
@@ -6124,7 +6124,7 @@
   }, {
     "name": "staleAdmission.any.atMostOneActive",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 199
     },
     "form": "FORM_VERIFY",
@@ -6145,7 +6145,7 @@
   }, {
     "name": "staleAdmission.any.notAdmittedWhilePaused",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 198
     },
     "form": "FORM_VERIFY",
@@ -6166,7 +6166,7 @@
   }, {
     "name": "staleAdmission.any.terminalStays",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 200
     },
     "form": "FORM_VERIFY",
@@ -6187,7 +6187,7 @@
   }, {
     "name": "staleAdmission.duplicateDelivery",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 197
     },
     "form": "FORM_VERIFY",
@@ -6208,7 +6208,7 @@
   }, {
     "name": "staleAdmission.product.pausedIsNotDispatched",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 202
     },
     "form": "FORM_VERIFY",
@@ -6230,7 +6230,7 @@
   }, {
     "name": "staleAdmission.staleDelivery",
     "position": {
-      "file": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Admission.scala",
       "line": 195
     },
     "form": "FORM_VERIFY",

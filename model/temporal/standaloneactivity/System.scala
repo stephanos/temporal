@@ -1,7 +1,7 @@
 /* The standalone activity's system contract: how history's authoritative activity record, the durable
  * dispatch queue and admission at RecordActivityTaskStarted keep the product's promise that a paused
  * activity is dispatched to no worker. Grounded in chasm/lib/activity/tasks.go (the dispatch task) and
- * chasm/lib/activity/activity.go (HandleStarted), and reviewed as model/scalav2/specimens/activity.md.
+ * chasm/lib/activity/activity.go (HandleStarted), and reviewed as model/specimens/activity.md.
  *
  * Three identities stay apart. The logical activity is the entity. An attempt is what admission
  * commits, counted in the record. A delivery is one dispatch message, which the queue holds and may

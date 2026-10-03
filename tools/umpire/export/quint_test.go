@@ -308,7 +308,7 @@ func TestQuintExportListsWhatItLeavesOut(t *testing.T) {
 	require.Equal(t, Unsupported, got["module-refinement matchingQueue"])
 	require.Equal(t, Unsupported, got["query-agreement 84 Queries"])
 	// Five of the seven compositions are exported. The two over a provider that does not refine the
-	// queue it replaces have no composed table in Go either: goir rejects the replacement.
+	// queue it replaces have no composed table in Go either: the reader rejects the replacement.
 	require.Equal(t, []string{"currentOverLossyMatching", "currentOverMatching", "currentOverQueue", "staleOverMatching", "staleOverQueue"}, x.Compositions)
 	for _, rejected := range []string{"currentOverForgetful", "currentOverVolatile"} {
 		r := only(t, x.Unsupported, TransitionAgreement, rejected)
@@ -557,7 +557,7 @@ func TestQuintStopsWhereTheModelHasNoValue(t *testing.T) {
 }
 
 // A counterexample the backend names for one monitor, on a path that violates another: the path is a
-// path of the machine and goir's checker finds a violation over its classes, and the replay still
+// path of the machine and the reader's checker finds a violation over its classes, and the replay still
 // rejects it, because the named monitor holds on it.
 func TestAWitnessOfAnotherMonitorIsRejected(t *testing.T) {
 	s := openNamed(t, "activity-system")
@@ -582,7 +582,7 @@ func TestAWitnessOfAnotherMonitorIsRejected(t *testing.T) {
 	require.Contains(t, r.Explanation, "the monitor terminalFinality is not violated on the last step")
 }
 
-// goir's checker's answers are folded into a monitor agreement: a counterexample it finds no
+// The reader's checker's answers are folded into a monitor agreement: a counterexample it finds no
 // violation on is rejected, and a verdict that is not the backend's is a difference.
 func TestCheckerAnswersAreFoldedIn(t *testing.T) {
 	witness := Witness{Monitor: "terminalFinality"}
@@ -691,8 +691,8 @@ func TestQuintReadsPropertiesAboutAnAction(t *testing.T) {
 	require.Less(t, r.About, r.Reads)
 }
 
-// Every composition goir builds is exported: the eight of the lifted slices but the two whose
-// replacement goir rejects, with their 18 Properties but those two's none.
+// Every composition the reader builds is exported: the eight of the lifted slices but the two whose
+// replacement the reader rejects, with their 18 Properties but those two's none.
 func TestCompositionsAreExported(t *testing.T) {
 	exportedOf := map[string][]string{
 		"activity":        {"standaloneActivity"},

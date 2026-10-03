@@ -10,13 +10,14 @@ import (
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 )
 
-// The negative control's fixture is rendered by `umpire-gen-case-runtime-conformance`; its
-// recorded Run under testdata is one live Run of it against the test cluster, captured by
+// The negative control's Case under testdata is the one its recorded Run beside it names: one live
+// Run of it against the test cluster, captured by
 // `TestTestpilotNexusControlForgedCompletionIsViolated` with UMPIRE_CONTROL_RECORD naming the file.
-// The record names the fixture's canonical bytes, so any change to the control's definitions makes
-// it crossed until it is recorded again live; `make umpire-rerecord-pinned-runs` does that.
+// The record names the Case's canonical bytes, and the live test now runs the control lowered from
+// the Scala model, so recording it again live (`make umpire-rerecord-pinned-runs`) makes it a Run of
+// that Case, which then replaces the one kept here together with the recorded Profile name.
 const (
-	controlCasePath = "../../../../tests/testcore/testpilot/testdata/nexusCallerControl-forgedCompletion-case.json"
+	controlCasePath = "testdata/nexusCallerControl-forgedCompletion-case.json"
 	controlRunPath  = "testdata/nexusCallerControl-forgedCompletion-run.json"
 	controlProfile  = "nexusCallerControl-forgedCompletion-profile"
 	controlKey      = "temporal.nexus.control.property.forgedSuccess.fact-nexusOperationCompleted@correlated.violated[temporal.nexus.caller.evidence.failed];" +

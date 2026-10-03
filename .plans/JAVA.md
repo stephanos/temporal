@@ -8,7 +8,7 @@ for gradual contracts and refinement.
 
 Research checked on 2026-09-30 against primary documentation and source, using
 [PROTOTYPE.md](../../PROTOTYPE.md), [the vision](UMPIRE4_VISION.md), and
-[the implemented IR semantics](../model/scalav2/SEMANTICS.md) to judge fit. These are candidates
+[the implemented IR semantics](../model/SEMANTICS.md) to judge fit. These are candidates
 for the Scala/IR proposal; the existing Lean-based specification remains unchanged. No tool was
 installed or benchmarked, and no dependency was adopted. Recommendations below are inferences
 from documented capabilities and Umpire's requirements.

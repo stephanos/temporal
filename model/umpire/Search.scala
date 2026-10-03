@@ -5,14 +5,14 @@ import scala.collection.mutable
 
 /**
  * The bounded search. Breadth-first over the product of the machine state, the Scenario's progress
- * through its pinned schedule and the Property monitor, with a visited set, as
- * `Umpire.Search.Product` describes. Successors come in the table's row order and, within a row, in
+ * through its pinned schedule and the Property monitor, with a visited set.
+ * Successors come in the table's row order and, within a row, in
  * result order, and the first-discovered parent is kept, so the witness is the shortest and ties go
- * to the lower index: the order Veil's checker and the reference search agree on.
+ * to the lower index: the order the Go reader's search takes, so both give the same witness.
  */
 private[umpire] object Search:
   // A Query answered here names no assumption its machines make, and a progress claim has no Query
-  // form here: both are the IR interpreter's (model/scalav2/SEMANTICS.md, Assumptions and Progress).
+  // form here: both are the IR interpreter's (model/SEMANTICS.md, Assumptions and Progress).
   def answer(q: Query): Checked[Answer] = checked {
     check(q)
     unwatched(q)

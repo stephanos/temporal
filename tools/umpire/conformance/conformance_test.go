@@ -457,7 +457,7 @@ func TestConcurrentRunsAndReplaysShareNoState(t *testing.T) {
 }
 
 // The adapter reaches Testpilot through its public facade and the generated protocol alone, and the
-// Model through goir: no file of this package, tests included, imports an internal package.
+// Model through the reader: no file of this package, tests included, imports an internal package.
 func TestThePackageImportsNoInternalPackage(t *testing.T) {
 	names, err := filepath.Glob("*.go")
 	require.NoError(t, err)

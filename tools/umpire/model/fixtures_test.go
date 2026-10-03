@@ -1,6 +1,6 @@
 package model
 
-// The source-derived Models the lifter's tests pin in model/scalav2/lifter/testdata/lifts/expected,
+// The source-derived Models the lifter's tests pin in model/lifter/testdata/lifts/expected,
 // read as any other Model: admitted, then interpreted.
 
 import (

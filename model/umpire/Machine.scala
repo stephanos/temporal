@@ -66,7 +66,7 @@ final class MachineScope[S, O, F] private[umpire] ():
 /**
  * Declares a machine: a transition relation over the finite state type `S` with outcomes `O` and
  * facts `F`, one step function per action, the states it starts in, the states it may end in and
- * the evidence that confirms each fact. The Scala form of the Lean `machine` command.
+ * the evidence that confirms each fact.
  */
 def machine[S, O, F](family: Family, name: String)(body: MachineScope[S, O, F] ?=> Unit)(using
     Finite[S],
@@ -157,8 +157,8 @@ final class Machine[S, O, F] private[umpire] (
   lazy val refinementCheck: Checked[Refinement] = Refinement.of(this)
 
   /**
-   * A machine that keeps the rows of the named actions and drops the rest: Lean's
-   * `from: <machine> restrict: [...]`. It keeps the state type, starts and ends, owns its own name
+   * A machine that keeps the rows of the named actions and drops the rest.
+   * It keeps the state type, starts and ends, owns its own name
    * and Definition IDs, and does not inherit a refinement.
    */
   def restrict(family: Family, name: String)(keep: Action[?]*): Machine[S, O, F] =

@@ -13,7 +13,7 @@ import (
 // Validate checks that every name the Model uses is declared, with the arity it is used at, and that
 // every variable is bound where it is read. It reports every problem, each at the position the front
 // end gave the node, rather than the first.
-// It also rejects the rest of model/scalav2/SEMANTICS.md's Admission list: an unknown version or a
+// It also rejects the rest of model/SEMANTICS.md's Admission list: an unknown version or a
 // construct of no known kind, crossed types, duplicate keys, catalogs that are not finite, bounds,
 // misused channels, readings without a refinement, and recursion.
 // A realization is checked as a whole of its own: what it names it declares, once, and its commands

@@ -88,10 +88,10 @@ val handlerFailure = message[Failure](
 - **R6:** Enum values are written as the generated values. No enum name is built by string concatenation.
 - **R7:** Constant messages a realization writes out are written with typed fields. `Proto`, `ProtoField` and `ProtoEntry` with string names are gone from the Models. Errors: a field the message does not have does not compile.
 - **R8:** No Model contains a string literal that is a proto package, message, method, field path or enum value name, and a check in the model gate fails on a new one. Errors: an id that only looks like one, such as a Definition ID or a role id, is told apart by the check and stays.
-- **R9:** The baseline goldens pass, and every checked-in IR file is equal before and after except for source positions. Errors: any other difference stops the task.
+- **R9:** The baseline goldens (`tools/umpire/model/testdata/migration`, `tools/umpire/lower/testdata/migration`) pass, and every checked-in IR file is equal before and after except for source positions. Errors: any other difference stops the task.
 - **R10:** The lifter has fixtures that must not compile for a misspelled field, a field of the wrong message, a value of the wrong type and an unknown enum value, and fixtures that lift for a repeated element, a oneof arm and a map entry.
 - **R11:** Go's validation of names and paths at lowering is unchanged, and its tests still pass (no error surface).
-- **R12:** The model gate, `make lint-scala` and the Go tests of the Umpire tooling pass at the closing task. A Model edit does not regenerate or recompile the API classes. The done summary states the count of proto string literals removed and the warm and cold build times before and after.
+- **R12:** The model gate, `make lint-model` and the Go tests of the Umpire tooling pass at the closing task. A Model edit does not regenerate or recompile the API classes. The done summary states the count of proto string literals removed and the warm and cold build times before and after.
 
 ## Boundaries
 <!-- scope: business -->

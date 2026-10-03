@@ -336,7 +336,7 @@ func TestTestpilotHelperDriverBoundary(t *testing.T) {
 		permitted  bool
 	}{
 		{"campaign/run.go", driver + "/binding", true},
-		{"campaign/integration_test.go", driver + "/binding", true},
+		{"campaign/run_test.go", driver + "/binding", true},
 		{"replay/report.go", driver + "/binding", true},
 		{"evaluation/admission_test.go", driver, true},
 		{"replay/driver_test.go", driver, true},
@@ -347,7 +347,7 @@ func TestTestpilotHelperDriverBoundary(t *testing.T) {
 		{"replay/report.go", driver + "/server", false},
 		{"recordedrun/recordedrun.go", driver + "/binding", false},
 		{"prepare.go", driver + "/binding", false},
-		{"campaign/run.go", "go.temporal.io/server/model/scalav2/goir", false},
+		{"campaign/run.go", "go.temporal.io/server/tools/umpire/model", false},
 		{"replay/report.go", "go.temporal.io/server/tools/umpire/replay", false},
 		{"temporal/binding/binding.go", "go.temporal.io/server/model0/go/umpire", false},
 		{"temporal/binding/binding.go", "go.temporal.io/server/tools/umpire0/binding", false},

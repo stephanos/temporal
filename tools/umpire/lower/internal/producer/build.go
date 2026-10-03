@@ -6,8 +6,8 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 )
 
-// Builders for the Program and Contract messages, mirroring model/lean/Testpilot/Authoring.lean and
-// model/lean/Temporal/Testpilot/CaseSupport.lean so a realization reads the same in both.
+// Builders for the Program and Contract messages, mirroring model0/lean/Testpilot/Authoring.lean and
+// model0/lean/Temporal/Testpilot/CaseSupport.lean so a realization reads the same in both.
 
 // Text is a text value.
 func Text(value string) *testpilotspb.Value {

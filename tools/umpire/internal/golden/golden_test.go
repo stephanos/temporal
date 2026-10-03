@@ -45,6 +45,36 @@ func TestClosedMigrationRejectsUnlistedSourceChanges(t *testing.T) {
 	require.ErrorContains(t, err, "unlisted.scala")
 }
 
+func TestRenamesFollowTheCapturedMigration(t *testing.T) {
+	cfg := Config{
+		Paths:   []Substitution{{Old: "old.scala", New: "new.scala.fixture"}, {Old: "kept.scala", New: "moved.scala"}},
+		Labels:  []Substitution{{Old: "old model", New: "new model"}},
+		Renames: []Substitution{{Old: "new.scala.fixture", New: "new.scala"}},
+	}
+	original := &umpirespb.Model{Source: "old model", Machines: []*umpirespb.Machine{
+		{Position: &umpirespb.Position{File: "old.scala", Line: 12}},
+		{Position: &umpirespb.Position{File: "kept.scala", Line: 3}},
+	}}
+	mapped, err := cfg.Migrate(original)
+	require.NoError(t, err)
+	require.Equal(t, "new.scala.fixture", mapped.Machines[0].Position.File)
+	current, err := cfg.Rename(mapped)
+	require.NoError(t, err)
+	require.Equal(t, "new.scala.fixture", mapped.Machines[0].Position.File)
+	require.True(t, proto.Equal(&umpirespb.Model{Source: "new model", Machines: []*umpirespb.Machine{
+		{Position: &umpirespb.Position{File: "new.scala", Line: 12}},
+		{Position: &umpirespb.Position{File: "moved.scala", Line: 3}},
+	}}, current))
+	moved, err := cfg.Match(original, current)
+	require.NoError(t, err)
+	require.True(t, moved)
+	_, err = cfg.Match(original, mapped)
+	require.Error(t, err, "the current IR has the renamed path, not the captured one")
+	cfg.Renames = []Substitution{{Old: "old.scala", New: "other.scala"}}
+	_, err = cfg.Rename(mapped)
+	require.ErrorContains(t, err, "old.scala")
+}
+
 func TestCompareRequiresTheWholeInventory(t *testing.T) {
 	original := map[string][]byte{"a": []byte("one"), "b": []byte("two")}
 	require.NoError(t, Compare(original, original))

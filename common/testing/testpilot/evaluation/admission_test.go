@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	controlCasePath = "../../../../tests/testcore/testpilot/testdata/nexusCallerControl-forgedCompletion-case.json"
+	controlCasePath = "../replay/testdata/nexusCallerControl-forgedCompletion-case.json"
 	controlRunPath  = "../replay/testdata/nexusCallerControl-forgedCompletion-run.json"
 	pairCasePath    = "../../../../tests/testcore/testpilot/testdata/nexusPairTests-bothComplete-case.json"
 )

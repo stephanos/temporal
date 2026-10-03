@@ -3,7 +3,7 @@
   "types": [{
     "name": "fixture.presence.Outcome",
     "position": {
-      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 35
     },
     "enum": {
@@ -16,7 +16,7 @@
   }, {
     "name": "fixture.presence.Report",
     "position": {
-      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 12
     },
     "enum": {
@@ -41,7 +41,7 @@
   }, {
     "name": "fixture.presence.Result",
     "position": {
-      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 8
     },
     "enum": {
@@ -54,7 +54,7 @@
   }, {
     "name": "fixture.presence.State",
     "position": {
-      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 29
     },
     "record": {
@@ -87,7 +87,7 @@
   }, {
     "name": "scala.Option[fixture.presence.Result]",
     "position": {
-      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 71
     },
     "enum": {
@@ -107,7 +107,7 @@
   "functions": [{
     "name": "fixture.presence.Presence$package$.forgetStep",
     "position": {
-      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 63
     },
     "params": [{
@@ -118,19 +118,19 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Presence.scala",
         "line": 63
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 63
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 63
               },
               "var": "s"
@@ -151,20 +151,20 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Presence.scala",
               "line": 64
             },
             "list": {
               "items": [{
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Presence.scala",
                   "line": 64
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [{
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 64
                     },
                     "literal": {
@@ -175,13 +175,13 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 64
                     },
                     "copy": {
                       "base": {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Presence.scala",
                           "line": 64
                         },
                         "var": "s"
@@ -190,7 +190,7 @@
                         "name": "kept",
                         "value": {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Presence.scala",
                             "line": 64
                           },
                           "literal": {
@@ -204,14 +204,14 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 64
                     },
                     "list": {
                     }
                   }, {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 64
                     },
                     "literal": {
@@ -233,20 +233,20 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Presence.scala",
               "line": 65
             },
             "list": {
               "items": [{
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Presence.scala",
                   "line": 65
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [{
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 65
                     },
                     "literal": {
@@ -257,20 +257,20 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 65
                     },
                     "var": "s"
                   }, {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 65
                     },
                     "list": {
                     }
                   }, {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 65
                     },
                     "literal": {
@@ -287,7 +287,7 @@
   }, {
     "name": "fixture.presence.Presence$package$.keepStep",
     "position": {
-      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 57
     },
     "params": [{
@@ -298,26 +298,26 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Presence.scala",
         "line": 58
       },
       "let": {
         "name": "sent",
         "value": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 58
           },
           "match": {
             "scrutinee": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 58
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Presence.scala",
                     "line": 58
                   },
                   "var": "s"
@@ -346,7 +346,7 @@
               },
               "body": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Presence.scala",
                   "line": 59
                 },
                 "construct": {
@@ -354,7 +354,7 @@
                   "case": "Some",
                   "args": [{
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 59
                     },
                     "var": "r"
@@ -372,7 +372,7 @@
               },
               "body": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Presence.scala",
                   "line": 60
                 },
                 "literal": {
@@ -387,34 +387,34 @@
         },
         "body": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 61
           },
           "if": {
             "condition": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 61
               },
               "binary": {
                 "op": "OP_OR",
                 "left": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Presence.scala",
                     "line": 61
                   },
                   "binary": {
                     "op": "OP_EQ",
                     "left": {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Presence.scala",
                         "line": 61
                       },
                       "var": "sent"
                     },
                     "right": {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Presence.scala",
                         "line": 61
                       },
                       "literal": {
@@ -428,20 +428,20 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Presence.scala",
                     "line": 61
                   },
                   "binary": {
                     "op": "OP_EQ",
                     "left": {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Presence.scala",
                         "line": 61
                       },
                       "field": {
                         "base": {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Presence.scala",
                             "line": 61
                           },
                           "var": "s"
@@ -451,7 +451,7 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Presence.scala",
                         "line": 61
                       },
                       "var": "sent"
@@ -462,7 +462,7 @@
             },
             "then": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 61
               },
               "list": {
@@ -470,20 +470,20 @@
             },
             "else": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 61
               },
               "list": {
                 "items": [{
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Presence.scala",
                     "line": 61
                   },
                   "construct": {
                     "type": "umpire.Step",
                     "args": [{
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Presence.scala",
                         "line": 61
                       },
                       "literal": {
@@ -494,13 +494,13 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Presence.scala",
                         "line": 61
                       },
                       "copy": {
                         "base": {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Presence.scala",
                             "line": 61
                           },
                           "var": "s"
@@ -509,7 +509,7 @@
                           "name": "kept",
                           "value": {
                             "position": {
-                              "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                              "file": "model/lifter/testdata/lifts/Presence.scala",
                               "line": 61
                             },
                             "var": "sent"
@@ -518,14 +518,14 @@
                       }
                     }, {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Presence.scala",
                         "line": 61
                       },
                       "list": {
                       }
                     }, {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Presence.scala",
                         "line": 61
                       },
                       "literal": {
@@ -543,7 +543,7 @@
   }, {
     "name": "fixture.presence.Presence$package$.pollStep",
     "position": {
-      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 67
     },
     "params": [{
@@ -554,26 +554,26 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Presence.scala",
         "line": 68
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 68
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 68
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Presence.scala",
                     "line": 68
                   },
                   "var": "s"
@@ -583,7 +583,7 @@
             },
             "right": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 68
               },
               "literal": {
@@ -594,20 +594,20 @@
         },
         "then": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 68
           },
           "list": {
             "items": [{
               "position": {
-                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 68
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [{
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Presence.scala",
                     "line": 68
                   },
                   "literal": {
@@ -618,13 +618,13 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Presence.scala",
                     "line": 68
                   },
                   "copy": {
                     "base": {
                       "position": {
-                        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                        "file": "model/lifter/testdata/lifts/Presence.scala",
                         "line": 68
                       },
                       "var": "s"
@@ -633,7 +633,7 @@
                       "name": "polls",
                       "value": {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Presence.scala",
                           "line": 68
                         },
                         "literal": {
@@ -644,14 +644,14 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Presence.scala",
                     "line": 68
                   },
                   "list": {
                   }
                 }, {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Presence.scala",
                     "line": 68
                   },
                   "literal": {
@@ -664,7 +664,7 @@
         },
         "else": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 68
           },
           "list": {
@@ -675,7 +675,7 @@
   }, {
     "name": "fixture.presence.Presence$package$.sendStep",
     "position": {
-      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 43
     },
     "params": [{
@@ -691,19 +691,19 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Presence.scala",
         "line": 43
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 43
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 43
               },
               "var": "s"
@@ -722,20 +722,20 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Presence.scala",
               "line": 44
             },
             "list": {
               "items": [{
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Presence.scala",
                   "line": 44
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [{
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 44
                     },
                     "literal": {
@@ -746,13 +746,13 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 44
                     },
                     "copy": {
                       "base": {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Presence.scala",
                           "line": 44
                         },
                         "var": "s"
@@ -761,7 +761,7 @@
                         "name": "report",
                         "value": {
                           "position": {
-                            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                            "file": "model/lifter/testdata/lifts/Presence.scala",
                             "line": 44
                           },
                           "construct": {
@@ -769,13 +769,13 @@
                             "case": "sent",
                             "args": [{
                               "position": {
-                                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                                "file": "model/lifter/testdata/lifts/Presence.scala",
                                 "line": 44
                               },
                               "var": "r"
                             }, {
                               "position": {
-                                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                                "file": "model/lifter/testdata/lifts/Presence.scala",
                                 "line": 44
                               },
                               "literal": {
@@ -788,14 +788,14 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 44
                     },
                     "list": {
                     }
                   }, {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 44
                     },
                     "literal": {
@@ -823,7 +823,7 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Presence.scala",
               "line": 45
             },
             "list": {
@@ -851,26 +851,26 @@
           },
           "body": {
             "position": {
-              "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+              "file": "model/lifter/testdata/lifts/Presence.scala",
               "line": 47
             },
             "if": {
               "condition": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Presence.scala",
                   "line": 47
                 },
                 "binary": {
                   "op": "OP_EQ",
                   "left": {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 47
                     },
                     "field": {
                       "base": {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Presence.scala",
                           "line": 47
                         },
                         "var": "s"
@@ -880,7 +880,7 @@
                   },
                   "right": {
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 23
                     },
                     "literal": {
@@ -891,7 +891,7 @@
               },
               "then": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Presence.scala",
                   "line": 47
                 },
                 "list": {
@@ -899,20 +899,20 @@
               },
               "else": {
                 "position": {
-                  "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                  "file": "model/lifter/testdata/lifts/Presence.scala",
                   "line": 49
                 },
                 "list": {
                   "items": [{
                     "position": {
-                      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                      "file": "model/lifter/testdata/lifts/Presence.scala",
                       "line": 50
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [{
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Presence.scala",
                           "line": 50
                         },
                         "literal": {
@@ -923,13 +923,13 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Presence.scala",
                           "line": 50
                         },
                         "copy": {
                           "base": {
                             "position": {
-                              "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                              "file": "model/lifter/testdata/lifts/Presence.scala",
                               "line": 50
                             },
                             "var": "s"
@@ -938,7 +938,7 @@
                             "name": "report",
                             "value": {
                               "position": {
-                                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                                "file": "model/lifter/testdata/lifts/Presence.scala",
                                 "line": 50
                               },
                               "construct": {
@@ -946,13 +946,13 @@
                                 "case": "sent",
                                 "args": [{
                                   "position": {
-                                    "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                                    "file": "model/lifter/testdata/lifts/Presence.scala",
                                     "line": 50
                                   },
                                   "var": "first"
                                 }, {
                                   "position": {
-                                    "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                                    "file": "model/lifter/testdata/lifts/Presence.scala",
                                     "line": 50
                                   },
                                   "literal": {
@@ -965,20 +965,20 @@
                             "name": "retries",
                             "value": {
                               "position": {
-                                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                                "file": "model/lifter/testdata/lifts/Presence.scala",
                                 "line": 50
                               },
                               "call": {
                                 "function": "fixture.presence.bounded$.Retries$.next",
                                 "args": [{
                                   "position": {
-                                    "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                                    "file": "model/lifter/testdata/lifts/Presence.scala",
                                     "line": 50
                                   },
                                   "field": {
                                     "base": {
                                       "position": {
-                                        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                                        "file": "model/lifter/testdata/lifts/Presence.scala",
                                         "line": 50
                                       },
                                       "var": "s"
@@ -992,14 +992,14 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Presence.scala",
                           "line": 50
                         },
                         "list": {
                         }
                       }, {
                         "position": {
-                          "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                          "file": "model/lifter/testdata/lifts/Presence.scala",
                           "line": 50
                         },
                         "literal": {
@@ -1018,7 +1018,7 @@
   }, {
     "name": "fixture.presence.bounded$.Retries$.next",
     "position": {
-      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 24
     },
     "params": [{
@@ -1031,34 +1031,34 @@
     }],
     "body": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Presence.scala",
         "line": 24
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 24
           },
           "binary": {
             "op": "OP_LE",
             "left": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 24
               },
               "binary": {
                 "op": "OP_ADD",
                 "left": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Presence.scala",
                     "line": 24
                   },
                   "var": "r"
                 },
                 "right": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Presence.scala",
                     "line": 24
                   },
                   "literal": {
@@ -1069,7 +1069,7 @@
             },
             "right": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 24
               },
               "literal": {
@@ -1080,21 +1080,21 @@
         },
         "then": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 24
           },
           "binary": {
             "op": "OP_ADD",
             "left": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 24
               },
               "var": "r"
             },
             "right": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 24
               },
               "literal": {
@@ -1105,7 +1105,7 @@
         },
         "else": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 24
           },
           "literal": {
@@ -1119,7 +1119,7 @@
     "id": "fixture.presence.Presence$package$.forget",
     "name": "forget",
     "position": {
-      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 40
     },
     "party": "fixture"
@@ -1127,7 +1127,7 @@
     "id": "fixture.presence.Presence$package$.keep",
     "name": "keep",
     "position": {
-      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 39
     },
     "party": "fixture"
@@ -1135,7 +1135,7 @@
     "id": "fixture.presence.Presence$package$.poll",
     "name": "poll",
     "position": {
-      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 41
     },
     "party": "system",
@@ -1144,7 +1144,7 @@
     "id": "fixture.presence.Presence$package$.send",
     "name": "send",
     "position": {
-      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 38
     },
     "party": "fixture",
@@ -1159,21 +1159,21 @@
     "family": "fixture.presence",
     "name": "presence",
     "position": {
-      "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "file": "model/lifter/testdata/lifts/Presence.scala",
       "line": 71
     },
     "stateType": "fixture.presence.State",
     "outcomeType": "fixture.presence.Outcome",
     "starts": [{
       "position": {
-        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Presence.scala",
         "line": 72
       },
       "construct": {
         "type": "fixture.presence.State",
         "args": [{
           "position": {
-            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 72
           },
           "literal": {
@@ -1184,7 +1184,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 72
           },
           "literal": {
@@ -1195,7 +1195,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 22
           },
           "literal": {
@@ -1203,7 +1203,7 @@
           }
         }, {
           "position": {
-            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 72
           },
           "literal": {
@@ -1214,7 +1214,7 @@
     }],
     "ends": {
       "position": {
-        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Presence.scala",
         "line": 73
       },
       "lambda": {
@@ -1226,20 +1226,20 @@
         }],
         "body": {
           "position": {
-            "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+            "file": "model/lifter/testdata/lifts/Presence.scala",
             "line": 73
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 73
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                    "file": "model/lifter/testdata/lifts/Presence.scala",
                     "line": 73
                   },
                   "var": "s"
@@ -1249,7 +1249,7 @@
             },
             "right": {
               "position": {
-                "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+                "file": "model/lifter/testdata/lifts/Presence.scala",
                 "line": 73
               },
               "literal": {
@@ -1267,28 +1267,28 @@
       "action": "fixture.presence.Presence$package$.send",
       "function": "fixture.presence.Presence$package$.sendStep",
       "position": {
-        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Presence.scala",
         "line": 74
       }
     }, {
       "action": "fixture.presence.Presence$package$.keep",
       "function": "fixture.presence.Presence$package$.keepStep",
       "position": {
-        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Presence.scala",
         "line": 74
       }
     }, {
       "action": "fixture.presence.Presence$package$.forget",
       "function": "fixture.presence.Presence$package$.forgetStep",
       "position": {
-        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Presence.scala",
         "line": 74
       }
     }, {
       "action": "fixture.presence.Presence$package$.poll",
       "function": "fixture.presence.Presence$package$.pollStep",
       "position": {
-        "file": "model/lifter/testdata/lifts/Presence.scala.fixture",
+        "file": "model/lifter/testdata/lifts/Presence.scala",
         "line": 74
       }
     }]

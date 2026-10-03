@@ -19,7 +19,7 @@ type firstReader int
 const (
 	// byNone finds nothing wrong: the guard is well formed for all three readers.
 	byNone firstReader = iota
-	// byAdmission is goir.Validate, which reads no descriptor.
+	// byAdmission is umpiremodel.Validate, which reads no descriptor.
 	byAdmission
 	// byLowering is the lowering to a Case, which reads the payload's descriptor.
 	byLowering
@@ -40,7 +40,7 @@ func guardIn(of *umpirespb.Operand, path string) *umpirespb.Operand {
 func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 	const (
 		pushed  = "evidence fixture.realizations.tally.evidence.pushed: its guard "
-		fixture = "model/lifter/testdata/lifts/Realizations.scala.fixture:"
+		fixture = "model/lifter/testdata/lifts/Realizations.scala:"
 		alone   = "; a Run Event's guard reads the event's payload alone"
 		unknown = "writes out a value that is no text, flag, number or enum value"
 		v1      = "temporal.server.api.testpilot.v1."

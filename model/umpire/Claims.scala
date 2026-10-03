@@ -223,7 +223,7 @@ final class QueryIn private[umpire] (
 
 def query(name: String): QueryDecl = QueryDecl(name)
 
-/** A Query's answer, spelled as Lean spells `PlanningOutcome.name`. */
+/** A Query's answer, spelled as the Go reader's receipts spell it. */
 enum Verdict(val spelling: String):
   case found extends Verdict("found")
   case notFound extends Verdict("not-found")

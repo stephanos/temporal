@@ -1,20 +1,23 @@
-# model/scalav2/backends
+# tools/umpire/export
 
 Two other checkers read the lifted IR, and each is held to Go's reading of the same Model. Quint is
-given every machine of the four `ir/*.json` files and every composition `goir` builds of them. P is
+given every machine of four `model/ir/*.json` files and every composition the reader
+(`tools/umpire/model`) builds of them. P is
 given one monitor. An export counts only
-where the tool's own run agrees with `goir`; a tool that parses the export proves nothing here.
+where the tool's own run agrees with the reader; a tool that parses the export proves nothing here.
 
 ```sh
-model/scalav2/backends/run.sh --install   # once: .NET 8 and P 3.1.0 into .build/umpire-backend-tools
-model/scalav2/backends/run.sh             # the agreement, three to ten minutes; one receipt per comparison
-model/scalav2/backends/run.sh --out DIR   # also keep every export, dump and report under DIR
-go test -tags test_dep ./model/scalav2/backends/   # the Go side alone; the tool runs skip
+make umpire-check-backends                           # the agreement, three to ten minutes; one receipt per comparison
+UMPIRE_BACKENDS_OUT=DIR make umpire-check-backends   # also keep every export, dump, report and receipts.txt under DIR
+go test -tags test_dep ./tools/umpire/export/        # the Go side alone; the tool runs skip, and no tool is looked for
 ```
 
-`run.sh` fails when a tool is missing, when a tool fails, on any disagreement and on any skipped
-comparison. The default `go test` needs no tool. It checks the exporters, the comparison and the
-replay against dumps written from Go's own interpretation and against tampered copies of them.
+The agreement is opted into: `make umpire-check-backends` runs the package's tests with
+`UMPIRE_BACKENDS=require`. They then check the pinned tools before any test starts and fail when a
+tool is missing or of another version, when a tool fails, and on any disagreement; no comparison
+skips. The default `go test` needs no tool and looks for none. It checks the exporters, the
+comparison and the replay against dumps written from Go's own interpretation and against tampered
+copies of them.
 
 ## What is compared
 
@@ -26,7 +29,7 @@ replay against dumps written from Go's own interpretation and against tampered c
 | `checker-coverage` | Quint | `covered`: what Quint's evaluator enumerated. `agreed`: Apalache's bounded verdict on one monitor, with its counterexample replayed through Go. `not-run`: a module Apalache did not take, with its error |
 | `monitor-agreement` | P | One monitor over every event trace of a machine within five steps: P's spec machine is first violated at the step Go's monitor is, or on neither |
 | `checker-coverage` | P | How many test cases P's checker ran and what each covered |
-| `module-refinement` | both | Always `unsupported`. No refinement is exported or claimed. A replacement inside a composition is `goir`'s verdict |
+| `module-refinement` | both | Always `unsupported`. No refinement is exported or claimed. A replacement inside a composition is the reader's verdict |
 | `query-agreement`, `progress-agreement` | Quint | Always `unsupported`. The Model's Queries and progress claims are not exported |
 
 The last run compared 29 machines and 6 compositions: 2,552 reachable states, 42,506 state and class
@@ -65,11 +68,11 @@ dump reports whether a step still leaves the set. The round count is the only nu
 module. A count that is too small shows as `closed: false` and fails the comparison.
 
 `QuintAgreement` decodes the dump by the IR's types and compares it key by key with Go's tables: a
-machine's from `goir.Build`, a composition's from `Realizer.Composition`, the reading `goir.Check`
+machine's from `umpiremodel.Build`, a composition's from `Realizer.Composition`, the reading `umpiremodel.Check`
 answers it from. A pair the dump leaves out is a difference; it is never read as disabled.
 
 Go's side of the monitor product evaluates each monitor's `next`, evaluation point and `violated`
-with `goir`'s interpreter. `goir.Check` then confirms it through ordinary admission: one verify over
+with the reader's interpreter. `umpiremodel.Check` then confirms it through ordinary admission: one verify over
 every path from each start, and one over the classes of each counterexample.
 
 `quint verify` adds a model checker's verdict where it runs. Each of the four activity checks
@@ -85,7 +88,7 @@ are compared by the evaluator's product alone.
 
 ## Compositions
 
-`goir.Realizer.Composition` gives the composed table `goir.Check` builds for a composition's claims,
+`umpiremodel.Realizer.Composition` gives the composed table `umpiremodel.Check` builds for a composition's claims,
 the state record and step record each key stands for, and the composition's Properties as the
 checker binds them. That is Go's side of the comparison.
 
@@ -100,10 +103,10 @@ builds no string, so the module spells each member's outcomes and facts out, one
 of the type, with the key Go's `Value.Key` gives it.
 
 Two of the eight compositions are not exported: `currentOverForgetful` and `currentOverVolatile`.
-Each puts a queue provider in place of `dispatchQueue` that does not refine it, so `goir` rejects the
-replacement and builds no composed table. Their receipts are `unsupported` with `goir`'s rejection
+Each puts a queue provider in place of `dispatchQueue` that does not refine it, so the reader rejects the
+replacement and builds no composed table. Their receipts are `unsupported` with the reader's rejection
 as the reason, and they declare no Property. For the three compositions whose replacement holds, the
-module holds the composed table and a `module-refinement` receipt says the replacement is `goir`'s
+module holds the composed table and a `module-refinement` receipt says the replacement is the reader's
 verdict alone.
 
 A composition past a ceiling of the scope (`OpenWithin`) has a `resource-limit` receipt and no part
@@ -131,9 +134,9 @@ A value no `match` case accepts and a call outside a function's precondition hav
 module either. They are written as an expression Quint's evaluator stops on (`QNT505`), so the run
 fails instead of producing a row.
 
-Listed as `unsupported` and left out: the two compositions `goir` builds no table of, refinements
+Listed as `unsupported` and left out: the two compositions the reader builds no table of, refinements
 (9 of machines, 3 replacements), progress claims (10) and the Queries (259, one receipt per slice).
-A Query's Scenario and Limits stay `goir`'s: Quint is given the Properties the Queries ask and the
+A Query's Scenario and Limits stay the reader's: Quint is given the Properties the Queries ask and the
 monitors that watch them. A Property of a composition about one composed class is refused; none of
 the slices declares one. Evidence lines, Definition IDs, fingerprints and realizations are outside
 both backends.
@@ -175,17 +178,19 @@ not exported to P and no P module refinement is checked.
 
 | Tool | Version | How it is installed |
 | --- | --- | --- |
-| Quint | 0.33.0 | `model/quint/quint.sh`: `npm exec --yes --package=@informalsystems/quint@0.33.0 -- quint`. The TypeScript evaluator runs the dump |
+| Quint | 0.33.0 | `tools/umpire/export/quint.sh`: `npm exec --yes --package=@informalsystems/quint@0.33.0 -- quint`. The TypeScript evaluator runs the dump |
 | Apalache | 0.62.1 | `quint verify` downloads it into `~/.quint` on first use. It runs on the repository's JDK (`mise.toml`) |
 | .NET SDK | 8.0.425 | `curl -sSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 8.0 --install-dir .build/umpire-backend-tools/dotnet` |
 | P | 3.1.0 | `dotnet tool install P --version 3.1.0 --tool-path .build/umpire-backend-tools/p` |
 
+.NET and P are installed once, by the two commands of the table, run from the repository's root.
 `UMPIRE_BACKEND_TOOLS` moves the tool directory. Nothing is added to `mise.toml` and no binary is
 checked in. `quint verify` starts an Apalache server and leaves it running; the checks use port
 38822 and stop the server on that port when they end.
 
-The Go tests read `UMPIRE_QUINT` and `UMPIRE_P` for the two executables, or find `quint` and `p` on
-the path. With `UMPIRE_BACKENDS=require`, which `run.sh` sets, a missing tool fails the test.
+The pins are in `tools_test.go`. Under `UMPIRE_BACKENDS=require` the tests take Quint from
+`quint.sh` and P from the tool directory, whatever else is on the path, and set `UMPIRE_QUINT` and
+`UMPIRE_P` to them for the tool runs.
 
 ## Layout
 
@@ -196,7 +201,8 @@ the path. With `UMPIRE_BACKENDS=require`, which `run.sh` sets, a missing tool fa
 | `composed.go` | The composition's translation and the reading of its part of a dump |
 | `itf.go` | Reading ITF values back by the IR's types |
 | `agreement.go` | The comparison of a dump with Go |
-| `checked.go` | Confirmation of monitor verdicts and counterexamples through `goir.Check` |
+| `checked.go` | Confirmation of monitor verdicts and counterexamples through `umpiremodel.Check` |
 | `verify.go` | The Apalache run and its verdict's comparison |
 | `p.go` | The IR to P translation, the traces, and the comparison of P's reports |
-| `tool.go`, `run.sh` | Finding and running the tools |
+| `tool.go` | Running the tools |
+| `tools_test.go`, `quint.sh` | The opt-in, the pinned tools and the Quint launcher |

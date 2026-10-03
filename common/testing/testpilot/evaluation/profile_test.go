@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// localEphemeralIdentity is the identity Temporal/Evaluation/LocalTests.lean pins; the Makefile's
-// byte gate keeps the embedded file equal to Lean's rendering, and this keeps the Go reading of it
-// equal to Lean's identity.
+// localEphemeralIdentity is the identity the embedded Profile was rendered under. No live target
+// renders the file any more, so this pin is what keeps the Go reading of the checked-in bytes equal
+// to that identity.
 const localEphemeralIdentity = "sha256:2803afa29ed404cf0a774ead9c0672de29a6d38f27fe54fd42014f0b2f78174c"
 
 func readTestProfile(t *testing.T, name string) []byte {

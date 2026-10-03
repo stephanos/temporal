@@ -11,7 +11,7 @@ import (
 // every pinned Run stale. Only a task that changes the wire (the WorkflowService or the Testpilot
 // protocol closure) may change this literal, and it re-records the pinned Runs with
 // `make umpire-rerecord-pinned-runs` in the same commit. The literal equals the catalog the pinned
-// control Run in tools/umpire/replay/testdata was recorded under.
+// control Run in common/testing/testpilot/replay/testdata was recorded under.
 func TestWorkflowServiceCatalogIdentityGolden(t *testing.T) {
 	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)

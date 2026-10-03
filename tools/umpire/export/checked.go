@@ -18,8 +18,8 @@ const (
 	replayQuery = "backends.witness"
 )
 
-// confirm holds a backend's monitor verdicts to goir's own checker, through ordinary admission and
-// evaluation: `goir.Check` of the Model with, for each machine a monitor agreement is about, a
+// confirm holds a backend's monitor verdicts to the reader's own checker, through ordinary admission and
+// evaluation: `umpiremodel.Check` of the Model with, for each machine a monitor agreement is about, a
 // verify of a Property that holds of every step over every path from each start, and one over the
 // classes of each of the backend's counterexamples. A monitor violated where it is read is the only
 // way such a Query fails.
@@ -113,7 +113,7 @@ func classOf(c umpiremodel.Class) *umpirespb.ActionClass {
 	return class
 }
 
-// confirmed is a monitor agreement with goir's checker's answers folded in.
+// confirmed is a monitor agreement with the reader's checker's answers folded in.
 func confirmed(r Receipt, starts int, answers map[string]umpiremodel.Receipt) Receipt {
 	for _, w := range r.Witnesses {
 		a := answers[fmt.Sprintf("%s.%s.%s", replayQuery, r.Subject, w.Monitor)]

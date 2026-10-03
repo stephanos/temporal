@@ -664,7 +664,7 @@ func (in *Interpreter) evidence(decl *umpirespb.Machine, facts []Value, unread *
 }
 
 // refinement checks the declared refinement under the rule `Umpire.Command.deriveRefinement`
-// applies, as model/go's `Refinement` does: every outcome reads as a product outcome of the same name,
+// applies, as the checker's `Refinement` does: every outcome reads as a product outcome of the same name,
 // every start as a product start, and every row result is carried by a product row from the mapped
 // source that reaches the mapped target with the same outcome and whose facts all appear among the
 // result's facts, preferring the product action of the row's own name, or else the mapped states are

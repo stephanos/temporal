@@ -63,7 +63,7 @@ func counterexampleOf(t *testing.T, s *Slice, c *QuintCheck, trace *umpiremodel.
 }
 
 // What the model checker reports is held to Go with no tool installed: its verdict against Go's
-// product, and its counterexample against a fresh interpretation and goir's checker.
+// product, and its counterexample against a fresh interpretation and the reader's checker.
 func TestVerifiedVerdictsAreHeldToGo(t *testing.T) {
 	s := openNamed(t, "activity-system")
 	stale, current := checkOf(t, s, "staleAdmission"), checkOf(t, s, "currentAdmission")

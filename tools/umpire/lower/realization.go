@@ -1,6 +1,6 @@
 package lower
 
-// A realization of the IR as the caseproducer.Realization a producer consumes. The translation is
+// A realization of the IR as the producer.Realization a producer consumes. The translation is
 // one declaration to one part, in the order the IR lists them: nothing here chooses what a Case
 // does. What a Query's path selects among these parts is the producer's rule, the same for every
 // realization.

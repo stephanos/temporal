@@ -1,5 +1,5 @@
-/* The Nexus caller-side realization, ported from model/lean/Temporal/Case/Realization/Nexus.lean and
- * model/go/nexuscaller/realization.go.
+/* The Nexus caller-side realization: what a Case does to a deployment to take the path a Query
+ * found.
  *
  * A controller-started workflow schedules one Nexus operation on the Case's endpoint role; the
  * handler answers it, and the controller completes it when the handler answered asynchronously; the
@@ -9,7 +9,7 @@
  * them.
  *
  * Everything below is a declaration the lifter emits into the IR; Go lowers a Query's witness
- * through it into a Testpilot Case (model/scalav2/goir/testpilot).
+ * through it into a Testpilot Case (tools/umpire/lower).
  */
 package temporal
 package nexuscaller
@@ -23,7 +23,7 @@ import umpire.realize.ProtoValue.*
 import Timeout.{expires, unset}
 
 object NexusRealization:
-  // Roles and methods every realization shares (model/lean/Temporal/Case/Support.lean).
+  // Roles and methods every realization shares.
   private val workflowServiceRole = "temporal.workflow-service"
   private val workerRole = "temporal.worker"
   private val taskQueueRole = "temporal.task-queue"

@@ -2,7 +2,7 @@ package model
 
 // The Nexus caller close and reset designs, lifted from scala/temporal/nexuscaller/closepolicy into
 // ir/nexus-close.json and checked here through Check alone. What each test expects is the trace oracle
-// of model/scalav2/specimens/nexus.md it names, in the keys of the lifted Model. A state key spells
+// of model/specimens/nexus.md it names, in the keys of the lifted Model. A state key spells
 // caller, cancel intent, handler, channel, retained, known: the specimen's six fields, with the cancel
 // intent carrying its principal and the handler its receipt of the cancel request.
 //
@@ -11,7 +11,7 @@ package model
 // baseline also has, and lists which claims are which.
 //
 // No expectation here is an explored-state count: the specimen's counts are those of its sketch, which
-// lifter/testdata/lifts/CloseReset.scala.fixture is and checking_test.go pins.
+// lifter/testdata/lifts/CloseReset.scala is and checking_test.go pins.
 
 import (
 	"cmp"

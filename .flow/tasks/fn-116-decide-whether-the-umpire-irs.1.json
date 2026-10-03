@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-02T22:17:58.465613Z",
+  "depends_on": [],
+  "id": "fn-116-decide-whether-the-umpire-irs.1",
+  "priority": null,
+  "spec": "fn-116-decide-whether-the-umpire-irs",
+  "spec_path": ".flow/tasks/fn-116-decide-whether-the-umpire-irs.1.md",
+  "status": "todo",
+  "title": "Prototype CEL expressions against both Models and write the report",
+  "updated_at": "2026-10-02T22:17:58.465613Z"
+}

@@ -7,7 +7,7 @@ package umpire
  * that owe different obligations stay apart. Declared once over the state type, it watches every
  * machine that names it under `monitors`.
  *
- * The IR interpreter checks it (model/scalav2/SEMANTICS.md, Monitors). This framework's search
+ * The IR interpreter checks it (model/SEMANTICS.md, Monitors). This framework's search
  * evaluates no monitor, so it refuses a Query that reads a machine one watches, directly, through a
  * refinement or as a member of a composition; the machine's table stays, as a monitor disables no
  * row.

@@ -11,7 +11,7 @@ import (
 )
 
 // Canonical encodings and Behavior Fingerprints, byte-compatible with the Lean ones in
-// model/lean/Umpire/Model/Canonical.lean, Scenario/Check.lean, Property/Check.lean and Query/Check.lean.
+// model0/lean/Umpire/Model/Canonical.lean, Scenario/Check.lean, Property/Check.lean and Query/Check.lean.
 // A fingerprint is "sha256:" and the hex SHA-256 of a domain line and the canonical content
 // (`Umpire.Fingerprint.derive`).
 

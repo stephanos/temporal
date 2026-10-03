@@ -217,7 +217,7 @@ func (p *Producer) Lower(query string, identity Identity) (*Lowering, error) {
 // lists them: the ones in a Query's way, and the ones off its path. A kind of evidence and a control
 // are the realization's, and stand in the way of every Query of it. An authored monitor of the
 // machine is no gap: a Case's Contract carries none, and the prepared assessment reads each beside
-// the Contract (goir/conformance). The record of an attempt stands in the way of the Queries whose Case runs two
+// the Contract (tools/umpire/conformance). The record of an attempt stands in the way of the Queries whose Case runs two
 // activities: the Run's record names neither. A command stands in the way of the Queries whose Case would carry it,
 // which takes says, and is off the path of the others.
 func (p *Producer) gaps(r *umpirespb.Realization, takes func(*umpirespb.Item, *umpirespb.Performance) bool) (out, off []Unsupported) {

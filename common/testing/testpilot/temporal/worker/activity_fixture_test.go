@@ -20,7 +20,7 @@ import (
 	"google.golang.org/protobuf/types/dynamicpb"
 )
 
-// activityEntrypoint is the entrypoint an activity realization lowers to (model/scalav2/goir/testpilot):
+// activityEntrypoint is the entrypoint an activity realization lowers to (tools/umpire/lower):
 // an activity activation and the one Finish its attempt performs.
 func activityEntrypoint(result *testpilotspb.Expression) *testpilotspb.Entrypoint {
 	return &testpilotspb.Entrypoint{

@@ -1,8 +1,8 @@
 # Semantics of the Umpire IR
 
 The IR's meaning is defined here, not by the lifter that writes it or the Go interpreter that reads
-it. `proto/internal/temporal/server/api/umpire/v1/ir.proto` is the schema; `goir/` is one evaluator of these rules, and the parity
-tests check it against the Lean Model.
+it. `proto/internal/temporal/server/api/umpire/v1/ir.proto` is the schema; `tools/umpire/model` is one evaluator of these
+rules, and its goldens hold what it derives.
 
 ## Versions
 
@@ -95,8 +95,8 @@ A machine's table is derived from its declaration:
 4. Its starts are its start expressions' values, and its ends the states its `ends` function accepts.
 5. Its evidence is, for each fact in catalog order whose case has no line yet, the case name and
    `E(call(evidence, fact))`.
-6. A refining machine's refinement is checked under `Umpire.Command.deriveRefinement`'s rule, as
-   model/go applies it: every outcome is a product outcome of the same name, every start maps to a
+6. A refining machine's refinement is checked under this rule:
+   every outcome is a product outcome of the same name, every start maps to a
    product start, and every row result is carried by a product row from the mapped source to the
    mapped target with the same outcome whose facts are among the result's (preferring the product
    action of the row's own name), or else its source and target map to one product state and it is
@@ -110,8 +110,8 @@ A machine's table is derived from its declaration:
 7. Its monitors ([Monitors](#monitors)) and its assumptions ([Assumptions](#assumptions)) are the
    ones it names. A machine derived by restriction keeps its source's.
 
-Reachability, stuck states, Definition IDs and the Behavior Fingerprint are then those of model/go's
-`umpire.Table` over the derived keys.
+Reachability, stuck states, Definition IDs and the Behavior Fingerprint are then those of the
+reader's table (`tools/umpire/model`, `Table`) over the derived keys.
 
 ## Channels
 
@@ -222,8 +222,7 @@ state of a suffix without taking it there.
 
 ## Compositions
 
-A composition is one Model from machines of different entities, as model/go and model/scala compose
-them: its state type is a record with one field per member; a member's own action class is keyed
+A composition is one Model from machines of different entities: its state type is a record with one field per member; a member's own action class is keyed
 `<field>_<class>` and steps its member alone; a sync pairs two members' actions into one step keyed by
 the sync's name followed by each class's inputs, whose results are the product of the members'
 results, with the first member's outcome and both members' facts, each keyed `<field>_<key>`; a
@@ -263,8 +262,8 @@ composed class keys for a composition, or `free`, any action at every step.
 
 A Query asks whether its Property holds on every trace of its Scenario (`verify`) or finds one trace
 on which it holds (`find`), within its Limits: `steps` bounds the depth, `actions` the length of a
-pinned schedule, and `search` the product states the search may visit. It is answered as model/go's
-`umpire` search answers it, whose Limit Reached proves nothing. A Query with `through` reads a
+pinned schedule, and `search` the product states the search may visit. It is answered as the
+reader's search answers it, whose Limit Reached proves nothing. A Query with `through` reads a
 Property of the machine the Scenario's machine refines through that refinement: a state by its map,
 an outcome and facts by name. Two Properties, Scenarios or Queries under one key would share a
 Definition ID.
@@ -392,7 +391,7 @@ condition over the event's payload and reads nothing else: it writes out flags, 
 enum values, and no name a Case binds, since a recorded Run holds no such binding. Its paths name
 fields and oneof members, each one flag, text, enum value, signed integer or message. Its key is the
 run's id or one text or integer of the payload. What a well-formed guard is has one reading
-(`goir.GuardProblem`, over `goir.TypeOf`), which admission makes with no descriptor, the lowering
+(`GuardProblem`, over `TypeOf`, in `tools/umpire/model`), which admission makes with no descriptor, the lowering
 with the payload's, and the evaluation on a recorded Run with the payload's again, so a guard one of
 them refuses is refused by all, in the same words, by the first that can know. A guard that cannot be evaluated on an event, because it reads a field the
 payload's type does not have, compares or orders a value that is absent, or is no condition, is an
@@ -537,21 +536,21 @@ A reader rejects, before any check and at the position the IR gives, a Model tha
 The lifter refuses the ones it can see at the Scala line that declares them; a Model written some
 other way meets the same rules at its reader.
 
-## What goir implements
+## What the reader implements
 
-The rules for the [fn-107 specimens](specimens/README.md)' constructs are above: channels and the
+The rules for the [specimens](specimens/README.md)' constructs are above: channels and the
 redeliveries derived from them, monitors, assumptions, holes, scoped replacement in a composition, the
 visible projection of a refinement, Claims and progress. An internal action (`internal`) is a step of
-the system that is not a timer. `goir/` implements all of them: `Build` interprets Values through
+the system that is not a timer. `tools/umpire/model` implements all of them: `Build` interprets Values through
 Machines, Channels and Holes, `Validate` applies the [Admission](#admission) rules, and `Check` binds
-monitors, assumptions, compositions, Claims and progress claims to model/go's `umpire` checker and
+monitors, assumptions, compositions, Claims and progress claims to its private checker and
 gives each declaration one of the [Results](#results). What `Check` does not answer it reports as
 `unsupported`: a Query over a composition a member of which names monitors, a `find` with `through`,
 and a transition Property with a `when`.
 
-`goir/testpilot` lowers a find Query through its [realization](#realizations) into a Testpilot Case
-with model/go's `caseproducer.Produce`. The Query it gives the producer is the one `Check` answers,
-from the same binding (`goir.Realizer`): one Property read on one step record, its explanation
+`tools/umpire/lower` lowers a find Query through its [realization](#realizations) into a Testpilot Case
+with its private producer. The Query it gives the producer is the one `Check` answers,
+from the same binding (the reader's `Realizer`): one Property read on one step record, its explanation
 included, over the machine's table with its hole rows as unknown pairs. That table also carries the
 state fields and Abstraction Claims. The realization is translated declaration for declaration. It checks what a realization writes and reads against the protobuf
 descriptors it names, at the declaration: a message, field, enum value or method the descriptors do not have, a
@@ -617,7 +616,7 @@ against the declaration, both ways: where it is recorded, the guard and the inst
 own record, the fields it keeps, the steps it confirms, and the closing read of an exhaustive kind,
 which every Case carries. A Case is over one operation.
 
-`goir/conformance` assesses a Run against the Model through the Query `goir.Realizer` binds, and
+`tools/umpire/conformance` assesses a Run against the Model through the Query the reader's `Realizer` binds, and
 reads the Run's evidence as [Realizations](#realizations) says. Beside the fields a realization
 gives a role, it reads the activity attempt a Run Event records with the evidence it carries, the
 Run protocol's typed data, as that evidence's attempt and delivery: where a field and the event name
@@ -633,8 +632,8 @@ the steps it names: a piece of evidence may be explained by any step that record
 keeps more executions than the Contract's reading of the same piece and rules out none that
 happened.
 
-The Scala framework's own composition starts from each member's first start only. `goir` composes
-every start, as model/go does and as [Compositions](#compositions) says; bringing the front end in line
+The Scala framework's own composition starts from each member's first start only. The reader composes
+every start, as [Compositions](#compositions) says; bringing the front end in line
 is future work.
 
 Two narrowings came from the specimens' evidence in `specimens/README.md`:
@@ -675,8 +674,8 @@ lexicographic tuple name. This exhaustively enumerates the declared finite domai
 parameter values, runtime schedules, or undeclared scenarios. Lowering refusals remain explicit
 candidate rejections and are never counted as covered executions.
 
-A candidate is a cloned IR model with the authored Scenario edits, rechecked by `goir` and lowered
-through `goir/testpilot`. A deterministic protobuf digest identifies that edited model; the Case
+A candidate is a cloned IR model with the authored Scenario edits, rechecked by the reader and lowered
+through `tools/umpire/lower`. A deterministic protobuf digest identifies that edited model; the Case
 identity covers its exact canonical bytes. JSON protocol and proposal envelopes preserve those
 bytes, including literal protobuf field-path angle brackets. The Run budget limits actual candidate
 attempts. Runtime coverage reports selected, covered, violated, attempted, unrealizable and pending

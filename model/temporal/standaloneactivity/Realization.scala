@@ -10,7 +10,7 @@
  * until the controller releases it, or over.
  *
  * Nothing here builds a Case: the lifter emits the declarations into the IR and Go lowers a Query's
- * witness through them (model/scalav2/goir/testpilot).
+ * witness through them (tools/umpire/lower).
  */
 package temporal
 package standaloneactivity

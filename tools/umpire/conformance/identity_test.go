@@ -14,7 +14,7 @@ import (
 
 // The identities evidence names: the fields a realization gives a role, the attempt a Run Event
 // records as typed data, and an exhaustive source with its closing read. Every expectation is worked
-// out from the activity specimen's two designs (model/scalav2/specimens/activity.md, and the lifter's
+// out from the activity specimen's two designs (model/specimens/activity.md, and the lifter's
 // admission fixture, which is its supported sketch), in the comment beside it.
 
 // identityFields is what the admission evidence keeps: the attempt and the delivery the fact belongs

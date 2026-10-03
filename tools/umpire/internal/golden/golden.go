@@ -32,6 +32,9 @@ type Config struct {
 	Inventory []string       `json:"ir_inventory"`
 	Paths     []Substitution `json:"source_path_substitutions"`
 	Labels    []Substitution `json:"source_label_substitutions"`
+	// Renames are the source files renamed after the mapped goldens were captured, from the path
+	// Paths maps them to. The mapped goldens keep that path; the current IR has the renamed one.
+	Renames []Substitution `json:"source_path_renames"`
 }
 
 func Configuration() (Config, error) {
@@ -124,6 +127,27 @@ func (c Config) Migrate(original *umpirespb.Model) (*umpirespb.Model, error) {
 	return m, err
 }
 
+// Rename applies Renames to a Model Migrate mapped. A path no rename names is kept as it is.
+func (c Config) Rename(mapped *umpirespb.Model) (*umpirespb.Model, error) {
+	for _, r := range c.Renames {
+		if !slices.ContainsFunc(c.Paths, func(p Substitution) bool { return p.New == r.Old }) {
+			return nil, fmt.Errorf("rename of %q, which no source path substitution produces", r.Old)
+		}
+	}
+	m := proto.CloneOf(mapped)
+	err := positions(m.ProtoReflect(), func(p protoreflect.Message) error {
+		field := p.Descriptor().Fields().ByName("file")
+		for _, r := range c.Renames {
+			if p.Get(field).String() == r.Old {
+				p.Set(field, protoreflect.ValueOfString(r.New))
+				break
+			}
+		}
+		return nil
+	})
+	return m, err
+}
+
 func substitute(value string, substitutions []Substitution) (string, error) {
 	for _, s := range substitutions {
 		if value == s.Old {
@@ -166,6 +190,9 @@ func (c Config) Match(original, current *umpirespb.Model) (bool, error) {
 	}
 	mapped, err := c.Migrate(original)
 	if err != nil {
+		return false, err
+	}
+	if mapped, err = c.Rename(mapped); err != nil {
 		return false, err
 	}
 	if !proto.Equal(mapped, current) {

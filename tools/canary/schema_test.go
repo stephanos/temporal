@@ -67,7 +67,7 @@ func canaryDocuments(t *testing.T) []canaryDocument {
 // production-canary Profile, as the controller renders one.
 func renderedReceipt(t *testing.T) []byte {
 	t.Helper()
-	encoded, err := os.ReadFile(filepath.Join(repositoryRoot(t), "tools", "canary", "assessment", "testdata", "nexusCallerCanary-syncCompletion-run.json"))
+	encoded, err := os.ReadFile(filepath.Join(repositoryRoot(t), "tools", "canary", "assessment", "testdata", "nexus-caller-syncCompletion-run.json"))
 	require.NoError(t, err)
 	decoded, err := recordedrun.Decode(encoded)
 	require.NoError(t, err)

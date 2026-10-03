@@ -63,7 +63,7 @@ func (x *QuintExport) classITF(i int, c umpiremodel.Class) any {
 	return map[string]any{"tag": fmt.Sprintf("K%d_%d", i, j), "value": value}
 }
 
-// dumpOfComposition is composition j's part of a dump as goir's composed table gives it.
+// dumpOfComposition is composition j's part of a dump as the reader's composed table gives it.
 func (s *Slice) dumpOfComposition(x *QuintExport, j int) (map[string]any, error) {
 	c, err := s.bound.Composition(x.Compositions[j])
 	if err != nil {

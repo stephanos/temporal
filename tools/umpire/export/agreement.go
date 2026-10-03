@@ -99,7 +99,7 @@ func (s *Slice) machineReceipts(x *QuintExport, i int, out map[string]any, repla
 	return append(receipts, coverage(name, theirs)), nil
 }
 
-// compositionReceipts compares composition j's part of a dump with the composed table goir's checker
+// compositionReceipts compares composition j's part of a dump with the composed table the reader's checker
 // builds, and with its Properties as the checker binds them.
 func (s *Slice) compositionReceipts(x *QuintExport, j int, out map[string]any) ([]Receipt, error) {
 	name := x.Compositions[j]

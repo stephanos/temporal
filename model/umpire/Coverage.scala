@@ -7,8 +7,8 @@ enum CoverageGoal:
   case rows, results, classMembers
 
 /**
- * One thing an exploration is asked to reach, in the JSON form the Lean golden pins
- * (`Umpire.Command.CoverageTarget.json`). Empty fields are left out of the JSON.
+ * One thing an exploration is asked to reach, with its JSON form.
+ * Empty fields are left out of the JSON.
  */
 final case class CoverageTarget(
     kind: String,
@@ -25,7 +25,7 @@ final case class CoverageTarget(
 
 object Coverage:
   /**
-   * An exploratory set's targets, as `Umpire.Command.coverageTargets` enumerates them: the rows an
+   * An exploratory set's targets: the rows an
    * exploration within the budget's steps can take, in table order; the outcomes those rows reach,
    * in catalog order; and the claims of the classes those rows' actions make, in claim order; per
    * goal in the order given; cut at the budget's search count.
@@ -75,7 +75,7 @@ object Coverage:
 
   /**
    * The states reached within `depth` sweeps of the rows from the starts. Each sweep folds over the
-   * rows in table order and may take a row whose source the same sweep added, as Lean's `within`.
+   * rows in table order and may take a row whose source the same sweep added.
    */
   def within(rows: Vector[Row], starts: Vector[String], depth: Int): Vector[String] =
     val seen = mutable.ArrayBuffer.from(starts)

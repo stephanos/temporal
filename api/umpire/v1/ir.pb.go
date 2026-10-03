@@ -1,8 +1,8 @@
 // The Umpire model IR: a semantic transition system, independent of the language a Model is authored
-// in. A front end (model/scalav2/lifter lifts Scala) emits it; the Go loader in model/scalav2/goir
+// in. A front end (model/lifter lifts Scala) emits it; the Go reader in tools/umpire/model
 // validates it, interprets it, and derives every table, identity and fingerprint from it. Like the
 // Testpilot protocol, it is an internal wire with no compatibility promise. The
-// evaluation rules are written in model/scalav2/SEMANTICS.md; neither front end nor interpreter
+// evaluation rules are written in model/SEMANTICS.md; neither front end nor interpreter
 // defines them.
 //
 // The IR carries declarations, never derived tables: steps are pure functions over values, and the
@@ -978,7 +978,7 @@ type Model struct {
 	Functions []*Function `protobuf:"bytes,3,rep,name=functions,proto3" json:"functions,omitempty"`
 	Actions   []*Action   `protobuf:"bytes,4,rep,name=actions,proto3" json:"actions,omitempty"`
 	Machines  []*Machine  `protobuf:"bytes,5,rep,name=machines,proto3" json:"machines,omitempty"`
-	// The IR's major version. model/scalav2/SEMANTICS.md defines version 0, which every Model written
+	// The IR's major version. model/SEMANTICS.md defines version 0, which every Model written
 	// before this field was is in; a reader rejects a version it does not know.
 	Version       uint32         `protobuf:"varint,6,opt,name=version,proto3" json:"version,omitempty"`
 	Channels      []*Channel     `protobuf:"bytes,7,rep,name=channels,proto3" json:"channels,omitempty"`
@@ -2601,7 +2601,7 @@ func (x *If) GetElse() *Expr {
 
 // The first case whose pattern matches the scrutinee, and whose guard holds, gives the value. A
 // value no case matches is a hole in the Model, which the interpreter reports.
-// That hole is an undeclared one (model/scalav2/SEMANTICS.md, Holes), neither a declared hole nor an
+// That hole is an undeclared one (model/SEMANTICS.md, Holes), neither a declared hole nor an
 // admission error.
 type Match struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -5687,7 +5687,7 @@ func (x *Progress) GetAssumptions() []string {
 // A realization: how the find Queries of one machine run against a system. It declares the roles a
 // run addresses, the values a run learns, what it observes and reads as evidence, the controls it
 // needs, and the scripts its controller and its workers follow. It carries no Case: a reader lowers
-// one Query's witness through it (model/scalav2/SEMANTICS.md, Realizations).
+// one Query's witness through it (model/SEMANTICS.md, Realizations).
 type Realization struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The key the IR names it by: the front end's qualified name.

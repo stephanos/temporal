@@ -4,15 +4,15 @@ import scala.annotation.tailrec
 import scala.collection.mutable
 
 /**
- * The root a model's Definition IDs hang off, such as `temporal.nexus.caller`. Lean derives it from
- * the namespace below `Temporal.Feature`; Scala packages name it explicitly.
+ * The root a model's Definition IDs hang off, such as `temporal.nexus.caller`. A Model names it
+ * explicitly; it is not derived from the Scala package.
  */
 final case class Family(root: String):
-  /** `<family>.<kind>.<owner>.<member>`, the shape `Umpire.Command.Origin.ownedId` builds. */
+  /** `<family>.<kind>.<owner>.<member>`, the shape of every Definition ID. */
   def id(kind: String, owner: String, member: String): String = s"$root.$kind.$owner.$member"
   override def toString: String = root
 
-/** A value on a trace with the Definition ID it belongs to, as Lean's `ModelValue`. */
+/** A value on a trace with the Definition ID it belongs to. */
 final case class Atom(id: String, value: String)
 
 /**
@@ -38,7 +38,7 @@ final private[umpire] case class ClaimEntry(
 )
 
 /**
- * A machine's finite table in Lean's catalog and row order. States, actions, outcomes and facts are
+ * A machine's finite table in catalog and row order. States, actions, outcomes and facts are
  * keys; the typed values they stand for are kept for Properties and compositions.
  */
 final class Table private[umpire] (
@@ -67,7 +67,7 @@ final class Table private[umpire] (
   def classOf(action: String): Option[Class] = classes.get(action)
 
   /**
-   * `Umpire.Command.reachableFrom`: sweep the rows in table order, appending each newly reached
+   * The reachable states: sweep the rows in table order, appending each newly reached
    * result state, until a sweep adds nothing.
    */
   lazy val reachable: Vector[String] =

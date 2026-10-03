@@ -4,7 +4,7 @@
  *
  * These are declarations and nothing else. No code here builds a Case: the lifter emits a
  * declaration into the IR as written, each class by its simple name and each parameter by its own,
- * and Go lowers one Query's witness through it (model/scalav2/SEMANTICS.md, Realizations). A default
+ * and Go lowers one Query's witness through it (model/SEMANTICS.md, Realizations). A default
  * is therefore always the empty value, which the IR leaves unset.
  */
 package umpire.realize

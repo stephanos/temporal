@@ -1,5 +1,8 @@
 # Specimen: Nexus caller close and reset
 
+This is a dated record. [README.md](README.md) says how the paths and names cited here map to
+today's layout.
+
 This specimen asks whether authored promises and assumptions expose a reviewed design flaw before
 the feature ships. The flaw involves three things:
 

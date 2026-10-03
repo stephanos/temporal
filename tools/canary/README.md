@@ -2,7 +2,7 @@
 
 `tools/canary` runs one fixed, bounded, no-fault Case against a dedicated canary namespace in
 production and assesses each Run with Umpire's Claim Assessment. The Case is the Caller Model's
-`nexusCallerCanary.syncCompletion`, pinned in `casebinding/testdata/`. Each invocation makes at
+`syncCompletion` Query as lowered, pinned in `casebinding/testdata/`. Each invocation makes at
 most two serial Runs under one lease. Each Run that reaches a decision produces an fn-26 receipt
 and a canary provenance document beside it.
 
@@ -97,9 +97,14 @@ policy.
 
 ## Invoking the canary
 
-Dispatch `.github/workflows/umpire-production-canary.yml` (**Umpire production canary**) on `main`
-from the Actions tab, or with `gh workflow run umpire-production-canary.yml --ref main`. An
-environment reviewer then approves the deployment. The workflow:
+**The canary cannot be dispatched at present.** The policy's `workflowPath` names
+`.github/workflows/umpire-production-canary.yml` as the one workflow with production authority, and
+that file is not in the repository. Preflight's `workflow-context` check accepts no other workflow,
+so every invocation is refused until the workflow file is restored or the policy names another one
+in a reviewed pull request. This section describes the workflow the policy expects.
+
+An operator dispatches that workflow (**Umpire production canary**) on `main` from the Actions tab.
+An environment reviewer then approves the deployment. The workflow:
 
 - runs on `workflow_dispatch` only, with `contents: read` and no other permission;
 - runs in one concurrency group, `umpire-production-canary`, which never cancels a job in progress,
@@ -308,6 +313,6 @@ The `canary_harness` build tag compiles a separate harness binary with a test po
 `tests/testpilot_canary_test.go` and `tests/testpilot_canary_lifecycle_test.go`
 (`TestTestpilotCanary*`) run it against the test cluster.
 `build_test.go` pins that the untagged build has no override path, so a harness receipt is never a
-production receipt. `make umpire-check-regression` and the `canary` job in
-`.github/workflows/umpire.yml` run the canary's tests. `make canary-gen-case` and
+production receipt. The `canary` job in `.github/workflows/umpire.yml` runs the canary's unit
+tests and the harness build's tests. `make canary-gen-case` and
 `make canary-check-case` regenerate and check the pinned Case.

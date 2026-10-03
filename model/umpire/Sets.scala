@@ -12,7 +12,7 @@ enum Binding:
   case driven, observed
 
 /**
- * A named group of Queries by purpose, binding every party but system: the Lean `set` command. An
+ * A named group of Queries by purpose, binding every party but system. An
  * exploratory set names the machine it covers, its goals and its budget instead of Queries.
  */
 final case class UmpireSet(
@@ -38,7 +38,7 @@ final case class UmpireSet(
 type Declaration = UmpireSet | Query | Model
 
 /**
- * Every semantic check the Lean elaborator runs over these declarations, returning every failure
+ * Every semantic check over these declarations, returning every failure
  * with its declaration named: machine tables (domain membership, stuck states, Property and
  * Scenario names declared once), refinements, compositions, Query answers and set rules. Evidence
  * for every recorded fact needs no check here: `evidence` is a total function, so the compiler

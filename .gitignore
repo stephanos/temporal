@@ -9,26 +9,6 @@
 .DS_Store
 .coverage
 .testoutput
-testdata/
-!/model0/lean/Temporal/Feature/Nexus/Experimental/testdata/
-!/tools/umpire/testdata/
-!/tools/umpire/testdata/**
-!/tools/umpire/**/testdata/
-!/tools/umpire/**/testdata/**
-!/tools/canary/**/testdata/
-!/tools/canary/**/testdata/**
-!/common/testing/testpilot/testdata/
-!/common/testing/testpilot/testdata/**
-!/common/testing/testpilot/evaluation/testdata/
-!/common/testing/testpilot/evaluation/testdata/**
-!/common/testing/testpilot/replay/testdata/
-!/common/testing/testpilot/replay/testdata/**
-!/tests/testcore/testpilot/testdata/
-!/tests/testcore/testpilot/testdata/**
-!/cmd/tools/genleanmodeldescriptors/testdata/
-!/cmd/tools/genleanmodeldescriptors/testdata/**
-!/cmd/tools/genleandynamicconfig/testdata/
-!/cmd/tools/genleandynamicconfig/testdata/**
 
 *.out
 *.test
@@ -57,7 +37,6 @@ testdata/
 
 # Lake build output for the offline Lean model
 /model0/lean/.lake/
-/tools/common/formal/.lake/
 
 # direnv
 .envrc
@@ -78,21 +57,3 @@ testdata/
 
 # Locally built tool binaries
 /.build/
-
-# Temp helper the Lean dynamic-config catalog generator writes beside its own source and deletes
-# (os.CreateTemp, so the name carries a random suffix); a run that overlaps a commit must not add it.
-tools/umpire/cmd/*/zz_*_helper_*.go
-
-!tools/umpire/model/testdata/
-!tools/umpire/model/testdata/migration/
-!tools/umpire/model/testdata/migration/**
-!tools/umpire/lower/testdata/
-!tools/umpire/lower/testdata/migration/
-!tools/umpire/lower/testdata/migration/**
-
-!/tools/umpire0/**/testdata/
-!/tools/umpire0/**/testdata/**
-!/model0/**/testdata/
-!/model0/**/testdata/**
-!/model/lifter/testdata/
-!/model/lifter/testdata/**

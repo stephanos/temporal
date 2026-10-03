@@ -1,6 +1,6 @@
 package model
 
-// What a reader rejects before any check (model/scalav2/SEMANTICS.md, Admission), each case one
+// What a reader rejects before any check (model/SEMANTICS.md, Admission), each case one
 // mutation of a source-derived Model, reported at the position the lifter recorded for the
 // declaration or node concerned.
 
@@ -15,10 +15,10 @@ import (
 
 const (
 	admLifts        = "model/lifter/testdata/lifts/"
-	admChannelsAt   = admLifts + "Channels.scala.fixture:"
-	admDeclaredAt   = admLifts + "Declarations.scala.fixture:"
-	admPresenceAt   = admLifts + "Presence.scala.fixture:"
-	admAdmissionAt  = admLifts + "Admission.scala.fixture:"
+	admChannelsAt   = admLifts + "Channels.scala:"
+	admDeclaredAt   = admLifts + "Declarations.scala:"
+	admPresenceAt   = admLifts + "Presence.scala:"
+	admAdmissionAt  = admLifts + "Admission.scala:"
 	admChannelsPkg  = "fixture.channels.Channels$package$."
 	admDeclaredPkg  = "fixture.declarations.Declarations$package$."
 	admAdmissionPkg = "fixture.specimens.admission.Admission$package$."

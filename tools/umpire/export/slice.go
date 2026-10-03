@@ -5,7 +5,7 @@
 // traces. What a backend is not given, and what it could not be run on, is listed as such and is never
 // an agreement.
 //
-// The Go side is model/scalav2/goir, through its public API alone.
+// The Go side is tools/umpire/model, through its public API alone.
 package export
 
 import (
@@ -137,13 +137,13 @@ type Slice struct {
 	Model    *umpirespb.Model
 	machines map[string]*umpiremodel.Machine
 	in       *umpiremodel.Interpreter
-	// bound reads the Model's compositions as goir's checker builds them.
+	// bound reads the Model's compositions as the reader's checker builds them.
 	bound   *umpiremodel.Realizer
 	types   map[string]*umpirespb.Type
 	actions map[string]*umpirespb.Action
 }
 
-// Open admits a Model and interprets its machines, within goir's default scope.
+// Open admits a Model and interprets its machines, within the reader's default scope.
 func Open(m *umpirespb.Model) (*Slice, error) { return OpenWithin(m, umpiremodel.DefaultScope) }
 
 // OpenWithin is Open within a scope, whose ceilings bound the Model's compositions.
@@ -274,7 +274,7 @@ func (s *Slice) view(mm *umpiremodel.Machine) (*machineView, error) {
 	return v, s.claims(mm, v)
 }
 
-// composedView is Go's reading of a composition: the table goir's checker builds for it, and what
+// composedView is Go's reading of a composition: the table the reader's checker builds for it, and what
 // each of its Properties, as the checker binds them, says of every step. The table holds the states
 // the members' starts reach and no others.
 func composedView(c *umpiremodel.Composed) (*machineView, error) {
@@ -310,7 +310,7 @@ func composedView(c *umpiremodel.Composed) (*machineView, error) {
 	return v, nil
 }
 
-// composedReads reads a composition's Properties on one step, as goir's checker binds them. A
+// composedReads reads a composition's Properties on one step, as the reader's checker binds them. A
 // Property that is not about the step holds of it, and its function is not called there.
 func composedReads(properties []umpiremodel.BoundProperty, state, class string, step umpiremodel.Result) ([]claimRead, error) {
 	reads := make([]claimRead, len(properties))
@@ -356,7 +356,7 @@ func (s *Slice) about(p *umpirespb.Property, class umpiremodel.Class) bool {
 	}
 }
 
-// claims reads every Property of a machine on every step from every reachable state, with goir's
+// claims reads every Property of a machine on every step from every reachable state, with the reader's
 // interpreter: a same-step Property of the step record, a transition Property of the state before
 // the step and the step record.
 func (s *Slice) claims(mm *umpiremodel.Machine, v *machineView) error {
@@ -464,7 +464,7 @@ func (s *Slice) watching(mm *umpiremodel.Machine) (*watching, []string, error) {
 }
 
 // step advances every monitor over one step: the IR's `next`, its evaluation point and its
-// `violated`, evaluated by goir's interpreter.
+// `violated`, evaluated by the reader's interpreter.
 func (s *Slice) step(w *watching, mu []string, source umpiremodel.Value, step umpiremodel.Value, target string) (productStep, error) {
 	out := productStep{Mu: make([]string, len(mu)), Read: make([]bool, len(mu)), Viol: make([]bool, len(mu))}
 	for k, mo := range w.decls {

@@ -1,9 +1,9 @@
-// Package casebinding is the production canary's fixed Case: the Lean renderer's canonical bytes
-// for the one admitted canary Case the canary runs, and the hand-authored Driver Profile it is
-// prepared under. The Profile is an authorization snapshot (QLF-01), so it is written out here as
-// literals rather than derived at run time: a change to Testpilot's derivation or its default
-// ceilings can never silently widen what the production credential may do. Only the environment's
-// coordinates are filled in when the canary binds.
+// Package casebinding is the production canary's fixed Case: the canonical bytes lowered from the
+// caller Model's syncCompletion Query for the one admitted canary Case the canary runs, and the
+// hand-authored Driver Profile it is prepared under. The Profile is an authorization snapshot
+// (QLF-01), so it is written out here as literals rather than derived at run time: a change to
+// Testpilot's derivation or its default ceilings can never silently widen what the production
+// credential may do. Only the environment's coordinates are filled in when the canary binds.
 package casebinding
 
 import (
@@ -23,7 +23,7 @@ import (
 // The pinned canary Case, `make canary-gen-case` writes it and `make canary-check-case` diffs a
 // fresh render against it.
 //
-//go:embed testdata/nexusCallerCanary-syncCompletion-case.json
+//go:embed testdata/nexus-caller-syncCompletion-case.json
 var pinned []byte
 
 // The workflow-service methods the Case's endpoint role invokes: the public ones that start its

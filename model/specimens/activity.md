@@ -1,5 +1,8 @@
 # Specimen: standalone activity admission and its dispatch queue
 
+This is a dated record. [README.md](README.md) says how the paths and names cited here map to
+today's layout.
+
 This specimen asks whether an author can state an admission promise, have the checker find a race
 that breaks it, and then replace an opaque durable queue with a detailed one without changing the
 promise.

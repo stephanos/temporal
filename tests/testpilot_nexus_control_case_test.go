@@ -31,8 +31,8 @@ import (
 // the evidence core omits the Run's scaffolding events, named by instruction id, and neither the
 // Run nor the Verdict is changed by reading it.
 func TestTestpilotNexusControlForgedCompletionIsViolated(t *testing.T) {
-	name := "nexusCallerControl-forgedCompletion"
-	caseBytes, err := os.ReadFile(filepath.Join("testcore", "testpilot", "testdata", name+"-case.json"))
+	name := "nexus-control-forgedCompletion"
+	caseBytes, err := os.ReadFile(testpilotFixturePath(name))
 	require.NoError(t, err)
 	caseSource := loadTestpilotCase(t, name)
 	env := newTestpilotTestEnvironment(t)
@@ -81,9 +81,9 @@ func TestTestpilotNexusControlForgedCompletionIsViolated(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, live.prepared.Identity(), subject.Driver)
 		require.True(t, proto.Equal(run.GetVerdict(), subject.Verdict))
-		// The forged row's Property and the completed event's fact are both violated by the one
-		// failed event, so the key names two rules with the same evidence and terminal state.
-		require.Len(t, subject.Replay.Violations, 2)
+		// Every correlated rule the Contract lowers the forged row's Property into is violated by the
+		// one failed event, so the key names each of them with the same evidence and terminal state.
+		require.Len(t, subject.Replay.Violations, len(caseSource.GetContract().GetCorrelated().GetRules()))
 		require.Len(t, subject.Key.Rules, len(subject.Replay.Violations))
 		for index, violation := range subject.Replay.Violations {
 			require.NotEmpty(t, violation.CorrelatedKind, "the violating evidence is the failed event's kind")

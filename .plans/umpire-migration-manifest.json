@@ -106722,7 +106722,14 @@
         "tools/umpire/replay/key_test.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities."
+      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "replaced",
+        "new_file": "tests/testcore/testpilot/testdata/generated/nexus-control-forgedCompletion-case.json",
+        "new_sha256": "2635621b17c34feb1e7761297bcb0be89eeeecd2e9bec47d159fef0d4050eacf",
+        "new_case_identity": "ecdb802629d024fcea52d25256697153016be04e9cd3818dafc0d05a693aadb6"
+      }
     },
     {
       "path": "tests/testcore/testpilot/testdata/nexusCallerTests-asyncCompletion-case.json",
@@ -106800,7 +106807,14 @@
         "tools/umpire/cmd/umpire-run/run_test.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities."
+      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "replaced",
+        "new_file": "tests/testcore/testpilot/testdata/generated/nexus-caller-asyncCompletion-case.json",
+        "new_sha256": "6062e5874e54c883c68583c688f0b6d368305c948142c74914a4abdc14bdffef",
+        "new_case_identity": "6a3c44199a75fc9fdc92e1c25a09167b0495121452ca1dc98787137d12397e86"
+      }
     },
     {
       "path": "tests/testcore/testpilot/testdata/nexusCallerTests-asyncFailure-case.json",
@@ -106873,7 +106887,14 @@
         "tests/testcore/testpilot/fixture_table_test.go:17 (ReadDir enumerates every -case.json file)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities."
+      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "replaced",
+        "new_file": "tests/testcore/testpilot/testdata/generated/nexus-caller-asyncFailure-case.json",
+        "new_sha256": "3bb469501b7455f4e7572d7c19e16217d503a9cf6a0f31e1e3b785587cb2fbed",
+        "new_case_identity": "b17c8e974999fc53d80eb087d5a620cc145af1f6a67bcceafc171606ef4b4ab9"
+      }
     },
     {
       "path": "tests/testcore/testpilot/testdata/nexusCallerTests-handlerError-case.json",
@@ -106946,7 +106967,14 @@
         "tests/testcore/testpilot/fixture_table_test.go:17 (ReadDir enumerates every -case.json file)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities."
+      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "replaced",
+        "new_file": "tests/testcore/testpilot/testdata/generated/nexus-caller-handlerError-case.json",
+        "new_sha256": "5546ad4578997d3c8ffc7097ad88deb0442d564cc0902280b6e5f61851aae547",
+        "new_case_identity": "b28b409c85341cef8fbf51c9180f860d7a10bd9aff56c079503bb755c09001c3"
+      }
     },
     {
       "path": "tests/testcore/testpilot/testdata/nexusCallerTests-retry-case.json",
@@ -107019,7 +107047,14 @@
         "tests/testcore/testpilot/fixture_table_test.go:17 (ReadDir enumerates every -case.json file)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities."
+      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "replaced",
+        "new_file": "tests/testcore/testpilot/testdata/generated/nexus-caller-retry-case.json",
+        "new_sha256": "78b124db8c1480e6c7ec268d9276f7c97af593c7996ac6476d02a34c01fc9dc7",
+        "new_case_identity": "e852bfa27c716d5c7414f137dc34f85bfe671d60c5cca8c7490fc019f20d14d2"
+      }
     },
     {
       "path": "tests/testcore/testpilot/testdata/nexusCallerTests-scheduleToStartTimeout-case.json",
@@ -107092,7 +107127,14 @@
         "tests/testcore/testpilot/fixture_table_test.go:17 (ReadDir enumerates every -case.json file)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities."
+      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "replaced",
+        "new_file": "tests/testcore/testpilot/testdata/generated/nexus-caller-scheduleToStartTimeout-case.json",
+        "new_sha256": "bc280358847cfefce680c38a8c9f54f338c07df893b76bc05015bf1d58057575",
+        "new_case_identity": "c6ee49373a3b0e83ed9e6b484605c7e2921fdbdc4db47c83e235d6e87f26af9f"
+      }
     },
     {
       "path": "tests/testcore/testpilot/testdata/nexusCallerTests-startToCloseTimeout-case.json",
@@ -107165,7 +107207,14 @@
         "tests/testcore/testpilot/fixture_table_test.go:17 (ReadDir enumerates every -case.json file)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities."
+      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "replaced",
+        "new_file": "tests/testcore/testpilot/testdata/generated/nexus-caller-startToCloseTimeout-case.json",
+        "new_sha256": "51823a0a05ff3d696648c083037d633ba26961072512b39d3ad8575ac9b15b7f",
+        "new_case_identity": "4d71ce71889f5f6b33e6403533943657407dcfda3c5b1bb1da550ca0c241b64d"
+      }
     },
     {
       "path": "tests/testcore/testpilot/testdata/nexusCallerTests-syncCompletion-case.json",
@@ -107237,7 +107286,14 @@
         "tests/testcore/testpilot/fixture_table_test.go:17 (ReadDir enumerates every -case.json file)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities."
+      "policy_and_binding": "Replace generated fixture bytes and identity-dependent fixture constants/Profile bindings together; compare Program/Contract intent and preserve each functional assertion. Use the canonical Scala Case namespace. Old recordings retain their original embedded Cases and identities.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "replaced",
+        "new_file": "tests/testcore/testpilot/testdata/generated/nexus-caller-syncCompletion-case.json",
+        "new_sha256": "4fbed6fb0b805861add0ee5f8b09991c7bc5bd8f909b9d74a7fc41df4d65f6fd",
+        "new_case_identity": "27d65f3bda1abf588aa2b8639d3b08ac80c6cd7a36c22d468e3f553839525634"
+      }
     },
     {
       "path": "tests/testcore/testpilot/testdata/nexusPairTests-bothComplete-case.json",
@@ -107295,7 +107351,11 @@
         "tools/umpire/evaluation/admission_test.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "tests/testcore/testpilot/testdata/synthetic-case.json",
@@ -107326,7 +107386,11 @@
         "tools/umpire/cmd/umpire-gen-regression-views/render_test.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "tests/testcore/testpilot/testdata/systemInfoTests-answered-case.json",
@@ -107377,7 +107441,11 @@
         "tools/umpire/cmd/umpire-gen-case-runtime-conformance/generate_test.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "tests/testcore/testpilot/testdata/workerOutageTests-survived-case.json",
@@ -107430,7 +107498,11 @@
         "tools/umpire/cmd/umpire-gen-case-runtime-conformance/generate_test.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "tests/testcore/testpilot/testdata/workflowStartTests-started-case.json",
@@ -107487,7 +107559,11 @@
         "tools/umpire/cmd/umpire-gen-case-runtime-conformance/generate_test.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "tools/canary/casebinding/testdata/nexusCallerCanary-syncCompletion-case.json",
@@ -107562,7 +107638,14 @@
         "tools/canary/schema_test.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Replace the embedded pinned bytes only with the reviewed generated syncCompletion output; update explicit policy CaseIdentity, CaseID/ProgramID-dependent wiring and test expectations together. Check the existing literal role/opcode/command/ceiling Profile admits it without expanding credential authority. If it cannot, retain the old pin under a named admission exception rather than broadening policy."
+      "policy_and_binding": "Replace the embedded pinned bytes only with the reviewed generated syncCompletion output; update explicit policy CaseIdentity, CaseID/ProgramID-dependent wiring and test expectations together. Check the existing literal role/opcode/command/ceiling Profile admits it without expanding credential authority. If it cannot, retain the old pin under a named admission exception rather than broadening policy.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "replaced",
+        "new_file": "tools/canary/casebinding/testdata/nexus-caller-syncCompletion-case.json",
+        "new_sha256": "4fbed6fb0b805861add0ee5f8b09991c7bc5bd8f909b9d74a7fc41df4d65f6fd",
+        "new_case_identity": "27d65f3bda1abf588aa2b8639d3b08ac80c6cd7a36c22d468e3f553839525634"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/cleanup-failure-after-proved-violation/case.json",
@@ -107593,7 +107676,11 @@
         "tools/canary/casebinding/casebinding.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/cross-run-isolation/case.json",
@@ -107624,7 +107711,11 @@
         "tools/canary/casebinding/casebinding.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/inconclusive/case.json",
@@ -107655,7 +107746,11 @@
         "tools/canary/casebinding/casebinding.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/satisfied/case.json",
@@ -107686,7 +107781,11 @@
         "tools/canary/casebinding/casebinding.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/satisfied/history-evidence/case.json",
@@ -107717,7 +107816,11 @@
         "tools/canary/casebinding/casebinding.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/satisfied/read-evidence/case.json",
@@ -107748,7 +107851,11 @@
         "tools/canary/casebinding/casebinding.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/satisfied/run-event-evidence/case.json",
@@ -107779,7 +107886,11 @@
         "tools/canary/casebinding/casebinding.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/static-preparation-rejection/case.json",
@@ -107811,7 +107922,11 @@
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
       "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
-      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering."
+      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/static-preparation-rejection/command-type/case.json",
@@ -107843,7 +107958,11 @@
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
       "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
-      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering."
+      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/static-preparation-rejection/duplicate-evidence/case.json",
@@ -107875,7 +107994,11 @@
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
       "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
-      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering."
+      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/static-preparation-rejection/expression-context/case.json",
@@ -107907,7 +108030,11 @@
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
       "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
-      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering."
+      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/static-preparation-rejection/instance-value/case.json",
@@ -107939,7 +108066,11 @@
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
       "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
-      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering."
+      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/static-preparation-rejection/invalid-duration/case.json",
@@ -107971,7 +108102,11 @@
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
       "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
-      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering."
+      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/static-preparation-rejection/reply-not-admitted/case.json",
@@ -108003,7 +108138,11 @@
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
       "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
-      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering."
+      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/static-preparation-rejection/undeclared-evidence/case.json",
@@ -108035,7 +108174,11 @@
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
       "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
-      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering."
+      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/static-preparation-rejection/unsettable-field/case.json",
@@ -108067,7 +108210,11 @@
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
       "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
-      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering."
+      "mutation_provenance": "Retain original Case hash and adjacent expected.json; source generator manifest/renderer arguments remain inspectable in tools/umpire0/cmd/umpire-gen-case-runtime-conformance and model0/lean. No invalid fixture is claimed to be direct output of valid Scala lowering.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "common/testing/testpilot/testdata/case-runtime-conformance/violated/case.json",
@@ -108098,7 +108245,11 @@
         "tools/canary/casebinding/casebinding.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "exception-bytes-kept"
+      }
     },
     {
       "path": "model/scalav2/cases/activity-completion-case.json",
@@ -108172,7 +108323,11 @@
         "tools/canary/preflight/harness_test.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     },
     {
       "path": "model/scalav2/cases/activity-nonRetryableFailure-case.json",
@@ -108244,7 +108399,11 @@
         "tests/testpilot_scala_generated_test.go (all generated manifest entries)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     },
     {
       "path": "model/scalav2/cases/activity-pauseResume-case.json",
@@ -108316,7 +108475,11 @@
         "tests/testpilot_scala_generated_test.go (all generated manifest entries)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     },
     {
       "path": "model/scalav2/cases/activity-race-admissionResponseLoss.committed-case.json",
@@ -108388,7 +108551,11 @@
         "tests/testpilot_scala_generated_test.go (all generated manifest entries)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     },
     {
       "path": "model/scalav2/cases/activity-race-heldAdmission.staleDelivery-case.json",
@@ -108471,7 +108638,11 @@
         "tools/umpire/cmd/umpire-run/run_test.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     },
     {
       "path": "model/scalav2/cases/activity-retry-case.json",
@@ -108546,7 +108717,11 @@
         "tests/testpilot_scala_generated_test.go (all generated manifest entries)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     },
     {
       "path": "model/scalav2/cases/activity-scheduleToStartTimeout-case.json",
@@ -108619,7 +108794,11 @@
         "tests/testpilot_scala_generated_test.go (all generated manifest entries)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     },
     {
       "path": "model/scalav2/cases/activity-terminate-case.json",
@@ -108692,7 +108871,11 @@
         "tests/testpilot_scala_generated_test.go (all generated manifest entries)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     },
     {
       "path": "model/scalav2/cases/nexus-caller-asyncCompletion-case.json",
@@ -108766,7 +108949,11 @@
         "tests/testpilot_umpire_run_test.go"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     },
     {
       "path": "model/scalav2/cases/nexus-caller-asyncFailure-case.json",
@@ -108839,7 +109026,11 @@
         "tests/testpilot_scala_generated_test.go (all generated manifest entries)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     },
     {
       "path": "model/scalav2/cases/nexus-caller-handlerError-case.json",
@@ -108912,7 +109103,11 @@
         "tests/testpilot_scala_generated_test.go (all generated manifest entries)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     },
     {
       "path": "model/scalav2/cases/nexus-caller-retry-case.json",
@@ -108985,7 +109180,11 @@
         "tests/testpilot_scala_generated_test.go (all generated manifest entries)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     },
     {
       "path": "model/scalav2/cases/nexus-caller-scheduleToStartTimeout-case.json",
@@ -109058,7 +109257,11 @@
         "tests/testpilot_scala_generated_test.go (all generated manifest entries)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     },
     {
       "path": "model/scalav2/cases/nexus-caller-startToCloseTimeout-case.json",
@@ -109131,7 +109334,11 @@
         "tests/testpilot_scala_generated_test.go (all generated manifest entries)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     },
     {
       "path": "model/scalav2/cases/nexus-caller-syncCompletion-case.json",
@@ -109203,7 +109410,11 @@
         "tests/testpilot_scala_generated_test.go (all generated manifest entries)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     },
     {
       "path": "model/scalav2/cases/nexus-control-forgedCompletion-case.json",
@@ -109277,7 +109488,11 @@
         "tests/testpilot_scala_generated_test.go (all generated manifest entries)"
       ],
       "compatibility": "Historical recorded Runs remain byte-identical and retain their original Case checksum. Record format stores the checksum, not embedded Case bytes: preserve required original Case companions under the dedicated live fixture paths. Existing crossed Case/Program/Profile rejection remains; never rewrite a historical Run.",
-      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution."
+      "policy_and_binding": "Existing Profile, scripted Driver and expected outcomes remain unchanged; path relocation alone does not reauthorize execution.",
+      "result": {
+        "task": "fn-115.11",
+        "outcome": "already-generated-untouched"
+      }
     }
   ],
   "protocol_identity_exceptions": [
@@ -109471,5 +109686,48 @@
         "symlink": false
       }
     ]
+  },
+  "fixture_migration": {
+    "task": "fn-115.11",
+    "managed_trees": [
+      "model/cases",
+      "tests/testcore/testpilot/testdata/generated",
+      "tools/canary/casebinding/testdata"
+    ],
+    "generator": "umpire-gen-cases --kind model|functional|canary; its kinds list is the second authority for which Queries are pinned",
+    "new_canary_record": "tools/canary/assessment/testdata/nexus-caller-syncCompletion-run.json",
+    "companion_consumers": "common/testing/testpilot/{replay,evaluation}, tools/umpire/cmd/umpire-assess/run_test.go, tests/testpilot_assess_test.go; canary companion: TestTheRunOfThePriorPinnedCaseKeepsItsDecision",
+    "r22_gap": "A Property phase clause lowers to no STATE rule; only whole-state equality does. The legacy control Contract rule state-succeeded has no Scala-lowered counterpart, and the remaining rule bound moved from 1 to 4 inside the reviewed Contract hash."
+  },
+  "source_path_renames": {
+    "task": "fn-115.14",
+    "note": "Applied to the current IR only; frozen mapped goldens keep the .scala.fixture spelling.",
+    "renames": [
+      {
+        "old": "model/lifter/testdata/lifts/Admission.scala.fixture",
+        "new": "model/lifter/testdata/lifts/Admission.scala"
+      },
+      {
+        "old": "model/lifter/testdata/lifts/Channels.scala.fixture",
+        "new": "model/lifter/testdata/lifts/Channels.scala"
+      },
+      {
+        "old": "model/lifter/testdata/lifts/CloseReset.scala.fixture",
+        "new": "model/lifter/testdata/lifts/CloseReset.scala"
+      },
+      {
+        "old": "model/lifter/testdata/lifts/Declarations.scala.fixture",
+        "new": "model/lifter/testdata/lifts/Declarations.scala"
+      },
+      {
+        "old": "model/lifter/testdata/lifts/Presence.scala.fixture",
+        "new": "model/lifter/testdata/lifts/Presence.scala"
+      },
+      {
+        "old": "model/lifter/testdata/lifts/Realizations.scala.fixture",
+        "new": "model/lifter/testdata/lifts/Realizations.scala"
+      }
+    ],
+    "renamed_files": "all eleven model/lifter/testdata/**/*.scala.fixture files are now *.scala"
   }
 }

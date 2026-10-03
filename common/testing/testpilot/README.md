@@ -137,8 +137,8 @@ name     = ( letter | "_" ) { letter | digit | "_" }
   integer keys (`counts[-42]`), `true` or `false` for boolean keys.
 - A final `?` reads whether a presence-tracking field is set, as a boolean: `child.optional_text?`.
 
-A segment takes at most one selector. `Testpilot.Authoring.Path.make` is the one Lean printer and
-spells a text key escaping only the quote, the backslash and control characters. A path outside the
+A segment takes at most one selector. A text key is spelled escaping only the quote, the backslash
+and control characters. A path outside the
 grammar, an unknown field or member, or a key of the wrong kind rejects at preparation located at the
 path's field and quoting its text.
 
@@ -162,22 +162,20 @@ first planned use.
    `proto/internal/temporal/server/api/testpilot/v1`. A new message or enum carries a leading comment,
    field numbers stay dense from 1, and a new oneof arm is appended;
    `TestProtocolMessagesCarryLeadingComments` enforces the first two. A new file must be reachable from
-   `case.proto` or `run.proto` and is listed in `TESTPILOT_PROTOCOL_PROTOS` (the Makefile),
-   `testpilotProtocolSchemas` (`model/lean/lakefile.lean`), `protocolFiles` (`protocol_test.go`) and the file
-   list in `tools/umpire/cmd/umpire-gen-lean-api/case_schema_test.go`.
+   `case.proto` or `run.proto` and is listed in `TESTPILOT_PROTOCOL_PROTOS` (the Makefile) and
+   `protocolFiles` (`protocol_test.go`).
    A Run-only message never enters the Case closure (`TestCaseImportClosureExcludesRunOnlyMessages`).
    A field that carries a public API message imports that message's file from `proto/api.binpb`
-   (`--descriptor_set_in`, already passed by `make proto`, `umpire-check-testpilot-protocol` and
-   `Testpilot/Protocol.lean`); the file's whole import closure is compiled once into Lean by
-   `Testpilot/Carried.lean`, so each file the closure adds is appended to `Testpilot.Carried.files`,
-   which `Testpilot.Protocol` checks.
+   (`--descriptor_set_in`, already passed by `make proto` and `umpire-check-testpilot-protocol`).
 2. **Generated code.** `make proto` regenerates `api/testpilot/v1` and runs the api-linter; a singular
    enum field naming an enum from another file of the package compiles only through the rewrite in
-   `cmd/tools/protogen/enum_references.go`. `Testpilot/Protocol.lean` elaborates both closures with one
-   `protoc` call, and `make umpire-check-testpilot-protocol` checks it.
-3. **`Testpilot.Authoring`.** Add the constructor Producers write (`model/lean/Testpilot/Authoring.lean`) and
-   guard it in `model/lean/Testpilot/Tests/Authoring.lean`; `make umpire-check-testpilot-authoring` decodes
-   the Lean ProtoJSON strictly in Go.
+   `cmd/tools/protogen/enum_references.go`. `make umpire-check-testpilot-protocol` compiles the
+   protocol closure with one `protoc` call and checks its leading comments.
+3. **The Producer.** Add the builder the lowering writes the element with
+   (`tools/umpire/lower/internal/producer/build.go`) and a lowering test beside it. An element a Model
+   has to ask for also needs its realization declaration in `model/umpire/realize`, its field in the
+   Umpire IR and its case in the lifter and in `tools/umpire/lower/realization.go`;
+   `model/SEMANTICS.md` (Realizations) says what each declaration lowers to.
 4. **Go interpreter or evaluator.** Instructions bind in `internal/execution` and run in its scheduler
    or the worker interpreter; references and paths bind in `internal/ir`; Contracts evaluate in
    `internal/verification`.
@@ -188,12 +186,15 @@ first planned use.
 7. **Conformance class or unit test.** The six Driver-independent classes under
    `testdata/case-runtime-conformance` change only for a new Verdict shape or rejection; everything else
    is pinned by a focused unit test beside the code, and live behavior by a `TestTestpilot*` test.
-8. **Retired-vocabulary gate.** A rename or removal adds the old spelling to `buildRetiredRules` in
-   `tools/umpire/internal/retiredvocabulary/check.go` with a line in
-   `TestRetiredRulesHoldTheGlossaryRenamedProtocolNames`, and a removed descriptor name to
-   `TestProtocolUsesCohesivePublicVocabulary`. A new name that matches a retired rule fails the gate.
-9. **Fixtures.** Regenerate through `make umpire-gen-case-runtime-conformance`, never by hand;
-   `make umpire-check-case-runtime-conformance` fails on a stale fixture.
+8. **Retired names.** A rename or removal adds the removed descriptor name to
+   `TestProtocolUsesCohesivePublicVocabulary` (`protocol_test.go`), which fails when a retired name
+   is declared again.
+9. **Fixtures.** Regenerate the lowered Cases through `make umpire-gen-model`,
+   `make umpire-gen-fixtures` and `make canary-gen-case`, never by hand; `make umpire-check-cases`,
+   `make umpire-check-fixtures` and `make canary-check-case` fail on a stale one. The fixtures under
+   `testdata/case-runtime-conformance` are retained bytes that no live target renders: a change
+   that would move one of them needs a decision first, and `conformance_test.go` fails on it until
+   then.
 
 A Contract Rule may declare instance values and a list of Rule instances (`ContractRule.instances`).
 Preparation binds the Rule once and charges every ceiling per Rule instance, as the expansion (one
@@ -209,22 +210,22 @@ Verdict and admission.
 1. A message in `instruction.proto` and an arm appended to `Instruction.instruction`. The arm's field
    number is its Opcode; a removed arm's successors move up, so the numbers stay dense from 1.
 2. `make proto`.
-3. A `Testpilot.Authoring.Program` constructor beside `Program.injectFault`.
+3. A builder in the Producer beside `InvokeRPC` and `ReadEvidence`.
 4. One row in `opcodes` (`internal/execution/dataflow.go`): the oneof arm, the entrypoint kind that
    may declare it, whether its outcome carries a protocol code, its binder, its dataflow binder and
    its scheduler dispatch; and any event it records in `scheduler.publishCompletion`. An
    instruction that reads evidence back names a declaration, which
-   `admission.bindEvidence` (`execution/evidence.go`) binds; a new evidence source kind is a new arm
+   `admission.bindEvidence` (`internal/execution/evidence.go`) binds; a new evidence source kind is a new arm
    of `EvidenceDeclaration.source`, bound there, lifted where its data appears (`liftRunEvents` for
-   a recorded event, the instruction's response reads for a read), and listed in the Lean catalog
-   the `evidence:` line resolves against (`Temporal.Case.Catalog`, with `EventKind` and `ReadKind`). A workflow instruction also runs in `workflowInterpreter.execute`
+   a recorded event, the instruction's response reads for a read), and declared among the evidence
+   sources a realization may name (`model/umpire/realize`). A workflow instruction also runs in `workflowInterpreter.execute`
    (`temporal/worker/interpreter.go`); a Nexus-handler instruction in `Session.interpretNexus`; an
    activity instruction in `Session.executeActivity`. An
    instruction that starts a Nexus operation is also named by `execution.startsNexusOperation`,
    which the carrier route derivation and `bindAwait` read, and by the worker's
    `startsNexusOperation` and `addInstructionBindings`, which prepare its dispatch route and
    endpoint. An instruction that carries a public API message gets a row per carried message in the
-   Driver-reach table (`execution/typed.go`), which `TestDriverReachTableNamesEveryField` requires to
+   Driver-reach table (`internal/execution/typed.go`), which `TestDriverReachTableNamesEveryField` requires to
    name every field of every carried message, and the Driver's interpreter reads only the fields
    the row names realized.
 5. `opcodes` is the table: `TestInstructionOpcodesCoverTheInstructionTable` requires every oneof arm
@@ -237,8 +238,8 @@ Verdict and admission.
    composite routes to the controller Session).
 7. Focused tests beside the binder and the Driver, and a Driver test per carried message
    (`temporal/worker/typed_test.go`); a preparation rejection the instruction adds is a variant of
-   the `static-preparation-rejection` conformance class (`productionManifest` in the generator,
-   `Temporal.Testpilot.Conformance` in Lean, the facade Profile in `conformance_test.go`).
+   the `static-preparation-rejection` conformance class (the facade Profile in
+   `conformance_test.go`).
 8. and 9. As above.
 
 ### A new fault kind
@@ -247,7 +248,9 @@ Verdict and admission.
    `FaultInjected.kind` share the enum. The enum's comment names what its kinds are, worker-lifecycle
    transitions on one activation queue and delivery controls, so any other outage amends it.
 2. `make proto`.
-3. No new constructor: `Program.injectFault` takes any kind.
+3. No new builder: the lowering's `faultKinds` (`tools/umpire/lower/realization.go`) maps the
+   realization's kind to the protocol's, so a kind a Model may ask for gains a row there, a value of
+   the IR's `Fault.Kind` and a case of `FaultKind` in `model/umpire/realize`.
 4. Widen the kind range `admission.bindFault` admits. Dispatch and recording carry the kind unchanged,
    and a Contract enum literal resolves by name against the `FaultKind` field it is compared with.
 5. No table change: `FAULT_INJECTED` already carries the `fault_injected` arm.
@@ -261,8 +264,8 @@ Verdict and admission.
 1. A message in `run.proto` (Run-only: add it to `runOnlyMessages` in `protocol_test.go`) and an arm
    appended to `RunEvent.payload`; a new kind appended to `RunEventKind` in `event.proto`.
 2. `make proto`.
-3. `Run.event` already takes any `payload`. A Contract reads the arm as
-   `Expr.path Expr.runEventPayload "<arm>.<field>"`, so no reference is added.
+3. A Contract reads the arm as a path into the Run Event payload reference, `<arm>.<field>`, so no
+   reference is added.
 4. The component that records the event sets the arm (`scheduler.publishCompletion` for instruction
    events). `ir.CheckRunEventPayload` records a mismatch as an `INVARIANT` diagnostic
    `payload_kind_mismatch`. A new kind moves `ir.MaxRunEventKind`.
@@ -280,13 +283,13 @@ Verdict and admission.
 1. An arm appended to `Reference.reference` in `expression.proto`, with its message when the reference
    is structured.
 2. `make proto`.
-3. An `Expr` constructor beside `Expr.capture` and `Expr.runEventPayload`, and the Producer that
-   writes it. A correlated reference is also admitted by `Testpilot.Correlated.decode`, and a
-   reference that carries a Case-local name is renamed by `Umpire.Case.LocalNames`.
+3. A builder in the Producer beside `Environment` and `Run`, and the lowering that writes it. A
+   reference that carries a Case-local name is renamed by `localize`
+   (`tools/umpire/lower/internal/producer/localize.go`).
 4. `ir.ReferenceKind` and `compiler.reference` in `internal/ir/expression.go`, and the resolver of at
    least one context that admits it: execution for the Program context, verification for the Contract
-   context, and `verification/correlated_prepare.go` and `correlated.go` for the correlated context,
-   which admits and evaluates its own conditions. A reference no context admits is not added.
+   context, and `internal/verification/correlated_prepare.go` and `correlated.go` for the correlated
+   context, which admits and evaluates its own conditions. A reference no context admits is not added.
 5. `ir.admittedReferences`, the context table. A reference outside its contexts rejects `unknown` at its
    path.
 6. No Opcode or Driver change.
@@ -294,14 +297,13 @@ Verdict and admission.
    `static-preparation-rejection/expression-context` conformance variant pins the rejection's shape.
 8. and 9. As above.
 
-`Reference.instance_value_id` followed this list: `Expr.instanceValue` in `Testpilot.Authoring`;
-`ir.InstanceValueReference`, which binds only where its declared type is the expected type, as the
+`Reference.instance_value_id` followed this list: `ir.InstanceValueReference`, which binds only where its declared type is the expected type, as the
 literal an instance inlines would; admitted only in the Contract context, where
 `verification.checkInstanceValueReads` locates an empty or undeclared reference at its transition
 predicate before binding, and the Evaluator resolves it from the evaluated Rule instance's
 assignments. `TestInstanceValuesBindAsTheLiteralEachInstanceInlines` and
 `TestPrepareLocatesInstanceErrors` pin it, and the `static-preparation-rejection/instance-value`
-conformance variant pins one rejection a non-Lean Producer sees. The corpus does not pin the
+conformance variant pins one rejection a Producer sees. The corpus does not pin the
 expanded Case-size charge: tripping the 16 MiB Case-size limit (`ir.DefaultLimits`) takes a Case of
 several MiB, too large to commit as a fixture, so `TestPrepareBoundsTheCaseSurfaceAsExpanded` in
 `internal/execution` covers it instead.
@@ -312,22 +314,21 @@ A removal walks the same places in the same order, deleting instead of adding. I
 or Contract capability, so it needs no migration only because the protocol has no compatibility
 promise.
 
-1. **Decision.** Keep the element if a Lean Producer emits it (search `model/lean/` for its snake_case and
-   lowerCamel spellings), a fixture uses it, hand-written Go reads it outside its own handler, or an
+1. **Decision.** Keep the element if the Producer emits it (search `tools/umpire/lower` and
+   `model/cases` for its snake_case and lowerCamel spellings), a fixture uses it, hand-written Go reads it outside its own handler, or an
    open spec or a governed requirement names it. Record the decision and its evidence in the
    removing task.
 2. **Protocol.** Delete the arm or value; its successors move up, so the numbers stay dense from 1. A
    message it alone used goes with it.
-3. **Generated code.** `make proto`; `make umpire-check-testpilot-protocol` for the Lean protocol.
-4. **Lean.** The `Testpilot.Authoring` constructor and its guard, the `Testpilot.Correlated` decode
-   case and the `Umpire.Case.LocalNames` renamer case.
+3. **Generated code.** `make proto`; `make umpire-check-testpilot-protocol`.
+4. **The Producer.** The builder, and the `localize` renamer case where the element carried a
+   Case-local name.
 5. **Go.** The handler cases and table rows, and the arm's row in each test that probes every arm
    (`TestExpressionContextsRejectReferencesOutsideThem`, the preparation tests that locate a
    reference outside its context, `TestProtocolEncodesExpressionAndStateScopes`).
-6. **Retired-vocabulary gate.** Step 8 above, for each spelling SEM-20 and the gate's grammar allow:
-   compound identifiers, the generated oneof type and accessor, and the snake_case field name. A
-   spelling a live name shares, such as a message the removed arm carried, is not held. The removed
-   field's full name goes in `TestProtocolUsesCohesivePublicVocabulary`.
+6. **Retired names.** Step 8 above. A spelling a live name shares, such as a message the removed
+   arm carried, is not held. The removed descriptor name goes in
+   `TestProtocolUsesCohesivePublicVocabulary`.
 7. **Fixtures.** Regenerate; a fixture that changes used the element, which step 1 should have kept.
 8. **Pinned Runs.** Any `.proto` edit moves the Driver catalog identity: update
    `TestWorkflowServiceCatalogIdentityGolden` and run `make umpire-rerecord-pinned-runs` against a
@@ -340,15 +341,13 @@ it, and only the renamer and the context probe tables named it.
 
 1. **Protocol.** `FAULT_KIND_WORKER_STOP = 1` in `FaultKind` (`instruction.proto`), requested by
    `InjectFault { role_id, kind }` and recorded as `FaultInjected { role_id, kind }` (`run.proto`).
-2. **Generated code.** `make proto` writes `testpilotspb.FAULT_KIND_WORKER_STOP`, and
-   `Testpilot.Protocol` generates the Lean constructor `FaultKind.FAULT_KIND_WORKER_STOP`. No file was
+2. **Generated code.** `make proto` writes `testpilotspb.FAULT_KIND_WORKER_STOP`. No file was
    added.
-3. **`Testpilot.Authoring`.** `Program.injectFault "queue" .FAULT_KIND_WORKER_STOP`, guarded by
-   `injectFaultNamesRoleAndKind`. Producers reach it two ways: `Umpire.faultKindOf`
-   (`model/lean/Umpire/Variations/Lowering.lean`) maps `Umpire.workerStopCapabilityId` to the kind, the
-   worker-outage Model's realization (`model/lean/Temporal/Case/Realization/Workflow.lean`) binds the
-   `workerStop` and `workerResume` classes to it, and `Umpire.Case.Producer.faultKindName` names it
-   in an exhaustive match, so a new kind is a Lean error there until it is named.
+3. **The Producer.** A realization asks for it as `Fault(role, FaultKind.workerStop)`
+   (`model/umpire/realize/Realize.scala`); the Nexus caller's realization stops the handler's worker
+   that way (`model/temporal/nexuscaller/Realization.scala`). It lifts to the IR's
+   `Fault.Kind.KIND_WORKER_STOP`, and the lowering's `faultKinds`
+   (`tools/umpire/lower/realization.go`) maps that to the protocol's kind.
 4. **Go interpreter and evaluator.** `admission.bindFault` (`internal/execution/dataflow.go`) admits
    kinds from `FAULT_KIND_WORKER_STOP` to `FAULT_KIND_WORKER_RESUME` on a task-queue role.
    Its `opcodes` row dispatches through `scheduler.acceptFault`, which calls `Session.InjectFault`
@@ -370,11 +369,10 @@ it, and only the renamer and the context probe tables named it.
    (`temporal/worker/outage_test.go`), and live `TestTestpilotWorkerOutageCase`. No conformance class
    covers faults.
 8. **Retired vocabulary.** Nothing to retire for an added kind.
-9. **Equivalence mapping.** An added enum value changes no baseline fixture, so no step; a Producer
-   that starts writing it into `workerOutageTests-survived-case.json` needs one.
-10. **Fixtures.** `workerOutageTests-survived-case.json` is rendered from the worker-outage Model
-    (`model/lean/Temporal/Feature/Workflow/Outage/Model.lean`, whose `case` block registers it) by
-    `make umpire-gen-case-runtime-conformance`.
+9. **Fixtures.** `model/cases/nexus-caller-scheduleToStartTimeout-case.json` and three standalone
+   activity Cases carry the kind, written by `make umpire-gen-model`.
+   `workerOutageTests-survived-case.json` under `tests/testcore/testpilot/testdata` carries it too
+   and is a retained fixture.
 
 ## Preparation diagnostics
 

@@ -37,7 +37,7 @@ The spike's output is a report and a prototype branch of the reader. The report 
 - the count of IR expressions and how many translate to CEL without a rule from the table above;
 - the size of the CEL form against the size of the `Expr` form, in bytes of ProtoJSON, for the largest step function with every call inlined;
 - the lines of Go the prototype deletes and adds;
-- whether `cel-go` evaluates every translated step function to the same result on every state and class as the current evaluator, by the baseline goldens;
+- whether `cel-go` evaluates every translated step function to the same result on every state and class as the current evaluator, by the baseline goldens (`tools/umpire/model/testdata/migration`, `tools/umpire/lower/testdata/migration`);
 - the time to derive every table with each evaluator.
 
 ## Edge Cases & Constraints

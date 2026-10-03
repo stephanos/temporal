@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 )
 
 func generatedFiles(t *testing.T) map[string][]byte {
@@ -21,25 +20,6 @@ func generatedFiles(t *testing.T) map[string][]byte {
 		require.NoError(t, err)
 	}
 	return files
-}
-
-func TestGeneratedCasesAreCheckedIn(t *testing.T) {
-	files, err := GenerateCases(filepath.Join("..", "..", "..", "model", "ir"))
-	require.NoError(t, err)
-	require.NoError(t, SyncCases(filepath.Join("..", "..", "..", "model", "cases"), files, false))
-	manifest, err := DecodeManifest(files["manifest.json"])
-	require.NoError(t, err)
-	lowered := 0
-	for _, entry := range manifest.Queries {
-		if entry.Standing != Lowered {
-			continue
-		}
-		lowered++
-		_, err := recordedrun.CaseIdentity(files[entry.File])
-		require.NoError(t, err)
-		require.NotNil(t, entry.Expected)
-	}
-	require.Positive(t, lowered)
 }
 
 func TestManifestRejectsInvalidMetadata(t *testing.T) {
@@ -124,4 +104,95 @@ func TestCasePublicationDetectsDriftAndPreservesTheOldTreeOnInvalidInput(t *test
 			require.NoError(t, SyncCases(root, files, false))
 		})
 	}
+}
+
+// A selection is the complete tree's own bytes for the Queries it names, whatever order names them,
+// and it publishes and checks as a tree of its own.
+func TestSelectedCasesAreTheCompleteTreesBytes(t *testing.T) {
+	// The checked-in tree is what the checked IR lowers to, which TestGeneratedCasesAreCheckedIn holds.
+	files, again := generatedFiles(t), generatedFiles(t)
+
+	selected, err := SelectCases(files, []Selected{
+		{Model: "nexus-control.json", Query: "forgedCompletion"},
+		{Model: "nexus-caller.json", Query: "syncCompletion"},
+	})
+	require.NoError(t, err)
+	reordered, err := SelectCases(again, []Selected{
+		{Model: "nexus-caller.json", Query: "syncCompletion"},
+		{Model: "nexus-control.json", Query: "forgedCompletion"},
+	})
+	require.NoError(t, err)
+	require.Equal(t, selected, reordered)
+
+	manifest, err := DecodeManifest(selected["manifest.json"])
+	require.NoError(t, err)
+	complete, err := DecodeManifest(files["manifest.json"])
+	require.NoError(t, err)
+	expected := map[string][]byte{"manifest.json": selected["manifest.json"]}
+	var entries []GeneratedCase
+	for _, entry := range complete.Queries {
+		if entry.File == "nexus-caller-syncCompletion-case.json" || entry.File == "nexus-control-forgedCompletion-case.json" {
+			expected[entry.File] = files[entry.File]
+			entries = append(entries, entry)
+		}
+	}
+	require.Equal(t, &Manifest{Version: 1, Queries: entries}, manifest)
+	require.Equal(t, expected, selected)
+
+	root := filepath.Join(t.TempDir(), "pinned")
+	require.NoError(t, SyncCases(root, selected, true))
+	require.NoError(t, SyncCases(root, reordered, false))
+	require.Error(t, SyncCases(root, files, false), "the complete tree is another tree")
+}
+
+// A Query with no Case cannot be pinned: one no Model declares, one named twice, one that lowers to
+// nothing, and an empty selection are each refused, and nothing is selected.
+func TestSelectingRefusesAQueryWithNoCase(t *testing.T) {
+	files := generatedFiles(t)
+	manifest, err := DecodeManifest(files["manifest.json"])
+	require.NoError(t, err)
+	var unlowered Selected
+	for _, entry := range manifest.Queries {
+		if entry.Standing != Lowered {
+			unlowered = Selected{Model: entry.Model, Query: entry.Query.Name}
+			break
+		}
+	}
+	require.NotEmpty(t, unlowered.Query, "the model tree accounts for a Query that does not lower")
+	pinned := Selected{Model: "nexus-caller.json", Query: "syncCompletion"}
+	for name, test := range map[string]struct {
+		selected []Selected
+		detail   string
+	}{
+		"nothing":           {nil, "no Query selected"},
+		"an undeclared one": {[]Selected{pinned, {Model: "nexus-caller.json", Query: "absent"}}, "no Model declares the selected Query nexus-caller.json/absent"},
+		"another Model's":   {[]Selected{{Model: "nexus-control.json", Query: "syncCompletion"}}, "no Model declares the selected Query nexus-control.json/syncCompletion"},
+		"one named twice":   {[]Selected{pinned, pinned}, "named twice"},
+		"one with no Case":  {[]Selected{pinned, unlowered}, "has no Case: " + string(manifestStanding(manifest, unlowered))},
+		"a missing Case":    {[]Selected{{Model: "nexus-control.json", Query: "forgedCompletion"}}, "generated Case nexus-control-forgedCompletion-case.json is missing"},
+		"a broken manifest": {[]Selected{pinned}, "manifest"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			input := maps.Clone(files)
+			switch name {
+			case "a missing Case":
+				delete(input, "nexus-control-forgedCompletion-case.json")
+			case "a broken manifest":
+				input["manifest.json"] = []byte(`{"version":2,"queries":[]}`)
+			default:
+			}
+			selected, err := SelectCases(input, test.selected)
+			require.ErrorContains(t, err, test.detail)
+			require.Nil(t, selected)
+		})
+	}
+}
+
+func manifestStanding(manifest *Manifest, query Selected) Standing {
+	for _, entry := range manifest.Queries {
+		if entry.Model == query.Model && entry.Query.Name == query.Query {
+			return entry.Standing
+		}
+	}
+	return ""
 }

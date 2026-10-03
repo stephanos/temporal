@@ -64,7 +64,7 @@ type declaring struct {
 const closingInstruction = "close"
 
 // admissionKinds is the activity specimen's evidence and capability matrix
-// (model/scalav2/specimens/activity.md): the statuses are public, what a caller reads back; the
+// (model/specimens/activity.md): the statuses are public, what a caller reads back; the
 // dispatch, the admission commit and the rejection are internal, observed where the server commits
 // them. The admission fixture declares no realization, so the tests declare this one.
 var admissionKinds = []kindOf{

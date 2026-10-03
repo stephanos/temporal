@@ -206,27 +206,27 @@ Model + Property + Scenario + Query
 The Case is authoritative for its bounded execution and Contract. The Driver supplies authorized
 effects. The Contract evaluates declared Observations. Model behavior remains above that execution
 boundary. This separation is valuable because it lets Umpire improve model checking and runtime
-control independently. See the [component map](UMPIRE4_COMPONENTS.md) and
+control independently. See the [module map](UMPIRE_MODULES.md) and
 [Testpilot facade](../common/testing/testpilot/README.md).
 
 | Area | Evidence in this tree | Qualification for this comparison |
 | --- | --- | --- |
-| Finite models and model-to-model refinement | [Scala results](../model/scala/RESULTS.md), [Go results](../model/go/RESULTS.md) | Existing reports show Nexus table, Query, refinement, and Case parity. This establishes agreement between representations over their shared domain. |
-| Proofs over model behavior | [Scala results, Stainless lemmas](../model/scala/RESULTS.md#what-stainless-proves) | Reported lemmas concern the model kernel, including bounded attempts and refinement. They do not prove the Temporal server implementation. |
-| Scala authoring, serializable IR, Go interpretation | [IR README](../model/scalav2/README.md), [IR semantics](../model/scalav2/SEMANTICS.md) | The interpreter builds the lifted Nexus tables. The full authored semantic surface exceeds the implemented interpreter surface. |
-| Channels, monitors, assumptions, holes, scoped replacement, progress | [IR semantics, implementation status](../model/scalav2/SEMANTICS.md#what-goir-implements) | These have declarations and written semantics in ongoing work. The documented interpreter still omits several of their meanings; declaration support is not checking support. |
+| Finite models and model-to-model refinement | [Scala results](../model0/scala/RESULTS.md), [Go results](../model0/go/RESULTS.md) | Existing reports show Nexus table, Query, refinement, and Case parity. This establishes agreement between representations over their shared domain. |
+| Proofs over model behavior | [Scala results, Stainless lemmas](../model0/scala/RESULTS.md#what-stainless-proves) | Reported lemmas concern the model kernel, including bounded attempts and refinement. They do not prove the Temporal server implementation. |
+| Scala authoring, serializable IR, Go interpretation | [IR README](../model/README.md), [IR semantics](../model/SEMANTICS.md) | The interpreter builds the lifted Nexus tables. The full authored semantic surface exceeds the implemented interpreter surface. |
+| Channels, monitors, assumptions, holes, scoped replacement, progress | [IR semantics, implementation status](../model/SEMANTICS.md#what-the-reader-implements) | These have declarations and written semantics in ongoing work. The documented interpreter still omits several of their meanings; declaration support is not checking support. |
 | Executable Cases and live/offline Contract evaluation | [Testpilot](../common/testing/testpilot/README.md), [Evaluator](../common/testing/testpilot/internal/verification/README.md) | The runtime implements bounded execution, immutable records, correlated evaluation, and semantic replay. |
 | Runtime faults | [Instruction schema](../proto/internal/temporal/server/api/testpilot/v1/instruction.proto), [worker fault tests](../common/testing/testpilot/temporal/worker/fault_test.go) | The current fault enum supplies worker stop/resume. It does not supply arbitrary network delivery, server crash, or storage-commit scheduling. |
 | Replay, reduction, promotion | [Specification](UMPIRE4_SPEC.md#exploration-replay-and-promotion) | The design separates offline Verdict replay, fresh reruns, and diagnostic SDK history replay. Fresh reruns are required for promotion. |
 | General model conformance from partial observations | [fn-107 prototype specification](../.flow/specs/fn-107-scala-umpire-prototype-for-standalone.md) | The prototype calls for retaining compatible model executions and separating conformance from Property results. This is a planned extension beyond the existing Contract path. |
 
 One immediate concern precedes all external inspiration. The IR semantics explicitly records that
-`goir` still reads some declared constructs without applying their semantics, although conforming
+the reader (`tools/umpire/model`) still reads some declared constructs without applying their semantics, although conforming
 readers must implement or refuse them. A successful load therefore cannot stand in for a successful
 check of every declared obligation. Close that admission gap before treating a new backend as an
 independent verifier. This is already identified by the ongoing prototype, not a new feature request
-from this research. See [implementation status](../model/scalav2/SEMANTICS.md#what-goir-implements) and
-the [current validator](../model/scalav2/goir/load.go).
+from this research. See [implementation status](../model/SEMANTICS.md#what-the-reader-implements) and
+the [current validator](../tools/umpire/model/validate.go).
 
 ### Four meanings of determinism
 
@@ -297,13 +297,13 @@ For standalone activities, that seam could be authoritative attempt admission. M
 eligibility, attempt identity, dispatch identity, and admission result. Generate histories that
 queue work, pause the activity, and then deliver the stale task. The product promise stays at the
 feature level; the implementation boundary supplies the race and its evidence. The
-[activity specimen](../model/scalav2/specimens/activity.md) already identifies this route and a
+[activity specimen](../model/specimens/activity.md) already identifies this route and a
 deliberately faulty admission design.
 
 For Nexus, the corresponding seam could be acceptance and durable retention of an operation result
 across caller close/reset. An API acknowledgment alone is insufficient if the promise requires
 retained outcome knowledge and a transferable delivery obligation. The
-[Nexus specimen](../model/scalav2/specimens/nexus.md) distinguishes these states already.
+[Nexus specimen](../model/specimens/nexus.md) distinguishes these states already.
 
 We should keep two conclusions separate. A generated Case demonstrates that one modeled behavior
 can be realized. An observed Run can demonstrate that one implementation behavior is admitted by the
@@ -622,7 +622,7 @@ alternatives belong in the result's scope beside the entity counts and step boun
 
 Umpire now has analogous monitor and assumption declarations in its IR semantics. The useful next
 step is completing their execution and authoring workflow. Adding P-shaped syntax alone would not
-close the gap recorded by `goir`'s implementation status.
+close the gap recorded by the reader's implementation status.
 
 For Nexus result delivery, a monitor can remember the outstanding obligation independently of the
 caller's current state. Close/reset changes ownership; acknowledgment, retention, and successor
@@ -726,7 +726,7 @@ value before proposing a general mixed-granularity selection language.
 Visible stutters deserve particular attention. A detailed step that leaves the abstract state
 unchanged can still emit an acknowledgment or externally visible result. Our new IR semantics
 restricts this when a refinement names its visible facts; legacy refinement leaves some such
-stutters admitted. The [specimen findings](../model/scalav2/specimens/README.md#findings-for-later-tasks)
+stutters admitted. The [specimen findings](../model/specimens/README.md#findings-for-later-tasks)
 record that difference. Classifying a step as a stutter must account for the promise's visible output,
 not just state equality.
 

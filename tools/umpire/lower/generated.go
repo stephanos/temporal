@@ -123,6 +123,62 @@ func generateCase(producer *Producer, model string, query *umpirespb.Query) (Gen
 	return entry, append(canonical.Bytes(), '\n'), nil
 }
 
+// Selected names one Query of one checked IR file.
+type Selected struct {
+	Model string
+	Query string
+}
+
+// SelectCases is the part of a complete generated tree that a consumer pins: the Cases of the
+// selected Queries, byte for byte, under a manifest that lists only them in the complete tree's
+// order. A Query that did not lower has no Case to pin, so it is refused with what it lacks rather
+// than left out.
+func SelectCases(files map[string][]byte, selected []Selected) (map[string][]byte, error) {
+	manifest, err := DecodeManifest(files["manifest.json"])
+	if err != nil {
+		return nil, err
+	}
+	if len(selected) == 0 {
+		return nil, errors.New("no Query selected")
+	}
+	wanted := map[Selected]bool{}
+	for _, query := range selected {
+		if wanted[query] {
+			return nil, fmt.Errorf("selected Query %s/%s is named twice", query.Model, query.Query)
+		}
+		wanted[query] = true
+	}
+	subset := Manifest{Version: manifest.Version}
+	result := map[string][]byte{}
+	for _, entry := range manifest.Queries {
+		query := Selected{Model: entry.Model, Query: entry.Query.Name}
+		if !wanted[query] {
+			continue
+		}
+		delete(wanted, query)
+		if entry.Standing != Lowered {
+			return nil, fmt.Errorf("selected Query %s/%s has no Case: %s %v", query.Model, query.Query, entry.Standing, entry.Unsupported)
+		}
+		encoded, exists := files[entry.File]
+		if !exists {
+			return nil, fmt.Errorf("generated Case %s is missing", entry.File)
+		}
+		result[entry.File] = encoded
+		subset.Queries = append(subset.Queries, entry)
+	}
+	for _, query := range selected {
+		if wanted[query] {
+			return nil, fmt.Errorf("no Model declares the selected Query %s/%s", query.Model, query.Query)
+		}
+	}
+	encoded, err := json.MarshalIndent(subset, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+	result["manifest.json"] = append(encoded, '\n')
+	return result, nil
+}
+
 func expectedOutcome(outcome umpirespb.RunExpectation_Outcome) string {
 	return strings.ToLower(strings.TrimPrefix(string(outcome.Descriptor().Values().ByNumber(outcome.Number()).Name()), "OUTCOME_"))
 }
@@ -290,7 +346,7 @@ func checkCaseTree(directory string, files map[string][]byte) error {
 		return err
 	}
 	if len(existing) != len(files) {
-		return errors.New("generated Case inventory is stale; run make umpire-gen-model")
+		return errors.New("generated Case inventory is stale")
 	}
 	for _, file := range existing {
 		if !file.Type().IsRegular() || files[file.Name()] == nil {
@@ -301,7 +357,7 @@ func checkCaseTree(directory string, files map[string][]byte) error {
 			return err
 		}
 		if !bytes.Equal(actual, files[file.Name()]) {
-			return fmt.Errorf("%s is stale; run make umpire-gen-model", file.Name())
+			return fmt.Errorf("%s is stale", file.Name())
 		}
 	}
 	return nil

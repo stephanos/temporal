@@ -19,6 +19,10 @@ Returned data types, their used methods and error/status values are part of the 
 Standard libraries, existing support libraries and generated schemas are permitted where already
 used; the dependency column constrains domain ownership, not those ordinary dependencies.
 
+Each module's README describes it for its users: `model/README.md` for the whole system,
+`tools/umpire/README.md` for the Go tooling, and the READMEs beside Testpilot, the Temporal Driver,
+the functional fixtures and the canary.
+
 | Module and destination | One job | Public interface | Permitted domain dependencies |
 | --- | --- | --- | --- |
 | Umpire IR, `api/umpire/v1`, `proto/internal/temporal/server/api/umpire/v1` | Represent a lifted Model. | Existing protobuf messages under the new package names. | Protobuf support; no Testpilot schema dependency added. |
@@ -44,7 +48,7 @@ used; the dependency column constrains domain ownership, not those ordinary depe
 | CLI edges, `tools/umpire/internal/cli` | Apply common command-edge policy. | `Interruptible`, `WriteLine`, `Flatten`, `OutsideModel`. | Publication; no runtime importing this package. |
 | Commands, `tools/umpire/cmd/*` | Run the chosen pipeline operation. | The seven retained executables listed below and their existing argument contracts. | Relevant live modules only; no archived executable. |
 | Functional wiring, `tests/testcore/testpilot` | Bind Cases to functional test clusters. | Existing fixture and cluster helper APIs with reviewed fixture identities. | Live Testpilot and Umpire modules; nothing imports this package from runtime/tooling. |
-| Canary, `tools/canary` | Run the policy's pinned Case on a deployment schedule. | Existing canary entry point and policy contract. | Testpilot runtime/helpers and Temporal binding; no consumer imports from tooling/runtime. |
+| Canary, `tools/canary` | Run the policy's pinned Case against a deployment on manual dispatch. | Existing canary entry point and policy contract. | Testpilot runtime/helpers and Temporal binding; no consumer imports from tooling/runtime. |
 
 The reader combines admission, interpretation and checking because those are one caller operation:
 reading a Model's meaning. Exploration combines reader, lowerer and runtime protocol data because
@@ -183,14 +187,29 @@ Task 9 renamed the IR namespace to `umpire/v1` (Go alias `umpirespb`, JVM packag
 audit JSON keep the old names as the captured baseline. `tools/umpire/model/schema_test.go` with
 `testdata/schema/before-rename` freezes the pre-rename descriptor and wire bytes and names the old
 package on purpose, so retired-name checks exempt them; its 14 `.gz` files are separate from the
-1,411 migration goldens. `make lint-api` reports 57 AIP findings in `ir.proto` that predate the
-rename.
+1,411 migration goldens. `make lint-api` passes; `proto/api-linter.yaml` excludes the IR proto's path from the AIP
+rules it predates.
+
+Task 12 made the dependency rules executable in `tools/umpire/model/ownership_test.go` and the
+Testpilot boundary tests: production and test imports are checked separately, the lowerer reaches
+`explore`, `conformance` and `recordedrun` only from `package lower_test`, the golden helper imports
+only IR, protobuf and the standard library, and no live file imports an archive. The lowerer's and
+conformance's own tests may import the Temporal Driver package for admission (catalog and derived
+Profile) only. `TestEveryToolingPackageHasALiveCaller` requires a live importer or a Make/CI runner
+for every package under `tools/umpire`. `TestModelNamesNoRetiredFrontEnd` is the vocabulary check
+outside `model/`; the gate runs it as its first step, also under `--skip-go-checks`. The export
+runner is opt-in Go tests in `tools/umpire/export/tools_test.go` (`UMPIRE_BACKENDS=require`, pinned
+tool versions there); `run.sh`, `UMPIRE_BACKEND_FLAGS` and `--install` are gone, and
+`make umpire-check-backends` is deferred by the owner because it needs P and .NET installed.
+`common/testing/testpilot/campaign/integration_test.go` is removed (its subject is archived), CI no
+longer builds the descriptor set, and `make lint-code` shares `lint-code-fast`'s Go-only patch.
 
 ## Immutable migration goldens
 
 The test-only helper `model/scalav2/goir/internal/golden` moves to
 `tools/umpire/internal/golden`. It admits the fixed twelve-input inventory and the eighteen
-path/twelve source-label substitutions above, with only standard-library, protobuf and IR imports.
+path/twelve source-label substitutions above plus the six fixture renames, with only
+standard-library, protobuf and IR imports.
 No production package imports it. Reader tests and their data move to `tools/umpire/model`;
 lowerer tests and their data move to `tools/umpire/lower`. Task 3 removes the existing legacy
 oracle edges that currently bring Testpilot into the reader's test graph. The new reader golden
@@ -219,13 +238,12 @@ rejects any existing destination. Run captures sequentially,
 using separate new absolute directories whose parents exist:
 
 ```sh
-CC=/usr/bin/clang mise exec -- go test -tags test_dep ./model/scalav2/goir -run '^TestCaptureMigrationGoldens$' -count=1 -args -capture-goldens=/absolute/new-reader-capture
-CC=/usr/bin/clang mise exec -- go test -tags test_dep ./model/scalav2/goir/testpilot -run '^TestCaptureMigrationGoldens$' -count=1 -args -capture-goldens=/absolute/new-artifact-capture
-CC=/usr/bin/clang mise exec -- go test -tags test_dep ./model/scalav2/goir/...
+CC=/usr/bin/clang mise exec -- go test -tags test_dep ./tools/umpire/model -run '^TestCaptureMigrationGoldens$' -count=1 -args -capture-goldens=/absolute/new-reader-capture
+CC=/usr/bin/clang mise exec -- go test -tags test_dep ./tools/umpire/lower -run '^TestCaptureMigrationGoldens$' -count=1 -args -capture-goldens=/absolute/new-artifact-capture
+CC=/usr/bin/clang mise exec -- go test -tags test_dep ./tools/umpire/model/... ./tools/umpire/lower/...
 ```
 
-After relocation, use `./tools/umpire/model` and `./tools/umpire/lower` for their respective
-capture and verification commands. The captured original evidence stays immutable when the
+The commands name the packages at their current locations. The captured original evidence stays immutable when the
 legacy oracles retire; subsequent capture generators must preserve those original inputs and
 relationships through admitted IR when each old constructor retires. Task 3 replaces the Nexus
 handwritten Model oracle; generic job-only checker builders remain until task 5 copies the producer
@@ -237,15 +255,16 @@ Read one Contract without rewriting or expanding the whole baseline:
 python3 - <<'INSPECT'
 import gzip, json
 from pathlib import Path
-root = Path('model/scalav2/goir/testpilot/testdata/migration')
+root = Path('tools/umpire/lower/testdata/migration')
 path = next(root.glob('original/ir/nexus-caller.json/queries/*/contract.json.gz'))
 print(path)
 print(json.dumps(json.loads(gzip.decompress(path.read_bytes())), indent=2))
 INSPECT
 ```
 
-After relocation the inspection root is `tools/umpire/lower/testdata/migration`. Keep the narrow
-Git ignore exceptions with both fixture trees and reject missing or additional baseline entries.
+After relocation the inspection root is `tools/umpire/lower/testdata/migration`. Reject missing or
+additional baseline entries. Task 12 removed the branch's blanket `testdata/` ignore rule and its
+exceptions, so fixture trees need no ignore exception.
 
 ## Scala layout and commands
 
@@ -284,7 +303,20 @@ work; no example or UI is implemented here. Root lists keep their present meanin
 | `make canary-build` and other live canary build/run targets | Preserve production canary build and existing operator interfaces. |
 | `make umpire-rerecord-pinned-runs` | Remains an explicit operator action targeting current live fixture identities; never runs automatically as part of this migration or ordinary tests. |
 
-During task6, the renamed model Make entrypoints use the relocated shell gate until task10.
+Since task 10 the model Make entrypoints run the Scala gate at `model/gate`, preceded by the gate's
+own test suite. The lifter's `project.scala` compiles `gate/Tools.scala` so the lifter's tests share
+the gate's process seam; scala-cli has no test-scoped file directive, so this one test-time
+dependency of the lifter on the gate is a recorded exception. The lifter suite rewrites its expected
+files only when the gate passes `UMPIRE_LIFTER_UPDATE`.
+
+Since task 14 the lifter's fixtures are plain `.scala` files in `model/lifter/testdata`, which
+`//> using exclude` keeps out of the lifter's build; the tests copy a fixture to scratch before
+building it. Scalafmt checks the fixtures except five `lifts` sources (Admission, Channels,
+CloseReset, Realizations, Rejects): formatting them moves recorded positions, so fn-113 formats them
+once its golden comparison projects positions by file. Scalafix runs on `testdata/lifts` as its own
+root with all rules (`-Werror:false`, because the unused parameters it keeps are fixture content);
+the refusal fixtures `unsupported`, `werror` and `crossed` stay outside it. `lint-model` and
+`fix-model` depend on `model/gen/model-scala.jar`, packaged by the gate's command.
 A documented `--skip-go-checks` option may omit only its embedded Go test invocation when combined
 verification runs the complete live Go suite separately with `test_dep`; default invocation still
 runs Go checks. Record the check/update commands and that covering suite together. Scala checks,
@@ -362,7 +394,10 @@ this temporary command exception; final main-module checks have no such skip.
 ## Exact artifacts and fixture compatibility
 
 Only the eighteen observed source paths and twelve exact Model source labels in the manifest may
-change in their typed fields. Preserve every line and column; historical-attribution removal leaves
+change in their typed fields, plus the six lifter fixture renames of task 14 (`*.scala.fixture` to
+`*.scala`), which the golden helper applies as a separate exact `source_path_renames` list to the
+current IR only; the frozen mapped goldens keep the captured `.scala.fixture` spelling in their
+derived digests and Case IDs. Preserve every line and column; historical-attribution removal leaves
 blank lines where necessary. New, unexpected source strings fail migration verification rather than
 being accepted by a generic prefix normalizer. The six checked Models and six expected fixture IR
 files form the initial IR inventory; all their Queries and unsupported standings enter task 2's
@@ -404,6 +439,19 @@ negative Cases additionally cannot be emitted by legitimate lowering because the
 the test. Their current hashes, adjacent expectations and archived renderer arguments preserve
 inspectable mutation provenance. Task 11 does not invent a negative-fixture authoring language or
 replace them with unrelated successful Queries. Ordinary tests keep using these retained files.
+
+Task 11 executed this inventory: eight functional Cases and the canary pin are lowered from the Scala
+model, and the 22 exceptions keep their bytes. `umpire-gen-cases --kind model|functional|canary`
+writes three managed trees (`model/cases`, `tests/testcore/testpilot/testdata/generated`,
+`tools/canary/casebinding/testdata`); a pinned Case is its `model/cases` file byte for byte, selected
+by `lower.SelectCases`. `make umpire-gen-fixtures`/`umpire-check-fixtures` and
+`canary-gen-case`/`canary-check-case` are the entry points. After a Model change the order is
+`umpire-gen-model`, `umpire-gen-fixtures`, then `canary-gen-case` with the policy `caseIdentity` and a
+new canary record. The control's pinned-run entry still names the historical record; re-recording it
+requires changing the companion, `controlProfile`, `controlKey` and the receipt goldens together.
+Recorded R22 gap: a Property phase clause lowers to no `STATE` rule (only whole-state equality
+does), so the legacy control rule `state-succeeded` has no lowered counterpart. Per-fixture results
+are in the manifest's `fixtures[].result` and `fixture_migration`.
 
 All subsequent tasks run the task-2 golden and relevant consumer checks. Closing checks compare gate
 outputs against the dirty authorized baseline, include existing production/test import directions,

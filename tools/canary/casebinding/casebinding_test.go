@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -39,7 +41,7 @@ func TestBindPreparesThePinnedCase(t *testing.T) {
 
 	bound, err := Bind(canary, testEnvironment)
 	require.NoError(t, err)
-	require.Equal(t, "temporal.case.nexusCallerCanary.syncCompletion", bound.Source.GetCaseId())
+	require.Equal(t, "temporal.case.scala.nexus-caller.syncCompletion", bound.Source.GetCaseId())
 	prepared := bound.Prepared.Identity()
 	require.Equal(t, canary.CaseProfile, prepared.Profile, "the Profile name is the policy's, whatever the environment names")
 	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
@@ -100,6 +102,54 @@ func TestThePinnedCaseStaysOnThePublicSurface(t *testing.T) {
 	require.NotContains(t, profile.Opcodes, testpilot.NexusOperationCompletion)
 	require.Equal(t, []enumspb.CommandType{enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION}, profile.CommandTypes)
 	require.NotEmpty(t, source.GetContract().GetCorrelated().GetRules(), "the Contract decides from correlated public observations")
+}
+
+// The pinned Case needs every capability the hand-authored Profile grants: without any one opcode,
+// the command type, either method, a role or a ceiling the Program reaches, it is refused at
+// preparation. Preparation reads no Driver, so a Case the credential may not run is refused before
+// any connection, and admitting the pinned Case took no grant beyond the literals above.
+func TestThePinnedCaseIsRefusedWithoutAnyOneGrant(t *testing.T) {
+	source := mustSource(t)
+	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	granted := func() testpilot.ProfileSpec { return ProfileSpec(committed(t), catalog, testEnvironment).Snapshot() }
+	_, err = testpilot.Prepare(source, granted())
+	require.NoError(t, err)
+
+	narrowed := map[string]testpilot.ProfileSpec{}
+	for index, opcode := range granted().Opcodes {
+		profile := granted()
+		profile.Opcodes = slices.Delete(profile.Opcodes, index, index+1)
+		narrowed[fmt.Sprintf("opcode %v", opcode)] = profile
+	}
+	for index, method := range granted().Roles[0].Methods {
+		profile := granted()
+		profile.Roles[0].Methods = slices.Delete(profile.Roles[0].Methods, index, index+1)
+		narrowed["method "+method] = profile
+	}
+	for index, role := range granted().Roles {
+		profile := granted()
+		profile.Roles = slices.Delete(profile.Roles, index, index+1)
+		narrowed["role "+role.ID] = profile
+	}
+	commands := granted()
+	commands.CommandTypes = nil
+	narrowed["the command type"] = commands
+	handlers := granted()
+	handlers.Roles[0].ReservationCarriers[0].Shapes = handlers.Roles[0].ReservationCarriers[0].Shapes[:1]
+	narrowed["the Nexus handler reservation"] = handlers
+	entrypoints := granted()
+	entrypoints.ProgramLimits.MaxEntrypoints = int64(len(source.GetProgram().GetEntrypoints()) - 1)
+	narrowed["the entrypoint ceiling"] = entrypoints
+
+	for name, profile := range narrowed {
+		t.Run(name, func(t *testing.T) {
+			prepared, err := testpilot.Prepare(source, profile)
+			var rejection *testpilot.PreparationError
+			require.ErrorAs(t, err, &rejection)
+			require.Nil(t, prepared)
+		})
+	}
 }
 
 // A Case other than the policy's refuses before anything is prepared: a policy naming another

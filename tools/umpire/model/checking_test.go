@@ -1,6 +1,6 @@
 package model
 
-// The admitted IR bound to model/go's checker: every expectation here is worked out by hand from the
+// The admitted IR bound to the reader's private checker: every expectation here is worked out by hand from the
 // fixture's Scala source or from a small counter Model built below, and each control is one mutation
 // of a Model that otherwise checks.
 

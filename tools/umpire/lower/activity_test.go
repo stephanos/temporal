@@ -2,8 +2,8 @@ package lower
 
 // An activity's script, the evidence a realization declares beyond a kind and a source, and what the
 // standalone activity Model's own realization declares. The fixtures are in
-// model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture; the activity realization is
-// model/scalav2/scala/temporal/standaloneactivity/Realization.scala, and its Cases are in
+// model/lifter/testdata/lifts/Realizations.scala; the activity realization is
+// model/temporal/standaloneactivity/Realization.scala, and its Cases are in
 // activity_cases_test.go.
 
 import (
@@ -64,7 +64,7 @@ func role(t *testing.T, c *testpilotspb.Case, kind testpilotspb.RoleKind) *testp
 }
 
 // The errand's path is a start, a delivery, a failed attempt, a second delivery and a completed
-// attempt (Realizations.scala.fixture, retriedOnce). Its Case is read off the fixture: the controller
+// attempt (Realizations.scala, retriedOnce). Its Case is read off the fixture: the controller
 // starts the activity and polls the two listings; the activity entrypoint holds the path's two answers
 // in order, the failing one as an attempt failure and never as a result; a delivery is the activation
 // and has no instruction. The start names the namespace and the task queue by the bindings of the roles
@@ -242,7 +242,7 @@ func TestAnActivityScriptAnswersItsAttempts(t *testing.T) {
 	}
 }
 
-// The tally declares a field its evidence carries without its value (Realizations.scala.fixture,
+// The tally declares a field its evidence carries without its value (Realizations.scala,
 // `identity`). A lift reads a value for every field its evidence declares, so no Case carries a field
 // without one: the field is named where it was written, as a limit no task owns, and no Case is built
 // around it. What the tally declares beside it, evidence read from one message, the fields it keeps
@@ -501,7 +501,7 @@ func TestTheActivityRealizationPollsNoTransientState(t *testing.T) {
 	// report of an activation the start call carries, declared the record of one numbered attempt of the
 	// activity's script, where a delivery was made: its delivery is not empty. Each is keyed by the run. No guard and no field
 	// reads what the worker then offered. What the guard admits is tested where it is evaluated
-	// (goir/conformance, TestOnlyADeliveredAttemptIsEvidenceOfAnAttemptStart).
+	// (tools/umpire/conformance, TestOnlyADeliveredAttemptIsEvidenceOfAnAttemptStart).
 	//
 	// Each kind that could confirm more steps than one names the ones it does: the first attempt's
 	// record the first attempt start; the second attempt's the failure the server retried and the second
@@ -659,7 +659,7 @@ func TestAnUnsupportedCommandBlocksOnlyTheQueriesWhosePathTakesIt(t *testing.T) 
 }
 
 // A path that answers its attempt as canceled lowers, the answer as the instruction of that name
-// (Realizations.scala.fixture, canceledOnce), and the inventory of a path that does not take it
+// (Realizations.scala, canceledOnce), and the inventory of a path that does not take it
 // accounts for the command as one its path does not perform. The errand's machine has no step that
 // requests a cancellation, so nothing in its Case asks the server to cancel: what a Run of it would do
 // is the Scenario's to say, and no concern of how a command is lowered.
@@ -693,7 +693,7 @@ func TestACanceledAnswerLowersToItsInstruction(t *testing.T) {
 
 // A path that ends in a step nothing confirms is an error, however many classes it takes again: the
 // retry's path with a worker stop after its last step ends in a step that records nothing evidence
-// names, which no later step confirms (caseproducer's evidence.action-unmapped). The producer reads
+// names, which no later step confirms (the producer's evidence.action-unmapped). The producer reads
 // such a path whole now, so the refusal is its own.
 func TestAPathThatEndsInAStepNothingConfirmsIsAnError(t *testing.T) {
 	m := loaded(t, "activity")

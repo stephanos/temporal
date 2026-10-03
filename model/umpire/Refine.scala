@@ -65,7 +65,7 @@ final case class RefinementRow(key: String, product: Option[String])
 
 object Refinement:
   /**
-   * The declared refinement, checked under the rule `Umpire.Command.deriveRefinement` applies:
+   * The declared refinement, checked under this rule:
    * every outcome reads as a product outcome of the same name; every start reads as a product
    * start; and every row result is carried by a product row from the mapped source that reaches
    * the mapped target with the same outcome and whose facts all appear among the result's facts,
@@ -155,8 +155,8 @@ object Refinement:
     sameNamedKey(dst.actions, row.action).filter(carriers.contains).orElse(carriers.headOption)
 
   /**
-   * The product key a key names by default: the same key, or the constructor it applies
-   * (`Umpire.Command.sameNamedKey`).
+   * The product key a key names by default: the same key, or the constructor it
+   * applies.
    */
   def sameNamedKey(product: Vector[String], key: String): Option[String] =
     if product.contains(key) then Some(key)

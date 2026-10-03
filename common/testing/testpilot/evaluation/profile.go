@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-// The Profiles Lean declares, rendered by `make umpire-gen-evaluation-profiles`. They ship with the
+// The Evaluation Profiles: checked-in configuration data that no live target renders. They ship with the
 // command, so they live beside the code rather than under testdata.
 //
 //go:embed profiles/*.json

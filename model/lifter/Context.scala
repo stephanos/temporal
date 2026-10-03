@@ -87,8 +87,7 @@ final private[lift] class Context(using val quotes: Quotes)(
   // TASTy records a source path relative to the build that compiled it; the prefix makes it
   // relative to the repository. A tree the lifter builds itself, such as the block left after a
   // `require`, has no span.
-  // The prefix is the one of the jar the source came from; one with `%s` in it names the stored
-  // file the build-relative path stands in for, such as a fixture materialized for its build.
+  // The prefix is the one of the jar the source came from.
   def pos(t: Tree): ir.Position = scala.util
     .Try {
       val p = t.pos
@@ -96,7 +95,7 @@ final private[lift] class Context(using val quotes: Quotes)(
       val prefix = sourceRoots.getOrElse(path, "")
       ir.Position
         .newBuilder()
-        .setFile(if prefix.contains("%s") then prefix.replace("%s", path) else prefix + path)
+        .setFile(prefix + path)
         .setLine(p.startLine + 1)
         .build()
     }

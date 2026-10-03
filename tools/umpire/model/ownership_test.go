@@ -6,6 +6,8 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -51,9 +53,18 @@ func TestCheckerAndProducerHaveOneLiveOwner(t *testing.T) {
 	}))
 }
 
-func modelImportProblem(file, imported string) string {
+// modelImportProblem says why file may not import imported, or "" when it may. external is whether
+// file declares an external test package, the only place the lowerer may reach the modules that
+// consume its Cases.
+func modelImportProblem(file string, external bool, imported string) string {
 	const module = "go.temporal.io/server/"
+	test := strings.HasSuffix(file, "_test.go")
+	support := strings.HasPrefix(file, "tools/umpire/internal/golden/")
 	if !strings.HasPrefix(imported, module) {
+		// A first element without a dot is the standard library.
+		if support && !test && strings.Contains(strings.Split(imported, "/")[0], ".") && !strings.HasPrefix(imported, "google.golang.org/protobuf/") {
+			return "golden support imports more than the IR, protobuf and the standard library"
+		}
 		return ""
 	}
 	name := strings.TrimPrefix(imported, module)
@@ -68,7 +79,9 @@ func modelImportProblem(file, imported string) string {
 	}
 	part := strings.TrimPrefix(file, "tools/umpire/")
 	owner := strings.Split(part, "/")[0]
-	test := strings.HasSuffix(file, "_test.go")
+	if support && name != "api/umpire/v1" && name != "tools/umpire/internal/golden" {
+		return "golden support imports more than the IR, protobuf and the standard library"
+	}
 	if strings.HasPrefix(name, "tools/umpire/model/internal/checker") && owner != "model" {
 		return "checker is private to reader"
 	}
@@ -77,6 +90,9 @@ func modelImportProblem(file, imported string) string {
 	}
 	if name == "tools/umpire/internal/golden" && !test {
 		return "golden support is test-only"
+	}
+	if name == "common/testing/testpilot" && owner == "internal" {
+		return "unapproved Testpilot helper dependency"
 	}
 	if strings.HasPrefix(name, "common/testing/testpilot/") && owner != "cmd" {
 		helper := strings.TrimPrefix(name, "common/testing/testpilot/")
@@ -87,7 +103,9 @@ func modelImportProblem(file, imported string) string {
 		case "internal":
 			allowed = strings.HasPrefix(part, "internal/cli/") && helper == "publish"
 		case "lower":
-			allowed = test && !strings.Contains(part, "/internal/") && (helper == "temporal" || helper == "recordedrun")
+			// The lowerer's own tests admit a lowered Case under the Driver's catalog; only its
+			// external test package follows a Case into a recorded Run.
+			allowed = test && !strings.Contains(part, "/internal/") && (helper == "temporal" || external && helper == "recordedrun")
 		case "conformance":
 			allowed = test && (helper == "temporal" || helper == "temporal/control")
 		default:
@@ -111,7 +129,7 @@ func modelImportProblem(file, imported string) string {
 		}
 		allowed := map[string][]string{"lower": {"model"}, "conformance": {"model"}, "export": {"model"}, "explore": {"model", "lower"}, "model": {}}
 		if test {
-			if owner == "lower" && !strings.Contains(part, "/internal/") {
+			if owner == "lower" && external && !strings.Contains(part, "/internal/") {
 				allowed[owner] = append(allowed[owner], "explore", "conformance")
 			}
 			if owner == "conformance" {
@@ -139,7 +157,21 @@ func TestLiveModelDependencyGraph(t *testing.T) {
 	}
 	require.NoDirExists(t, filepath.Join(root, "model", "scalav2"))
 	scanned := 0
-	require.NoError(t, filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
+	require.NoError(t, liveGoFiles(root, func(rel, pkg string, imports []string) {
+		require.False(t, strings.HasPrefix(rel, "model/"), "Go source inside model: %s", rel)
+		scanned++
+		for _, imported := range imports {
+			require.Empty(t, modelImportProblem(rel, strings.HasSuffix(pkg, "_test"), imported), "%s imports %s", rel, imported)
+		}
+	}))
+	require.Greater(t, scanned, 100)
+}
+
+// liveGoFiles visits every Go file the main module builds, by its path from root, with the package
+// it declares and what it imports. A directory with a go.mod of its own is another module, which is
+// how the archives leave the build.
+func liveGoFiles(root string, visit func(rel, pkg string, imports []string)) error {
+	return filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -148,7 +180,8 @@ func TestLiveModelDependencyGraph(t *testing.T) {
 			return err
 		}
 		if entry.IsDir() {
-			if rel != "." && (strings.HasPrefix(entry.Name(), ".") || entry.Name() == "gen" || entry.Name() == "vendor") {
+			// model/gen is the Scala build's output; generated Go elsewhere is live code.
+			if rel != "." && (strings.HasPrefix(entry.Name(), ".") || filepath.ToSlash(rel) == "model/gen" || entry.Name() == "vendor") {
 				return filepath.SkipDir
 			}
 			if rel != "." {
@@ -161,50 +194,180 @@ func TestLiveModelDependencyGraph(t *testing.T) {
 		if !strings.HasSuffix(path, ".go") {
 			return nil
 		}
-		require.False(t, strings.HasPrefix(filepath.ToSlash(rel), "model/"), "Go source inside model: %s", rel)
 		parsed, err := parser.ParseFile(token.NewFileSet(), path, nil, parser.ImportsOnly)
 		if err != nil {
 			return err
 		}
-		scanned++
+		imports := make([]string, 0, len(parsed.Imports))
 		for _, item := range parsed.Imports {
 			imported, err := strconv.Unquote(item.Path.Value)
 			if err != nil {
 				return err
 			}
-			require.Empty(t, modelImportProblem(filepath.ToSlash(rel), imported), "%s imports %s", rel, imported)
+			imports = append(imports, imported)
 		}
+		visit(filepath.ToSlash(rel), parsed.Name.Name, imports)
 		return nil
+	})
+}
+
+// toolingCallerProblem says why the package in directory has no caller, or "" when it has one: a
+// live file outside the directory imports it, or the text of the Makefile and the CI workflow names
+// the directory itself in a line that is no comment. A command is called only by being run.
+func toolingCallerProblem(directory, name string, importers []string, commands string) string {
+	commands = regexp.MustCompile(`(?m)^\s*#.*$`).ReplaceAllString(commands, "")
+	run := regexp.MustCompile(`\./` + regexp.QuoteMeta(directory) + `/?(?:\s|$)`).MatchString(commands)
+	switch {
+	case run:
+		return ""
+	case name == "main":
+		return "no Makefile target or CI step runs the command"
+	case len(importers) == 0:
+		return "no live file imports the package and no Makefile target or CI step runs it"
+	default:
+		return ""
+	}
+}
+
+func TestEveryToolingPackageHasALiveCaller(t *testing.T) {
+	root, err := golden.Root()
+	require.NoError(t, err)
+	var commands strings.Builder
+	for _, file := range []string{"Makefile", ".github/workflows/umpire.yml"} {
+		text, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(file)))
+		require.NoError(t, err)
+		commands.Write(text)
+	}
+	const tooling, module = "tools/umpire/", "go.temporal.io/server/"
+	packages := map[string]string{}
+	importers := map[string][]string{}
+	require.NoError(t, liveGoFiles(root, func(rel, pkg string, imports []string) {
+		directory := filepath.ToSlash(filepath.Dir(rel))
+		if strings.HasPrefix(rel, tooling) && !strings.HasSuffix(rel, "_test.go") {
+			packages[directory] = pkg
+		}
+		for _, imported := range imports {
+			if dependency := strings.TrimPrefix(imported, module); strings.HasPrefix(dependency, tooling) && dependency != directory {
+				importers[dependency] = append(importers[dependency], rel)
+			}
+		}
 	}))
-	require.Greater(t, scanned, 100)
+	require.Greater(t, len(packages), 10)
+	var problems []string
+	for directory, name := range packages {
+		if problem := toolingCallerProblem(directory, name, importers[directory], commands.String()); problem != "" {
+			problems = append(problems, directory+": "+problem)
+		}
+	}
+	slices.Sort(problems)
+	require.Empty(t, problems)
+}
+
+func TestToolingCallerProblemRejectsAnUncalledPackage(t *testing.T) {
+	commands := "\tgo build -o ./.build/umpire-run ./tools/umpire/cmd/umpire-run\n\tgo test ./tools/umpire/export -run X\n\tgo test ./tools/umpire/...\n" +
+		"# formerly: go run ./tools/umpire/cmd/umpire-retired\n      # - run: go test ./tools/umpire/retired\n"
+	for _, test := range []struct {
+		directory, name string
+		importers       []string
+		called          bool
+	}{
+		{directory: "tools/umpire/lower", name: "lower", importers: []string{"tools/umpire/explore/explore.go"}, called: true},
+		{directory: "tools/umpire/internal/golden", name: "golden", importers: []string{"tools/umpire/model/load_test.go"}, called: true},
+		{directory: "tools/umpire/export", name: "export", called: true},
+		{directory: "tools/umpire/cmd/umpire-run", name: "main", called: true},
+		{directory: "tools/umpire/unused", name: "unused"},
+		{directory: "tools/umpire/cmd/umpire-old", name: "main"},
+		// A command is run, not imported, and a prefix of a name that is run is another command.
+		{directory: "tools/umpire/cmd/umpire", name: "main", importers: []string{"tests/testpilot_test.go"}},
+		{directory: "tools/umpire/cmd", name: "main"},
+		// A comment of the Makefile or the workflow runs nothing.
+		{directory: "tools/umpire/cmd/umpire-retired", name: "main"},
+		{directory: "tools/umpire/retired", name: "retired"},
+	} {
+		t.Run(test.directory, func(t *testing.T) {
+			problem := toolingCallerProblem(test.directory, test.name, test.importers, commands)
+			require.Equal(t, test.called, problem == "", problem)
+		})
+	}
 }
 
 func TestModelDependencyGraphRejectsCrossedOwners(t *testing.T) {
+	const module = "go.temporal.io/server/"
 	for _, test := range []struct {
 		file, dependency string
+		external         bool
 		allowed          bool
 	}{
-		{"tools/umpire/model/load.go", "api/umpire/v1", true},
-		{"tools/umpire/model/load.go", "api/testpilot/v1", false},
-		{"tools/umpire/model/load_test.go", "common/testing/testpilot", false},
-		{"tools/umpire/model/internal/checker/table.go", "tools/umpire/model", false},
-		{"tools/umpire/lower/internal/producer/producer.go", "tools/umpire/model/internal/checker", false},
-		{"tools/umpire/lower/internal/producer/producer.go", "tools/umpire/model", true},
-		{"tools/umpire/lower/lower.go", "tools/umpire/explore", false},
-		{"tools/umpire/lower/migration_test.go", "tools/umpire/explore", true},
-		{"tools/umpire/conformance/conformance.go", "tools/umpire/lower", false},
-		{"tools/umpire/export/export.go", "common/testing/testpilot", false},
-		{"tools/umpire/lower/lower.go", "common/testing/testpilot/campaign", false},
-		{"tools/umpire/lower/internal/producer/producer_test.go", "common/testing/testpilot/recordedrun", false},
-		{"tools/umpire/explore/explore.go", "common/testing/testpilot/temporal", false},
-		{"tools/umpire/internal/cli/cli.go", "tools/umpire/internal/golden", false},
-		{"tools/umpire/explore/explore.go", "tools/umpire/lower", true},
-		{"tools/umpire/cmd/x/main_test.go", "tests/testcore/testpilot", false},
-		{"tools/umpire/model/load.go", "model0/go/umpire", false},
-		{"tests/testcore/testpilot/case.go", "tools/umpire0/recordedrun", false},
+		{file: "tools/umpire/model/load.go", dependency: module + "api/umpire/v1", allowed: true},
+		{file: "tools/umpire/model/load.go", dependency: module + "api/testpilot/v1"},
+		{file: "tools/umpire/model/load_test.go", dependency: module + "common/testing/testpilot"},
+		{file: "tools/umpire/model/load_test.go", dependency: module + "common/testing/testpilot", external: true},
+		{file: "tools/umpire/model/load.go", dependency: module + "tools/umpire/lower"},
+		{file: "tools/umpire/model/internal/checker/table.go", dependency: module + "tools/umpire/model"},
+		{file: "tools/umpire/lower/internal/producer/producer.go", dependency: module + "tools/umpire/model/internal/checker"},
+		{file: "tools/umpire/lower/internal/producer/producer.go", dependency: module + "tools/umpire/model", allowed: true},
+		{file: "tools/umpire/lower/lower.go", dependency: module + "common/testing/testpilot", allowed: true},
+		{file: "tools/umpire/lower/lower.go", dependency: module + "tools/umpire/explore"},
+		{file: "tools/umpire/lower/lower.go", dependency: module + "tools/umpire/conformance"},
+		{file: "tools/umpire/lower/lower.go", dependency: module + "common/testing/testpilot/recordedrun"},
+		{file: "tools/umpire/lower/lower.go", dependency: module + "common/testing/testpilot/temporal"},
+		{file: "tools/umpire/lower/lower.go", dependency: module + "common/testing/testpilot/campaign"},
+		{file: "tools/umpire/lower/migration_test.go", dependency: module + "tools/umpire/explore", external: true, allowed: true},
+		{file: "tools/umpire/lower/migration_test.go", dependency: module + "tools/umpire/conformance", external: true, allowed: true},
+		{file: "tools/umpire/lower/migration_test.go", dependency: module + "common/testing/testpilot/recordedrun", external: true, allowed: true},
+		{file: "tools/umpire/lower/lower_test.go", dependency: module + "tools/umpire/explore"},
+		{file: "tools/umpire/lower/lower_test.go", dependency: module + "tools/umpire/conformance"},
+		{file: "tools/umpire/lower/lower_test.go", dependency: module + "common/testing/testpilot/recordedrun"},
+		{file: "tools/umpire/lower/lower_test.go", dependency: module + "common/testing/testpilot/temporal", allowed: true},
+		{file: "tools/umpire/lower/migration_test.go", dependency: module + "common/testing/testpilot/campaign", external: true},
+		{file: "tools/umpire/lower/internal/producer/producer_test.go", dependency: module + "common/testing/testpilot/recordedrun"},
+		{file: "tools/umpire/lower/internal/producer/producer_test.go", dependency: module + "common/testing/testpilot/recordedrun", external: true},
+		{file: "tools/umpire/lower/internal/producer/producer_test.go", dependency: module + "tools/umpire/explore", external: true},
+		{file: "tools/umpire/conformance/conformance.go", dependency: module + "tools/umpire/lower"},
+		{file: "tools/umpire/conformance/conformance_test.go", dependency: module + "tools/umpire/lower", allowed: true},
+		{file: "tools/umpire/conformance/conformance.go", dependency: module + "tools/umpire/explore"},
+		{file: "tools/umpire/export/export.go", dependency: module + "tools/umpire/model", allowed: true},
+		{file: "tools/umpire/export/export.go", dependency: module + "api/umpire/v1", allowed: true},
+		{file: "tools/umpire/export/export.go", dependency: module + "common/testing/testpilot"},
+		{file: "tools/umpire/export/export.go", dependency: module + "api/testpilot/v1"},
+		{file: "tools/umpire/export/export.go", dependency: module + "tools/umpire/lower"},
+		{file: "tools/umpire/export/export_test.go", dependency: module + "tools/umpire/conformance"},
+		{file: "tools/umpire/export/export_test.go", dependency: module + "common/testing/testpilot/recordedrun"},
+		{file: "tools/umpire/explore/explore.go", dependency: module + "common/testing/testpilot/temporal"},
+		{file: "tools/umpire/explore/explore.go", dependency: module + "tools/umpire/lower", allowed: true},
+		{file: "tools/umpire/explore/explore.go", dependency: module + "tools/umpire/model", allowed: true},
+		{file: "tools/umpire/explore/explore.go", dependency: module + "common/testing/testpilot/campaign", allowed: true},
+		{file: "tools/umpire/explore/explore.go", dependency: module + "common/testing/testpilot/replay", allowed: true},
+		{file: "tools/umpire/explore/explore.go", dependency: module + "common/testing/testpilot/recordedrun", allowed: true},
+		{file: "tools/umpire/explore/explore.go", dependency: module + "common/testing/testpilot/evaluation"},
+		{file: "tools/umpire/explore/explore.go", dependency: module + "tools/umpire/conformance"},
+		{file: "tools/umpire/explore/explore.go", dependency: module + "tools/umpire/export"},
+		{file: "tools/umpire/internal/cli/cli.go", dependency: module + "tools/umpire/internal/golden"},
+		{file: "tools/umpire/internal/cli/cli.go", dependency: module + "common/testing/testpilot"},
+		{file: "tools/umpire/cmd/x/main.go", dependency: module + "tools/umpire/internal/golden"},
+		{file: "tools/umpire/cmd/x/main_test.go", dependency: module + "tools/umpire/internal/golden", allowed: true},
+		{file: "tools/umpire/model/load_test.go", dependency: module + "tools/umpire/internal/golden", allowed: true},
+		{file: "tools/umpire/internal/golden/golden.go", dependency: module + "api/umpire/v1", allowed: true},
+		{file: "tools/umpire/internal/golden/golden.go", dependency: "google.golang.org/protobuf/proto", allowed: true},
+		{file: "tools/umpire/internal/golden/golden.go", dependency: "encoding/json", allowed: true},
+		{file: "tools/umpire/internal/golden/golden.go", dependency: "github.com/stretchr/testify/require"},
+		{file: "tools/umpire/internal/golden/golden_test.go", dependency: "github.com/stretchr/testify/require", allowed: true},
+		{file: "tools/umpire/internal/golden/golden.go", dependency: module + "tools/umpire/model"},
+		{file: "tools/umpire/internal/golden/golden_test.go", dependency: module + "tools/umpire/model"},
+		{file: "tools/umpire/internal/golden/golden.go", dependency: module + "api/testpilot/v1"},
+		{file: "tools/umpire/internal/golden/golden.go", dependency: module + "common/testing/testpilot"},
+		{file: "tools/umpire/internal/golden/golden.go", dependency: module + "common/log"},
+		{file: "tools/umpire/cmd/x/main_test.go", dependency: module + "tests/testcore/testpilot"},
+		{file: "tools/umpire/model/load.go", dependency: module + "model0/go/umpire"},
+		{file: "tools/umpire/model/load.go", dependency: module + "tools/umpire0/model"},
+		{file: "tests/testcore/testpilot/case.go", dependency: module + "tools/umpire0/recordedrun"},
+		{file: "tests/testpilot_case_test.go", dependency: module + "model0/go/umpire"},
+		{file: "tools/canary/policy/policy.go", dependency: module + "tools/umpire0/evaluation"},
+		{file: "service/history/handler.go", dependency: module + "model/go/umpire"},
 	} {
 		t.Run(test.file+"->"+test.dependency, func(t *testing.T) {
-			require.Equal(t, test.allowed, modelImportProblem(test.file, "go.temporal.io/server/"+test.dependency) == "")
+			problem := modelImportProblem(test.file, test.external, test.dependency)
+			require.Equal(t, test.allowed, problem == "", problem)
 		})
 	}
 }

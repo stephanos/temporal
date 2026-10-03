@@ -1,6 +1,6 @@
 package lower
 
-// The realizations of model/scalav2/lifter/testdata/lifts/Realizations.scala.fixture, lifted into
+// The realizations of model/lifter/testdata/lifts/Realizations.scala, lifted into
 // expected/realizations.json: a run id one command binds and two branches read, and the activity
 // specimen's held race, which declares what Testpilot cannot run yet.
 
@@ -24,7 +24,7 @@ import (
 
 const (
 	liftsDir       = "model/lifter/testdata/lifts/"
-	realizationsAt = liftsDir + "Realizations.scala.fixture"
+	realizationsAt = liftsDir + "Realizations.scala"
 )
 
 func liftedRealizations(t *testing.T) *umpirespb.Model {

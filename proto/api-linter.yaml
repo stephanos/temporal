@@ -44,3 +44,22 @@
     - 'core::0131::response-message-name'
     - 'core::0135::method-signature'
     - 'core::0135::response-message-name'
+
+# The Umpire IR is the syntax tree of a lifted Model, not a resource API: its fields are the words a
+# Model declares (`from`, `to`, `with`, a type's name, a timeout in milliseconds), and renaming or
+# retyping one would change the schema the checked-in IR is written in.
+- included_paths:
+    - '**/umpire/v1/ir.proto'
+  disabled_rules:
+    - 'core::0122::name-suffix'
+    - 'core::0123::resource-annotation'
+    - 'core::0140::prepositions'
+    - 'core::0140::reserved-words'
+    - 'core::0141::forbidden-types'
+    - 'core::0142::time-field-type'
+
+# A Case names a Model's class and its own local names by the glossary's terms, not resource names.
+- included_paths:
+    - '**/testpilot/v1/case.proto'
+  disabled_rules:
+    - 'core::0122::name-suffix'

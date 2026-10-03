@@ -9,7 +9,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/evaluation"
 )
 
-// The Lean-rendered canary Profile, `make umpire-gen-evaluation-profiles` writes it; the harness's
+// The canary Profile: checked-in configuration data that no live target renders; the harness's
 // Profile lives with the harness build and never here.
 //
 //go:embed profiles/*.json

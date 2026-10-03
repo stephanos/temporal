@@ -40,6 +40,8 @@ func TestCanaryCIKeepsOfflineChecks(t *testing.T) {
 	require.Contains(t, joined, "go test -count=1 -tags 'test_dep canary_harness' ./tools/canary/testharness/")
 	require.Contains(t, joined, "make canary-build")
 	require.Contains(t, joined, "make umpire-check-cases")
+	require.Contains(t, joined, "make umpire-check-fixtures")
+	require.Contains(t, joined, "make canary-check-case")
 	require.NotContains(t, joined, "umpire-canary run")
 	require.NotContains(t, joined, "umpire-canary reconcile")
 }

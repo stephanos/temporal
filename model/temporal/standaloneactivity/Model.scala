@@ -10,8 +10,8 @@
  * of the machines name observations rather than events.
  *
  * Unlike the Nexus caller, the activity has no Stainless kernel: its domains, states and step
- * functions are declared here in ordinary Scala. Ported from .plans/archive/cmp/lean/StandaloneActivity.lean
- * and model/go/standaloneactivity, in their order: vocabulary, the two machines, what they promise,
+ * functions are declared here in ordinary Scala.
+ * They come in this order: vocabulary, the two machines, what they promise,
  * what the set asks.
  */
 package temporal
@@ -44,8 +44,8 @@ enum Timeout derives Finite:
   case unset, expires
 
 /**
- * The worker's answer to an attempt. `canceled` is the worker's canceled answer, spelled the way the
- * Lean constructor is named.
+ * The worker's answer to an attempt. `canceled` is the worker's canceled answer, spelled the way
+ * the Temporal API spells it.
  */
 enum AttemptResult derives Finite:
   case completed
@@ -110,9 +110,9 @@ val workerStop = worker.workerStop
 //
 // A retried attempt writes nothing the caller can see except the attempt count that
 // DescribeActivityExecution reports, so it is the one derived observation. Each status a machine
-// records is an observation of the status field; the Lean sample declares nine observations over
-// that one field and notes the evidence catalog may not accept them. Scala declares them as data and
-// leaves the question to the realization.
+// records is an observation of the status field: nine observations over that one field, which an
+// evidence catalog may not accept as distinct. They are declared here as data, and the question is
+// left to the realization.
 
 val attemptCount: Observation = Observation("attemptCount", activity, "attempt")
 
@@ -259,7 +259,7 @@ val attemptBound: Int = 2
 
 /**
  * The protocol machine's state: 12 phases, 3 attempt counts (`0..attemptBound`) and 3 deadline flags,
- * 288 states, which is past the Lean elaborator's bound of 256.
+ * 288 states.
  */
 final case class ProtocolState(
     phase: Phase,

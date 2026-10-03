@@ -3,11 +3,11 @@
 ## Goal & Context
 <!-- scope: business -->
 
-A Temporal feature developer reads `model/scalav2/scala/temporal/standaloneactivity` to learn how a Model is written. Today the four files (2,247 lines) carry the right behavior and the wrong presentation. A review on 2026-10-01 found six machines that exist only as copies, eight composition scenarios keyed by hand-written strings, 38 lines of identity evidence mapping, about 60 declarations that write their own name twice, and a 412-line realization made of nested IR constructors.
+A Temporal feature developer reads `model/temporal/standaloneactivity` to learn how a Model is written. Today the four files (2,247 lines) carry the right behavior and the wrong presentation. A review on 2026-10-01 found six machines that exist only as copies, eight composition scenarios keyed by hand-written strings, 38 lines of identity evidence mapping, about 60 declarations that write their own name twice, and a 412-line realization made of nested IR constructors.
 
 This spec makes the user-facing Temporal Model read as the best Scala the DSL allows. Everything general-purpose moves behind the `umpire` framework and the lifter. Everything Temporal-specific and shared between features moves into one shared Temporal kit. The Model's behavior does not change.
 
-The reader this spec serves is the feature developer who authors and reviews Models. Framework developers pay the cost in `scala/umpire` and `lifter/Lift.scala`.
+The reader this spec serves is the feature developer who authors and reviews Models. Framework developers pay the cost in `model/umpire` and `model/lifter`.
 
 ## Architecture & Data Models
 <!-- scope: technical -->
@@ -133,7 +133,7 @@ val controller = script(
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
-- **Behavior is frozen.** For every IR file, the Go reader must derive the same tables, Definition IDs, refinement rows, fingerprints and Query answers before and after every task, and the lowering must produce the same Case bytes. The golden set of fn-115 R2 is what proves it. The checked-in IR files may differ only in source positions and in the lifter-internal names of functions that moved into objects or packages. The first task records the exact allowed-difference list and a check that a diff of the IR text stays inside it.
+- **Behavior is frozen.** For every IR file, the Go reader must derive the same tables, Definition IDs, refinement rows, fingerprints and Query answers before and after every task, and the lowering must produce the same Case bytes. The golden set of fn-115 R2 (`tools/umpire/model/testdata/migration`, `tools/umpire/lower/testdata/migration`) is what proves it. The checked-in IR files may differ only in source positions and in the lifter-internal names of functions that moved into objects or packages. The first task records the exact allowed-difference list and a check that a diff of the IR text stays inside it.
 - **Name capture must not change a name.** A captured name equals the string the declaration wrote before. The six Queries whose names are computed (`s"${m.name}.any.terminalStays"`) keep their spelling.
 - **The lifter refuses what it cannot read, at its line.** Each new construct gets a lifter fixture under `lifter/testdata` for the form it lifts and one for the misuse it refuses. Misuses to refuse are `rebind` of an unbound action, `extend` of a bound one, a composition member selector that names no field, and a named input that is no input of the action.
 - **Each construct is built once, in the lifter.** `fn-113-clean-up-the-scala-model-layer-around` retires the native Scala evaluator (its R14 and R15), so a new construct is a typed declaration in `umpire` plus its lifting, with no runtime implementation. This spec depends on fn-113 and starts after it closes.
@@ -142,7 +142,7 @@ val controller = script(
 - **Comments.** A comment that explains a rule moves with the code it describes. A comment whose code is deleted (the second and third copy of a machine) is deleted with it. References to Lean and Stainless are already gone when this spec starts (fn-115 R25, fn-113 R19), and no task brings one back.
 - **Nexus Models keep compiling and lifting.** `temporal/nexuscaller` adopts the shared kit and whatever framework defaults change under it. Its IR obeys the same frozen-behavior rule.
 - **Sequencing.** fn-107 is closed when this spec starts, since fn-115 waits for it and this spec comes after fn-115, fn-113 and fn-117.
-- **Gates.** Each task runs the scoped parts of the model gate, `make lint-scala` and the Go tests of the Umpire tooling. The closing task runs all three in full, `make lint-code-fast`, and the Quint and P export checks where their tools are installed.
+- **Gates.** Each task runs the scoped parts of the model gate, `make lint-model` and the Go tests of the Umpire tooling. The closing task runs all three in full, `make lint-code-fast`, and the Quint and P export checks where their tools are installed.
 
 ## Acceptance Criteria
 <!-- scope: both -->
@@ -163,7 +163,7 @@ val controller = script(
 - **R14:** The dead `enum Delivery` is resolved, and `worker` exports names without the `worker.worker…` stutter. The alias `val workerStop = worker.workerStop` is gone.
 - **R15:** `retryCompletes` distinguishes the second attempt from a later one, or the saturation at `attemptBound` is stated on the Property as a bound of the claim.
 - **R16:** The lifter has one lifting fixture and one refusal fixture for each construct R2, R3, R5, R6, R7 and R9 add, and the lifter's documentation lists the constructs under what is lifted.
-- **R17:** The model gate, `make lint-scala`, the Go tests of the Umpire tooling and `make lint-code-fast` pass at the closing task, and the feature Model is at most 1,600 lines across its files (2,247 today). No per-file size limit applies.
+- **R17:** The model gate, `make lint-model`, the Go tests of the Umpire tooling and `make lint-code-fast` pass at the closing task, and the feature Model is at most 1,600 lines across its files (2,247 today). No per-file size limit applies.
 - **R18:** The feature Model's string literals are counted when this spec starts and when it closes. It had 514 on 2026-10-01: about 148 repeat a declaration's own name, 125 are composition member, sync and action keys, 59 are Temporal API names and paths, which fn-117 removes before this spec starts, 37 are evidence lines, and most of the rest are realization ids and references to them. After this spec a string literal is one of three things: prose a view shows (`because`, an example label), an id the IR needs as text and that no `val` name supplies, written once on its declaration, or a name a declaration states because it differs from its `val`. The target is at most 60. Errors: a literal outside those three is listed with its line and the reason it stays; the counts in this criterion come from a pattern match over the sources and the task records the exact method it used.
 
 ## Boundaries
@@ -173,8 +173,8 @@ val controller = script(
 - No IR schema change unless a task proves one is required, and then only by amending this spec.
 - No polish of `temporal/nexuscaller` beyond R12 and what the framework changes force.
 - No change to what the Go reader, the lowering or the exports compute. They change only if the lifter emits a construct they already define differently.
-- No new library for the Models in this spec; they already have the typed Temporal API from `fn-117-type-the-temporal-api-in-the-models`, which this spec's realization helpers are written against. A library in `scala/umpire` or the lifter follows fn-113's R25. Name capture needs neither a library nor a macro: the lifter reads the name from the `val`'s symbol.
-- Defining whether a member's monitors watch a composition is out of scope. `SEMANTICS.md` leaves it undefined and `goir` refuses a Query over such a composition, so `unmonitored` names the workaround once instead.
+- No new library for the Models in this spec; they already have the typed Temporal API from `fn-117-type-the-temporal-api-in-the-models`, which this spec's realization helpers are written against. A library in `model/umpire` or the lifter follows fn-113's R25. Name capture needs neither a library nor a macro: the lifter reads the name from the `val`'s symbol.
+- Defining whether a member's monitors watch a composition is out of scope. `SEMANTICS.md` leaves it undefined and `tools/umpire/model` refuses a Query over such a composition, so `unmonitored` names the workaround once instead.
 - The archives fn-115 creates are untouched.
 
 ## Decision Context

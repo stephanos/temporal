@@ -1,10 +1,7 @@
 package temporal
 package standaloneactivity
-// What the standalone activity Model says, pinned the way .plans/archive/cmp/lean/ActivityPins.lean pins it
-// and model/go/standaloneactivity/pins_test.go translates it. Each assertion cites the Lean pin it
-// translates. That file was never compiled: Lean refuses the 288-state protocol machine, so only its
-// product-machine pins have a Lean answer. Everything else here is Scala's own answer, the same as
-// Go's.
+// What the standalone activity Model says, pinned: the sizes, rows and answers the native evaluator
+// derives from it.
 
 import umpire.*
 
@@ -28,16 +25,16 @@ class StandaloneActivityPins extends munit.FunSuite:
 
   test("the product machine") {
     val t = table(activityProduct)
-    // Nine phases, and the five the design ends on. (ActivityPins.lean:21-22)
+    // Nine phases, and the five the design ends on.
     assertEquals((t.states.size, t.ends.size), (9, 5))
-    // A canceled answer settles only an activity whose cancellation was requested. (:25-26)
+    // A canceled answer settles only an activity whose cancellation was requested.
     assertEquals(attemptResultStep(ProductState(ProductPhase.started), AttemptResult.canceled), Nil)
     assertEquals(
       attemptResultStep(ProductState(ProductPhase.cancelRequested), AttemptResult.canceled)
         .map(_.state.phase),
       List(ProductPhase.canceled)
     )
-    // Unlike the Nexus product, a retry is visible: the caller reads scheduled again. (:29-32)
+    // Unlike the Nexus product, a retry is visible: the caller reads scheduled again.
     assertEquals(
       attemptResultStep(ProductState(ProductPhase.started), AttemptResult.failed(true))
         .map(_.state.phase),
@@ -48,27 +45,25 @@ class StandaloneActivityPins extends munit.FunSuite:
         .map(_.state.phase),
       List(ProductPhase.canceled)
     )
-    // A paused activity is dispatched to no worker: no product row leaves paused for started. (:35-36)
+    // A paused activity is dispatched to no worker: no product row leaves paused for started.
     assertEquals(
       t.rows.filter(_.source == "paused").flatMap(_.results).filter(_.state == "started"),
       Vector.empty
     )
-    // (:40)
     assertEquals(t.stuck, None)
   }
 
   test("the protocol machine") {
     val t = table(activityProtocol)
     val n = attemptBound + 1
-    // Twelve phases, three attempt counts and three deadlines: 288 states, past Lean's bound of 256.
-    // (:51-52)
+    // Twelve phases, three attempt counts and three deadlines: 288 states.
     assertEquals((t.states.size, t.ends.size), (12 * n * 8, 5 * n * 8))
     // Eight start requests, one attempt start, four answers, four controls, the fault and four
-    // timers. (:55)
+    // timers.
     assertEquals(t.actions.size, 8 + 1 + 4 + 4 + 1 + 4)
-    assertEquals(t.starts, Vector(Keys.of(at(Phase.unstarted, 0)))) // (:57)
+    assertEquals(t.starts, Vector(Keys.of(at(Phase.unstarted, 0))))
     // A retryable failure backs the attempt off and is read as scheduled again with the count
-    // raised. (:60-61)
+    // raised.
     assertEquals(
       protocolAttemptResultStep(at(Phase.started, 1), AttemptResult.failed(true)),
       List(
@@ -81,7 +76,7 @@ class StandaloneActivityPins extends munit.FunSuite:
       )
     )
     // Under a cancel request the same failure settles the activity as canceled; under a pause
-    // request it lands in paused. (:64-70)
+    // request it lands in paused.
     assertEquals(
       phases(protocolAttemptResultStep(at(Phase.cancelRequested, 1), AttemptResult.failed(true))),
       List(Phase.canceled)
@@ -90,7 +85,7 @@ class StandaloneActivityPins extends munit.FunSuite:
       phases(protocolAttemptResultStep(at(Phase.pauseRequested, 1), AttemptResult.failed(true))),
       List(Phase.paused)
     )
-    // A pause of a held attempt is a request; of a scheduled one it takes effect at once. (:73-74)
+    // A pause of a held attempt is a request; of a scheduled one it takes effect at once.
     assertEquals(
       phases(protocolControlStep(at(Phase.started, 1), Control.pause)),
       List(Phase.pauseRequested)
@@ -99,12 +94,12 @@ class StandaloneActivityPins extends munit.FunSuite:
       phases(protocolControlStep(at(Phase.scheduled, 0), Control.pause)),
       List(Phase.paused)
     )
-    // A control on an activity that is over is not found. (:77-78)
+    // A control on an activity that is over is not found.
     assertEquals(
       protocolControlStep(at(Phase.completed, 1), Control.terminate),
       List(Step(Outcome.notFound, at(Phase.completed, 1)))
     )
-    // Each deadline covers its own span. (:81-85)
+    // Each deadline covers its own span.
     assertEquals(startToCloseStep(at(Phase.scheduled, 0, stc = Timeout.expires)), Nil)
     assertEquals(
       phases(startToCloseStep(at(Phase.pauseRequested, 1, stc = Timeout.expires))),
@@ -114,23 +109,22 @@ class StandaloneActivityPins extends munit.FunSuite:
       scheduleToStartStep(at(Phase.backingOff, 1, sts = Timeout.expires)).map(_.facts),
       List(List(ProtocolFact.statusTimedOut(TimeoutType.scheduleToStart)))
     )
-    // (:87)
     assertEquals(t.stuck, None)
   }
 
   test("the refinement") {
-    val ref = activityProtocol.refinementCheck.fold(e => fail(e.toString), identity) // (:96)
-    assertEquals(ref.rows.size, table(activityProtocol).rows.map(_.results.size).sum) // (:97)
+    val ref = activityProtocol.refinementCheck.fold(e => fail(e.toString), identity)
+    assertEquals(ref.rows.size, table(activityProtocol).rows.map(_.results.size).sum)
     val lookup = ref.rows.map(r => r.key -> r.product).toMap
     // The visible retry is the product's retryable-failure row; the pause request is a stutter; the
-    // unpause of a requested pause is a stutter too. (:101-105)
+    // unpause of a requested pause is a stutter too.
     assertEquals(
       lookup("started-1-unset-unset-unset-attemptResult-failed-true"),
       Some("attemptResult-failed-true")
     )
     assertEquals(lookup("started-1-unset-unset-unset-control-pause"), None)
     assertEquals(lookup("pauseRequested-1-unset-unset-unset-control-unpause"), None)
-    // A retryable failure under a pause request is the product's pause. (:108-109)
+    // A retryable failure under a pause request is the product's pause.
     assertEquals(
       lookup("pauseRequested-1-unset-unset-unset-attemptResult-failed-true"),
       Some("control-pause")
@@ -138,20 +132,18 @@ class StandaloneActivityPins extends munit.FunSuite:
   }
 
   test("the Queries") {
-    // (:113-120)
     for q <- functionalQueries do assertEquals(answer(q).outcome, Verdict.found, q.name)
-    // (:121-123)
     assertEquals(answer(terminalHolds).outcome, Verdict.verifiedWithinLimits)
     assertEquals(answer(pauseHolds).outcome, Verdict.verifiedWithinLimits)
     // Not vacuous: the scenario performs an attempt start while the worker polls, so the claim is
-    // exercised, not merely never contradicted. (:126)
+    // exercised, not merely never contradicted.
     val stopped = answer(stoppedWorkerStartsNothing)
     assertEquals((stopped.outcome, stopped.exercised), (Verdict.verifiedWithinLimits, true))
   }
 
-  // Every declaration passes the checks the Lean elaborator runs, and the canary admits only paths
+  // Every declaration passes the framework's semantic checks, and the canary admits only paths
   // whose every step records evidence.
-  test("every declaration passes the checks the Lean elaborator runs") {
+  test("every declaration passes the framework's semantic checks") {
     assertEquals(
       check(
         activityProduct,
@@ -168,10 +160,6 @@ class StandaloneActivityPins extends munit.FunSuite:
       Nil
     )
   }
-
-// Lean pins with no Scala counterpart: assert_axioms [activityProduct] and [activityProtocol]
-// (ActivityPins.lean:38, :89), kernel axiom inventories. The activity has no Stainless kernel, so
-// there is no nearer counterpart either.
 
   test("one lost admission response consumes its budget for either durable outcome") {
     val choices = loseAdmissionAnswer(responseLossInitial)

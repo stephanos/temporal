@@ -1,6 +1,6 @@
 package model
 
-// Bounded channels, as model/scalav2/SEMANTICS.md's Channels section defines them: what a channel
+// Bounded channels, as model/SEMANTICS.md's Channels section defines them: what a channel
 // holds, its catalog, the inbox operations, and the rows of its delivery and loss.
 
 import (

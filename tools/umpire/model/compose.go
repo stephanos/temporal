@@ -39,11 +39,11 @@ func (c *composedState) key(state Value) string {
 	return strings.Join(parts, "_")
 }
 
-// compositionSubject builds a composition with model/go's bounded composition of tables: its members
+// compositionSubject builds a composition with the checker's bounded composition of tables: its members
 // by field, its syncs and its `ends`, within the scope's ceiling. Its starts are the product of every
 // member's starts.
 //
-// A claim of a composition reads a composed step as model/go and the Scala front end do: its state is
+// A claim of a composition reads a composed step as the checker and the Scala front end do: its state is
 // the composition's state record, and its outcome and facts are strings, the composed keys
 // `<field>_<key>`.
 func (b *binding) compositionSubject(c *umpirespb.Composition) *subject {

@@ -9,7 +9,7 @@ import (
 
 // BindingFingerprint is part of every recorded Run's identity, so its bytes are pinned. The
 // unconfigured literal is the bindings identity of the pinned control Run in
-// tools/umpire/replay/testdata: the control Case's four bindings under the names its live test binds.
+// common/testing/testpilot/replay/testdata: the control Case's four bindings under the names its live test binds.
 func TestBindingFingerprintGolden(t *testing.T) {
 	bindings := []EnvironmentBinding{
 		{ID: "temporal.worker.namespace", Value: "umpire-control"},

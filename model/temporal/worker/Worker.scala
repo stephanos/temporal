@@ -7,7 +7,7 @@
  * The package declares no set, Case or Query: nothing here is realized on its own, and the
  * Properties about a worker are the cross-entity ones a composition states.
  *
- * Ported from model/lean/Temporal/Feature/Worker/Model.lean.
+ *
  */
 package temporal
 package worker

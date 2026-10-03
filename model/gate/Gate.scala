@@ -1,6 +1,7 @@
 // The model gate. Scala is only the authoring front end: the Models in temporal/ are compiled and
 // tested, the lifter reads their typed trees and emits the IR, and Go interprets the IR and checks
 // every table, identity and fingerprint against its goldens. It stops at the first failure.
+// The model's own vocabulary is held too, by a Go test outside model/ that every run names.
 //
 //   scala-cli run model/gate                        lift, require every file of model/ir and
 //                                                   model/cases to be current, test
@@ -36,6 +37,9 @@ final class Gate(tools: Tools, log: PrintStream):
   private val modelJar = gen.resolve("model-scala.jar")
   private val modelClasspath = gen.resolve("model-scala.classpath")
   private val dsl = Seq("model/project.scala", "model/umpire")
+  // The words the model does not use are spelled in this Go test and not here, so that the gate is
+  // no use of them.
+  private val vocabulary = "TestModelNamesNoRetiredFrontEnd"
   private val models = dsl :+ "model/temporal"
 
   private def step[A](title: String)(body: => A): A =
@@ -106,6 +110,24 @@ final class Gate(tools: Tools, log: PrintStream):
   def run(update: Boolean, goChecks: Boolean): Unit =
     Seq("scala-cli", "protoc", "go").foreach(tools.find)
 
+    // Not one of the Go checks a run may skip: it reads the model's sources, not the IR. It needs
+    // nothing the gate builds, so it comes first and a mention fails in seconds.
+    step("hold the model's sources and documents to its own vocabulary"):
+      val arguments = Seq(
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "-run",
+        s"^$vocabulary$$",
+        "./tools/umpire/model"
+      )
+      val ran = tools.run("go", arguments).orFail()
+      // A name that matches no test passes too, so the check is required to have run.
+      if !ran.output.linesIterator.exists(_.startsWith(s"--- PASS: $vocabulary ")) then
+        throw GateError(s"the vocabulary check $vocabulary did not run:\n${ran.diagnostics}")
+
     step("generate the IR's Java classes when their inputs changed"):
       generateIr(ifStale = true)
       val generated = root.resolve("api/umpire/v1/ir.pb.go")
@@ -129,6 +151,8 @@ final class Gate(tools: Tools, log: PrintStream):
           Seq("--power", "package", "--library") ++ models ++ Seq("-f", "-o", modelJar.toString)
         )
         .orFail()
+      // Its standard error is not kept, so no printed error is read: the package above built these
+      // sources and was read.
       val classpath =
         tools.scalaCli(Seq("compile", "--print-class-path") ++ models, Output.KeptApart).orFail()
       Files.writeString(modelClasspath, classpath.output)
@@ -155,10 +179,13 @@ final class Gate(tools: Tools, log: PrintStream):
           lifted.resolve(file).toString
         )
         file -> Future(blocking(tools.scalaCli(arguments ++ roots)))
-      for (file, lift) <- lifts do
-        val ran = Await.result(lift, Duration.Inf)
-        if ran.failed then
-          throw GateError(s"the roots of model/ir/$file did not lift:\n${ran.diagnostics}")
+      // Every lift is waited for, so none outlives the gate, and every one that failed is reported.
+      val failures = lifts
+        .map((file, lift) => file -> Await.result(lift, Duration.Inf))
+        .collect:
+          case (file, ran) if ran.failed =>
+            s"the roots of model/ir/$file did not lift:\n${ran.diagnostics}"
+      if failures.nonEmpty then throw GateError(failures.mkString("\n"))
       Gate.settle(model.resolve("ir"), lifted, root, update)
 
     step(if update then "generate every lowered Case and the Query manifest"
@@ -250,6 +277,10 @@ object Gate:
       catch
         case e: (GateError | ToolError) =>
           err.println(s"gate: ${e.getMessage}")
+          1
+        // A file the gate reads or writes: the exception names the path and what went wrong.
+        case e: java.io.IOException =>
+          err.println(s"gate: $e")
           1
 
 @main def run(arguments: String*): Unit =

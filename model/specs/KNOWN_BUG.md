@@ -3,7 +3,7 @@
 This document records known-bug handling requirements for the Scala-authored, Go-interpreted Umpire
 model.
 
-The [shared Umpire specification](../../../.plans/UMPIRE4_SPEC.md) defines the existing architecture and
+The [shared Umpire specification](../../.plans/UMPIRE4_SPEC.md) defines the existing architecture and
 vocabulary. [SEMANTICS.md](../SEMANTICS.md) defines IR evaluation. The requirements below describe
 proposed behavior, not functionality already implemented.
 

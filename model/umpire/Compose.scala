@@ -6,12 +6,12 @@ import scala.compiletime.constValueTuple
 import scala.deriving.Mirror
 
 /**
- * One Model from machines of different entities, for a claim no one of them can state: the Lean
- * `compose` command. The composed state `S` is a case class with one field per member, named after
+ * One Model from machines of different entities, for a claim no one of them can state.
+ * The composed state `S` is a case class with one field per member, named after
  * the member. A `sync` pairs member actions into one step; a member action no `sync` names steps
  * its member alone.
  *
- * The table follows `Umpire.Command.Compose`: only the rows reachable from the starts, a composed
+ * The table holds only the rows reachable from the starts, a composed
  * state keyed by its members' state keys joined by "_" in member order, a member's own action keyed
  * `<member>_<class>`, a synchronized action keyed by its sync name, outcomes and facts keyed
  * `<member>_<key>`, and Definition IDs owned by `compose-<name>`.

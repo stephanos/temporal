@@ -37,9 +37,12 @@ Preserve the authorized uncommitted baseline and comments except the explicit R2
 - [ ] Generation updates introduce no untracked/generated drift beyond the reviewed outputs.
 
 ## Done summary
-TBD
+Replaced `model/run.sh`, `gen.sh` and `scala.sh` with one Scala gate at `model/gate`: `Tools.scala` (the single process seam: printed-error/zero-exit, nonzero exit and missing-tool handling), `Roots.scala` (the explicit root lists) and `Gate.scala` (compile/test/package, DSL-only compile, IR class generation with content-hash staleness, lifting, check versus `--update` with complete-tree publication, Go checks). The lifter's fixture, refusal and source-position checks are 14 MUnit tests in `model/lifter/test`. `make umpire-check-model`, `umpire-gen-model` and the fmt/lint/fix targets run through the gate, and the gate's own 26 tests run first. No shell script remains inside `model/`.
 
+The new gate and the old `run.sh` produced byte-identical lifts, refusals and IR jar on the same tree. Check mode fails without rewriting on a perturbed IR or expected file, on a real `-Werror` case where scala-cli exits 0, and with the tool named when `protoc` or `go` is missing. `--update` restores perturbed files to their original hashes with no other drift. Full `make umpire-check-model` passes in 406 s (old gate: 336-640 s); `lint-model` and `lint-code-fast` pass; IR, Cases and goldens are unchanged.
+
+Independent review (Claude Fable, fresh context): NEEDS_WORK in round 1 (the update path was unproven), SHIP in round 2. Recorded deviation: the lifter's `project.scala` compiles `gate/Tools.scala` so its tests share the process seam, because scala-cli has no test-scoped file directive. Handover: .flow/tmp/fn115-10-summary.md; evidence: .flow/tmp/fn115-10-evidence.json; reviews: .flow/tmp/fn115-10-review/. No agent commits.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: mise exec -- scala-cli test model/gate, mise exec -- scala-cli test model/lifter, CC=/usr/bin/clang mise exec -- make umpire-check-model, CC=/usr/bin/clang mise exec -- make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks (on perturbed artifacts), Independent review round 2 SHIP (claude-fable-5-1); .flow/tmp/fn115-10-review/round2-review.md
 - PRs:

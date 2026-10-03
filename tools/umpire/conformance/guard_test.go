@@ -14,7 +14,7 @@ import (
 
 // activitySource is the Run Event source of one kind of evidence of the standalone activity Model's
 // realization, by the last part of the kind's id, as the lifter emitted it
-// (model/scalav2/ir/activity.json).
+// (model/ir/activity.json).
 func activitySource(t testing.TB, kind string) *umpirespb.RunEventSource {
 	t.Helper()
 	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "ir", "activity.json"))

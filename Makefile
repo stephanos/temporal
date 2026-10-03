@@ -426,7 +426,7 @@ TESTPILOT_PROTOCOL_PROTOS := \
 	proto/internal/temporal/server/api/testpilot/v1/run.proto \
 	proto/internal/temporal/server/api/testpilot/v1/value.proto
 
-.PHONY: canary-build umpire-check-testpilot-protocol umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-check-live-tests umpire-rerecord-pinned-runs umpire-ir-bridge umpire-gen-cases umpire-check-cases umpire-check-backends umpire-check-exploration-bridge umpire-check-replay-bridge fmt-model lint-model fix-model umpire-check-model umpire-gen-model
+.PHONY: canary-build umpire-check-testpilot-protocol umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-check-live-tests umpire-rerecord-pinned-runs umpire-ir-bridge umpire-gen-cases umpire-check-cases umpire-gen-fixtures umpire-check-fixtures canary-gen-case canary-check-case umpire-check-backends umpire-check-exploration-bridge umpire-check-replay-bridge fmt-model lint-model fix-model umpire-check-model umpire-gen-model
 
 canary-build:
 	@printf $(COLOR) "Build the production canary..."
@@ -572,10 +572,13 @@ umpire-check-live-tests:
 # The recorded Runs the offline tests pin, each as live-test:variable:record:package:probe -- the
 # live test that records it into the file the variable names, and the offline test that admits
 # it. A Testpilot protocol change moves the Driver catalog, and a Case change the Case identity;
-# either leaves the record stale or crossed until it is recorded again live.
+# either leaves the record stale or crossed until it is recorded again live. The control record is
+# of the Case kept beside it, not of the generated fixture the live test runs: recording it again
+# makes it a Run of the generated Case, and the Case beside it and the Profile name its probe
+# expects must follow in the same change.
 UMPIRE_PINNED_RUNS := \
 	TestTestpilotNexusControlForgedCompletionIsViolated:UMPIRE_CONTROL_RECORD:common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-run.json:./common/testing/testpilot/replay:TestControlRecordPinsTheCorrelatedKey \
-	TestTestpilotCanaryLifecycle:UMPIRE_CANARY_RECORD:tools/canary/assessment/testdata/nexusCallerCanary-syncCompletion-run.json:./tools/canary/assessment:TestAdmitRecordsAClosedRunAndAdmitsIt
+	TestTestpilotCanaryLifecycle:UMPIRE_CANARY_RECORD:tools/canary/assessment/testdata/nexus-caller-syncCompletion-run.json:./tools/canary/assessment:TestAdmitRecordsAClosedRunAndAdmitsIt
 
 # Re-records every pinned Run its probe rejects as stale or crossed, leaves a current one alone, and
 # renders the receipt goldens from the control record again, so an unchanged protocol changes
@@ -632,8 +635,24 @@ umpire-gen-cases:
 umpire-check-cases:
 	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases
 
+umpire-gen-fixtures:
+	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases --kind functional --update
+
+umpire-check-fixtures:
+	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases --kind functional
+
+canary-gen-case:
+	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases --kind canary --update
+
+canary-check-case:
+	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases --kind canary
+
+# The backend agreement: Quint and P read the lifted IR and are held to Go's reading of it. The tests
+# pin their tools and fail when one is missing; the pins are in tools/umpire/export/tools_test.go.
+# UMPIRE_BACKEND_TOOLS names where P and .NET are installed, UMPIRE_BACKENDS_OUT a directory that
+# keeps every export, dump and report. Run from the package's directory, the receipts are printed.
 umpire-check-backends:
-	@tools/umpire/export/run.sh $(UMPIRE_BACKEND_FLAGS)
+	@UMPIRE_BACKENDS=require CC="$${CC:-/usr/bin/clang}" mise exec -- go test -C ./tools/umpire/export -count=1 -timeout 30m -tags test_dep
 
 umpire-check-exploration-bridge:
 	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-ir-bridge -run '^TestIRBridgeProtocol$$/(campaign|sequence)$$'
@@ -649,41 +668,65 @@ MODEL_SCALAFIX = $(MODEL_CLI) --power fix --enable-built-in=false \
 	--scalafix-conf "$(CURDIR)/$(MODEL_ROOT)/.scalafix.conf" \
 	--scalac-option -Wunused:all --suppress-outdated-dependency-warning
 MODEL_SOURCES := $(MODEL_ROOT)/project.scala $(MODEL_ROOT)/umpire $(MODEL_ROOT)/temporal
-MODEL_SCALAFIX_FILES = $(foreach source,$(MODEL_SOURCES),--scalafix-arg=--files --scalafix-arg="$(CURDIR)/$(source)")
+model_scalafix_files = $(foreach source,$(1),--scalafix-arg=--files --scalafix-arg="$(CURDIR)/$(source)")
+MODEL_SCALAFIX_FILES = $(call model_scalafix_files,$(MODEL_SOURCES))
+# scala-cli hands scalafix every file under a project's directory, so the lifter names its own sources
+# to leave out the fixtures under testdata, which its build excludes.
+MODEL_LIFTER_SOURCES := $(wildcard $(MODEL_ROOT)/lifter/*.scala) $(MODEL_ROOT)/lifter/test
+# The lifter's fixtures that lift are a build of their own against the packaged Models. The refusal
+# fixtures stay outside scalafix: unsupported's `var` and `while` are what the lifter must refuse,
+# and werror and crossed must not compile, so RemoveUnused has nothing to read. The fixtures' build
+# makes warnings errors, and -Wunused:all also warns of the parameters RemoveUnused keeps
+# (params = false), so the lint keeps warnings as warnings.
+MODEL_LIFTS := $(MODEL_ROOT)/lifter/testdata/lifts
+MODEL_LIFTS_SCALAFIX = $(MODEL_SCALAFIX) --scalac-option -Werror:false \
+	$(call model_scalafix_files,$(wildcard $(MODEL_LIFTS)/*.scala))
 MODEL_PROTO_JARS := $(MODEL_ROOT)/gen/ir-proto.jar
+MODEL_JAR := $(MODEL_ROOT)/gen/model-scala.jar
 # The gate is one Scala program; its own arguments follow.
 MODEL_GATE = $(MODEL_CLI) run --suppress-outdated-dependency-warning $(MODEL_ROOT)/gate --
+# The gate's own tests run it against stand-in tools, so they need no jar and no real tool.
+MODEL_GATE_TEST = $(MODEL_CLI) test --suppress-outdated-dependency-warning $(MODEL_ROOT)/gate
 
 $(MODEL_PROTO_JARS): proto/internal/temporal/server/api/umpire/v1/ir.proto
 	@printf $(COLOR) "Package model IR classes..."
 	@$(MODEL_GATE) --generate-ir
 
+# The Models' TASTy, packaged as the gate's "package the Models' TASTy" step packages it.
+$(MODEL_JAR): $(MODEL_ROOT)/project.scala $(shell find $(MODEL_ROOT)/umpire $(MODEL_ROOT)/temporal -name '*.scala')
+	@printf $(COLOR) "Package the Models' TASTy..."
+	@$(MODEL_CLI) --power package --suppress-outdated-dependency-warning --library $(MODEL_SOURCES) -f -o $@
+
 fmt-model:
 	@printf $(COLOR) "Formatting model files..."
 	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate
 
-lint-model: $(MODEL_PROTO_JARS)
+lint-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@printf $(COLOR) "Checking model formatting..."
 	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf --check $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate
 	@printf $(COLOR) "Linting model files..."
 	@$(MODEL_SCALAFIX) $(MODEL_SCALAFIX_FILES) --check $(MODEL_SOURCES)
-	@cd $(MODEL_ROOT)/lifter && $(MODEL_SCALAFIX) --check .
+	@cd $(MODEL_ROOT)/lifter && $(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_LIFTER_SOURCES)) --check .
+	@cd $(MODEL_LIFTS) && $(MODEL_LIFTS_SCALAFIX) --check .
 	@cd $(MODEL_ROOT)/gate && $(MODEL_SCALAFIX) --check .
 
 # Applies the scalafix rewrites; findings without a rewrite (e.g. DisableSyntax) still fail.
-fix-model: $(MODEL_PROTO_JARS)
+fix-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@printf $(COLOR) "Applying model lint fixes..."
 	@$(MODEL_SCALAFIX) $(MODEL_SCALAFIX_FILES) $(MODEL_SOURCES)
-	@cd $(MODEL_ROOT)/lifter && $(MODEL_SCALAFIX) .
+	@cd $(MODEL_ROOT)/lifter && $(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_LIFTER_SOURCES)) .
+	@cd $(MODEL_LIFTS) && $(MODEL_LIFTS_SCALAFIX) .
 	@cd $(MODEL_ROOT)/gate && $(MODEL_SCALAFIX) .
 
 # The gate packages the IR classes itself when the schema changed.
 umpire-check-model:
 	@printf $(COLOR) "Check model IR..."
+	@$(MODEL_GATE_TEST)
 	@$(MODEL_GATE) $(MODEL_GATE_ARGS)
 
 umpire-gen-model:
 	@printf $(COLOR) "Generate model IR..."
+	@$(MODEL_GATE_TEST)
 	@$(MODEL_GATE) --update $(MODEL_GATE_ARGS)
 
 goimports: fmt-imports $(GOIMPORTS)
@@ -699,7 +742,23 @@ lint-actions: $(ACTIONLINT)
 	@$(ACTIONLINT)
 
 .PHONY: lint-code lint-code-fast
-# --new-from-rev filters reported issues _after_ analysis; this target also reduces package inputs _before_ analysis.
+# golangci-lint's --new-from-rev reads `git diff <rev>` of the whole tree, and its diff reader
+# (revgrep) parses the continuation of any line over 4 KiB as a fresh line: a tracked log that quotes
+# source on one line makes it panic. Both targets therefore filter by a patch of the Go files outside
+# testdata and nested modules, tracked and untracked, against the merge base. $(1) is the patch file.
+define go-only-patch
+base=$$(git merge-base HEAD "$(GOLANGCI_LINT_BASE_REV)"); \
+excludes=$$(git ls-files --cached --others --exclude-standard -- '*/go.mod' \
+  | sed 's|/go.mod$$|/**|; s|^|:(exclude,glob)|'); \
+git diff --no-ext-diff --no-renames "$$base" -- '*.go' ':(exclude,glob)**/testdata/**' $$excludes > "$(1)"; \
+git ls-files --others --exclude-standard -- '*.go' ':(exclude,glob)**/testdata/**' $$excludes | \
+	while IFS= read -r file; do \
+		status=0; git diff --no-ext-diff --no-index -- /dev/null "$$file" >> "$(1)" || status=$$?; \
+		[ "$$status" -le 1 ] || exit "$$status"; \
+	done
+endef
+
+# The patch filters reported issues _after_ analysis; this target also reduces package inputs _before_ analysis.
 # testdata and nested modules are skipped like `./...` skips them: listing such a package explicitly would lint it.
 lint-code-fast:
 	@if ! git rev-parse --verify --quiet "$(GOLANGCI_LINT_BASE_REV)^{commit}" >/dev/null; then \
@@ -719,23 +778,25 @@ lint-code-fast:
 	else \
 		patch=$$(mktemp); \
 		trap 'rm -f "$$patch"' EXIT HUP INT TERM; \
-		git diff --no-ext-diff --no-renames "$$base" -- '*.go' ':(exclude,glob)**/testdata/**' $$excludes > "$$patch"; \
-		git ls-files --others --exclude-standard -- '*.go' ':(exclude,glob)**/testdata/**' $$excludes | \
-			while IFS= read -r file; do \
-				status=0; git diff --no-ext-diff --no-index -- /dev/null "$$file" >> "$$patch" || status=$$?; \
-				[ "$$status" -le 1 ] || exit "$$status"; \
-			done; \
+		$(call go-only-patch,$$patch); \
 		$(MAKE) GOLANGCI_LINT_BASE_REV="$$base" GOLANGCI_LINT_PATCH="$$patch" LINT_CODE_TARGETS="$$targets" lint-code; \
 	fi
 
 lint-code: $(GOLANGCI_LINT) $(ERRORTYPE)
 	@printf $(COLOR) "Linting code..."
-	@$(GOLANGCI_LINT) run \
+	@set -eu; patch="$(GOLANGCI_LINT_PATCH)"; \
+	if [ -z "$$patch" ]; then \
+		git rev-parse --verify --quiet "$(GOLANGCI_LINT_BASE_REV)^{commit}" >/dev/null \
+		  || { printf $(RED) "GOLANGCI_LINT_BASE_REV=$(GOLANGCI_LINT_BASE_REV) is not a known commit; fetch it or override GOLANGCI_LINT_BASE_REV"; exit 1; }; \
+		patch=$$(mktemp); trap 'rm -f "$$patch"' EXIT HUP INT TERM; \
+		$(call go-only-patch,$$patch); \
+	fi; \
+	$(GOLANGCI_LINT) run \
 		--verbose \
 		--build-tags $(ALL_TEST_TAGS) \
 		--timeout 10m \
 		--fix=$(GOLANGCI_LINT_FIX) \
-		$(if $(GOLANGCI_LINT_PATCH),--new-from-patch="$(GOLANGCI_LINT_PATCH)",--new-from-rev=$(GOLANGCI_LINT_BASE_REV)) \
+		--new-from-patch="$$patch" \
 		--config=.github/.golangci.yml \
 		$(LINT_CODE_TARGETS)
 	@go vet -tags $(ALL_TEST_TAGS) -vettool="$(ERRORTYPE)" -style-check=false $(LINT_CODE_TARGETS)

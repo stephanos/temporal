@@ -1,6 +1,6 @@
 /* The Nexus caller close and reset designs: one logical operation whose caller closes or is reset
- * while the handler works. Reviewed as model/scalav2/specimens/nexus.md, whose supported sketch
- * lifter/testdata/lifts/CloseReset.scala.fixture is; this Model keeps the sketch's vocabulary and
+ * while the handler works. Reviewed as model/specimens/nexus.md, whose supported sketch
+ * lifter/testdata/lifts/CloseReset.scala is; this Model keeps the sketch's vocabulary and
  * adds what the sketch left to it: the evidence of each step, the cancel request's principal and its
  * delivery to the handler, two faulty resets, a channel that redelivers once, and a schedule-to-close
  * deadline.

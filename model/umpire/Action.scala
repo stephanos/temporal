@@ -13,7 +13,7 @@ object Party:
  */
 final case class Entity(name: String, key: String = "", refer: Map[String, Entity] = Map.empty)
 
-/** A derived read used as evidence where no history event exists: the Lean `observation` command. */
+/** A derived read used as evidence where no history event exists. */
 final case class Observation(name: String, on: Entity, read: String)
 
 /**
@@ -69,13 +69,13 @@ final class Action[I <: Tuple] private[umpire] (val decl: ActionDecl):
   infix def on(e: Entity): Action[I] = Action(decl.copy(on = Some(e)))
   infix def creates(e: Entity): Action[I] = Action(decl.copy(creates = Some(e)))
 
-  /** The protobuf messages the action carries, as the Lean `schema:` line names them. */
+  /** The protobuf messages the action carries, by name. */
   def schema(names: String*): Action[I] = Action(decl.copy(schemas = names.toList))
 
-  /** The domain of results the action reports, as the Lean `results:` line names it. */
+  /** The domain of results the action reports, by name. */
   infix def results(name: String): Action[I] = Action(decl.copy(results = name))
 
-  /** One more input, named as the Lean `input:` line names it. The tuple type grows by one. */
+  /** One more input, by name. The tuple type grows by one. */
   def input[A](name: String)(using f: Finite[A]): Action[Tuple.Append[I, A]] =
     Action(decl.copy(inputs = decl.inputs :+ name, domains = decl.domains :+ f))
 
@@ -89,7 +89,7 @@ extension [A](a: Action[A *: EmptyTuple])
   def apply(x: A): Class = Class(a.decl, List(x))
 
   /**
-   * An Abstraction Claim, as a Lean `examples:` line records one. Its value is typed by the input,
+   * An Abstraction Claim on one class of the input. Its value is typed by the input,
    * so an example of another type does not compile. Claims keep declaration order, which is the
    * order exploration targets list them in.
    */

@@ -38,9 +38,12 @@ Preserve the authorized uncommitted baseline and comments except the explicit R2
 - [ ] Semantic goldens remain unchanged except the separately recorded fixture migration.
 
 ## Done summary
-TBD
+Executed the reviewed R22 inventory of 47 Case fixtures. The eight replaceable functional Cases and the canary's pinned Case are now lowered from the Scala model through `umpire-gen-cases --kind functional|canary` into managed trees (`tests/testcore/testpilot/testdata/generated`, `tools/canary/casebinding/testdata`); each pinned Case is its `model/cases` file byte for byte. 16 Cases were already generated and 22 exceptions keep their exact bytes with the missing declaration named. New targets: `umpire-gen-fixtures`, `umpire-check-fixtures`, `canary-gen-case`, `canary-check-case`; CI's canary job runs both checks.
 
+Both historical companion Cases were copied first with their recorded hashes; historical Runs, receipts and proposals are byte-unchanged and keep their decisions. The canary policy `caseIdentity` follows the new pin with no Profile change, and a new canary Run was recorded on the in-process cluster under its real identity. `model/`, checked IR and the 1,411 goldens are unchanged.
+
+Full Go suite (48 packages), the three check targets, the live selection (26 tests; one assertion follows the Contract's rule count) and `lint-code-fast` pass. Recorded R22 gap: a Property phase clause lowers to no STATE rule, so the legacy control rule `state-succeeded` has no lowered counterpart. Independent review (Claude Fable, fresh context) returned SHIP in round 1; its P3 follow-ups are applied. Known defects outside this task, left for task 12: a data race in `TestWorkflowStartCaseSequentialAndConcurrentRunIsolation`, the undefined `bridgeExecutable` under the `integration` tag in `common/testing/testpilot/campaign`, and the policy `workflowPath` naming the deleted workflow. Handover: .flow/tmp/fn115-11-summary.md; evidence: .flow/tmp/fn115-11-evidence.json; review: .flow/tmp/fn115-11-review/round1-review.md. No agent commits.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: see commands, Independent review round 1 SHIP (claude-fable-5-1); .flow/tmp/fn115-11-review/round1-review.md
 - PRs:

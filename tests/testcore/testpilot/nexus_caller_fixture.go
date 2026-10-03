@@ -1,6 +1,9 @@
 package testpilot
 
 import (
+	"os"
+	"path/filepath"
+
 	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -15,7 +18,22 @@ const (
 
 // NexusCallerAsyncCompletionFixture is the caller Model's Query 2 fixture, the async reply then
 // succeeded callback, which the hand-written Profile below is the derivation oracle for.
-const NexusCallerAsyncCompletionFixture = "nexusCallerTests-asyncCompletion"
+const NexusCallerAsyncCompletionFixture = "nexus-caller-asyncCompletion"
+
+// generatedFixtures is the tree under testdata that `make umpire-gen-fixtures` publishes: the Cases
+// lowered from the Scala model that the functional tests pin, each byte for byte the model tree's.
+const generatedFixtures = "generated"
+
+// FixturePath is where the named fixture's Case is under testdata: in the generated tree when the
+// Scala model lowers it, and otherwise beside that tree, where the Cases no Model declares yet are
+// retained.
+func FixturePath(testdata, name string) string {
+	generated := filepath.Join(testdata, generatedFixtures, name+"-case.json")
+	if _, err := os.Stat(generated); err == nil {
+		return generated
+	}
+	return filepath.Join(testdata, name+"-case.json")
+}
 
 type NexusCallerEnvironment struct {
 	Namespace        string

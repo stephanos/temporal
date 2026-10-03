@@ -99,7 +99,7 @@ func captureRun(t testing.TB, fixture string, live testpilotLiveCase, run *testp
 	if dir == "" || run == nil {
 		return
 	}
-	caseBytes, err := os.ReadFile(filepath.Join("testcore", "testpilot", "testdata", fixture+"-case.json"))
+	caseBytes, err := os.ReadFile(testpilotFixturePath(fixture))
 	require.NoError(t, err)
 	path := capturePath(t, dir)
 	require.NoError(t, recordedrun.Write(path, caseBytes, live.prepared.Identity(), run), "capture the Run to %s", path)

@@ -125,7 +125,7 @@ func (c *QuintCheck) witness(table *umpiremodel.Table, itf []byte) (*umpiremodel
 
 // QuintVerified compares what Apalache found of one monitor of a check module with Go's product of
 // the machine and its monitors, and replays Apalache's counterexample through Go: through a fresh
-// interpretation's table and monitor, and through goir's checker over the path's classes. A
+// interpretation's table and monitor, and through the reader's checker over the path's classes. A
 // counterexample that does not replay is an error, whatever Go's own verdict.
 func (s *Slice) QuintVerified(c *QuintCheck, monitor int, v QuintVerdict) Receipt {
 	name := c.Monitors[monitor]

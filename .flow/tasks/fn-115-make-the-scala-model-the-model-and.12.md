@@ -39,9 +39,12 @@ Preserve the authorized uncommitted baseline and comments except the explicit R2
 - [ ] No file or filename inside model contains prohibited historical references; the external check catches new ones while source coordinates and goldens stay fixed.
 
 ## Done summary
-TBD
+Enforced the final import graph as Go tests that name the offending file and import: Testpilot imports nothing under `tools/umpire`, the reader nothing of Testpilot, export only the reader, the golden helper is test support only, the lowerer reaches exploration, conformance and recorded Runs only from its external test package, and no live file imports an archive. A new test requires every `tools/umpire` package to have a live importer or a Make/CI runner. `tools/umpire/export/run.sh` is replaced by opt-in Go tests (`UMPIRE_BACKENDS=require`). Makefile, CI and ignore rules match the final layout; the branch-only blanket `testdata/` ignore rule is gone. Nothing under `model/` mentions the retired front end (60 lines in 18 files before), with source positions unchanged, and the gate's first step is a Go vocabulary check that fails on a new mention.
 
+Defect repairs: the dead campaign integration test is removed (its claim lives in the Scala exploration test), a test-code data race on the Run ID is fixed, `make lint-api` passes through `proto/api-linter.yaml` path entries, and `make lint-code` passes using the Go-only patch shared with `lint-code-fast`.
+
+Build, vet with live tags, the full Go suite (48 packages, 5,100 tests), model gate, Case/fixture/canary checks, the live test selection (81 identities) and all linters pass; IR, Cases, fixtures and the 1,411 goldens are byte-identical. Independent review (Claude Fable, fresh context): NEEDS_WORK in round 1, SHIP in round 2. Recorded, not fixed: `make umpire-check-backends` needs P and .NET and is deferred by the owner; plain `go vet -tags test_dep ./...` reports 11 findings in three files identical to `main`; the canary policy `workflowPath` names the workflow the owner deleted and fails closed, an owner decision. Handover: .flow/tmp/fn115-12-summary.md; evidence: .flow/tmp/fn115-12-evidence.json; reviews: .flow/tmp/fn115-12-review/. No agent commits.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: go test -count=1 -json -tags 'test_dep canary_harness' ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/... ./tests/testcore/testpilot/..., make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks, make umpire-check-live-tests, make lint-model, make lint-api, Independent review round 2 SHIP (claude-fable-5-1); .flow/tmp/fn115-12-review/round2-review.md
 - PRs:

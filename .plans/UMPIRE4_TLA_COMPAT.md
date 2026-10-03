@@ -1,7 +1,7 @@
 # Umpire 4: TLA+ and Quint compatibility
 
 Design notes, 2026-09-30. This proposal records ideas for exporting Umpire Models to TLA+. It does
-not change the [shared specification](UMPIRE4_SPEC.md), [IR semantics](../model/scalav2/SEMANTICS.md),
+not change the [shared specification](UMPIRE4_SPEC.md), [IR semantics](../model/SEMANTICS.md),
 or implemented behavior.
 
 ## Recommendation
@@ -110,10 +110,10 @@ language-level temporal syntax does not establish support in every simulator or 
 
 ### Learn from the repository's Quint prototype without inheriting its shortcuts
 
-The [Quint framework](../model/quint/umpire.qnt) and feature Models are useful local experiments.
+The [Quint framework](../model0/quint/umpire.qnt) and feature Models are useful local experiments.
 They already encode pure step functions, explicit `last` results, triggered claims, and model-checker
-entrypoints. The current [Nexus](../model/quint/nexus_caller.qnt) and
-[activity](../model/quint/standalone_activity.qnt) `fire` actions select a result with
+entrypoints. The current [Nexus](../model0/quint/nexus_caller.qnt) and
+[activity](../model0/quint/standalone_activity.qnt) `fire` actions select a result with
 `oneOf(rows.toSet())` and toggle an `occurrence` bit on each real Step. Learn from these existing
 solutions for nondeterminism and repeated-event identity rather than reinventing them.
 
@@ -325,16 +325,16 @@ Use these anchors to understand the contract before designing an encoding:
 | Anchor | What it establishes |
 | --- | --- |
 | [Shared specification](UMPIRE4_SPEC.md) | Authority, explicit Limits, deterministic Artifacts, Evidence rules, and execution boundaries; pending amendments are marked. |
-| [IR semantics](../model/scalav2/SEMANTICS.md) | Values, evaluation order, catalogs, Steps, channels, monitors, assumptions, refinement, holes, and Claims. |
+| [IR semantics](../model/SEMANTICS.md) | Values, evaluation order, catalogs, Steps, channels, monitors, assumptions, refinement, holes, and Claims. |
 | [IR schema](../proto/internal/temporal/server/api/umpire/v1/ir.proto) | Serialized declarations and source positions; schema presence alone does not establish evaluator support. |
-| [IR admission](../model/scalav2/goir/load.go) and [row derivation](../model/scalav2/goir/machine.go) | Current validation and derivation of classes, results, channel behavior, holes, and refinement. |
-| [Go search](../model/go/umpire/search.go) and [monitors](../model/go/umpire/monitor.go) | Query state identity, trigger bookkeeping, evaluation points, and bounded search outcomes. |
-| [Go refinement](../model/go/umpire/refine.go) and [composition](../model/go/umpire/compose.go) | Visible-result projection, carried steps, stutters, member interleaving, and synchronized results. |
-| [Go progress](../model/go/umpire/progress.go) and [replay](../model/go/umpire/replay.go) | Separate deadlock, fair-cycle and deadline findings, work accounting, and Query-aware witness validation. |
-| [Activity and Nexus specimens](../model/scalav2/specimens/README.md) | Concrete Temporal questions, proposed declarations, trace oracles, and required observations. |
-| [Existing Quint model](../model/quint/umpire.qnt) | A comparison prototype; it is not evidence of an IR exporter or complete cross-backend conformance. |
+| [IR admission](../tools/umpire/model/validate.go) and [row derivation](../tools/umpire/model/machine.go) | Current validation and derivation of classes, results, channel behavior, holes, and refinement. |
+| [Go search](../tools/umpire/model/internal/checker/search.go) and [monitors](../tools/umpire/model/internal/checker/monitor.go) | Query state identity, trigger bookkeeping, evaluation points, and bounded search outcomes. |
+| [Go refinement](../tools/umpire/model/internal/checker/refine.go) and [composition](../tools/umpire/model/internal/checker/compose.go) | Visible-result projection, carried steps, stutters, member interleaving, and synchronized results. |
+| [Go progress](../tools/umpire/model/internal/checker/progress.go) and [replay](../tools/umpire/model/internal/checker/replay.go) | Separate deadlock, fair-cycle and deadline findings, work accounting, and Query-aware witness validation. |
+| [Activity and Nexus specimens](../model/specimens/README.md) | Concrete Temporal questions, proposed declarations, trace oracles, and required observations. |
+| [Existing Quint model](../model0/quint/umpire.qnt) | A comparison prototype; it is not evidence of an IR exporter or complete cross-backend conformance. |
 
-These files are being developed together. In particular, the IR semantics' historical “What goir
+These files are being developed together. In particular, the IR semantics' historical “What the reader
 implements” section and specimen support notes can lag working-tree code. Current Go code already
 contains channel and hole derivation and broader admission checks. Retaining a declaration in the
 IR or reading its metadata is still different from evaluating it in a Query. Record backend support
@@ -459,7 +459,7 @@ transition Property reads the old state and complete Step result. Preserve activ
 accumulated pass/fail state as well as the predicate. A completed `find` witness must actually
 exercise its Property and satisfy it; a path that never fires its trigger is not such a witness.
 For `verify`, report whether the Property was exercised separately from absence of a violation.
-See [Query realization and failure checks](../model/go/umpire/search.go).
+See [Query realization and failure checks](../tools/umpire/model/internal/checker/search.go).
 
 A watched monitor does not prune a `find` witness; its verdict is reported alongside it. In a
 `verify`, a monitor violated at its evaluation point is a counterexample. Exporting every monitor
@@ -494,7 +494,7 @@ Choose one numeric meaning for the exportable subset. The current Go evaluator u
 arithmetic, so mathematical-integer export needs either a checked no-overflow domain or an explicit
 encoding of machine arithmetic. Prefer mathematical integer semantics with bounded state domains
 as a design direction, but specify the interpreter change before relying on it.
-See [the evaluator](../model/scalav2/goir/eval.go).
+See [the evaluator](../tools/umpire/model/eval.go).
 
 A no-overflow check must cover intermediate expressions, not just stored states. Overflow can
 alter a guard or cancel out before the final value returns to the catalog. Include arithmetic
@@ -510,13 +510,13 @@ Channel fault timing is part of the contract. Delivery removes the selected entr
 receiver on those contents, and may restore that delivery with its incremented redelivery count
 in each receiver result. The duplicate alternative belongs to that same atomic Step; an independent
 “duplicate anything” action changes the fault space. If the receiver returns no Steps, it does not
-consume the message. See [channel derivation](../model/scalav2/goir/channels.go).
+consume the message. See [channel derivation](../tools/umpire/model/channels.go).
 
 ## A concrete question to guide the design
 
 Consider an activity delivery in flight when a pause commits: can that stale delivery admit an
 attempt after the activity became ineligible? This is an illustrative question from the
-[activity specimen](../model/scalav2/specimens/activity.md), not a claim that all the required
+[activity specimen](../model/specimens/activity.md), not a claim that all the required
 observations and declarations already exist.
 
 The product Property declares which admission is forbidden and at what commitment point. A
@@ -612,10 +612,10 @@ versions, and unsupported constructs with every result.
 
 Keep Definition IDs, Behavior Fingerprints, and Artifact Checksums distinct. A compiler upgrade can
 change exported bytes without changing the Model's behavior. Generated symbols and helper state
-belong in decoder metadata; reuse the [canonical identity rules](../model/go/umpire/canonical.go)
+belong in decoder metadata; reuse the [canonical identity rules](../tools/umpire/model/internal/checker/canonical.go)
 rather than using a hash of generated TLA+ as a Behavior Fingerprint.
 
-The [Known Bug lifecycle](../model/scalav2/specs/KNOWN_BUG.md) applies after semantic evaluation.
+The [Known Bug lifecycle](../model/specs/KNOWN_BUG.md) applies after semantic evaluation.
 An acknowledged violation must still violate the exported Property and retain its counterexample.
 The reporting layer can classify it as an active-known-bug warning; marking it fixed makes recurrence
 an error. Export must not remove the transition or weaken the Property to make a known bug pass.

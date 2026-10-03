@@ -56,7 +56,7 @@ type nexusCallerQuery struct {
 	stopsWorker bool
 }
 
-func (q nexusCallerQuery) fixture() string { return "nexusCallerTests-" + q.name }
+func (q nexusCallerQuery) fixture() string { return "nexus-caller-" + q.name }
 
 // Every admitted semantic step of the operation supports the clause: the scheduled event, read as
 // soon as it exists, confirms the schedule command; then each event the path's side effects record,
@@ -304,9 +304,14 @@ func TestTestpilotNexusCallerCaseRunsFromItsFixtureNameAlone(t *testing.T) {
 	requireNexusCallerVerdict(t, query, run, verdict, "umpire-"+query.fixture()+"-endpoint")
 }
 
+// testpilotFixturePath is the named fixture's Case file under the functional wiring's testdata.
+func testpilotFixturePath(name string) string {
+	return testpilotcore.FixturePath(filepath.Join("testcore", "testpilot", "testdata"), name)
+}
+
 func loadTestpilotCase(t testing.TB, name string) *testpilotpb.Case {
 	t.Helper()
-	encoded, err := os.ReadFile(filepath.Join("testcore", "testpilot", "testdata", name+"-case.json"))
+	encoded, err := os.ReadFile(testpilotFixturePath(name))
 	require.NoError(t, err)
 	decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
 	require.NoError(t, err)

@@ -34,25 +34,24 @@ class Fixtures extends munit.FunSuite:
     Files.createTempDirectory(Files.createDirectories(gen.resolve("history")), "lifter.")
   private def lifted(name: String) = scratch.resolve(s"$name.json")
 
-  // A fixture's sources are stored as <file>.scala.fixture, which no build, formatter or linter of
-  // the tree reads, since some of them must not compile. `materialize` copies them into the scratch
-  // directory as the .scala files its build reads, with its project's jar path resolved. The lifter
-  // maps the copies' positions back to the stored files, and the build's diagnostics are mapped
-  // back in `refusals`.
+  // A fixture's sources are stored under testdata, which the lifter's project.scala excludes from
+  // its build, since some of them must not compile. `materialize` copies them into the scratch
+  // directory, with its project's jar path resolved. The lifter maps the copies' positions back to
+  // the stored files, and the build's diagnostics are mapped back in `refusals`.
   private def materialize(fixture: String): Path =
     val to = Files.createDirectories(scratch.resolve(fixture))
-    val stream = Files.newDirectoryStream(testdata.resolve(fixture), "*.scala.fixture")
+    val stream = Files.newDirectoryStream(testdata.resolve(fixture), "*.scala")
     try
       for from <- stream.asScala do
         Files.writeString(
-          to.resolve(from.getFileName.toString.stripSuffix(".fixture")),
+          to.resolve(from.getFileName.toString),
           Files.readString(from).replace("../../../gen/model-scala.jar", modelJar.toString)
         )
     finally stream.close()
     to
 
   // The lifter's positions of a materialized fixture: its stored files.
-  private def stored(fixture: String) = s"model/lifter/testdata/$fixture/%s.fixture"
+  private def stored(fixture: String) = s"model/lifter/testdata/$fixture/"
 
   /** The lines of the stored files at which the fixture's build fails, as `<file>:<line>:<column>`. */
   private def refusals(fixture: String): Seq[String] =
@@ -60,8 +59,8 @@ class Fixtures extends munit.FunSuite:
     assert(built.failed, s"model/lifter/testdata/$fixture built")
     val at = """\[error\] \S*/([^/\s:]+\.scala):(\d+):(\d+)""".r
     built.errors.collect { case at(file, line, column) =>
-      assert(Files.isRegularFile(testdata.resolve(fixture).resolve(s"$file.fixture")), built.output)
-      s"$file.fixture:$line:$column"
+      assert(Files.isRegularFile(testdata.resolve(fixture).resolve(file)), built.output)
+      s"$file:$line:$column"
     }
 
   private def packaged(name: String, sources: Path): Path =
@@ -163,11 +162,21 @@ class Fixtures extends munit.FunSuite:
     )
     refused(lift).map(_ + "\n").mkString
 
-  // An update rewrites the expected files only once every fixture lifted and every rejected
-  // declaration was refused, so the tree it leaves is one whole run's.
+  /** The files of the expected directory that no fixture lifts to. */
+  private def leftOver(): Seq[String] =
+    val stream = Files.list(expected)
+    val held =
+      try stream.iterator.asScala.map(_.getFileName.toString).toList.sorted
+      finally stream.close()
+    held.diff(fixtures.map(_._1 + ".json") :+ "rejects.txt")
+
+  // An update rewrites the expected files only once every fixture lifted, every rejected
+  // declaration was refused and no expected file is left over, so the tree it leaves is one whole
+  // run's. The gate holds model/ir to the same rule.
   private lazy val everyLift: Unit =
     fixtures.foreach((name, _) => ir(name))
     rejections(): Unit
+    assertEquals(leftOver(), Nil, s"${root.relativize(expected)} holds files no fixture lifts to")
 
   private def expect(file: String, lifted: => String): Unit =
     val path = expected.resolve(file)
@@ -190,13 +199,10 @@ class Fixtures extends munit.FunSuite:
     lifts: Unit
 
   test("the build refuses a warning -Werror makes an error, at its line"):
-    assertEquals(refusals("werror"), Seq("Evidence.scala.fixture:29:16"))
+    assertEquals(refusals("werror"), Seq("Evidence.scala:29:16"))
 
   test("the build refuses crossed types, at their lines"):
-    assertEquals(
-      refusals("crossed"),
-      Seq("Crossed.scala.fixture:35:14", "Crossed.scala.fixture:45:28")
-    )
+    assertEquals(refusals("crossed"), Seq("Crossed.scala:35:14", "Crossed.scala:45:28"))
 
   test("the lifter refuses a construct outside the subset, at its line"):
     val jar = packaged("unsupported", materialize("unsupported"))
@@ -208,7 +214,7 @@ class Fixtures extends munit.FunSuite:
     )
     assertNotEquals(lift.exit, 0)
     val line =
-      "lift: model/lifter/testdata/unsupported/Unsupported.scala.fixture:18: `var out` has no IR form"
+      "lift: model/lifter/testdata/unsupported/Unsupported.scala:18: `var out` has no IR form"
     refused(lift) match
       case Seq(refusal) => assert(refusal.startsWith(line), refusal)
       case refusals     => fail(s"one refusal, not $refusals")
@@ -221,11 +227,7 @@ class Fixtures extends munit.FunSuite:
     expect("rejects.txt", rejections())
 
   test("the expected files are the ones the fixtures lift to"):
-    val stream = Files.list(expected)
-    val held =
-      try stream.iterator.asScala.map(_.getFileName.toString).toList.sorted
-      finally stream.close()
-    assertEquals(held, (fixtures.map(_._1 + ".json") :+ "rejects.txt").sorted)
+    assertEquals(leftOver(), Nil)
 
   test("a declaration's identity does not move with its line"):
     val was = ir("declarations")

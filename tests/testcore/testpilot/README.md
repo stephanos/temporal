@@ -1,23 +1,25 @@
 # Temporal Testpilot functional fixtures
 
-This package owns the retained generated functional fixtures in `testdata`, plus their fixture
-admission and prepared-Case reuse tests. Every fixture is canonical ProtoJSON produced from a Model
-file's `case … realizes` block under `model/lean/Temporal/Feature` and rendered by `umpire-case`; none is
-written by hand. It is stored indented for review -- two spaces and one trailing newline -- so a Case
-change reads as a line diff; `umpire-gen-case-runtime-conformance` continues to write its functional
-output to this package and is the only writer of that form.
+This package owns the functional fixtures in `testdata`, plus their fixture admission and
+prepared-Case reuse tests. None is written by hand. `testdata/generated` holds the Cases lowered
+from the Scala model that the functional tests pin, with the manifest naming each one's Query:
+`make umpire-gen-fixtures` publishes the tree and `make umpire-check-fixtures` checks it, and every
+Case in it is byte for byte the one under `model/cases`, in compact canonical ProtoJSON. The Cases
+beside that tree are retained as they were rendered, indented for review, because no Scala Model
+declares their Query yet: the Nexus pair, System Info, workflow start, the worker outage and the
+synthetic payload fixture.
 
 Cluster provisioning, namespace and Nexus endpoint creation, SDK client ownership, environment
 configuration, assertions, and cleanup registration remain under `tests/`. The reusable composite
 Driver and its implementation-focused tests live in `common/testing/testpilot/temporal`.
 
-The caller Model's functional set (`model/lean/Temporal/Feature/Nexus/Caller/Model.lean`) produces one
-fixture per Query, `nexusCallerTests-<query>-case.json`: sync success, async reply then succeeded
+The caller Model (`model/temporal/nexuscaller`) lowers one fixture per Query,
+`generated/nexus-caller-<query>-case.json`: sync success, async reply then succeeded
 callback, async reply then failed callback, a non-retryable handler error, a retryable handler error
 then success after one backoff, a schedule-to-start timeout with the handler's worker stopped, and a
 start-to-close timeout after an asynchronous reply. Each is one canonical Case 1.0 artifact with
-symbolic resource references; the Model's canary set produces no fixture, and its exploratory set's
-coverage targets are a golden under `model/lean/`. Fixture tests prepare the async-completion
+symbolic resource references. The canary's pinned Case is not here: `make canary-gen-case` publishes
+it under `tools/canary/casebinding/testdata`. Fixture tests prepare the async-completion
 fixture's unchanged bytes against two physical Profiles, confirm distinct binding identities, and
 reject missing or inconsistent references before dispatch. The tagged live tests run each Query once
 per value of the implementation switch, under two isolated namespaces, queues and named Nexus routes
@@ -36,29 +38,31 @@ captures the closed Run when `UMPIRE_REPEAT_RUN_DIR` is set, and fails the test 
 concurrently or deliberately omit a resource call `bindCase` directly. Both are test helpers outside the public facade, so MOD-12's
 `Prepare` then `Run` sequence is unchanged.
 
-The worker-outage fixture (`workerOutageTests-survived`) is the fault Case, produced from the
-worker-outage Model: its controller stops the SDK worker of its own activation queue before starting
+The worker-outage fixture (`workerOutageTests-survived`) is the fault Case, one of the retained
+fixtures: its controller stops the SDK worker of its own activation queue before starting
 the workflow, resumes it after, and waits for the workflow the resumed worker completes. Its
-Contract carries the outage-order rule the Producer derives from the Model's two fault actions --
+Contract carries the outage-order rule over the two fault actions --
 bounded liveness with a `rule_events` deadline, so the outage window is counted in what the Run
-recorded, never on the host's clock -- beside the correlated capability confirming the Model's
+recorded, never on the host's clock -- beside the correlated capability confirming the path's
 steps from the completed event, so the Run proves the queued task survived the outage.
 `worker_outage_artifact_test.go` prepares its unchanged bytes and pins that bound offline; the
 tagged live tests run it, and run it beside a plain Nexus Case on a *different* queue, because a
 pooled peer worker on the same physical queue would keep polling through the outage. The
-system-info fixture (`systemInfoTests-answered`) is the unary Case, produced from the system-info
-Model: one `GetSystemInfo` call, no workflow, and the instruction's completion as its evidence.
+system-info fixture (`systemInfoTests-answered`) is the unary Case, also retained: one
+`GetSystemInfo` call, no workflow, and the instruction's completion as its evidence.
 
-A functional set's Cases are named by what they are: a Model file's `set` lists its `find` Queries
-and a `case` block over the set realizes each of them, with the Case ID `temporal.case.<set>.<query>`
-and the fixture `<set>-<query>-case.json`. `umpire-case --list` enumerates every registered Case --
-each set's Queries and the Cases that register their values explicitly -- sorted by Case ID, and the
-generator renders exactly that list, so a Query added to a set is a fixture the moment the generator
-runs. A Case whose path realizes a class with an `examples:` line carries an abstraction claim row in
-its provenance naming the action, the field, the class and the example it ran.
+A generated fixture is named by its Model and Query: the Case ID is
+`temporal.case.scala.<model>.<query>` and the file is `generated/<model>-<query>-case.json`, where
+`<model>` is the IR file's name without `.json`. The Queries this tree pins are listed under the
+`functional` kind in `tools/umpire/cmd/umpire-gen-cases/main.go`, and `generated/manifest.json` records
+each one's standing and expected assessment. A Query is added by adding it to that list and running
+`make umpire-gen-fixtures`. The retained fixtures keep the names they were rendered under,
+`<set>-<query>-case.json` with the Case ID `temporal.case.<set>.<query>`. A Case whose path realizes
+a class with a declared example carries an abstraction claim row in its provenance naming the
+action, the field, the class and the example it ran.
 
 Admission is checked once for every fixture rather than once per Case: `fixture_table_test.go`
-enumerates `testdata/*-case.json`, decodes each strictly, pins its identity, and -- where
+enumerates `testdata/*-case.json` and `testdata/generated/*-case.json`, decodes each strictly, pins its identity, and -- where
 `DeriveProfile` can read the Case's Profile -- prepares it over unchanged bytes and rejects a
 mutated role. The per-Case tests beside it keep what that table cannot say: the outage Deadline, the
 typed tenfold load, Run isolation, and the checked Provenance the async Nexus Case carries.

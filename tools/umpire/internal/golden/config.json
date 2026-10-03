@@ -87,6 +87,32 @@
       "new": "model/temporal/worker/Worker.scala"
     }
   ],
+  "source_path_renames": [
+    {
+      "old": "model/lifter/testdata/lifts/Admission.scala.fixture",
+      "new": "model/lifter/testdata/lifts/Admission.scala"
+    },
+    {
+      "old": "model/lifter/testdata/lifts/Channels.scala.fixture",
+      "new": "model/lifter/testdata/lifts/Channels.scala"
+    },
+    {
+      "old": "model/lifter/testdata/lifts/CloseReset.scala.fixture",
+      "new": "model/lifter/testdata/lifts/CloseReset.scala"
+    },
+    {
+      "old": "model/lifter/testdata/lifts/Declarations.scala.fixture",
+      "new": "model/lifter/testdata/lifts/Declarations.scala"
+    },
+    {
+      "old": "model/lifter/testdata/lifts/Presence.scala.fixture",
+      "new": "model/lifter/testdata/lifts/Presence.scala"
+    },
+    {
+      "old": "model/lifter/testdata/lifts/Realizations.scala.fixture",
+      "new": "model/lifter/testdata/lifts/Realizations.scala"
+    }
+  ],
   "source_label_substitutions": [
     {
       "old": "model/scalav2: fixture.channels.Channels$package$.relay, fixture.channels.Channels$package$.tallying",

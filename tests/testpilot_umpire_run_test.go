@@ -20,6 +20,7 @@ import (
 	"go.temporal.io/server/common/testing/await"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"go.temporal.io/server/tests/testcore"
+	testpilotcore "go.temporal.io/server/tests/testcore/testpilot"
 )
 
 // TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint is the vision's black-box mode on real
@@ -113,7 +114,7 @@ func TestTestpilotUmpireRunRejectsAnUnreachableEndpoint(t *testing.T) {
 	defer cancel()
 
 	command := exec.CommandContext(ctx, binary,
-		"--case", filepath.Join("testcore", "testpilot", "testdata", "nexusCallerTests-asyncCompletion-case.json"),
+		"--case", testpilotFixturePath(testpilotcore.NexusCallerAsyncCompletionFixture),
 		"--grpc", "127.0.0.1:1",
 		"--http", "127.0.0.1:1",
 		"--namespace", "umpire-run-unreachable",

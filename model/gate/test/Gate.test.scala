@@ -18,7 +18,7 @@ class GateSuite extends munit.FunSuite:
    * A repository with an IR schema and its generated Go code, and stand-ins for the tools: each
    * records its command line in `log`, and scala-cli writes the file it is asked to package.
    */
-  final private class Repository(scalaCli: String = ""):
+  final private class Repository(scalaCli: String = "", go: String = passingVocabulary):
     val root: Path = Files.createTempDirectory("umpire-gate-repository")
     val log: Path = root.resolve("tools.log")
     val schema: Path = root.resolve(schemaFile)
@@ -38,12 +38,20 @@ class GateSuite extends munit.FunSuite:
     private val stubs = Stubs(Files.createDirectory(root.resolve("bin")))
       .tool("scala-cli", s"$record\n$packaging\n$scalaCli")
       .tool("protoc", record)
-      .tool("go", record)
+      .tool("go", s"$record\n$go")
     val tools: Tools = stubs.tools(root, "TOOLS_LOG" -> log.toString)
     def ran: Seq[String] =
       if Files.exists(log) then Files.readString(log).linesIterator.toSeq else Nil
     def jar: Path = root.resolve("model/gen/ir-proto.jar")
     def stamp: String = Files.readString(root.resolve("model/gen/ir.stamp"))
+
+  // As `go test -v -run` of the vocabulary check, go prints what the test's run printed.
+  private def vocabulary(printed: String, exit: Int = 0) =
+    s"""case " $$* " in *" -run "*) printf '%b\\n' '$printed'; exit $exit;; esac"""
+  private def passingVocabulary =
+    vocabulary("--- PASS: TestModelNamesNoRetiredFrontEnd (0.05s)\\nPASS")
+  private val vocabularyCheck =
+    "go test -count=1 -tags test_dep -v -run ^TestModelNamesNoRetiredFrontEnd$ ./tools/umpire/model"
 
   test("the command line is refused when it names an unknown or a contradictory flag"):
     def unreachable: Tools = fail("a refused command line runs no tool")
@@ -125,7 +133,7 @@ class GateSuite extends munit.FunSuite:
     assert(answer.err.contains("[error] ./model/umpire/Machine.scala:71:3"), answer.err)
     // The framework alone compiled; the test of the Models was the last tool run.
     assertEquals(
-      repository.ran.drop(2),
+      repository.ran.drop(3),
       Seq(
         "scala-cli compile model/project.scala model/umpire --suppress-outdated-dependency-warning",
         "scala-cli test model/project.scala model/umpire model/temporal --suppress-outdated-dependency-warning"
@@ -143,6 +151,136 @@ class GateSuite extends munit.FunSuite:
     assertEquals(
       answer.err,
       s"gate: api/umpire/v1/ir.pb.go is older than the IR schema $schemaFile; run make protoc\n"
+    )
+
+  // As the lifter, scala-cli writes the IR file its third argument names, and fails for a root list
+  // whose file is named in FAILING_LIFTS; it also records the update its test of the lifter was given.
+  private val lifting =
+    """case " $* " in *" test model/lifter "*) echo "lifter update=[$UMPIRE_LIFTER_UPDATE]" >> "$TOOLS_LOG";; esac
+      |program=; n=0
+      |for a in "$@"; do
+      |  if [ -n "$program" ]; then
+      |    n=$((n + 1))
+      |    if [ $n -eq 3 ]; then
+      |      case " $FAILING_LIFTS " in *" ${a##*/} "*) echo "lift: ${a##*/}: no IR form"; exit 1;; esac
+      |      echo '{"lifted": true}' > "$a"
+      |    fi
+      |  fi
+      |  [ "$a" = -- ] && program=yes
+      |done
+      |exit 0""".stripMargin
+
+  private def checkedIn(repository: Repository): Map[String, String] =
+    Roots.ir
+      .map((file, _) => file -> Files.readString(repository.root.resolve("model/ir").resolve(file)))
+      .toMap
+
+  /** A repository whose model/ir holds every file the gate lifts, each of them stale. */
+  private def staleRepository(): Repository =
+    val repository = Repository(scalaCli = lifting)
+    val ir = Files.createDirectories(repository.root.resolve("model/ir"))
+    Roots.ir.foreach((file, _) => Files.writeString(ir.resolve(file), "{}\n"))
+    repository
+
+  test("a check of a stale tree fails, names every stale file and rewrites nothing"):
+    val repository = staleRepository()
+    val answer =
+      gate(repository.tools.withEnvironment("UMPIRE_LIFTER_UPDATE" -> "1"), "--skip-go-checks")
+    assertEquals(answer.status, 1)
+    for (file, _) <- Roots.ir do
+      assert(answer.err.contains(s"model/ir/$file is stale: line 1 is `{}`"), answer.err)
+    assert(answer.err.contains("rerun with --update (make umpire-gen-model)"), answer.err)
+    assertEquals(checkedIn(repository).values.toSet, Set("{}\n"))
+    // An update the environment asks for does not reach a check's test of the lifter.
+    assert(repository.ran.contains("lifter update=[]"), repository.ran.mkString("\n"))
+    assertEquals(
+      repository.ran.filter(_.startsWith("go ")),
+      Seq(vocabularyCheck),
+      "the gate stopped before the Cases"
+    )
+
+  test(
+    "an update rewrites the stale tree, passes the update on, and the check that follows passes"
+  ):
+    val repository = staleRepository()
+    assertEquals(gate(repository.tools, "--update").status, 0)
+    assertEquals(checkedIn(repository).values.toSet, Set("{\"lifted\": true}\n"))
+    assert(repository.ran.contains("lifter update=[1]"), repository.ran.mkString("\n"))
+    assertEquals(
+      repository.ran.filter(_.startsWith("go ")),
+      Seq(
+        vocabularyCheck,
+        "go run ./tools/umpire/cmd/umpire-gen-cases --update",
+        "go vet -tags test_dep ./tools/umpire/...",
+        "go test -count=1 -tags test_dep ./tools/umpire/..."
+      )
+    )
+    val check = gate(repository.tools, "--skip-go-checks")
+    assertEquals(check.status, 0, check.err)
+    // A check that skips the Go checks still holds the vocabulary.
+    assertEquals(
+      repository.ran.filter(_.startsWith("go ")).takeRight(2),
+      Seq(vocabularyCheck, "go run ./tools/umpire/cmd/umpire-gen-cases")
+    )
+
+  /** A repository whose model/ir is current, so only the vocabulary check can stop the gate. */
+  private def currentRepository(go: String): Repository =
+    val repository = Repository(scalaCli = lifting, go = go)
+    val ir = Files.createDirectories(repository.root.resolve("model/ir"))
+    Roots.ir.foreach((file, _) => Files.writeString(ir.resolve(file), "{\"lifted\": true}\n"))
+    repository
+
+  test("the gate stops at a mention the vocabulary check finds, and shows where"):
+    val found = "model/umpire/Table.scala:7\\n--- FAIL: TestModelNamesNoRetiredFrontEnd (0.05s)"
+    val repository = currentRepository(vocabulary(found, exit = 1))
+    val answer = gate(repository.tools, "--skip-go-checks")
+    assertEquals(answer.status, 1)
+    assert(answer.err.startsWith("gate: go exited 1 in "), answer.err)
+    assert(answer.err.contains("model/umpire/Table.scala:7"), answer.err)
+    // It is the first thing the gate runs: nothing was built or lifted before it.
+    assertEquals(repository.ran, Seq(vocabularyCheck))
+
+  test("the gate stops when the vocabulary check did not run"):
+    val unmatched = "ok  \\tgo.temporal.io/server/tools/umpire/model\\t0.4s [no tests to run]"
+    val repository = currentRepository(vocabulary(unmatched))
+    val answer = gate(repository.tools, "--skip-go-checks")
+    assertEquals(answer.status, 1)
+    assert(
+      answer.err.startsWith(
+        "gate: the vocabulary check TestModelNamesNoRetiredFrontEnd did not run:\nok  "
+      ),
+      answer.err
+    )
+    assertEquals(repository.ran.filter(_.startsWith("go ")), Seq(vocabularyCheck))
+
+  test("every lift that fails is reported, after all of them ended, and nothing is rewritten"):
+    val repository = staleRepository()
+    val failing =
+      repository.tools.withEnvironment("FAILING_LIFTS" -> "activity.json nexus-close.json")
+    val answer = gate(failing, "--update", "--skip-go-checks")
+    assertEquals(answer.status, 1)
+    assert(
+      answer.err.contains(
+        "the roots of model/ir/activity.json did not lift:\nlift: activity.json: no IR form"
+      ),
+      answer.err
+    )
+    assert(answer.err.contains("the roots of model/ir/nexus-close.json did not lift:"), answer.err)
+    assert(!answer.err.contains("model/ir/nexus-caller.json"), answer.err)
+    // The lifts that did not fail had ended when the gate answered: their files are there.
+    val history = repository.root.resolve("model/gen/history")
+    val lifted = Files.list(history).filter(_.getFileName.toString.startsWith("ir.")).findFirst.get
+    val files = Roots.ir.map(_._1).filter(file => Files.exists(lifted.resolve(file)))
+    assertEquals(files.toSet, Roots.ir.map(_._1).toSet -- Set("activity.json", "nexus-close.json"))
+    assertEquals(checkedIn(repository).values.toSet, Set("{}\n"))
+
+  test("a file the gate cannot read fails with its path, not a stack trace"):
+    val repository = Repository(scalaCli = lifting)
+    val answer = gate(repository.tools, "--skip-go-checks")
+    assertEquals(answer.status, 1)
+    assertEquals(
+      answer.err,
+      s"gate: java.nio.file.NoSuchFileException: ${repository.root.resolve("model/ir")}\n"
     )
 
   /** A checked-in tree and a produced one, each with the given files. */

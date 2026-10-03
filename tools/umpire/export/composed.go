@@ -31,9 +31,9 @@ type composedSync struct {
 	secondAction  string
 }
 
-// compositions writes every composition goir builds, and lists the ones it does not build with
-// goir's reason: a composition past a ceiling of the scope, and one whose member does not refine what
-// it replaces. A replacement that holds is goir's verdict: the module holds the composed table and
+// compositions writes every composition the reader builds, and lists the ones it does not build with
+// the reader's reason: a composition past a ceiling of the scope, and one whose member does not refine what
+// it replaces. A replacement that holds is the reader's verdict: the module holds the composed table and
 // no refinement.
 func (q *quint) compositions() (fields, views []string, err error) {
 	for _, decl := range q.s.Model.GetCompositions() {

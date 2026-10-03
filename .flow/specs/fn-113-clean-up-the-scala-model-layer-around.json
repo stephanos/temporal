@@ -10,11 +10,27 @@
     "fn-115-make-the-scala-model-the-model-and"
   ],
   "id": "fn-113-clean-up-the-scala-model-layer-around",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-113-clean-up-the-scala-model-layer-around.1": 1
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_hash_epoch": {},
+  "review_pending_rounds": {
+    "impl:fn-113-clean-up-the-scala-model-layer-around.1": 1
+  },
+  "review_reservations": {
+    "aea512d5aaf146adbbc46f86da32e634": {
+      "artifact_sha256": "de921cc2a61e15f968419b022b3ab536a8222db8b7041c077b1eed8ec30ac9ab",
+      "counter_scope": "impl:fn-113-clean-up-the-scala-model-layer-around.1",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "spec_path": ".flow/specs/fn-113-clean-up-the-scala-model-layer-around.md",
   "status": "open",
   "title": "Clean up the Scala model layer around the IR",
@@ -29,5 +45,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T15:08:02.814433Z"
+  "updated_at": "2026-10-03T00:10:45.351158Z"
 }

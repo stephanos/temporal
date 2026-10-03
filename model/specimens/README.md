@@ -1,4 +1,20 @@
-# model/scalav2/specimens
+# model/specimens
+
+**This is a dated record.** It was written on 2026-09-30 and 2026-10-01, before the model had its
+present layout and before the extensions it proposes were built. Paths, line numbers, commands and
+timings below are those of the tree on those dates and are kept as measured. Where a name differs
+today:
+
+| In this record | Today |
+| --- | --- |
+| `model/scala`, `../../scala/umpire`, `../../scala/temporal` | The measured tree is archived as `model0/scala`. The live DSL is `model/umpire` and the live Models are `model/temporal` |
+| `../../go/standaloneactivity`, `../../go/nexuscaller`, `model/go/umpire/refine.go` | Archived under `model0/go`. The live checker is `tools/umpire/model/internal/checker` |
+| `goir/`, `goir.Build`, `goir/machine.go` | The reader, `tools/umpire/model`, and its `Build` |
+| `lifter/`, `Lift.scala:<line>` | `model/lifter`, since split into one file per concern, so the line numbers no longer resolve |
+| `run.sh`, `make umpire-check-scala` | The gate `model/gate`, run by `make umpire-check-model`. Finding F1 is closed there: a compile that prints an error fails the gate whatever it exits with |
+| `go test ./model/scalav2/goir/...` | `go test -tags test_dep ./tools/umpire/model/...` |
+| `../README.md`, "Not lifted yet" | That section is gone: Properties, Scenarios and Queries lift |
+| `.flow/tmp/fn-107/...` | Scratch logs that were never committed |
 
 The two authoring specimens fn-107 reviews before the frontend, the IR or the Go checker grows (R1).
 Each is a Scala sketch with its product and system boundaries, a finite domain manifest, the

@@ -24,7 +24,7 @@ const fence = "01a0ce8e-ba30-7919-ab7e-589b62e92ced"
 // fenced the given Runs.
 func item(t *testing.T, iteration int, runID string, fenced []string, edit func(*evaluation.Subject)) Item {
 	t.Helper()
-	encoded, err := os.ReadFile(filepath.Join("..", "assessment", "testdata", "nexusCallerCanary-syncCompletion-run.json"))
+	encoded, err := os.ReadFile(filepath.Join("..", "assessment", "testdata", "nexus-caller-syncCompletion-run.json"))
 	require.NoError(t, err)
 	decoded, err := recordedrun.Decode(encoded)
 	require.NoError(t, err)

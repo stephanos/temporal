@@ -34,6 +34,28 @@ var (
 	rejectedAt   = regexp.MustCompile(`^lift: (\S+):(\d+): `)
 )
 
+// retiredFrontEnd matches a mention of the front end the model was ported from: its name and the
+// suffix of its sources, its build tool, its version manager and its checker, and its module names.
+// The model is described on its own terms; the archive is where its history lives. The words are
+// spelled here, outside model, so that the check itself is no mention.
+var retiredFrontEnd = regexp.MustCompile(
+	`(?i:\blean(?:4|v2)?\b|\blake(?:file)?\b|\belan\b|leanprover|\bveil\b)|\bUmpire\.[A-Z]|\bTemporal\.(?:Feature|Case)\b`)
+
+// retiredFrontEndMentions returns where the file at path, with this content, mentions the retired
+// front end: "path" for its own name, and "path:line" for each line that does.
+func retiredFrontEndMentions(path, content string) []string {
+	var found []string
+	if retiredFrontEnd.MatchString(path) {
+		found = append(found, path)
+	}
+	for i, line := range strings.Split(content, "\n") {
+		if retiredFrontEnd.MatchString(line) {
+			found = append(found, fmt.Sprintf("%s:%d", path, i+1))
+		}
+	}
+	return found
+}
+
 // sourceProblem says why p does not name a line of a file inside model under root, or "" when
 // it does.
 func sourceProblem(root string, p *umpirespb.Position) string {
@@ -176,8 +198,23 @@ func TestLegacyReferencesReadEveryLine(t *testing.T) {
 
 func TestNoInputNamesTheLegacyTree(t *testing.T) {
 	scanned := 0
-	root := filepath.Join(repoRoot, modelRoot)
-	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
+	require.NoError(t, modelFiles(func(rel, content string) {
+		// Prose may describe the legacy tree; nothing builds or reads it.
+		if filepath.Ext(rel) == ".md" {
+			return
+		}
+		scanned++
+		if lines := legacyReferences(rel, content); len(lines) > 0 {
+			t.Errorf("%s names %s at lines %v", rel, legacyRoot, lines)
+		}
+	}))
+	require.Greater(t, scanned, 50, "the walk reaches the sources, the lifter, the IR and the gate")
+}
+
+// modelFiles visits every file of the model a build did not write, by its path from the repository's
+// root and with its content.
+func modelFiles(visit func(rel, content string)) error {
+	return filepath.WalkDir(filepath.Join(repoRoot, modelRoot), func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -190,10 +227,6 @@ func TestNoInputNamesTheLegacyTree(t *testing.T) {
 				return nil
 			}
 		}
-		// Prose may describe the legacy tree; nothing builds or reads it.
-		if filepath.Ext(path) == ".md" {
-			return nil
-		}
 		rel, err := filepath.Rel(repoRoot, path)
 		if err != nil {
 			return err
@@ -202,12 +235,49 @@ func TestNoInputNamesTheLegacyTree(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		scanned++
-		if lines := legacyReferences(filepath.ToSlash(rel), string(content)); len(lines) > 0 {
-			t.Errorf("%s names %s at lines %v", rel, legacyRoot, lines)
-		}
+		visit(filepath.ToSlash(rel), string(content))
 		return nil
 	})
-	require.NoError(t, err)
-	require.Greater(t, scanned, 50, "the walk reaches the sources, the lifter, the IR and the gate")
+}
+
+// TestModelNamesNoRetiredFrontEnd is the model gate's vocabulary check: the gate runs it by name on
+// every check and update, and fails when it did not run.
+func TestModelNamesNoRetiredFrontEnd(t *testing.T) {
+	scanned := 0
+	var mentions []string
+	require.NoError(t, modelFiles(func(rel, content string) {
+		scanned++
+		mentions = append(mentions, retiredFrontEndMentions(rel, content)...)
+	}))
+	require.Greater(t, scanned, 50, "the walk reaches the sources, the documents, the IR and the Cases")
+	require.Empty(t, mentions, "the model is described on its own terms: reword these, keeping the rule each explains")
+}
+
+func TestRetiredFrontEndMentionsAreFound(t *testing.T) {
+	const path = "model/umpire/Table.scala"
+	for name, test := range map[string]struct {
+		path, content string
+		mentions      []string
+	}{
+		"the name":              {path, "// as Lean spells it", []string{path + ":1"}},
+		"the name in lowercase": {path, "ok\n// the lean table", []string{path + ":2"}},
+		"a source path":         {path, "// Ported from Caller/Model.lean.", []string{path + ":1"}},
+		"a versioned tree":      {path, "// see leanv2 and lean4", []string{path + ":1"}},
+		"the build tool":        {path, "// run `lake build`", []string{path + ":1"}},
+		"the build file":        {path, "// declared in the lakefile", []string{path + ":1"}},
+		"the version manager":   {path, "// installed by elan", []string{path + ":1"}},
+		"the organization":      {path, "// github.com/leanprover/lean4", []string{path + ":1"}},
+		"the checker":           {path, "// Veil visits 171 states", []string{path + ":1"}},
+		"a module":              {path, "// `Umpire.Command.Compose`", []string{path + ":1"}},
+		"a model namespace":     {path, "// below `Temporal.Feature`", []string{path + ":1"}},
+		"every line":            {path, "Lean\nfine\nlake", []string{path + ":1", path + ":3"}},
+		"a file name":           {"model/umpire/Lean.scala", "package umpire", []string{"model/umpire/Lean.scala"}},
+		"a directory":           {"model/lean/Table.scala", "// Lean", []string{"model/lean/Table.scala", "model/lean/Table.scala:1"}},
+		"other words":           {path, "a clean Boolean; cleanup; Leander; umpire.Table; Temporal.Features; unveiled; flake", nil},
+		"the Scala package":     {path, "import umpire.realize.Operand.*\nval f = umpire.Family(\"temporal.case\")", nil},
+	} {
+		t.Run(name, func(t *testing.T) {
+			require.Equal(t, test.mentions, retiredFrontEndMentions(test.path, test.content))
+		})
+	}
 }

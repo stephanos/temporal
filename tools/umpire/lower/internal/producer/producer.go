@@ -1,5 +1,5 @@
-// Package caseproducer lowers one checked Go Model Query into a Testpilot Case through a named
-// realization, the Go counterpart of model/lean/Umpire/Case/Producer.lean. One checked Model, one
+// Package producer lowers one checked Go Model Query into a Testpilot Case through a named
+// realization, the Go counterpart of model0/lean/Umpire/Case/Producer.lean. One checked Model, one
 // selected witness and one realization become one Case: the Program is the realization's
 // scaffolding with the path's actions placed where the realization binds them, and the Contract is
 // the correlated capability the Property's clauses, placed by the Scenario, lower to.

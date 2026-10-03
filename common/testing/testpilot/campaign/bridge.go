@@ -1,5 +1,5 @@
-// Package campaign is the Go side of one bounded exploration campaign: the client of the Lean
-// exploration bridge (`umpire-explore`), and the serial path that takes one candidate's Case
+// Package campaign is the Go side of one bounded exploration campaign: the client of the
+// exploration bridge (`umpire-ir-bridge`), and the serial path that takes one candidate's Case
 // through preparation, one Run against a bound deployment, cleanup, and back to the bridge as an
 // observation. Go never interprets a target, a Model coordinate or a Case family: it forwards one
 // whole Case and returns one closed Run.
@@ -256,7 +256,7 @@ type Bridge struct {
 
 // Options configure a bridge process.
 type Options struct {
-	// Executable is the bridge binary, `umpire-explore`.
+	// Executable is the bridge binary, `umpire-ir-bridge`.
 	Executable string
 	// Args are the executable's arguments; the bridge takes none, a test's stand-in may.
 	Args []string

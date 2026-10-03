@@ -13,7 +13,7 @@ breaking:
     # The testpilot protocol is an internal test-only wire with no compatibility
     # promise; its messages are renamed wholesale rather than versioned.
     - temporal/server/api/testpilot
-    # The Umpire IR is likewise internal and unversioned while model/scalav2 is an experiment.
+    # The Umpire IR is likewise an internal wire with no compatibility promise.
     - temporal/server/api/umpire
 lint:
   use:

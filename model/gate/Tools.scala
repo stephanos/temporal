@@ -17,6 +17,8 @@ enum Output:
   /** Kept, standard error within standard output, and shown only when the run fails. */
   case Kept
 
+  // Only kept output can be read for a printed error. A scala-cli run whose output is kept apart or
+  // shown is judged by its exit status alone, so it follows a kept run that built the same sources.
   /** Standard output kept on its own; standard error goes to the terminal. */
   case KeptApart
 

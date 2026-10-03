@@ -42,7 +42,7 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **Model IR.** The language-neutral form of a Model: its finite types, pure step functions as
   expression trees, actions and machines, with the source position of every node. Its schema is
   `proto/internal/temporal/server/api/umpire/v1/ir.proto`, its evaluation rules are
-  `model/scalav2/SEMANTICS.md`, and an interpreter derives every table, identity and fingerprint
+  `model/SEMANTICS.md`, and an interpreter derives every table, identity and fingerprint
   from it without running front end code. *(drafted 2026-09-30; awaiting GOV-02 approval.)*
 - **Model Definition.** A named, handwritten part of the Behavior Model, such as a state, Action,
   step, or Property. Generated Data and Generated Views are not Model Definitions.
@@ -106,9 +106,13 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 
 ### Where things live
 
-- **`model/`.** Every front end's Behavior Model and implementation: the reference Model and parity
-  oracle, the Go and Scala 3 implementations of the model layer, and `model/scalav2`, which lifts
-  the Scala Models into the Model IR and interprets it in Go.
+- **`model/`.** The Behavior Model and its front end: the Scala DSL, the Temporal Models, the
+  lifter that writes the Model IR, the checked-in IR and Cases, and the gate. It holds no Go.
+- **`tools/umpire/`.** The Go tooling that reads the Model IR: the reader that interprets and checks
+  it, lowering to Cases, conformance, export and exploration. `.plans/UMPIRE_MODULES.md` is the
+  module map.
+- **`model0/`, `tools/umpire0/`.** Frozen archives of the earlier front ends and their tooling.
+  Nothing builds them.
 - **Testpilot.** The canonical name for running behavior through Temporal and Workers. The Testpilot
   protobuf closure rooted at `proto/internal/temporal/server/api/testpilot/v1/case.proto` is the
   wire authority. The shared Go runtime under `common/testing/testpilot` admits and executes Cases

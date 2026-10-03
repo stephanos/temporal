@@ -1,6 +1,6 @@
-// Package goir loads the Umpire IR, validates it, and interprets it: every table, identity and
+// Package model loads the Umpire IR, validates it, and interprets it: every table, identity and
 // fingerprint of a Model is computed here from the IR's declarations, with no code of the front end
-// that wrote them. The evaluation rules are the ones model/scalav2/SEMANTICS.md states.
+// that wrote them. The evaluation rules are the ones model/SEMANTICS.md states.
 package model
 
 import (

@@ -23,7 +23,7 @@ import (
 
 const realizationAt = "model/temporal/nexuscaller/Realization.scala:"
 
-// functionalQueries is the functional set of model/scalav2/scala/temporal/nexuscaller/Claims.scala,
+// functionalQueries is the functional set of model/temporal/nexuscaller/Claims.scala,
 // in its declaration order.
 var functionalQueries = []string{"syncCompletion", "asyncCompletion", "asyncFailure", "handlerError", "retry",
 	"scheduleToStartTimeout", "startToCloseTimeout"}
@@ -233,9 +233,9 @@ func TestALearnedHandleIsBoundOnceAndReadByItsDependents(t *testing.T) {
 }
 
 // offPathKinds is, for each functional Query, the history kinds its Case carries off its path: the
-// five history events less the ones the comparative Model's checked-in Case declares
-// (tests/testcore/testpilot/testdata/nexusCallerTests-<query>-case.json, `program.evidence`), which
-// are the ones a step of the path records.
+// five history events less the ones a step of the path records, which are the kinds the Case the
+// comparative Model rendered for the Query declared (`program.evidence`) before the fixtures under
+// tests/testcore/testpilot/testdata/generated were lowered from this Model.
 var offPathKinds = map[string][]string{
 	"syncCompletion":         {"started", "failed", "canceled", "timedOut"},
 	"asyncCompletion":        {"failed", "canceled", "timedOut"},
@@ -246,10 +246,10 @@ var offPathKinds = map[string][]string{
 	"startToCloseTimeout":    {"completed", "failed", "canceled"},
 }
 
-// The Scala Model and its realization say what the comparative Go Model and model/go/nexuscaller's
+// The Scala Model and its realization say what the comparative Go Model and model0/go/nexuscaller's
 // realization say, but for one declaration: the Scala realization declares the five history kinds
 // exhaustive (Realization.scala, historySource), which the comparative realization, a port of the Lean
-// one, does not. So the Case lowered from the IR is the Case model/go produces from the comparative
+// one, does not. So the Case lowered from the IR is the Case model0/go produces from the comparative
 // Model once its realization is given that declaration, and it differs from the comparative Model's
 // own Case in exactly what the declaration adds: the history kinds off the path, each declared, lifted
 // by the history read and given no meaning in the Contract, with the projection's fingerprint and the

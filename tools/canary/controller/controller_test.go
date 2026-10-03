@@ -36,7 +36,7 @@ var invokeCoordinates = authority.Coordinates{
 // recordedRun is the test cluster's recorded canary Run, under another Run ID.
 func recordedRun(t *testing.T, runID string) *testpilotspb.Run {
 	t.Helper()
-	encoded, err := os.ReadFile(filepath.Join("..", "assessment", "testdata", "nexusCallerCanary-syncCompletion-run.json"))
+	encoded, err := os.ReadFile(filepath.Join("..", "assessment", "testdata", "nexus-caller-syncCompletion-run.json"))
 	require.NoError(t, err)
 	decoded, err := recordedrun.Decode(encoded)
 	require.NoError(t, err)
@@ -191,7 +191,7 @@ func decidedAs(t *testing.T, canary *policy.Policy, edit func(*evaluation.Subjec
 	t.Helper()
 	profile, err := assessment.LoadProfile(canary.EvaluationProfile)
 	require.NoError(t, err)
-	encoded, err := os.ReadFile(filepath.Join("..", "assessment", "testdata", "nexusCallerCanary-syncCompletion-run.json"))
+	encoded, err := os.ReadFile(filepath.Join("..", "assessment", "testdata", "nexus-caller-syncCompletion-run.json"))
 	require.NoError(t, err)
 	decoded, err := recordedrun.Decode(encoded)
 	require.NoError(t, err)

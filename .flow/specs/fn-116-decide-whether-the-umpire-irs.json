@@ -1,15 +1,86 @@
 {
   "branch_name": "fn-116-decide-whether-the-umpire-irs",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-02T05:27:16.892296Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-115-make-the-scala-model-the-model-and"
   ],
   "id": "fn-116-decide-whether-the-umpire-irs",
+  "impl_review_rounds": {
+    "fn-116-decide-whether-the-umpire-irs.1": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "16a570fbf9a26029f0910832f477127791b121a233eeff3b6aff6104a2fc8059",
+      "backend": "claude",
+      "counter_kind": "impl",
+      "failure_class": null,
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "90fb38e2e795bccbdef6e031b36e7e8fc05fe880",
+      "head_sha_observed": false,
+      "kind": "impl",
+      "outcome": "verdict",
+      "output_bytes": 11820,
+      "output_sha256": "57262049f11f4dac789103285d44bb8e888bfa3bade5d1d305b23fe253e20503",
+      "reservation_id": "b9d7a00d0b05405aa3fced9721c4680d",
+      "round_consumed": true,
+      "scope": "impl:fn-116-decide-whether-the-umpire-irs.1",
+      "superseded_by": null,
+      "task": "fn-116-decide-whether-the-umpire-irs.1",
+      "timestamp": "2026-10-02T23:16:11.609126Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "74b2b4b6b83e24d6f1492c7f216a0dc83fd7e5798cd14c6bf1223b0ba58591b7",
+      "backend": "claude",
+      "counter_kind": "impl",
+      "failure_class": null,
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "90fb38e2e795bccbdef6e031b36e7e8fc05fe880",
+      "head_sha_observed": false,
+      "kind": "impl",
+      "outcome": "verdict",
+      "output_bytes": 3699,
+      "output_sha256": "1747fada7d05c180c961b97d2360067398d940ad388941503a65099fb44ac8fe",
+      "reservation_id": "dd00e359491e44e2acbca82167072ccb",
+      "round_consumed": true,
+      "scope": "impl:fn-116-decide-whether-the-umpire-irs.1",
+      "superseded_by": null,
+      "task": "fn-116-decide-whether-the-umpire-irs.1",
+      "timestamp": "2026-10-02T23:23:35.406495Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-116-decide-whether-the-umpire-irs.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-116-decide-whether-the-umpire-irs.1": 0
+  },
   "spec_path": ".flow/specs/fn-116-decide-whether-the-umpire-irs.md",
-  "status": "open",
+  "status": "done",
   "title": "Decide whether the Umpire IR's expressions become CEL",
   "tracker": {
     "baseHashFlow": null,
@@ -22,5 +93,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-02T05:49:41.418688Z"
+  "updated_at": "2026-10-02T23:23:44.046452Z"
 }

@@ -9,7 +9,7 @@ import (
 	umpire "go.temporal.io/server/tools/umpire/model/internal/checker"
 )
 
-// binding is one interpretation of a Model as model/go's checker reads it: a table per machine and
+// binding is one interpretation of a Model as the reader's private checker reads it: a table per machine and
 // composition whose results carry their steps as values, and the Model's claims declared over those
 // tables' keys. A claim is declared once per table, since two declarations of one name on a table
 // would share a Definition ID.

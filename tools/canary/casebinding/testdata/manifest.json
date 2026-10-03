@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "queries": [
+    {
+      "model": "nexus-caller.json",
+      "query": {
+        "Family": "temporal.nexus.caller",
+        "Owner": "nexusProtocol",
+        "Name": "syncCompletion"
+      },
+      "standing": "lowered",
+      "file": "nexus-caller-syncCompletion-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "syncSucceeds",
+            "status": "satisfied"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	controlCasePath = "../../../../tests/testcore/testpilot/testdata/nexusCallerControl-forgedCompletion-case.json"
+	controlCasePath = "../../../../common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-case.json"
 	controlRunPath  = "../../../../common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-run.json"
 )
 

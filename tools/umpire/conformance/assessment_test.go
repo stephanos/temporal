@@ -104,7 +104,7 @@ const (
 
 func open(id, why string) concluded { return concluded{id: id, status: inconclusive, why: why} }
 
-// The rows are the activity specimen's oracles (model/scalav2/specimens/activity.md) read as
+// The rows are the activity specimen's oracles (model/specimens/activity.md) read as
 // evidence. Each expectation is worked out from the specimen's two designs, in the comment beside it,
 // and not from what the assessment returns.
 var (

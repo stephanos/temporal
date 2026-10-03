@@ -169,7 +169,7 @@ func TestWorkflowStartCaseBoundedHistoryLoad(t *testing.T) {
 				identity: prepared.Identity(), recordedType: WorkflowStartWorkflowType,
 				fillerEvents: test.filler, fillerBytes: test.bytes,
 			}
-			size, observations := int64(proto.Size(driver.historyResponse())), int64(test.filler)+1
+			size, observations := int64(proto.Size(driver.historyResponse(""))), int64(test.filler)+1
 			if test.bytes == 0 || test.verdict == testpilotspb.VERDICT_STATUS_SATISFIED {
 				require.Less(t, size, payloadBudget, "a collection case stays inside the payload budget")
 			} else {
@@ -339,9 +339,6 @@ type workflowStartDriver struct {
 	omitStarted      bool
 	omitWorkflowType bool
 	opens            atomic.Int64
-	// runID is the Run the session was last opened for; the started event it scripts names the
-	// workflow by it.
-	runID string
 }
 
 func (d *workflowStartDriver) Identity(context.Context) (testpilot.DriverIdentity, error) {
@@ -353,7 +350,6 @@ func (d *workflowStartDriver) Open(_ context.Context, runID string, program test
 		return nil, temporal.ErrInvalid
 	}
 	d.opens.Add(1)
-	d.runID = runID
 	return &scriptedSession{
 		runID: runID, namespace: workflowStartArtifactNamespace, taskQueue: workflowStartArtifactTaskQueue,
 		start: func(request *workflowservice.StartWorkflowExecutionRequest) (*testpilotspb.InstructionOutcome, error) {
@@ -368,14 +364,16 @@ func (d *workflowStartDriver) Open(_ context.Context, runID string, program test
 			if instructionID == "await-close" {
 				return []*historypb.HistoryEvent{closedEvent(2)}
 			}
-			return d.historyResponse().GetHistory().GetEvents()
+			return d.historyResponse(runID).GetHistory().GetEvents()
 		},
 	}, nil
 }
 
 // historyResponse builds the scripted history: the started event the clause reads, preceded by the
-// filler events the load tests use to grow the response past its declared budget.
-func (d *workflowStartDriver) historyResponse() *workflowservice.GetWorkflowExecutionHistoryResponse {
+// filler events the load tests use to grow the response past its declared budget. runID is the Run
+// the session was opened for; the started event it scripts names the workflow by it, so concurrent
+// sessions of one Driver each script their own.
+func (d *workflowStartDriver) historyResponse(runID string) *workflowservice.GetWorkflowExecutionHistoryResponse {
 	events := make([]*historypb.HistoryEvent, 0, d.fillerEvents+1)
 	for index := range d.fillerEvents {
 		events = append(events, &historypb.HistoryEvent{
@@ -390,7 +388,7 @@ func (d *workflowStartDriver) historyResponse() *workflowservice.GetWorkflowExec
 	if !d.omitStarted {
 		attributes := &historypb.WorkflowExecutionStartedEventAttributes{
 			TaskQueue:           &taskqueuepb.TaskQueue{Name: workflowStartArtifactTaskQueue},
-			FirstExecutionRunId: d.runID,
+			FirstExecutionRunId: runID,
 		}
 		if !d.omitWorkflowType {
 			attributes.WorkflowType = &commonpb.WorkflowType{Name: d.recordedType}

@@ -50,10 +50,10 @@ The SDK's system callback identifier is resolved only against the trusted
 but cannot supply its scheme, authority, user information, fragment, or base. Existing absolute
 HTTP and HTTPS callback URLs continue through the worker package's validation.
 
-`NewWorkflowServiceCatalog` freezes the public WorkflowService descriptor closure used by Lean Case
-artifacts and Go preparation. The retained fixtures in `tests/testcore/testpilot/testdata` are
-canonical ProtoJSON generated from `Temporal.Testpilot` through `Testpilot.Authoring` and the
-`Protobuf.Json`-backed `Testpilot.ProtoJSON` policy; `testpilot.DecodeCaseProtoJSON` is the strict wire-boundary decoder,
+`NewWorkflowServiceCatalog` freezes the public WorkflowService descriptor closure used by Case
+artifacts and Go preparation. The fixtures in `tests/testcore/testpilot/testdata` are canonical
+ProtoJSON: the Cases under `generated` are lowered from the Scala model, and the ones beside it are
+retained as they were rendered; `testpilot.DecodeCaseProtoJSON` is the strict wire-boundary decoder,
 and `testpilot.Prepare` owns descriptor, bounds, identity, scope, and environment admission.
 The async Nexus fixture is one Case 1.0 byte sequence. Its live test prepares that sequence against
 two Profiles, runs both physical environments, and proves namespace isolation plus the same

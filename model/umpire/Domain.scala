@@ -1,12 +1,12 @@
-/* The Scala implementation of the Umpire model layer, built to be compared with the Lean one under
- * model/lean/ and the Go one under model/go/. A Model is ordinary Scala 3: domains are enums and
- * case classes, actions and machines are vals, step functions are plain defs with total matches,
- * and the finite table, the refinement and the Queries are computed and checked when a test asks.
+/* The Scala implementation of the Umpire model layer. A Model is ordinary Scala 3: domains are
+ * enums and case classes, actions and machines are vals, step functions are plain defs with total
+ * matches, and the finite table, the refinement and the Queries are computed and checked when a
+ * test asks.
  *
- * The orders and key spellings follow the Lean implementation exactly, because Definition IDs,
- * witnesses and exploration targets are compared against Lean's output byte for byte. Where a rule
- * is non-obvious, the comment names the Lean source it mirrors; the Go port is the executable
- * reference each rule was checked against first.
+ * The orders and key spellings are the ones the Go reader (tools/umpire/model) derives from the
+ * lifted IR, because the Definition IDs, witnesses and exploration targets the tests pin here are
+ * the ones its goldens hold. Where a rule is non-obvious, the comment says what depends on it; the
+ * Go reader is the executable reference each rule is checked against.
  */
 package umpire
 
@@ -17,7 +17,7 @@ import scala.deriving.Mirror
  * A type whose values can all be listed, in catalog order. Derived structurally through `Mirror`:
  * an enum is the concatenation of its cases, a case class (or a parametrised enum case) the
  * product of its fields in declaration order with the last field varying fastest, which is the
- * order the Lean `Finite` derivation produces.
+ * catalog order the IR's semantics define (SEMANTICS.md) and the Go reader lists.
  */
 trait Finite[T]:
   def values: IndexedSeq[T]
@@ -31,12 +31,12 @@ object Finite:
       def values = all
 
   /**
-   * `0..hi`, the reading of Lean's `Fin (hi + 1)`. A model that bounds a counter gives this as a
+   * `0..hi`, a counter of `hi + 1` values. A model that bounds a counter gives this as a
    * local given next to the state it derives, so the bound sits beside the field it bounds.
    */
   def upTo(hi: Int): Finite[Int] = of((0 to hi)*)
 
-  // Lean's `Bool` instance lists false before true.
+  // False before true, the order the Go reader lists a Boolean's values in.
   given Finite[Boolean] = of(false, true)
 
   /** A domain with no members: a machine that records no facts has `Nothing` as its fact type. */
@@ -89,9 +89,9 @@ trait Keyed:
   def key: String
 
 /**
- * Keys as Lean spells them: an enum case by its name, a parametrised case by its name followed by
- * its fields, a Boolean as true or false, a counter in decimal, and a state case class by its fields
- * in declaration order, all joined by "-".
+ * Keys as Definition IDs spell them: an enum case by its name, a parametrised case by its name
+ * followed by its fields, a Boolean as true or false, a counter in decimal, and a state case class
+ * by its fields in declaration order, all joined by "-".
  */
 object Keys:
   def of(v: Any): String = v match
@@ -115,7 +115,7 @@ object Keys:
     case _                     => Nil
 
   /**
-   * A class spelled the way a Lean `examples:` line spells it: a parametrised case by its
+   * A class spelled the way an Abstraction Claim names it: a parametrised case by its
    * constructor and named fields, `handlerError (retryable := true)`, anything else by its key.
    */
   def spelling(v: Any): String = v match

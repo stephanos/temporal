@@ -6,7 +6,7 @@
  *
  * The domains and step functions are the kernel in temporal/nexuscaller/kernel/Nexus.scala, which Stainless proves
  * things about; this file declares the rest in ordinary Scala: vocabulary, the two machines, what
- * they promise, what the set asks. Ported from model/lean/Temporal/Feature/Nexus/Caller/Model.lean.
+ * they promise, what the set asks.
  */
 package temporal
 package nexuscaller

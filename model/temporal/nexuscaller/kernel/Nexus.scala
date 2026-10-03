@@ -4,8 +4,8 @@
  * list and step constructors of umpire.prelude, which each side supplies for itself. Everything a
  * Model declares beyond its step functions lives in temporal/nexuscaller in ordinary Scala.
  *
- * Ported from model/lean/Temporal/Feature/Nexus/Caller/Model.lean and model/go/nexuscaller, in their
- * order; the comments carry over.
+ *
+ *
  */
 package temporal
 package nexuscaller
@@ -146,7 +146,7 @@ enum Phase:
 enum TimeoutType:
   case scheduleToClose, scheduleToStart, startToClose
 
-/** The attempt count is `0..attemptBound`: Lean's `Fin (attemptBound + 1)`. */
+/** The attempt count is `0..attemptBound`. */
 final case class ProtocolState(
     phase: Phase,
     attempts: Int,

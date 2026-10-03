@@ -126,7 +126,7 @@ func TestHarnessBindingRejectsMismatchedAuthorityAndResources(t *testing.T) {
 	}
 }
 
-func harnessFixture(t *testing.T) (*testpilotcore.ScalaCase, testpilot.ProfileSpec, *policy.Policy) {
+func harnessFixture(t *testing.T) (*testpilotcore.ModelCase, testpilot.ProfileSpec, *policy.Policy) {
 	t.Helper()
 	fixture, err := generatedHarnessCase(t, "activity-completion-case.json")
 	require.NoError(t, err)
@@ -143,16 +143,16 @@ func harnessFixture(t *testing.T) (*testpilotcore.ScalaCase, testpilot.ProfileSp
 	return fixture, profile, canary
 }
 
-func generatedHarnessCase(t *testing.T, file string) (*testpilotcore.ScalaCase, error) {
+func generatedHarnessCase(t *testing.T, file string) (*testpilotcore.ModelCase, error) {
 	t.Helper()
 	directory := filepath.Join("..", "..", "..", "model", "cases")
-	entries, err := testpilotcore.ScalaManifest(directory)
+	entries, err := testpilotcore.GeneratedCases(directory)
 	if err != nil {
 		return nil, err
 	}
 	for _, entry := range entries {
 		if entry.File == file {
-			return testpilotcore.LoadGeneratedScalaCase(directory, entry)
+			return testpilotcore.LoadGeneratedCase(directory, entry)
 		}
 	}
 	return nil, fmt.Errorf("no generated Case %s", file)

@@ -229,7 +229,7 @@ func exitCode(verdict *testpilotspb.Verdict) int {
 // openSession is the real binding: the campaign-scoped part (dial the frontend, create the named
 // resources when asked, build the catalog) opened for this one Case, then the candidate-scoped part
 // (derive the Profile the Case implies, prepare its unchanged bytes, open one composite Driver with
-// its own SDK worker). Both live in `tools/umpire/binding`, which a campaign shares; the CLI's
+// its own SDK worker). Both live in `common/testing/testpilot/temporal/binding`, which a campaign shares; the CLI's
 // behavior and exit codes are unchanged.
 func openSession(ctx context.Context, configuration config, source *testpilotspb.Case) (*session, error) {
 	deployment := configuration.Deployment
