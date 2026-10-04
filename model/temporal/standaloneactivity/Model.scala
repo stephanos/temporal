@@ -383,7 +383,7 @@ def protocolControlStep(s: ProtocolState, c: Control): List[ProtocolStep] =
             accept(s.copy(phase = Phase.pauseRequested), ProtocolFact.statusPaused)
               .because("the worker learns of the pause on its next heartbeat")
           case Phase.paused | Phase.pauseRequested => disabled // already paused, or asked to be
-          case Phase.cancelRequested               => disabled // a cancel request outranks a pause
+          case Phase.cancelRequested               => disabled // a cancel request is not pausable
           // Answered above: an activity that is over is not found, an unstarted one has no control.
           case Phase.unstarted | Phase.completed | Phase.failed | Phase.canceled |
               Phase.terminated | Phase.timedOut =>
