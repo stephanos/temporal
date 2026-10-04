@@ -116,7 +116,9 @@ and refinement reads in the DSL and lifter (production Models not yet migrated).
 derivations (`rebind`, `extend`, `refining`, `assuming`, `unmonitored`; `restrict` chains with them), sugar in
 `umpire/Syntax.scala` lowered by `lifter/Syntax.scala` with a core/sugar lint rule, and an original-baseline
 check that compares derived outputs and Case bytes rather than IR function bodies. Task 4 is done: typed
-composition selectors, `Declares[S]` and the claim patterns. Task 5 is next. Before tasks 6 and 7 change a
+composition selectors, `Declares[S]` and the claim patterns. Task 5 is done: input tokens, named inputs
+with `:=` and `UpTo` counters. Task 11 (Query totals) runs alongside fn-120.1 (named choices); both settle
+before task 6. Before tasks 6 and 7 change a
 production function body, they extend or re-capture the fn-115 migration golden (`TestMigrationGoldens`), which
 still compares function bodies. Task 6 also makes the 168
 state/action pairs disabled only by a default arm explicit; two Properties that are false on 120
