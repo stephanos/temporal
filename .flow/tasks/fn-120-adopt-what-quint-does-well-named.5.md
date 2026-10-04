@@ -6,6 +6,8 @@ satisfies: [R14]
 Touches: [model/gate/**, model/README.md]
 
 ## Description
+Owner decision 2026-10-04: the IR explorer (fn-120.4: R8, R9, R10) is deferred; this task closes fn-120 without it and records R8-R10 as deferred in the spec's coverage.
+
 Close the spec once the choice rollout, lint and explorer are settled. ITF interchange (former Part D, R11 and R12) was withdrawn by the owner on 2026-10-04 and is not built.
 
 **Size:** S

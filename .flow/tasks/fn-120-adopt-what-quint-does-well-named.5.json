@@ -5,8 +5,7 @@
   "created_at": "2026-10-03T17:21:01.602654Z",
   "depends_on": [
     "fn-120-adopt-what-quint-does-well-named.2",
-    "fn-120-adopt-what-quint-does-well-named.3",
-    "fn-120-adopt-what-quint-does-well-named.4"
+    "fn-120-adopt-what-quint-does-well-named.3"
   ],
   "id": "fn-120-adopt-what-quint-does-well-named.5",
   "priority": null,

@@ -22,8 +22,8 @@ Implement Parts C and E after task 3's lint work settles the shared Go model/com
 - [ ] R10 single-command and interactive modes agree on a fixture.
 - [ ] R13 level contract, the Modalities paragraph and reachable refusal fixtures are documented and checked.
 ## Done summary
-TBD
-
+Blocked:
+Blocked: deferred by the owner on 2026-10-04. The IR explorer (R8 including the per-state modality view and `rules <class>`, R9 disabled reasons at Scala positions, R10 single-command and interactive modes) is not built in this round. fn-120 closes without it; reopen this task when an author needs to step through a machine or the lint's views prove insufficient. No work was committed.
 ## Evidence
 - Commits:
 - Tests:
