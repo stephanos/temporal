@@ -112,8 +112,10 @@ Task 1 is done: each Model folder declares its IR files in Scala (`val x = irFil
 report it. Task 2 is done: the Nexus caller Model uses captured names, derivation and the four-file layout
 (its four files went from 898 lines and 114 literals to 780 and 21); the source-path change moved the canary
 Case identity, so its pinned Run was re-recorded. Task 3 is done: the caller realization refers to
-its declarations by value through the shared kit (525 lines and 30 literals, from 645 and 60). Tasks 4-5
-(close policy) are in progress.
+its declarations by value through the shared kit (525 lines and 30 literals, from 645 and 60). Tasks 4 and 5
+are done: the close policy uses the final DSL with a new `sticky` monitor form and the four-file layout (58
+literals, from 148). Task 6 (worker Model and lifter fixtures) is next. `leadsTo` has no captured-name form yet,
+which leaves two literals in the close policy.
 ### fn-118: Declare how Temporal APIs behave once, and let the generated tests use it
 
 Task 1 is done: the inventory (16 Cases, 17 polls, 52 waits, 440 s declared wait budget) and the
