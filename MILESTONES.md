@@ -110,8 +110,9 @@ reusable task-queue entity, providers and shared properties into `temporal/taskq
 claims are written with named patterns (`once(...).keeps(...)`, `never(...).from(...)`,
 `stays(...).unless(...)`) as parameterized definitions fn-122 turns into laws.
 
-Task 1 is done: the original-baseline archive and equivalence check, the DefinitionScope probe and
-the starting metrics (2,830 lines, 462 string literals). Task 2 is next. Task 6 also makes the 168
+Tasks 1 and 2 are done: the original-baseline archive and equivalence check, the DefinitionScope probe,
+the starting metrics (2,830 lines, 462 string literals), and captured declaration names, evidence defaults
+and refinement reads in the DSL and lifter (production Models not yet migrated). Task 3 is next. Task 6 also makes the 168
 state/action pairs disabled only by a default arm explicit; two Properties that are false on 120
 rows each and seven pause/unpause rows the server rejects are recorded follow-ups, because the
 behavior freeze forbids changing them here.
