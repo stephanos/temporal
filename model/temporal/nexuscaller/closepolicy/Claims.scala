@@ -16,12 +16,8 @@ import umpire.*
  * A closed run's history is frozen: no step of a caller that stays closed changes what it holds.
  */
 def closedHistoryIsFrozen(before: CloseResetState, after: CloseResetStep): Boolean =
-  before.caller != Caller.closed || after.state.caller != Caller.closed ||
+  before.caller == Caller.closed && after.state.caller == Caller.closed implies
     (after.state.known == before.known && after.state.intent == before.intent)
-
-/** No step, a reset included, undoes what the handler did. */
-def handlerEffectIsIrreversible(before: CloseResetState, after: CloseResetStep): Boolean =
-  working(before.handler) || after.state.handler == before.handler
 
 /** An outcome a history records is the handler's. */
 def knownIsTheHandlersOutcome(after: CloseResetStep): Boolean = after.state.known match
@@ -29,8 +25,8 @@ def knownIsTheHandlersOutcome(after: CloseResetStep): Boolean = after.state.know
   case Knowledge.successor(r) => after.state.handler == Handler.done(r)
   case _                      => true
 
-def knows(k: Knowledge, r: Resolution): Boolean = k == Knowledge.original(r) ||
-  k == Knowledge.successor(r)
+def knows(k: Knowledge, r: Resolution): Boolean =
+  k.in(Knowledge.original(r), Knowledge.successor(r))
 
 /**
  * A recorded outcome stays recorded: a redelivery changes nothing, and a reset carries it over.
@@ -51,98 +47,92 @@ def nothingOwed(s: CloseResetState): Boolean = s.handler match
  * design already lost.
  */
 def noUnnecessaryWait(before: CloseResetState, after: CloseResetStep): Boolean =
-  before.known == Knowledge.expired || after.state.known != Knowledge.expired ||
+  before.known != Knowledge.expired && after.state.known == Knowledge.expired implies
     !nothingOwed(before)
 
-val four: Limits = Limits("four", steps = 4, actions = 4, search = 1 << 20)
-val five: Limits = Limits("five", steps = 5, actions = 5, search = 1 << 20)
+val four = Limits(steps = 4, actions = 4, search = 1 << 20)
+val five = Limits(steps = 5, actions = 5, search = 1 << 20)
 
 /**
  * Past the depth of every design's table, so a free search that verifies read every step.
  */
-val twelve: Limits = Limits("twelve", steps = 12, actions = 12, search = 1 << 22)
+val twelve = Limits(steps = 12, actions = 12, search = 1 << 22)
 
 /** Every claim and path of the specimen, declared on one design. */
 def designQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
   val preserved = m.property("outcomePreserved") holds outcomePreserved
   val acked = m.property("ackOnlyWhenKept") holdsAcross ackOnlyWhenKept
   val frozen = m.property("closedHistoryIsFrozen") holdsAcross closedHistoryIsFrozen
-  val irreversible = m.property("handlerEffectIsIrreversible") holdsAcross
-    handlerEffectIsIrreversible
+  // No step, a reset included, undoes what the handler did.
+  val handlerEffectIsIrreversible = m.property.once(isDone).keeps(_.handler)
   val handlers = m.property("knownIsTheHandlersOutcome") holds knownIsTheHandlersOutcome
   val knowledgeFinal = m.property("knowledgeIsFinal") holdsAcross knowledgeIsFinal
   // The handler's detached work goes on after the close.
-  val finishesAfterClose = m.property("finishesAfterClose") when
+  val finishesAfterClose = m.property when
     handlerFinish(Resolution.succeeded) holds
     (after =>
       after.state.caller == Caller.closed &&
         after.state.handler == Handler.done(Resolution.succeeded)
     )
   // A cancellation's request, its receipt, the handler's effect and the caller's knowledge.
-  val requestedButUnreceived = m.property("requestedButUnreceived") when
+  val requestedButUnreceived = m.property when
     requestCancel(Principal.callerWorkflow) holds
     (after =>
       after.state.intent == Intent.requested(Principal.callerWorkflow) &&
         after.state.handler == Handler.running
     )
-  val receivedButSucceeded = m.property("receivedButSucceeded") when
+  val receivedButSucceeded = m.property when
     handlerFinish(Resolution.succeeded) holds
     (after =>
       after.state.intent == Intent.requested(Principal.callerWorkflow) &&
         after.state.handler == Handler.done(Resolution.succeeded)
     )
-  val canceledButUnknown = m.property("canceledButUnknown") when
+  val canceledButUnknown = m.property when
     handlerFinish(Resolution.canceled) holds
     (after =>
       after.state.handler == Handler.done(Resolution.canceled) &&
         !ownerKnows(after.state, Resolution.canceled)
     )
-  val completionCancels = m.property("completionCancels") when complete(Resolution.canceled) holds
+  val completionCancels = m.property when complete(Resolution.canceled) holds
     (after =>
       ownerKnows(after.state, Resolution.canceled) &&
-        after.facts.contains(Fact.nexusOperationCanceled)
+        after.records(Fact.nexusOperationCanceled)
     )
   // The baseline's two: an open caller records a completion by the baseline's event.
-  val completionSucceeds = m.property("completionSucceeds") when
+  val completionSucceeds = m.property when
     complete(Resolution.succeeded) holds
-    (after => after.facts.contains(Fact.nexusOperationCompleted))
-  val completionFails = m.property("completionFails") when complete(Resolution.failed) holds
-    (after => after.facts.contains(Fact.nexusOperationFailed))
+    (after => after.records(Fact.nexusOperationCompleted))
+  val completionFails = m.property when complete(Resolution.failed) holds
+    (after => after.records(Fact.nexusOperationFailed))
   // The two answers of a closed run, and the two resets, are kept apart.
-  val rejectedTransiently = m.property("rejectedTransiently") when
+  val rejectedTransiently = m.property when
     complete(Resolution.succeeded) holds
     (after =>
       after.outcome == Answer.rejectedTransient &&
         carries(after.state.channel, Resolution.succeeded)
     )
-  val rejectedPermanently = m.property("rejectedPermanently") when
+  val rejectedPermanently = m.property when
     complete(Resolution.succeeded) holds (after => after.outcome == Answer.rejectedPermanent)
-  val lostAfterReset = m.property("lostAfterReset") when reset holds
+  val lostAfterReset = m.property when reset holds
     (after => !outcomePreserved(after))
-  val reappliesRetained = m.property("reappliesRetained") when reset holds
+  val reappliesRetained = m.property when reset holds
     (after =>
-      after.facts.contains(Fact.outcomeReapplied) &&
+      after.records(Fact.outcomeReapplied) &&
         after.state.known == Knowledge.successor(Resolution.succeeded)
     )
-  val routedToSuccessor = m.property("routedToSuccessor") when complete(Resolution.failed) holds
+  val routedToSuccessor = m.property when complete(Resolution.failed) holds
     (after => after.state.known == Knowledge.successor(Resolution.failed))
-  val closedThenFinished = m
-    .scenario("closedThenFinished")
-    .starts(opened)
+  val closedThenFinished = m.scenario
     .actions(
       callerClose,
       handlerFinish(Resolution.succeeded),
       complete(Resolution.succeeded),
       reset
     )
-  val resetThenDelivered = m
-    .scenario("resetThenDelivered")
-    .starts(opened)
+  val resetThenDelivered = m.scenario
     .actions(handlerFinish(Resolution.failed), reset, complete(Resolution.failed))
   // The request, its delivery to the handler and the handler's effect are three steps here.
-  val canceledAcrossReset = m
-    .scenario("canceledAcrossReset")
-    .starts(opened)
+  val canceledAcrossReset = m.scenario
     .actions(
       requestCancel(Principal.callerWorkflow),
       deliverCancel,
@@ -150,81 +140,57 @@ def designQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
       reset,
       complete(Resolution.canceled)
     )
-  val ackedThenReset = m
-    .scenario("ackedThenReset")
-    .starts(opened)
+  val ackedThenReset = m.scenario
     .actions(handlerFinish(Resolution.succeeded), complete(Resolution.succeeded), reset)
-  val duplicateCompletion = m
-    .scenario("duplicateCompletion")
-    .starts(opened)
+  val duplicateCompletion = m.scenario
     .actions(
       handlerFinish(Resolution.succeeded),
       complete(Resolution.succeeded),
       complete(Resolution.succeeded)
     )
   // A reset between the commit and its acknowledgment, and between a rejection and the retry.
-  val resetBetweenDeliveries = m
-    .scenario("resetBetweenDeliveries")
-    .starts(opened)
+  val resetBetweenDeliveries = m.scenario
     .actions(
       handlerFinish(Resolution.failed),
       complete(Resolution.failed),
       reset,
       complete(Resolution.failed)
     )
-  val detachedWork = m
-    .scenario("detachedWork")
-    .starts(opened)
+  val detachedWork = m.scenario
     .actions(callerClose, handlerFinish(Resolution.succeeded))
-  val cancelRequested = m
-    .scenario("cancelRequested")
-    .starts(opened)
+  val cancelRequested = m.scenario
     .actions(requestCancel(Principal.callerWorkflow))
-  val cancelReceivedThenSucceeded = m
-    .scenario("cancelReceivedThenSucceeded")
-    .starts(opened)
+  val cancelReceivedThenSucceeded = m.scenario
     .actions(
       requestCancel(Principal.callerWorkflow),
       deliverCancel,
       handlerFinish(Resolution.succeeded)
     )
-  val cancelReceivedThenCanceled = m
-    .scenario("cancelReceivedThenCanceled")
-    .starts(opened)
+  val cancelReceivedThenCanceled = m.scenario
     .actions(
       requestCancel(Principal.callerWorkflow),
       deliverCancel,
       handlerFinish(Resolution.canceled)
     )
-  val canceledThenDelivered = m
-    .scenario("canceledThenDelivered")
-    .starts(opened)
+  val canceledThenDelivered = m.scenario
     .actions(
       requestCancel(Principal.callerWorkflow),
       deliverCancel,
       handlerFinish(Resolution.canceled),
       complete(Resolution.canceled)
     )
-  val finishedThenSucceeded = m
-    .scenario("finishedThenSucceeded")
-    .starts(opened)
+  val finishedThenSucceeded = m.scenario
     .actions(handlerFinish(Resolution.succeeded), complete(Resolution.succeeded))
-  val finishedThenFailed = m
-    .scenario("finishedThenFailed")
-    .starts(opened)
+  val finishedThenFailed = m.scenario
     .actions(handlerFinish(Resolution.failed), complete(Resolution.failed))
-  val deliveredToClosed = m
-    .scenario("deliveredToClosed")
-    .starts(opened)
+  val deliveredToClosed = m.scenario
     .actions(callerClose, handlerFinish(Resolution.succeeded), complete(Resolution.succeeded))
-  val any = m.scenario("any").starts(opened).free
+  val any = m.scenario.free
   Vector(
     query(s"${m.name}.closedThenFinished") verify preserved in
       closedThenFinished limits four total 26880,
-    query(s"${m.name}.resetThenDelivered.ackOnlyWhenKept").verify(acked) in
-      resetThenDelivered limits four total 20160,
-    query(s"${m.name}.resetThenDelivered.outcomePreserved").verify(preserved) in
-      resetThenDelivered limits four total 20160,
+    query verify acked in resetThenDelivered limits four total 20160,
+    query verify preserved in resetThenDelivered limits four total 20160,
     query(s"${m.name}.canceledAcrossReset") verify preserved in
       canceledAcrossReset limits five total 33600,
     query(s"${m.name}.ackedThenReset") verify preserved in ackedThenReset limits four total 20160,
@@ -232,15 +198,12 @@ def designQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
       four total 20160,
     query(s"${m.name}.resetBetweenCommitAndAcknowledgment").verify(acked) in
       resetBetweenDeliveries limits four total 26880,
-    query(s"${m.name}.any.outcomePreserved") verify preserved in any limits twelve total 806400,
-    query(s"${m.name}.any.ackOnlyWhenKept") verify acked in any limits twelve total 806400,
-    query(s"${m.name}.any.closedHistoryIsFrozen") verify frozen in any limits twelve total 806400,
-    query(s"${m.name}.any.handlerEffectIsIrreversible") verify irreversible in
-      any limits twelve total 806400,
-    query(s"${m.name}.any.knownIsTheHandlersOutcome") verify handlers in
-      any limits twelve total 806400,
-    query(s"${m.name}.any.knowledgeIsFinal") verify knowledgeFinal in
-      any limits twelve total 806400,
+    query verify preserved in any limits twelve total 806400,
+    query verify acked in any limits twelve total 806400,
+    query verify frozen in any limits twelve total 806400,
+    query verify handlerEffectIsIrreversible in any limits twelve total 806400,
+    query verify handlers in any limits twelve total 806400,
+    query verify knowledgeFinal in any limits twelve total 806400,
     query(s"${m.name}.detachedWorkProceeds") find finishesAfterClose in
       detachedWork limits four total 13440,
     query(s"${m.name}.intentWithoutReceipt").find(requestedButUnreceived) in cancelRequested limits
@@ -267,11 +230,11 @@ def designQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
       four total 20160
   )
 
-val rejectAfterCloseQueries: Vector[Query] = designQueries(rejectAfterCloseDesign)
-val ackByOriginalQueries: Vector[Query] = designQueries(ackByOriginalDesign)
-val retainAndRouteQueries: Vector[Query] = designQueries(retainAndRouteDesign)
-val forgetsCancelOnResetQueries: Vector[Query] = designQueries(forgetsCancelOnResetDesign)
-val truncatesOnResetQueries: Vector[Query] = designQueries(truncatesOnResetDesign)
+val rejectAfterCloseQueries: Vector[Query] = designQueries(rejectAfterClose)
+val ackByOriginalQueries: Vector[Query] = designQueries(ackByOriginal)
+val retainAndRouteQueries: Vector[Query] = designQueries(retainAndRoute)
+val forgetsCancelOnResetQueries: Vector[Query] = designQueries(forgetsCancelOnReset)
+val truncatesOnResetQueries: Vector[Query] = designQueries(truncatesOnReset)
 
 // ### The two pinned controls and the two promises, over another channel
 
@@ -279,31 +242,26 @@ val truncatesOnResetQueries: Vector[Query] = designQueries(truncatesOnResetDesig
 def safetyQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
   val preserved = m.property("outcomePreserved") holds outcomePreserved
   val acked = m.property("ackOnlyWhenKept") holdsAcross ackOnlyWhenKept
-  val closedThenFinished = m
-    .scenario("closedThenFinished")
-    .starts(opened)
+  val closedThenFinished = m.scenario
     .actions(
       callerClose,
       handlerFinish(Resolution.succeeded),
       complete(Resolution.succeeded),
       reset
     )
-  val resetThenDelivered = m
-    .scenario("resetThenDelivered")
-    .starts(opened)
+  val resetThenDelivered = m.scenario
     .actions(handlerFinish(Resolution.failed), reset, complete(Resolution.failed))
-  val any = m.scenario("any").starts(opened).free
+  val any = m.scenario.free
   Vector(
     query(s"${m.name}.closedThenFinished") verify preserved in
       closedThenFinished limits four total 26880,
-    query(s"${m.name}.resetThenDelivered.ackOnlyWhenKept").verify(acked) in
-      resetThenDelivered limits four total 20160,
-    query(s"${m.name}.any.outcomePreserved") verify preserved in any limits twelve total 806400,
-    query(s"${m.name}.any.ackOnlyWhenKept") verify acked in any limits twelve total 806400
+    query verify acked in resetThenDelivered limits four total 20160,
+    query verify preserved in any limits twelve total 806400,
+    query verify acked in any limits twelve total 806400
   )
 
 val retainAndRouteBoundedRetryQueries: Vector[Query] =
-  safetyQueries(retainAndRouteBoundedRetryDesign)
+  safetyQueries(retainAndRouteBoundedRetry)
 
 // ### The deadline
 //
@@ -315,33 +273,25 @@ def deadlineQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
   val preserved = m.property("outcomePreserved") holds outcomePreserved
   val acked = m.property("ackOnlyWhenKept") holdsAcross ackOnlyWhenKept
   val necessary = m.property("noUnnecessaryWait") holdsAcross noUnnecessaryWait
-  val expiresWithNothingOwed = m.property("expiresWithNothingOwed") when scheduleToClose holds
+  val expiresWithNothingOwed = m.property when scheduleToClose holds
     (after => after.state.known == Knowledge.expired && nothingOwed(after.state))
-  val expiresWhileOwed = m.property("expiresWhileOwed") when scheduleToClose holds
+  val expiresWhileOwed = m.property when scheduleToClose holds
     (after =>
       after.state.known == Knowledge.expired && carries(after.state.channel, Resolution.succeeded)
     )
-  val lateCompletionIsDropped = m.property("lateCompletionIsDropped") when
+  val lateCompletionIsDropped = m.property when
     complete(Resolution.succeeded) holds
-    (after =>
-      after.outcome == Answer.rejectedPermanent && after.facts.contains(Fact.completionDropped)
-    )
-  val closedThenFinished = m
-    .scenario("closedThenFinished")
-    .starts(opened)
+    (after => after.outcome == Answer.rejectedPermanent && after.records(Fact.completionDropped))
+  val closedThenFinished = m.scenario
     .actions(
       callerClose,
       handlerFinish(Resolution.succeeded),
       complete(Resolution.succeeded),
       reset
     )
-  val resetThenDelivered = m
-    .scenario("resetThenDelivered")
-    .starts(opened)
+  val resetThenDelivered = m.scenario
     .actions(handlerFinish(Resolution.failed), reset, complete(Resolution.failed))
-  val closedLossThenExpired = m
-    .scenario("closedLossThenExpired")
-    .starts(opened)
+  val closedLossThenExpired = m.scenario
     .actions(
       callerClose,
       handlerFinish(Resolution.succeeded),
@@ -349,27 +299,20 @@ def deadlineQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
       reset,
       scheduleToClose
     )
-  val resetLossThenExpired = m
-    .scenario("resetLossThenExpired")
-    .starts(opened)
+  val resetLossThenExpired = m.scenario
     .actions(handlerFinish(Resolution.failed), reset, complete(Resolution.failed), scheduleToClose)
-  val reportedThenExpired = m
-    .scenario("reportedThenExpired")
-    .starts(opened)
+  val reportedThenExpired = m.scenario
     .actions(handlerFinish(Resolution.succeeded), scheduleToClose)
-  val expiredThenDelivered = m
-    .scenario("expiredThenDelivered")
-    .starts(opened)
+  val expiredThenDelivered = m.scenario
     .actions(handlerFinish(Resolution.succeeded), scheduleToClose, complete(Resolution.succeeded))
-  val any = m.scenario("any").starts(opened).free
+  val any = m.scenario.free
   Vector(
     query(s"${m.name}.closedThenFinished") verify preserved in
       closedThenFinished limits four total 26880,
-    query(s"${m.name}.resetThenDelivered.ackOnlyWhenKept").verify(acked) in
-      resetThenDelivered limits four total 20160,
-    query(s"${m.name}.any.outcomePreserved") verify preserved in any limits twelve total 887040,
-    query(s"${m.name}.any.ackOnlyWhenKept") verify acked in any limits twelve total 887040,
-    query(s"${m.name}.any.noUnnecessaryWait") verify necessary in any limits twelve total 887040,
+    query verify acked in resetThenDelivered limits four total 20160,
+    query verify preserved in any limits twelve total 887040,
+    query verify acked in any limits twelve total 887040,
+    query verify necessary in any limits twelve total 887040,
     query(s"${m.name}.expiredAfterClosedLoss").find(expiresWithNothingOwed) in
       closedLossThenExpired limits five total 33600,
     query(s"${m.name}.expiredAfterResetLoss").find(expiresWithNothingOwed) in
@@ -381,11 +324,11 @@ def deadlineQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
   )
 
 val rejectAfterCloseWithDeadlineQueries: Vector[Query] =
-  deadlineQueries(rejectAfterCloseWithDeadlineDesign)
+  deadlineQueries(rejectAfterCloseWithDeadline)
 val ackByOriginalWithDeadlineQueries: Vector[Query] =
-  deadlineQueries(ackByOriginalWithDeadlineDesign)
+  deadlineQueries(ackByOriginalWithDeadline)
 val retainAndRouteWithDeadlineQueries: Vector[Query] =
-  deadlineQueries(retainAndRouteWithDeadlineDesign)
+  deadlineQueries(retainAndRouteWithDeadline)
 
 // ### Conditional progress
 //
@@ -393,53 +336,35 @@ val retainAndRouteWithDeadlineQueries: Vector[Query] =
 // each claim and its machine name. A machine that names no deadline has no timer, and one that does
 // not assume the redelivery bound may be rejected transiently forever.
 
-val rejectAfterCloseProgress: Progress[CloseResetState] = rejectAfterCloseDesign.leadsTo(
+val rejectAfterCloseProgress: Progress[CloseResetState] = rejectAfterClose.leadsTo(
   "outcomeReachesOwner"
-)(s => isDone(s), s => settled(s), within = 6, reporting, deliveryFair)
+)(isDone, settled, within = 6, reporting, deliveryFair)
 
-val ackByOriginalProgress: Progress[CloseResetState] = ackByOriginalDesign.leadsTo(
+val ackByOriginalProgress: Progress[CloseResetState] = ackByOriginal.leadsTo(
   "outcomeReachesOwner"
-)(s => isDone(s), s => settled(s), within = 6, reporting, deliveryFair)
+)(isDone, settled, within = 6, reporting, deliveryFair)
 
-val retainAndRouteProgress: Progress[CloseResetState] = retainAndRouteDesign.leadsTo(
+val retainAndRouteProgress: Progress[CloseResetState] = retainAndRoute.leadsTo(
   "outcomeReachesOwner"
-)(s => isDone(s), s => settled(s), within = 6, reporting, deliveryFair)
+)(isDone, settled, within = 6, reporting, deliveryFair)
 
-val retainAndRouteBoundedRetryProgress: Progress[CloseResetState] = retainAndRouteBoundedRetryDesign
-  .leadsTo("outcomeReachesOwner")(
-    s => isDone(s),
-    s => settled(s),
-    within = 6,
-    reporting,
-    deliveryFair
-  )
+val retainAndRouteBoundedRetryProgress: Progress[CloseResetState] = retainAndRouteBoundedRetry
+  .leadsTo("outcomeReachesOwner")(isDone, settled, within = 6, reporting, deliveryFair)
 
 val rejectAfterCloseWithDeadlineProgress: Progress[CloseResetState] =
-  rejectAfterCloseWithDeadlineDesign.leadsTo("outcomeReachesOwner")(
-    s => isDone(s),
-    s => settled(s),
+  rejectAfterCloseWithDeadline.leadsTo("outcomeReachesOwner")(
+    isDone,
+    settled,
     within = 6,
     reporting,
     deliveryFair
   )
 
-val ackByOriginalWithDeadlineProgress: Progress[CloseResetState] = ackByOriginalWithDeadlineDesign
-  .leadsTo("outcomeReachesOwner")(
-    s => isDone(s),
-    s => settled(s),
-    within = 6,
-    reporting,
-    deliveryFair
-  )
+val ackByOriginalWithDeadlineProgress: Progress[CloseResetState] = ackByOriginalWithDeadline
+  .leadsTo("outcomeReachesOwner")(isDone, settled, within = 6, reporting, deliveryFair)
 
-val retainAndRouteWithDeadlineProgress: Progress[CloseResetState] = retainAndRouteWithDeadlineDesign
-  .leadsTo("outcomeReachesOwner")(
-    s => isDone(s),
-    s => settled(s),
-    within = 6,
-    reporting,
-    deliveryFair
-  )
+val retainAndRouteWithDeadlineProgress: Progress[CloseResetState] = retainAndRouteWithDeadline
+  .leadsTo("outcomeReachesOwner")(isDone, settled, within = 6, reporting, deliveryFair)
 
 /**
  * The operation retained the outcome for a closed run, and no owner knows it yet.
@@ -458,18 +383,18 @@ def ownerKnowsOutcome(s: CloseResetState): Boolean = s.handler match
 // that retries until acknowledged: under the recovery assumption, and without it. Over the channel
 // that redelivers once, at most the one redelivery comes before the reset.
 
-val retainedReachesOwner: Progress[CloseResetState] = retainAndRouteDesign.leadsTo(
+val retainedReachesOwner: Progress[CloseResetState] = retainAndRoute.leadsTo(
   "retainedReachesOwner"
-)(s => awaitingOwner(s), s => ownerKnowsOutcome(s), within = 2, deliveryFair, recovery)
+)(awaitingOwner, ownerKnowsOutcome, within = 2, deliveryFair, recovery)
 
-val retainedWaitsWithoutRecovery: Progress[CloseResetState] = retainAndRouteDesign.leadsTo(
+val retainedWaitsWithoutRecovery: Progress[CloseResetState] = retainAndRoute.leadsTo(
   "retainedWaitsWithoutRecovery"
-)(s => awaitingOwner(s), s => ownerKnowsOutcome(s), within = 2, deliveryFair)
+)(awaitingOwner, ownerKnowsOutcome, within = 2, deliveryFair)
 
-val retainedReachesOwnerBoundedRetry: Progress[CloseResetState] = retainAndRouteBoundedRetryDesign
+val retainedReachesOwnerBoundedRetry: Progress[CloseResetState] = retainAndRouteBoundedRetry
   .leadsTo("retainedReachesOwner")(
-    s => awaitingOwner(s),
-    s => ownerKnowsOutcome(s),
+    awaitingOwner,
+    ownerKnowsOutcome,
     within = 2,
     deliveryFair,
     recovery
