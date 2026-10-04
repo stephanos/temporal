@@ -27,14 +27,23 @@ private[lift] trait Constants:
 
   def constString(t: Term): String = resolve(t) match
     case Literal(StringConstant(s)) => s
-    // `x.name` of a case class value declared elsewhere: the argument its constructor got.
+    // `x.name` of a case class value declared elsewhere: the argument its constructor got, or for a
+    // party, entity or observation declared with no name, the name of its val.
     case Select(qual, field) =>
       resolve(qual) match
         case Apply(Select(companion, "apply"), args) =>
           val cls = companion.tpe.typeSymbol.companionClass
           val i = cls.caseFields.indexWhere(_.name == field)
-          if i < 0 then fail(t, s"cannot read .$field of this value") else constString(args(i))
+          if i < 0 then fail(t, s"cannot read .$field of this value")
+          else if field == "name" && namedByVal(cls) && isDefault(args(i)) then constString(qual)
+          else constString(args(i))
         case other => fail(t, s"cannot fold ${other.show} to a string")
+    // `Party()`, `Entity(key = …)` and `Observation(on = …, read = …)`, named after their val.
+    case Apply(Select(companion, "apply"), name :: _)
+        if namedByVal(companion.tpe.typeSymbol.companionClass) && isDefault(name) =>
+      val kind = companion.tpe.typeSymbol.companionClass.name
+      val article = if kind == "Party" then "a" else "an"
+      captured(resolvedVal(t), s"$article $kind", s"`$kind(\"...\")`", t)
     // A family's root, which every Definition ID it names hangs off, written out.
     case Apply(Select(companion, "apply"), List(root))
         if companion.tpe.typeSymbol.companionClass.fullName == "umpire.Family" =>
@@ -44,6 +53,22 @@ private[lift] trait Constants:
     // Party(...), Entity(...), Observation(...): the name is the first argument.
     case Apply(Select(_, "apply"), first :: _) => constString(first)
     case other                                 => fail(t, s"expected a string, got ${other.show}")
+
+  /** Whether a declaration of this class takes its name from its val where it states none. */
+  def namedByVal(cls: Symbol): Boolean =
+    Set("umpire.Party", "umpire.Entity", "umpire.Observation")(cls.fullName)
+
+  /** The val whose right-hand side `resolve` reaches: the last of the vals it goes through. */
+  private def resolvedVal(t: Term): Option[Symbol] = t match
+    case Typed(e, _)        => resolvedVal(e)
+    case Inlined(_, Nil, e) => resolvedVal(e)
+    case NamedArg(_, e)     => resolvedVal(e)
+    case r: Ref
+        if !r.symbol.flags.is(Flags.Param) && r.symbol.isValDef && defs.contains(r.symbol) =>
+      defs(r.symbol) match
+        case ValDef(_, _, Some(rhs)) => resolvedVal(rhs).orElse(Some(r.symbol))
+        case _                       => None
+    case _ => None
 
   def constInt(t: Term): Long = resolve(t) match
     case Literal(IntConstant(i)) => i.toLong

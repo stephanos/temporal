@@ -22,7 +22,11 @@ enum Fact derives Finite:
   case stored, staged
   case lost(hard: Boolean)
 
-val put = action("put", Party("client"))
+val client: Party = Party("client")
+val entry: Entity = Entity("entry", key = "entryId")
+val lostData: Observation = Observation("lostData", entry, "lost")
+
+val put = action("put", client)
 val flush = internal("flush")
 val crash = action("crash", Party("fault"))
 val expire = timer("expire")
@@ -41,13 +45,14 @@ def expireStore(s: Store): List[Step[Store, Outcome, Fact]] =
 /** The opaque provider, with every fact's evidence written out. */
 val store: Machine[Store, Outcome, Fact] =
   machine[Store, Outcome, Fact](Family, "store") {
+    forEntity(entry)
     assumes(storeOpaque)
     starts(Store(Kept.nothing))
     ends(s => s.kept == Kept.held)
     evidence {
       case Fact.stored  => "stored"
       case Fact.staged  => "staged"
-      case Fact.lost(_) => "lostData"
+      case Fact.lost(_) => lostData.name
     }
     steps(put ~> putStore, expire ~> expireStore)
   }

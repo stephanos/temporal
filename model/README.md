@@ -397,7 +397,9 @@ val putStoresOnce = query find putStores in putOnce limits two total 2
 ```
 
 The same holds for `timer`, `internal`, `compose[S](members*)`, `monitor[S, O, F, M](initial)…`,
-`assume`, `hole`, `channel[M](capacity = …, …)` and `Realization(machine = …, …)` without `name`.
+`assume`, `hole`, `channel[M](capacity = …, …)` and `Realization(machine = …, …)` without `name`,
+and for `Party()`, `Entity(key = …)` and `Observation(on = …, read = …)`, whose `name`, read as
+`attemptCount.name` in an evidence line or a kit body, is their `val`'s.
 The explicit forms, such as `machine[S, O, F](family, name)`, `action(name, party)` and
 `property("…")`, name a declaration whose name differs from its `val`'s. A Property or Scenario
 with no `val`, built in a list or in a function over a machine argument, keeps `property("…")` or

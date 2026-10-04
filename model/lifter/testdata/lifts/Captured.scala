@@ -26,7 +26,12 @@ enum Fact derives Finite:
   case stored, staged
   case lost(hard: Boolean)
 
-val put = action(Party("client"))
+// A party, an entity and an observation named after their vals.
+val client: Party = Party()
+val entry: Entity = Entity(key = "entryId")
+val lostData: Observation = Observation(on = entry, read = "lost")
+
+val put = action(client)
 val flush = internal
 val crash = action(Party("fault"))
 val expire = timer
@@ -44,10 +49,11 @@ def expireStore(s: Store): List[Step[Store, Outcome, Fact]] =
 
 /** The opaque provider: only the fact whose evidence is not its name has a line. */
 val store = machine[Store, Outcome, Fact] {
+  forEntity(entry)
   assumes(storeOpaque)
   starts(Store(Kept.nothing))
   ends(s => s.kept == Kept.held)
-  evidence { case Fact.lost(_) => "lostData" }
+  evidence { case Fact.lost(_) => lostData.name }
   steps(put ~> putStore, expire ~> expireStore)
 }
 

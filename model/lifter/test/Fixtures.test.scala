@@ -214,7 +214,14 @@ class Fixtures extends munit.FunSuite:
 
   // The refusals of fn-112.10's names taken by default.
   private val defaultRejects: Seq[String] =
-    Seq("unnamedTwice", "syncNamedTwice", "omittedEmpty", "watchUnnamed", "watchUnwatched")
+    Seq(
+      "unnamedTwice",
+      "syncNamedTwice",
+      "omittedEmpty",
+      "watchUnnamed",
+      "watchUnwatched",
+      "partyUnnamedLamp"
+    )
 
   // The refusals of fn-112.12's claim bundles and of a moved type whose pinned name is taken.
   private val bundleRejects: Seq[String] = Seq("mixedBundle", "movedNameTaken")

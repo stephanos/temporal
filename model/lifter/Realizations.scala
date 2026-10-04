@@ -707,6 +707,9 @@ private[lift] trait Realizations:
         textOfBound(args.find(_._1 == "id").get._2)
       case t if identified.exists(isNamed(t.tpe, _)) => idOf(b)
       case r: Ref if factCase(r.symbol)              => r.symbol.name
+      // A party's, entity's or observation's name, which its val gives where it states none.
+      case Select(qual, "name") if namedByVal(qual.tpe.widen.dealias.typeSymbol) =>
+        constString(follow(Bound(qual, b.env)).term)
       case Select(qual, field) if fieldOfDeclaration(Bound(qual, b.env), field).nonEmpty =>
         textOfBound(fieldOfDeclaration(Bound(qual, b.env), field).get)
       case Literal(StringConstant(s))                 => s

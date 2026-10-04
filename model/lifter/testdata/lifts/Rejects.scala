@@ -668,6 +668,14 @@ val reachLit = reachLamp.property holds (after => after.state.lit)
 val reachOnce = reachLamp.scenario.actions(reach())
 val omittedEmpty: Query = query verify reachLit in reachOnce limits one
 
+/** A party no val declares, which states no name. */
+val partyUnnamed = action(Party())
+val partyUnnamedLamp = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(partyUnnamed ~> lampStep)
+}
+
 /** A monitor a Query's expected Run names by a def, which no val declares. */
 def flipWatch: Monitor[Flag, Outcome, Nothing, Boolean] =
   monitor[Flag, Outcome, Nothing, Boolean]("flipWatch", false)((seen, _, _) => seen)(seen => seen)

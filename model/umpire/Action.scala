@@ -10,21 +10,27 @@ import scalapb.{GeneratedMessage, GeneratedMessageCompanion}
 final case class Family(root: String):
   override def toString: String = root
 
-/** Who performs an action. `system` is reserved for timers, which a machine owns. */
-final case class Party(name: String)
+/**
+ * Who performs an action, named after the `val` that declares it, `val caller: Party = Party()`, or
+ * by `name`. `system` is reserved for timers, which a machine owns.
+ */
+final case class Party(name: String = "")
 
 object Party:
   // `system` also performs the steps `internal` declares and a channel's deliveries and losses.
   val system: Party = Party("system")
 
 /**
- * What a machine keeps state for. `key` names the recorded field that identifies an instance;
- * `refer` names the entities it refers to, by role.
+ * What a machine keeps state for, named after its `val` unless `name` names it. `key` names the
+ * recorded field that identifies an instance; `refer` names the entities it refers to, by role.
  */
-final case class Entity(name: String, key: String = "", refer: Map[String, Entity] = Map.empty)
+final case class Entity(name: String = "", key: String = "", refer: Map[String, Entity] = Map.empty)
 
-/** A derived read used as evidence where no history event exists. */
-final case class Observation(name: String, on: Entity, read: String)
+/**
+ * A derived read used as evidence where no history event exists, named after its `val` unless
+ * `name` names it: `val attemptCount = Observation(on = activity, read = "attempt")`.
+ */
+final case class Observation(name: String = "", on: Entity, read: String)
 
 /**
  * An Abstraction Claim on one input class: the author's claim that every realized value of the
