@@ -231,10 +231,6 @@
       "new": "temporal.nexuscaller.Queries$package$.stoppedWorkerRepliesNothing"
     },
     {
-      "old": "temporal.nexuscaller.Claims$package$.syncCompletion",
-      "new": "temporal.nexuscaller.Queries$package$.syncCompletion"
-    },
-    {
       "old": "temporal.nexuscaller.Control$.forgedCompletion",
       "new": "temporal.nexuscaller.Queries$package$.forgedCompletion"
     },

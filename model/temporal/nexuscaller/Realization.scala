@@ -506,7 +506,7 @@ object NexusRealization:
   private def realization(
       machine: Machine[ProtocolState, temporal.nexuscaller.Outcome, ProtocolFact],
       steps: Item*
-  ): Realization = temporalRealization(
+  ) = temporalRealization(
     machine = machine,
     operation = nexuscaller.operation,
     roles = Vector(workflowService, caseWorker, taskQueue, handlerTaskQueue, nexusEndpoint),
@@ -516,9 +516,9 @@ object NexusRealization:
     observations = Vector(historyEvent, correlated)
   )
 
-  val asyncNexus: Realization = realization(nexusProtocol)
+  val asyncNexus = realization(nexusProtocol)
 
-  val forgedCompletion: Realization = realization(
+  val forgedCompletion = realization(
     temporal.nexuscaller.Control.forgedCompletion,
     perform(temporal.nexuscaller.Control.inspect -> inspectWorkflow)
   )

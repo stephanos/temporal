@@ -190,7 +190,7 @@ func isInbox(x *umpirespb.Expr) bool  { return x.GetInbox() != nil }
 func isHole(x *umpirespb.Expr) bool   { return x.GetHole() != "" }
 
 func TestAdmissionAdmitsTheSourceDerivedModels(t *testing.T) {
-	for _, name := range []string{"admission", "channels", "closereset", "declarations", "presence", "nexus"} {
+	for _, name := range []string{"admission", "channels", "declarations", "presence", "nexus"} {
 		t.Run(name, func(t *testing.T) {
 			require.NoError(t, Validate(admFixture(t, name)))
 		})
@@ -513,7 +513,7 @@ func TestAdmissionRejectsReadingsWithoutARefinement(t *testing.T) {
 		}, admDeclaredAt + "158: query putStoresThroughDisk pairs a Property of store with a Scenario of pair"},
 		{"product property without through", "admission", func(m *umpirespb.Model) {
 			admQuery(m, "currentAdmission.product.pausedIsNotDispatched").Through = false
-		}, admAdmissionAt + "302: query currentAdmission.product.pausedIsNotDispatched pairs a Property of activityProduct with a Scenario of currentAdmission"},
+		}, admAdmissionAt + "364: query currentAdmission.product.pausedIsNotDispatched pairs a Property of activityProduct with a Scenario of currentAdmission"},
 	})
 }
 
@@ -532,25 +532,25 @@ func TestAdmissionRejectsRecursion(t *testing.T) {
 		{"direct", "admission", func(m *umpirespb.Model) {
 			f := function(m, "oneMore")
 			f.Body = admCall(f.GetBody(), oneMore, admVar(f.GetBody(), "a"))
-		}, admAdmissionAt + "109: " + oneMore + " calls itself"},
+		}, admAdmissionAt + "168: " + oneMore + " calls itself"},
 		{"through others", "admission", func(m *umpirespb.Model) {
 			f := function(m, "Admission$package$.admitted")
 			f.Body = admCall(f.GetBody(), admAdmissionPkg+"admitCurrent", admVar(f.GetBody(), "s"))
-		}, admAdmissionAt + "151: " + admAdmissionPkg + "admitCurrent calls itself through " + admAdmissionPkg + "admitted"},
+		}, admAdmissionAt + "210: " + admAdmissionPkg + "admitCurrent calls itself through " + admAdmissionPkg + "admitted"},
 		{"in a lambda", "admission", func(m *umpirespb.Model) {
 			f := function(m, "oneMore")
 			f.Body = &umpirespb.Expr{Position: f.GetBody().GetPosition(), Kind: &umpirespb.Expr_Lambda{Lambda: &umpirespb.Lambda{
 				Params: f.GetParams(), Body: admCall(f.GetBody(), oneMore, admVar(f.GetBody(), "a"))}}}
-		}, admAdmissionAt + "109: " + oneMore + " calls itself"},
+		}, admAdmissionAt + "168: " + oneMore + " calls itself"},
 		{"in a precondition", "admission", func(m *umpirespb.Model) {
 			f := function(m, "oneMore")
 			f.Requires = admCall(f.GetBody(), oneMore, admVar(f.GetBody(), "a"))
-		}, admAdmissionAt + "109: " + oneMore + " calls itself"},
+		}, admAdmissionAt + "168: " + oneMore + " calls itself"},
 	})
 	m := admFixture(t, "admission")
 	f := function(m, "Admission$package$.admitted")
 	f.Body = admCall(f.GetBody(), admAdmissionPkg+"admitCurrent", admVar(f.GetBody(), "s"))
-	require.ErrorContains(t, Validate(m), admAdmissionAt+"121: "+admAdmissionPkg+"admitted calls itself through "+admAdmissionPkg+"admitCurrent",
+	require.ErrorContains(t, Validate(m), admAdmissionAt+"180: "+admAdmissionPkg+"admitted calls itself through "+admAdmissionPkg+"admitCurrent",
 		"every function on the cycle is reported")
 }
 
@@ -636,7 +636,7 @@ func admTallyScenario(m *umpirespb.Model, n int64) {
 }
 
 func TestAdmissionRejectsMisaddressedSelectors(t *testing.T) {
-	put, flush, control := admDeclaredPkg+"put", admDeclaredPkg+"flush", "temporal.standaloneactivity.Model$package$.control"
+	put, flush, control := admDeclaredPkg+"put", admDeclaredPkg+"flush", admAdmissionPkg+"control"
 	runAdmissionCases(t, []admissionCase{
 		{"when_class input the action does not take", "declarations", func(m *umpirespb.Model) {
 			admProperty(m, "store", "putStores").GetWhenClass().Inputs = []*umpirespb.Value{admIntValue(1)}
@@ -670,7 +670,7 @@ func TestAdmissionRejectsMisaddressedSelectors(t *testing.T) {
 		{"scenario input of a crossed type", "admission", func(m *umpirespb.Model) {
 			admScenario(m, "currentAdmission", "staleDeliveryAfterPause").GetActions()[1].Inputs[0] = admEnum(
 				"fixture.specimens.admission.AdmissionPhase", "paused")
-		}, admAdmissionAt + "281: currentAdmission.staleDeliveryAfterPause: " + control + " takes a temporal.standaloneactivity.Control for control, not paused"},
+		}, admAdmissionAt + "343: currentAdmission.staleDeliveryAfterPause: " + control + " takes a fixture.specimens.admission.Control for control, not paused"},
 		{"scenario input outside its range", "channels", func(m *umpirespb.Model) {
 			admTallyScenario(m, 3)
 		}, "generic:1: tallying.counts: " + admChannelsPkg + "tally.deliver takes a 0..2 for message, not 3"},

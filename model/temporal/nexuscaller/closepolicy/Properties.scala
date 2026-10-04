@@ -18,29 +18,29 @@ import umpire.*
 /**
  * A closed run's history is frozen: no step of a caller that stays closed changes what it holds.
  */
-def closedHistoryIsFrozen(before: CloseResetState, after: CloseResetStep): Boolean =
+def closedHistoryIsFrozen(before: CloseResetState, after: CloseResetStep) =
   before.caller == Caller.closed && after.state.caller == Caller.closed implies
     (after.state.known == before.known && after.state.intent == before.intent)
 
 /** An outcome a history records is the handler's. */
-def knownIsTheHandlersOutcome(after: CloseResetStep): Boolean = after.state.known match
+def knownIsTheHandlersOutcome(after: CloseResetStep) = after.state.known match
   case Knowledge.original(r)  => after.state.handler == Handler.done(r)
   case Knowledge.successor(r) => after.state.handler == Handler.done(r)
   case _                      => true
 
-def knows(k: Knowledge, r: Resolution): Boolean =
+def knows(k: Knowledge, r: Resolution) =
   k.in(Knowledge.original(r), Knowledge.successor(r))
 
 /**
  * A recorded outcome stays recorded: a redelivery changes nothing, and a reset carries it over.
  */
-def knowledgeIsFinal(before: CloseResetState, after: CloseResetStep): Boolean = before.known match
+def knowledgeIsFinal(before: CloseResetState, after: CloseResetStep) = before.known match
   case Knowledge.original(r)  => knows(after.state.known, r)
   case Knowledge.successor(r) => knows(after.state.known, r)
   case _                      => true
 
 /** The handler's outcome is decided, and nothing holds or still carries it. */
-def nothingOwed(s: CloseResetState): Boolean = s.handler match
+def nothingOwed(s: CloseResetState) = s.handler match
   case Handler.done(_) => s.channel == Completion.none && s.retained == Retained.none
   case _               => false
 
@@ -49,7 +49,7 @@ def nothingOwed(s: CloseResetState): Boolean = s.handler match
  * report is still owed. A deadline that fires with nothing owed ends a wait for an outcome the
  * design already lost.
  */
-def noUnnecessaryWait(before: CloseResetState, after: CloseResetStep): Boolean =
+def noUnnecessaryWait(before: CloseResetState, after: CloseResetStep) =
   before.known != Knowledge.expired && after.state.known == Knowledge.expired implies
     !nothingOwed(before)
 
@@ -79,7 +79,7 @@ final case class DesignClaims(
     routedToSuccessor: Property[CloseResetState]
 )
 
-def designClaims(m: Machine[CloseResetState, Answer, Fact]): DesignClaims =
+def designClaims(m: Machine[CloseResetState, Answer, Fact]) =
   // No step, a reset included, undoes what the handler did.
   val handlerEffectIsIrreversible = m.property.once(isDone).keeps(_.handler)
   // The handler's detached work goes on after the close.
@@ -164,7 +164,7 @@ final case class SafetyClaims(
     ackOnlyWhenKept: Property[CloseResetState]
 )
 
-def safetyClaims(m: Machine[CloseResetState, Answer, Fact]): SafetyClaims = SafetyClaims(
+def safetyClaims(m: Machine[CloseResetState, Answer, Fact]) = SafetyClaims(
   m.property("outcomePreserved") holds outcomePreserved,
   m.property("ackOnlyWhenKept") holdsAcross ackOnlyWhenKept
 )
@@ -179,7 +179,7 @@ final case class DeadlineClaims(
     lateCompletionIsDropped: Property[CloseResetState]
 )
 
-def deadlineClaims(m: Machine[CloseResetState, Answer, Fact]): DeadlineClaims =
+def deadlineClaims(m: Machine[CloseResetState, Answer, Fact]) =
   val expiresWithNothingOwed = m.property when scheduleToClose holds
     (after => after.state.known == Knowledge.expired && nothingOwed(after.state))
   val expiresWhileOwed = m.property when scheduleToClose holds
@@ -204,22 +204,22 @@ def deadlineClaims(m: Machine[CloseResetState, Answer, Fact]): DeadlineClaims =
 // each claim and its machine name. A machine that names no deadline has no timer, and one that does
 // not assume the redelivery bound may be rejected transiently forever.
 
-val rejectAfterCloseProgress: Progress[CloseResetState] = rejectAfterClose.leadsTo(
+val rejectAfterCloseProgress = rejectAfterClose.leadsTo(
   "outcomeReachesOwner"
 )(isDone, settled, within = 6, reporting, deliveryFair)
 
-val ackByOriginalProgress: Progress[CloseResetState] = ackByOriginal.leadsTo(
+val ackByOriginalProgress = ackByOriginal.leadsTo(
   "outcomeReachesOwner"
 )(isDone, settled, within = 6, reporting, deliveryFair)
 
-val retainAndRouteProgress: Progress[CloseResetState] = retainAndRoute.leadsTo(
+val retainAndRouteProgress = retainAndRoute.leadsTo(
   "outcomeReachesOwner"
 )(isDone, settled, within = 6, reporting, deliveryFair)
 
-val retainAndRouteBoundedRetryProgress: Progress[CloseResetState] = retainAndRouteBoundedRetry
+val retainAndRouteBoundedRetryProgress = retainAndRouteBoundedRetry
   .leadsTo("outcomeReachesOwner")(isDone, settled, within = 6, reporting, deliveryFair)
 
-val rejectAfterCloseWithDeadlineProgress: Progress[CloseResetState] =
+val rejectAfterCloseWithDeadlineProgress =
   rejectAfterCloseWithDeadline.leadsTo("outcomeReachesOwner")(
     isDone,
     settled,
@@ -228,22 +228,22 @@ val rejectAfterCloseWithDeadlineProgress: Progress[CloseResetState] =
     deliveryFair
   )
 
-val ackByOriginalWithDeadlineProgress: Progress[CloseResetState] = ackByOriginalWithDeadline
+val ackByOriginalWithDeadlineProgress = ackByOriginalWithDeadline
   .leadsTo("outcomeReachesOwner")(isDone, settled, within = 6, reporting, deliveryFair)
 
-val retainAndRouteWithDeadlineProgress: Progress[CloseResetState] = retainAndRouteWithDeadline
+val retainAndRouteWithDeadlineProgress = retainAndRouteWithDeadline
   .leadsTo("outcomeReachesOwner")(isDone, settled, within = 6, reporting, deliveryFair)
 
 /**
  * The operation retained the outcome for a closed run, and no owner knows it yet.
  */
-def awaitingOwner(s: CloseResetState): Boolean = s.handler match
+def awaitingOwner(s: CloseResetState) = s.handler match
   case Handler.done(r) =>
     s.caller == Caller.closed && s.retained == Retained.pending(r) &&
     !ownerKnows(s, r)
   case _ => false
 
-def ownerKnowsOutcome(s: CloseResetState): Boolean = s.handler match
+def ownerKnowsOutcome(s: CloseResetState) = s.handler match
   case Handler.done(r) => ownerKnows(s, r)
   case _               => false
 
@@ -251,15 +251,15 @@ def ownerKnowsOutcome(s: CloseResetState): Boolean = s.handler match
 // that retries until acknowledged: under the recovery assumption, and without it. Over the channel
 // that redelivers once, at most the one redelivery comes before the reset.
 
-val retainedReachesOwner: Progress[CloseResetState] = retainAndRoute.leadsTo(
+val retainedReachesOwner = retainAndRoute.leadsTo(
   "retainedReachesOwner"
 )(awaitingOwner, ownerKnowsOutcome, within = 2, deliveryFair, recovery)
 
-val retainedWaitsWithoutRecovery: Progress[CloseResetState] = retainAndRoute.leadsTo(
+val retainedWaitsWithoutRecovery = retainAndRoute.leadsTo(
   "retainedWaitsWithoutRecovery"
 )(awaitingOwner, ownerKnowsOutcome, within = 2, deliveryFair)
 
-val retainedReachesOwnerBoundedRetry: Progress[CloseResetState] = retainAndRouteBoundedRetry
+val retainedReachesOwnerBoundedRetry = retainAndRouteBoundedRetry
   .leadsTo("retainedReachesOwner")(
     awaitingOwner,
     ownerKnowsOutcome,

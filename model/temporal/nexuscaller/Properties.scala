@@ -50,7 +50,7 @@ val handlerErrorFails =
  * Succeeded on the second attempt of an operation with no deadline set. A claim fixes one state,
  * so every field is named.
  */
-val succeededOnRetry: ProtocolState =
+val succeededOnRetry =
   ProtocolState(Phase.succeeded, 1, Timeout.unset, Timeout.unset, Timeout.unset)
 
 /**

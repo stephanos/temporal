@@ -19,7 +19,7 @@ val twelve = Limits(steps = 12, actions = 12, search = 262144)
 def providerQueries(
     m: Machine[QueueDetail, QueueOutcome, QueueFact],
     anyTotal: Int
-): Vector[Query] =
+) =
   val laws = queueLaws(m)
   val afterInvocation = m
     .scenario("crashAfterInvocation")
@@ -52,10 +52,10 @@ def providerQueries(
   )
 
 // Eight bound actions for every provider but the lossy one, which binds storage loss as a ninth.
-val matchingQueueQueries: Vector[Query] = providerQueries(matchingQueue, anyTotal = 2880)
-val forgetfulQueueQueries: Vector[Query] = providerQueries(forgetfulQueue, anyTotal = 2880)
-val volatileQueueQueries: Vector[Query] = providerQueries(volatileQueue, anyTotal = 2880)
-val lossyMatchingQueueQueries: Vector[Query] = providerQueries(lossyMatchingQueue, anyTotal = 3240)
+val matchingQueueQueries = providerQueries(matchingQueue, anyTotal = 2880)
+val forgetfulQueueQueries = providerQueries(forgetfulQueue, anyTotal = 2880)
+val volatileQueueQueries = providerQueries(volatileQueue, anyTotal = 2880)
+val lossyMatchingQueueQueries = providerQueries(lossyMatchingQueue, anyTotal = 3240)
 
 // ### Storage loss
 

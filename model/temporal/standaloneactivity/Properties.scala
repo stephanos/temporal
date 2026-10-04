@@ -19,7 +19,7 @@ val nonRetryableFails =
   }
 
 /** Completed on the second attempt of an activity with no deadline set. */
-val completedOnRetry: ProtocolState =
+val completedOnRetry =
   ProtocolState(Phase.completed, UpTo(attemptBound), Timeout.unset, Timeout.unset, Timeout.unset)
 
 /**

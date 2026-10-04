@@ -19,7 +19,7 @@ given DefinitionScope = DefinitionScope("temporal.worker.Worker$package$")
 given Family = Family("temporal.worker")
 
 /** The worker party, which stops and resumes the worker. */
-val party: Party = Party("worker")
+val party = Party("worker")
 
 // ### Entities and domains
 
@@ -27,7 +27,7 @@ val party: Party = Party("worker")
  * Named by the task queue it polls: the handler's worker and the workflow's worker are two
  * instances of this entity, told apart by their queue.
  */
-val entity: Entity = Entity("worker", key = "taskQueue")
+val entity = Entity("worker", key = "taskQueue")
 
 enum Phase derives Finite:
   case polling, stopped
@@ -65,15 +65,15 @@ val serve = action(party) on entity
 // ### The machine
 
 /** A polling worker stops; a stopped one has nothing to stop. */
-def stopStep(s: State): List[WorkerStep] =
+def stopStep(s: State) =
   if s.phase != Phase.polling then disabled else accept(State(Phase.stopped))
 
 /** A stopped worker resumes polling; a polling one has nothing to resume. */
-def resumeStep(s: State): List[WorkerStep] =
+def resumeStep(s: State) =
   if s.phase != Phase.stopped then disabled else accept(State(Phase.polling))
 
 /** A polling worker serves and keeps polling; a stopped one serves nothing. */
-def serveStep(s: State): List[WorkerStep] =
+def serveStep(s: State) =
   if s.phase != Phase.polling then disabled else stay(s)
 
 /** The worker. A worker has no natural end: it may be left polling or stopped. */

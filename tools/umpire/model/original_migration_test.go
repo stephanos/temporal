@@ -92,7 +92,8 @@ func readOriginal(t *testing.T) originalInputs {
 	require.NoError(t, err)
 	archived, err := golden.OriginalArchive(in.root)
 	require.NoError(t, err)
-	in.baselines, err = golden.OriginalModels(archived)
+	// A reduced fixture is a new Model, or retired, compared with no baseline (Delta.Reduced).
+	in.baselines, err = golden.OriginalModels(in.delta.Compared(archived))
 	require.NoError(t, err)
 	files, err := golden.OriginalCurrent(in.root)
 	require.NoError(t, err)
@@ -136,6 +137,7 @@ func TestOriginalBaselineModel(t *testing.T) {
 	}
 	expected, err := golden.ReadDerived(in.root, originalModelOutputs)
 	require.NoError(t, err)
+	expected = in.delta.ComparedOutputs(expected)
 	if in.delta.Rederives() {
 		require.NoError(t, golden.CompareDerived(expected, originalDigests(t, in.baselines, originalOutputs...), nil),
 			"the archive derives as it was frozen")

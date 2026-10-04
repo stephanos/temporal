@@ -15,7 +15,7 @@ val five = Limits(steps = 5, actions = 5, search = 1 << 20)
 val twelve = Limits(steps = 12, actions = 12, search = 1 << 22)
 
 /** Every claim and path of the specimen, declared on one design. */
-def designQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
+def designQueries(m: Machine[CloseResetState, Answer, Fact]) =
   val claims = designClaims(m)
   val closedThenFinished = m.scenario
     .actions(
@@ -132,16 +132,16 @@ def designQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
       four total 20160
   )
 
-val rejectAfterCloseQueries: Vector[Query] = designQueries(rejectAfterClose)
-val ackByOriginalQueries: Vector[Query] = designQueries(ackByOriginal)
-val retainAndRouteQueries: Vector[Query] = designQueries(retainAndRoute)
-val forgetsCancelOnResetQueries: Vector[Query] = designQueries(forgetsCancelOnReset)
-val truncatesOnResetQueries: Vector[Query] = designQueries(truncatesOnReset)
+val rejectAfterCloseQueries = designQueries(rejectAfterClose)
+val ackByOriginalQueries = designQueries(ackByOriginal)
+val retainAndRouteQueries = designQueries(retainAndRoute)
+val forgetsCancelOnResetQueries = designQueries(forgetsCancelOnReset)
+val truncatesOnResetQueries = designQueries(truncatesOnReset)
 
 // ### The two pinned controls and the two promises, over another channel
 
 /** The two promises and the two pinned controls, declared on one design. */
-def safetyQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
+def safetyQueries(m: Machine[CloseResetState, Answer, Fact]) =
   val claims = safetyClaims(m)
   val closedThenFinished = m.scenario
     .actions(
@@ -161,7 +161,7 @@ def safetyQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
     query verify claims.ackOnlyWhenKept in any limits twelve total 806400
   )
 
-val retainAndRouteBoundedRetryQueries: Vector[Query] =
+val retainAndRouteBoundedRetryQueries =
   safetyQueries(retainAndRouteBoundedRetry)
 
 // ### The deadline
@@ -170,7 +170,7 @@ val retainAndRouteBoundedRetryQueries: Vector[Query] =
 // ends that wait is found with nothing owed, and is told apart from one that beats a report still
 // in flight, which loses nothing the design promised.
 
-def deadlineQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
+def deadlineQueries(m: Machine[CloseResetState, Answer, Fact]) =
   val claims = deadlineClaims(m)
   val closedThenFinished = m.scenario
     .actions(
@@ -214,9 +214,9 @@ def deadlineQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
       expiredThenDelivered limits four total 20160
   )
 
-val rejectAfterCloseWithDeadlineQueries: Vector[Query] =
+val rejectAfterCloseWithDeadlineQueries =
   deadlineQueries(rejectAfterCloseWithDeadline)
-val ackByOriginalWithDeadlineQueries: Vector[Query] =
+val ackByOriginalWithDeadlineQueries =
   deadlineQueries(ackByOriginalWithDeadline)
-val retainAndRouteWithDeadlineQueries: Vector[Query] =
+val retainAndRouteWithDeadlineQueries =
   deadlineQueries(retainAndRouteWithDeadline)

@@ -316,103 +316,6 @@ func TestUnsupportedDeclarationsAreListedAndNeverCounted(t *testing.T) {
 	}
 }
 
-// The close/reset designs, against the trace oracles of specimens/nexus.md: N1 pins the permanent
-// rejection after a close, N2 the acknowledgment by the original run after a reset, N3 the canceled
-// outcome across a reset and N4 the reset after an acknowledgment. The explored counts are the ones
-// the specimen records for each search.
-func TestTheCloseResetDesignsAreToldApart(t *testing.T) {
-	r := checked(t, lifted(t, "closereset"))
-	type answer struct {
-		Kind     ReceiptKind
-		Explored int
-		Monitor  string
-	}
-	got := map[string]answer{}
-	for _, x := range r.Receipts {
-		require.Equal(t, QuerySubject, x.Subject)
-		got[x.Key.Name] = answer{x.Kind, x.Explored, x.Monitor}
-	}
-	require.Equal(t, map[string]answer{
-		// N1: the closed run rejects the completion permanently, and the outcome is lost.
-		"rejectAfterClose.closedThenFinished":                  {Counterexample, 7, ""},
-		"rejectAfterClose.resetThenDelivered.ackOnlyWhenKept":  {Verified, 6, ""},
-		"rejectAfterClose.resetThenDelivered.outcomePreserved": {Verified, 6, ""},
-		"rejectAfterClose.canceledAcrossReset":                 {Verified, 7, ""},
-		"rejectAfterClose.ackedThenReset":                      {Verified, 8, ""},
-		"rejectAfterClose.any.outcomePreserved":                {Counterexample, 61, ""},
-		// A permanent rejection is no acknowledgment, so ackOnlyWhenKept holds of every step; the
-		// design's retainedOutcome monitor watches the same search, and is violated where N1 loses
-		// the outcome.
-		"rejectAfterClose.any.ackOnlyWhenKept": {Counterexample, 61, "retainedOutcome"},
-
-		// N2 and N3: after a reset the original run acknowledges, and the successor never learns.
-		"ackByOriginal.closedThenFinished":                  {Verified, 9, ""},
-		"ackByOriginal.resetThenDelivered.ackOnlyWhenKept":  {Counterexample, 4, ""},
-		"ackByOriginal.resetThenDelivered.outcomePreserved": {Counterexample, 4, ""},
-		"ackByOriginal.canceledAcrossReset":                 {Counterexample, 5, ""},
-		"ackByOriginal.ackedThenReset":                      {Verified, 8, ""},
-		"ackByOriginal.any.outcomePreserved":                {Counterexample, 76, ""},
-		"ackByOriginal.any.ackOnlyWhenKept":                 {Counterexample, 76, ""},
-
-		// The corrected design: N1′, N2′, N3, N4, and the free search of N5.
-		"retainAndRoute.closedThenFinished":                  {Verified, 9, ""},
-		"retainAndRoute.resetThenDelivered.ackOnlyWhenKept":  {Verified, 6, ""},
-		"retainAndRoute.resetThenDelivered.outcomePreserved": {Verified, 6, ""},
-		"retainAndRoute.canceledAcrossReset":                 {Verified, 7, ""},
-		"retainAndRoute.ackedThenReset":                      {Verified, 8, ""},
-		"retainAndRoute.any.outcomePreserved":                {Verified, 71, ""},
-		"retainAndRoute.any.ackOnlyWhenKept":                 {Verified, 71, ""},
-	}, got)
-	query := func(name string) Receipt {
-		machine, _, _ := strings.Cut(name, ".")
-		return receiptOf(t, r, "query "+machine+" "+name)
-	}
-	last := func(x Receipt) string { return x.Witness.Steps[len(x.Witness.Steps)-1].State.Value }
-
-	// N1, steps 1 to 3.
-	n1 := query("rejectAfterClose.closedThenFinished")
-	require.Equal(t, []string{"open-false-running-none-none-none-callerClose",
-		"closed-false-running-none-none-none-handlerFinish-succeeded",
-		"closed-false-done-succeeded-inFlight-succeeded-none-none-complete-succeeded"}, n1.Rows)
-	require.Equal(t, []string{"accepted", "accepted", "rejectedPermanent"},
-		[]string{n1.Witness.Steps[0].Outcome.Value, n1.Witness.Steps[1].Outcome.Value, n1.Witness.Steps[2].Outcome.Value})
-	require.Equal(t, "closed-false-done-succeeded-none-none-none", last(n1))
-	// The free search returns the same shape, with failed as the outcome.
-	free := query("rejectAfterClose.any.outcomePreserved")
-	require.Len(t, free.Rows, 3)
-	require.Equal(t, "closed-false-done-failed-none-none-none", last(free))
-	require.Equal(t, last(free), last(query("rejectAfterClose.any.ackOnlyWhenKept")))
-
-	// N2, steps 1 to 3, for both promises, pinned and free.
-	n2 := []string{"open-false-running-none-none-none-handlerFinish-failed",
-		"open-false-done-failed-inFlight-failed-none-none-reset",
-		"resetOpen-false-done-failed-inFlight-failed-none-none-complete-failed"}
-	for _, name := range []string{"ackByOriginal.resetThenDelivered.ackOnlyWhenKept", "ackByOriginal.resetThenDelivered.outcomePreserved",
-		"ackByOriginal.any.ackOnlyWhenKept", "ackByOriginal.any.outcomePreserved"} {
-		x := query(name)
-		require.Equal(t, n2, x.Rows, name)
-		require.Equal(t, "resetOpen-false-done-failed-none-none-none", last(x), name)
-	}
-	// N3: violated at step 4, with the cancel intent kept across the reset.
-	n3 := query("ackByOriginal.canceledAcrossReset")
-	require.Len(t, n3.Rows, 4)
-	require.Equal(t, "resetOpen-true-done-canceled-none-none-none", last(n3))
-
-	// N1′ and N2′: the corrected design retains at the close and reapplies at the reset, and routes a
-	// completion that arrives after the reset to the successor.
-	corrected := built(t, lifted(t, "closereset"))["retainAndRoute"]
-	for key, want := range map[string]Result{
-		"closed-false-done-succeeded-inFlight-succeeded-none-none-complete-succeeded": {Outcome: "retained",
-			State: "closed-false-done-succeeded-none-pending-succeeded-none", Facts: []string{}, Choice: "taken"},
-		"closed-false-done-succeeded-none-pending-succeeded-none-reset": {Outcome: "accepted",
-			State: "resetOpen-false-done-succeeded-none-none-successor-succeeded", Facts: []string{}},
-		"resetOpen-false-done-failed-inFlight-failed-none-none-complete-failed": {Outcome: "accepted",
-			State: "resetOpen-false-done-failed-none-none-successor-failed", Facts: []string{}, Choice: "taken"},
-	} {
-		require.Equal(t, want, row(t, corrected, key).Results[0], key)
-	}
-}
-
 // A composition that replaces nothing, of the store and a disk no monitor watches: the crash hole of a
 // staged disk is an unknown pair of the composition, which a search that explores it reads.
 func TestAMembersHoleIsAnUnknownPairOfTheComposition(t *testing.T) {
@@ -1370,7 +1273,7 @@ func TestARejectedRefinementIsOneResultWhereverItIsMet(t *testing.T) {
 	require.Zero(t, rejected.Explored, "the generic check does not say how many rows it read before the one it rejects")
 	through := receiptOf(t, r, "query staleAdmission staleAdmission.product.pausedIsNotDispatched")
 	require.Equal(t, Limits{Name: "three", Steps: 3, Actions: 3, Search: 4096}, through.Limits)
-	require.Equal(t, ClaimKey{Family: "temporal.activity.standalone", Owner: "activityProduct", Name: "pausedIsNotDispatched"}, through.Property)
+	require.Equal(t, ClaimKey{Family: "fixture.specimens.admission.product", Owner: "activityProduct", Name: "pausedIsNotDispatched"}, through.Property)
 	require.Equal(t, as(rejected, through), through)
 
 	// The disk is given an assumption, so the rejection carries one to compare.
@@ -1568,7 +1471,7 @@ func TestSiblingClaimsStayApart(t *testing.T) {
 func everyModel(t *testing.T) map[string]*umpirespb.Model {
 	t.Helper()
 	out := map[string]*umpirespb.Model{"nexus": load(t)}
-	for _, name := range []string{"admission", "channels", "closereset", "declarations", "presence"} {
+	for _, name := range []string{"admission", "channels", "declarations", "presence"} {
 		out[name] = lifted(t, name)
 	}
 	return out

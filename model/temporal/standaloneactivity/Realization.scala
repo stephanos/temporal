@@ -183,7 +183,7 @@ object ActivityRealization:
   // worker took it again, confirming the three at once.
 
   /** One standalone activity a controller starts and the Case's own worker runs. */
-  val standalone: Realization = temporalRealization(
+  val standalone = temporalRealization(
     machine = activityProtocol,
     operation = activity,
     roles = Vector(workflowService, caseWorker, taskQueue),
@@ -273,7 +273,7 @@ object ActivityRealization:
   // no Case lives to see, competes with no delivery.
 
   /** The stale dispatch of one paused activity, held, then delivered to admission. */
-  val heldDelivery: Realization = temporalRealization(
+  val heldDelivery = temporalRealization(
     machine = heldAdmission,
     operation = activity,
     roles = Vector(workflowService, taskQueue),
@@ -296,7 +296,7 @@ object ActivityRealization:
   )
 
   /** One lost admission answer, with its durable decision observed before the response is replaced. */
-  val lostAdmissionResponse: Realization = temporalRealization(
+  val lostAdmissionResponse = temporalRealization(
     machine = admissionResponseLoss,
     operation = activity,
     roles = Vector(workflowService, taskQueue),
