@@ -279,10 +279,9 @@ def keptAtOperation(d: Redelivery, s: CloseResetState, r: Resolution): List[Clos
         Step(
           Answer.retained,
           s.copy(retained = Retained.pending(r), channel = again(d, r)),
-          List(Fact.outcomeRetained),
-          "the acknowledgment is lost"
+          List(Fact.outcomeRetained)
         )
-      )
+      ).because("the acknowledgment is lost")
     )
   else
     List(
@@ -293,7 +292,19 @@ def keptAtOperation(d: Redelivery, s: CloseResetState, r: Resolution): List[Clos
       )
     )
 
-/** A permanent rejection ends the report: the handler stops reporting. */
+/**
+ * A permanent rejection ends the report: the handler stops reporting. A `choose` writes this step
+ * out in its alternative, since an alternative is one step written out, not a helper's.
+ */
+def dropped(s: CloseResetState): List[CloseResetStep] =
+  List(
+    Step(
+      Answer.rejectedPermanent,
+      s.copy(channel = Completion.none),
+      List(Fact.completionDropped)
+    )
+  )
+
 def rejectedByClosed(d: Redelivery, s: CloseResetState, r: Resolution): List[CloseResetStep] =
   if redelivers(d, s.channel, r) then
     choose(
@@ -306,26 +317,12 @@ def rejectedByClosed(d: Redelivery, s: CloseResetState, r: Resolution): List[Clo
       ),
       rejectedForNow -> List(Step(Answer.rejectedTransient, s.copy(channel = again(d, r))))
     )
-  else
-    List(
-      Step(
-        Answer.rejectedPermanent,
-        s.copy(channel = Completion.none),
-        List(Fact.completionDropped)
-      )
-    )
+  else dropped(s)
 
 def deliverStep(p: Policy, d: Redelivery, s: CloseResetState, r: Resolution): List[CloseResetStep] =
   if !carries(s.channel, r) then disabled
   // The deadline resolved the operation: a completion after it finds nothing to complete.
-  else if s.known == Knowledge.expired then
-    List(
-      Step(
-        Answer.rejectedPermanent,
-        s.copy(channel = Completion.none),
-        List(Fact.completionDropped)
-      )
-    )
+  else if s.known == Knowledge.expired then dropped(s)
   else
     s.caller match
       case Caller.open   => committed(d, s, Knowledge.original(r), r)

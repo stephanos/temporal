@@ -36,7 +36,7 @@
     "name": "temporal.nexuscaller.closepolicy.Asked",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 466
+      "line": 463
     },
     "enum": {
       "cases": [ {
@@ -252,7 +252,7 @@
     "name": "temporal.nexuscaller.closepolicy.Outcomes",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 445
+      "line": 442
     },
     "enum": {
       "cases": [ {
@@ -347,7 +347,7 @@
     "name": "ackByOriginal.complete",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 551
+      "line": 548
     },
     "params": [ {
       "name": "s",
@@ -363,14 +363,14 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 551
+        "line": 548
       },
       "call": {
         "function": "temporal.nexuscaller.closepolicy.Model$package$.deliverStep",
         "args": [ {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 551
+            "line": 548
           },
           "literal": {
             "enum": {
@@ -381,7 +381,7 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 551
+            "line": 548
           },
           "literal": {
             "enum": {
@@ -392,13 +392,13 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 551
+            "line": 548
           },
           "var": "s"
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 551
+            "line": 548
           },
           "var": "r"
         } ]
@@ -1573,7 +1573,7 @@
     "name": "ackByOriginalWithDeadline.complete",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 579
+      "line": 576
     },
     "params": [ {
       "name": "s",
@@ -1589,14 +1589,14 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 579
+        "line": 576
       },
       "call": {
         "function": "temporal.nexuscaller.closepolicy.Model$package$.deliverStep",
         "args": [ {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 579
+            "line": 576
           },
           "literal": {
             "enum": {
@@ -1607,7 +1607,7 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 579
+            "line": 576
           },
           "literal": {
             "enum": {
@@ -1618,13 +1618,13 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 579
+            "line": 576
           },
           "var": "s"
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 579
+            "line": 576
           },
           "var": "r"
         } ]
@@ -3098,7 +3098,7 @@
     "name": "forgetsCancelOnReset.reset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 558
+      "line": 555
     },
     "params": [ {
       "name": "s",
@@ -3109,14 +3109,14 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 558
+        "line": 555
       },
       "call": {
         "function": "temporal.nexuscaller.closepolicy.Model$package$.resetStep",
         "args": [ {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 558
+            "line": 555
           },
           "literal": {
             "enum": {
@@ -3127,7 +3127,7 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 558
+            "line": 555
           },
           "var": "s"
         } ]
@@ -3137,7 +3137,7 @@
     "name": "rejectAfterClose.complete",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 545
+      "line": 542
     },
     "params": [ {
       "name": "s",
@@ -3153,14 +3153,14 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 545
+        "line": 542
       },
       "call": {
         "function": "temporal.nexuscaller.closepolicy.Model$package$.deliverStep",
         "args": [ {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 545
+            "line": 542
           },
           "literal": {
             "enum": {
@@ -3171,7 +3171,7 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 545
+            "line": 542
           },
           "literal": {
             "enum": {
@@ -3182,13 +3182,13 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 545
+            "line": 542
           },
           "var": "s"
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 545
+            "line": 542
           },
           "var": "r"
         } ]
@@ -3198,7 +3198,7 @@
     "name": "rejectAfterClose.evidence",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 535
+      "line": 532
     },
     "params": [ {
       "name": "fact",
@@ -3209,13 +3209,13 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 536
+        "line": 533
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 536
+            "line": 533
           },
           "var": "fact"
         },
@@ -3231,7 +3231,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 535
+              "line": 532
             },
             "literal": {
               "text": "workflowClosed"
@@ -3249,7 +3249,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 535
+              "line": 532
             },
             "literal": {
               "text": "workflowReset"
@@ -3268,7 +3268,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 536
+              "line": 533
             },
             "literal": {
               "text": "nexusOperationCancelRequested"
@@ -3286,7 +3286,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 535
+              "line": 532
             },
             "literal": {
               "text": "cancelReceived"
@@ -3305,7 +3305,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 537
+              "line": 534
             },
             "literal": {
               "text": "handlerFinished"
@@ -3323,7 +3323,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 535
+              "line": 532
             },
             "literal": {
               "text": "nexusOperationCompleted"
@@ -3341,7 +3341,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 535
+              "line": 532
             },
             "literal": {
               "text": "nexusOperationFailed"
@@ -3359,7 +3359,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 535
+              "line": 532
             },
             "literal": {
               "text": "nexusOperationCanceled"
@@ -3377,7 +3377,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 535
+              "line": 532
             },
             "literal": {
               "text": "nexusOperationTimedOut"
@@ -3395,7 +3395,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 535
+              "line": 532
             },
             "literal": {
               "text": "outcomeRetained"
@@ -3413,7 +3413,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 535
+              "line": 532
             },
             "literal": {
               "text": "outcomeReapplied"
@@ -3431,7 +3431,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 535
+              "line": 532
             },
             "literal": {
               "text": "completionDropped"
@@ -4609,7 +4609,7 @@
     "name": "rejectAfterClose.reset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 541
+      "line": 538
     },
     "params": [ {
       "name": "s",
@@ -4620,14 +4620,14 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 541
+        "line": 538
       },
       "call": {
         "function": "temporal.nexuscaller.closepolicy.Model$package$.resetStep",
         "args": [ {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 541
+            "line": 538
           },
           "literal": {
             "enum": {
@@ -4638,7 +4638,7 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 541
+            "line": 538
           },
           "var": "s"
         } ]
@@ -4648,7 +4648,7 @@
     "name": "rejectAfterCloseWithDeadline.complete",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 574
+      "line": 571
     },
     "params": [ {
       "name": "s",
@@ -4664,14 +4664,14 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 574
+        "line": 571
       },
       "call": {
         "function": "temporal.nexuscaller.closepolicy.Model$package$.deliverStep",
         "args": [ {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 574
+            "line": 571
           },
           "literal": {
             "enum": {
@@ -4682,7 +4682,7 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 574
+            "line": 571
           },
           "literal": {
             "enum": {
@@ -4693,13 +4693,13 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 574
+            "line": 571
           },
           "var": "s"
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 574
+            "line": 571
           },
           "var": "r"
         } ]
@@ -5008,7 +5008,7 @@
     "name": "retainAndRoute.complete",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 555
+      "line": 552
     },
     "params": [ {
       "name": "s",
@@ -5024,14 +5024,14 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 555
+        "line": 552
       },
       "call": {
         "function": "temporal.nexuscaller.closepolicy.Model$package$.deliverStep",
         "args": [ {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 555
+            "line": 552
           },
           "literal": {
             "enum": {
@@ -5042,7 +5042,7 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 555
+            "line": 552
           },
           "literal": {
             "enum": {
@@ -5053,13 +5053,13 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 555
+            "line": 552
           },
           "var": "s"
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 555
+            "line": 552
           },
           "var": "r"
         } ]
@@ -6234,7 +6234,7 @@
     "name": "retainAndRouteBoundedRetry.complete",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 568
+      "line": 565
     },
     "params": [ {
       "name": "s",
@@ -6250,14 +6250,14 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 568
+        "line": 565
       },
       "call": {
         "function": "temporal.nexuscaller.closepolicy.Model$package$.deliverStep",
         "args": [ {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 568
+            "line": 565
           },
           "literal": {
             "enum": {
@@ -6268,7 +6268,7 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 568
+            "line": 565
           },
           "literal": {
             "enum": {
@@ -6279,13 +6279,13 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 568
+            "line": 565
           },
           "var": "s"
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 568
+            "line": 565
           },
           "var": "r"
         } ]
@@ -7835,7 +7835,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 412
+      "line": 409
     },
     "params": [ {
       "name": "before",
@@ -7851,19 +7851,19 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 412
+        "line": 409
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 412
+            "line": 409
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 412
+                "line": 409
               },
               "var": "before"
             },
@@ -7888,20 +7888,20 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 413
+              "line": 410
             },
             "call": {
               "function": "temporal.nexuscaller.closepolicy.Model$package$.keptOrOwed",
               "args": [ {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 413
+                  "line": 410
                 },
                 "var": "after"
               }, {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 413
+                  "line": 410
                 },
                 "var": "r"
               } ]
@@ -7925,20 +7925,20 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 414
+              "line": 411
             },
             "call": {
               "function": "temporal.nexuscaller.closepolicy.Model$package$.keptOrOwed",
               "args": [ {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 414
+                  "line": 411
                 },
                 "var": "after"
               }, {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 414
+                  "line": 411
                 },
                 "var": "r"
               } ]
@@ -7956,7 +7956,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 415
+              "line": 412
             },
             "literal": {
               "bool": true
@@ -8056,7 +8056,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.askedAfter",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 475
+      "line": 472
     },
     "params": [ {
       "name": "asked",
@@ -8072,13 +8072,13 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 475
+        "line": 472
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 475
+            "line": 472
           },
           "var": "asked"
         },
@@ -8094,14 +8094,14 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 476
+              "line": 473
             },
             "call": {
               "function": "temporal.nexuscaller.closepolicy.Model$package$.askedBy",
               "args": [ {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 476
+                  "line": 473
                 },
                 "var": "i"
               } ]
@@ -8125,27 +8125,27 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 477
+              "line": 474
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 477
+                  "line": 474
                 },
                 "binary": {
                   "op": "OP_EQ",
                   "left": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 477
+                      "line": 474
                     },
                     "var": "i"
                   },
                   "right": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 477
+                      "line": 474
                     },
                     "construct": {
                       "type": "temporal.nexuscaller.closepolicy.Intent",
@@ -8153,7 +8153,7 @@
                       "args": [ {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 477
+                          "line": 474
                         },
                         "var": "p"
                       } ]
@@ -8164,14 +8164,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 477
+                  "line": 474
                 },
                 "var": "asked"
               },
               "else": {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 477
+                  "line": 474
                 },
                 "literal": {
                   "enum": {
@@ -8194,7 +8194,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 478
+              "line": 475
             },
             "literal": {
               "enum": {
@@ -8210,7 +8210,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.askedBy",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 471
+      "line": 468
     },
     "params": [ {
       "name": "i",
@@ -8221,13 +8221,13 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 471
+        "line": 468
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 471
+            "line": 468
           },
           "var": "i"
         },
@@ -8249,7 +8249,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 472
+              "line": 469
             },
             "construct": {
               "type": "temporal.nexuscaller.closepolicy.Asked",
@@ -8257,7 +8257,7 @@
               "args": [ {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 472
+                  "line": 469
                 },
                 "var": "p"
               } ]
@@ -8275,7 +8275,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 473
+              "line": 470
             },
             "literal": {
               "enum": {
@@ -8486,7 +8486,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.cancelPrincipal.next",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 484
+      "line": 481
     },
     "params": [ {
       "name": "asked",
@@ -8507,32 +8507,32 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 485
+        "line": 482
       },
       "call": {
         "function": "temporal.nexuscaller.closepolicy.Model$package$.askedAfter",
         "args": [ {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 485
+            "line": 482
           },
           "var": "asked"
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 485
+            "line": 482
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 485
+                "line": 482
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 485
+                    "line": 482
                   },
                   "var": "after"
                 },
@@ -8548,7 +8548,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.cancelPrincipal.violated",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 486
+      "line": 483
     },
     "params": [ {
       "name": "asked",
@@ -8559,21 +8559,21 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 486
+        "line": 483
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 486
+            "line": 483
           },
           "var": "asked"
         },
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 486
+            "line": 483
           },
           "literal": {
             "enum": {
@@ -8844,7 +8844,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.carried",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 349
+      "line": 346
     },
     "params": [ {
       "name": "rule",
@@ -8860,27 +8860,27 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 349
+        "line": 346
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 349
+            "line": 346
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 349
+                "line": 346
               },
               "var": "rule"
             },
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 349
+                "line": 346
               },
               "literal": {
                 "enum": {
@@ -8894,7 +8894,7 @@
         "then": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 349
+            "line": 346
           },
           "literal": {
             "enum": {
@@ -8906,7 +8906,7 @@
         "else": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 349
+            "line": 346
           },
           "var": "i"
         }
@@ -9594,7 +9594,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.deliverStep",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 318
+      "line": 322
     },
     "params": [ {
       "name": "p",
@@ -9620,33 +9620,33 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 319
+        "line": 323
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 319
+            "line": 323
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 319
+                "line": 323
               },
               "call": {
                 "function": "temporal.nexuscaller.closepolicy.Model$package$.carries",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 319
+                    "line": 323
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 319
+                        "line": 323
                       },
                       "var": "s"
                     },
@@ -9655,7 +9655,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 319
+                    "line": 323
                   },
                   "var": "r"
                 } ]
@@ -9666,33 +9666,33 @@
         "then": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 319
+            "line": 323
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 321
+            "line": 325
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 321
+                "line": 325
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 321
+                    "line": 325
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 321
+                        "line": 325
                       },
                       "var": "s"
                     },
@@ -9702,7 +9702,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 321
+                    "line": 325
                   },
                   "literal": {
                     "enum": {
@@ -9716,104 +9716,35 @@
             "then": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 322
+                "line": 325
               },
-              "list": {
-                "items": [ {
+              "call": {
+                "function": "temporal.nexuscaller.closepolicy.Model$package$.dropped",
+                "args": [ {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 323
+                    "line": 325
                   },
-                  "construct": {
-                    "type": "umpire.Step",
-                    "args": [ {
-                      "position": {
-                        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 324
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "temporal.nexuscaller.closepolicy.Answer",
-                          "case": "rejectedPermanent"
-                        }
-                      }
-                    }, {
-                      "position": {
-                        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 325
-                      },
-                      "copy": {
-                        "base": {
-                          "position": {
-                            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                            "line": 325
-                          },
-                          "var": "s"
-                        },
-                        "updates": [ {
-                          "name": "channel",
-                          "value": {
-                            "position": {
-                              "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 325
-                            },
-                            "literal": {
-                              "enum": {
-                                "type": "temporal.nexuscaller.closepolicy.Completion",
-                                "case": "none"
-                              }
-                            }
-                          }
-                        } ]
-                      }
-                    }, {
-                      "position": {
-                        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 326
-                      },
-                      "list": {
-                        "items": [ {
-                          "position": {
-                            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                            "line": 326
-                          },
-                          "literal": {
-                            "enum": {
-                              "type": "temporal.nexuscaller.closepolicy.Fact",
-                              "case": "completionDropped"
-                            }
-                          }
-                        } ]
-                      }
-                    }, {
-                      "position": {
-                        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 323
-                      },
-                      "literal": {
-                        "text": ""
-                      }
-                    } ]
-                  }
+                  "var": "s"
                 } ]
               }
             },
             "else": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 330
+                "line": 327
               },
               "match": {
                 "scrutinee": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 330
+                    "line": 327
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 330
+                        "line": 327
                       },
                       "var": "s"
                     },
@@ -9832,26 +9763,26 @@
                   "body": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 331
+                      "line": 328
                     },
                     "call": {
                       "function": "temporal.nexuscaller.closepolicy.Model$package$.committed",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 331
+                          "line": 328
                         },
                         "var": "d"
                       }, {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 331
+                          "line": 328
                         },
                         "var": "s"
                       }, {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 331
+                          "line": 328
                         },
                         "construct": {
                           "type": "temporal.nexuscaller.closepolicy.Knowledge",
@@ -9859,7 +9790,7 @@
                           "args": [ {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 331
+                              "line": 328
                             },
                             "var": "r"
                           } ]
@@ -9867,7 +9798,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 331
+                          "line": 328
                         },
                         "var": "r"
                       } ]
@@ -9885,27 +9816,27 @@
                   "body": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 333
+                      "line": 330
                     },
                     "if": {
                       "condition": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 333
+                          "line": 330
                         },
                         "binary": {
                           "op": "OP_EQ",
                           "left": {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 333
+                              "line": 330
                             },
                             "var": "p"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 333
+                              "line": 330
                             },
                             "literal": {
                               "enum": {
@@ -9919,26 +9850,26 @@
                       "then": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 333
+                          "line": 330
                         },
                         "call": {
                           "function": "temporal.nexuscaller.closepolicy.Model$package$.rejectedByClosed",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 333
+                              "line": 330
                             },
                             "var": "d"
                           }, {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 333
+                              "line": 330
                             },
                             "var": "s"
                           }, {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 333
+                              "line": 330
                             },
                             "var": "r"
                           } ]
@@ -9947,26 +9878,26 @@
                       "else": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 333
+                          "line": 330
                         },
                         "call": {
                           "function": "temporal.nexuscaller.closepolicy.Model$package$.keptAtOperation",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 333
+                              "line": 330
                             },
                             "var": "d"
                           }, {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 333
+                              "line": 330
                             },
                             "var": "s"
                           }, {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 333
+                              "line": 330
                             },
                             "var": "r"
                           } ]
@@ -9986,27 +9917,27 @@
                   "body": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 335
+                      "line": 332
                     },
                     "if": {
                       "condition": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 335
+                          "line": 332
                         },
                         "binary": {
                           "op": "OP_EQ",
                           "left": {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 335
+                              "line": 332
                             },
                             "var": "p"
                           },
                           "right": {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 335
+                              "line": 332
                             },
                             "literal": {
                               "enum": {
@@ -10020,13 +9951,13 @@
                       "then": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 336
+                          "line": 333
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 336
+                              "line": 333
                             },
                             "construct": {
                               "type": "umpire.Step",
@@ -10044,13 +9975,13 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                  "line": 336
+                                  "line": 333
                                 },
                                 "copy": {
                                   "base": {
                                     "position": {
                                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                      "line": 336
+                                      "line": 333
                                     },
                                     "var": "s"
                                   },
@@ -10059,7 +9990,7 @@
                                     "value": {
                                       "position": {
                                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                        "line": 336
+                                        "line": 333
                                       },
                                       "literal": {
                                         "enum": {
@@ -10073,13 +10004,13 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                  "line": 336
+                                  "line": 333
                                 },
                                 "list": { }
                               }, {
                                 "position": {
                                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                  "line": 336
+                                  "line": 333
                                 },
                                 "literal": {
                                   "text": "the original run acknowledges it"
@@ -10092,26 +10023,26 @@
                       "else": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 337
+                          "line": 334
                         },
                         "call": {
                           "function": "temporal.nexuscaller.closepolicy.Model$package$.committed",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 337
+                              "line": 334
                             },
                             "var": "d"
                           }, {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 337
+                              "line": 334
                             },
                             "var": "s"
                           }, {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 337
+                              "line": 334
                             },
                             "construct": {
                               "type": "temporal.nexuscaller.closepolicy.Knowledge",
@@ -10119,7 +10050,7 @@
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                  "line": 337
+                                  "line": 334
                                 },
                                 "var": "r"
                               } ]
@@ -10127,7 +10058,7 @@
                           }, {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 337
+                              "line": 334
                             },
                             "var": "r"
                           } ]
@@ -10143,10 +10074,10 @@
       }
     }
   }, {
-    "name": "temporal.nexuscaller.closepolicy.Model$package$.expireStep",
+    "name": "temporal.nexuscaller.closepolicy.Model$package$.dropped",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 380
+      "line": 299
     },
     "params": [ {
       "name": "s",
@@ -10157,33 +10088,130 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 381
+        "line": 300
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 301
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+                "line": 302
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.nexuscaller.closepolicy.Answer",
+                  "case": "rejectedPermanent"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+                "line": 303
+              },
+              "copy": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+                    "line": 303
+                  },
+                  "var": "s"
+                },
+                "updates": [ {
+                  "name": "channel",
+                  "value": {
+                    "position": {
+                      "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+                      "line": 303
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.nexuscaller.closepolicy.Completion",
+                        "case": "none"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+                "line": 304
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+                    "line": 304
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.nexuscaller.closepolicy.Fact",
+                      "case": "completionDropped"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+                "line": 301
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.nexuscaller.closepolicy.Model$package$.expireStep",
+    "position": {
+      "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+      "line": 377
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.nexuscaller.closepolicy.CloseResetState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 378
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 381
+            "line": 378
           },
           "binary": {
             "op": "OP_OR",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 381
+                "line": 378
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 381
+                    "line": 378
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 381
+                        "line": 378
                       },
                       "var": "s"
                     },
@@ -10193,7 +10221,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 381
+                    "line": 378
                   },
                   "literal": {
                     "enum": {
@@ -10207,20 +10235,20 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 381
+                "line": 378
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 381
+                    "line": 378
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 381
+                        "line": 378
                       },
                       "var": "s"
                     },
@@ -10230,7 +10258,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 381
+                    "line": 378
                   },
                   "literal": {
                     "enum": {
@@ -10246,20 +10274,20 @@
         "then": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 381
+            "line": 378
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 382
+            "line": 379
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 382
+                "line": 379
               },
               "construct": {
                 "type": "umpire.Step",
@@ -10277,13 +10305,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 382
+                    "line": 379
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 382
+                        "line": 379
                       },
                       "var": "s"
                     },
@@ -10292,7 +10320,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 382
+                          "line": 379
                         },
                         "literal": {
                           "enum": {
@@ -10306,13 +10334,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 382
+                    "line": 379
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 382
+                        "line": 379
                       },
                       "literal": {
                         "enum": {
@@ -10325,7 +10353,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 382
+                    "line": 379
                   },
                   "literal": {
                     "text": ""
@@ -10610,7 +10638,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.fromRetention",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 339
+      "line": 336
     },
     "params": [ {
       "name": "x",
@@ -10621,13 +10649,13 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 339
+        "line": 336
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 339
+            "line": 336
           },
           "var": "x"
         },
@@ -10649,7 +10677,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 340
+              "line": 337
             },
             "construct": {
               "type": "temporal.nexuscaller.closepolicy.Knowledge",
@@ -10657,7 +10685,7 @@
               "args": [ {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 340
+                  "line": 337
                 },
                 "var": "r"
               } ]
@@ -10675,7 +10703,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 341
+              "line": 338
             },
             "literal": {
               "enum": {
@@ -10691,7 +10719,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.isDone",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 417
+      "line": 414
     },
     "params": [ {
       "name": "s",
@@ -10702,27 +10730,27 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 417
+        "line": 414
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 417
+            "line": 414
           },
           "call": {
             "function": "temporal.nexuscaller.closepolicy.Model$package$.working",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 417
+                "line": 414
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 417
+                    "line": 414
                   },
                   "var": "s"
                 },
@@ -11072,7 +11100,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 283
+                    "line": 278
                   },
                   "literal": {
                     "text": "the acknowledgment is lost"
@@ -11086,20 +11114,20 @@
         "else": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 288
+            "line": 287
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 289
+                "line": 288
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 290
+                    "line": 289
                   },
                   "literal": {
                     "enum": {
@@ -11110,13 +11138,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 291
+                    "line": 290
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 291
+                        "line": 290
                       },
                       "var": "s"
                     },
@@ -11125,7 +11153,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 291
+                          "line": 290
                         },
                         "literal": {
                           "enum": {
@@ -11139,7 +11167,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 291
+                          "line": 290
                         },
                         "construct": {
                           "type": "temporal.nexuscaller.closepolicy.Retained",
@@ -11147,7 +11175,7 @@
                           "args": [ {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 291
+                              "line": 290
                             },
                             "var": "r"
                           } ]
@@ -11158,13 +11186,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 292
+                    "line": 291
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 292
+                        "line": 291
                       },
                       "literal": {
                         "enum": {
@@ -11177,7 +11205,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 289
+                    "line": 288
                   },
                   "literal": {
                     "text": ""
@@ -11193,7 +11221,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.keptOrOwed",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 403
+      "line": 400
     },
     "params": [ {
       "name": "after",
@@ -11209,34 +11237,34 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 404
+        "line": 401
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 404
+            "line": 401
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 404
+                "line": 401
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 404
+                    "line": 401
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 404
+                        "line": 401
                       },
                       "var": "after"
                     },
@@ -11246,13 +11274,13 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 404
+                    "line": 401
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 404
+                        "line": 401
                       },
                       "literal": {
                         "enum": {
@@ -11263,7 +11291,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 404
+                        "line": 401
                       },
                       "literal": {
                         "enum": {
@@ -11281,40 +11309,40 @@
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 405
+            "line": 402
           },
           "binary": {
             "op": "OP_OR",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 405
+                "line": 402
               },
               "binary": {
                 "op": "OP_OR",
                 "left": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 405
+                    "line": 402
                   },
                   "binary": {
                     "op": "OP_NE",
                     "left": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 405
+                        "line": 402
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                            "line": 405
+                            "line": 402
                           },
                           "field": {
                             "base": {
                               "position": {
                                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                "line": 405
+                                "line": 402
                               },
                               "var": "after"
                             },
@@ -11327,7 +11355,7 @@
                     "right": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 405
+                        "line": 402
                       },
                       "literal": {
                         "enum": {
@@ -11341,20 +11369,20 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 405
+                    "line": 402
                   },
                   "call": {
                     "function": "temporal.nexuscaller.closepolicy.Model$package$.ownerKnows",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 405
+                        "line": 402
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                            "line": 405
+                            "line": 402
                           },
                           "var": "after"
                         },
@@ -11363,7 +11391,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 405
+                        "line": 402
                       },
                       "var": "r"
                     } ]
@@ -11374,26 +11402,26 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 406
+                "line": 403
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 406
+                    "line": 403
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 406
+                        "line": 403
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                            "line": 406
+                            "line": 403
                           },
                           "var": "after"
                         },
@@ -11406,7 +11434,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 406
+                    "line": 403
                   },
                   "construct": {
                     "type": "temporal.nexuscaller.closepolicy.Retained",
@@ -11414,7 +11442,7 @@
                     "args": [ {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 406
+                        "line": 403
                       },
                       "var": "r"
                     } ]
@@ -11430,7 +11458,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 396
+      "line": 393
     },
     "params": [ {
       "name": "after",
@@ -11441,25 +11469,25 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 396
+        "line": 393
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 396
+            "line": 393
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 396
+                "line": 393
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 396
+                    "line": 393
                   },
                   "var": "after"
                 },
@@ -11487,41 +11515,41 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 398
+              "line": 395
             },
             "binary": {
               "op": "OP_OR",
               "left": {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 398
+                  "line": 395
                 },
                 "binary": {
                   "op": "OP_OR",
                   "left": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 398
+                      "line": 395
                     },
                     "binary": {
                       "op": "OP_OR",
                       "left": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 398
+                          "line": 395
                         },
                         "call": {
                           "function": "temporal.nexuscaller.closepolicy.Model$package$.ownerKnows",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 398
+                              "line": 395
                             },
                             "field": {
                               "base": {
                                 "position": {
                                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                  "line": 398
+                                  "line": 395
                                 },
                                 "var": "after"
                               },
@@ -11530,7 +11558,7 @@
                           }, {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 398
+                              "line": 395
                             },
                             "var": "r"
                           } ]
@@ -11539,26 +11567,26 @@
                       "right": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 399
+                          "line": 396
                         },
                         "binary": {
                           "op": "OP_EQ",
                           "left": {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 399
+                              "line": 396
                             },
                             "field": {
                               "base": {
                                 "position": {
                                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                  "line": 399
+                                  "line": 396
                                 },
                                 "field": {
                                   "base": {
                                     "position": {
                                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                      "line": 399
+                                      "line": 396
                                     },
                                     "var": "after"
                                   },
@@ -11571,7 +11599,7 @@
                           "right": {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 399
+                              "line": 396
                             },
                             "construct": {
                               "type": "temporal.nexuscaller.closepolicy.Retained",
@@ -11579,7 +11607,7 @@
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                  "line": 399
+                                  "line": 396
                                 },
                                 "var": "r"
                               } ]
@@ -11592,26 +11620,26 @@
                   "right": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 399
+                      "line": 396
                     },
                     "call": {
                       "function": "temporal.nexuscaller.closepolicy.Model$package$.carries",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 399
+                          "line": 396
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 399
+                              "line": 396
                             },
                             "field": {
                               "base": {
                                 "position": {
                                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                  "line": 399
+                                  "line": 396
                                 },
                                 "var": "after"
                               },
@@ -11623,7 +11651,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 399
+                          "line": 396
                         },
                         "var": "r"
                       } ]
@@ -11634,26 +11662,26 @@
               "right": {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 400
+                  "line": 397
                 },
                 "binary": {
                   "op": "OP_EQ",
                   "left": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 400
+                      "line": 397
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 400
+                          "line": 397
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 400
+                              "line": 397
                             },
                             "var": "after"
                           },
@@ -11666,7 +11694,7 @@
                   "right": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 400
+                      "line": 397
                     },
                     "literal": {
                       "enum": {
@@ -11686,7 +11714,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 401
+              "line": 398
             },
             "literal": {
               "bool": true
@@ -11699,7 +11727,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.outcomesAfter",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 455
+      "line": 452
     },
     "params": [ {
       "name": "seen",
@@ -11715,13 +11743,13 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 455
+        "line": 452
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 455
+            "line": 452
           },
           "var": "k"
         },
@@ -11743,20 +11771,20 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 456
+              "line": 453
             },
             "call": {
               "function": "temporal.nexuscaller.closepolicy.Model$package$.withOutcome",
               "args": [ {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 456
+                  "line": 453
                 },
                 "var": "seen"
               }, {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 456
+                  "line": 453
                 },
                 "var": "r"
               } ]
@@ -11780,20 +11808,20 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 457
+              "line": 454
             },
             "call": {
               "function": "temporal.nexuscaller.closepolicy.Model$package$.withOutcome",
               "args": [ {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 457
+                  "line": 454
                 },
                 "var": "seen"
               }, {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 457
+                  "line": 454
                 },
                 "var": "r"
               } ]
@@ -11806,7 +11834,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 458
+              "line": 455
             },
             "var": "seen"
           }
@@ -11817,7 +11845,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.ownerAcknowledgment.next",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 442
+      "line": 439
     },
     "params": [ {
       "name": "broken",
@@ -11838,41 +11866,41 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 442
+        "line": 439
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 442
+            "line": 439
           },
           "var": "broken"
         },
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 442
+            "line": 439
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 442
+                "line": 439
               },
               "call": {
                 "function": "temporal.nexuscaller.closepolicy.Model$package$.ackOnlyWhenKept",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 442
+                    "line": 439
                   },
                   "var": "before"
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 442
+                    "line": 439
                   },
                   "var": "after"
                 } ]
@@ -11886,7 +11914,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.ownerAcknowledgment.violated",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 442
+      "line": 439
     },
     "params": [ {
       "name": "broken",
@@ -11897,7 +11925,7 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 442
+        "line": 439
       },
       "var": "broken"
     }
@@ -11905,7 +11933,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.ownerKnows",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 387
+      "line": 384
     },
     "params": [ {
       "name": "s",
@@ -11921,26 +11949,26 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 388
+        "line": 385
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 388
+            "line": 385
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 388
+                "line": 385
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 388
+                    "line": 385
                   },
                   "var": "s"
                 },
@@ -11950,7 +11978,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 388
+                "line": 385
               },
               "literal": {
                 "enum": {
@@ -11964,20 +11992,20 @@
         "then": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 388
+            "line": 385
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 388
+                "line": 385
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 388
+                    "line": 385
                   },
                   "var": "s"
                 },
@@ -11987,7 +12015,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 388
+                "line": 385
               },
               "construct": {
                 "type": "temporal.nexuscaller.closepolicy.Knowledge",
@@ -11995,7 +12023,7 @@
                 "args": [ {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 388
+                    "line": 385
                   },
                   "var": "r"
                 } ]
@@ -12006,20 +12034,20 @@
         "else": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 389
+            "line": 386
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 389
+                "line": 386
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 389
+                    "line": 386
                   },
                   "var": "s"
                 },
@@ -12029,7 +12057,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 389
+                "line": 386
               },
               "construct": {
                 "type": "temporal.nexuscaller.closepolicy.Knowledge",
@@ -12037,7 +12065,7 @@
                 "args": [ {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 389
+                    "line": 386
                   },
                   "var": "r"
                 } ]
@@ -12051,7 +12079,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.reapplied",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 343
+      "line": 340
     },
     "params": [ {
       "name": "rule",
@@ -12067,19 +12095,19 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 343
+        "line": 340
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 343
+            "line": 340
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 343
+                "line": 340
               },
               "var": "s"
             },
@@ -12104,27 +12132,27 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 345
+              "line": 342
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 345
+                  "line": 342
                 },
                 "binary": {
                   "op": "OP_EQ",
                   "left": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 345
+                      "line": 342
                     },
                     "var": "rule"
                   },
                   "right": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 345
+                      "line": 342
                     },
                     "literal": {
                       "enum": {
@@ -12138,20 +12166,20 @@
               "then": {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 345
+                  "line": 342
                 },
                 "call": {
                   "function": "temporal.nexuscaller.closepolicy.Model$package$.fromRetention",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 345
+                      "line": 342
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 345
+                          "line": 342
                         },
                         "var": "s"
                       },
@@ -12163,7 +12191,7 @@
               "else": {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 345
+                  "line": 342
                 },
                 "construct": {
                   "type": "temporal.nexuscaller.closepolicy.Knowledge",
@@ -12171,7 +12199,7 @@
                   "args": [ {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 345
+                      "line": 342
                     },
                     "var": "r"
                   } ]
@@ -12191,7 +12219,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 346
+              "line": 343
             },
             "literal": {
               "enum": {
@@ -12207,20 +12235,20 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 347
+              "line": 344
             },
             "call": {
               "function": "temporal.nexuscaller.closepolicy.Model$package$.fromRetention",
               "args": [ {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 347
+                  "line": 344
                 },
                 "field": {
                   "base": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 347
+                      "line": 344
                     },
                     "var": "s"
                   },
@@ -12512,7 +12540,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.rejectedByClosed",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 297
+      "line": 308
     },
     "params": [ {
       "name": "d",
@@ -12533,32 +12561,32 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 298
+        "line": 309
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 298
+            "line": 309
           },
           "call": {
             "function": "temporal.nexuscaller.closepolicy.Model$package$.redelivers",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 298
+                "line": 309
               },
               "var": "d"
             }, {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 298
+                "line": 309
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 298
+                    "line": 309
                   },
                   "var": "s"
                 },
@@ -12567,7 +12595,7 @@
             }, {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 298
+                "line": 309
               },
               "var": "r"
             } ]
@@ -12576,20 +12604,20 @@
         "then": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 299
+            "line": 310
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 301
+                "line": 312
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 302
+                    "line": 313
                   },
                   "literal": {
                     "enum": {
@@ -12600,13 +12628,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 303
+                    "line": 314
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 303
+                        "line": 314
                       },
                       "var": "s"
                     },
@@ -12615,7 +12643,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 303
+                          "line": 314
                         },
                         "literal": {
                           "enum": {
@@ -12629,13 +12657,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 304
+                    "line": 315
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 304
+                        "line": 315
                       },
                       "literal": {
                         "enum": {
@@ -12648,7 +12676,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 301
+                    "line": 312
                   },
                   "literal": {
                     "text": ""
@@ -12659,14 +12687,14 @@
             }, {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 307
+                "line": 318
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 307
+                    "line": 318
                   },
                   "literal": {
                     "enum": {
@@ -12677,13 +12705,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 307
+                    "line": 318
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 307
+                        "line": 318
                       },
                       "var": "s"
                     },
@@ -12692,20 +12720,20 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 307
+                          "line": 318
                         },
                         "call": {
                           "function": "temporal.nexuscaller.closepolicy.Model$package$.again",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 307
+                              "line": 318
                             },
                             "var": "d"
                           }, {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 307
+                              "line": 318
                             },
                             "var": "r"
                           } ]
@@ -12716,13 +12744,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 307
+                    "line": 318
                   },
                   "list": { }
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 307
+                    "line": 318
                   },
                   "literal": {
                     "text": ""
@@ -12736,85 +12764,16 @@
         "else": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 310
+            "line": 320
           },
-          "list": {
-            "items": [ {
+          "call": {
+            "function": "temporal.nexuscaller.closepolicy.Model$package$.dropped",
+            "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 311
+                "line": 320
               },
-              "construct": {
-                "type": "umpire.Step",
-                "args": [ {
-                  "position": {
-                    "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 312
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.nexuscaller.closepolicy.Answer",
-                      "case": "rejectedPermanent"
-                    }
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 313
-                  },
-                  "copy": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 313
-                      },
-                      "var": "s"
-                    },
-                    "updates": [ {
-                      "name": "channel",
-                      "value": {
-                        "position": {
-                          "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 313
-                        },
-                        "literal": {
-                          "enum": {
-                            "type": "temporal.nexuscaller.closepolicy.Completion",
-                            "case": "none"
-                          }
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 314
-                  },
-                  "list": {
-                    "items": [ {
-                      "position": {
-                        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 314
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "temporal.nexuscaller.closepolicy.Fact",
-                          "case": "completionDropped"
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 311
-                  },
-                  "literal": {
-                    "text": ""
-                  }
-                } ]
-              }
+              "var": "s"
             } ]
           }
         }
@@ -12824,7 +12783,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.resetFacts",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 354
+      "line": 351
     },
     "params": [ {
       "name": "k",
@@ -12835,13 +12794,13 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 354
+        "line": 351
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 354
+            "line": 351
           },
           "var": "k"
         },
@@ -12863,13 +12822,13 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 355
+              "line": 352
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 355
+                  "line": 352
                 },
                 "literal": {
                   "enum": {
@@ -12880,7 +12839,7 @@
               }, {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 355
+                  "line": 352
                 },
                 "literal": {
                   "enum": {
@@ -12891,14 +12850,14 @@
               }, {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 355
+                  "line": 352
                 },
                 "call": {
                   "function": "temporal.nexuscaller.closepolicy.Model$package$.recorded",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 355
+                      "line": 352
                     },
                     "var": "r"
                   } ]
@@ -12913,13 +12872,13 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 356
+              "line": 353
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 356
+                  "line": 353
                 },
                 "literal": {
                   "enum": {
@@ -12937,7 +12896,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.resetStep",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 363
+      "line": 360
     },
     "params": [ {
       "name": "rule",
@@ -12953,26 +12912,26 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 364
+        "line": 361
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 364
+            "line": 361
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 364
+                "line": 361
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 364
+                    "line": 361
                   },
                   "var": "s"
                 },
@@ -12982,7 +12941,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 364
+                "line": 361
               },
               "literal": {
                 "enum": {
@@ -12996,20 +12955,20 @@
         "then": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 364
+            "line": 361
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 366
+            "line": 363
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 366
+                "line": 363
               },
               "construct": {
                 "type": "umpire.Step",
@@ -13027,13 +12986,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 367
+                    "line": 364
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 367
+                        "line": 364
                       },
                       "var": "s"
                     },
@@ -13042,7 +13001,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 368
+                          "line": 365
                         },
                         "literal": {
                           "enum": {
@@ -13056,26 +13015,26 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 369
+                          "line": 366
                         },
                         "call": {
                           "function": "temporal.nexuscaller.closepolicy.Model$package$.carried",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 369
+                              "line": 366
                             },
                             "var": "rule"
                           }, {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 369
+                              "line": 366
                             },
                             "field": {
                               "base": {
                                 "position": {
                                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                  "line": 369
+                                  "line": 366
                                 },
                                 "var": "s"
                               },
@@ -13089,7 +13048,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 371
+                          "line": 368
                         },
                         "literal": {
                           "enum": {
@@ -13103,20 +13062,20 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 370
+                          "line": 367
                         },
                         "call": {
                           "function": "temporal.nexuscaller.closepolicy.Model$package$.reapplied",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 370
+                              "line": 367
                             },
                             "var": "rule"
                           }, {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 370
+                              "line": 367
                             },
                             "var": "s"
                           } ]
@@ -13127,27 +13086,27 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 373
+                    "line": 370
                   },
                   "call": {
                     "function": "temporal.nexuscaller.closepolicy.Model$package$.resetFacts",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                        "line": 373
+                        "line": 370
                       },
                       "call": {
                         "function": "temporal.nexuscaller.closepolicy.Model$package$.reapplied",
                         "args": [ {
                           "position": {
                             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                            "line": 373
+                            "line": 370
                           },
                           "var": "rule"
                         }, {
                           "position": {
                             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                            "line": 373
+                            "line": 370
                           },
                           "var": "s"
                         } ]
@@ -13157,7 +13116,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 366
+                    "line": 363
                   },
                   "literal": {
                     "text": ""
@@ -13173,7 +13132,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.retainedOutcome.next",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 436
+      "line": 433
     },
     "params": [ {
       "name": "broken",
@@ -13194,35 +13153,35 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 436
+        "line": 433
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 436
+            "line": 433
           },
           "var": "broken"
         },
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 436
+            "line": 433
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 436
+                "line": 433
               },
               "call": {
                 "function": "temporal.nexuscaller.closepolicy.Model$package$.outcomePreserved",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 436
+                    "line": 433
                   },
                   "var": "after"
                 } ]
@@ -13236,7 +13195,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.retainedOutcome.violated",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 436
+      "line": 433
     },
     "params": [ {
       "name": "broken",
@@ -13247,7 +13206,7 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 436
+        "line": 433
       },
       "var": "broken"
     }
@@ -13255,7 +13214,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.settled",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 424
+      "line": 421
     },
     "params": [ {
       "name": "s",
@@ -13266,19 +13225,19 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 424
+        "line": 421
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 424
+            "line": 421
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 424
+                "line": 421
               },
               "var": "s"
             },
@@ -13303,34 +13262,34 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 426
+              "line": 423
             },
             "binary": {
               "op": "OP_OR",
               "left": {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 426
+                  "line": 423
                 },
                 "binary": {
                   "op": "OP_OR",
                   "left": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 426
+                      "line": 423
                     },
                     "call": {
                       "function": "temporal.nexuscaller.closepolicy.Model$package$.ownerKnows",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 426
+                          "line": 423
                         },
                         "var": "s"
                       }, {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 426
+                          "line": 423
                         },
                         "var": "r"
                       } ]
@@ -13339,27 +13298,27 @@
                   "right": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 427
+                      "line": 424
                     },
                     "binary": {
                       "op": "OP_AND",
                       "left": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 427
+                          "line": 424
                         },
                         "binary": {
                           "op": "OP_EQ",
                           "left": {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 427
+                              "line": 424
                             },
                             "field": {
                               "base": {
                                 "position": {
                                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                  "line": 427
+                                  "line": 424
                                 },
                                 "var": "s"
                               },
@@ -13369,7 +13328,7 @@
                           "right": {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 427
+                              "line": 424
                             },
                             "literal": {
                               "enum": {
@@ -13383,20 +13342,20 @@
                       "right": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 427
+                          "line": 424
                         },
                         "binary": {
                           "op": "OP_EQ",
                           "left": {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 427
+                              "line": 424
                             },
                             "field": {
                               "base": {
                                 "position": {
                                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                  "line": 427
+                                  "line": 424
                                 },
                                 "var": "s"
                               },
@@ -13406,7 +13365,7 @@
                           "right": {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                              "line": 427
+                              "line": 424
                             },
                             "construct": {
                               "type": "temporal.nexuscaller.closepolicy.Retained",
@@ -13414,7 +13373,7 @@
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                                  "line": 427
+                                  "line": 424
                                 },
                                 "var": "r"
                               } ]
@@ -13429,20 +13388,20 @@
               "right": {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 427
+                  "line": 424
                 },
                 "binary": {
                   "op": "OP_EQ",
                   "left": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 427
+                      "line": 424
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                          "line": 427
+                          "line": 424
                         },
                         "var": "s"
                       },
@@ -13452,7 +13411,7 @@
                   "right": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 427
+                      "line": 424
                     },
                     "literal": {
                       "enum": {
@@ -13472,7 +13431,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 428
+              "line": 425
             },
             "literal": {
               "bool": true
@@ -13485,7 +13444,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.singleOutcome.next",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 461
+      "line": 458
     },
     "params": [ {
       "name": "seen",
@@ -13506,32 +13465,32 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 462
+        "line": 459
       },
       "call": {
         "function": "temporal.nexuscaller.closepolicy.Model$package$.outcomesAfter",
         "args": [ {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 462
+            "line": 459
           },
           "var": "seen"
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 462
+            "line": 459
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 462
+                "line": 459
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                    "line": 462
+                    "line": 459
                   },
                   "var": "after"
                 },
@@ -13547,7 +13506,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.singleOutcome.violated",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 463
+      "line": 460
     },
     "params": [ {
       "name": "seen",
@@ -13558,21 +13517,21 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 463
+        "line": 460
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 463
+            "line": 460
           },
           "var": "seen"
         },
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 463
+            "line": 460
           },
           "literal": {
             "enum": {
@@ -13587,7 +13546,7 @@
     "name": "temporal.nexuscaller.closepolicy.Model$package$.withOutcome",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 450
+      "line": 447
     },
     "params": [ {
       "name": "seen",
@@ -13603,13 +13562,13 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 450
+        "line": 447
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 450
+            "line": 447
           },
           "var": "seen"
         },
@@ -13625,7 +13584,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 451
+              "line": 448
             },
             "construct": {
               "type": "temporal.nexuscaller.closepolicy.Outcomes",
@@ -13633,7 +13592,7 @@
               "args": [ {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 451
+                  "line": 448
                 },
                 "var": "r"
               } ]
@@ -13657,27 +13616,27 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 452
+              "line": 449
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 452
+                  "line": 449
                 },
                 "binary": {
                   "op": "OP_EQ",
                   "left": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 452
+                      "line": 449
                     },
                     "var": "x"
                   },
                   "right": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                      "line": 452
+                      "line": 449
                     },
                     "var": "r"
                   }
@@ -13686,14 +13645,14 @@
               "then": {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 452
+                  "line": 449
                 },
                 "var": "seen"
               },
               "else": {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                  "line": 452
+                  "line": 449
                 },
                 "literal": {
                   "enum": {
@@ -13716,7 +13675,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-              "line": 453
+              "line": 450
             },
             "literal": {
               "enum": {
@@ -14956,7 +14915,7 @@
     "name": "truncatesOnReset.reset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 563
+      "line": 560
     },
     "params": [ {
       "name": "s",
@@ -14967,14 +14926,14 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 563
+        "line": 560
       },
       "call": {
         "function": "temporal.nexuscaller.closepolicy.Model$package$.resetStep",
         "args": [ {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 563
+            "line": 560
           },
           "literal": {
             "enum": {
@@ -14985,7 +14944,7 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 563
+            "line": 560
           },
           "var": "s"
         } ]
@@ -15080,7 +15039,7 @@
     "name": "ackByOriginal",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 549
+      "line": 546
     },
     "entity": "nexusRequest",
     "stateType": "temporal.nexuscaller.closepolicy.CloseResetState",
@@ -15165,7 +15124,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 534
+        "line": 531
       },
       "lambda": {
         "params": [ {
@@ -15177,14 +15136,14 @@
         "body": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 534
+            "line": 531
           },
           "call": {
             "function": "temporal.nexuscaller.closepolicy.Model$package$.settled",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 534
+                "line": 531
               },
               "var": "s"
             } ]
@@ -15197,42 +15156,42 @@
       "function": "temporal.nexuscaller.closepolicy.Model$package$.closeStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 540
+        "line": 537
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.reset",
       "function": "rejectAfterClose.reset",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 541
+        "line": 538
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.requestCancel",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 542
+        "line": 539
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.deliverCancel",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelDeliveryStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 543
+        "line": 540
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.finishStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 544
+        "line": 541
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
       "function": "ackByOriginal.complete",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 551
+        "line": 548
       }
     } ],
     "evidence": "rejectAfterClose.evidence",
@@ -15243,7 +15202,7 @@
     "name": "ackByOriginalWithDeadline",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 577
+      "line": 574
     },
     "entity": "nexusRequest",
     "stateType": "temporal.nexuscaller.closepolicy.CloseResetState",
@@ -15328,7 +15287,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 534
+        "line": 531
       },
       "lambda": {
         "params": [ {
@@ -15340,14 +15299,14 @@
         "body": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 534
+            "line": 531
           },
           "call": {
             "function": "temporal.nexuscaller.closepolicy.Model$package$.settled",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 534
+                "line": 531
               },
               "var": "s"
             } ]
@@ -15360,49 +15319,49 @@
       "function": "temporal.nexuscaller.closepolicy.Model$package$.closeStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 540
+        "line": 537
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.reset",
       "function": "rejectAfterClose.reset",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 541
+        "line": 538
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.requestCancel",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 542
+        "line": 539
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.deliverCancel",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelDeliveryStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 543
+        "line": 540
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.finishStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 544
+        "line": 541
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
       "function": "ackByOriginalWithDeadline.complete",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 579
+        "line": 576
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.scheduleToClose",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.expireStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 580
+        "line": 577
       }
     } ],
     "evidence": "rejectAfterClose.evidence",
@@ -15413,7 +15372,7 @@
     "name": "forgetsCancelOnReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 558
+      "line": 555
     },
     "entity": "nexusRequest",
     "stateType": "temporal.nexuscaller.closepolicy.CloseResetState",
@@ -15498,7 +15457,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 534
+        "line": 531
       },
       "lambda": {
         "params": [ {
@@ -15510,14 +15469,14 @@
         "body": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 534
+            "line": 531
           },
           "call": {
             "function": "temporal.nexuscaller.closepolicy.Model$package$.settled",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 534
+                "line": 531
               },
               "var": "s"
             } ]
@@ -15530,42 +15489,42 @@
       "function": "temporal.nexuscaller.closepolicy.Model$package$.closeStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 540
+        "line": 537
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.reset",
       "function": "forgetsCancelOnReset.reset",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 558
+        "line": 555
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.requestCancel",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 542
+        "line": 539
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.deliverCancel",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelDeliveryStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 543
+        "line": 540
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.finishStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 544
+        "line": 541
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
       "function": "retainAndRoute.complete",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 555
+        "line": 552
       }
     } ],
     "evidence": "rejectAfterClose.evidence",
@@ -15576,7 +15535,7 @@
     "name": "rejectAfterClose",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 530
+      "line": 527
     },
     "entity": "nexusRequest",
     "stateType": "temporal.nexuscaller.closepolicy.CloseResetState",
@@ -15661,7 +15620,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 534
+        "line": 531
       },
       "lambda": {
         "params": [ {
@@ -15673,14 +15632,14 @@
         "body": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 534
+            "line": 531
           },
           "call": {
             "function": "temporal.nexuscaller.closepolicy.Model$package$.settled",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 534
+                "line": 531
               },
               "var": "s"
             } ]
@@ -15693,42 +15652,42 @@
       "function": "temporal.nexuscaller.closepolicy.Model$package$.closeStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 540
+        "line": 537
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.reset",
       "function": "rejectAfterClose.reset",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 541
+        "line": 538
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.requestCancel",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 542
+        "line": 539
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.deliverCancel",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelDeliveryStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 543
+        "line": 540
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.finishStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 544
+        "line": 541
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
       "function": "rejectAfterClose.complete",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 545
+        "line": 542
       }
     } ],
     "evidence": "rejectAfterClose.evidence",
@@ -15738,7 +15697,7 @@
     "name": "rejectAfterCloseWithDeadline",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 572
+      "line": 569
     },
     "entity": "nexusRequest",
     "stateType": "temporal.nexuscaller.closepolicy.CloseResetState",
@@ -15823,7 +15782,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 534
+        "line": 531
       },
       "lambda": {
         "params": [ {
@@ -15835,14 +15794,14 @@
         "body": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 534
+            "line": 531
           },
           "call": {
             "function": "temporal.nexuscaller.closepolicy.Model$package$.settled",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 534
+                "line": 531
               },
               "var": "s"
             } ]
@@ -15855,49 +15814,49 @@
       "function": "temporal.nexuscaller.closepolicy.Model$package$.closeStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 540
+        "line": 537
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.reset",
       "function": "rejectAfterClose.reset",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 541
+        "line": 538
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.requestCancel",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 542
+        "line": 539
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.deliverCancel",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelDeliveryStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 543
+        "line": 540
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.finishStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 544
+        "line": 541
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
       "function": "rejectAfterCloseWithDeadline.complete",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 574
+        "line": 571
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.scheduleToClose",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.expireStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 575
+        "line": 572
       }
     } ],
     "evidence": "rejectAfterClose.evidence",
@@ -15908,7 +15867,7 @@
     "name": "retainAndRoute",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 553
+      "line": 550
     },
     "entity": "nexusRequest",
     "stateType": "temporal.nexuscaller.closepolicy.CloseResetState",
@@ -15993,7 +15952,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 534
+        "line": 531
       },
       "lambda": {
         "params": [ {
@@ -16005,14 +15964,14 @@
         "body": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 534
+            "line": 531
           },
           "call": {
             "function": "temporal.nexuscaller.closepolicy.Model$package$.settled",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 534
+                "line": 531
               },
               "var": "s"
             } ]
@@ -16025,42 +15984,42 @@
       "function": "temporal.nexuscaller.closepolicy.Model$package$.closeStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 540
+        "line": 537
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.reset",
       "function": "rejectAfterClose.reset",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 541
+        "line": 538
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.requestCancel",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 542
+        "line": 539
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.deliverCancel",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelDeliveryStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 543
+        "line": 540
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.finishStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 544
+        "line": 541
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
       "function": "retainAndRoute.complete",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 555
+        "line": 552
       }
     } ],
     "evidence": "rejectAfterClose.evidence",
@@ -16069,339 +16028,6 @@
   }, {
     "family": "temporal.nexus.caller.closepolicy",
     "name": "retainAndRouteBoundedRetry",
-    "position": {
-      "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 566
-    },
-    "entity": "nexusRequest",
-    "stateType": "temporal.nexuscaller.closepolicy.CloseResetState",
-    "outcomeType": "temporal.nexuscaller.closepolicy.Answer",
-    "factType": "temporal.nexuscaller.closepolicy.Fact",
-    "starts": [ {
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 172
-      },
-      "construct": {
-        "type": "temporal.nexuscaller.closepolicy.CloseResetState",
-        "args": [ {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 173
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Caller",
-              "case": "open"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 174
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Intent",
-              "case": "none"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 175
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Handler",
-              "case": "running"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 176
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Completion",
-              "case": "none"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 177
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Retained",
-              "case": "none"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 178
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Knowledge",
-              "case": "none"
-            }
-          }
-        } ]
-      }
-    } ],
-    "ends": {
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 534
-      },
-      "lambda": {
-        "params": [ {
-          "name": "s",
-          "type": {
-            "named": "temporal.nexuscaller.closepolicy.CloseResetState"
-          }
-        } ],
-        "body": {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 534
-          },
-          "call": {
-            "function": "temporal.nexuscaller.closepolicy.Model$package$.settled",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 534
-              },
-              "var": "s"
-            } ]
-          }
-        }
-      }
-    },
-    "steps": [ {
-      "action": "temporal.nexuscaller.closepolicy.Model$package$.callerClose",
-      "function": "temporal.nexuscaller.closepolicy.Model$package$.closeStep",
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 540
-      }
-    }, {
-      "action": "temporal.nexuscaller.closepolicy.Model$package$.reset",
-      "function": "rejectAfterClose.reset",
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 541
-      }
-    }, {
-      "action": "temporal.nexuscaller.closepolicy.Model$package$.requestCancel",
-      "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelStep",
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 542
-      }
-    }, {
-      "action": "temporal.nexuscaller.closepolicy.Model$package$.deliverCancel",
-      "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelDeliveryStep",
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 543
-      }
-    }, {
-      "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
-      "function": "temporal.nexuscaller.closepolicy.Model$package$.finishStep",
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 544
-      }
-    }, {
-      "action": "temporal.nexuscaller.Model$package$.complete",
-      "function": "retainAndRouteBoundedRetry.complete",
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 568
-      }
-    } ],
-    "evidence": "rejectAfterClose.evidence",
-    "monitors": [ "temporal.nexuscaller.closepolicy.Model$package$.retainedOutcome", "temporal.nexuscaller.closepolicy.Model$package$.ownerAcknowledgment", "temporal.nexuscaller.closepolicy.Model$package$.singleOutcome", "temporal.nexuscaller.closepolicy.Model$package$.cancelPrincipal" ],
-    "assumes": [ "temporal.nexuscaller.closepolicy.Model$package$.retentionDurable", "temporal.nexuscaller.closepolicy.Model$package$.retryFair" ]
-  }, {
-    "family": "temporal.nexus.caller.closepolicy",
-    "name": "retainAndRouteWithDeadline",
-    "position": {
-      "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 582
-    },
-    "entity": "nexusRequest",
-    "stateType": "temporal.nexuscaller.closepolicy.CloseResetState",
-    "outcomeType": "temporal.nexuscaller.closepolicy.Answer",
-    "factType": "temporal.nexuscaller.closepolicy.Fact",
-    "starts": [ {
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 172
-      },
-      "construct": {
-        "type": "temporal.nexuscaller.closepolicy.CloseResetState",
-        "args": [ {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 173
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Caller",
-              "case": "open"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 174
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Intent",
-              "case": "none"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 175
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Handler",
-              "case": "running"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 176
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Completion",
-              "case": "none"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 177
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Retained",
-              "case": "none"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 178
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Knowledge",
-              "case": "none"
-            }
-          }
-        } ]
-      }
-    } ],
-    "ends": {
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 534
-      },
-      "lambda": {
-        "params": [ {
-          "name": "s",
-          "type": {
-            "named": "temporal.nexuscaller.closepolicy.CloseResetState"
-          }
-        } ],
-        "body": {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 534
-          },
-          "call": {
-            "function": "temporal.nexuscaller.closepolicy.Model$package$.settled",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 534
-              },
-              "var": "s"
-            } ]
-          }
-        }
-      }
-    },
-    "steps": [ {
-      "action": "temporal.nexuscaller.closepolicy.Model$package$.callerClose",
-      "function": "temporal.nexuscaller.closepolicy.Model$package$.closeStep",
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 540
-      }
-    }, {
-      "action": "temporal.nexuscaller.closepolicy.Model$package$.reset",
-      "function": "rejectAfterClose.reset",
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 541
-      }
-    }, {
-      "action": "temporal.nexuscaller.closepolicy.Model$package$.requestCancel",
-      "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelStep",
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 542
-      }
-    }, {
-      "action": "temporal.nexuscaller.closepolicy.Model$package$.deliverCancel",
-      "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelDeliveryStep",
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 543
-      }
-    }, {
-      "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
-      "function": "temporal.nexuscaller.closepolicy.Model$package$.finishStep",
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 544
-      }
-    }, {
-      "action": "temporal.nexuscaller.Model$package$.complete",
-      "function": "retainAndRouteBoundedRetry.complete",
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 568
-      }
-    }, {
-      "action": "temporal.nexuscaller.Model$package$.scheduleToClose",
-      "function": "temporal.nexuscaller.closepolicy.Model$package$.expireStep",
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 584
-      }
-    } ],
-    "evidence": "rejectAfterClose.evidence",
-    "monitors": [ "temporal.nexuscaller.closepolicy.Model$package$.retainedOutcome", "temporal.nexuscaller.closepolicy.Model$package$.ownerAcknowledgment", "temporal.nexuscaller.closepolicy.Model$package$.singleOutcome", "temporal.nexuscaller.closepolicy.Model$package$.cancelPrincipal" ],
-    "assumes": [ "temporal.nexuscaller.closepolicy.Model$package$.retentionDurable", "temporal.nexuscaller.closepolicy.Model$package$.retryFair", "temporal.nexuscaller.closepolicy.Model$package$.deadlineExpires" ]
-  }, {
-    "family": "temporal.nexus.caller.closepolicy",
-    "name": "truncatesOnReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
       "line": 563
@@ -16489,7 +16115,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 534
+        "line": 531
       },
       "lambda": {
         "params": [ {
@@ -16501,14 +16127,14 @@
         "body": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 534
+            "line": 531
           },
           "call": {
             "function": "temporal.nexuscaller.closepolicy.Model$package$.settled",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-                "line": 534
+                "line": 531
               },
               "var": "s"
             } ]
@@ -16521,42 +16147,375 @@
       "function": "temporal.nexuscaller.closepolicy.Model$package$.closeStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 540
+        "line": 537
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.reset",
-      "function": "truncatesOnReset.reset",
+      "function": "rejectAfterClose.reset",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 563
+        "line": 538
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.requestCancel",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 542
+        "line": 539
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.deliverCancel",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelDeliveryStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 543
+        "line": 540
       }
     }, {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "function": "temporal.nexuscaller.closepolicy.Model$package$.finishStep",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 544
+        "line": 541
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "function": "retainAndRouteBoundedRetry.complete",
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 565
+      }
+    } ],
+    "evidence": "rejectAfterClose.evidence",
+    "monitors": [ "temporal.nexuscaller.closepolicy.Model$package$.retainedOutcome", "temporal.nexuscaller.closepolicy.Model$package$.ownerAcknowledgment", "temporal.nexuscaller.closepolicy.Model$package$.singleOutcome", "temporal.nexuscaller.closepolicy.Model$package$.cancelPrincipal" ],
+    "assumes": [ "temporal.nexuscaller.closepolicy.Model$package$.retentionDurable", "temporal.nexuscaller.closepolicy.Model$package$.retryFair" ]
+  }, {
+    "family": "temporal.nexus.caller.closepolicy",
+    "name": "retainAndRouteWithDeadline",
+    "position": {
+      "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+      "line": 579
+    },
+    "entity": "nexusRequest",
+    "stateType": "temporal.nexuscaller.closepolicy.CloseResetState",
+    "outcomeType": "temporal.nexuscaller.closepolicy.Answer",
+    "factType": "temporal.nexuscaller.closepolicy.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 172
+      },
+      "construct": {
+        "type": "temporal.nexuscaller.closepolicy.CloseResetState",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 173
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 174
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Intent",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 175
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 176
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 177
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 178
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Knowledge",
+              "case": "none"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 531
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "temporal.nexuscaller.closepolicy.CloseResetState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 531
+          },
+          "call": {
+            "function": "temporal.nexuscaller.closepolicy.Model$package$.settled",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+                "line": 531
+              },
+              "var": "s"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "temporal.nexuscaller.closepolicy.Model$package$.callerClose",
+      "function": "temporal.nexuscaller.closepolicy.Model$package$.closeStep",
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 537
+      }
+    }, {
+      "action": "temporal.nexuscaller.closepolicy.Model$package$.reset",
+      "function": "rejectAfterClose.reset",
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 538
+      }
+    }, {
+      "action": "temporal.nexuscaller.closepolicy.Model$package$.requestCancel",
+      "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelStep",
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 539
+      }
+    }, {
+      "action": "temporal.nexuscaller.closepolicy.Model$package$.deliverCancel",
+      "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelDeliveryStep",
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 540
+      }
+    }, {
+      "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
+      "function": "temporal.nexuscaller.closepolicy.Model$package$.finishStep",
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 541
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "function": "retainAndRouteBoundedRetry.complete",
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 565
+      }
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.scheduleToClose",
+      "function": "temporal.nexuscaller.closepolicy.Model$package$.expireStep",
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 581
+      }
+    } ],
+    "evidence": "rejectAfterClose.evidence",
+    "monitors": [ "temporal.nexuscaller.closepolicy.Model$package$.retainedOutcome", "temporal.nexuscaller.closepolicy.Model$package$.ownerAcknowledgment", "temporal.nexuscaller.closepolicy.Model$package$.singleOutcome", "temporal.nexuscaller.closepolicy.Model$package$.cancelPrincipal" ],
+    "assumes": [ "temporal.nexuscaller.closepolicy.Model$package$.retentionDurable", "temporal.nexuscaller.closepolicy.Model$package$.retryFair", "temporal.nexuscaller.closepolicy.Model$package$.deadlineExpires" ]
+  }, {
+    "family": "temporal.nexus.caller.closepolicy",
+    "name": "truncatesOnReset",
+    "position": {
+      "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+      "line": 560
+    },
+    "entity": "nexusRequest",
+    "stateType": "temporal.nexuscaller.closepolicy.CloseResetState",
+    "outcomeType": "temporal.nexuscaller.closepolicy.Answer",
+    "factType": "temporal.nexuscaller.closepolicy.Fact",
+    "starts": [ {
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 172
+      },
+      "construct": {
+        "type": "temporal.nexuscaller.closepolicy.CloseResetState",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 173
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 174
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Intent",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 175
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 176
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 177
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 178
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Knowledge",
+              "case": "none"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 531
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "temporal.nexuscaller.closepolicy.CloseResetState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 531
+          },
+          "call": {
+            "function": "temporal.nexuscaller.closepolicy.Model$package$.settled",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+                "line": 531
+              },
+              "var": "s"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "temporal.nexuscaller.closepolicy.Model$package$.callerClose",
+      "function": "temporal.nexuscaller.closepolicy.Model$package$.closeStep",
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 537
+      }
+    }, {
+      "action": "temporal.nexuscaller.closepolicy.Model$package$.reset",
+      "function": "truncatesOnReset.reset",
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 560
+      }
+    }, {
+      "action": "temporal.nexuscaller.closepolicy.Model$package$.requestCancel",
+      "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelStep",
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 539
+      }
+    }, {
+      "action": "temporal.nexuscaller.closepolicy.Model$package$.deliverCancel",
+      "function": "temporal.nexuscaller.closepolicy.Model$package$.cancelDeliveryStep",
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 540
+      }
+    }, {
+      "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
+      "function": "temporal.nexuscaller.closepolicy.Model$package$.finishStep",
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 541
       }
     }, {
       "action": "temporal.nexuscaller.Model$package$.complete",
       "function": "retainAndRoute.complete",
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 555
+        "line": 552
       }
     } ],
     "evidence": "rejectAfterClose.evidence",
@@ -16568,7 +16527,7 @@
     "name": "cancelPrincipal",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 483
+      "line": 480
     },
     "state": {
       "named": "temporal.nexuscaller.closepolicy.Asked"
@@ -16576,7 +16535,7 @@
     "initial": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 484
+        "line": 481
       },
       "literal": {
         "enum": {
@@ -16593,7 +16552,7 @@
     "name": "ownerAcknowledgment",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 442
+      "line": 439
     },
     "state": {
       "bool": { }
@@ -16601,7 +16560,7 @@
     "initial": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 442
+        "line": 439
       },
       "literal": {
         "bool": false
@@ -16615,7 +16574,7 @@
     "name": "retainedOutcome",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 436
+      "line": 433
     },
     "state": {
       "bool": { }
@@ -16623,7 +16582,7 @@
     "initial": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 436
+        "line": 433
       },
       "literal": {
         "bool": false
@@ -16637,7 +16596,7 @@
     "name": "singleOutcome",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 460
+      "line": 457
     },
     "state": {
       "named": "temporal.nexuscaller.closepolicy.Outcomes"
@@ -16645,7 +16604,7 @@
     "initial": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 461
+        "line": 458
       },
       "literal": {
         "enum": {
@@ -16663,14 +16622,14 @@
     "name": "scheduleToCloseExpires",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 508
+      "line": 505
     }
   }, {
     "id": "temporal.nexuscaller.closepolicy.Model$package$.deliveryFair",
     "name": "enabledDeliveryAndRecoveryActionsEventuallyRun",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 516
+      "line": 513
     },
     "fair": [ "temporal.nexuscaller.Model$package$.complete" ]
   }, {
@@ -16678,7 +16637,7 @@
     "name": "currentOwnerEventuallyRecoversAndReappliesRetainedOutcome",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 522
+      "line": 519
     },
     "fair": [ "temporal.nexuscaller.closepolicy.Model$package$.reset" ]
   }, {
@@ -16686,21 +16645,21 @@
     "name": "handlerReportsUntilAckOrPermanent",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 513
+      "line": 510
     }
   }, {
     "id": "temporal.nexuscaller.closepolicy.Model$package$.retentionDurable",
     "name": "retentionSurvivesCrash",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 496
+      "line": 493
     }
   }, {
     "id": "temporal.nexuscaller.closepolicy.Model$package$.retryFair",
     "name": "transientRejectionEventuallyAccepted",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-      "line": 502
+      "line": 499
     }
   } ],
   "properties": [ {
