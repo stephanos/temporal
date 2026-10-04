@@ -51,9 +51,81 @@ make umpire-check-cases
 
 
 ## Done summary
-TBD
+# fn-125.1 done summary
 
+### What changed
+- `tests/testcore/testpilot/switch.go`: `SwitchSetting.Value` is typed (`any`, validated against the setting by
+  `ResolveSettings`) and carries a `Source`; `Configuration()` spells values in the registry text form (`true`, `100`).
+  `hsm`/`chasm` now set the six keys `tests/nexus_workflow_test.go:82-94` sets, including
+  `nexusoperation.chasmWorkflowOperationsRolloutPercent` 0/100. `ResolveSettings` refuses one key given two values,
+  naming the key, both values and both sources; equal values are kept once. `SchedulesWorkflowNexusOperation`
+  scopes the switch to Programs with a `ScheduleNexusOperation` command. `CaseSettings` builds a Case's cluster settings
+  (switch value or `StandaloneSettings` + required settings); `requiredSettingKinds` moved here from the harness so the
+  unit test uses exactly the harness's settings.
+- `tests/testpilot_generated_test.go`: the switch runs only for workflow-Nexus Cases; standalone Nexus operation Cases run
+  once; the `EnableChasm=true` append after `hsm`'s `false` is gone (a key given two values now fails the Case).
+- `common/testing/testpilot/temporal/worker/typed.go`: `scheduleNexus` sends schedule-to-close, schedule-to-start and
+  start-to-close exactly as carried; none derives from the instruction timeout (QLF-01).
+- Tests: `TestNexusImplementationSwitchSelectsTheImplementation` (for every generated workflow-Nexus Case, a dynamic
+  config collection holding exactly `CaseSettings` gives `UseChasmForWorkflow` true under `chasm`, false under `hsm`;
+  without the rollout key `chasm` gives false), `TestResolveSettingsRefusesOneKeyGivenTwoValues`,
+  `TestSchedulesWorkflowNexusOperationSelectsTheSwitchedCases`, `TestSDKScheduleCommandTimeoutsDoNotDependOnTheProfile`
+  (three Profiles differing in default instruction timeout and BoundScale send identical options);
+  `TestSDKAwaitUsesItsOwnTimeout` updated (its "start expires first" case asserted the forbidden derivation).
+- Pinned Runs re-recorded (control and canary): each recorded the schedule request's Profile-derived `10s`
+  schedule-to-close; they now record `0s`. Receipt goldens re-rendered. Case bytes, manifest and Case-name golden unchanged.
+- `.plans/API_BEHAVIOR_HINTS.md` unexplained item 2 marked resolved.
+
+### HSM/CHASM evidence for the owner's Q2 (live, local cluster, commit c5f5e4eac8)
+Every switched Case ran 3 times under each value (generated harness and the hand caller Queries). Server logs
+confirm the path: under `hsm` the operation's tasks are `StateMachineOutbound`/`StateMachineTimer`, under `chasm`
+`Chasm`/`ChasmPure`, in every subtest (`live-analysis.txt`).
+
+| Case | hsm | chasm | Divergence |
+| --- | --- | --- | --- |
+| nexus-caller syncCompletion, asyncCompletion, asyncFailure, handlerError, startToCloseTimeout (generated + hand) | 3/3 each | 3/3 each | none |
+| nexus-caller-retry (generated + hand) | 3/3 | 3/3 | none |
+| nexus-control-forgedCompletion (Violated as expected) | 3/3 | 3/3 | none |
+| nexus-caller-scheduleToStartTimeout, generated | 3/3 | 2/3 (1 Incomplete) | none: known race |
+| nexus-caller-scheduleToStartTimeout, hand | 2/3 (1 Inconclusive) | 1/3 (1 Inconclusive, 1 Incomplete "nexus handler entrypoint completed without a reply") | none: known race |
+| same two, extra diagnostic, defaults | generated 6/6 | generated 6/6 | |
+| same two, diagnostic with `frontend.enableMatchingFanOutForPollCancellation=false` (uncommitted patch) | 10/10 | 10/10 | |
+| nexus-operation cancelIsRequested, terminateSettles (standalone, now run once) | n/a | 3/3 | n/a |
+
+The scheduleToStart failures hit both values, stop a worker, and vanish with the fan-out setting off: they are the
+ShutdownWorker race MILESTONES records (#9424, Q1, task 6), not an implementation divergence.
+
+**No Verdict diverged.** Why the retry Case agrees although `attempt` is counted differently: HSM increments when an
+attempt completes (`service/history/hsm/nexusoperations/statemachine.go:91-95`), CHASM at schedule and reschedule
+(`chasm/lib/nexusoperation/operation_statemachine.go:22,92`). During the first backoff, where the Case reads it, both
+are 1. They differ before the first attempt completes (HSM 0, CHASM 1) and after the second attempt is scheduled
+(HSM 1, CHASM 2); no current Query reads `attempt` there. So Q2 has no failing evidence today; the difference is real
+in source and would surface only for a Query that reads `attempt` at those points.
+
+Activity Cases (not switched, settings unchanged): 9/10 once; `activity-activityProtocol.terminateSettles` was
+Incomplete after its 10 s worker stop, the same ShutdownWorker race signature.
+
+### Decisions
+- Equal values from two sources are allowed (kept once); only differing values are refused.
+- `hsm` sets `nexusoperation.enableStandalone=false` because the upstream suite does; a workflow-Nexus Case requiring it
+  true would be refused naming both sources (none does).
+- The hand caller test keeps applying the switch value directly (no required settings in its fixtures).
+- `scheduleActivity` still defaults its schedule-to-close from the instruction timeout: out of R2's scope (R11, task 10).
+- Re-recorded the pinned Runs although their probes still passed, because each records the Profile-derived request field.
+
+### Review
+Round 1: SHIP (`flowctl claude impl-review --spec claude:claude-opus-5-5:high`, base eaaa8c58c9; log
+`.flow/tmp/fn125-1/review-r1.log`). Reviewer claude-opus-5-5 at high is the same family as the writer (Opus 5.5).
+Deferred P3: `formatSettingValue` handles float64/Duration/string beyond today's bool/int producers (kept: task 9's
+duration assumptions will use them). FYI items: `scheduleActivity` defaulting (R11), `activityEnvironment` could reuse
+`StandaloneSettings()`, the standalone-Case check keys on the `nexus-operation-` name prefix.
+
+### Gates (head 084eac92f6)
+Go tooling + Testpilot suite (`-p 2`, 397 s), `make umpire-check-cases` (199 s), `make lint-code-fast` (86 s): exit 0.
+Logs: `gate-*.log`, `gates-summary.txt`; live: `live-*.jsonl`, `live-summary*.txt`, `live-analysis.txt`.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c5f5e4eac8, 084eac92f6
+- Tests: go test -tags test_dep -count=1 ./tests/testcore/testpilot/... ./common/testing/testpilot/temporal/... (exit 0), go test -json -count=1 -tags test_dep -p 2 -timeout 40m ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/... ./tests/testcore/testpilot/... (exit 0), make umpire-check-cases (exit 0), GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main make lint-code-fast (exit 0), go test -json -count=3 -tags 'test_dep integration' ./tests -run '^TestTestpilotGeneratedCases$/^nexus-' (exit 1: scheduleToStartTimeout/chasm 1 of 3 Incomplete, ShutdownWorker race; all else 3/3 both values), go test -json -count=3 -tags 'test_dep integration' ./tests -run '^TestTestpilotNexusCaller' (exit 1: ScheduleToStartTimeout hsm 1/3 and chasm 2/3 failed, ShutdownWorker race; all else 3/3 both values), go test -json -count=6 -tags 'test_dep integration' ./tests -run '^TestTestpilotGeneratedCases$/^nexus-caller-scheduleToStartTimeout$' (exit 0), scheduleToStartTimeout generated+hand, count=5, enableMatchingFanOutForPollCancellation=false diagnostic patch, uncommitted (exit 0, 20/20), go test -json -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotGeneratedCases$/^activity-' (exit 1: activityProtocol.terminateSettles Incomplete, ShutdownWorker race; 9/10 pass), pinned Runs re-recorded via UMPIRE_CONTROL_RECORD / UMPIRE_CANARY_RECORD live tests, receipt goldens and probe packages (exit 0), flowctl claude impl-review --spec claude:claude-opus-5-5:high (SHIP, round 1)
 - PRs:
