@@ -1,0 +1,8 @@
+ok  	go.temporal.io/server/tools/gomad3	2.384s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol	0.590s
+--- FAIL: TestRuntimeOwnedControlProbe (0.00s)
+    runtime_owned_test.go:31: run gomad3 fixture runtime-owned-build: start command "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go": fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	0.017s
+ok  	go.temporal.io/server/tools/gomad3/toolchain/version	0.140s
+FAIL

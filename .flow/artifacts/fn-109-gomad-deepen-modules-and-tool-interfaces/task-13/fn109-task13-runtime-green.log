@@ -1,0 +1,16 @@
+=== RUN   TestGomadSimulationTimeGeneratedVectors
+=== RUN   TestGomadSimulationTimeGeneratedVectors/truncated
+=== RUN   TestGomadSimulationTimeGeneratedVectors/magic
+=== RUN   TestGomadSimulationTimeGeneratedVectors/kind
+=== RUN   TestGomadSimulationTimeGeneratedVectors/reserved
+=== RUN   TestGomadSimulationTimeGeneratedVectors/generation
+=== RUN   TestGomadSimulationTimeGeneratedVectors/time_regression
+--- PASS: TestGomadSimulationTimeGeneratedVectors (0.00s)
+    --- PASS: TestGomadSimulationTimeGeneratedVectors/truncated (0.00s)
+    --- PASS: TestGomadSimulationTimeGeneratedVectors/magic (0.00s)
+    --- PASS: TestGomadSimulationTimeGeneratedVectors/kind (0.00s)
+    --- PASS: TestGomadSimulationTimeGeneratedVectors/reserved (0.00s)
+    --- PASS: TestGomadSimulationTimeGeneratedVectors/generation (0.00s)
+    --- PASS: TestGomadSimulationTimeGeneratedVectors/time_regression (0.00s)
+PASS
+ok  	runtime	0.002s

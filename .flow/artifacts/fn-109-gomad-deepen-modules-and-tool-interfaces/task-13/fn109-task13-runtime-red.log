@@ -1,0 +1,6 @@
+# runtime
+package runtime
+	imports testing from gomad_timewire_generated_test.go
+	imports runtime from allocs.go: import cycle not allowed in test
+FAIL	runtime [setup failed]
+FAIL

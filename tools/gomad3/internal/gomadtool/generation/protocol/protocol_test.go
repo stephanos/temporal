@@ -204,6 +204,12 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 		"simulation/schema/modelwire.json",
 		"simulation/schema/modelwire_test.go.tmpl",
 		"simulation/schema/modeltransport.go.tmpl",
+		"simulation/schema/timewire.json",
+		"simulation/schema/timewire_host.go.tmpl",
+		"simulation/schema/timewire_host_test.go.tmpl",
+		"simulation/schema/timewire_runtime.go.tmpl",
+		"simulation/schema/timewire_runtime_export_test.go.tmpl",
+		"simulation/schema/timewire_runtime_test.go.tmpl",
 		"target/internal/livecap/livecap.go",
 		"target/internal/livecap/livecap.go.tmpl",
 		"target/internal/livecap/livecap.json",
@@ -242,6 +248,11 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 		"toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated_test.go",
 		"runner/internal/execution/simulation_model_wire_generated.go",
 		"toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go",
+		"runner/internal/execution/simulation_time_wire_generated.go",
+		"runner/internal/execution/simulation_time_wire_generated_test.go",
+		"toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go",
+		"toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go",
+		"toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go",
 		"target/internal/livecap/protocol_generated.go",
 		"toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
 	} {
@@ -249,7 +260,7 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 			t.Fatalf("generated endpoint %q: %v", relative, err)
 		}
 	}
-	for _, relative := range []string{"choice/internal/wire/wire_generated.go", "deterministicio/internal/wire/wire_generated.go", "toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go", "target/internal/livecap/protocol_generated.go"} {
+	for _, relative := range []string{"choice/internal/wire/wire_generated.go", "deterministicio/internal/wire/wire_generated.go", "toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go", "runner/internal/execution/simulation_time_wire_generated.go", "runner/internal/execution/simulation_time_wire_generated_test.go", "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go", "toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go", "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go", "target/internal/livecap/protocol_generated.go"} {
 		stale := filepath.Join(root, filepath.FromSlash(relative))
 		current, err := os.ReadFile(stale)
 		if err != nil {

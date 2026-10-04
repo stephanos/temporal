@@ -1,0 +1,4 @@
+# go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance [go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance.test]
+internal/gomadtool/conformance/runtime_test.go:56:23: campaign.requireSimulationTimeVectors undefined (type runtimeCampaign has no field or method requireSimulationTimeVectors)
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance [build failed]
+FAIL

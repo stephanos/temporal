@@ -1,0 +1,8 @@
+{
+  "task_title": "Identify source boundaries for separate task 13–18 checkpoint commits",
+  "task_body": "Read the retained per-task source manifests, evidence and preimages for fn109 tasks13–18, compare them with current uncommitted source and identify an exact task-ordered checkpoint route. Shared files contain later task deltas, so distinguish direct matching files from historical exact preimages. Locate and verify existing retained preimages; do not invent or change source.",
+  "acceptance": "Return a source-bound inventory of task-exclusive files, shared later deltas, available exact historical snapshot bytes/hashes and unresolved gaps. No staging, Git mutations, production edits, tests or Flow lifecycle writes. Write only task-13/task-checkpoint-boundaries.md. This is commit preparation, not completion or a formal SHIP verdict.",
+  "touches_count": 1,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

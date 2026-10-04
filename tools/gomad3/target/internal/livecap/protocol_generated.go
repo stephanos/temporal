@@ -31,8 +31,8 @@ const (
 	MaximumFacts                 = 100000
 	MaximumStringBytes           = 4096
 	MaximumOwnerFacts            = 4096
-	ProducerImplementationSHA256 = "sha256:c3c8ef6cc27e5ea5a4e3ec80b101cd0b9c1f33e1201c75d2271b4cc2b217ecbe"
-	GuardImplementationSHA256    = "sha256:c3c8ef6cc27e5ea5a4e3ec80b101cd0b9c1f33e1201c75d2271b4cc2b217ecbe"
+	ProducerImplementationSHA256 = "sha256:8979a9df59a24b6e63cf8de4303a3f765a5f0915cc43256c6f2e4da5276a5f20"
+	GuardImplementationSHA256    = "sha256:8979a9df59a24b6e63cf8de4303a3f765a5f0915cc43256c6f2e4da5276a5f20"
 	CapabilityUniverseSHA256     = "sha256:d919ef8e9695c3dfc0c4f46155c52ed9bfb5715cbefb1e37c586a3d69f8417dd"
 	BoundaryManifestSHA256       = "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0"
 )

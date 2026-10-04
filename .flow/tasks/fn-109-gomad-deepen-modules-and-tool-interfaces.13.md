@@ -42,10 +42,10 @@ cd ../.. && tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_t
 ```
 
 ### Constraints
-- No `git add`, commit, stash or worktree: the user owns commits. Record `"commits": []` in the `flowctl done` evidence and say so in the summary.
+- Follow MILESTONES.md: root commits this task’s verified progress separately, preserves unrelated changes, and keeps required native acceptance open. Push, stash, worktree creation and history rewrites require separate authorization.
 - No new third-party dependency. `tools/gomad3/go.mod` requires only `golang.org/x/mod`, so testify is unavailable inside `tools/gomad3`: follow the existing `t.Fatalf` style with whole-value comparisons there. In the root module (`tools/gomad3sim`, `tools/gomad3integration`) use `require` with `Equal`/`EqualValues`.
 - Preserve existing comments with their owning code, CLI grammar/defaults, canonical bytes for fixed supplied identities, and error precedence/classification.
-- This host is `darwin/arm64`. `linux/amd64` gates cannot run here: list them as incomplete in the done summary, never claim them.
+- The current host is linux/arm64 without the patched toolchain. Both darwin/arm64 and linux/amd64 native gates remain incomplete; stock developmental checks do not qualify either.
 - fn-105 D12/D14 replay-divergence dispositions stay unchanged. Attribute a failure to those owners with retained evidence instead of relaxing an expectation.
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
@@ -57,8 +57,62 @@ cd ../.. && tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_t
 - [ ] The toolchain rebuilds from the changed overlay and `make test-runtime` passes.
 
 ## Done summary
-TBD
+Blocked:
+# Task 13 acceptance remains open
 
+The source candidate and feasible focused, generation, validation, architecture,
+vet and developmental runtime checks are retained in handover.md/evidence.json.
+Two fresh independent source audits found no concrete defects (source-audit.md).
+
+This host is linux/arm64 and has no `.toolchain/bin/go`. Acceptance still needs
+the supported-platform patched toolchain rebuild, test-runtime, pinned focused
+tests, process transport integration, gomad3sim toolchain suite and full
+quiescence/nosplit call-chain checks. Developmental stock-runtime execution and
+cross-compilation do not supply those results.
+
+The committed-range CLI review excluded uncommitted source and ended
+NEEDS_HUMAN; it is not an acceptance receipt. Commits remain user-owned.
+Do not mark this task done. MILESTONES.md permits the next reviewed-source task
+to proceed while these required acceptance gates remain open.
+
+Blocked:
+# Task 13 acceptance remains open
+
+The exact 22-file source candidate and its developmental checks are retained
+in `task-13/source-checkpoint.md`, with independent source and checkpoint-boundary
+audits. Root is authorized to commit this task's verified progress separately;
+the old user-only commit restriction is superseded by MILESTONES.md.
+
+This linux/arm64 host cannot run either supported native platform's patched
+toolchain rebuild, runtime vectors, process transport, gomad3sim execution or
+full quiescence/nosplit checks. Exact required commands remain in
+`task-13/native-gates-open.md`; keep each incomplete until source-bound results
+exist. The earlier empty committed-range review did not accept this candidate.
+
+The integrated ad90b462e0 first-party clock bridge also has an inherited stale
+policy pin, present at the task-13 base, recorded in source-checkpoint.md. It
+needs its owning-task repair; neither a source checkpoint nor native-host
+availability waives that non-native gap. Keep task 13 blocked and R7 open.
+
+Blocked:
+# Task 13 acceptance remains open
+
+The exact 22-file source candidate and its developmental checks are retained
+in `task-13/source-checkpoint.md`, with independent source and checkpoint-boundary
+audits. Root is authorized to commit this task's verified progress separately;
+the old user-only commit restriction is superseded by MILESTONES.md.
+
+This linux/arm64 host cannot run either supported native platform's patched
+toolchain rebuild, runtime vectors, process transport, gomad3sim execution or
+full quiescence/nosplit checks. Exact required commands remain in
+`task-13/evidence.json`'s `native_commands` and the task's Quick section;
+keep each incomplete until source-bound results
+exist. The earlier empty committed-range review did not accept this candidate.
+
+The integrated ad90b462e0 first-party clock bridge also has an inherited stale
+policy pin, present at the task-13 base, recorded in source-checkpoint.md. It
+needs its owning-task repair; neither a source checkpoint nor native-host
+availability waives that non-native gap. Keep task 13 blocked and R7 open.
 ## Evidence
 - Commits:
 - Tests:

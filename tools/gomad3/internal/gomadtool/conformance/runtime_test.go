@@ -31,6 +31,38 @@ func TestRuntimeCampaignCollectorProfile(t *testing.T) {
 	}
 }
 
+func TestRuntimeCampaignSimulationTimeVectors(t *testing.T) {
+	for _, test := range []struct {
+		name, output string
+		wantError    bool
+	}{
+		{"selected", "--- PASS: TestGomadSimulationTimeGeneratedVectors (0.00s)\nPASS\n", false},
+		{"empty selection", "testing: warning: no tests to run\nPASS\n", true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			report := Report{}
+			campaign := runtimeCampaign{
+				ctx: context.Background(), config: Config{Go: "/gomad/go"}, goRoot: "/gomad", report: &report,
+				run: func(_ context.Context, request hostexec.Request) (hostexec.Result, error) {
+					want := []string{"/gomad/go", "test", "-count=1", "-tags=test_dep", "-v", "runtime", "-run=^TestGomadSimulationTimeGeneratedVectors$"}
+					if !slices.Equal(request.Command, want) || request.Dir != "/gomad/src" {
+						t.Fatalf("runtime vector request = %+v, want %v in /gomad/src", request, want)
+					}
+					result := successfulCommand()
+					result.Stdout = hostexec.Output{Bytes: []byte(test.output), RawBytes: []byte(test.output)}
+					return result, nil
+				},
+			}
+			if err := campaign.requireSimulationTimeVectors(); (err != nil) != test.wantError {
+				t.Fatalf("requireSimulationTimeVectors() error = %v, wantError %t", err, test.wantError)
+			}
+			if len(report.Cases) != 1 || report.Cases[0].Passed == test.wantError {
+				t.Fatalf("runtime vector report = %+v", report)
+			}
+		})
+	}
+}
+
 func TestRequireStockCompatibilitySelectsPinnedToolchain(t *testing.T) {
 	launcher := filepath.Join(t.TempDir(), "go")
 	if err := os.WriteFile(launcher, []byte("fixture"), 0o700); err != nil {

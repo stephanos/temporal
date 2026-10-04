@@ -275,6 +275,9 @@ func outputDigest(output string) [sha256.Size]byte {
 }
 
 func (campaign *runtimeCampaign) execute() error {
+	if err := campaign.requireSimulationTimeVectors(); err != nil {
+		return err
+	}
 	ambientRoot, err := campaign.command(
 		"go-env-ambient-goroot", []string{campaign.config.Go, "env", "GOROOT"}, campaign.config.Root, 10*time.Second,
 		[]string{"GOMADSEED", "GOMAD3_CHILD_SEED", "GOROOT"}, "GOROOT="+filepath.Join(campaign.workspace, "foreign-goroot"),
@@ -367,6 +370,21 @@ func (campaign *runtimeCampaign) execute() error {
 		return err
 	}
 	return campaign.requireRepeatability(binaries)
+}
+
+func (campaign *runtimeCampaign) requireSimulationTimeVectors() error {
+	return campaign.expectedExit(
+		"simulation-time-generated-vectors",
+		[]string{campaign.config.Go, "test", "-count=1", "-tags=test_dep", "-v", "runtime", "-run=^TestGomadSimulationTimeGeneratedVectors$"},
+		filepath.Join(campaign.goRoot, "src"), 5*time.Minute, 0,
+		func(result hostexec.Result) error {
+			if !strings.Contains(commandOutput(result), "--- PASS: TestGomadSimulationTimeGeneratedVectors (") {
+				return errors.New("generated simulation time runtime vectors were not executed")
+			}
+			return nil
+		},
+		[]string{"GOMADSEED", "GOMAD3_CHILD_SEED", "GOROOT", "GOWORK", "GOEXPERIMENT"}, "GOWORK=off", runtimeExperiment,
+	)
 }
 
 func (campaign *runtimeCampaign) requireGreenTeaBoundary() error {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -319,6 +320,50 @@ type simulationModelTemplateData struct {
 	Schema  simulationModelSchema
 }
 
+type simulationTimeSchema struct {
+	Version uint8 `json:"version"`
+	Request struct {
+		Magic            string `json:"magic"`
+		Bytes            int    `json:"bytes"`
+		GenerationOffset int    `json:"generation_offset"`
+		CurrentOffset    int    `json:"current_offset"`
+		DeadlineOffset   int    `json:"deadline_offset"`
+		ArrivalsOffset   int    `json:"arrivals_offset"`
+		ReservedOffset   int    `json:"reserved_offset"`
+	} `json:"request"`
+	Response struct {
+		Magic            string `json:"magic"`
+		Bytes            int    `json:"bytes"`
+		GenerationOffset int    `json:"generation_offset"`
+		TimeOffset       int    `json:"time_offset"`
+		KindOffset       int    `json:"kind_offset"`
+		ReservedOffset   int    `json:"reserved_offset"`
+	} `json:"response"`
+	Kinds struct {
+		Advance  uint8 `json:"advance"`
+		Retry    uint8 `json:"retry"`
+		Deadlock uint8 `json:"deadlock"`
+		External uint8 `json:"external"`
+	} `json:"kinds"`
+	Golden struct {
+		Request  string `json:"request"`
+		Response string `json:"response"`
+	} `json:"golden"`
+	InvalidRequests  []simulationTimeInvalidFrame `json:"invalid_requests"`
+	InvalidResponses []simulationTimeInvalidFrame `json:"invalid_responses"`
+}
+
+type simulationTimeInvalidFrame struct {
+	Name  string `json:"name"`
+	Frame string `json:"frame"`
+	Error string `json:"error"`
+}
+
+type simulationTimeTemplateData struct {
+	Package string
+	Schema  simulationTimeSchema
+}
+
 type liveCapabilityBoundary struct {
 	Package     string
 	Target      string
@@ -423,6 +468,34 @@ func GenerateProtocols(root string, check bool) error {
 		}
 		if err := hostfs.Replace(path, generated, 0o644); err != nil {
 			return fmt.Errorf("write generated simulation model wire codec: %w", err)
+		}
+	}
+	timeDefinition, err := readSimulationTimeSchema(filepath.Join(root, "simulation", "schema", "timewire.json"))
+	if err != nil {
+		return err
+	}
+	timeOutputs := []output{
+		{Package: "execution", Template: "timewire_host.go.tmpl", Path: "runner/internal/execution/simulation_time_wire_generated.go"},
+		{Package: "execution", Template: "timewire_host_test.go.tmpl", Path: "runner/internal/execution/simulation_time_wire_generated_test.go"},
+		{Package: "runtime", Template: "timewire_runtime.go.tmpl", Path: "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go"},
+		{Package: "runtime", Template: "timewire_runtime_export_test.go.tmpl", Path: "toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go"},
+		{Package: "runtime", Template: "timewire_runtime_test.go.tmpl", Path: "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go"},
+	}
+	for _, target := range timeOutputs {
+		generated, generateErr := generate(filepath.Join(root, "simulation", "schema", target.Template), simulationTimeTemplateData{Package: target.Package, Schema: timeDefinition})
+		if generateErr != nil {
+			return generateErr
+		}
+		path := filepath.Join(root, filepath.FromSlash(target.Path))
+		if check {
+			current, readErr := os.ReadFile(path)
+			if readErr != nil || !bytes.Equal(current, generated) {
+				return fmt.Errorf("generated simulation time wire codec is stale: %s", target.Path)
+			}
+			continue
+		}
+		if err := hostfs.Replace(path, generated, 0o644); err != nil {
+			return fmt.Errorf("write generated simulation time wire codec: %w", err)
 		}
 	}
 	if err := generateLiveCapabilityProtocols(root, check); err != nil {
@@ -730,6 +803,45 @@ func readSimulationModelSchema(path string) (simulationModelSchema, error) {
 		!slices.Equal([]uint16{volume.Resolve, volume.Mkdir, volume.MkdirAll, volume.Stat, volume.Open, volume.Rename, volume.Remove, volume.RemoveAll, volume.Chmod, volume.Chtimes, volume.Chdir, volume.Getwd, volume.HandleRead, volume.HandleReadAt, volume.HandleWrite, volume.HandleWriteAt, volume.HandleTruncate, volume.HandleChmod, volume.HandleChtimes, volume.HandleChdir, volume.HandleSeek, volume.HandleStat, volume.HandleReadDir, volume.HandleClose, volume.HandleSync, volume.HandleMap, volume.MappingBytes, volume.MappingClose}, sequence16(1, 28)) ||
 		!slices.Equal([]uint16{errorCodes.None, errorCodes.Generic, errorCodes.EOF, errorCodes.Deadline, errorCodes.Canceled, errorCodes.AddressInUse, errorCodes.Closed, errorCodes.ConnectionRefused, errorCodes.ResourceExhausted, errorCodes.Unsupported, errorCodes.EINVAL, errorCodes.EEXIST, errorCodes.ENOENT, errorCodes.ENOTDIR, errorCodes.EISDIR, errorCodes.EROFS, errorCodes.ENOSPC, errorCodes.EBADF, errorCodes.ENODEV, errorCodes.ESTALE, errorCodes.ENOTEMPTY, errorCodes.Capacity}, sequence16(0, 21)) {
 		return simulationModelSchema{}, errors.New("simulation model wire schema is unsupported by this generator")
+	}
+	return definition, nil
+}
+
+func readSimulationTimeSchema(path string) (simulationTimeSchema, error) {
+	encoded, err := os.ReadFile(path)
+	if err != nil {
+		return simulationTimeSchema{}, fmt.Errorf("read simulation time wire schema: %w", err)
+	}
+	decoder := json.NewDecoder(bytes.NewReader(encoded))
+	decoder.DisallowUnknownFields()
+	var definition simulationTimeSchema
+	if err := decoder.Decode(&definition); err != nil {
+		return simulationTimeSchema{}, fmt.Errorf("decode simulation time wire schema: %w", err)
+	}
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return simulationTimeSchema{}, errors.New("simulation time wire schema has trailing data")
+	}
+	request, response := definition.Request, definition.Response
+	if definition.Version != 1 || request.Magic != "GOMADTQ\x01" || request.Bytes != 40 || request.GenerationOffset != 8 || request.CurrentOffset != 16 || request.DeadlineOffset != 24 || request.ArrivalsOffset != 32 || request.ReservedOffset != 36 ||
+		response.Magic != "GOMADTR\x01" || response.Bytes != 32 || response.GenerationOffset != 8 || response.TimeOffset != 16 || response.KindOffset != 24 || response.ReservedOffset != 25 ||
+		definition.Kinds.Advance != 1 || definition.Kinds.Retry != 2 || definition.Kinds.Deadlock != 3 || definition.Kinds.External != 4 {
+		return simulationTimeSchema{}, errors.New("simulation time wire schema is unsupported by this generator")
+	}
+	for _, value := range []struct {
+		name, encoded string
+		size          int
+	}{
+		{"request", definition.Golden.Request, request.Bytes}, {"response", definition.Golden.Response, response.Bytes},
+	} {
+		decoded, err := hex.DecodeString(value.encoded)
+		if err != nil || len(decoded) != value.size {
+			return simulationTimeSchema{}, fmt.Errorf("simulation time %s golden frame is invalid", value.name)
+		}
+	}
+	for _, vector := range append(definition.InvalidRequests, definition.InvalidResponses...) {
+		if _, err := hex.DecodeString(vector.Frame); err != nil || vector.Name == "" || vector.Error == "" {
+			return simulationTimeSchema{}, errors.New("simulation time invalid frame vector is invalid")
+		}
 	}
 	return definition, nil
 }

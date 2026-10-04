@@ -1,7 +1,6 @@
 package execution
 
 import (
-	"bytes"
 	"context"
 	"encoding/binary"
 	"errors"
@@ -12,20 +11,8 @@ import (
 )
 
 const simulationInitialTime int64 = 946684800000000000
-const simulationTimeRequestBytes = 40
-const simulationTimeResponseBytes = 32
-
-var simulationTimeRequestMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'Q', 1}
-var simulationTimeResponseMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'R', 1}
 
 type simulationTimeResponseKind uint8
-
-const (
-	simulationTimeAdvance simulationTimeResponseKind = iota + 1
-	simulationTimeRetry
-	simulationTimeDeadlock
-	simulationTimeExternal
-)
 
 type simulationTimeRequest struct {
 	Generation uint64
@@ -38,90 +25,6 @@ type simulationTimeResponse struct {
 	Generation uint64
 	Kind       simulationTimeResponseKind
 	Time       int64
-}
-
-func encodeSimulationTimeRequest(request simulationTimeRequest) ([]byte, error) {
-	if err := validateSimulationTimeRequest(request); err != nil {
-		return nil, err
-	}
-	encoded := make([]byte, simulationTimeRequestBytes)
-	copy(encoded[:8], simulationTimeRequestMagic[:])
-	binary.BigEndian.PutUint64(encoded[8:16], request.Generation)
-	binary.BigEndian.PutUint64(encoded[16:24], uint64(request.Current))
-	binary.BigEndian.PutUint64(encoded[24:32], uint64(request.Deadline))
-	binary.BigEndian.PutUint32(encoded[32:36], request.Arrivals)
-	return encoded, nil
-}
-
-func decodeSimulationTimeRequest(encoded []byte) (simulationTimeRequest, error) {
-	if len(encoded) != simulationTimeRequestBytes || !bytes.Equal(encoded[:8], simulationTimeRequestMagic[:]) || !zeroSimulationTime(encoded[36:40]) {
-		return simulationTimeRequest{}, errors.New("simulation time request frame is invalid")
-	}
-	request := simulationTimeRequest{
-		Generation: binary.BigEndian.Uint64(encoded[8:16]),
-		Current:    int64(binary.BigEndian.Uint64(encoded[16:24])),
-		Deadline:   int64(binary.BigEndian.Uint64(encoded[24:32])),
-		Arrivals:   binary.BigEndian.Uint32(encoded[32:36]),
-	}
-	if err := validateSimulationTimeRequest(request); err != nil {
-		return simulationTimeRequest{}, err
-	}
-	return request, nil
-}
-
-func validateSimulationTimeRequest(request simulationTimeRequest) error {
-	if request.Generation == 0 || request.Current < simulationInitialTime || request.Deadline < request.Current {
-		return errors.New("simulation time request is invalid")
-	}
-	return nil
-}
-
-func encodeSimulationTimeResponse(response simulationTimeResponse) ([]byte, error) {
-	if err := validateSimulationTimeResponse(response); err != nil {
-		return nil, err
-	}
-	encoded := make([]byte, simulationTimeResponseBytes)
-	copy(encoded[:8], simulationTimeResponseMagic[:])
-	binary.BigEndian.PutUint64(encoded[8:16], response.Generation)
-	binary.BigEndian.PutUint64(encoded[16:24], uint64(response.Time))
-	encoded[24] = byte(response.Kind)
-	return encoded, nil
-}
-
-func decodeSimulationTimeResponse(encoded []byte) (simulationTimeResponse, error) {
-	if len(encoded) != simulationTimeResponseBytes || !bytes.Equal(encoded[:8], simulationTimeResponseMagic[:]) || !zeroSimulationTime(encoded[25:32]) {
-		return simulationTimeResponse{}, errors.New("simulation time response frame is invalid")
-	}
-	response := simulationTimeResponse{
-		Generation: binary.BigEndian.Uint64(encoded[8:16]),
-		Time:       int64(binary.BigEndian.Uint64(encoded[16:24])),
-		Kind:       simulationTimeResponseKind(encoded[24]),
-	}
-	if err := validateSimulationTimeResponse(response); err != nil {
-		return simulationTimeResponse{}, err
-	}
-	return response, nil
-}
-
-func validateSimulationTimeResponse(response simulationTimeResponse) error {
-	if response.Generation == 0 || response.Time < simulationInitialTime {
-		return errors.New("simulation time response is invalid")
-	}
-	switch response.Kind {
-	case simulationTimeAdvance, simulationTimeRetry, simulationTimeDeadlock, simulationTimeExternal:
-		return nil
-	default:
-		return errors.New("simulation time response kind is invalid")
-	}
-}
-
-func zeroSimulationTime(value []byte) bool {
-	for _, current := range value {
-		if current != 0 {
-			return false
-		}
-	}
-	return true
 }
 
 func encodeSimulationActivationTime(current int64) []byte {

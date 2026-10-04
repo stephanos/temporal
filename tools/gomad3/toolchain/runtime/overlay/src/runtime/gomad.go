@@ -105,19 +105,6 @@ var gomadDiagnosticDraws gomadDiagnosticDrawCounts
 const gomadInitialTime = 946684800000000000
 const gomadMapShared = 1
 const gomadChoiceMaximumAlternatives = 256
-const gomadSimulationTimeRequestBytes = 40
-const gomadSimulationTimeResponseBytes = 32
-
-const (
-	gomadSimulationTimeResponseAdvance = iota + 1
-	gomadSimulationTimeResponseRetry
-	gomadSimulationTimeResponseDeadlock
-	gomadSimulationTimeResponseExternal
-)
-
-var gomadSimulationTimeRequestMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'Q', 1}
-var gomadSimulationTimeResponseMagic = [8]byte{'G', 'O', 'M', 'A', 'D', 'T', 'R', 1}
-
 // The response buffer is static because some runtime read implementations
 // retain their pointer, while quiescence can run on an allocation-forbidden path.
 var gomadSimulationTimeResponse [gomadSimulationTimeResponseBytes]byte
@@ -1639,19 +1626,13 @@ func gomadSimulationTimeQuiesce(deadline int64) (int64, uint8, bool) {
 		return 0, 0, false
 	}
 	var request [gomadSimulationTimeRequestBytes]byte
-	for index := range gomadSimulationTimeRequestMagic {
-		request[index] = gomadSimulationTimeRequestMagic[index]
-	}
-	gomadSimulationTimePut64(request[8:16], gomadSimulationTimeGeneration)
-	gomadSimulationTimePut64(request[16:24], uint64(faketime))
 	requestDeadline := deadline
 	if gomadClockForward && requestDeadline < faketime {
 		requestDeadline = faketime
 	}
-	gomadSimulationTimePut64(request[24:32], uint64(requestDeadline))
 	arrivalEpoch := gomadSimulationTimeArrivalEpoch.Load()
 	arrivals := gomadSimulationTimeArrivals.Swap(0)
-	gomadSimulationTimePut32(request[32:36], arrivals)
+	gomadSimulationTimeEncodeRequest(&request, gomadSimulationTimeGeneration, faketime, requestDeadline, arrivals)
 	if !gomadSimulationTimeWrite(gomadSimulationTimeRequestDescriptor, request[:]) {
 		return 0, 0, false
 	}
@@ -1659,22 +1640,8 @@ func gomadSimulationTimeQuiesce(deadline int64) (int64, uint8, bool) {
 	if !gomadSimulationTimeRead(gomadSimulationTimeResponseDescriptor, response[:]) {
 		return 0, 0, false
 	}
-	for index := range gomadSimulationTimeResponseMagic {
-		if response[index] != gomadSimulationTimeResponseMagic[index] {
-			return 0, 0, false
-		}
-	}
-	if gomadSimulationTimeGet64(response[8:16]) != gomadSimulationTimeGeneration {
-		return 0, 0, false
-	}
-	for _, value := range response[25:] {
-		if value != 0 {
-			return 0, 0, false
-		}
-	}
-	current := int64(gomadSimulationTimeGet64(response[16:24]))
-	kind := response[24]
-	if current < faketime || kind < gomadSimulationTimeResponseAdvance || kind > gomadSimulationTimeResponseExternal {
+	current, kind, ok := gomadSimulationTimeDecodeResponse(response, gomadSimulationTimeGeneration, faketime)
+	if !ok {
 		return 0, 0, false
 	}
 	if arrivals != 0 {
@@ -1711,31 +1678,6 @@ func gomadSimulationTimeRead(descriptor int32, destination []byte) bool {
 		destination = destination[count:]
 	}
 	return true
-}
-
-//go:nosplit
-func gomadSimulationTimePut64(destination []byte, value uint64) {
-	for index := 7; index >= 0; index-- {
-		destination[index] = byte(value)
-		value >>= 8
-	}
-}
-
-//go:nosplit
-func gomadSimulationTimePut32(destination []byte, value uint32) {
-	for index := 3; index >= 0; index-- {
-		destination[index] = byte(value)
-		value >>= 8
-	}
-}
-
-//go:nosplit
-func gomadSimulationTimeGet64(source []byte) uint64 {
-	var value uint64
-	for _, current := range source {
-		value = value<<8 | uint64(current)
-	}
-	return value
 }
 
 //go:linkname gomadBlockingRead
