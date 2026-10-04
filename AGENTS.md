@@ -162,13 +162,13 @@ thinking scout: claude-opus-5-5 at high
 
 ### Codex
 
-reviewer: gpt-6-sol at high
+reviewer: gpt-6.1-sol at high
 
-implementer: gpt-6-sol at high
+implementer: gpt-6.1-sol at high
 
 fast scout: gpt-6-luna at low
 
-thinking scout: gpt-6-sol at high
+thinking scout: gpt-6.1-sol at high
 
 Demanding tasks include ambiguous work or changes with a large blast radius.
 Explicit invocation instructions take precedence over the matching section,
