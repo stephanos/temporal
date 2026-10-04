@@ -52,7 +52,9 @@ These boundaries intentionally do not collapse into one controller:
 
 Within Runner, the seed campaign is a pure control state machine over pending
 ordinals, parallel slots, aggregate counters, resume state, and failure-policy
-stops. The orchestration loop owns process launches and hands completed results
+stops. Its `Complete(Completion)` transition updates attempted, active, and
+classified counters together, with distinct-failure count explicit. The
+orchestration loop owns process launches and hands completed results
 to artifact publication; the campaign never prepares targets or writes files.
 Parallel results enter semantic publication in selection-ordinal order, so host
 completion timing cannot change the Campaign journal or guided corpus.
@@ -142,6 +144,27 @@ validates semantic transitions rather than raw IPC arrival order. A node that
 spins prevents quiescence and reaches the wall watchdog. Process death must leave
 an operation classified as committed or uncommitted, with no ambiguous partial
 model transition.
+
+`runner/internal/execution/simulation_progress.go` owns complete typed progress
+transitions under the arbiter mutex (`SIMULATION.BACKENDS`). Admission,
+forwarding, response reservation/delivery, arrival consumption, abandonment
+accounting, and participant removal validate participant incarnation, response
+identity, epochs, and aggregate arrival credits before changing state or waking
+waiters. Aggregate credits identify no individual operation. Coordinator response
+IDs and model request IDs have separate namespaces. Model transport owns pending
+and abandoned correlation and late-response discard; domain handlers own the
+committed/uncommitted model result, and process supervision owns crash and reap.
+The coordinator carries no parallel response-barrier state machine. Concurrent
+blocking operations remain possible, and host IPC arrival order supplies no
+semantic replay identity.
+
+Network `Listener` and `Conn` factories select a private standalone, in-process,
+or process implementation once (`SIMULATION.NETWORK`). Both simulation paths use
+the shared network model. Local implementations own model state and incarnation;
+process implementations own remote identities and typed commands. Connection
+direction locks cover each complete Read or Write. Empty I/O, queued accepts,
+error precedence, chunking, deadlines, and transcripts retain their backend
+contracts; the common facade does not imply identical host behavior.
 
 Runtime, scenario, network, storage, and fault evidence retain independent
 identities. Replay validates static inputs before node activation, validates
@@ -325,6 +348,55 @@ clean batch establishes or matches a baseline.
 
 ## Runner and process containment
 
+### Campaign intent and operation construction
+
+`runner/campaign_options.go` owns serializable `campaignOptions`, grouped into
+identity, target, search, resource, observation, retention, and guidance settings
+(`CAMPAIGN.SELECTION`, `CAMPAIGN.EXECUTION`, `PLATFORM.IDENTITY`). A private
+`campaignRequest` combines that intent with `campaignRuntime` dependencies,
+callbacks, resolved commands, and private resume/guidance state. These runtime
+values stay outside serialized campaign intent. Public request fields retain
+their existing names; immutable portable plans and replay records retain their
+own versioned contracts.
+
+`coordinatorConfig` embeds those same options with the resolved supervisor
+command and Runner build identity. It carries `MaxForcedDecisions`,
+`MaxExplorationResultBytes`, and every `SimulationDimensionLimits` field to
+isolated execution. Reconstruction uses the same semantic normalization as
+local execution; the coordinator's child timeout replaces the overall bound at
+the existing supervision boundary.
+
+The CLI constructs one private application per invocation, resolves installation,
+Runner identity and private child modes there, and shares campaign parsing
+between `plan` and `explore`. Each command calls its own Runner operation.
+Explicit flag-presence checks and presentation stay in the CLI; Runner owns
+semantic normalization. Production operations select process execution through
+private `executionDependencies`; usable public `Preparer` and `ArtifactReplayer`
+substitutions remain available. [Go caller migrations](README.md#go-caller-migrations)
+describe the intentional source changes.
+
+### Complete preparation and inspection
+
+`internal/preparation` composes target and deterministic-I/O adapter owners
+without reversing their dependencies (`TARGET.PREPARATION`, `TARGET.CAPABILITY`).
+`Prepare` returns a validated `target.Prepared` with selected adapter identities
+attached. It owns temporary adapter-workspace cleanup; Campaign and portable
+bundle owners keep their durable destinations and journal transitions.
+`Inspect` returns capability evidence and owns its private workspace until
+`Inspection.Close`. Closure inspection lists and reviews without compiling or
+launching; linked/guarded inspection compiles without launching. Qualification
+repetitions prepare independently, and custom preparers still pass complete
+prepared-target validation.
+
+Capability collection, pure policy evaluation, and linked projection have
+separate private ownership in `target`, behind the existing review operations.
+`internal/sourceinventory` hashes bounded adapter source inventories for both
+target and adapter preparation. Public `target.CompatibilityPackEvidence` and
+its complete nested target-owned graph project detached report data from private
+policy evidence. Runner's public journal and Artifact capacity inspection values
+likewise report private campaign plans without owning their transitions
+(`EVIDENCE.INSPECTION`).
+
 Runner prepares a Target once and launches each Execution of that Prepared
 Target in a fresh process and working directory. Building once makes target
 identity independent of seed; fresh processes prevent globals, goroutines,
@@ -426,6 +498,15 @@ durability operations, and a no-replace rename. A manifest is written last.
 Interrupted work may leave explicit partial diagnostics but can never appear as
 a complete replayable artifact. Existing content-addressed artifacts are reused
 only after complete validation.
+
+`artifact.Artifact` is a detached reference (`EVIDENCE.ARTIFACT`), including a
+manifest snapshot and publication accounting. `OpenArtifact` returns an owned
+`*artifact.Opened`, which pins the directory and keeps its validated manifest
+private. `Manifest()` and `Snapshot()` deep-copy nested state; a snapshot transfers
+no resource ownership. The opener closes the handle. Payload methods validate
+inventory, bounds, mode, size, hashes, links, and path containment through that
+pinned root. Closing prevents payload access while detached metadata remains
+available. Publication still returns a detached reference.
 
 Campaign, corpus, and minimizer stores keep a content-addressed target pool
 outside staged Campaign directories. Artifacts hard-link their prepared binary
@@ -675,6 +756,18 @@ also owns one `gomadfs.Entry`-to-`FileInfo` projection shared by path stat,
 handle stat, and directory reads; the filesystem keeps its richer stat result
 and operation semantics private.
 
+Handle and Mapping creation selects one of two private representations for the
+three execution paths (`SIMULATION.STORAGE`). Standalone and in-process execution
+use local owners carrying filesystem, node, and generation; process execution
+uses remote typed-command identities and copied-byte cache state. Facades
+delegate to the selected owner, and local indexes retain concrete local owners.
+Path operations select their route separately. Identical local mapping regions
+share one buffer and one byte charge, which surviving aliases retain after the
+charged owner closes. Process writable Map returns `ENOTSUP` before closed,
+access, or bounds checks. Process read-only mappings cache copies; nonnil cached
+bytes return without revalidation, while nil cache state refetches. Neither
+copied process mappings nor in-process handles imply Hard Isolation.
+
 Explicit read-only mounts are the only brokered host filesystem input. A
 Runner-owned broker pins each approved root, resolves descendants without
 following symlinks, validates stable bounded captures, and sends typed entries
@@ -698,6 +791,20 @@ validation, allocation-bound, and fuzz tests for the Runner module and patched
 standard library. `make -C tools/gomad3 generate` updates checked-in output,
 while `make -C tools/gomad3 validate` rejects drift. Protocol changes require an explicit version and
 compatibility decision.
+
+`simulation/schema/timewire.json` defines the versioned simulation-time layout
+and generates host codecs in `runner/internal/execution/simulation_time_wire_generated.go`
+and allocation-free runtime codecs (`RUNTIME.TIME`, `SIMULATION.BACKENDS`, `MAINTENANCE.GOVERNANCE`). Golden
+vectors bind magic, kinds, reserved fields, correlation, and byte order. Runtime
+descriptor I/O, native timers, quiescence hooks, and host arbitration remain
+handwritten owners; generated layout code does not replace their lifecycle.
+
+Typed network and volume commands in the overlay's `internal/gomadio` and
+`internal/gomadfs` own operation arguments and response interpretation
+(`SIMULATION.NETWORK`, `SIMULATION.STORAGE`). Their translation owners map to
+the generated compact `gomadmodelwire` envelope. Callers do not choose generic
+string/integer slots, while wire framing and shared domain semantics retain
+their existing owners, bytes, accepted shapes, and partial-I/O error information.
 
 Callers do not own offsets, byte order, magic, reserved bytes, or enum checks.
 Runner-side bootstrap, transcript, and mount packages use the generated host
@@ -734,6 +841,23 @@ lifecycle or result-classification policy. The test driver records one bounded
 case result per external command and keeps equality, diversity, diagnostics,
 timeouts, and mandatory semantic markers as distinct oracles.
 
+`target/internal/gocommand` uses supervised `internal/hostexec` processes for
+target compilation, Go identity queries, and package/module listing
+(`TARGET.PREPARATION`). Both output contracts retain context cancellation,
+finite watchdogs, process-group cleanup, and command exit classification.
+`Structured` requires complete bounded stdout and stderr and rejects either
+stream's overflow before parsing. `Diagnostic` keeps bounded head/tail output
+with complete byte counts and hashes, so truncation remains usable diagnostic
+evidence. Truncated diagnostics cannot stand in for structured package data.
+
+`toolchain/installation.Layout` names locations for the builder, while
+`Description` validates the executable launcher, build key, and pinned build
+(`PLATFORM.INSTALLATION`, `PLATFORM.IDENTITY`). Consumers obtain target caches,
+prepared-target caches, and adapter locations from these values. CLI resolution
+still follows explicit root, environment, adjacent manifest, then adjacent
+installation. Adapter replacement locations remain stable identity inputs
+because Go records replacement paths in binary build information.
+
 Shell is limited to reviewed argv and platform boundaries. The patch-regeneration
 scripts are owned by `internal/gomadtool/conformance/scripts`: `exec.sh` and
 `compiler_test_exec.sh` adapt upstream Go hooks, while `clock_audit_test.sh` owns the
@@ -751,6 +875,41 @@ version, adapter versions, and exact patch/overlay source sets. Generation
 produces its Make, Go, and human-guide consumers; validation requires the
 allowlists to equal the actual patch and overlay tree rather than merely
 containing them.
+
+`internal/gomadtool/architecture` inventories actual host packages, source
+files, and nested modules for the `darwin/arm64` and `linux/amd64` source sets
+(`MAINTENANCE.GOVERNANCE`, `VERIFICATION.TRACEABILITY`). Explicit overlay,
+fixture, and module exclusions are checked for stale entries. Ownership and
+module edges operate on listed imports; uncovered source and package-list/type
+errors are findings rather than silently uninspected packages.
+
+Typed public-signature analysis walks externally reachable type graphs,
+including nested containers, generic arguments and constraints, aliases,
+defined types, and promoted methods, using the external consumer's Go internal
+import permissions. Private storage and accessible builtin-only definitions do
+not acquire a blanket alias prohibition. Reports expose detached public values
+instead of requiring callers to name private policy or execution types.
+
+Purity checks target World, World mailbox, Record, exploration, capability
+policy, the seed `controller.go`, `capability_evaluation.go`, and
+`simulation_progress.go`. Callable effectful siblings in mixed packages retain
+their separate owners. Reachable host effects, goroutines, callbacks, and
+unresolved bindings are checked through typed call/provenance analysis and
+bounded recursive summaries; exact standard-library memory summaries fail when
+their source identities change. This bounded analysis and its negative fixtures
+do not establish general checker soundness for arbitrary future Go programs.
+
+Imported nonstandard package variable initializers and every `init` declaration
+are analyzed, including blank and transitive imports and mixed-package siblings.
+Standard-library startup has a separate source-pinned initialization boundary.
+Actual Go `Standard` metadata and hashes of every immediate `.go` file in each
+imported standard package must match `startup_sources.go`. This pins startup
+before the model runs; it does not declare standard functions pure or suppress
+calls from application/dependency initializers. Lazy local-timezone loading is
+an operational effect, so explicit UTC projections avoid it. Missing or changed
+startup identities remain findings. Both-platform source analysis and host vet
+protect these structural boundaries; patched-runtime and native qualification
+remain separate required gates.
 
 `pin-impact` compares complete candidate and baseline module identities
 against adapter, compatibility-pack, interception, and clock-inventory pins.

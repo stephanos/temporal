@@ -308,6 +308,13 @@ tools/gomad3/.bin/gomad qualify-set \
 
 `qualify-set` analyzes every workload before executing any supported Target, checkpoints completed phases, retains unsupported analyses, and compares results with declared expectations.
 
+Capability support is the analysis claim. Equal independent repetitions establish
+same-seed repeatability, and `choice-replay=exact` establishes verified runtime
+Choice replay. A set's status 0 establishes expectation matching, including any
+declared unsupported or divergent dispositions; it does not turn those results
+into successful Qualification. The [milestones](../../MILESTONES.md#open-findings)
+retain D12 and other incomplete replay work.
+
 A set too large for one machine's budget runs as shards. `--shard INDEX/COUNT` is the same zero-based ordinal-modulo partition `execute-shard` uses, applied to the manifest's workloads, so shards never overlap and together cover the manifest. Each shard publishes an ordinary set report that carries the whole manifest's digest; `merge-set` then combines them into the report one run would have published:
 
 ```sh

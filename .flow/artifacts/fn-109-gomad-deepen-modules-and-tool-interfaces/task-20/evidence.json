@@ -1,0 +1,174 @@
+{
+  "task_id": "fn-109-gomad-deepen-modules-and-tool-interfaces.20",
+  "status": "in_progress",
+  "scope": "documentation source progress only; acceptance open",
+  "base_commit": "62c202b110dec860910352ea66f39f337984549f",
+  "source_candidate_commit": "4a646710d15148f1a3cf75bdeba7bdfd2fd2edf7",
+  "commits": [],
+  "prs": [],
+  "baseline": "green",
+  "tests": [
+    "rg -n 'darwin/arm64|linux/amd64' SPEC.md ARCHITECTURE.md README.md",
+    "GOWORK=off GOTOOLCHAIN=local GOENV=off GOFLAGS= timeout 600 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep . -run 'TestCurrentVocabularyHasNoLegacyCampaignBoundary|TestMakeTargetsMatchTheirOwnership'",
+    "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOWORK=off GOTOOLCHAIN=local GOENV=off GOFLAGS= timeout 600 make validate",
+    "/home/agent/.codex/scripts/flowctl show fn-105-gomad-follow-ups-deferred-scope.5",
+    "/home/agent/.codex/scripts/flowctl tasks --spec fn-111-gomad-consolidate-vocabulary-and-update",
+    "bash .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-20/document-check-command.log",
+    "git diff --check",
+    "sha256sum -c .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/round4-final-source.sha256 (pre-edit)",
+    "awk '$2 !~ /^tools\\/gomad3\\/(ARCHITECTURE|SPEC|README|CLI|TUTORIAL)\\.md$/ { print }' .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/round4-final-source.sha256 | sha256sum -c - (post-edit)"
+  ],
+  "command_results": [
+    {
+      "phase": "baseline",
+      "command_index": 1,
+      "working_directory": "tools/gomad3",
+      "started_at": "2026-10-04T08:38:18Z",
+      "ended_at": "2026-10-04T08:38:18Z",
+      "exit_code": 0,
+      "package_elapsed_seconds": 0.030,
+      "status": "green",
+      "log": "baseline-focused.log"
+    },
+    {
+      "phase": "baseline",
+      "command_index": 2,
+      "working_directory": "tools/gomad3",
+      "started_at": "2026-10-04T08:38:30Z",
+      "ended_at": "2026-10-04T08:38:34Z",
+      "exit_code": 0,
+      "status": "green",
+      "log": "baseline-validate.log"
+    },
+    {
+      "phase": "verify",
+      "command_index": 1,
+      "working_directory": "tools/gomad3",
+      "started_at": "2026-10-04T08:44:23Z",
+      "ended_at": "2026-10-04T08:44:23Z",
+      "exit_code": 0,
+      "status": "green",
+      "log": "verify-focused.log"
+    },
+    {
+      "phase": "verify",
+      "command_index": 2,
+      "working_directory": "tools/gomad3",
+      "started_at": "2026-10-04T08:44:23Z",
+      "ended_at": "2026-10-04T08:44:25Z",
+      "exit_code": 0,
+      "status": "green",
+      "log": "verify-validate.log"
+    },
+    {
+      "phase": "document verification",
+      "command": "python3 - (original inline bounded document check; same six-guide logic retained in document-check-command.log)",
+      "working_directory": ".",
+      "started_at": "2026-10-04T08:44:00Z",
+      "ended_at": "2026-10-04T08:44:00Z",
+      "exit_code": 0,
+      "status": "green",
+      "log": "document-check.log"
+    },
+    {
+      "phase": "source freeze verification",
+      "command_index": 8,
+      "working_directory": ".",
+      "started_at": "2026-10-04T08:45:00Z",
+      "ended_at": "2026-10-04T08:45:00Z",
+      "exit_code": 0,
+      "status": "green",
+      "log": "verify-unchanged-source.log",
+      "verified_entries": 973
+    },
+    {
+      "phase": "final document and evidence verification",
+      "command_index": 5,
+      "working_directory": ".",
+      "started_at": "2026-10-04T08:51:02Z",
+      "ended_at": "2026-10-04T08:51:02Z",
+      "exit_code": 0,
+      "status": "green",
+      "log": "final-document-check.log",
+      "guide_links": 66,
+      "artifact_links": 14
+    },
+    {
+      "phase": "final platform and Flow state observation",
+      "commands": ["uname -s -m", "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go version", "test -e tools/gomad3/.toolchain/bin/go", "ls -l tools/gomad3/.toolchain/downloads/go1.27.1.src.tar.gz", "rg -n 'darwin/arm64|linux/amd64' tools/gomad3/SPEC.md tools/gomad3/ARCHITECTURE.md tools/gomad3/README.md", "/home/agent/.codex/scripts/flowctl show fn-105-gomad-follow-ups-deferred-scope.5", "/home/agent/.codex/scripts/flowctl tasks --spec fn-111-gomad-consolidate-vocabulary-and-update", "/home/agent/.codex/scripts/flowctl show fn-109-gomad-deepen-modules-and-tool-interfaces.20 --json"],
+      "working_directory": ".",
+      "started_at": "2026-10-04T08:51:20Z",
+      "ended_at": "2026-10-04T08:51:21Z",
+      "wrapper_exit_code": 0,
+      "patched_go_existence_test": "false; expected absence observed, not qualification failure hidden as pass",
+      "status": "observed",
+      "log": "final-host-state.log"
+    }
+  ],
+  "timestamp_precision": "one-second UTC wrapper timestamps; do not infer zero suite duration",
+  "host": "linux/arm64",
+  "go": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+  "go_version": "go1.27.1 linux/arm64 (stock development toolchain)",
+  "patched_go_present": false,
+  "source_archive_present": true,
+  "review": "conductor-deferred codex; no worker verdict or dispatch",
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "source_manifests": {
+    "task-19/round4-final-source.sha256": "4b32a0eb738d8558e9a732d4e3610a819d467e805ee493d59d9706215a5aff20",
+    "task-19/round4-task-owned-source.sha256": "89f671be415d70dae8b510155e4bbec0ec72056f0286dff5e1ca2bfeab46dbde",
+    "task-19/round4-command-logs.sha256": "f432cbf3c4afd4afa95494fcb312ef22afd4acbba853a2f461f6a88de449f87d"
+  },
+  "source_freeze": "All 978 final-source entries matched pre-edit. All 973 entries other than the five declared guides matched after guide freeze. Old document hashes are superseded only by task20 declared changes; manifests remain immutable.",
+  "document_sha256": {
+    "tools/gomad3/ARCHITECTURE.md": "c25c14a5f5593008aabed1865526ac42f73e03cd0c350e9bf5be90c61a6a798b",
+    "tools/gomad3/SPEC.md": "cadd7e06015f8bd36ca1d3d98c3256cec610a523c9e39671f7719b35f469323e",
+    "tools/gomad3/README.md": "8b95e9d3ae6103f120f6cadacbeffcc17f27bac6636b923279461fe13ec6e61a",
+    "tools/gomad3/CLI.md": "91a47acbf77ad54c107269fcd353a220a5a2de20eef4843fe102a56397871822",
+    "tools/gomad3/TUTORIAL.md": "8d4f0242d834edc7b369d23b6cc7fbdb411426b83c568d45c626e2d4786a8d24",
+    "MILESTONES.md": "f1f3d131673d9802dbaae9185da3eb3ec1bff2b121785aa8bdc43057ea92e2d8",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/documentation-evidence.md": "0f936ada24cb6bb44c163208e668b6bfa9a1dc71671a6d717f49e230247df3c5"
+  },
+  "changed_product_files": [
+    "tools/gomad3/ARCHITECTURE.md",
+    "tools/gomad3/SPEC.md",
+    "tools/gomad3/README.md",
+    "tools/gomad3/CLI.md",
+    "tools/gomad3/TUTORIAL.md",
+    "MILESTONES.md",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/documentation-evidence.md"
+  ],
+  "native_darwin_arm64": "incomplete",
+  "native_linux_amd64": "incomplete",
+  "fn105_5": "blocked; closure by reference deferred until task20 acceptance passes",
+  "task19": "blocked formal review transport before dispatch; native acceptance open",
+  "task21": "unadmitted",
+  "independent_document_review_correction": {
+    "report": "independent-document-review.md",
+    "report_sha256": "8f4e4338a6ff13f8c1e39336176696693b638f4c34a5e108d4c035e2f1bed88e",
+    "finding": "ARCHITECTURE.md:796 named nonexistent simulation/timewire host-codec owner",
+    "correction": "Names runner/internal/execution/simulation_time_wire_generated.go, verified against generator protocol.go:478 and generated execution package",
+    "previous_architecture_sha256": "5c788e9e934e7b728be3d6f8851d91e8d8be71e6fed5ff9e5ac807dc420a481c",
+    "review_state": "correction implemented; independent recheck pending; no worker verdict",
+    "prior_source_test_evidence": "unchanged source inputs; existing baseline/verify suite results retained; no suite rerun solely for documentary path correction",
+    "checks_started_at": "2026-10-04T08:57:33Z",
+    "checks_ended_at": "2026-10-04T08:57:34Z",
+    "checks": [
+      {"command": "bash .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-20/document-check-command.log", "exit_code": 0, "status": "green", "log": "correction-document-check.log"},
+      {"command": "sha256sum -c .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-20/correction-six-documents.sha256", "exit_code": 0, "status": "green", "log": "correction-six-hash-check.log"},
+      {"command": "git diff --check", "exit_code": 0, "status": "green"}
+    ]
+  },
+  "source_freeze_status_clarification": {
+    "changes": "documentation-evidence opening is a dated 2026-10-04 source-freeze observation with subsequent lifecycle updates assigned to root's forthcoming source-checkpoint.md; permitted fn109 milestone paragraph now says formal review remains open",
+    "supersedes": "correction-six-documents.sha256 MILESTONES entry only; prior receipt and correction logs remain immutable",
+    "review_state": "final actual document bytes prepared for independent corrective recheck; no worker verdict",
+    "checks_started_at": "2026-10-04T09:01:20Z",
+    "checks_ended_at": "2026-10-04T09:01:20Z",
+    "checks": [
+      {"command": "bash .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-20/document-check-command.log", "exit_code": 0, "status": "green", "log": "final-correction-document-check.log"},
+      {"command": "sha256sum -c .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-20/final-correction-six-documents.sha256", "exit_code": 0, "status": "green", "log": "final-correction-six-hash-check.log"},
+      {"command": "git diff --check", "exit_code": 0, "status": "green"}
+    ]
+  },
+  "live_worker_commands": []
+}

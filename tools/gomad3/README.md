@@ -531,13 +531,18 @@ hostname, and entropy with process-local in-memory implementations. The
 in-memory filesystem starts with the root and the process temp directory
 (`/tmp`, plus the directory `TMPDIR` names when it is set), so a program that
 writes scratch files where `os.TempDir` points finds the directory a host would
-provide instead of failing closed on the first open. File mappings are modeled
-as shared memory: every mapping of one file region shares a single buffer, a
+provide instead of failing closed on the first open. Local file mappings in
+standalone and in-process execution use shared memory: every mapping of one
+file region shares a single buffer, a
 store through it becomes visible to file reads on the next read, sync, or
 unmap, and a file write lands in the mapped bytes. A writable mapping is
 available only for volatile files, because stores through memory bypass the
 volume journal; overlapping regions with different bounds and the total mapped
-bytes (64 MiB) fail closed. That is the contract SQLite's WAL index needs. Optional
+bytes (64 MiB) fail closed. Surviving aliases keep the buffer's byte charge
+after its original owner closes. That is the local contract SQLite's WAL index
+needs. Process-backend mappings support copied read-only bytes; writable Map
+returns `ENOTSUP` before handle/access/bounds checks. Cached nonnil bytes are
+returned without revalidation, and nil cache state refetches. Optional
 built-in adapters are an immutable collection generated from `version.json`.
 The current version-pinned `modernc.org/libc` adapter redirects supported
 filesystem, entropy, and time operations to those same generic boundaries.
@@ -1254,6 +1259,95 @@ semantic bundle and fails closed if it is missing or divergent.
 
 ## Design
 
+### Go caller migrations
+
+These intentional Go source and behavior changes preserve the CLI grammar and
+recorded JSON formats. The [interface inventory](../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md)
+retains the consumer lists and source-specific preservation evidence.
+
+- Runner removes `Executor`, `ReplayExecutor`, and the `Executor` fields of
+  `CampaignSpec`, `ResumeSpec`, `CampaignShardSpec`, `ReplaySpec`, and
+  `MinimizeSpec`. Callers delete those fields and invoke the existing operation
+  functions, which select supervised process execution. `Preparer` and
+  `ArtifactReplayer` and their existing request fields remain usable public
+  substitutions. Same-package tests pass fakes through private `...With`
+  operations and `executionDependencies`; external callers do not construct
+  private execution descriptors. Public campaign request field names remain
+  unchanged by the internal options owner. `ParseStrategy` and
+  `ParseCoverageMode` are additive shared parsers; existing callers need no
+  migration.
+- `artifact.OpenArtifact(path)` returns `*artifact.Opened`. The caller closes
+  it and uses `Path()`, `Manifest()`, and `StoredBytes()` instead of mutable
+  fields. `Snapshot()` replaces `Detached()` and returns a deep-copied
+  `artifact.Artifact` reference. Replace package-level `OpenPayload`,
+  `ReadPayload`, `CopyPayload`, and `TargetSharingOf` calls with the handle's
+  `OpenPayload`, `ReadPayload`, `CopyPayload`, and `TargetSharing` methods.
+  Publication still returns a detached `Artifact`; it owns no root and needs
+  no Close. Handle metadata remains readable after Close, while payload access
+  fails through its existing validation order.
+- Runner report literals use `ExecutionJournalLimitsInspection` for
+  `CampaignPlanInspection.Journal` and `ExecutionJournalInspection.Limits`, and
+  `ArtifactCapacityInspection` for the plan and Campaign inspection capacity
+  fields. Outcome fields are strings. Callers construct these public detached
+  values instead of private campaign plans; operational transitions remain
+  inside the Campaign owner.
+- `target.CompatibilityPackEvidence` retains its outer name and complete
+  report. Construct its nested values using `CompatibilityPackGovernance`,
+  `CompatibilityModuleEvidence`, `CompatibilityPackAdapter`,
+  `CompatibilityPackageRuleEvidence`, `CompatibilityPackSource`,
+  `CompatibilityPackForeignSource`, and `CompatibilityLinknameEvidence` from
+  `target`, replacing internal policy types. Explicit projections copy nested
+  evidence while preserving report field order, tags, nil/empty slices, and
+  pointer presence.
+- `pinimpact.Spec.Packs` becomes `PacksDirectory string`. Pass the directory
+  containing pack files, such as an authoring root's `packs/` child, to
+  override selection. An empty value keeps embedded/environment selection.
+  Pack loading still follows baseline/candidate module validation; load errors
+  remain pin-evaluation errors. `compatibility-pack refresh` supplies its
+  selected root's pack directory. No new CLI flag is needed.
+- `target.DigestAdapterSourceInventory` is removed. Repository target/adapter
+  implementation callers use the neutral private `internal/sourceinventory`
+  owner, translating capacity errors to their existing public error types.
+  External callers must stop calling the removed implementation helper; the
+  public target preparation and capability-review operations retain inventory
+  validation. No new public hashing API replaces it.
+- `toolchain/installation` adds `Layout`, `Build`, and validated `Description`
+  values. Existing toolchain resolution and target identity APIs keep their
+  signatures. Implementation callers obtain owned paths from the description;
+  no external request migration is required.
+
+Direct World recorder completion has a bounded behavior migration
+(`WORLD.MODEL`, `WORLD.LIFECYCLE`, `WORLD.REPLAY`). `Recorder.FinishError` keeps
+its signature and accepts original sentinels, nonnil concrete
+`*world.CapacityError`/`*world.ReplayDivergenceError`, and private model-generated
+classified errors without invoking arbitrary `Error`, `Is`, or `Unwrap`.
+Custom errors, externally constructed wrappers/joins, typed-nil errors, and
+rebound public sentinel values fail without closing the recorder. The rejection
+has a fixed unsupported-input message; prior callback-derived admission,
+messages, and wrapped identity for those direct inputs intentionally change.
+Exported sentinel-variable rebinding cannot redefine immutable model identities
+or messages. Original sentinels and the owned typed errors retain their normal
+Error/Unwrap/Is/As relationships and known-error recording bytes.
+
+Callers normalize custom errors outside World and call `FinishTerminal` with
+detached `world.Terminal` data. Use a capacity, replay-divergence, or invalid-input
+kind and a nonempty Detail. Empty, inferred, and quiescence kinds are rejected;
+`Finish()` remains the inference operation. For example, after caller-side
+capacity classification:
+
+```go
+recorded, err := recorder.FinishTerminal(world.Terminal{
+    Kind: world.TerminalCapacity,
+    Detail: detail,
+})
+```
+
+A connected target can instead report through `world/process.Session.FinishError`.
+That effectful seam validates the session, captures `Error` detail before `Is`
+classification in capacity, replay-divergence, then invalid-input order, and
+preserves unknown-error wrapping and descriptor cleanup/error precedence.
+The pure recorder never dispatches those callbacks.
+
 - [Product specification](SPEC.md#productvocabulary-ubiquitous-language) defines
   the canonical vocabulary and current product requirements.
 - [Architecture](ARCHITECTURE.md) records the durable runtime, Runner, World,
@@ -1280,10 +1374,12 @@ upstream tiers
 in that order. The focused targets reproduce the corresponding portion without
 weakening the full gate.
 
-`test-simulation` runs all six directly seeded `tools/gomad3sim` toolchain
-test files and ten of the eleven Runner transport cases;
-`TestProcessBackendSynchronizesNodeClockWithModelDelay` stays out with its open
-watchdog finding. `overlay-test` includes `internal/gomadsim`,
+`test-simulation` runs the directly seeded `tools/gomad3sim` toolchain tests
+and the Runner transport selection in the Makefile, including process network
+and filesystem handle cases. The strict
+`TestProcessBackendSynchronizesNodeClockWithModelDelay` case retains its open
+watchdog finding; its forward-mode regression runs separately. `overlay-test`
+includes `internal/gomadsim`,
 `internal/gomadmodelwire`, `internal/gomadio`, `os`, and
 `cmd/internal/gomadcap`. In the host tier, `TestModelConformanceFilesystem` and
 `TestModelConformanceTCP` (`runner/internal/execution`) run 64-operation

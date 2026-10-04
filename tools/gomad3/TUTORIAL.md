@@ -362,6 +362,12 @@ Outcomes. Only the process Backend supplies **Hard Isolation** with fresh packag
 state and process-level crash and reap. In-process execution shares arbitrary
 package globals and may leave revoked goroutines behind.
 
+Handles select their local or process implementation when created. This keeps
+backend state private while retaining each model's incarnation and replay checks.
+Local file mappings share buffers; process mappings support copied read-only
+bytes and reject writable mappings. The [README](README.md#deterministic-io)
+describes those mapping limits.
+
 You do not need World or Simulation for the ordinary Go test in this tutorial.
 These are explicit application harnesses for tests that declare modeled events
 or distributed state.
@@ -665,6 +671,16 @@ race detection remains a separate test profile.
 The supported target is an internally linked, pure-Go binary on `darwin/arm64`
 or `linux/amd64`. Platform support does not establish Qualification for every
 Target; Qualification evidence belongs to a specific workload and platform.
+
+Keep four questions separate when reading a report. Capability analysis says
+whether the Target fits the reviewed boundary. Fresh equal repetitions establish
+same-seed repeatability. A retained and verified Decision Tape establishes exact
+runtime Choice replay. CI status says whether the reported results matched
+declared expectations, which can include an unresolved divergence. Historical
+Darwin D14 evidence retains its recorded correction; it does not qualify a later
+integrated source candidate. D12, large-trace limits, and host-clock escapes such
+as `MemStats.LastGC` remain in the [milestones](../../MILESTONES.md#open-findings).
+
 Cgo, external linking, multiple Ps, signals, finalizers, subprocesses,
 non-loopback networking, DNS, plugins, and
 unrecognized host I/O are outside the committed deterministic contract.

@@ -1,0 +1,63 @@
+python3 - <<'PY'
+import pathlib, subprocess, sys, re, json, hashlib
+root = pathlib.Path.cwd()
+checker = root / '.flow/artifacts/fn-111-gomad-consolidate-vocabulary-and-update/verify-guides.py'
+prefix = checker.read_text().split('# --- actual command help ---')[0]
+base = '62c202b110dec860910352ea66f39f337984549f'
+for label in ('baseline', 'current'):
+    sys.argv = ['bounded-document-check', str(root), '/home/agent/.codex/scripts/flowctl', str(root / '.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-20')]
+    ns = {'__file__': str(checker)}
+    if label == 'baseline':
+        start = prefix.index('def read(path):')
+        end = prefix.index('\ndef squash', start)
+        baseline_read = 'def read(path):\n    inputs.add(str(path))\n    result=subprocess.run(["git","show","' + base + ':"+str(path)],cwd=ROOT,capture_output=True,text=True)\n    if result.returncode: return (ROOT/path).read_text()\n    return result.stdout\n\n'
+        program = prefix[:start] + baseline_read + prefix[end:]
+    else:
+        program = prefix
+    exec(compile(program, str(checker), 'exec'), ns)
+    print(json.dumps({'observation': label, 'comparison_base': base, 'links': len(ns['navigation']), 'fences': ns['fence_report'], 'errors': ns['errors']}, sort_keys=True))
+    assert not ns['errors'], ns['errors']
+read = lambda p: (root / p).read_text()
+old = lambda p: subprocess.check_output(['git', 'show', base + ':' + p], text=True)
+paths = ['tools/gomad3/' + n + '.md' for n in ['SPEC', 'ARCHITECTURE', 'CLI', 'TUTORIAL', 'README']] + ['MILESTONES.md']
+ids = lambda s: re.findall(r'^#{1,6} \[([^]]+)\]', s, re.M)
+assert ids(old('tools/gomad3/SPEC.md')) == ids(read('tools/gomad3/SPEC.md'))
+blocks = lambda s: re.findall(r'^```(?:sh|bash)\n(.*?)^```', s, re.M | re.S)
+for p in paths:
+    assert blocks(old(p)) == blocks(read(p)), p
+index = read('tools/gomad3/CLI.md').split('## Command index', 1)[1]
+assert index == old('tools/gomad3/CLI.md').split('## Command index', 1)[1]
+commands = {tool: re.findall(r'^\| `([^`]+)` \|', index.split('### `' + tool + '`', 1)[1].split('\n### ', 1)[0], re.M) for tool in ['gomad', 'gomadtool']}
+sources = {'gomad': 'tools/gomad3/cmd/gomad/internal/cli/cli.go', 'gomadtool': 'tools/gomad3/cmd/gomadtool/main.go'}
+for tool, names in commands.items():
+    for name in names:
+        assert 'case "' + name.split()[0] + '":' in read(sources[tool]), (tool, name)
+    region = read(sources[tool])
+    if tool == 'gomad':
+        region = region.split('case "explore":', 1)[1].split('\nfunc ', 1)[0]
+    dispatched = set(re.findall(r'case "([a-z][a-z-]*)":', region))
+    if tool == 'gomad':
+        dispatched.add('explore')
+    assert dispatched == {n.split()[0] for n in names}, (tool, dispatched, names)
+print(json.dumps({'requirement_ids': 'unchanged', 'shell_fences': 'unchanged for all six documents', 'command_index': 'unchanged and reconciled to both current dispatch switches', 'indexed_rows': {tool: len(names) for tool, names in commands.items()}}))
+artifact_base = '.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/'
+artifact_paths = [artifact_base + 'documentation-evidence.md', artifact_base + 'task-20/handover.md']
+artifact_links = 0
+for path in artifact_paths:
+    prose, _, defects = ns['scan_fences'](path)
+    assert not defects, (path, defects)
+    for destination in re.findall(r'\[[^]]+\]\(([^)\s]+)\)', ns['squash']('\n'.join(prose))):
+        if re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*:', destination):
+            continue
+        target, _, fragment = destination.partition('#')
+        resolved = ((root / path).parent / ns['urllib'].parse.unquote(target)).resolve() if target else root / path
+        assert resolved.exists(), (path, destination)
+        if fragment and resolved.suffix == '.md':
+            assert ns['urllib'].parse.unquote(fragment) in ns['anchors'](str(resolved.relative_to(root))), (path, destination)
+        artifact_links += 1
+evidence = json.loads(read(artifact_base + 'task-20/evidence.json'))
+for path, digest in evidence['document_sha256'].items():
+    assert hashlib.sha256((root / path).read_bytes()).hexdigest() == digest, path
+assert evidence['status'] == 'in_progress' and evidence['commits'] == []
+print(json.dumps({'artifact_links': artifact_links, 'artifact_fences': 'balanced', 'document_hashes': 'match evidence', 'evidence_json': 'valid'}))
+PY

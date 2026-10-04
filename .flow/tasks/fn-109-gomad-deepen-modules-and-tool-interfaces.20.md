@@ -44,6 +44,10 @@ cd ../.. && flowctl show fn-105-gomad-follow-ups-deferred-scope.5 && flowctl tas
 - fn-105 D12/D14 replay-divergence dispositions stay unchanged. Attribute a failure to those owners with retained evidence instead of relaxing an expectation.
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
+
+### Documentation source checkpoint (2026-10-04)
+
+The five guides and permitted fn-109 milestone status lines have passed the focused Quick commands, document checks and independent corrective source review. The generated host-codec path finding is corrected. See `task-20/source-checkpoint.md`, the immutable original and corrective review reports, and the worker handover/evidence for the frozen hashes and commands. Root will commit this verified source progress before successor source work. Formal task-20 review, task-19 formal/native gates, acceptance and fn-105.5 closure remain open; task 21 remains unadmitted. No acceptance criteria or dependency is waived.
 ## Acceptance
 - [ ] `documentation-evidence.md` cites, with file and line, the already-correct platform, choice replay/exploration and backend statements, and links fn-111's evidence instead of duplicating it.
 - [ ] Architecture guidance describes the delivered owners (options, preparation, command seam, installation description, generated simulation-time protocol, progress lifecycle, backend handles, architecture checks) using existing requirement IDs.

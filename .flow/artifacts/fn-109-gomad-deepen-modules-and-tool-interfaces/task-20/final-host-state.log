@@ -1,0 +1,64 @@
+Linux aarch64
+go version go1.27.1 linux/arm64
+patched_go_absent
+-rw-r--r--+ 1 agent agent 35109201 Oct  3 09:14 tools/gomad3/.toolchain/downloads/go1.27.1.src.tar.gz
+tools/gomad3/README.md:14:`darwin/arm64` and `linux/amd64`, the platforms the boundary manifest names.
+tools/gomad3/README.md:409:platform. On darwin/arm64 all twenty-eight workloads are expected to qualify;
+tools/gomad3/README.md:410:nine of the package workloads build with the `gomad` tag. On linux/amd64 five
+tools/gomad3/README.md:413:admit their facts are scoped to darwin/arm64, and the thirteen tier 3 workloads
+tools/gomad3/README.md:670:platforms: on darwin it models the libc functions themselves, on linux/amd64 it
+tools/gomad3/README.md:836:linux/amd64, the FIPS `monoTime` input is host monotonic time when FIPS mode is
+tools/gomad3/README.md:839:reader only when they link `crypto/rand`. On darwin/arm64 the monotonic input
+tools/gomad3/README.md:841:wall time on both platforms and host monotonic time on linux/amd64, although
+tools/gomad3/README.md:849:On linux/amd64, `cputicks` reads host cycle counts with `RDTSC` or `RDTSCP`.
+tools/gomad3/README.md:854:read is unused. On darwin/arm64 `cputicks` uses the virtual monotonic clock.
+tools/gomad3/README.md:858:random draw; its downstream effects on linux/amd64 remain an open finding.
+tools/gomad3/README.md:911:`darwin/arm64` and `linux/amd64` hosts. Enabled cgo or externally linked binaries fail before package
+tools/gomad3/README.md:937:  linux/amd64.
+tools/gomad3/README.md:964:dispatched run on each platform supplies the native bound, and linux/amd64
+tools/gomad3/README.md:992:a hundred of a functional suite diverged on darwin/arm64. A garbage-collector
+tools/gomad3/README.md:1014:are a merged candidate whose native darwin/arm64 and linux/amd64 gates have not
+tools/gomad3/README.md:1025:cluster-sized target diverged from its first collection on darwin/arm64. The
+tools/gomad3/README.md:1032:On darwin/arm64 an activated target re-executes itself once with ASLR
+tools/gomad3/README.md:1033:disabled before runtime initialization continues. The darwin/arm64 linker
+tools/gomad3/README.md:1043:the attribute fails the target closed instead of looping. linux/amd64 targets
+tools/gomad3/README.md:1183:of the Temporal functional test package reaches on linux/amd64; with the
+tools/gomad3/README.md:1186:On darwin/arm64 `temporal-functional-compute-darwin-arm64` admits the arm64
+tools/gomad3/README.md:1422:reaching it. linux/amd64 reads the clock through the vDSO, which a syscall
+tools/gomad3/ARCHITECTURE.md:18:`darwin/arm64` and `linux/amd64`; artifacts replay only on their recorded
+tools/gomad3/ARCHITECTURE.md:867:`darwin/arm64` and `linux/amd64`. The macOS sandbox test and privileged DTrace
+tools/gomad3/ARCHITECTURE.md:880:files, and nested modules for the `darwin/arm64` and `linux/amd64` source sets
+tools/gomad3/SPEC.md:176:The complete Runner and deterministic-interaction contract must be available only on explicitly qualified platform bundles; the current qualified bundles are `darwin/arm64` and `linux/amd64`. An unsupported host must be rejected before Gomad claims deterministic execution or begins a platform-specific toolchain build.
+tools/gomad3/SPEC.md:281:- Enabling block or mutex profiling is outside the determinism guarantee: host-dependent contention timing and profile sampling can change random draws, profile allocations, and subsequent runtime state, especially on linux/amd64.
+Task: fn-105-gomad-follow-ups-deferred-scope.5
+Spec: fn-105-gomad-follow-ups-deferred-scope
+Title: D5: reconcile architecture, platform, and determinism documentation
+Status: blocked
+Depends on: none
+Spec: .flow/tasks/fn-105-gomad-follow-ups-deferred-scope.5.md
+Tasks for fn-111-gomad-consolidate-vocabulary-and-update (3):
+
+  [done] fn-111-gomad-consolidate-vocabulary-and-update.1: Verify canonical vocabulary and preserve semantic identifiers
+  [done] fn-111-gomad-consolidate-vocabulary-and-update.2: Reconcile guides and retain documentation acceptance evidence (deps: fn-111-gomad-consolidate-vocabulary-and-update.1)
+  [done] fn-111-gomad-consolidate-vocabulary-and-update.3: Refresh documentation acceptance against current behavior (deps: fn-111-gomad-consolidate-vocabulary-and-update.2)
+{
+  "success": true,
+  "assignee": "stephanos@users.noreply.github.com",
+  "claim_note": "Documentation-only source admission under MILESTONES item 4 after integrated task-19 independent source review/fix chain and fresh frozen-source verification; see task-20/source-admission.md. Override dependency for source progress only. Task 19 formal review/native gates remain blocked; no acceptance waiver. Root sole committer and lifecycle owner.",
+  "claimed_at": "2026-10-04T08:36:26.130646Z",
+  "created_at": "2026-10-01T01:09:58.149467Z",
+  "depends_on": [
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.19"
+  ],
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.20",
+  "priority": null,
+  "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.20.md",
+  "status": "in_progress",
+  "title": "Reconcile architectural guidance with the delivered owners and interfaces (fulfils fn-105.5 D5)",
+  "updated_at": "2026-10-04T08:36:26.130557Z",
+  "impl": null,
+  "review": null,
+  "sync": null,
+  "status_source": "flow-state"
+}

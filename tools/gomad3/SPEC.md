@@ -205,6 +205,14 @@ Gomad must review the Target's reachable dependencies and host-capability bounda
 
 Capability analysis must support source-closure review and linked-program review without launching the Target. Linked review must fail closed if its build identity or reachability evidence cannot be validated.
 
+Capability support describes coverage of a Target's active requirements by the
+reviewed boundary. Same-seed repeatability requires equal evidence from fresh
+independent Executions. Exact runtime Choice replay requires a complete retained
+Decision Tape, validated consumption, and matching terminal evidence. CI
+expectation matching compares a report with its declared dispositions and may
+accept an unsupported or divergent result. These are separate claims; one must
+not be reported as evidence for another.
+
 Closure capability mode performs dependency review without compiling `-gomadguard` guards; an exact compatibility-pack admission does not make host operations deterministic, and admitted code must stay within the declared deterministic boundaries. Only guarded mode compiles the guards.
 
 ### [TARGET.PROVENANCE] Executable Provenance

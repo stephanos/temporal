@@ -1,0 +1,8 @@
+{
+  "task_title": "Independent correctness review of task 20's frozen guidance",
+  "task_body": "Read-only review of the six task-20 documentation diffs against c656d9c61c269cc62684c39031732c029d45fbf7 and current source. Check requirements, final owner/API names, exact caller migrations, four distinct qualification claims, backend fidelity, bounded checker guarantees, residual findings and honest source-only status. No formal verdict, lifecycle, source edit, broad tests or native waiver.",
+  "acceptance": "Findings have exact file/line and source/requirement evidence; independent review supports or blocks a documentation source checkpoint only. Verify frozen document hashes before/after.",
+  "touches_count": 1,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}
