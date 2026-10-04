@@ -156,13 +156,12 @@ func (cluster *inProcessCluster) resolveFaultLocked(ordinal uint64, action Fault
 		if node == nil || action.Match.Node != "" && action.Match.Node != nodeID {
 			return FaultRealization{}, ErrFaultInapplicable
 		}
-		switch action.Kind {
-		case FaultGracefulStop, FaultHarshCrash:
+		if action.Kind != FaultRestart {
 			if node.state != NodeStateRunning || node.operation != nil {
 				return FaultRealization{}, ErrFaultInapplicable
 			}
 			realization.Target = node.handle
-		case FaultRestart:
+		} else {
 			if node.operation != nil || node.state != NodeStateStopped && node.state != NodeStateCrashed && node.state != NodeStateExited && node.state != NodeStateFailed {
 				return FaultRealization{}, ErrFaultInapplicable
 			}

@@ -1,0 +1,400 @@
+=== RUN   TestResolveFaultLifecycleStates
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/defined/busy=false
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/defined/busy=true
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/running/busy=false
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/running/busy=true
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/exited/busy=false
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/exited/busy=true
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/stopped/busy=false
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/stopped/busy=true
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/crashed/busy=false
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/crashed/busy=true
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/failed/busy=false
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/failed/busy=true
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/defined/busy=false
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/defined/busy=true
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/running/busy=false
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/running/busy=true
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/exited/busy=false
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/exited/busy=true
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/stopped/busy=false
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/stopped/busy=true
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/crashed/busy=false
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/crashed/busy=true
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/failed/busy=false
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/failed/busy=true
+=== RUN   TestResolveFaultLifecycleStates/restart/defined/busy=false
+=== RUN   TestResolveFaultLifecycleStates/restart/defined/busy=true
+=== RUN   TestResolveFaultLifecycleStates/restart/running/busy=false
+=== RUN   TestResolveFaultLifecycleStates/restart/running/busy=true
+=== RUN   TestResolveFaultLifecycleStates/restart/exited/busy=false
+=== RUN   TestResolveFaultLifecycleStates/restart/exited/busy=true
+=== RUN   TestResolveFaultLifecycleStates/restart/stopped/busy=false
+=== RUN   TestResolveFaultLifecycleStates/restart/stopped/busy=true
+=== RUN   TestResolveFaultLifecycleStates/restart/crashed/busy=false
+=== RUN   TestResolveFaultLifecycleStates/restart/crashed/busy=true
+=== RUN   TestResolveFaultLifecycleStates/restart/failed/busy=false
+=== RUN   TestResolveFaultLifecycleStates/restart/failed/busy=true
+--- PASS: TestResolveFaultLifecycleStates (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/defined/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/defined/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/running/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/running/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/exited/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/exited/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/stopped/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/stopped/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/crashed/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/crashed/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/failed/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/failed/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/defined/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/defined/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/running/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/running/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/exited/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/exited/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/stopped/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/stopped/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/crashed/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/crashed/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/failed/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/failed/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/defined/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/defined/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/running/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/running/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/exited/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/exited/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/stopped/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/stopped/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/crashed/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/crashed/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/failed/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/failed/busy=true (0.00s)
+=== RUN   TestResolveFaultLifecycleTargets
+=== RUN   TestResolveFaultLifecycleTargets/explicit_stop
+=== RUN   TestResolveFaultLifecycleTargets/explicit_crash_match
+=== RUN   TestResolveFaultLifecycleTargets/restart_matches_next_incarnation
+=== RUN   TestResolveFaultLifecycleTargets/missing_node
+=== RUN   TestResolveFaultLifecycleTargets/wrong_match_node
+=== RUN   TestResolveFaultLifecycleTargets/wrong_stop_incarnation
+=== RUN   TestResolveFaultLifecycleTargets/restart_rejects_current_incarnation
+=== RUN   TestResolveFaultLifecycleTargets/candidate_crash
+=== RUN   TestResolveFaultLifecycleTargets/candidate_restart
+=== RUN   TestResolveFaultLifecycleTargets/prior_restart
+=== RUN   TestResolveFaultLifecycleTargets/missing_prior
+=== RUN   TestResolveFaultLifecycleTargets/prior_overrides_explicit_node
+=== RUN   TestResolveFaultLifecycleTargets/unresolved_prior_retains_explicit_node
+--- PASS: TestResolveFaultLifecycleTargets (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/explicit_stop (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/explicit_crash_match (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/restart_matches_next_incarnation (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/missing_node (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/wrong_match_node (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/wrong_stop_incarnation (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/restart_rejects_current_incarnation (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/candidate_crash (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/candidate_restart (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/prior_restart (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/missing_prior (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/prior_overrides_explicit_node (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/unresolved_prior_retains_explicit_node (0.00s)
+=== RUN   TestResolveFaultOuterControls
+=== RUN   TestResolveFaultOuterControls/disconnect/missing=false
+=== RUN   TestResolveFaultOuterControls/disconnect/missing=true
+=== RUN   TestResolveFaultOuterControls/reconnect/missing=false
+=== RUN   TestResolveFaultOuterControls/reconnect/missing=true
+=== RUN   TestResolveFaultOuterControls/delay/missing=false
+=== RUN   TestResolveFaultOuterControls/delay/missing=true
+=== RUN   TestResolveFaultOuterControls/partition/missing=false
+=== RUN   TestResolveFaultOuterControls/partition/missing=true
+=== RUN   TestResolveFaultOuterControls/heal/missing=false
+=== RUN   TestResolveFaultOuterControls/heal/missing=true
+=== RUN   TestResolveFaultOuterControls/unknown/missing=false
+=== RUN   TestResolveFaultOuterControls/unknown/missing=true
+--- PASS: TestResolveFaultOuterControls (0.00s)
+    --- PASS: TestResolveFaultOuterControls/disconnect/missing=false (0.00s)
+    --- PASS: TestResolveFaultOuterControls/disconnect/missing=true (0.00s)
+    --- PASS: TestResolveFaultOuterControls/reconnect/missing=false (0.00s)
+    --- PASS: TestResolveFaultOuterControls/reconnect/missing=true (0.00s)
+    --- PASS: TestResolveFaultOuterControls/delay/missing=false (0.00s)
+    --- PASS: TestResolveFaultOuterControls/delay/missing=true (0.00s)
+    --- PASS: TestResolveFaultOuterControls/partition/missing=false (0.00s)
+    --- PASS: TestResolveFaultOuterControls/partition/missing=true (0.00s)
+    --- PASS: TestResolveFaultOuterControls/heal/missing=false (0.00s)
+    --- PASS: TestResolveFaultOuterControls/heal/missing=true (0.00s)
+    --- PASS: TestResolveFaultOuterControls/unknown/missing=false (0.00s)
+    --- PASS: TestResolveFaultOuterControls/unknown/missing=true (0.00s)
+=== RUN   TestExplorationIdentitiesMatchRunnerIssuedPlanVector
+=== RUN   TestExplorationIdentitiesMatchRunnerIssuedPlanVector/root
+=== RUN   TestExplorationIdentitiesMatchRunnerIssuedPlanVector/forced
+--- PASS: TestExplorationIdentitiesMatchRunnerIssuedPlanVector (0.00s)
+    --- PASS: TestExplorationIdentitiesMatchRunnerIssuedPlanVector/root (0.00s)
+    --- PASS: TestExplorationIdentitiesMatchRunnerIssuedPlanVector/forced (0.00s)
+=== RUN   TestExplorationPlanCanonicalRoundTripAndDetachedInput
+--- PASS: TestExplorationPlanCanonicalRoundTripAndDetachedInput (0.00s)
+=== RUN   TestExplorationPlanRejectsChangedForcedDecisionIdentity
+--- PASS: TestExplorationPlanRejectsChangedForcedDecisionIdentity (0.00s)
+=== RUN   TestExplorationForcedMismatchProducesValidDivergenceEvidence
+--- PASS: TestExplorationForcedMismatchProducesValidDivergenceEvidence (0.00s)
+=== RUN   TestNonExplorationDivergenceRejectsExplorationEvidence
+--- PASS: TestNonExplorationDivergenceRejectsExplorationEvidence (0.00s)
+=== RUN   TestExplorationEvidenceProvesOnlyTheOverridesTheClusterDecides
+--- PASS: TestExplorationEvidenceProvesOnlyTheOverridesTheClusterDecides (0.00s)
+=== RUN   TestRuntimeExplorationOverrideIsCompletedByHostController
+--- PASS: TestRuntimeExplorationOverrideIsCompletedByHostController (0.00s)
+=== RUN   TestFaultPlanCanonicalRoundTripAndDetachedInputs
+--- PASS: TestFaultPlanCanonicalRoundTripAndDetachedInputs (0.00s)
+=== RUN   TestFaultPlanIdentityChangesWithEverySemanticField
+=== RUN   TestFaultPlanIdentityChangesWithEverySemanticField/model
+=== RUN   TestFaultPlanIdentityChangesWithEverySemanticField/resource
+=== RUN   TestFaultPlanIdentityChangesWithEverySemanticField/from
+=== RUN   TestFaultPlanIdentityChangesWithEverySemanticField/to
+=== RUN   TestFaultPlanIdentityChangesWithEverySemanticField/id
+=== RUN   TestFaultPlanIdentityChangesWithEverySemanticField/incarnation
+=== RUN   TestFaultPlanIdentityChangesWithEverySemanticField/operation
+=== RUN   TestFaultPlanIdentityChangesWithEverySemanticField/occurrence
+=== RUN   TestFaultPlanIdentityChangesWithEverySemanticField/phase
+=== RUN   TestFaultPlanIdentityChangesWithEverySemanticField/equivalence
+=== RUN   TestFaultPlanIdentityChangesWithEverySemanticField/kind
+=== RUN   TestFaultPlanIdentityChangesWithEverySemanticField/node
+=== RUN   TestFaultPlanIdentityChangesWithEverySemanticField/class
+--- PASS: TestFaultPlanIdentityChangesWithEverySemanticField (0.00s)
+    --- PASS: TestFaultPlanIdentityChangesWithEverySemanticField/model (0.00s)
+    --- PASS: TestFaultPlanIdentityChangesWithEverySemanticField/resource (0.00s)
+    --- PASS: TestFaultPlanIdentityChangesWithEverySemanticField/from (0.00s)
+    --- PASS: TestFaultPlanIdentityChangesWithEverySemanticField/to (0.00s)
+    --- PASS: TestFaultPlanIdentityChangesWithEverySemanticField/id (0.00s)
+    --- PASS: TestFaultPlanIdentityChangesWithEverySemanticField/incarnation (0.00s)
+    --- PASS: TestFaultPlanIdentityChangesWithEverySemanticField/operation (0.00s)
+    --- PASS: TestFaultPlanIdentityChangesWithEverySemanticField/occurrence (0.00s)
+    --- PASS: TestFaultPlanIdentityChangesWithEverySemanticField/phase (0.00s)
+    --- PASS: TestFaultPlanIdentityChangesWithEverySemanticField/equivalence (0.00s)
+    --- PASS: TestFaultPlanIdentityChangesWithEverySemanticField/kind (0.00s)
+    --- PASS: TestFaultPlanIdentityChangesWithEverySemanticField/node (0.00s)
+    --- PASS: TestFaultPlanIdentityChangesWithEverySemanticField/class (0.00s)
+=== RUN   TestFaultPlanIdentityBindsPriorTargetReference
+--- PASS: TestFaultPlanIdentityBindsPriorTargetReference (0.00s)
+=== RUN   TestFaultMatchingTreatsEmptyFieldsAsWildcards
+--- PASS: TestFaultMatchingTreatsEmptyFieldsAsWildcards (0.00s)
+=== RUN   TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput
+=== RUN   TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput/mixed_target_modes
+=== RUN   TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput/unsorted_candidates
+=== RUN   TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput/partition_overlap
+=== RUN   TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput/unknown_kind
+=== RUN   TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput/missing_target
+=== RUN   TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput/direction_self_link
+=== RUN   TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput/delay_without_value
+--- PASS: TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput (0.00s)
+    --- PASS: TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput/mixed_target_modes (0.00s)
+    --- PASS: TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput/unsorted_candidates (0.00s)
+    --- PASS: TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput/partition_overlap (0.00s)
+    --- PASS: TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput/unknown_kind (0.00s)
+    --- PASS: TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput/missing_target (0.00s)
+    --- PASS: TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput/direction_self_link (0.00s)
+    --- PASS: TestFaultPlanRejectsInvalidShapesAndNonCanonicalInput/delay_without_value (0.00s)
+=== RUN   TestFaultPlanCapacity
+--- PASS: TestFaultPlanCapacity (0.00s)
+=== RUN   TestInspectClusterRecordProducesStableJSONAndTextProjection
+--- PASS: TestInspectClusterRecordProducesStableJSONAndTextProjection (0.00s)
+=== RUN   TestInspectClusterRecordRejectsInvalidEvidence
+--- PASS: TestInspectClusterRecordRejectsInvalidEvidence (0.00s)
+=== RUN   TestStateInvariantFailureIdentityIsSeedIndependent
+--- PASS: TestStateInvariantFailureIdentityIsSeedIndependent (0.00s)
+=== RUN   TestExactHistoryAndDuplicateLostOracles
+--- PASS: TestExactHistoryAndDuplicateLostOracles (0.00s)
+=== RUN   TestEventualConvergenceAndOracleEvidenceBounds
+--- PASS: TestEventualConvergenceAndOracleEvidenceBounds (0.00s)
+=== RUN   TestHistoryValidationRejectsMutableOrAmbiguousOperations
+--- PASS: TestHistoryValidationRejectsMutableOrAmbiguousOperations (0.00s)
+=== RUN   TestClusterRecordCanonicalRoundTripIncludesLimitsAndLimitations
+--- PASS: TestClusterRecordCanonicalRoundTripIncludesLimitsAndLimitations (0.00s)
+=== RUN   TestClusterRecordRejectsInconsistentOutputBeforeIdentity
+--- PASS: TestClusterRecordRejectsInconsistentOutputBeforeIdentity (0.00s)
+=== RUN   TestProcessClusterEvidenceRejectsInProcessLeakDiagnostics
+--- PASS: TestProcessClusterEvidenceRejectsInProcessLeakDiagnostics (0.00s)
+=== RUN   TestDecodeClusterRecordRejectsUnknownAndTrailingData
+--- PASS: TestDecodeClusterRecordRejectsUnknownAndTrailingData (0.00s)
+=== RUN   TestClusterRecordRejectsInvalidLifecycleAndTerminalEnums
+=== RUN   TestClusterRecordRejectsInvalidLifecycleAndTerminalEnums/transition_target
+=== RUN   TestClusterRecordRejectsInvalidLifecycleAndTerminalEnums/empty_handle
+=== RUN   TestClusterRecordRejectsInvalidLifecycleAndTerminalEnums/outcome
+=== RUN   TestClusterRecordRejectsInvalidLifecycleAndTerminalEnums/node_state
+=== RUN   TestClusterRecordRejectsInvalidLifecycleAndTerminalEnums/action
+=== RUN   TestClusterRecordRejectsInvalidLifecycleAndTerminalEnums/transition_source
+--- PASS: TestClusterRecordRejectsInvalidLifecycleAndTerminalEnums (0.00s)
+    --- PASS: TestClusterRecordRejectsInvalidLifecycleAndTerminalEnums/transition_target (0.00s)
+    --- PASS: TestClusterRecordRejectsInvalidLifecycleAndTerminalEnums/empty_handle (0.00s)
+    --- PASS: TestClusterRecordRejectsInvalidLifecycleAndTerminalEnums/outcome (0.00s)
+    --- PASS: TestClusterRecordRejectsInvalidLifecycleAndTerminalEnums/node_state (0.00s)
+    --- PASS: TestClusterRecordRejectsInvalidLifecycleAndTerminalEnums/action (0.00s)
+    --- PASS: TestClusterRecordRejectsInvalidLifecycleAndTerminalEnums/transition_source (0.00s)
+=== RUN   TestValidateSpecRejectsReplayPlanContentWithStaleIdentity
+--- PASS: TestValidateSpecRejectsReplayPlanContentWithStaleIdentity (0.00s)
+=== RUN   TestClusterRecordRejectsCorruptVolumeTransitionAndSnapshotIdentities
+--- PASS: TestClusterRecordRejectsCorruptVolumeTransitionAndSnapshotIdentities (0.00s)
+=== RUN   TestClusterRecordV5IncludesControllerEvidenceAndStaticIdentities
+--- PASS: TestClusterRecordV5IncludesControllerEvidenceAndStaticIdentities (0.00s)
+=== RUN   TestClusterRecordRejectsCorruptControllerEvidenceBeforeOuterIdentity
+=== RUN   TestClusterRecordRejectsCorruptControllerEvidenceBeforeOuterIdentity/model_identity
+=== RUN   TestClusterRecordRejectsCorruptControllerEvidenceBeforeOuterIdentity/fault_plan
+=== RUN   TestClusterRecordRejectsCorruptControllerEvidenceBeforeOuterIdentity/fault
+=== RUN   TestClusterRecordRejectsCorruptControllerEvidenceBeforeOuterIdentity/static_identity
+--- PASS: TestClusterRecordRejectsCorruptControllerEvidenceBeforeOuterIdentity (0.00s)
+    --- PASS: TestClusterRecordRejectsCorruptControllerEvidenceBeforeOuterIdentity/model_identity (0.00s)
+    --- PASS: TestClusterRecordRejectsCorruptControllerEvidenceBeforeOuterIdentity/fault_plan (0.00s)
+    --- PASS: TestClusterRecordRejectsCorruptControllerEvidenceBeforeOuterIdentity/fault (0.00s)
+    --- PASS: TestClusterRecordRejectsCorruptControllerEvidenceBeforeOuterIdentity/static_identity (0.00s)
+=== RUN   TestBootRegistry
+--- PASS: TestBootRegistry (0.00s)
+=== RUN   TestBootRegistryConcurrentRegistration
+--- PASS: TestBootRegistryConcurrentRegistration (0.00s)
+=== RUN   TestRuntimeDomainBridgeFingerprints
+--- PASS: TestRuntimeDomainBridgeFingerprints (0.00s)
+=== RUN   TestRunFailsClosedWithoutPinnedRuntime
+--- PASS: TestRunFailsClosedWithoutPinnedRuntime (0.00s)
+=== RUN   TestRunRejectsUnavailableProcessBackendBeforeScenario
+--- PASS: TestRunRejectsUnavailableProcessBackendBeforeScenario (0.00s)
+=== RUN   TestRuntimeNetworkWireRecordRoundTrip
+--- PASS: TestRuntimeNetworkWireRecordRoundTrip (0.00s)
+=== RUN   TestRuntimeNetworkWireRejectsMalformedInput
+--- PASS: TestRuntimeNetworkWireRejectsMalformedInput (0.00s)
+=== RUN   TestProcessFrameRoundTripAndStrictDecode
+--- PASS: TestProcessFrameRoundTripAndStrictDecode (0.00s)
+=== RUN   TestProcessActivationFramesAreValid
+--- PASS: TestProcessActivationFramesAreValid (0.00s)
+=== RUN   TestProcessExplorationFramesAreValid
+--- PASS: TestProcessExplorationFramesAreValid (0.00s)
+=== RUN   TestRuntimeVolumeWireRecordRoundTrip
+--- PASS: TestRuntimeVolumeWireRecordRoundTrip (0.00s)
+=== RUN   TestRuntimeVolumeWireEnumerationAndFrontierRoundTrip
+--- PASS: TestRuntimeVolumeWireEnumerationAndFrontierRoundTrip (0.00s)
+=== RUN   TestRuntimeVolumeWireRejectsMalformedInput
+--- PASS: TestRuntimeVolumeWireRejectsMalformedInput (0.00s)
+=== RUN   TestScenarioChoicePlanCanonicalRoundTripAndDetachedInput
+--- PASS: TestScenarioChoicePlanCanonicalRoundTripAndDetachedInput (0.00s)
+=== RUN   TestScenarioChoicePlanRejectsInvalidRankBoundOverrides
+=== RUN   TestScenarioChoicePlanRejectsInvalidRankBoundOverrides/duplicate_ordinal
+=== RUN   TestScenarioChoicePlanRejectsInvalidRankBoundOverrides/zero_occurrence
+=== RUN   TestScenarioChoicePlanRejectsInvalidRankBoundOverrides/non-choice
+=== RUN   TestScenarioChoicePlanRejectsInvalidRankBoundOverrides/rank_overflow
+--- PASS: TestScenarioChoicePlanRejectsInvalidRankBoundOverrides (0.00s)
+    --- PASS: TestScenarioChoicePlanRejectsInvalidRankBoundOverrides/duplicate_ordinal (0.00s)
+    --- PASS: TestScenarioChoicePlanRejectsInvalidRankBoundOverrides/zero_occurrence (0.00s)
+    --- PASS: TestScenarioChoicePlanRejectsInvalidRankBoundOverrides/non-choice (0.00s)
+    --- PASS: TestScenarioChoicePlanRejectsInvalidRankBoundOverrides/rank_overflow (0.00s)
+=== RUN   TestScenarioSequenceAndRepeatRecordStableActions
+--- PASS: TestScenarioSequenceAndRepeatRecordStableActions (0.00s)
+=== RUN   TestScenarioChooseIsDomainSeparatedAndReplayable
+--- PASS: TestScenarioChooseIsDomainSeparatedAndReplayable (0.00s)
+=== RUN   TestScenarioBoundedParallelHonorsLimitAndReturnsStableFirstError
+--- PASS: TestScenarioBoundedParallelHonorsLimitAndReturnsStableFirstError (0.00s)
+=== RUN   TestScenarioConstructorsRejectInvalidInputsBeforeExecution
+--- PASS: TestScenarioConstructorsRejectInvalidInputsBeforeExecution (0.00s)
+=== RUN   TestValidateSpec
+--- PASS: TestValidateSpec (0.00s)
+=== RUN   TestValidateSpecRejectsInvalidStructure
+=== RUN   TestValidateSpecRejectsInvalidStructure/duplicate_node
+=== RUN   TestValidateSpecRejectsInvalidStructure/invalid_boot_ID
+=== RUN   TestValidateSpecRejectsInvalidStructure/invalid_address
+=== RUN   TestValidateSpecRejectsInvalidStructure/unsorted_volumes
+=== RUN   TestValidateSpecRejectsInvalidStructure/relative_mount
+=== RUN   TestValidateSpecRejectsInvalidStructure/backend
+=== RUN   TestValidateSpecRejectsInvalidStructure/unsorted_nodes
+=== RUN   TestValidateSpecRejectsInvalidStructure/unsorted_links
+=== RUN   TestValidateSpecRejectsInvalidStructure/self_link
+=== RUN   TestValidateSpecRejectsInvalidStructure/zero_volume_capacity
+=== RUN   TestValidateSpecRejectsInvalidStructure/nul_mount
+=== RUN   TestValidateSpecRejectsInvalidStructure/schema
+=== RUN   TestValidateSpecRejectsInvalidStructure/fidelity
+=== RUN   TestValidateSpecRejectsInvalidStructure/hard_isolation_in_process
+=== RUN   TestValidateSpecRejectsInvalidStructure/zero_configured_limit
+=== RUN   TestValidateSpecRejectsInvalidStructure/invalid_node_ID
+=== RUN   TestValidateSpecRejectsInvalidStructure/mapped_duplicate_address
+=== RUN   TestValidateSpecRejectsInvalidStructure/unknown_link_node
+=== RUN   TestValidateSpecRejectsInvalidStructure/unclean_mount
+=== RUN   TestValidateSpecRejectsInvalidStructure/duplicate_address
+=== RUN   TestValidateSpecRejectsInvalidStructure/unknown_mounted_volume
+=== RUN   TestValidateSpecRejectsInvalidStructure/oversized_mount
+=== RUN   TestValidateSpecRejectsInvalidStructure/duplicate_mount_path
+=== RUN   TestValidateSpecRejectsInvalidStructure/configured_limit_above_maximum
+--- PASS: TestValidateSpecRejectsInvalidStructure (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/duplicate_node (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/invalid_boot_ID (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/invalid_address (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/unsorted_volumes (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/relative_mount (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/backend (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/unsorted_nodes (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/unsorted_links (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/self_link (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/zero_volume_capacity (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/nul_mount (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/schema (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/fidelity (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/hard_isolation_in_process (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/zero_configured_limit (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/invalid_node_ID (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/mapped_duplicate_address (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/unknown_link_node (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/unclean_mount (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/duplicate_address (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/unknown_mounted_volume (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/oversized_mount (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/duplicate_mount_path (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidStructure/configured_limit_above_maximum (0.00s)
+=== RUN   TestSpecJSONFieldNames
+--- PASS: TestSpecJSONFieldNames (0.00s)
+=== RUN   TestValidateSpecAllowsZeroSeed
+--- PASS: TestValidateSpecAllowsZeroSeed (0.00s)
+=== RUN   TestDecodeSpec
+--- PASS: TestDecodeSpec (0.00s)
+=== RUN   TestDecodeSpecAllowsMaximumMountShape
+--- PASS: TestDecodeSpecAllowsMaximumMountShape (0.00s)
+=== RUN   TestValidateSpecCapacityErrors
+=== RUN   TestValidateSpecCapacityErrors/nodes
+=== RUN   TestValidateSpecCapacityErrors/links
+=== RUN   TestValidateSpecCapacityErrors/volumes
+=== RUN   TestValidateSpecCapacityErrors/boot_config
+=== RUN   TestValidateSpecCapacityErrors/volume_capacity
+--- PASS: TestValidateSpecCapacityErrors (0.00s)
+    --- PASS: TestValidateSpecCapacityErrors/nodes (0.00s)
+    --- PASS: TestValidateSpecCapacityErrors/links (0.00s)
+    --- PASS: TestValidateSpecCapacityErrors/volumes (0.00s)
+    --- PASS: TestValidateSpecCapacityErrors/boot_config (0.00s)
+    --- PASS: TestValidateSpecCapacityErrors/volume_capacity (0.00s)
+=== RUN   TestValidateSpecRejectsInvalidFaultReferences
+=== RUN   TestValidateSpecRejectsInvalidFaultReferences/unknown_link_node
+=== RUN   TestValidateSpecRejectsInvalidFaultReferences/forward_target_reference
+=== RUN   TestValidateSpecRejectsInvalidFaultReferences/non-lifecycle_target_reference
+=== RUN   TestValidateSpecRejectsInvalidFaultReferences/unknown_target
+=== RUN   TestValidateSpecRejectsInvalidFaultReferences/unknown_candidate
+=== RUN   TestValidateSpecRejectsInvalidFaultReferences/unknown_match_node
+--- PASS: TestValidateSpecRejectsInvalidFaultReferences (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidFaultReferences/unknown_link_node (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidFaultReferences/forward_target_reference (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidFaultReferences/non-lifecycle_target_reference (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidFaultReferences/unknown_target (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidFaultReferences/unknown_candidate (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidFaultReferences/unknown_match_node (0.00s)
+=== RUN   TestValidateSpecRejectsInvalidReplayPlan
+=== RUN   TestValidateSpecRejectsInvalidReplayPlan/spec_identity
+=== RUN   TestValidateSpecRejectsInvalidReplayPlan/plan_identity
+=== RUN   TestValidateSpecRejectsInvalidReplayPlan/outcome
+=== RUN   TestValidateSpecRejectsInvalidReplayPlan/transition
+=== RUN   TestValidateSpecRejectsInvalidReplayPlan/output
+=== RUN   TestValidateSpecRejectsInvalidReplayPlan/leak
+=== RUN   TestValidateSpecRejectsInvalidReplayPlan/schema
+--- PASS: TestValidateSpecRejectsInvalidReplayPlan (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidReplayPlan/spec_identity (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidReplayPlan/plan_identity (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidReplayPlan/outcome (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidReplayPlan/transition (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidReplayPlan/output (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidReplayPlan/leak (0.00s)
+    --- PASS: TestValidateSpecRejectsInvalidReplayPlan/schema (0.00s)
+=== RUN   TestCapacityErrorSupportsErrorsIs
+--- PASS: TestCapacityErrorSupportsErrorsIs (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3sim	0.012s

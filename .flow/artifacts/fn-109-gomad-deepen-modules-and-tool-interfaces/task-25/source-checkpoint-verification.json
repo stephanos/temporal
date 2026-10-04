@@ -1,0 +1,55 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.25",
+  "base_commit": "ff7da7419bbc8321dd4004e58249bb149ffd31df",
+  "purpose": "root precommit source-progress verification, not qualification/SHIP",
+  "fresh_package": {
+    "cmd": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOMAD3_SEED -u LINT_TEST_BASE_REV GOENV=off GOFLAGS= GOWORK=off GOTOOLCHAIN=local GOMAXPROCS=2 LINT_POLICY_GOLANGCI=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin go test -count=1 -tags test_dep ./tools/gomad3sim",
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "result": {
+      "chunk_id": "54070e",
+      "wall_time_seconds": 0.588005958,
+      "exit_code": 0,
+      "original_token_count": 13,
+      "output": "ok  \tgo.temporal.io/server/tools/gomad3sim\t0.012s\n"
+    }
+  },
+  "source_freeze": {
+    "path": "final-source.sha256",
+    "entries": 66,
+    "exit": 0
+  },
+  "flow_validation": {
+    "tasks": 25,
+    "exit": 0,
+    "errors": [],
+    "warnings": []
+  },
+  "independent_reports": {
+    "review_sha256": "be7a3c51347cd727301eb387a4bf706f2867a4a4ef72191e62bb27af51ab8e3b",
+    "checks_sha256": "64a765900add5c59c55433d3fe9aa82e9521082c495c4d075eb07bfa7e2c5e15",
+    "introduced_findings": 0,
+    "formal_ship": false
+  },
+  "remaining": [
+    "root-fast Make2 after root ordinary and integration scopes pass;419exactnested findings",
+    "^.git reporting limitation",
+    "original R18/R19/task21/formal/native/workload-default acceptance incomplete"
+  ],
+  "continuation_precommit_recheck": {
+    "package_exit": 0,
+    "package_output": "ok go.temporal.io/server/tools/gomad3sim 0.031s",
+    "tool_wall_seconds": 0.385656501,
+    "chunk_id": "46e95d",
+    "source_freeze_entries": 66,
+    "source_freeze_exit": 0
+  },
+  "staged_diff_checks": {
+    "owned_paths": 40,
+    "unexpected_paths": [],
+    "full_exit": 2,
+    "full_diagnostics": "Immutable characterization-before.log raw failure whitespace, plus Flow-authored parent spec blank line at EOF.",
+    "authored_command": "git -c core.whitespace=-blank-at-eof diff --cached --check -- . ':!*.log'",
+    "authored_exit": 0,
+    "raw_evidence_modified": false
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "observed_count": 419,
+  "retained_count": 419,
+  "exact_entries_match": true,
+  "retained_inventory": "../task-24/gomad-findings.json",
+  "retained_owners": "../task-24/gomad-finding-owners.json",
+  "source_log": "root-fast.log",
+  "source_freeze": "final-source.sha256",
+  "owner_count": 31
+}

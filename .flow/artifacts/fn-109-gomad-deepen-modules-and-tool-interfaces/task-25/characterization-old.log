@@ -1,0 +1,130 @@
+=== RUN   TestResolveFaultLifecycleStates
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/defined/busy=false
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/defined/busy=true
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/running/busy=false
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/running/busy=true
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/exited/busy=false
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/exited/busy=true
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/stopped/busy=false
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/stopped/busy=true
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/crashed/busy=false
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/crashed/busy=true
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/failed/busy=false
+=== RUN   TestResolveFaultLifecycleStates/graceful_stop/failed/busy=true
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/defined/busy=false
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/defined/busy=true
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/running/busy=false
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/running/busy=true
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/exited/busy=false
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/exited/busy=true
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/stopped/busy=false
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/stopped/busy=true
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/crashed/busy=false
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/crashed/busy=true
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/failed/busy=false
+=== RUN   TestResolveFaultLifecycleStates/harsh_crash/failed/busy=true
+=== RUN   TestResolveFaultLifecycleStates/restart/defined/busy=false
+=== RUN   TestResolveFaultLifecycleStates/restart/defined/busy=true
+=== RUN   TestResolveFaultLifecycleStates/restart/running/busy=false
+=== RUN   TestResolveFaultLifecycleStates/restart/running/busy=true
+=== RUN   TestResolveFaultLifecycleStates/restart/exited/busy=false
+=== RUN   TestResolveFaultLifecycleStates/restart/exited/busy=true
+=== RUN   TestResolveFaultLifecycleStates/restart/stopped/busy=false
+=== RUN   TestResolveFaultLifecycleStates/restart/stopped/busy=true
+=== RUN   TestResolveFaultLifecycleStates/restart/crashed/busy=false
+=== RUN   TestResolveFaultLifecycleStates/restart/crashed/busy=true
+=== RUN   TestResolveFaultLifecycleStates/restart/failed/busy=false
+=== RUN   TestResolveFaultLifecycleStates/restart/failed/busy=true
+--- PASS: TestResolveFaultLifecycleStates (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/defined/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/defined/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/running/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/running/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/exited/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/exited/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/stopped/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/stopped/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/crashed/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/crashed/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/failed/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/graceful_stop/failed/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/defined/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/defined/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/running/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/running/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/exited/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/exited/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/stopped/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/stopped/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/crashed/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/crashed/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/failed/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/harsh_crash/failed/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/defined/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/defined/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/running/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/running/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/exited/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/exited/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/stopped/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/stopped/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/crashed/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/crashed/busy=true (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/failed/busy=false (0.00s)
+    --- PASS: TestResolveFaultLifecycleStates/restart/failed/busy=true (0.00s)
+=== RUN   TestResolveFaultLifecycleTargets
+=== RUN   TestResolveFaultLifecycleTargets/explicit_stop
+=== RUN   TestResolveFaultLifecycleTargets/explicit_crash_match
+=== RUN   TestResolveFaultLifecycleTargets/restart_matches_next_incarnation
+=== RUN   TestResolveFaultLifecycleTargets/missing_node
+=== RUN   TestResolveFaultLifecycleTargets/wrong_match_node
+=== RUN   TestResolveFaultLifecycleTargets/wrong_stop_incarnation
+=== RUN   TestResolveFaultLifecycleTargets/restart_rejects_current_incarnation
+=== RUN   TestResolveFaultLifecycleTargets/candidate_crash
+=== RUN   TestResolveFaultLifecycleTargets/candidate_restart
+=== RUN   TestResolveFaultLifecycleTargets/prior_restart
+=== RUN   TestResolveFaultLifecycleTargets/missing_prior
+=== RUN   TestResolveFaultLifecycleTargets/prior_overrides_explicit_node
+=== RUN   TestResolveFaultLifecycleTargets/unresolved_prior_retains_explicit_node
+--- PASS: TestResolveFaultLifecycleTargets (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/explicit_stop (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/explicit_crash_match (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/restart_matches_next_incarnation (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/missing_node (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/wrong_match_node (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/wrong_stop_incarnation (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/restart_rejects_current_incarnation (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/candidate_crash (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/candidate_restart (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/prior_restart (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/missing_prior (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/prior_overrides_explicit_node (0.00s)
+    --- PASS: TestResolveFaultLifecycleTargets/unresolved_prior_retains_explicit_node (0.00s)
+=== RUN   TestResolveFaultOuterControls
+=== RUN   TestResolveFaultOuterControls/disconnect/missing=false
+=== RUN   TestResolveFaultOuterControls/disconnect/missing=true
+=== RUN   TestResolveFaultOuterControls/reconnect/missing=false
+=== RUN   TestResolveFaultOuterControls/reconnect/missing=true
+=== RUN   TestResolveFaultOuterControls/delay/missing=false
+=== RUN   TestResolveFaultOuterControls/delay/missing=true
+=== RUN   TestResolveFaultOuterControls/partition/missing=false
+=== RUN   TestResolveFaultOuterControls/partition/missing=true
+=== RUN   TestResolveFaultOuterControls/heal/missing=false
+=== RUN   TestResolveFaultOuterControls/heal/missing=true
+=== RUN   TestResolveFaultOuterControls/unknown/missing=false
+=== RUN   TestResolveFaultOuterControls/unknown/missing=true
+--- PASS: TestResolveFaultOuterControls (0.00s)
+    --- PASS: TestResolveFaultOuterControls/disconnect/missing=false (0.00s)
+    --- PASS: TestResolveFaultOuterControls/disconnect/missing=true (0.00s)
+    --- PASS: TestResolveFaultOuterControls/reconnect/missing=false (0.00s)
+    --- PASS: TestResolveFaultOuterControls/reconnect/missing=true (0.00s)
+    --- PASS: TestResolveFaultOuterControls/delay/missing=false (0.00s)
+    --- PASS: TestResolveFaultOuterControls/delay/missing=true (0.00s)
+    --- PASS: TestResolveFaultOuterControls/partition/missing=false (0.00s)
+    --- PASS: TestResolveFaultOuterControls/partition/missing=true (0.00s)
+    --- PASS: TestResolveFaultOuterControls/heal/missing=false (0.00s)
+    --- PASS: TestResolveFaultOuterControls/heal/missing=true (0.00s)
+    --- PASS: TestResolveFaultOuterControls/unknown/missing=false (0.00s)
+    --- PASS: TestResolveFaultOuterControls/unknown/missing=true (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3sim	0.003s

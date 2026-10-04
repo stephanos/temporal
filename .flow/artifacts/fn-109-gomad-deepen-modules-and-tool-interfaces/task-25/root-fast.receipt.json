@@ -1,0 +1,35 @@
+{
+  "name": "root-fast",
+  "command": [
+    "make",
+    "LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50",
+    "GOLANGCI_LINT_FIX=false",
+    "GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c",
+    "lint-code-fast"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "start": "2026-10-04T12:53:03Z",
+  "end": "2026-10-04T12:54:18Z",
+  "elapsed_seconds": 75,
+  "exit_code": 2,
+  "source_freeze": "final-source.sha256",
+  "log": "root-fast.log",
+  "stability_before_exit": 0,
+  "stability_after_exit": 0,
+  "timeout_seconds": 600,
+  "environment": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOFLAGS": "",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOMAXPROCS": "2",
+    "LINT_POLICY_GOLANGCI": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "unset": [
+      "GOMADSEED",
+      "GOMAD3_CHILD_SEED",
+      "GOMAD3_SEED",
+      "LINT_TEST_BASE_REV"
+    ]
+  }
+}

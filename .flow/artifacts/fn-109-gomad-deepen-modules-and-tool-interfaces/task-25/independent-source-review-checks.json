@@ -1,0 +1,340 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.25",
+  "assessment": "Ready for SOURCE PROGRESS COMMIT",
+  "formal_ship": false,
+  "base_sha": "ff7da7419bbc8321dd4004e58249bb149ffd31df",
+  "head_sha": "ff7da7419bbc8321dd4004e58249bb149ffd31df",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "controlled_environment_prefix": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOMAD3_SEED -u LINT_TEST_BASE_REV PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin GOENV=off GOFLAGS= GOWORK=off GOTOOLCHAIN=local GOMAXPROCS=2 LINT_POLICY_GOLANGCI=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+  "timing_notes": "Start/end are host observation timestamps bounding command execution plus tool round trips. wall_time_seconds is tool-reported wait time, not necessarily total process runtime. No yields occurred; no live sessions remain. The 1000 ms yield request is a wait limit. Package output reports 0.012 s; golangci output reports 239.935 ms.",
+  "fresh_checks": [
+    {
+      "name": "package",
+      "cmd": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOMAD3_SEED -u LINT_TEST_BASE_REV PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin GOENV=off GOFLAGS= GOWORK=off GOTOOLCHAIN=local GOMAXPROCS=2 LINT_POLICY_GOLANGCI=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 go test -count=1 -tags test_dep ./tools/gomad3sim",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "start": "2026-10-04T13:01:26.855Z",
+      "end": "2026-10-04T13:01:27.079Z",
+      "chunk_id": "41f76b",
+      "wall_time_seconds": 0.065956125,
+      "exit_code": 0,
+      "original_token_count": 13,
+      "output": "ok  \tgo.temporal.io/server/tools/gomad3sim\t0.012s\n",
+      "observed_elapsed_upper_bound_seconds": 0.224,
+      "tool_yield_limit_ms": 1000
+    },
+    {
+      "name": "golangci",
+      "cmd": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOMAD3_SEED -u LINT_TEST_BASE_REV PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin GOENV=off GOFLAGS= GOWORK=off GOTOOLCHAIN=local GOMAXPROCS=2 LINT_POLICY_GOLANGCI=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags=test_dep --timeout=10m --fix=false --config=.github/.golangci.yml ./tools/gomad3sim",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "start": "2026-10-04T13:01:27.080Z",
+      "end": "2026-10-04T13:01:27.394Z",
+      "chunk_id": "45ce7f",
+      "wall_time_seconds": 0.156709208,
+      "exit_code": 0,
+      "original_token_count": 1328,
+      "output": "level=info msg=\"golangci-lint has version 2.13.0 built with go1.27.1 from (unknown, modified: ?, mod sum: \\\"h1:n/YR8sCuTAfjwKLHOU0q63X2e4tObi1PCNOz+HXJ3cE=\\\") on (unknown)\"\nlevel=info msg=\"[config_reader] Used config file .github/.golangci.yml\"\nlevel=info msg=\"[config_reader] Module name \\\"go.temporal.io/server\\\"\"\nlevel=info msg=\"[goenv] Read go env for 1.103292ms: map[string]string{\\\"GOCACHE\\\":\\\"/home/agent/.cache/go-build\\\", \\\"GOROOT\\\":\\\"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64\\\"}\"\nlevel=info msg=\"[lintersdb] Active 13 linters: [depguard errcheck exhaustive forbidigo gci godox goimports govet importas iotamixing revive staticcheck testifylint]\"\nlevel=info msg=\"[loader] Using build tags: [test_dep]\"\nlevel=info msg=\"[loader] Go packages loading at mode 8767 (deps|exports_file|files|types_sizes|imports|name|compiled_files) took 93.021792ms\"\nlevel=info msg=\"[runner/filename_unadjuster] Pre-built 0 adjustments in 8.892875ms\"\nlevel=info msg=\"[linters_context/goanalysis] analyzers took 0s with no stages\"\nlevel=info msg=\"[runner/exclusion_paths] Skipped 0 issues by pattern \\\"^api\\\"\"\nlevel=info msg=\"[runner/exclusion_paths] Skipped 0 issues by pattern \\\"^proto\\\"\"\nlevel=info msg=\"[runner/exclusion_paths] Skipped 0 issues by pattern \\\"^.git\\\"\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \\\"Unix|UnixMilli|UnixNano\\\", Path: \\\"_test\\\\\\\\.go$\\\", Linters: \\\"forbidigo\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \\\"Eventually\\\", Path: \\\"tests/(nexus_standalone|nexus_workflow|schedule|schedule_migration)_test\\\\\\\\.go$\\\", Linters: \\\"forbidigo\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \\\"assert\\\\\\\\.CollectT\\\", Path: \\\"tests/(nexus_standalone|nexus_workflow)_test\\\\\\\\.go$\\\", Linters: \\\"forbidigo\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \\\"use of `softassert\\\\\\\\.\\\\\\\\w+`\\\", Linters: \\\"forbidigo\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 1 issues by rules: [Text: \\\"panic\\\", Path: \\\"_test\\\\\\\\.go|tests/.+\\\\\\\\.go|common/testing/\\\", Linters: \\\"forbidigo\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \\\"panic\\\", Path: \\\"chasm/lib/activity/model/.*\\\\\\\\.go$\\\", Linters: \\\"forbidigo\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \\\"ActiveInCluster\\\", Path: \\\"common/namespace/(namespace|replication_resolver)(_test)?\\\\\\\\.go$\\\", Linters: \\\"forbidigo\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \\\"(dot-imports|unchecked-type-assertion)\\\", Path: \\\"_test\\\\\\\\.go|tests/.+\\\\\\\\.go|common/testing/\\\", Linters: \\\"revive\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \\\"time.Now\\\", Path: \\\"chasm/lib/.*_test\\\\\\\\.go$\\\", Linters: \\\"forbidigo\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \\\"FunctionalTestBase\\\", Path: \\\"tests/testcore/.*\\\\\\\\.go$\\\", Linters: \\\"forbidigo\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \\\"time.Sleep\\\", Path Except: \\\"_test\\\\\\\\.go|tests/.+\\\\\\\\.go\\\", Linters: \\\"forbidigo\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \\\"context.Background\\\", Path Except: \\\"tests/.+_test\\\\\\\\.go\\\", Linters: \\\"forbidigo\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \\\"(cyclomatic|cognitive)\\\", Path: \\\"_test\\\\\\\\.go|tests/.+\\\\\\\\.go|common/testing/\\\", Linters: \\\"revive\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 63 issues by rules: [Path: \\\"^tools\\\\\\\\/.+\\\\\\\\.go\\\", Linters: \\\"revive\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \\\"SA1019: go.temporal.io/server/service/history/hsm/(callbacks|nexusoperations) is deprecated\\\", Linters: \\\"staticcheck\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \\\"time.Now\\\", Path Except: \\\"chasm/lib/.*\\\\\\\\.go$\\\", Linters: \\\"forbidigo\\\"]\"\nlevel=info msg=\"[runner/exclusion_rules] Skipped 0 issues by rules: [Text: \\\"Unix|UnixMilli|UnixNano\\\", Path Except: \\\"common/persistence/cassandra/.*\\\\\\\\.go$\\\", Linters: \\\"forbidigo\\\"]\"\nlevel=info msg=\"[runner] Issues before processing: 64, after processing: 0\"\nlevel=info msg=\"[runner] Processors filtering stat (in/out): path_absoluter: 64/64, exclusion_rules: 64/0, cgo: 64/64, path_relativity: 64/64, generated_file_filter: 64/64, filename_unadjuster: 64/64, invalid_issue: 64/64, exclusion_paths: 64/64\"\nlevel=info msg=\"[runner] processing took 1.517165ms with stages: generated_file_filter: 1.170791ms, exclusion_rules: 280.333µs, path_relativity: 34.709µs, exclusion_paths: 23.209µs, invalid_issue: 1.751µs, cgo: 1.666µs, max_same_issues: 917ns, nolint_filter: 750ns, sort_results: 667ns, path_absoluter: 541ns, filename_unadjuster: 541ns, fixer: 375ns, path_shortener: 207ns, source_code: 167ns, uniq_by_line: 125ns, diff: 124ns, max_per_file_from_linter: 84ns, severity-rules: 83ns, max_from_linter: 83ns, path_prettifier: 42ns\"\nlevel=info msg=\"[runner] linters took 135.089958ms with stages: goanalysis_metalinter: 133.540042ms\"\n0 issues.\nlevel=info msg=\"File cache stats: 0 entries of total size 0B\"\nlevel=info msg=\"Memory: 4 samples, avg is 56.4MB, max is 70.6MB\"\nlevel=info msg=\"Execution took 239.935ms\"\n",
+      "observed_elapsed_upper_bound_seconds": 0.314,
+      "tool_yield_limit_ms": 1000
+    },
+    {
+      "name": "errortype",
+      "cmd": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u GOMAD3_SEED -u LINT_TEST_BASE_REV PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin GOENV=off GOFLAGS= GOWORK=off GOTOOLCHAIN=local GOMAXPROCS=2 LINT_POLICY_GOLANGCI=/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./tools/gomad3sim",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "start": "2026-10-04T13:01:27.394Z",
+      "end": "2026-10-04T13:01:27.520Z",
+      "chunk_id": "e70005",
+      "wall_time_seconds": 0.000007583,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": "",
+      "observed_elapsed_upper_bound_seconds": 0.126,
+      "tool_yield_limit_ms": 1000
+    }
+  ],
+  "source_stability_before": {
+    "cmd": "sha256sum --check --quiet .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-25/final-source.sha256; git rev-parse HEAD; git ls-files --stage | sha256sum; git diff --cached --stat; sha256sum tools/gomad3sim/controller.go tools/gomad3sim/controller_resolution_test.go /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 /tmp/fn109-lint-tools.ZdNe1t50/errortype /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go; uname -sm",
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "start": "2026-10-04T13:01:10.737Z",
+    "end": "2026-10-04T13:01:11.711Z",
+    "chunk_id": "a10416",
+    "wall_time_seconds": 0.812388958,
+    "exit_code": 0,
+    "original_token_count": 176,
+    "output": "ff7da7419bbc8321dd4004e58249bb149ffd31df\nd3327aab0f5a159af925614cfc9afdf992edcdf6fab012cd8314f6aec4a73330  -\nfa6e7a2bb46dadc0fb70fd51b18ebf0c2d9c282872b8eba95e540936a8b6d01a  tools/gomad3sim/controller.go\n9ff4317eb69567c64f73ab2638b798eda77eff22f91dd1b0e0218465cc77621d  tools/gomad3sim/controller_resolution_test.go\nacacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc  /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0\ndb481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc  /tmp/fn109-lint-tools.ZdNe1t50/errortype\n1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64  /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\nLinux aarch64\n"
+  },
+  "source_stability_after": {
+    "cmd": "set -e\nsha256sum --check --status .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-25/final-source.sha256\ngit rev-parse HEAD\ngit ls-files --stage | sha256sum\ngit diff --cached --stat\nsha256sum tools/gomad3sim/controller.go tools/gomad3sim/controller_resolution_test.go /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 /tmp/fn109-lint-tools.ZdNe1t50/errortype /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\ngit diff --check -- tools/gomad3sim/controller.go\n/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l tools/gomad3sim/controller.go tools/gomad3sim/controller_resolution_test.go",
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "start": "2026-10-04T13:03:32.207Z",
+    "end": "2026-10-04T13:03:33.198Z",
+    "chunk_id": "c575e1",
+    "wall_time_seconds": 0.832511167,
+    "exit_code": 0,
+    "original_token_count": 172,
+    "output": "ff7da7419bbc8321dd4004e58249bb149ffd31df\nd3327aab0f5a159af925614cfc9afdf992edcdf6fab012cd8314f6aec4a73330  -\nfa6e7a2bb46dadc0fb70fd51b18ebf0c2d9c282872b8eba95e540936a8b6d01a  tools/gomad3sim/controller.go\n9ff4317eb69567c64f73ab2638b798eda77eff22f91dd1b0e0218465cc77621d  tools/gomad3sim/controller_resolution_test.go\nacacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc  /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0\ndb481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc  /tmp/fn109-lint-tools.ZdNe1t50/errortype\n1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64  /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go\n"
+  },
+  "retained_evidence_audit": {
+    "cmd": "node <<'NODE'\nconst fs=require('fs'), path=require('path'), crypto=require('crypto'), cp=require('child_process');\nconst dir='.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-25';\nconst read=p=>fs.readFileSync(p,'utf8'), hash=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex');\nconst raw=read(dir+'/root-fast.log');\nconst observed=[...raw.matchAll(/^(tools\\/gomad3\\/[^\\n:]+):(\\d+):(\\d+): (.*) \\((\\w+)\\)$/gm)].map(m=>({path:m[1],line:+m[2],column:+m[3],message:m[4],linter:m[5],owner:path.dirname(m[1])}));\nconst retained=JSON.parse(read(dir+'/../task-24/gomad-findings.json'));\nconst canon=a=>a.map(x=>JSON.stringify(x)).sort();\nconst equal=JSON.stringify(canon(observed))===JSON.stringify(canon(retained));\nconst receipts=fs.readdirSync(dir).filter(p=>p.endsWith('.receipt.json')).map(p=>{const r=JSON.parse(read(dir+'/'+p));return {path:p,sha256:hash(dir+'/'+p),command:r.command,exit:r.exit_code,elapsed_seconds:r.elapsed_seconds,stability_before:r.stability_before_exit,stability_after:r.stability_after_exit,source_freeze:r.source_freeze,log:r.log,log_sha256:hash(dir+'/'+r.log)};});\nconst freezes=Object.fromEntries(['old-source','draft-characterization-source','characterization-source','final-source'].map(n=>[n,read(dir+'/'+n+'.sha256').trim().split('\\n').map(l=>l.split(/  /))]));\nconst oldhash=crypto.createHash('sha256').update(cp.execFileSync('git',['show','HEAD:tools/gomad3sim/controller.go'])).digest('hex');\nconst freezeChanges={};for(const n of ['draft-characterization-source','characterization-source','final-source']){const previous=Object.fromEntries(freezes[n==='draft-characterization-source'?'old-source':n==='characterization-source'?'draft-characterization-source':'characterization-source'].map(([h,p])=>[p,h]));freezeChanges[n]=freezes[n].filter(([h,p])=>previous[p]!==h).map(([h,p])=>p);}\nconst go=cp.execFileSync('/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go',['version'],{encoding:'utf8'}).trim();\nconst result={observed_count:observed.length,retained_count:retained.length,exact_entries_match:equal,owner_count:new Set(observed.map(x=>x.owner)).size,receipts,source_freeze_hashes:Object.fromEntries(Object.keys(freezes).map(n=>[n+'.sha256',hash(dir+'/'+n+'.sha256')])),freeze_changes:freezeChanges,old_controller_head_hash:oldhash,old_controller_freeze_hash:freezes['old-source'].find(([,p])=>p==='tools/gomad3sim/controller.go')[0],go_version:go,root_scope_markers:raw.split('\\n').filter(l=>/lintcode|0 issues\\.|419 issues|go vet|errortype|Entering|Leaving/.test(l))};\nconsole.log(JSON.stringify(result,null,2)); if(!equal || observed.length!==419 || receipts.some(r=>r.stability_before!==0||r.stability_after!==0))process.exitCode=1;\nNODE",
+    "start": "2026-10-04T13:02:51.518Z",
+    "end": "2026-10-04T13:02:51.807Z",
+    "exit_code": 0,
+    "wall_time_seconds": 0.130104583,
+    "result": {
+      "observed_count": 419,
+      "retained_count": 419,
+      "exact_entries_match": true,
+      "owner_count": 31,
+      "receipts": [
+        {
+          "path": "characterization-before.receipt.json",
+          "sha256": "01e071bcfbb58b8760cce444262152e9435793aebdffe92583f840c45777ed69",
+          "command": [
+            "go",
+            "test",
+            "-count=1",
+            "-tags",
+            "test_dep",
+            "-v",
+            "-run",
+            "^TestResolveFault",
+            "./tools/gomad3sim"
+          ],
+          "exit": 1,
+          "elapsed_seconds": 2,
+          "stability_before": 0,
+          "stability_after": 0,
+          "source_freeze": "draft-characterization-source.sha256",
+          "log": "characterization-before.log",
+          "log_sha256": "62ba9db37eaa66d2773938e717a62b8552f310b6f3ddc33965c2f341ac73f213"
+        },
+        {
+          "path": "characterization-final.receipt.json",
+          "sha256": "0f4e1f13f5ce8e125e65f6040c93eddb6e7e56cd369990c9636e185713f104b0",
+          "command": [
+            "go",
+            "test",
+            "-count=1",
+            "-tags",
+            "test_dep",
+            "-v",
+            "-run",
+            "^TestResolveFault",
+            "./tools/gomad3sim"
+          ],
+          "exit": 0,
+          "elapsed_seconds": 1,
+          "stability_before": 0,
+          "stability_after": 0,
+          "source_freeze": "final-source.sha256",
+          "log": "characterization-final.log",
+          "log_sha256": "ee02e7012951537096a1af64a3634fd0379b638ebef7291b9c1e1eda09894d48"
+        },
+        {
+          "path": "characterization-old.receipt.json",
+          "sha256": "407255807b9dc4c8f7e8f5f6671975db25eaadb7dd40721b5e558c3c44e13a17",
+          "command": [
+            "go",
+            "test",
+            "-count=1",
+            "-tags",
+            "test_dep",
+            "-v",
+            "-run",
+            "^TestResolveFault",
+            "./tools/gomad3sim"
+          ],
+          "exit": 0,
+          "elapsed_seconds": 1,
+          "stability_before": 0,
+          "stability_after": 0,
+          "source_freeze": "characterization-source.sha256",
+          "log": "characterization-old.log",
+          "log_sha256": "ee02e7012951537096a1af64a3634fd0379b638ebef7291b9c1e1eda09894d48"
+        },
+        {
+          "path": "errortype.receipt.json",
+          "sha256": "eaabdd609d4d445c412b229c5acd9b956b95ff85838c701bd2e390a7ec813287",
+          "command": [
+            "go",
+            "vet",
+            "-tags",
+            "test_dep",
+            "-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+            "-style-check=false",
+            "./tools/gomad3sim"
+          ],
+          "exit": 0,
+          "elapsed_seconds": 0,
+          "stability_before": 0,
+          "stability_after": 0,
+          "source_freeze": "final-source.sha256",
+          "log": "errortype.log",
+          "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "helper-contracts.receipt.json",
+          "sha256": "565379c99720ea85c94c3dd48b4a2a7798ea80fb9b430b9b211f7df39248397d",
+          "command": [
+            "go",
+            "test",
+            "-count=1",
+            "-tags",
+            "test_dep",
+            "-v",
+            "./cmd/tools/lintcode"
+          ],
+          "exit": 0,
+          "elapsed_seconds": 9,
+          "stability_before": 0,
+          "stability_after": 0,
+          "source_freeze": "final-source.sha256",
+          "log": "helper-contracts.log",
+          "log_sha256": "ddd7aaad4fe1b142ab03e868a4d4576bed3b5b23e62ba54e8c31b88d1e53eea4"
+        },
+        {
+          "path": "lint-green.receipt.json",
+          "sha256": "7e2ef704b57198f79b20ebfe2a0d3c164e945fc1cc9ed0826390ca88616e35df",
+          "command": [
+            "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+            "run",
+            "--verbose",
+            "--build-tags=test_dep",
+            "--timeout=10m",
+            "--fix=false",
+            "--config=.github/.golangci.yml",
+            "./tools/gomad3sim"
+          ],
+          "exit": 0,
+          "elapsed_seconds": 2,
+          "stability_before": 0,
+          "stability_after": 0,
+          "source_freeze": "final-source.sha256",
+          "log": "lint-green.log",
+          "log_sha256": "bf179aac6a9121a809fd54310c9f677ab84d7a35a1f7e2eba46a6a510ec72b65"
+        },
+        {
+          "path": "lint-red.receipt.json",
+          "sha256": "466c9d7c8f930d8bb0c44f676a90757d5af46c0c06198085f4f3cce040c14e3c",
+          "command": [
+            "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+            "run",
+            "--verbose",
+            "--build-tags=test_dep",
+            "--timeout=10m",
+            "--fix=false",
+            "--config=.github/.golangci.yml",
+            "./tools/gomad3sim"
+          ],
+          "exit": 1,
+          "elapsed_seconds": 3,
+          "stability_before": 0,
+          "stability_after": 0,
+          "source_freeze": "old-source.sha256",
+          "log": "lint-red.log",
+          "log_sha256": "1d0e9bfd1a0a9f63ac9ca0af57cbcaa2862198e0e54a03352e938cac7b8df4d2"
+        },
+        {
+          "path": "package-tests.receipt.json",
+          "sha256": "15568e99d305e4c7525fb0dea15c706d0daa1f96aad1598e55de8e9d9c9e2a4a",
+          "command": [
+            "go",
+            "test",
+            "-count=1",
+            "-tags",
+            "test_dep",
+            "-v",
+            "./tools/gomad3sim"
+          ],
+          "exit": 0,
+          "elapsed_seconds": 0,
+          "stability_before": 0,
+          "stability_after": 0,
+          "source_freeze": "final-source.sha256",
+          "log": "package-tests.log",
+          "log_sha256": "7f48bcd2d024d8ab2dc23b40e528892df98c37e5e73d63d8b3d41f54e55f996a"
+        },
+        {
+          "path": "root-fast.receipt.json",
+          "sha256": "a09b00bfc143419e34468d232708c0c029f09714617c70453c50b272dae8d625",
+          "command": [
+            "make",
+            "LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50",
+            "GOLANGCI_LINT_FIX=false",
+            "GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c",
+            "lint-code-fast"
+          ],
+          "exit": 2,
+          "elapsed_seconds": 75,
+          "stability_before": 0,
+          "stability_after": 0,
+          "source_freeze": "final-source.sha256",
+          "log": "root-fast.log",
+          "log_sha256": "b47970ab7acae15f4fee3fd45df237937a2c10578227a47e1b55d0ed34cf78d7"
+        }
+      ],
+      "source_freeze_hashes": {
+        "old-source.sha256": "b234464167529b93dffa69fd28cccdfdf41950220a47ce78966fa0707ecb9235",
+        "draft-characterization-source.sha256": "7b55d535ce47903bc98912a6b43f5b818ca79097db8804c4fb86ef9a34f5382c",
+        "characterization-source.sha256": "0b22be4c80d92c6bee1ebe94bf35845a90d0e80717b828f14fb59955cae840c4",
+        "final-source.sha256": "98c143bdf2fe0cdd843380cadb70dc64d03a8029a304fce3ab39f48c26e24d6f"
+      },
+      "freeze_changes": {
+        "draft-characterization-source": [
+          "tools/gomad3sim/controller_resolution_test.go"
+        ],
+        "characterization-source": [
+          "tools/gomad3sim/controller_resolution_test.go"
+        ],
+        "final-source": [
+          "tools/gomad3sim/controller.go"
+        ]
+      },
+      "old_controller_head_hash": "469c74e4f38aa9a0d0db51b037334ca9bc988211be94dbc7b9e57ff95b4f57c3",
+      "old_controller_freeze_hash": "469c74e4f38aa9a0d0db51b037334ca9bc988211be94dbc7b9e57ff95b4f57c3",
+      "go_version": "go version go1.27.1 linux/arm64",
+      "root_scope_markers": [
+        "make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'",
+        "0 issues.",
+        "make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'",
+        "make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'",
+        "0 issues.",
+        "make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'",
+        "make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'",
+        "419 issues:",
+        "make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'"
+      ]
+    }
+  },
+  "independent_candidate_arithmetic": {
+    "cmd": "node <<'NODE'\nconst crypto=require('crypto'); const b=Buffer.alloc(16);b.writeBigUInt64LE(19n,0);b.writeBigUInt64LE(4n,8);const h=crypto.createHash('sha256').update(Buffer.concat([Buffer.from('gomad3-fault-target/v1\\0'),b,Buffer.from('candidate')])).digest(); console.log(JSON.stringify({digest:h.toString('hex'),little_endian_first64:h.readBigUInt64LE(0).toString(),modulo2:Number(h.readBigUInt64LE(0)%2n)}));\nNODE",
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "start": "2026-10-04T13:04:09.502Z",
+    "end": "2026-10-04T13:04:09.661Z",
+    "chunk_id": "bde64b",
+    "wall_time_seconds": 0.000021917,
+    "exit_code": 0,
+    "original_token_count": 34,
+    "output": "{\"digest\":\"05be18e2d62338092e1b58cdc5e4b5c577e19973557ab854bd9c697856f17bfd\",\"little_endian_first64\":\"664320350860393989\",\"modulo2\":1}\n"
+  },
+  "generator_decision": "No validate rerun. Inspected Make input groups, generator protocol identity inputs, version descriptor and changed files. No schema/template/overlay/generator input/directive or layout change.",
+  "qualification_gaps": [
+    "419 exact retained nested findings across 31 owners; nested errortype and later dispatch scopes unreached",
+    "unchanged ^.git exclusion includes .github",
+    "original R18/R19, task21, workload/default proof and formal green-tree review remain open",
+    "darwin/arm64 and linux/amd64 native gates remain open; Linux aarch64 stock Go is developmental"
+  ],
+  "review_model": {
+    "requested": "gpt-6.1-sol",
+    "effort": "high",
+    "writer_same_family": true,
+    "actual_execution_metadata": "unavailable",
+    "parent_reported_tier": "Tier: session (jev-unavailable(no_key))",
+    "judge_repeated": false
+  },
+  "live_command_handles": [],
+  "delegated_agents": [],
+  "writes": [
+    "independent-source-review.md",
+    "independent-source-review-checks.json"
+  ]
+}

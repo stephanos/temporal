@@ -6,7 +6,8 @@
   "depends_on": [
     "fn-109-gomad-deepen-modules-and-tool-interfaces.20",
     "fn-109-gomad-deepen-modules-and-tool-interfaces.23",
-    "fn-109-gomad-deepen-modules-and-tool-interfaces.24"
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.24",
+    "fn-109-gomad-deepen-modules-and-tool-interfaces.25"
   ],
   "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.21",
   "priority": null,
@@ -14,5 +15,5 @@
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.md",
   "status": "todo",
   "title": "Run final qualification and retain the finding completion matrix",
-  "updated_at": "2026-10-04T12:05:45.478025Z"
+  "updated_at": "2026-10-04T12:43:12.902774Z"
 }

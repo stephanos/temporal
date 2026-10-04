@@ -1,0 +1,87 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.25",
+  "status": "in_progress",
+  "commits": [],
+  "base_commit": "ff7da7419bbc8321dd4004e58249bb149ffd31df",
+  "head_commit": "ff7da7419bbc8321dd4004e58249bb149ffd31df",
+  "tests": [
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags=test_dep --timeout=10m --fix=false --config=.github/.golangci.yml ./tools/gomad3sim",
+    "go test -count=1 -tags test_dep -v -run ^TestResolveFault ./tools/gomad3sim",
+    "go test -count=1 -tags test_dep -v -run ^TestResolveFault ./tools/gomad3sim",
+    "go test -count=1 -tags test_dep -v -run ^TestResolveFault ./tools/gomad3sim",
+    "go test -count=1 -tags test_dep -v ./tools/gomad3sim",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags=test_dep --timeout=10m --fix=false --config=.github/.golangci.yml ./tools/gomad3sim",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./tools/gomad3sim",
+    "go test -count=1 -tags test_dep -v ./cmd/tools/lintcode",
+    "make LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50 GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c lint-code-fast"
+  ],
+  "prs": [],
+  "baseline": "red actual pinned unfiltered package lint before production edits; no green handoff",
+  "review": "conductor-deferred; no worker verdict",
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "receipts": [
+    {
+      "path": "lint-red.receipt.json",
+      "exit_code": 1,
+      "source_freeze": "old-source.sha256"
+    },
+    {
+      "path": "characterization-before.receipt.json",
+      "exit_code": 1,
+      "source_freeze": "draft-characterization-source.sha256"
+    },
+    {
+      "path": "characterization-old.receipt.json",
+      "exit_code": 0,
+      "source_freeze": "characterization-source.sha256"
+    },
+    {
+      "path": "characterization-final.receipt.json",
+      "exit_code": 0,
+      "source_freeze": "final-source.sha256"
+    },
+    {
+      "path": "package-tests.receipt.json",
+      "exit_code": 0,
+      "source_freeze": "final-source.sha256"
+    },
+    {
+      "path": "lint-green.receipt.json",
+      "exit_code": 0,
+      "source_freeze": "final-source.sha256"
+    },
+    {
+      "path": "errortype.receipt.json",
+      "exit_code": 0,
+      "source_freeze": "final-source.sha256"
+    },
+    {
+      "path": "helper-contracts.receipt.json",
+      "exit_code": 0,
+      "source_freeze": "final-source.sha256"
+    },
+    {
+      "path": "root-fast.receipt.json",
+      "exit_code": 2,
+      "source_freeze": "final-source.sha256"
+    }
+  ],
+  "source_freezes": [
+    "old-source.sha256",
+    "draft-characterization-source.sha256",
+    "characterization-source.sha256",
+    "final-source.sha256"
+  ],
+  "source_hashes": {
+    "controller": "fa6e7a2bb46dadc0fb70fd51b18ebf0c2d9c282872b8eba95e540936a8b6d01a",
+    "characterization": "9ff4317eb69567c64f73ab2638b798eda77eff22f91dd1b0e0218465cc77621d"
+  },
+  "qualification_gaps": [
+    "SCOPE_EXCEEDED: automatic root-fast nested Gomad scope fails with exact retained 419 findings across 31 owners; see findings-comparison.json and ../task-24/gomad-finding-owners.json",
+    "Original R18/R19, task21, formal green-tree review, workload/default checks and both qualified native platform gates remain open",
+    "REPORTING_LIMITATION: unchanged ^.git exclusion includes .github"
+  ],
+  "generator_validation": "not run; changed controller/test absent from inspected generator inputs and no layout or generated contract change",
+  "delegated_agents": 0,
+  "live_handles": []
+}

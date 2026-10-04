@@ -438,6 +438,20 @@ acceptance waiver. Task 21 remains the final verification consumer and original
 R18/R19, formal review and both native gates stay open. Task 24's handover and
 independent review remain source-bound pre-commit snapshots.
 
+Task 25's independently reviewed source progress repairs root fast's exhaustive
+lifecycle finding with a two-branch distinction inside the unchanged outer
+lifecycle case. Literal before/after characterization preserves all 36
+state/operation cases, targets, incarnation, identity and outer controls; actual
+unfiltered package lint reproduces the original defect and passes after repair.
+Root fast now completes ordinary root and tagged integration lint/vet before its
+automatic nested scope fails on the exact retained 419 findings across 31 owners.
+Nested vet and later scopes remain unreached. Task 25 stays blocked on original
+qualification, not source correctness; task 21 depends on the correction. Its
+source-progress review is not formal SHIP and changes no original R18/R19,
+workload/default, reporting or native acceptance requirement. Future campaign
+repairs must preserve the characterized completion invariant panics unless a
+separate completion-error redesign is admitted.
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.
@@ -463,3 +477,4 @@ Secondary IDs identify the five opportunities in the assessment's order.
 
 R18-R20 apply across all findings. This coverage is contractual, not task status
 or implementation evidence.
+

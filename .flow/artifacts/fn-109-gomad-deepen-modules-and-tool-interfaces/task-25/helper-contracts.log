@@ -1,0 +1,228 @@
+=== RUN   TestLintPolicyPathExpressions
+=== PAUSE TestLintPolicyPathExpressions
+=== RUN   TestLintPolicyRealGolangci
+    lint_policy_test.go:90: actual golangci binary sha256=acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc
+=== RUN   TestLintPolicyRealGolangci/root_excluded
+    lint_policy_test.go:157: cwd=. argv=["run" "--config=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangci676553209/001/.github/.golangci.yml" "--fix=false" "--build-tags=test_dep" "--output.json.path=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangciroot_excluded2680897145/001/issues.json" "./tools/policy" "./api" "./proto" "./.github/actions/policy"] findings=map[]
+=== RUN   TestLintPolicyRealGolangci/root_ordinary
+    lint_policy_test.go:157: cwd=. argv=["run" "--config=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangci676553209/001/.github/.golangci.yml" "--fix=false" "--build-tags=test_dep" "--output.json.path=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangciroot_ordinary1377153378/001/issues.json" "./ordinary"] findings=map[forbidigo:[ordinary/policy.go]]
+=== RUN   TestLintPolicyRealGolangci/nested_tools
+    lint_policy_test.go:157: cwd=tools/gomad3 argv=["run" "--config=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangci676553209/001/.github/.golangci.yml" "--fix=false" "--build-tags=test_dep" "--output.json.path=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangcinested_tools3780342049/001/issues.json" "./..."] findings=map[forbidigo:[tools/gomad3/policy.go]]
+=== RUN   TestLintPolicyRealGolangci/nested_tests
+    lint_policy_test.go:157: cwd=tests/mixedbrain argv=["run" "--config=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangci676553209/001/.github/.golangci.yml" "--fix=false" "--build-tags=test_dep" "--output.json.path=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangcinested_tests1120124925/001/issues.json" "./..."] findings=map[]
+--- PASS: TestLintPolicyRealGolangci (5.21s)
+    --- PASS: TestLintPolicyRealGolangci/root_excluded (3.07s)
+    --- PASS: TestLintPolicyRealGolangci/root_ordinary (0.07s)
+    --- PASS: TestLintPolicyRealGolangci/nested_tools (0.95s)
+    --- PASS: TestLintPolicyRealGolangci/nested_tests (1.04s)
+=== RUN   TestFastLintRoutesModuleOwners
+=== PAUSE TestFastLintRoutesModuleOwners
+=== RUN   TestFastLintKeepsGitChangeSemantics
+=== PAUSE TestFastLintKeepsGitChangeSemantics
+=== RUN   TestFastLintRootIntegrationTagsAndFailure
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure
+=== RUN   TestFastLintReportsOwnedExclusions
+=== PAUSE TestFastLintReportsOwnedExclusions
+=== RUN   TestLintRejectsUnclassifiedSource
+=== PAUSE TestLintRejectsUnclassifiedSource
+=== RUN   TestLintRejectsBadComparisonBeforeDispatch
+=== PAUSE TestLintRejectsBadComparisonBeforeDispatch
+=== RUN   TestScopedLintAndNestedFailure
+=== PAUSE TestScopedLintAndNestedFailure
+=== RUN   TestGomadLocalLintTarget
+=== PAUSE TestGomadLocalLintTarget
+=== RUN   TestGomadDefaultRemainsGenerate
+=== PAUSE TestGomadDefaultRemainsGenerate
+=== RUN   TestScopedLintRejectsEmptyModule
+=== PAUSE TestScopedLintRejectsEmptyModule
+=== RUN   TestLintRejectsModuleSymlink
+=== PAUSE TestLintRejectsModuleSymlink
+=== RUN   TestLintRejectsMissingLiveModule
+=== PAUSE TestLintRejectsMissingLiveModule
+=== RUN   TestRootFixturePrefixNearMissRemainsLive
+=== PAUSE TestRootFixturePrefixNearMissRemainsLive
+=== RUN   TestLintRejectsInvalidOwnership
+=== PAUSE TestLintRejectsInvalidOwnership
+=== RUN   TestCINestedLintSteps
+=== PAUSE TestCINestedLintSteps
+=== RUN   TestLintToolProcess
+--- PASS: TestLintToolProcess (0.00s)
+=== CONT  TestLintPolicyPathExpressions
+=== CONT  TestGomadLocalLintTarget
+=== RUN   TestLintPolicyPathExpressions/sleep_tests
+    lint_policy_test.go:63: rule=0 path-except=true parsed-expression="_test\\.go|tests/.+\\.go"
+=== RUN   TestLintPolicyPathExpressions/chasm_clock
+    lint_policy_test.go:63: rule=1 path-except=true parsed-expression="chasm/lib/.*\\.go$"
+=== RUN   TestLintPolicyPathExpressions/chasm_clock_tests
+    lint_policy_test.go:63: rule=2 path-except=false parsed-expression="chasm/lib/.*_test\\.go$"
+=== RUN   TestLintPolicyPathExpressions/cassandra_timestamps
+    lint_policy_test.go:63: rule=3 path-except=true parsed-expression="common/persistence/cassandra/.*\\.go$"
+=== RUN   TestLintPolicyPathExpressions/timestamp_tests
+    lint_policy_test.go:63: rule=4 path-except=false parsed-expression="_test\\.go$"
+=== RUN   TestLintPolicyPathExpressions/test_and_testing_helpers
+    lint_policy_test.go:63: rule=5 path-except=false parsed-expression="_test\\.go|tests/.+\\.go|common/testing/"
+    lint_policy_test.go:63: rule=13 path-except=false parsed-expression="_test\\.go|tests/.+\\.go|common/testing/"
+    lint_policy_test.go:63: rule=14 path-except=false parsed-expression="_test\\.go|tests/.+\\.go|common/testing/"
+=== RUN   TestLintPolicyPathExpressions/activity_model
+    lint_policy_test.go:63: rule=6 path-except=false parsed-expression="chasm/lib/activity/model/.*\\.go$"
+=== RUN   TestLintPolicyPathExpressions/testcore
+    lint_policy_test.go:63: rule=7 path-except=false parsed-expression="tests/testcore/.*\\.go$"
+=== RUN   TestLintPolicyPathExpressions/namespace_definitions
+    lint_policy_test.go:63: rule=8 path-except=false parsed-expression="common/namespace/(namespace|replication_resolver)(_test)?\\.go$"
+=== RUN   TestLintPolicyPathExpressions/functional_test_context
+    lint_policy_test.go:63: rule=9 path-except=true parsed-expression="tests/.+_test\\.go"
+=== RUN   TestLintPolicyPathExpressions/legacy_eventually
+    lint_policy_test.go:63: rule=10 path-except=false parsed-expression="tests/(nexus_standalone|nexus_workflow|schedule|schedule_migration)_test\\.go$"
+=== RUN   TestLintPolicyPathExpressions/legacy_collect
+    lint_policy_test.go:63: rule=11 path-except=false parsed-expression="tests/(nexus_standalone|nexus_workflow)_test\\.go$"
+=== RUN   TestLintPolicyPathExpressions/tools_revive
+    lint_policy_test.go:63: rule=15 path-except=false parsed-expression="^tools\\/.+\\.go"
+--- PASS: TestLintPolicyPathExpressions (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/sleep_tests (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/chasm_clock (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/chasm_clock_tests (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/cassandra_timestamps (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/timestamp_tests (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/test_and_testing_helpers (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/activity_model (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/testcore (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/namespace_definitions (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/functional_test_context (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/legacy_eventually (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/legacy_collect (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/tools_revive (0.00s)
+=== CONT  TestCINestedLintSteps
+=== RUN   TestCINestedLintSteps/gomad3.yml
+=== PAUSE TestCINestedLintSteps/gomad3.yml
+=== RUN   TestCINestedLintSteps/linters.yml
+=== PAUSE TestCINestedLintSteps/linters.yml
+=== CONT  TestLintRejectsInvalidOwnership
+=== RUN   TestLintRejectsInvalidOwnership/{"overlay_allowlist":[]}
+=== PAUSE TestLintRejectsInvalidOwnership/{"overlay_allowlist":[]}
+=== RUN   TestLintRejectsInvalidOwnership/{"overlay_allowlist":["../outside.go"]}
+=== PAUSE TestLintRejectsInvalidOwnership/{"overlay_allowlist":["../outside.go"]}
+=== RUN   TestLintRejectsInvalidOwnership/package_architecture_var_sourceExclusions_=_paths()_var_expectedModules_=_map[string]bool{"testdata/go.mod":true}_
+=== PAUSE TestLintRejectsInvalidOwnership/package_architecture_var_sourceExclusions_=_paths()_var_expectedModules_=_map[string]bool{"testdata/go.mod":true}_
+=== CONT  TestRootFixturePrefixNearMissRemainsLive
+--- PASS: TestRootFixturePrefixNearMissRemainsLive (0.23s)
+=== CONT  TestLintRejectsMissingLiveModule
+=== RUN   TestLintRejectsMissingLiveModule/tools/gomad3/go.mod
+=== PAUSE TestLintRejectsMissingLiveModule/tools/gomad3/go.mod
+=== RUN   TestLintRejectsMissingLiveModule/tests/mixedbrain/go.mod
+=== PAUSE TestLintRejectsMissingLiveModule/tests/mixedbrain/go.mod
+=== CONT  TestLintRejectsModuleSymlink
+--- PASS: TestGomadLocalLintTarget (0.25s)
+=== CONT  TestScopedLintRejectsEmptyModule
+--- PASS: TestLintRejectsModuleSymlink (0.20s)
+=== CONT  TestGomadDefaultRemainsGenerate
+--- PASS: TestScopedLintRejectsEmptyModule (0.19s)
+=== CONT  TestFastLintReportsOwnedExclusions
+--- PASS: TestGomadDefaultRemainsGenerate (0.02s)
+=== CONT  TestScopedLintAndNestedFailure
+=== RUN   TestScopedLintAndNestedFailure/lint-code-gomad3tools/gomad3
+=== PAUSE TestScopedLintAndNestedFailure/lint-code-gomad3tools/gomad3
+=== RUN   TestScopedLintAndNestedFailure/lint-code-mixedbraintests/mixedbrain
+=== PAUSE TestScopedLintAndNestedFailure/lint-code-mixedbraintests/mixedbrain
+=== RUN   TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3golangci
+=== PAUSE TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3golangci
+=== RUN   TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3vet
+=== PAUSE TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3vet
+=== CONT  TestLintRejectsBadComparisonBeforeDispatch
+--- PASS: TestFastLintReportsOwnedExclusions (0.19s)
+=== CONT  TestLintRejectsUnclassifiedSource
+--- PASS: TestLintRejectsBadComparisonBeforeDispatch (0.18s)
+=== CONT  TestFastLintKeepsGitChangeSemantics
+=== RUN   TestLintRejectsUnclassifiedSource/extra/go.mod
+=== PAUSE TestLintRejectsUnclassifiedSource/extra/go.mod
+=== RUN   TestLintRejectsUnclassifiedSource/.hidden/go.mod
+=== PAUSE TestLintRejectsUnclassifiedSource/.hidden/go.mod
+=== RUN   TestLintRejectsUnclassifiedSource/_hidden/go.mod
+=== PAUSE TestLintRejectsUnclassifiedSource/_hidden/go.mod
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3/internal/gomadtool/conformance/testdata/extra/go.mod
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3/internal/gomadtool/conformance/testdata/extra/go.mod
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3sim/testdata/simulation_exploration/extra/go.mod
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3sim/testdata/simulation_exploration/extra/go.mod
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3integration/testdata/tagged/extra/go.mod
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3integration/testdata/tagged/extra/go.mod
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlayextra/source.go
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlayextra/source.go
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlay/src/os/uninventoried.go
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlay/src/os/uninventoried.go
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3/record/testdata/source.go
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3/record/testdata/source.go
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3/runner/.hidden/source.go
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3/runner/.hidden/source.go
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3/runner/_hidden/source.go
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3/runner/_hidden/source.go
+=== RUN   TestLintRejectsUnclassifiedSource/ordinary/_ignored.go
+=== PAUSE TestLintRejectsUnclassifiedSource/ordinary/_ignored.go
+=== CONT  TestFastLintRootIntegrationTagsAndFailure
+=== RUN   TestFastLintRootIntegrationTagsAndFailure/#00
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure/#00
+=== RUN   TestFastLintRootIntegrationTagsAndFailure/golangci
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure/golangci
+=== RUN   TestFastLintRootIntegrationTagsAndFailure/vet
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure/vet
+=== CONT  TestFastLintRoutesModuleOwners
+--- PASS: TestFastLintKeepsGitChangeSemantics (0.20s)
+=== CONT  TestCINestedLintSteps/gomad3.yml
+--- PASS: TestFastLintRoutesModuleOwners (0.26s)
+=== CONT  TestLintRejectsInvalidOwnership/{"overlay_allowlist":[]}
+=== CONT  TestCINestedLintSteps/linters.yml
+=== CONT  TestLintRejectsInvalidOwnership/package_architecture_var_sourceExclusions_=_paths()_var_expectedModules_=_map[string]bool{"testdata/go.mod":true}_
+--- PASS: TestCINestedLintSteps (0.00s)
+    --- PASS: TestCINestedLintSteps/gomad3.yml (0.22s)
+    --- PASS: TestCINestedLintSteps/linters.yml (0.19s)
+=== CONT  TestLintRejectsInvalidOwnership/{"overlay_allowlist":["../outside.go"]}
+=== CONT  TestLintRejectsMissingLiveModule/tools/gomad3/go.mod
+--- PASS: TestLintRejectsInvalidOwnership (0.00s)
+    --- PASS: TestLintRejectsInvalidOwnership/{"overlay_allowlist":[]} (0.17s)
+    --- PASS: TestLintRejectsInvalidOwnership/package_architecture_var_sourceExclusions_=_paths()_var_expectedModules_=_map[string]bool{"testdata/go.mod":true}_ (0.17s)
+    --- PASS: TestLintRejectsInvalidOwnership/{"overlay_allowlist":["../outside.go"]} (0.18s)
+=== CONT  TestLintRejectsMissingLiveModule/tests/mixedbrain/go.mod
+=== CONT  TestScopedLintAndNestedFailure/lint-code-gomad3tools/gomad3
+--- PASS: TestLintRejectsMissingLiveModule (0.00s)
+    --- PASS: TestLintRejectsMissingLiveModule/tools/gomad3/go.mod (0.18s)
+    --- PASS: TestLintRejectsMissingLiveModule/tests/mixedbrain/go.mod (0.17s)
+=== CONT  TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3golangci
+=== CONT  TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3vet
+=== CONT  TestScopedLintAndNestedFailure/lint-code-mixedbraintests/mixedbrain
+=== CONT  TestLintRejectsUnclassifiedSource/extra/go.mod
+--- PASS: TestScopedLintAndNestedFailure (0.00s)
+    --- PASS: TestScopedLintAndNestedFailure/lint-code-gomad3tools/gomad3 (0.21s)
+    --- PASS: TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3golangci (0.21s)
+    --- PASS: TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3vet (0.21s)
+    --- PASS: TestScopedLintAndNestedFailure/lint-code-mixedbraintests/mixedbrain (0.19s)
+=== CONT  TestFastLintRootIntegrationTagsAndFailure/#00
+=== CONT  TestLintRejectsUnclassifiedSource/ordinary/_ignored.go
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3/runner/_hidden/source.go
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3/runner/.hidden/source.go
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3/record/testdata/source.go
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlay/src/os/uninventoried.go
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlayextra/source.go
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3integration/testdata/tagged/extra/go.mod
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3sim/testdata/simulation_exploration/extra/go.mod
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3/internal/gomadtool/conformance/testdata/extra/go.mod
+=== CONT  TestLintRejectsUnclassifiedSource/_hidden/go.mod
+=== CONT  TestLintRejectsUnclassifiedSource/.hidden/go.mod
+=== CONT  TestFastLintRootIntegrationTagsAndFailure/golangci
+--- PASS: TestLintRejectsUnclassifiedSource (0.00s)
+    --- PASS: TestLintRejectsUnclassifiedSource/extra/go.mod (0.17s)
+    --- PASS: TestLintRejectsUnclassifiedSource/ordinary/_ignored.go (0.18s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3/runner/_hidden/source.go (0.20s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3/runner/.hidden/source.go (0.19s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlay/src/os/uninventoried.go (0.26s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3/record/testdata/source.go (0.27s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlayextra/source.go (0.18s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3integration/testdata/tagged/extra/go.mod (0.18s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3/internal/gomadtool/conformance/testdata/extra/go.mod (0.18s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3sim/testdata/simulation_exploration/extra/go.mod (0.18s)
+    --- PASS: TestLintRejectsUnclassifiedSource/.hidden/go.mod (0.18s)
+    --- PASS: TestLintRejectsUnclassifiedSource/_hidden/go.mod (0.18s)
+=== CONT  TestFastLintRootIntegrationTagsAndFailure/vet
+--- PASS: TestFastLintRootIntegrationTagsAndFailure (0.00s)
+    --- PASS: TestFastLintRootIntegrationTagsAndFailure/#00 (0.22s)
+    --- PASS: TestFastLintRootIntegrationTagsAndFailure/golangci (0.22s)
+    --- PASS: TestFastLintRootIntegrationTagsAndFailure/vet (0.22s)
+PASS
+ok  	go.temporal.io/server/cmd/tools/lintcode	8.620s
