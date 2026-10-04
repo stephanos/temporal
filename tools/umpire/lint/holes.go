@@ -152,14 +152,18 @@ func (m *Model) view(name string, views map[string]*view) (*view, error) {
 	if err := v.claims(); err != nil {
 		return nil, err
 	}
-	if r := mm.Decl.GetRefines(); r != nil && mm.Rejected == nil && m.Machines[r.GetProduct()] != nil {
-		product, err := m.view(r.GetProduct(), views)
-		if err != nil {
-			return nil, err
-		}
-		v.product = product
-		for _, rr := range mm.Refinement {
-			v.carriers[rr.Key] = append(v.carriers[rr.Key], rr.Product)
+	// A refinement Check does not establish carries nothing of its product: its rows read no
+	// product claim.
+	if r := mm.Decl.GetRefines(); r != nil && m.Machines[r.GetProduct()] != nil {
+		if rows, err := m.realizer.Refinement(name); err == nil {
+			product, err := m.view(r.GetProduct(), views)
+			if err != nil {
+				return nil, err
+			}
+			v.product = product
+			for _, rr := range rows {
+				v.carriers[rr.Key] = append(v.carriers[rr.Key], rr.Product)
+			}
 		}
 	}
 	return v, nil

@@ -57,18 +57,6 @@ coverage model/lifter/testdata/lifts/expected/captured.json store
   non-system actions   1, 0 performed by a realization
   facts                3, 0 with evidence
   observations         1, 1 read
-coverage model/lifter/testdata/lifts/expected/closereset.json ackByOriginal
-  properties           2 declared, 2 named by a Query
-  verify Queries       7, 7 whose Property fired
-  named choices        4, 3 taken by a reachable state
-coverage model/lifter/testdata/lifts/expected/closereset.json rejectAfterClose
-  properties           2 declared, 2 named by a Query
-  verify Queries       7, 7 whose Property fired
-  named choices        4, 4 taken by a reachable state
-coverage model/lifter/testdata/lifts/expected/closereset.json retainAndRoute
-  properties           2 declared, 2 named by a Query
-  verify Queries       7, 7 whose Property fired
-  named choices        4, 3 taken by a reachable state
 coverage model/lifter/testdata/lifts/expected/declarations.json detailedPair
   properties           1 declared, 1 named by a Query
 coverage model/lifter/testdata/lifts/expected/declarations.json disk
@@ -92,19 +80,16 @@ coverage model/lifter/testdata/lifts/expected/realizations.json errand
   facts                3, 3 with evidence
   observations         1, 1 read
   API values           7 tested, 2 mapped to a fact
-coverage model/lifter/testdata/lifts/expected/realizations.json nexusProtocol
+coverage model/lifter/testdata/lifts/expected/realizations.json race
   properties           1 declared, 1 named by a Query
-  non-system actions   5, 2 performed by a realization
-  facts                7, 2 with evidence
-  refinements          1 declared, 0 read through by a Query
-  observations         2, 2 read
-coverage model/lifter/testdata/lifts/expected/realizations.json staleAdmission
-  properties           1 declared, 1 named by a Query
-  non-system actions   3, 2 performed by a realization
-  facts                6, 4 with evidence
-  named choices        2, 2 taken by a reachable state
-  refinements          1 declared, 0 read through by a Query
+  non-system actions   1, 1 performed by a realization
+  facts                1, 1 with evidence
   observations         1, 1 read
+coverage model/lifter/testdata/lifts/expected/realizations.json run
+  properties           1 declared, 1 named by a Query
+  non-system actions   1, 1 performed by a realization
+  facts                1, 1 with evidence
+  observations         2, 2 read
 coverage model/lifter/testdata/lifts/expected/realizations.json tally
   properties           1 declared, 1 named by a Query
   non-system actions   1, 1 performed by a realization

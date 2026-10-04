@@ -21,7 +21,6 @@ var coverageFixtures = []string{
 	"model/lifter/testdata/lifts/expected/capabilities.json",
 	"model/lifter/testdata/lifts/expected/captured.json",
 	"model/lifter/testdata/lifts/expected/channels.json",
-	"model/lifter/testdata/lifts/expected/closereset.json",
 	"model/lifter/testdata/lifts/expected/declarations.json",
 	"model/lifter/testdata/lifts/expected/presence.json",
 	"model/lifter/testdata/lifts/expected/realizations.json",

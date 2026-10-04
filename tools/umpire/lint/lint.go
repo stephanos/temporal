@@ -110,6 +110,7 @@ type Model struct {
 	Verified *model.Report
 	Machines map[string]*model.Machine
 	In       *model.Interpreter
+	realizer *model.Realizer
 	actions  map[string]*umpirespb.Action
 	lowering Lowering
 	options  Options
@@ -127,18 +128,23 @@ func Read(path string, lowering Lowering, options Options) (*Model, error) {
 
 // Of reads an admitted Model as Read does, under the name file.
 func Of(file string, ir *umpirespb.Model, lowering Lowering, options Options) (*Model, error) {
-	if err := model.Validate(ir); err != nil {
-		return nil, err
-	}
-	machines, err := model.Build(ir)
+	realizer, err := model.NewRealizer(ir, model.DefaultScope)
 	if err != nil {
 		return nil, err
+	}
+	machines := map[string]*model.Machine{}
+	for _, decl := range ir.GetMachines() {
+		if machines[decl.GetName()] = realizer.Machine(decl.GetName()); machines[decl.GetName()] == nil {
+			// Build says why a machine has no table, as the reader reports it.
+			_, err := model.Build(ir)
+			return nil, cmp.Or(err, fmt.Errorf("%s could not be interpreted", decl.GetName()))
+		}
 	}
 	verify := proto.CloneOf(ir)
 	verify.Queries = slices.DeleteFunc(verify.Queries, func(q *umpirespb.Query) bool { return q.GetForm() != umpirespb.Query_FORM_VERIFY })
 	verify.Progress = nil
 	m := &Model{File: file, IR: ir, Verified: model.Check(verify, model.DefaultScope), Machines: machines, In: model.NewInterpreter(ir),
-		actions: map[string]*umpirespb.Action{}, lowering: lowering, options: options}
+		realizer: realizer, actions: map[string]*umpirespb.Action{}, lowering: lowering, options: options}
 	for _, a := range ir.GetActions() {
 		m.actions[a.GetId()] = a
 	}

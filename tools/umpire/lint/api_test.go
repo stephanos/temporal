@@ -185,7 +185,7 @@ func TestUnmodeledAPIValueReportsAValueAPollWaitsThrough(t *testing.T) {
 		if f.Subject == apiActivityStatus+" ACTIVITY_EXECUTION_STATUS_RUNNING" {
 			require.Equal(t, UnmodeledAPIValue, f.Kind)
 			require.Equal(t, "ActivityExecutionInfo.status ACTIVITY_EXECUTION_STATUS_RUNNING is mapped to a fact by no poll or guard", f.Message)
-			require.Equal(t, "model/temporal/standaloneactivity/Realization.scala:57", f.Position)
+			require.Equal(t, "model/temporal/standaloneactivity/Realization.scala:58", f.Position)
 		}
 	}
 	for _, mapped := range []string{"PAUSED", "COMPLETED", "FAILED", "CANCELED", "TERMINATED", "TIMED_OUT"} {

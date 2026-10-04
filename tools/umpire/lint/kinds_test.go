@@ -16,7 +16,6 @@ var (
 	activityIR     = loaded("../../../model/ir/activity.json")
 	nexusControlIR = loaded("../../../model/ir/nexus-control.json")
 	capturedIR     = loaded("../../../model/lifter/testdata/lifts/expected/captured.json")
-	closeResetIR   = loaded("../../../model/lifter/testdata/lifts/expected/closereset.json")
 )
 
 func loaded(path string) func() (*umpirespb.Model, error) {
@@ -154,10 +153,23 @@ func TestUntakenChoices(t *testing.T) {
 	require.Equal(t, map[string]int{"forgedCompletion": 2}, r.population)
 	require.Empty(t, r.subjects)
 
-	// No reachable state of these machines delivers to a closed operation, which `refused` names.
-	r = run(t, read(t, closeResetIR), untakenChoices)
-	require.Equal(t, map[string]int{"ackByOriginal": 4, "rejectAfterClose": 4, "retainAndRoute": 4}, r.population)
-	require.Equal(t, map[string][]string{"ackByOriginal": {"refused"}, "retainAndRoute": {"refused"}}, r.subjects)
+	// The forged alternative behind a condition that never holds: its copy is still called, and no
+	// reachable state takes it.
+	r = run(t, read(t, nexusControlIR, func(ir *umpirespb.Model) {
+		for _, f := range ir.GetFunctions() {
+			if f.GetName() != "temporal.nexuscaller.Control$.forgedComplete" {
+				continue
+			}
+			join := f.GetBody().GetIf().GetThen().GetBinary()
+			join.Left = &umpirespb.Expr{Position: join.GetLeft().GetPosition(), Kind: &umpirespb.Expr_If{If: &umpirespb.If{
+				Condition: &umpirespb.Expr{Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Bool{Bool: false}}}},
+				Then:      join.GetLeft(),
+				Else:      &umpirespb.Expr{Kind: &umpirespb.Expr_List{List: &umpirespb.ListOf{}}},
+			}}}
+		}
+	}), untakenChoices)
+	require.Equal(t, map[string]int{"forgedCompletion": 2}, r.population)
+	require.Equal(t, map[string][]string{"forgedCompletion": {"forged"}}, r.subjects)
 
 	r = run(t, read(t, activityIR), untakenChoices)
 	require.Empty(t, r.population)

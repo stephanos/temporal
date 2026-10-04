@@ -149,3 +149,19 @@ func TestReadsSaysWhetherAClaimReadsItsStep(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []bool{true, true}, read)
 }
+
+func TestRealizerGivesTheRefinementCheckReads(t *testing.T) {
+	r, err := NewRealizer(activityModel(t), DefaultScope)
+	require.NoError(t, err)
+	rows, err := r.Refinement("activityProtocol")
+	require.NoError(t, err)
+	carried := map[string]string{}
+	for _, row := range rows {
+		if row.Product != nil {
+			carried[row.Key] = *row.Product
+		}
+	}
+	require.Equal(t, "attemptStart", carried["scheduled-0-unset-unset-unset-attemptStart"])
+	_, err = r.Refinement("activityProduct")
+	require.ErrorContains(t, err, "refines no machine")
+}
