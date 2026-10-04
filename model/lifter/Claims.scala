@@ -47,12 +47,18 @@ private[lift] trait Claims:
     case other           => fail(at, s"expected a Property or a Scenario, got $other")
   def claim(machine: String, name: String): ir.ClaimRef = ir.ClaimRef(machine, name)
 
-  /** One class of an action: the action bare, or applied to one value per input. */
+  /**
+   * One class of an action: the action bare, applied to one value per input, or applied to its inputs
+   * by name, which `named` lifts.
+   */
   def classOf(t: Term): ir.ActionClass = t match
-    case Typed(e, _)                                                    => classOf(e)
-    case Apply(Apply(fn, List(a)), values) if fn.symbol.name == "apply" =>
+    case Typed(e, _)                                             => classOf(e)
+    case _ if namedClass(t)                                      => named(t)
+    case Apply(Apply(Select(a, "apply"), Nil), _) if isAction(a) => ir.ActionClass(action(a))
+    case Apply(Select(a, "apply"), values) if isAction(a)        =>
       ir.ActionClass(action(a), values.map(literalValue))
     case ref => ir.ActionClass(action(ref))
+  private def isAction(t: Term): Boolean = isNamed(t.tpe, "umpire.Action")
 
   /**
    * Keeps the first declaration under a key and refuses a different second one, which would share

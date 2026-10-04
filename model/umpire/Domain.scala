@@ -79,3 +79,18 @@ object Finite:
     fields.foldLeft(List(List.empty[Any])) { (prefixes, f) =>
       for prefix <- prefixes; v <- f.values.toList yield prefix :+ v
     }
+
+/**
+ * A counter of `0..N`, bounded where its field is declared: `attempts: UpTo[2]` has the values 0, 1
+ * and 2, in that order. It reads as an Int; a step writes one with `UpTo(n)`, which the lifter lifts as
+ * `n`, and Go refuses a value outside the range as it does for any bounded field.
+ */
+opaque type UpTo[N <: Int] <: Int = Int
+
+object UpTo:
+  /** The counter at `n`, which lies in `0..N`. */
+  def apply[N <: Int](n: Int)(using bound: ValueOf[N]): UpTo[N] =
+    require(0 <= n && n <= bound.value, s"$n is outside 0..${bound.value}")
+    n
+
+  given [N <: Int](using bound: ValueOf[N]): Finite[UpTo[N]] = Finite.of((0 to bound.value)*)

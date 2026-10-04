@@ -318,6 +318,8 @@ The lifter reads what an author wrote, as written:
   `evidence`, `unobservable`, `refines` and `steps(a ~> f, …)`; the derivations `restrict`,
   `rebind`, `extend`, `refining`, `assuming` and `unmonitored`; action chains
   (`action`, `timer`, `internal`, `on`, `creates`, `input[T]`, `schema`, `results`, `example`);
+  input tokens, `val scheduleToStart = input[Timeout]` declared on an action with
+  `.input(scheduleToStart)`, each input named after its token's `val`;
   Properties, Scenarios, Queries, Limits, monitors, assumptions, holes, channels, compositions,
   progress claims and realizations. A composition names its members by field selector
   (`_.activity -> currentRecord`), and so do its `sync`, `replaces` and `withMember`; a Scenario
@@ -328,8 +330,11 @@ The lifter reads what an author wrote, as written:
   A function-valued argument of such a function names a def of the lifted sources, which the
   lifter binds where the function is called, as it binds a machine argument; a type parameter
   reads as the type the call applies it to.
-- **Types:** enums with and without case fields, case classes, and integer fields bounded by the
-  `given Finite[Int] = Finite.upTo(…)` beside the state's `Finite`.
+- **Types:** enums with and without case fields, case classes, and bounded counters `UpTo[N]`: a
+  field `attempts: UpTo[2]` has the values 0, 1 and 2, lifted as the IR int range 0..2, and a step
+  writes one with `UpTo(n)`. It replaces integer fields bounded by the per-record
+  `given Finite[Int] = Finite.upTo(…)` beside the state's `Finite`, which Models not yet migrated
+  keep.
 - **Step functions:** `if`, `match` with case, alternative, binding and wildcard patterns, local
   `val`s, `copy`, constructors, comparisons, arithmetic, list literals and `++`, and calls of other
   functions; `Step(…)` and `steps.because("…")` on steps written out. `require` becomes the
@@ -342,7 +347,8 @@ The lifter reads what an author wrote, as written:
   `given Accepted[Outcome] = Accepted(Outcome.accepted)` names; `in` is written dotted and takes at
   least one member; `implies` reads its right side only where its left side holds. A composition's
   `after.records(_.member, fact)` lifts as `after.facts.contains("member_fact")`, the composed key
-  it records.
+  it records. A named call `start(scheduleToStart := expires)` lifts as the positional
+  `start(unset, expires, unset)`.
 - **Claim patterns** (sugar, the same files): `once(over).keeps(_.x)`, `never(to)`,
   `never(to).from(before)`, `stays(p)` and `stays(p).unless(release)` on a Property builder, each
   lifted to the Property its lambda declares: `holdsAcross((before, after) => !over(before) ||
@@ -444,9 +450,15 @@ Sugar is kept apart from the core declarations: framework sugar in `umpire/Synta
 lifting in `lifter/Syntax.scala`, each definition documented with `Core form:` and the core
 spelling it stands for. No core file of the framework or the lifter uses a `Syntax.scala`, and a
 sugar word (`accept`, `stay`, `disabled`, `in`, `implies`, `records`, the claim patterns `once`,
-`keeps`, `never`, `from`, `stays` and `unless`, and later `:=`) is defined in no other file;
+`keeps`, `never`, `from`, `stays` and `unless`, and `:=`) is defined in no other file;
 `make lint-model` checks all three. The lifter's tests lift each sugar form beside its core
 spelling and require the same IR.
+
+`:=` has one meaning: this named slot receives this value (`@targetName("set")`). A named call
+`start(scheduleToStart := expires)` is sugar for the positional `start(unset, expires, unset)`: the
+supplied inputs take the action's declaration order, and an omitted input takes its domain's first
+value, here `unset`. The lifter refuses, at the call's line, a token that is no input of the action
+and a token supplied twice. A value of the wrong type for its token is a compile error.
 
 A Scenario without `starts` starts in its machine's one declared start, and a composition's in the
 record of its members' starts; where there is not exactly one, it is refused. Evidence is optional.
@@ -463,6 +475,8 @@ that a refusal arrives from the lift step, a few seconds after compiling, and no
 error.
 
 Scala compilation rejects type errors such as binding a step to an action with different inputs.
+Positional calls are typed per position, so a value of another type, or another number of values
+than the action has inputs, does not compile.
 The lifter rejects constructs it cannot express in the IR. Go then reports Model problems such as
 a start outside the state domain, a stuck state, a class bound twice or a failed refinement from
 the IR at the Scala source line recorded by the lifter. These semantic errors surface through

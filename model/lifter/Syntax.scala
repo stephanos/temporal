@@ -75,6 +75,97 @@ private[lift] trait Syntax:
     case _ => fail(t, s"outside the liftable subset: ${t.show}")
 
   /**
+   * Hook: whether a class is written with inputs supplied by name, which `named` lifts. Core form:
+   * none of its own; `classOf` asks it before it reads a positional call, as in
+   * `case _ if namedClass(t) => named(t)`.
+   */
+  def namedClass(t: Term): Boolean = sugarCall(t).exists(_._1 == "apply")
+
+  /**
+   * Hook: a class whose inputs are supplied by name, `token := value`, lifted as its positional call:
+   * the values in the order the action declares its input tokens, each input not supplied at its
+   * domain's first value. Core form: `start(scheduleToStart := expires)` lifts as
+   * `start(unset, expires, unset)`.
+   */
+  def named(t: Term): ir.ActionClass = sugarCall(t) match
+    case Some(("apply", List(List(ref), List(first, rest)))) =>
+      val id = action(ref)
+      val declared = actions(id)
+      val tokens = inputTokens.getOrElse(id, Vector.empty)
+      val supplied = (first :: varargs(rest)).foldLeft(Map.empty[Symbol, Term]): (done, s) =>
+        val (slot, value) = assigned(s)
+        val input = slot match
+          case r: Ref => resolveSymbol(r)
+          case other  =>
+            fail(s, s"an input supplied by name is named by its token's val, not ${other.show}")
+        if !tokens.contains(Some(input)) then
+          val own = tokens.flatten.map(_.name)
+          val inputs =
+            if own.isEmpty then "declares no input by a token"
+            else s"takes ${own.mkString(", ")}"
+          fail(
+            s,
+            s"${input.name} is no input of ${declared.name}, which $inputs: supply an input the " +
+              "action declares"
+          )
+        if done.contains(input) then
+          fail(s, s"${declared.name} is given ${input.name} twice: supply each input once")
+        done + (input -> value)
+      val values = tokens
+        .zip(declared.inputs)
+        .map:
+          case (Some(input), _) if supplied.contains(input) => literalValue(supplied(input))
+          case (_, param)                                   =>
+            firstValue(param.getType).getOrElse(
+              fail(
+                t,
+                s"input ${param.name} of ${declared.name} has no values to default to: supply it"
+              )
+            )
+      ir.ActionClass(id, values)
+    case _ => fail(t, s"outside the liftable subset: ${t.show}")
+
+  /** `token := value`, as a call writes it: the token and the value. */
+  private def assigned(t: Term): (Term, Term) = t match
+    case Typed(e, _)        => assigned(e)
+    case Inlined(_, Nil, e) => assigned(e)
+    case _                  =>
+      sugarCall(t) match
+        case Some((":=", List(List(slot), List(value)))) => (slot, value)
+        case _                                           =>
+          val written = t match
+            case r: Ref => r.symbol.name
+            case other  => other.show
+          fail(
+            t,
+            s"an input supplied by name is written `token := value` in the call, not $written"
+          )
+
+  /**
+   * The first value of a finite type, in the catalog order the Go reader lists: false, the low end of
+   * a range, an enum's first case that has values with each field at its first value, a record with
+   * each field at its first value. None for a type with no values.
+   */
+  private def firstValue(t: ir.TypeRef): Option[ir.Value] = t.ref match
+    case ir.TypeRef.Ref.Bool(_)     => Some(ir.Value(ir.Value.Kind.Bool(false)))
+    case ir.TypeRef.Ref.IntRange(r) =>
+      Option.when(r.low <= r.high)(ir.Value(ir.Value.Kind.Int(r.low)))
+    case ir.TypeRef.Ref.Named(n) =>
+      def firsts(fields: Seq[ir.Field]): Option[Seq[ir.Value]] =
+        fields.foldLeft(Option(Seq.empty[ir.Value])): (vs, f) =>
+          vs.flatMap(vs => firstValue(f.getType).map(vs :+ _))
+      types.get(n).map(_.shape) match
+        case Some(ir.Type.Shape.Enum(e)) =>
+          e.cases.iterator
+            .flatMap(c => firsts(c.fields).map(fs => ir.EnumValue(n, c.name, fs)))
+            .nextOption()
+            .map(v => ir.Value(ir.Value.Kind.Enum(v)))
+        case Some(ir.Type.Shape.Record(r)) =>
+          firsts(r.fields).map(fs => ir.Value(ir.Value.Kind.Record(ir.RecordValue(n, fs))))
+        case _ => None
+    case _ => None
+
+  /**
    * The composed key of the fact a composition's `after.records(_.member, fact)` reads,
    * `<field>_<fact>`. The selector is one field of the composed state, and where a lifted
    * composition of that state exists, a member fills the field and records facts of the fact's type.

@@ -683,3 +683,73 @@ val recordsUnfilled: Query = query verify sparePinged in sparedFree limits one
 def litBy(after: Step[Lamp, Outcome, Nothing], lit: Lamp => Boolean): Boolean = lit(after.state)
 val litByParam = oneStart.property holds (after => litBy(after, lampLit))
 val paramCalled: Query = query verify litByParam in lampFlips limits one
+
+// ### Input tokens, inputs supplied by name and bounded counters (fn-112.5)
+
+val level = input[Dim]
+val glow = input[Dim]
+val shade = input[Dim]
+val bright = action(Party("fixture")).input(level).input(glow)
+val tint = action(Party("fixture")).input(shade)
+def brightStep(l: Lamp, a: Dim, b: Dim): List[Step[Lamp, Outcome, Nothing]] =
+  List(Step(Outcome.accepted, Lamp(a == b)))
+def tintStep(l: Lamp, a: Dim): List[Step[Lamp, Outcome, Nothing]] =
+  List(Step(Outcome.accepted, Lamp(a == Dim.high)))
+val brightLamp = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(bright ~> brightStep, tint ~> tintStep, dim ~> dimStep)
+}
+val brightLit = brightLamp.property holds (after => after.state.lit)
+
+/** A token of another action, of the input type this one takes. */
+val foreignBright = brightLamp.scenario.actions(bright(shade := Dim.high))
+val foreignToken: Query = query verify brightLit in foreignBright limits one
+
+/** One input supplied twice. */
+val twiceBright = brightLamp.scenario.actions(bright(level := Dim.high, level := Dim.low))
+val suppliedTwice: Query = query verify brightLit in twiceBright limits one
+
+/** A supply kept in a val, not written in the call. */
+val keptLevel = level := Dim.high
+val keptBright = brightLamp.scenario.actions(bright(keptLevel))
+val supplyKept: Query = query verify brightLit in keptBright limits one
+
+/** An action whose inputs are declared by name strings, given a token. */
+val strungDim = brightLamp.scenario.actions(dim(level := Dim.high))
+val namedNoTokens: Query = query verify brightLit in strungDim limits one
+
+/** An action that declares one token twice. */
+val doubleTint = action(Party("fixture")).input(shade).input(shade)
+def doubleTintStep(l: Lamp, a: Dim, b: Dim): List[Step[Lamp, Outcome, Nothing]] =
+  List(Step(Outcome.accepted, Lamp(a == b)))
+val doubleTintLamp = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(doubleTint ~> doubleTintStep)
+}
+val doubleTintLit = doubleTintLamp.property holds (after => after.state.lit)
+val doubleTintFree = doubleTintLamp.scenario.free
+val inputTwice: Query = query verify doubleTintLit in doubleTintFree limits one
+
+/** An input token no val declares, so it has no name. */
+val unnamedTint = action(Party("fixture")).input(input[Dim])
+val unnamedTintLamp = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(unnamedTint ~> tintStep)
+}
+val unnamedTintLit = unnamedTintLamp.property holds (after => after.state.lit)
+val unnamedTintFree = unnamedTintLamp.scenario.free
+val tokenUnnamed: Query = query verify unnamedTintLit in unnamedTintFree limits one
+
+/** A counter bounded below zero, which has no values. */
+final case class Below(count: UpTo[-1]) derives Finite
+val below = machine[Below, Outcome, Nothing] {
+  starts(Below(UpTo(0)))
+  ends(_ => true)
+  steps(flip ~> (b => List(Step(Outcome.accepted, b))))
+}
+val belowFree = below.scenario.free
+val belowAny = below.property holds (after => after.state.count == 0)
+val upToNegative: Query = query verify belowAny in belowFree limits one

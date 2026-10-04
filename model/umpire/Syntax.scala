@@ -4,7 +4,7 @@
  */
 package umpire
 
-import scala.annotation.unused
+import scala.annotation.{targetName, unused}
 
 /**
  * The outcome `accept` and `stay` answer for a machine whose outcomes are `O`, declared once beside
@@ -152,3 +152,39 @@ final class Stays[S, O, F] private[umpire] (b: PropertyBuilder[S, O, F], p: S =>
         Some((before: S, after: Step[S, O, F]) => !p(before) || p(after.state) || release(after))
       )
     )
+
+/**
+ * A named slot with the value it receives, what `slot := value` writes. Core form: the value itself,
+ * written at the slot's place, `expires` in `start(unset, expires, unset)`.
+ */
+final case class Assigned[A] private[umpire] (slot: Slot[A], value: A)
+
+/**
+ * `slot := value`: this named slot receives this value, and nothing else. The value has the slot's
+ * type. Core form: the value at the slot's place in the positional call, `expires` in
+ * `start(unset, expires, unset)`.
+ */
+extension [A](slot: Slot[A])
+  @targetName("set")
+  def :=(value: A): Assigned[A] = Assigned(slot, value)
+
+/**
+ * `start(scheduleToStart := expires)`: the class of the inputs the call supplies by name, in the
+ * order the action declares them, each input it omits at its domain's first value. Each named slot
+ * is an input token the action declares, supplied once. Core form: the positional call,
+ * `start(unset, expires, unset)`.
+ */
+extension [I <: NonEmptyTuple](a: Action[I])
+  def apply(first: Assigned[?], rest: Assigned[?]*): Class =
+    val supplied = first +: rest
+    for s <- supplied do
+      require(
+        a.decl.tokens.contains(Some(s.slot)),
+        s"an input supplied to ${a.name} is not its own"
+      )
+      require(supplied.count(_.slot == s.slot) == 1, s"an input of ${a.name} is supplied twice")
+    val values = a.decl.tokens
+      .zip(a.decl.domains)
+      .map: (token, domain) =>
+        supplied.find(s => token.contains(s.slot)).fold(domain.values.head)(_.value)
+    Class(a.decl, values)

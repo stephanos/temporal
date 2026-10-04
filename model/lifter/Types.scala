@@ -30,7 +30,8 @@ private[lift] trait Types:
     val tpe = instantiated(declared)
     // An opaque type is read before its alias is resolved: its range is its own.
     val opaque = tpe.widen.typeSymbol
-    if opaque.flags.is(Flags.Opaque) then
+    if opaque.fullName == upToType then range(0, upToBound(tpe, at))
+    else if opaque.flags.is(Flags.Opaque) then
       val (lo, hi) = opaqueRanges.getOrElse(
         opaque.fullName,
         fail(
@@ -73,6 +74,24 @@ private[lift] trait Types:
       else
         declareType(sym, at)
         named(sym.fullName)
+
+  // The framework's bounded counter, `UpTo[N]`: the values `0..N` of its field.
+  val upToType = "umpire.Domain$package$.UpTo"
+
+  /** The bound `N` of an `UpTo[N]`: a constant, at least 0. */
+  def upToBound(tpe: TypeRepr, at: Tree): Long =
+    tpe.widen.dealias.typeArgs match
+      case List(n) =>
+        n.dealias.widenTermRefByName match
+          case ConstantType(IntConstant(bound)) if bound >= 0 => bound.toLong
+          case ConstantType(IntConstant(bound))               =>
+            fail(
+              at,
+              s"UpTo[$bound] has no values: a counter counts from 0 to a bound of at least 0"
+            )
+          case other =>
+            fail(at, s"UpTo bounds a counter by a constant, such as UpTo[2], not ${other.show}")
+      case _ => fail(at, s"UpTo bounds a counter by a constant, such as UpTo[2], not ${tpe.show}")
 
   def declareType(sym: Symbol, at: Tree): Unit =
     if !types.contains(sym.fullName) && sym != defn.NothingClass then

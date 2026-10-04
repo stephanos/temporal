@@ -47,6 +47,8 @@ final case class ActionDecl(
     examples: List[ClassExample] = Nil,
     timer: Boolean = false,
     domains: List[Finite[?]] = Nil,
+    // The token of each input, in `inputs` order, where it is declared by one.
+    tokens: List[Option[Input[?]]] = Nil,
     // Another step of the system: an internal step, or a channel's delivery or loss of a message,
     // which `delivers` and `loses` name the channel of.
     internal: Boolean = false,
@@ -80,17 +82,48 @@ final class Action[I <: Tuple] private[umpire] (val decl: ActionDecl):
 
   /** One more input, by name. The tuple type grows by one. */
   def input[A](name: String)(using f: Finite[A]): Action[Tuple.Append[I, A]] =
-    Action(decl.copy(inputs = decl.inputs :+ name, domains = decl.domains :+ f))
+    Action(
+      decl.copy(
+        inputs = decl.inputs :+ name,
+        domains = decl.domains :+ f,
+        tokens = decl.tokens :+ None
+      )
+    )
+
+  /**
+   * One more input, declared by its token: `action("start", caller).input(scheduleToStart)`. The
+   * input takes the token's name, which the lifter reads from the token's `val`, so it is empty
+   * here. The tuple type grows by one.
+   */
+  def input[A](token: Input[A]): Action[Tuple.Append[I, A]] =
+    Action(
+      decl.copy(
+        inputs = decl.inputs :+ "",
+        domains = decl.domains :+ token.domain,
+        tokens = decl.tokens :+ Some(token)
+      )
+    )
+
+  /** The one class of an action with no input, or of a timer. */
+  def apply()(using I =:= EmptyTuple): Class = Class(decl, Nil)
+
+  // The positional calls are members, typed by the inputs at each position, so that a call of
+  // another form may be an extension: Scala tries the named call of Syntax.scala where these do not
+  // apply, and allows no top-level extension `apply` beside one of another file.
+
+  /** The class of this input value. */
+  def apply(x: InputAt[I, 1, 0]): Class = Class(decl, List(x))
+
+  /** The class of these input values, in declaration order. */
+  def apply(x: InputAt[I, 2, 0], y: InputAt[I, 2, 1]): Class = Class(decl, List(x, y))
+
+  /** The class of these input values, in declaration order. */
+  def apply(x: InputAt[I, 3, 0], y: InputAt[I, 3, 1], z: InputAt[I, 3, 2]): Class =
+    Class(decl, List(x, y, z))
 
   override def toString: String = decl.name
 
-/** The one class of an action with no input, or of a timer. */
-extension (a: Action[EmptyTuple]) def apply(): Class = Class(a.decl, Nil)
-
 extension [A](a: Action[A *: EmptyTuple])
-  /** The class of this input value. */
-  def apply(x: A): Class = Class(a.decl, List(x))
-
   /**
    * An Abstraction Claim on one class of the input. Its value is typed by the input,
    * so an example of another type does not compile. Claims keep declaration order, which is the
@@ -99,10 +132,39 @@ extension [A](a: Action[A *: EmptyTuple])
   def example(value: A, example: String): Action[A *: EmptyTuple] =
     Action(a.decl.copy(examples = a.decl.examples :+ ClassExample(value, example)))
 
-extension [A, B](a: Action[(A, B)]) def apply(x: A, y: B): Class = Class(a.decl, List(x, y))
+/**
+ * The type of the input at position `N` of an action whose inputs are `I`, where it has `Size` of
+ * them: what its positional call takes there. For an action with another number of inputs it is
+ * `OtherInputs`, which no value has, so that call does not compile.
+ */
+type InputAt[I <: Tuple, Size <: Int, N <: Int] = (I, Size, N) match
+  case (a *: EmptyTuple, 1, 0) => a
+  case ((a, b), 2, 0)          => a
+  case ((a, b), 2, 1)          => b
+  case ((a, b, c), 3, 0)       => a
+  case ((a, b, c), 3, 1)       => b
+  case ((a, b, c), 3, 2)       => c
+  case _                       => OtherInputs
 
-extension [A, B, C](a: Action[(A, B, C)])
-  def apply(x: A, y: B, z: C): Class = Class(a.decl, List(x, y, z))
+/** What a positional call takes where the action has another number of inputs: no value. */
+sealed trait OtherInputs
+
+/**
+ * A named place that receives a value of type `A`: an action's input. `:=`
+ * (model/umpire/Syntax.scala) gives one its value.
+ */
+trait Slot[A]
+
+/**
+ * One input of an action, named after the `val` that declares it: `val scheduleToStart =
+ * input[Timeout]`. An action declares it with `.input(scheduleToStart)`, and its values are the
+ * domain's. Tokens are compared by identity, as declarations are, so two tokens of one type are two
+ * inputs.
+ */
+final class Input[A] private[umpire] (val domain: Finite[A]) extends Slot[A]
+
+/** Declares an input token of type `A`, named after the `val` that declares it. */
+def input[A](using f: Finite[A]): Input[A] = Input(f)
 
 /** Declares an action a party performs. */
 def action(name: String, party: Party): Action[EmptyTuple] = Action(ActionDecl(name, party))

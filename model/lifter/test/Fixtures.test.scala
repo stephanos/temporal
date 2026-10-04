@@ -172,6 +172,17 @@ class Fixtures extends munit.FunSuite:
     "paramCalled"
   )
 
+  // The refusals of fn-112.5's input tokens, inputs supplied by name and bounded counters.
+  private val inputRejects: Seq[String] = Seq(
+    "foreignToken",
+    "suppliedTwice",
+    "supplyKept",
+    "namedNoTokens",
+    "inputTwice",
+    "tokenUnnamed",
+    "upToNegative"
+  )
+
   private val rejected = Seq(
     "unbounded",
     "waiting",
@@ -215,7 +226,8 @@ class Fixtures extends munit.FunSuite:
     "aliased",
     "splatted",
     "explained"
-  ).map("fixture.rejects.Rejects$package$." + _) ++ (selectorRejects ++ patternRejects).map(
+  ).map("fixture.rejects.Rejects$package$." + _) ++ (selectorRejects ++ patternRejects ++
+    inputRejects).map(
     "fixture.rejects.Rejects$package$." + _
   ) ++ Seq(
     // DefinitionScope pins, a name the compiler made up and a computed accepted outcome, refused in
@@ -304,7 +316,11 @@ class Fixtures extends munit.FunSuite:
         "Crossed.scala:35:14",
         "Crossed.scala:45:28",
         "Crossed.scala:49:24",
-        "Crossed.scala:59:29"
+        "Crossed.scala:59:29",
+        "NamedInput.scala:21:50",
+        "NamedInput.scala:24:27",
+        "NamedInput.scala:27:49",
+        "NamedInput.scala:30:31"
       )
     )
 
@@ -682,6 +698,51 @@ class Fixtures extends munit.FunSuite:
       resume.at("/body/match/cases/1/pattern").toString,
       """{"wildcard":{}}""",
       "a wildcard arm lifts as a wildcard"
+    )
+
+  // fn-112.5: input tokens, inputs supplied by name and a bounded counter (lifts/Inputs.scala).
+  concurrently("inputs supplied by name lift as their positional calls, and UpTo as the Int range"):
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val protocol = "temporal.standaloneactivity.Model$package$.activityProtocol"
+    val (model, _, property) = declarations(
+      "inputs",
+      Seq("byNameQuery", "byPositionQuery", "urgentByNameQuery", "urgentByPositionQuery", protocol)
+    )
+    def named(kind: String, name: String): JsonNode = model
+      .path(kind)
+      .elements()
+      .asScala
+      .find(_.path("name").asText() == name)
+      .getOrElse(fail(s"the inputs fixture lifted no $kind named $name"))
+    def actionsOf(scenario: String): String =
+      val s = named("scenarios", scenario).deepCopy[ObjectNode]()
+      s.path("actions").toPrettyString
+    // A call by name is its positional twin, class by class: partial, reordered and defaulted.
+    assertEquals(actionsOf("byName"), actionsOf("byPosition"))
+    assertEquals(property("urgentByName"), property("urgentByPosition"))
+    val respond = named("actions", "respond")
+    assertEquals(
+      respond.path("inputs").elements().asScala.map(_.path("name").asText()).toList,
+      List("answer", "urgent"),
+      "an input takes its token's val name"
+    )
+    // The control action reports results by name with no enum declared of that name.
+    assertEquals(named("actions", "steer").path("results").asText(), "Delivery")
+    assert(
+      !model.path("types").elements().asScala.exists(_.path("name").asText().endsWith(".Delivery")),
+      "results named a type"
+    )
+    // UpTo[2] lifts as the Int range 0..2 of the protocol state's attempt counter, so the counted
+    // state has the protocol state's record, and Go keys both catalogs alike.
+    def record(name: String): String = named("types", name).path("record").toPrettyString
+    assertEquals(
+      record("fixture.inputs.Counted"),
+      record("temporal.standaloneactivity.ProtocolState")
+    )
+    assertEquals(
+      named("types", "fixture.inputs.Counted").at("/record/fields/1/type").toString,
+      """{"intRange":{"high":"2"}}"""
     )
 
   // fn-112.4: typed composition selectors (lifts/Members.scala).

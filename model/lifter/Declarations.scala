@@ -33,6 +33,7 @@ private[lift] trait Declarations:
 
   /** An action, from its declaration and the calls chained onto it; `sym` is its val. */
   def actionOf(id: String, sym: Symbol, chain: Term): ir.Action =
+    val tokens = mutable.ArrayBuffer.empty[Option[Symbol]]
     def named(name: String): ir.Action =
       ir.Action(id = id, position = Some(pos(chain)), name = name, party = "system")
     def captured: ir.Action = named(capturedName(sym, chain, "an action"))
@@ -51,11 +52,43 @@ private[lift] trait Declarations:
       case Apply(TypeApply(Select(inner, "schema"), List(tpt)), _) =>
         walk(inner).addSchemas(messageDescriptor(tpt.tpe, t).fullName)
       case Apply(Apply(TypeApply(Select(inner, "input"), List(tpt)), List(name)), _) =>
-        walk(inner).addInputs(ir.Param(constString(name), Some(typeRef(tpt.tpe, t))))
+        val a = walk(inner)
+        tokens += None
+        a.addInputs(ir.Param(constString(name), Some(typeRef(tpt.tpe, t))))
+      // An input declared by its token, named after the token's val.
+      case Apply(TypeApply(Select(inner, "input"), List(tpt)), List(token)) =>
+        val a = walk(inner)
+        val input = inputToken(token)
+        if tokens.contains(Some(input)) then
+          fail(
+            token,
+            s"${a.name} declares the input ${input.name} twice: an action takes each input once"
+          )
+        tokens += Some(input)
+        a.addInputs(ir.Param(input.name, Some(typeRef(tpt.tpe, t))))
       case Apply(Apply(TypeApply(Ident("example"), _), List(inner)), List(value, example)) =>
         walk(inner).addExamples(ir.Example(Some(literalValue(value)), constString(example)))
       case other => fail(other, s"not a part of an action declaration: ${other.show}")
-    walk(chain)
+    val declared = walk(chain)
+    inputTokens(id) = tokens.toVector
+    declared
+
+  /** The val of an input token, `val scheduleToStart = input[Timeout]`, which names the input. */
+  def inputToken(token: Term): Symbol =
+    val sym = token match
+      case r: Ref => Some(resolveSymbol(r))
+      case _      => None
+    sym.map(s => s -> defs.get(s)) match
+      case Some((s, Some(ValDef(_, _, Some(Apply(TypeApply(Ident("input"), _), _)))))) =>
+        capturedName(s, token, "an input")
+        s
+      case found =>
+        val written = found.fold("a token no val declares")((s, _) => s.name)
+        fail(
+          token,
+          "an input is declared by the token a val names, as `val level = input[T]` and " +
+            s"`.input(level)`, not $written"
+        )
 
   /** A constant value, for an example: an enum case, with constant fields. */
   def literalValue(t: Term): ir.Value = ir.Value(resolve(t) match

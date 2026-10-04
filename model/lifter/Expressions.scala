@@ -343,6 +343,11 @@ private[lift] trait Expressions:
         E.Construct(ir.Construct(`type` = tpe, `case` = "Some", args = Seq(lift(x, Some(arg.tpe)))))
       )
 
+    // A bounded counter written from an integer, `UpTo(n)`, is the integer: Go checks its range.
+    case Apply(Apply(TypeApply(fn @ Select(_, "apply"), _), List(n)), _)
+        if fn.symbol.owner.fullName.stripSuffix("$") == upToType =>
+      lift(n, expected)
+
     // `a.min(b)` and `a.max(b)` of integers: the smaller or the larger, as a conditional.
     case Apply(Select(Apply(Ident("intWrapper"), List(a)), op @ ("min" | "max")), List(b)) =>
       val keep = if op == "min" then ir.Binary.Op.OP_LE else ir.Binary.Op.OP_GE

@@ -70,6 +70,9 @@ final private[lift] class Context(using val quotes: Quotes)(
   val types = mutable.LinkedHashMap.empty[String, ir.Type]
   val functions = mutable.LinkedHashMap.empty[String, ir.Function]
   val actions = mutable.LinkedHashMap.empty[String, ir.Action]
+  // The token of each input of an action, by the action's Definition ID, in input order: the val of
+  // an input declared by its token, and none for one declared by a name.
+  val inputTokens = mutable.Map.empty[String, Vector[Option[Symbol]]]
   val machines = mutable.LinkedHashMap.empty[String, ir.Machine]
   val channels = mutable.LinkedHashMap.empty[String, ir.Channel]
   val monitors = mutable.LinkedHashMap.empty[String, ir.Monitor]
