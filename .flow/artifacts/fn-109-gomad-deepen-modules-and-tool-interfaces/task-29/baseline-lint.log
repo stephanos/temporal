@@ -1,0 +1,89 @@
+tools/gomad3/artifact/manifest_copy.go:59:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Sprintf("artifact manifest cannot copy a %s field", source.Kind()))
+		^
+tools/gomad3/artifact/open.go:270:20: Error return value of `source.Close` is not checked (errcheck)
+	defer source.Close()
+	                  ^
+tools/gomad3/artifact/open.go:276:24: Error return value of `destinationFile.Close` is not checked (errcheck)
+		destinationFile.Close()
+		                     ^
+tools/gomad3/artifact/open.go:283:24: Error return value of `destinationFile.Close` is not checked (errcheck)
+		destinationFile.Close()
+		                     ^
+tools/gomad3/artifact/open.go:288:24: Error return value of `destinationFile.Close` is not checked (errcheck)
+		destinationFile.Close()
+		                     ^
+tools/gomad3/artifact/open.go:293:24: Error return value of `destinationFile.Close` is not checked (errcheck)
+		destinationFile.Close()
+		                     ^
+tools/gomad3/artifact/open.go:297:24: Error return value of `destinationFile.Close` is not checked (errcheck)
+		destinationFile.Close()
+		                     ^
+tools/gomad3/artifact/opened_test.go:41:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/artifact/opened_test.go:61:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/artifact/opened_test.go:145:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/artifact/opened_test.go:181:2: missing cases in switch of type reflect.Kind: reflect.Invalid, reflect.Uintptr, reflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128, reflect.Chan, reflect.Func, reflect.Interface, reflect.UnsafePointer (exhaustive)
+	switch value.Kind() {
+	^
+tools/gomad3/artifact/opened_test.go:216:2: missing cases in switch of type reflect.Kind: reflect.Invalid, reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr, reflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128, reflect.Array, reflect.Chan, reflect.Func, reflect.Interface, reflect.String, reflect.UnsafePointer (exhaustive)
+	switch original.Kind() {
+	^
+tools/gomad3/artifact/opened_test.go:256:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/artifact/opened_test.go:323:22: Error return value of `opened.Close` is not checked (errcheck)
+			defer opened.Close()
+			                  ^
+tools/gomad3/artifact/publication.go:39:22: ST1005: error strings should not be capitalized (staticcheck)
+		return Artifact{}, errors.New("World payload paths must use the canonical artifact layout")
+		                   ^
+tools/gomad3/artifact/publication_test.go:42:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/artifact/publication_test.go:132:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/artifact/store.go:333:19: Error return value of `input.Close` is not checked (errcheck)
+	defer input.Close()
+	                 ^
+tools/gomad3/artifact/store.go:346:15: Error return value of `output.Close` is not checked (errcheck)
+		output.Close()
+		            ^
+tools/gomad3/artifact/store.go:352:15: Error return value of `output.Close` is not checked (errcheck)
+		output.Close()
+		            ^
+tools/gomad3/artifact/store.go:356:15: Error return value of `output.Close` is not checked (errcheck)
+		output.Close()
+		            ^
+tools/gomad3/artifact/store.go:402:13: Error return value of `file.Close` is not checked (errcheck)
+		file.Close()
+		          ^
+tools/gomad3/artifact/store.go:406:13: Error return value of `file.Close` is not checked (errcheck)
+		file.Close()
+		          ^
+tools/gomad3/artifact/store.go:410:13: Error return value of `file.Close` is not checked (errcheck)
+		file.Close()
+		          ^
+tools/gomad3/artifact/store.go:470:23: Error return value of `directory.Close` is not checked (errcheck)
+	defer directory.Close()
+	                     ^
+tools/gomad3/artifact/target_pool.go:216:18: Error return value of `root.Close` is not checked (errcheck)
+	defer root.Close()
+	                ^
+tools/gomad3/artifact/target_pool.go:221:18: Error return value of `file.Close` is not checked (errcheck)
+	defer file.Close()
+	                ^
+tools/gomad3/artifact/target_pool_test.go:262:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+28 issues:
+* errcheck: 24
+* exhaustive: 2
+* forbidigo: 1
+* staticcheck: 1

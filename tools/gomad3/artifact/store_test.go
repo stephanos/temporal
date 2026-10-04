@@ -1,6 +1,7 @@
 package artifact
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -11,6 +12,134 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/record"
 )
+
+func TestPrivatePayloadWritesLiteralMetadataAndBytes(t *testing.T) {
+	source := filepath.Join(t.TempDir(), "source")
+	if err := os.WriteFile(source, []byte("target bytes"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		payload Payload
+		want    record.File
+		bytes   string
+	}{
+		{Payload{Path: "target", Mode: 0o700, SourcePath: source}, record.File{Path: "target", Mode: "0700", Size: 12, SHA256: "sha256:0350a9d9ffa2b933c2e6a8d73d4ee7398415e547178881241eca6bb865de5393"}, "target bytes"},
+		{Payload{Path: "stdout", Mode: 0o600, Data: []byte("stdout")}, record.File{Path: "stdout", Mode: "0600", Size: 6, SHA256: "sha256:63d42d26156fcc761e57da4128e9881d5bdf3bf933f0f6e9c93d6e26b9b90ae7"}, "stdout"},
+	} {
+		t.Run(test.payload.Path, func(t *testing.T) {
+			destination := filepath.Join(t.TempDir(), "payloads", test.payload.Path)
+			file, err := placePayload(context.Background(), test.payload, destination)
+			if err != nil || file != test.want {
+				t.Fatalf("placePayload() = %#v, %v, want %#v", file, err, test.want)
+			}
+			data, err := os.ReadFile(destination)
+			if err != nil || string(data) != test.bytes {
+				t.Fatalf("payload bytes = %q, %v, want %q", data, err, test.bytes)
+			}
+			info, err := os.Stat(destination)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if info.Mode().Perm() != test.payload.Mode {
+				t.Fatalf("payload mode = %#o, want %#o", info.Mode().Perm(), test.payload.Mode)
+			}
+			parent, err := os.Stat(filepath.Dir(destination))
+			if err != nil || parent.Mode().Perm() != 0o700 {
+				t.Fatalf("payload parent = %v, %v, want private directory", parent, err)
+			}
+		})
+	}
+}
+
+func TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination(t *testing.T) {
+	source := filepath.Join(t.TempDir(), "source")
+	if err := os.WriteFile(source, []byte("target bytes"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		payload Payload
+		want    string
+	}{
+		{Payload{Path: "target", Mode: 0o700, SourcePath: source}, "copy payload target: context canceled"},
+		{Payload{Path: "stdout", Mode: 0o600, Data: []byte("stdout")}, "write payload stdout: context canceled"},
+	} {
+		t.Run(test.payload.Path, func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			cancel()
+			destination := filepath.Join(t.TempDir(), test.payload.Path)
+			file, err := placePayload(ctx, test.payload, destination)
+			if file != (record.File{}) || err == nil || err.Error() != test.want || !errors.Is(err, context.Canceled) || errors.Unwrap(err) != context.Canceled {
+				t.Fatalf("placePayload() = %#v, %v, want zero metadata and single cancellation wrapper %q", file, err, test.want)
+			}
+			data, err := os.ReadFile(destination)
+			if err != nil || len(data) != 0 {
+				t.Fatalf("partial destination = %q, %v, want retained empty file", data, err)
+			}
+			info, err := os.Stat(destination)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if info.Mode().Perm() != test.payload.Mode {
+				t.Fatalf("partial destination mode = %#o, want %#o", info.Mode().Perm(), test.payload.Mode)
+			}
+		})
+	}
+}
+
+func TestPrivatePayloadCollisionPreservesDestinationAndPathError(t *testing.T) {
+	source := filepath.Join(t.TempDir(), "source")
+	if err := os.WriteFile(source, []byte("target bytes"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, payload := range []Payload{
+		{Path: "target", Mode: 0o700, SourcePath: source},
+		{Path: "stdout", Mode: 0o600, Data: []byte("stdout")},
+	} {
+		t.Run(payload.Path, func(t *testing.T) {
+			destination := filepath.Join(t.TempDir(), payload.Path)
+			if err := os.WriteFile(destination, []byte("sentinel"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			file, err := placePayload(context.Background(), payload, destination)
+			var pathErr *os.PathError
+			if file != (record.File{}) || !errors.Is(err, os.ErrExist) || !errors.As(err, &pathErr) {
+				t.Fatalf("placePayload() = %#v, %v, want zero metadata and destination collision", file, err)
+			}
+			if errors.Unwrap(err) != pathErr || pathErr.Op != "open" || pathErr.Path != destination || err.Error() != "create payload "+payload.Path+": "+pathErr.Error() {
+				t.Fatalf("collision error shape = %#v, %v", pathErr, err)
+			}
+			data, err := os.ReadFile(destination)
+			if err != nil || string(data) != "sentinel" {
+				t.Fatalf("existing destination = %q, %v, want sentinel", data, err)
+			}
+		})
+	}
+}
+
+func TestPrivatePayloadRejectsNonregularSourceBeforeCreatingDestination(t *testing.T) {
+	destination := filepath.Join(t.TempDir(), "target")
+	file, err := copyPayload(context.Background(), t.TempDir(), destination, "target", 0o700)
+	if file != (record.File{}) || err == nil || err.Error() != "payload target is not a regular file" || errors.Unwrap(err) != nil {
+		t.Fatalf("copyPayload() = %#v, %v", file, err)
+	}
+	if _, err := os.Lstat(destination); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("nonregular source created destination: %v", err)
+	}
+}
+
+func TestPublishRemovesStagingAfterNonregularSourceFailure(t *testing.T) {
+	input := artifactInput(t)
+	input.Payloads[0].SourcePath = t.TempDir()
+	root := t.TempDir()
+	published, err := (Store{Root: root}).PublishArtifact(input)
+	if err == nil || err.Error() != "payload target is not a regular file" || published.Path != "" {
+		t.Fatalf("PublishArtifact() = %#v, %v", published, err)
+	}
+	entries, err := os.ReadDir(root)
+	if err != nil || len(entries) != 0 {
+		t.Fatalf("failed publication entries = %v, %v, want no staging or published artifact", entries, err)
+	}
+}
 
 func TestPublishFailsBeforePublicationWhenByteCapacityIsExceeded(t *testing.T) {
 	root := t.TempDir()

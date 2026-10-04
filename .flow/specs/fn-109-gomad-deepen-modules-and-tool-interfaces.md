@@ -494,6 +494,20 @@ receipt remains historical; package progress supplies no new whole-scope count.
 Original R16/R18/R19, task 3/predecessors, fixed-identity, full/native/formal
 requirements remain unchanged. Root commits verified progress before next writer.
 
+Task 29's independently reviewed private artifact payload repair checks seven
+copyPayload/writePayload cleanup returns without changing primary error identity
+when cleanup succeeds, output-before-input release or successful Sync/Close/
+metadata ordering. Ownership retires before explicit Close attempts; the old
+second input Close no longer risks successful publication. Ordinary package,
+focused real-file, boundary, errortype and generator checks pass on developmental
+linux/arm64. Actual unfiltered artifact lint falls from 28 to 21 residual findings,
+with exactly seven mapped repairs and no introduced diagnostics. No first-Close
+fault execution or new whole-Gomad count is supplied. Public CopyPayload, directory
+sync and shared verification retain separate owners. Task 29 stays blocked;
+task 21 consumes its source evidence. Original R13/R18/R19, task 12/predecessors,
+matched first-baseline fixed identities and complete/full/formal/both-native
+acceptance remain open. Root commits reviewed source progress before the next writer.
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.

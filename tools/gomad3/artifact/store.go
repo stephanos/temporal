@@ -319,7 +319,7 @@ func identityDirectory(identity record.SHA256, complete bool) string {
 	return "sha256-" + hex
 }
 
-func copyPayload(ctx context.Context, source, destination, relativePath string, mode os.FileMode) (record.File, error) {
+func copyPayload(ctx context.Context, source, destination, relativePath string, mode os.FileMode) (_ record.File, retErr error) {
 	if err := os.MkdirAll(filepath.Dir(destination), 0o700); err != nil {
 		return record.File{}, fmt.Errorf("create payload parent %s: %w", relativePath, err)
 	}
@@ -330,7 +330,14 @@ func copyPayload(ctx context.Context, source, destination, relativePath string, 
 	if err != nil {
 		return record.File{}, fmt.Errorf("open payload %s: %w", relativePath, err)
 	}
-	defer input.Close()
+	inputOwned := true
+	defer func() {
+		if inputOwned {
+			if closeErr := input.Close(); closeErr != nil {
+				retErr = errors.Join(retErr, closeErr)
+			}
+		}
+	}()
 	info, err := input.Stat()
 	if err != nil {
 		return record.File{}, fmt.Errorf("stat payload %s: %w", relativePath, err)
@@ -342,23 +349,30 @@ func copyPayload(ctx context.Context, source, destination, relativePath string, 
 	if err != nil {
 		return record.File{}, fmt.Errorf("create payload %s: %w", relativePath, err)
 	}
+	outputOwned := true
+	defer func() {
+		if outputOwned {
+			if closeErr := output.Close(); closeErr != nil {
+				retErr = errors.Join(retErr, closeErr)
+			}
+		}
+	}()
 	if err := output.Chmod(mode); err != nil {
-		output.Close()
 		return record.File{}, fmt.Errorf("set payload mode %s: %w", relativePath, err)
 	}
 	hasher := recordHashWriter{writer: output, hasher: sha256.New()}
 	_, copyErr := copyWithContext(ctx, &hasher, input)
 	if copyErr != nil {
-		output.Close()
 		return record.File{}, fmt.Errorf("copy payload %s: %w", relativePath, copyErr)
 	}
 	if err := syncFileContext(ctx, output); err != nil {
-		output.Close()
 		return record.File{}, fmt.Errorf("sync payload %s: %w", relativePath, err)
 	}
+	outputOwned = false
 	if err := output.Close(); err != nil {
 		return record.File{}, fmt.Errorf("close payload %s: %w", relativePath, err)
 	}
+	inputOwned = false
 	if err := input.Close(); err != nil {
 		return record.File{}, fmt.Errorf("close source payload %s: %w", relativePath, err)
 	}
@@ -387,7 +401,7 @@ func syncPayloadDirectories(ctx context.Context, staging string, payloads []Payl
 	return nil
 }
 
-func writePayload(ctx context.Context, destination, relativePath string, data []byte, mode os.FileMode) (record.File, error) {
+func writePayload(ctx context.Context, destination, relativePath string, data []byte, mode os.FileMode) (_ record.File, retErr error) {
 	if err := os.MkdirAll(filepath.Dir(destination), 0o700); err != nil {
 		return record.File{}, fmt.Errorf("create payload parent %s: %w", relativePath, err)
 	}
@@ -398,18 +412,24 @@ func writePayload(ctx context.Context, destination, relativePath string, data []
 	if err != nil {
 		return record.File{}, fmt.Errorf("create payload %s: %w", relativePath, err)
 	}
+	fileOwned := true
+	defer func() {
+		if fileOwned {
+			if closeErr := file.Close(); closeErr != nil {
+				retErr = errors.Join(retErr, closeErr)
+			}
+		}
+	}()
 	if err := file.Chmod(mode); err != nil {
-		file.Close()
 		return record.File{}, fmt.Errorf("set payload mode %s: %w", relativePath, err)
 	}
 	if _, err := copyWithContext(ctx, file, bytes.NewReader(data)); err != nil {
-		file.Close()
 		return record.File{}, fmt.Errorf("write payload %s: %w", relativePath, err)
 	}
 	if err := syncFileContext(ctx, file); err != nil {
-		file.Close()
 		return record.File{}, fmt.Errorf("sync payload %s: %w", relativePath, err)
 	}
+	fileOwned = false
 	if err := file.Close(); err != nil {
 		return record.File{}, fmt.Errorf("close payload %s: %w", relativePath, err)
 	}

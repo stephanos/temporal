@@ -1,0 +1,24 @@
+=== RUN   TestPrivatePayloadWritesLiteralMetadataAndBytes
+=== RUN   TestPrivatePayloadWritesLiteralMetadataAndBytes/target
+=== RUN   TestPrivatePayloadWritesLiteralMetadataAndBytes/stdout
+--- PASS: TestPrivatePayloadWritesLiteralMetadataAndBytes (0.00s)
+    --- PASS: TestPrivatePayloadWritesLiteralMetadataAndBytes/target (0.00s)
+    --- PASS: TestPrivatePayloadWritesLiteralMetadataAndBytes/stdout (0.00s)
+=== RUN   TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination
+=== RUN   TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/target
+=== RUN   TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/stdout
+--- PASS: TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination (0.00s)
+    --- PASS: TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/target (0.00s)
+    --- PASS: TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/stdout (0.00s)
+=== RUN   TestPrivatePayloadCollisionPreservesDestinationAndPathError
+=== RUN   TestPrivatePayloadCollisionPreservesDestinationAndPathError/target
+=== RUN   TestPrivatePayloadCollisionPreservesDestinationAndPathError/stdout
+--- PASS: TestPrivatePayloadCollisionPreservesDestinationAndPathError (0.00s)
+    --- PASS: TestPrivatePayloadCollisionPreservesDestinationAndPathError/target (0.00s)
+    --- PASS: TestPrivatePayloadCollisionPreservesDestinationAndPathError/stdout (0.00s)
+=== RUN   TestPrivatePayloadRejectsNonregularSourceBeforeCreatingDestination
+--- PASS: TestPrivatePayloadRejectsNonregularSourceBeforeCreatingDestination (0.00s)
+=== RUN   TestPublishRemovesStagingAfterNonregularSourceFailure
+--- PASS: TestPublishRemovesStagingAfterNonregularSourceFailure (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/artifact	0.008s

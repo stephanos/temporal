@@ -1,0 +1,35 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.29",
+  "base_commit": "e98c7a3e2ca845b92edcdef185f5c9ae67be4a3a",
+  "branch": "gomad",
+  "protected_files": 1042,
+  "protected_aggregate_sha256": "40adf6923b35cc17eb5f76a189308bb506f41dfc4ab235a5d01736f2aed7f520",
+  "selection": "tracked tools/gomad3, tools/gomad3sim, tools/gomad3integration, root go.mod/go.sum and lint config excluding only artifact/store.go and artifact/store_test.go",
+  "encoding": "sorted-key JSON with ordinary comma/colon separator spaces",
+  "protected_original_documents": {
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md": "ed73b16b6bf0581cdfb0a93d6483daf3b550018e0c70839c2214165a46772230",
+    "tools/gomad3/README.md": "8b95e9d3ae6103f120f6cadacbeffcc17f27bac6636b923279461fe13ec6e61a",
+    "AGENTS.md": "1d1647deacf876fd634c64c2760194e210f67198fd31194fd4e464be6bc80f0d",
+    ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43"
+  },
+  "artifact_source_matches_scout": true,
+  "requested_worker": {
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "tier_line": "Tier: session (jev-unavailable(no_key))",
+    "actual_model": null
+  },
+  "scheduling": "wave: one source writer in authorized current checkout; independent read-only public-copy scout overlaps",
+  "source_scope": [
+    "tools/gomad3/artifact/store.go",
+    "tools/gomad3/artifact/store_test.go"
+  ],
+  "root_owned": [
+    "Git/index/commit",
+    "Flow/lifecycle/parent",
+    "MILESTONES.md",
+    "fresh independent source review"
+  ],
+  "review_backend": "conductor-deferred source progress; formal review only on qualified green tree",
+  "qualification_limits": "Original R13/R18/R19/task12/predecessors/task21/first-baseline/full/native/formal remain open; no push or compatibility expansion"
+}

@@ -1,0 +1,514 @@
+{
+  "status": "SOURCE_PROGRESS_COMMIT_ONLY",
+  "base": "e98c7a3e2ca845b92edcdef185f5c9ae67be4a3a",
+  "branch": "gomad",
+  "source_final": {
+    "tools/gomad3/artifact/store.go": "a41297665317751bef4d62264eb8c68bdf0ea5cc3d79f234424ff8946978a7d1",
+    "tools/gomad3/artifact/store_test.go": "fad48f38fe5344b4f6767321580bdf3af79c3245dd68cbc355fecfaf5e535d6d"
+  },
+  "artifact_source_files": 23,
+  "protected_files": 1042,
+  "protected_aggregate_sha256": "40adf6923b35cc17eb5f76a189308bb506f41dfc4ab235a5d01736f2aed7f520",
+  "protected_matches_base": true,
+  "protected_exclusions": [
+    "tools/gomad3/artifact/store.go",
+    "tools/gomad3/artifact/store_test.go"
+  ],
+  "parent_contract_prefix_unchanged": true,
+  "task12_unchanged": true,
+  "outside_private_helpers_unchanged": true,
+  "old_store_test_bodies_unchanged": true,
+  "changed_product_paths": [
+    "tools/gomad3/artifact/store.go",
+    "tools/gomad3/artifact/store_test.go"
+  ],
+  "baseline_sources_match_base": true,
+  "all_receipts_bind_exact_source": true,
+  "all_receipts_bind_tools_config_env_log_time_exit": true,
+  "tools": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "config_sha256": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+  "char_top_tests": [
+    "TestPrivatePayloadWritesLiteralMetadataAndBytes",
+    "TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination",
+    "TestPrivatePayloadCollisionPreservesDestinationAndPathError",
+    "TestPrivatePayloadRejectsNonregularSourceBeforeCreatingDestination",
+    "TestPublishRemovesStagingAfterNonregularSourceFailure"
+  ],
+  "tests_precede_production": true,
+  "lint": {
+    "before": 28,
+    "after": 21,
+    "fresh": 21,
+    "resolved_baseline_lines": [
+      333,
+      346,
+      352,
+      356,
+      402,
+      406,
+      410
+    ],
+    "introduced": 0,
+    "residual_multiset_exact": true,
+    "directory_close_shift": [
+      470,
+      490
+    ],
+    "residual_linter_counts": {
+      "forbidigo": 1,
+      "errcheck": 17,
+      "exhaustive": 2,
+      "staticcheck": 1
+    }
+  },
+  "receipts": {
+    "baseline-package": {
+      "receipt": "baseline-package.json",
+      "receipt_sha256": "b4128c9aca595d0c7549fd0ed5f2b3d7652519b2116c71bb16dfc642c2a21126",
+      "log": "baseline-package.log",
+      "log_sha256": "bd05026864f6c55df3f9d333933e1a089923b3af11827a48e65a0dbc468928e3",
+      "exit": 0,
+      "elapsed_seconds": 1.5711704170025769,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 0,
+      "subtests": 0
+    },
+    "baseline-focused": {
+      "receipt": "baseline-focused.json",
+      "receipt_sha256": "1d68371ee8af5b748bfe999dcdb70b0ccaa0085fcbc4dc6d7848064ee4fd7c00",
+      "log": "baseline-focused.log",
+      "log_sha256": "65204bdfbf2052dd6b09eff7babfd77d1f3308a36ac898f2b73abdd1ce61b580",
+      "exit": 0,
+      "elapsed_seconds": 2.622426458998234,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 27,
+      "subtests": 14
+    },
+    "baseline-lint": {
+      "receipt": "baseline-lint.json",
+      "receipt_sha256": "84f73b1671445750a07739372ade5fc2913a9849427e655f16436d5c1acda9ae",
+      "log": "baseline-lint.log",
+      "log_sha256": "aad15400a182a7985aaf472fc0dc6000d99470c06d4b78f190ef8f7865ffe8c4",
+      "exit": 1,
+      "elapsed_seconds": 1.4392646679989411,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 0,
+      "subtests": 0
+    },
+    "baseline-errortype": {
+      "receipt": "baseline-errortype.json",
+      "receipt_sha256": "d32304773669b43cd60652e2637215f0b1b1fb2a59ac016273eea06f4da33787",
+      "log": "baseline-errortype.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit": 0,
+      "elapsed_seconds": 0.9767962500045542,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 0,
+      "subtests": 0
+    },
+    "characterization-baseline": {
+      "receipt": "characterization-baseline.json",
+      "receipt_sha256": "f4e8299f8f023a0a100d5eb51fccf63ddea231361766f3fa29cbec10d8b41c0b",
+      "log": "characterization-baseline.log",
+      "log_sha256": "0a476bd8f531848a508d471d2ced630c9fdea5cfe20f177bc1c741ed21a33de3",
+      "exit": 0,
+      "elapsed_seconds": 0.5344833760027541,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 5,
+      "subtests": 6
+    },
+    "final-package": {
+      "receipt": "final-package.json",
+      "receipt_sha256": "4408169f1ce9869e5b2501f7e53673e8b72946a1fd7e2993d8efb568ea6429ad",
+      "log": "final-package.log",
+      "log_sha256": "7e1bd9ea07e3b39f703eb474aef1ec1d05d7f72cd0e15c273cbbfc18259e57ed",
+      "exit": 0,
+      "elapsed_seconds": 2.8897452099990915,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 0,
+      "subtests": 0
+    },
+    "final-focused": {
+      "receipt": "final-focused.json",
+      "receipt_sha256": "e96625da3d4cbcaa3ce122b8244f2a8646c9845da617490843d3943fbd4029c1",
+      "log": "final-focused.log",
+      "log_sha256": "792708b3d8134f9a07f61a3c3b0057b2f87610d2c2264ecd41387ae29525956b",
+      "exit": 0,
+      "elapsed_seconds": 2.6154818759969203,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 32,
+      "subtests": 20
+    },
+    "final-lint": {
+      "receipt": "final-lint.json",
+      "receipt_sha256": "ad11fe1bb9e13ddc6251fb14a29180b49dc461529071221e4021a88f2db58850",
+      "log": "final-lint.log",
+      "log_sha256": "ebb92cbaf01414e39c0a5eb2388ee5d16dc114942e78842b50189d6d5c90b56a",
+      "exit": 1,
+      "elapsed_seconds": 2.529217501003586,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 0,
+      "subtests": 0
+    },
+    "final-errortype": {
+      "receipt": "final-errortype.json",
+      "receipt_sha256": "e8b05c6864b7e5c7f07388e7e0d6ad76f12ab3f718f3434d29686802fcf1c8eb",
+      "log": "final-errortype.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit": 0,
+      "elapsed_seconds": 1.5550077090010745,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 0,
+      "subtests": 0
+    },
+    "final-boundary": {
+      "receipt": "final-boundary.json",
+      "receipt_sha256": "42d883fbfde7ef73804b7b84f4b5870863cabe05d46668035803f1b9f7dcdb5d",
+      "log": "final-boundary.log",
+      "log_sha256": "ae05e58eae54c5493ae33c5756cc9e563c6ae2dbd0a956bf5eee2d8a622cee9a",
+      "exit": 0,
+      "elapsed_seconds": 8.396680961996026,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 5,
+      "subtests": 10
+    },
+    "final-validation": {
+      "receipt": "final-validation.json",
+      "receipt_sha256": "79c9ff67b19cbc8fdf14367acda64757b823899510bdd99977337aba482a880c",
+      "log": "final-validation.log",
+      "log_sha256": "fc1c3a904e494c31b4aeef3b44295003aa6899115ac1e57be18a65886840324a",
+      "exit": 0,
+      "elapsed_seconds": 5.149771502001386,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 0,
+      "subtests": 0
+    },
+    "final-static": {
+      "receipt": "final-static.json",
+      "receipt_sha256": "2977cc1f2dd8941808df6774779a7c093938be5a44690618f0e10f671cd0cd00",
+      "log": "final-static.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit": 0,
+      "elapsed_seconds": 0.01958329200715525,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 0,
+      "subtests": 0
+    },
+    "review-package": {
+      "receipt": "review-package.json",
+      "receipt_sha256": "04d461b3856ac03e9fed9ed17433d7393b2cf6874a086063a807bde8d99145bd",
+      "log": "review-package.log",
+      "log_sha256": "2a7346a0bc78a3d3778b8c8f6db7a03e2d1b9064c776dd219e6105f848b051f1",
+      "exit": 0,
+      "elapsed_seconds": 1.3157392509965575,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 42,
+      "subtests": 27
+    },
+    "review-focused": {
+      "receipt": "review-focused.json",
+      "receipt_sha256": "29dc721bcd6fe15feee0946c05c25c415204e1a09519b412394fcd7a02117301",
+      "log": "review-focused.log",
+      "log_sha256": "4b6038f81773ef600fc2244ca0e2dd23332d0d85985b3f345bdd3fa4597b88da",
+      "exit": 0,
+      "elapsed_seconds": 1.1976366669987328,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 32,
+      "subtests": 20
+    },
+    "review-lint": {
+      "receipt": "review-lint.json",
+      "receipt_sha256": "cacc564288b1263ac1c6575430158f7b0bf4d2b06d4607db7c9c2a27158c134f",
+      "log": "review-lint.log",
+      "log_sha256": "ebb92cbaf01414e39c0a5eb2388ee5d16dc114942e78842b50189d6d5c90b56a",
+      "exit": 1,
+      "elapsed_seconds": 0.46347775100002764,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 0,
+      "subtests": 0
+    },
+    "review-errortype": {
+      "receipt": "review-errortype.json",
+      "receipt_sha256": "283bf6bd6e1a601f643ea74ee79ab2cf1545d6e08d2c5e84027ba75673d8aed1",
+      "log": "review-errortype.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit": 0,
+      "elapsed_seconds": 0.723678916998324,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 0,
+      "subtests": 0
+    },
+    "review-boundary": {
+      "receipt": "review-boundary.json",
+      "receipt_sha256": "97df42bb20b4d252836868048b95382f7215c4abea6b86c578abdaf3328ff5bf",
+      "log": "review-boundary.log",
+      "log_sha256": "b593abd9dfbe81884c383ce46605f16b57ff5014d468cc8739239ab5cdefb150",
+      "exit": 0,
+      "elapsed_seconds": 5.166216128003725,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 5,
+      "subtests": 10
+    },
+    "review-static": {
+      "receipt": "review-static.json",
+      "receipt_sha256": "32e552da81c340ff28fedf2daa02e00ffda6c74ebaddbb61805b26f6261fbb9c",
+      "log": "review-static.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit": 0,
+      "elapsed_seconds": 0.04494345799321309,
+      "checks": {
+        "command_exact": true,
+        "cwd_exact": true,
+        "environment_exact": true,
+        "tools_exact": true,
+        "config_exact": true,
+        "log_exact": true,
+        "source_exact": true,
+        "time_binding": true,
+        "exit_exact": true
+      },
+      "top_level_tests": 0,
+      "subtests": 0
+    }
+  },
+  "boundary_tests_actually_passed": [
+    "TestPackageArchitecture",
+    "TestPublicPackagesDoNotExportTypeAliases",
+    "TestArchitecturePublicSignatureFixtures",
+    "TestRunnerRequestsCompileInExternalModule",
+    "TestRunnerExternalConsumerCompiles"
+  ],
+  "actual_model": null,
+  "actual_model_metadata_available": false,
+  "first_close_fault_proof": false,
+  "formal_ship": false,
+  "pending_handles": 0,
+  "owned_delegates": 0,
+  "receipt_count": 18,
+  "audit": {
+    "command": "python3 - <<'PY'\nimport collections, datetime, hashlib, json, pathlib, re, subprocess\nroot=pathlib.Path.cwd()\nout=root/'.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-29'\nbase='e98c7a3e2ca845b92edcdef185f5c9ae67be4a3a'\ngo='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go'\nlint='/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0'\nerror='/tmp/fn109-lint-tools.ZdNe1t50/errortype'\nconfig=root/'.github/.golangci.yml'\nsha=lambda b:hashlib.sha256(b).hexdigest()\ndigest=lambda p:sha(pathlib.Path(p).read_bytes())\ngit=lambda *a:subprocess.check_output(['git',*a],cwd=root)\nbasebytes=lambda p:git('show',base+':'+p)\ncurrent={str(p.relative_to(root)):digest(p) for p in sorted((root/'tools/gomad3/artifact').glob('*.go'))}\nbaseline={p:sha(basebytes(p)) for p in current}\ntools={p:digest(p) for p in (go,lint,error)}\ncfg=digest(config)\nnames=['baseline-package','baseline-focused','baseline-lint','baseline-errortype','characterization-baseline','final-package','final-focused','final-lint','final-errortype','final-boundary','final-validation','final-static','review-package','review-focused','review-lint','review-errortype','review-boundary','review-static']\nreceipts={n:json.loads((out/(n+'.json')).read_text()) for n in names}\naudits={}\nfor n,r in receipts.items():\n    e=r['environment']; command=r['command']; start=datetime.datetime.fromisoformat(r['started']); end=datetime.datetime.fromisoformat(r['ended'])\n    expected_source=dict(baseline) if n.startswith('baseline-') else dict(current)\n    if n=='characterization-baseline': expected_source['tools/gomad3/artifact/store.go']=baseline['tools/gomad3/artifact/store.go']\n    if n.endswith('-lint'): expected_command=[lint,'run','--config',str(config),'--build-tags','test_dep','--fix=false','./artifact']\n    elif n.endswith('-errortype'): expected_command=[error,'-tags','test_dep','./artifact']\n    elif n=='final-validation': expected_command=['make','validate','GOFLAGS=-tags=test_dep -count=1']\n    elif n.endswith('-static'): expected_command=['bash','-c','git diff --check -- artifact/store.go artifact/store_test.go && '+str(pathlib.Path(go).parent/'gofmt')+' -l artifact/store.go artifact/store_test.go']\n    else:\n        args={\n          'baseline-package':['./artifact'],\n          'baseline-focused':['-v','./artifact','-run','Test(Publish|RetainedBytes|PoolTarget|PruneTargetPool|DamagedSharedTarget|CopiedArtifact)'],\n          'characterization-baseline':['-v','./artifact','-run','Test(PrivatePayload|PublishRemovesStagingAfterNonregularSourceFailure)'],\n          'final-package':['./artifact'],\n          'final-focused':['-v','./artifact','-run','Test(PrivatePayload|Publish|RetainedBytes|PoolTarget|PruneTargetPool|DamagedSharedTarget|CopiedArtifact)'],\n          'final-boundary':['-v','.','-run','Test(RecordAndArtifactHaveSeparateOwners|PackageArchitecture|PublicPackagesDoNotExportTypeAliases|RunnerRequestsCompileInExternalModule|RunnerExternalConsumerCompiles|ArchitecturePublicSignatureFixtures)'],\n          'review-package':['-v','./artifact'],\n          'review-focused':['-v','./artifact','-run','Test(PrivatePayload|Publish|RetainedBytes|PoolTarget|PruneTargetPool|DamagedSharedTarget|CopiedArtifact)'],\n          'review-boundary':['-v','.','-run','Test(PackageArchitecture|PublicPackagesDoNotExportTypeAliases|RunnerRequestsCompileInExternalModule|RunnerExternalConsumerCompiles|ArchitecturePublicSignatureFixtures)']}\n        expected_command=[go,'test','-count=1','-tags','test_dep',*args[n]]\n    checks={\n      'command_exact':command==expected_command,\n      'cwd_exact':r['cwd']==str(root/'tools/gomad3'),\n      'environment_exact': all(e[k]==v for k,v in {'GOWORK':'off','GOTOOLCHAIN':'local','GOPROXY':'off','GOFLAGS':'','GOMADSEED':None,'GOMAD3_CHILD_SEED':None}.items()) and e['PATH'].split(':')[0]==str(pathlib.Path(go).parent),\n      'tools_exact':r['tools']==tools,'config_exact':r['config_sha256']==cfg,\n      'log_exact':r['log']==n+'.log' and r['log_sha256']==digest(out/r['log']),\n      'source_exact':r['source_before']==r['source_after']==expected_source and r['stable'] is True,\n      'time_binding':start<=end and r['elapsed_seconds']>=0 and abs((end-start).total_seconds()-r['elapsed_seconds'])<1,\n      'exit_exact':r['exit']==(1 if n.endswith('-lint') else 0)}\n    assert all(checks.values()),(n,checks)\n    runs=re.findall(r'^=== RUN   (\\S+)',(out/r['log']).read_text(),re.M)\n    assert not re.search(r'^--- (FAIL|SKIP):', (out/r['log']).read_text(), re.M),n\n    audits[n]=dict(checks=checks,command=command,cwd=r['cwd'],environment=e,started=r['started'],ended=r['ended'],elapsed_seconds=r['elapsed_seconds'],exit=r['exit'],receipt_sha256=digest(out/(n+'.json')),log_sha256=r['log_sha256'],top_level_tests=len([s for s in runs if '/' not in s]),subtests=len([s for s in runs if '/' in s]))\nassert not (out/'final-static.log').read_text() and not (out/'review-static.log').read_text()\nassert datetime.datetime.fromisoformat(receipts['characterization-baseline']['ended'])<datetime.datetime.fromisoformat(receipts['final-package']['started'])\nchar=re.findall(r'^=== RUN   (\\S+)',(out/'characterization-baseline.log').read_text(),re.M)\nchar_top=[s for s in char if '/' not in s]\nassert len(char_top)==5\npaths=git('ls-files','tools/gomad3','tools/gomad3sim','tools/gomad3integration','go.mod','go.sum','.github/.golangci.yml').decode().splitlines()\nexcluded=['tools/gomad3/artifact/store.go','tools/gomad3/artifact/store_test.go']\nprotected={p:digest(root/p) for p in paths if p not in excluded}\naggregate=sha(json.dumps(protected,sort_keys=True).encode())\nassert len(protected)==1042 and aggregate=='40adf6923b35cc17eb5f76a189308bb506f41dfc4ab235a5d01736f2aed7f520'\nfor n in ('protected-before','protected-after'):\n    r=json.loads((out/(n+'.json')).read_text())\n    assert r['files']==len(protected) and r['aggregate_sha256']==aggregate\n    assert r['platform']==['linux','arm64']\n    assert all(digest(p)==h for p,h in r['pinned_file_close_source'].items())\nadmission=json.loads((out/'source-admission.json').read_text())\nassert admission['protected_files']==len(protected) and admission['protected_aggregate_sha256']==aggregate\nassert all(digest(root/p)==h==sha(basebytes(p)) for p,h in admission['protected_original_documents'].items())\nlisting=git('ls-tree','-r',base,'--',*paths).decode().splitlines()\nobjects={line.split('\\t',1)[1]:line.split()[2] for line in listing}\nrequested=[objects[p] for p in protected]\nraw=subprocess.run(['git','cat-file','--batch'],input=('\\n'.join(requested)+'\\n').encode(),stdout=subprocess.PIPE,check=True,cwd=root).stdout\ncursor=0\nfor p in protected:\n    end=raw.index(b'\\n',cursor); size=int(raw[cursor:end].split()[-1]); body=raw[end+1:end+1+size]; cursor=end+size+2\n    assert sha(body)==protected[p],p\ndef omit(data):\n    for a,b in ((b'func copyPayload(',b'func syncPayloadDirectories('),(b'func writePayload(',b'func copyWithContext(')):\n        left,rest=data.split(a,1); _,right=rest.split(b,1); data=left+b+right\n    return data\nassert omit(basebytes(excluded[0]))==omit((root/excluded[0]).read_bytes())\nmarker=b'func TestPublishFailsBeforePublicationWhenByteCapacityIsExceeded('\nassert basebytes(excluded[1]).split(marker,1)[1]==(root/excluded[1]).read_bytes().split(marker,1)[1]\nspec='.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md'\nassert basebytes(spec).split(b'## Decision Context',1)[0]==(root/spec).read_bytes().split(b'## Decision Context',1)[0]\nassert git('rev-parse','HEAD').decode().strip()==base\nassert git('branch','--show-current').decode().strip()=='gomad'\nassert not git('diff','--cached','--name-only')\nchanged=git('diff',base,'--name-only','--','tools/gomad3','tools/gomad3sim','tools/gomad3integration','go.mod','go.sum','.github/.golangci.yml').decode().splitlines()\nassert changed==excluded\ndef findings(name):\n    return [dict(path=p,line=int(l),column=int(c),message=m,linter=t) for p,l,c,m,t in re.findall(r'^(.*\\.go):(\\d+):(\\d+): (.*) \\((\\w+)\\)$',(out/(name+'.log')).read_text(),re.M)]\nbefore=findings('baseline-lint'); final=findings('final-lint'); fresh=findings('review-lint')\nmapped=[333,346,352,356,402,406,410]\nresolved=[f for f in before if f['path']==excluded[0] and f['line'] in mapped and f['linter']=='errcheck']\nkey=lambda f:(f['path'],f['message'],f['linter'])\nassert len(before)==28 and len(final)==21 and len(resolved)==7\nassert collections.Counter(map(key,[f for f in before if f not in resolved]))==collections.Counter(map(key,final))\nassert final==fresh\ndirectory_before=[f['line'] for f in before if f['message']=='Error return value of `directory.Close` is not checked']\ndirectory_after=[f['line'] for f in final if f['message']=='Error return value of `directory.Close` is not checked']\nassert directory_before==[470] and directory_after==[490]\nevidence=json.loads((out/'evidence.json').read_text())\nassert evidence['lint']['before']==before and evidence['lint']['after']==final and evidence['lint']['resolved']==resolved\nassert evidence['source_final']=={p:current[p] for p in excluded}\nboundary_tests=['TestPackageArchitecture','TestPublicPackagesDoNotExportTypeAliases','TestArchitecturePublicSignatureFixtures','TestRunnerRequestsCompileInExternalModule','TestRunnerExternalConsumerCompiles']\nfor n in ('final-boundary','review-boundary'):\n    log=(out/(n+'.log')).read_text()\n    assert all('=== RUN   '+t+'\\n' in log and '--- PASS: '+t+' ' in log for t in boundary_tests)\nassert not any(re.search(r'func TestRecordAndArtifactHaveSeparateOwners\\(',p.read_text()) for p in (root/'tools/gomad3').glob('*_test.go'))\nassert digest(root/excluded[0])=='a41297665317751bef4d62264eb8c68bdf0ea5cc3d79f234424ff8946978a7d1'\nassert digest(root/excluded[1])=='fad48f38fe5344b4f6767321580bdf3af79c3245dd68cbc355fecfaf5e535d6d'\nassert sha(b'target bytes')=='0350a9d9ffa2b933c2e6a8d73d4ee7398415e547178881241eca6bb865de5393'\nassert sha(b'stdout')=='63d42d26156fcc761e57da4128e9881d5bdf3bf933f0f6e9c93d6e26b9b90ae7'\nresult=dict(status='SOURCE_PROGRESS_COMMIT_ONLY',base=base,branch='gomad',source_final={p:current[p] for p in excluded},artifact_source_files=len(current),protected_files=len(protected),protected_aggregate_sha256=aggregate,protected_matches_base=True,protected_exclusions=excluded,parent_contract_prefix_unchanged=True,task12_unchanged=True,outside_private_helpers_unchanged=True,old_store_test_bodies_unchanged=True,changed_product_paths=changed,baseline_sources_match_base=True,all_receipts_bind_exact_source=True,all_receipts_bind_tools_config_env_log_time_exit=True,tools=tools,config_sha256=cfg,char_top_tests=char_top,tests_precede_production=True,lint=dict(before=len(before),after=len(final),fresh=len(fresh),resolved_baseline_lines=mapped,introduced=0,residual_multiset_exact=True,directory_close_shift=[470,490],residual_linter_counts=dict(collections.Counter(f['linter'] for f in final))),receipts=audits,boundary_tests_actually_passed=boundary_tests,actual_model=None,actual_model_metadata_available=False,first_close_fault_proof=False,formal_ship=False,pending_handles=0,owned_delegates=0)\nprint(json.dumps(result,indent=2))\nPY",
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 0,
+    "wall_time_seconds": 0.198783417
+  },
+  "review_stage": "fresh independent read-only source review",
+  "requested_model": "gpt-6.1-sol",
+  "requested_effort": "high",
+  "tier": "session (jev-unavailable(no_key))",
+  "writer_reviewer_configured_family": "same",
+  "model_identity_claim": "Actual execution metadata unavailable; requested route is not execution identity.",
+  "findings": {
+    "Critical": [],
+    "Important": [],
+    "Minor": []
+  },
+  "generator_receipt_reused": "final-validation.json",
+  "generator_inputs_unchanged": true,
+  "source_control_flow_review": {
+    "conditional_nonnil_join_preserves_primary_object_when_close_succeeds": true,
+    "output_before_input_cleanup": true,
+    "primary_output_input_error_traversal": true,
+    "one_close_attempt_per_acquired_handle": true,
+    "ownership_retired_before_checked_close": true,
+    "sync_close_metadata_sequence": true,
+    "zero_metadata_on_error": true,
+    "source_stat_acceptance_and_inline_routing_unchanged": true,
+    "exclusive_create_and_modes_unchanged": true,
+    "partial_destinations_retained": true,
+    "store_staging_cleanup_unchanged": true,
+    "publication_pool_independent_transactions_unchanged": true,
+    "new_api_or_framework": false,
+    "comments_or_old_golden_edits": false,
+    "host_io_grants_or_rule_waivers": false
+  },
+  "open_acceptance": [
+    "Original R13/R18/R19",
+    "Task12 and predecessors",
+    "Task21",
+    "Matched original first-baseline fixed identities",
+    "Complete/full/formal qualification",
+    "Patched-runtime native darwin/arm64 and linux/amd64 and affected integration/qualification",
+    "Genuine first-Close and simultaneous operation/output/input cleanup fault execution",
+    "21 residual artifact diagnostics and broader qualification; historical419 is not remeasured"
+  ],
+  "writes": [
+    "independent-source-review.md",
+    "independent-source-review-checks.json",
+    "review-*.json",
+    "review-*.log"
+  ]
+}
