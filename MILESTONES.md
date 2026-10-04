@@ -115,7 +115,10 @@ the starting metrics (2,830 lines, 462 string literals), and captured declaratio
 and refinement reads in the DSL and lifter (production Models not yet migrated). Task 3 is done too: machine
 derivations (`rebind`, `extend`, `refining`, `assuming`, `unmonitored`; `restrict` chains with them), sugar in
 `umpire/Syntax.scala` lowered by `lifter/Syntax.scala` with a core/sugar lint rule, and an original-baseline
-check that compares derived outputs and Case bytes rather than IR function bodies. Task 4 is next. Task 6 also makes the 168
+check that compares derived outputs and Case bytes rather than IR function bodies. Task 4 is done: typed
+composition selectors, `Declares[S]` and the claim patterns. Task 5 is next. Before tasks 6 and 7 change a
+production function body, they extend or re-capture the fn-115 migration golden (`TestMigrationGoldens`), which
+still compares function bodies. Task 6 also makes the 168
 state/action pairs disabled only by a default arm explicit; two Properties that are false on 120
 rows each and seven pause/unpause rows the server rejects are recorded follow-ups, because the
 behavior freeze forbids changing them here.
