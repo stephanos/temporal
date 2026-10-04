@@ -681,15 +681,23 @@ def admitted(s: AdmissionState): List[AdmissionStep] = choose(
 ```
 
 A name is inert metadata (model/SEMANTICS.md, Named choices): the rows, fingerprints, Query
-answers and Cases are the ones the same steps give written as an unnamed list, and the IR differs
-from that list's only by the names. Each alternative is one step written out, `accept(…)`,
-`stay(s)`, `List(Step(…))` or one of those with `.because("…")`, and each name is the simple name
-of its token's `val`. A choose of one alternative does not compile; the lifter refuses, at the
-alternative's line, a name given twice in one choose (one token twice, or two tokens whose `val`s
-share a simple name), an alternative that is not one step written out (a helper's steps, `Nil` or
-`disabled`, two steps, an `if`), a token no `val` declares, and an alternative kept in a `val`
-rather than written in the call. Unnamed lists of several steps still lift while Models move to
-`choose`.
+answers and Cases are the ones the same steps give written as an unnamed list. Each alternative is
+one step written out, `accept(…)`, `stay(s)`, `List(Step(…))` or one of those with
+`.because("…")`, or a call of a function that gives at most one step in each branch, such as a step
+another action shares (`forged -> Protocol.completeStep(s, Resolution.succeeded)`); where that
+function gives no step, the alternative is not taken. The IR calls a copy of the function,
+`<function>$<choice>`, whose every step carries the name, so the function's other calls keep their
+unnamed steps. Each name is the simple name of its token's `val`. A choose of one alternative does
+not compile; the lifter refuses, at the alternative's line, a name given twice in one choose (one
+token twice, or two tokens whose `val`s share a simple name), an alternative that is not one step
+written out (`Nil` or `disabled`, two steps, an `if`), a called function that gives several steps
+or a step it does not write out, a token no `val` declares, and an alternative kept in a `val`
+rather than written in the call.
+
+Every branching of a Model is a `choose`. The lifter refuses, at its line, a step function's
+several results written without one: a `List(Step(…), Step(…))` of two or more steps, and steps
+joined with `++`, in a step function or any function it calls. A step function with one result
+needs no `choose`.
 
 A name is a token of its own, not a case of an enum: an enum used only for names would be lifted
 as an IR type the Model does not otherwise need, and the names of different step functions are not

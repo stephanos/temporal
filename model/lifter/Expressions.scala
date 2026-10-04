@@ -215,8 +215,10 @@ private[lift] trait Expressions:
         )
       functions(sym.fullName) = ir.Function.defaultInstance
       lifting += sym.fullName
-      functions(sym.fullName) =
+      // A helper an alternative calls is lifted as every function is; its copy is named after.
+      functions(sym.fullName) = alternativeOf(inside = false)(
         function(sym.fullName, d.termParamss.flatMap(_.params), d.rhs.get, d)
+      )
       lifting -= sym.fullName
     sym.fullName
 
@@ -321,7 +323,10 @@ private[lift] trait Expressions:
 
     case Ident("Nil")                                                        => list(Nil, t)
     case Apply(TypeApply(Select(Ident("List"), "apply"), elem), List(items)) =>
-      list(varargs(items).map(i => lift(i, elem.headOption.map(_.tpe))), t)
+      val written = varargs(items)
+      if written.sizeIs > 1 && !choosing && elem.headOption.exists(e => isNamed(e.tpe, stepType))
+      then unnamed(t, s"an unnamed list of ${written.size} steps")
+      list(written.map(i => lift(i, elem.headOption.map(_.tpe))), t)
 
     // The framework's step record, with its default facts and explanation.
     case Apply(TypeApply(Select(companion, "apply"), _), args)
@@ -376,7 +381,7 @@ private[lift] trait Expressions:
 
     // `choose(a1 -> x1, a2 -> x2, ...)`: the steps of the alternatives, each named by its token.
     case Apply(TypeApply(fn, _), args) if fn.symbol.fullName == "umpire.Machine$package$.choose" =>
-      list(choose(args.flatMap(varargs), expected), t)
+      chosen(choose(args.flatMap(varargs), expected), t)
 
     case Apply(Select(recv, "contains"), List(x)) =>
       binary(ir.Binary.Op.OP_CONTAINS, lift(x), lift(recv), t)
@@ -387,6 +392,8 @@ private[lift] trait Expressions:
       expr(t)(E.Unary(ir.Unary(ir.Unary.Op.OP_NOT, Some(lift(recv)))))
     case Apply(Select(l, op), List(r)) if binaryOps.contains(op) =>
       binary(binaryOps(op), lift(l, Some(r.tpe)), lift(r, Some(l.tpe)), t)
+    case Apply(TypeApply(Select(_, "++"), _), List(_)) if stepList(t.tpe) && !choosing =>
+      unnamed(t, "steps joined with `++`")
     case Apply(TypeApply(Select(l, "++"), _), List(r)) =>
       binary(ir.Binary.Op.OP_CONCAT, lift(l), lift(r), t)
 
@@ -474,7 +481,9 @@ private[lift] trait Expressions:
   /**
    * The step of each alternative of a choose, in the order written, named after its token's val. An
    * alternative has its choose's type, so each lifts as the step function's steps do, `accept`,
-   * `stay`, `List(Step(...))` and `because` included, and must give one step written out.
+   * `stay`, `List(Step(...))` and `because` included, and must give one step written out, or call a
+   * function of the lifted sources that gives at most one: the call is then to a copy of that
+   * function whose every step is named (`namedCopy`).
    */
   def choose(alternatives: List[Term], expected: Option[TypeRepr]): Seq[ir.Expr] =
     val named = alternatives.foldLeft(Vector.empty[(Symbol, ir.Expr)]): (done, a) =>
@@ -487,23 +496,90 @@ private[lift] trait Expressions:
           s"choose names ${token.name} twice$by: an alternative is named by its token's val, so " +
             "give each alternative a name of its own"
         )
-      val step = lift(steps, expected).kind match
+      val lifted = alternativeOf(inside = true)(lift(steps, expected))
+      val step = lifted.kind match
         case E.List(items) if items.items.sizeIs == 1 =>
           val item = items.items.head
           item.kind match
             case E.Construct(c) if c.`type` == stepType =>
               Some(item.withConstruct(c.withChoice(token.name)))
             case _ => None
+        case E.Call(c) =>
+          Some(lifted.withCall(c.withFunction(namedCopy(c.function, token.name, a))))
         case _ => None
       val one = step.getOrElse(
         fail(
           a,
           s"the alternative ${token.name} of a choose is not one step written out: write its " +
-            "step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative"
+            "step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative, " +
+            "or call a function that gives at most one"
         )
       )
       done :+ (token -> one)
     named.map(_._2)
+
+  /**
+   * The results of a choose: the steps written out as one list, as an unnamed list of them lifts,
+   * and a helper's steps joined to them where its alternative calls one, in the order written.
+   */
+  def chosen(alternatives: Seq[ir.Expr], at: Tree): ir.Expr =
+    val parts = alternatives.foldLeft(Vector.empty[ir.Expr]): (done, a) =>
+      (a.kind, done.lastOption.map(_.kind)) match
+        case (E.Construct(_), Some(E.List(items))) =>
+          done.init :+ done.last.withList(items.addItems(a))
+        case (E.Construct(_), _) => done :+ list(Seq(a), at)
+        case _                   => done :+ a
+    parts.reduceLeft((l, r) => binary(ir.Binary.Op.OP_CONCAT, l, r, at))
+
+  /**
+   * The copy of a function an alternative calls whose every step is named `choice`: each branch of
+   * its body gives no step, one step written out, or a call of another function, whose copy it
+   * calls in turn. The copy is a function of its own, `<function>$<choice>`, so the function keeps
+   * its unnamed steps wherever else it is called.
+   */
+  def namedCopy(function: String, choice: String, alternative: Tree): String =
+    val copy = s"$function$$$choice"
+    def refuse(at: ir.Expr, what: String): Nothing =
+      val line = at.position.fold("")(p => s" at ${p.file}:${p.line}")
+      fail(
+        alternative,
+        s"the alternative $choice of a choose calls ${function.split('.').last}, which gives " +
+          s"$what$line: a function an alternative calls gives no step or one step written out in " +
+          "each branch"
+      )
+    def steps(e: ir.Expr): ir.Expr = e.kind match
+      case E.If(i)    => e.withIf(i.withThen(steps(i.getThen)).withElse(steps(i.getElse)))
+      case E.Match(m) => e.withMatch(m.withCases(m.cases.map(c => c.withBody(steps(c.getBody)))))
+      case E.Let(l)   => e.withLet(l.withBody(steps(l.getBody)))
+      case E.List(items) if items.items.isEmpty    => e
+      case E.List(items) if items.items.sizeIs > 1 => refuse(e, s"${items.items.size} steps")
+      case E.List(items)                           =>
+        items.items.head.kind match
+          case E.Construct(c) if c.`type` == stepType =>
+            e.withList(ir.ListOf(Seq(items.items.head.withConstruct(c.withChoice(choice)))))
+          case _ => refuse(e, "a step it does not write out")
+      case E.Call(c) => e.withCall(c.withFunction(namedCopy(c.function, choice, alternative)))
+      case _         => refuse(e, "steps it does not write out")
+    if !functions.contains(copy) then
+      val f = functions(function)
+      functions(copy) = f.withName(copy).withBody(steps(f.getBody))
+    copy
+
+  /** Whether a type is a list of steps, the results of a step function. */
+  def stepList(t: TypeRepr): Boolean =
+    val list = t.widen.dealias
+    isList(list.typeSymbol) && list.typeArgs.headOption.exists(isNamed(_, stepType))
+
+  /**
+   * The refusal of a step function's several results written without names: every branching of a
+   * Model is intentional and named (model/SEMANTICS.md, Named choices).
+   */
+  def unnamed(at: Tree, written: String): Nothing =
+    fail(
+      at,
+      "a step that can go more than one way names each result: write " +
+        s"`choose(a -> step, b -> step)` with a token per alternative, `val a = choice`, not $written"
+    )
 
   /** An alternative of a choose, `token -> steps`, as the call writes it. */
   def alternative(t: Term): (Term, Term) = t match

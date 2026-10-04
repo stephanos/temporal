@@ -1,7 +1,8 @@
 // Named choices (model/SEMANTICS.md, Named choices): each step function of `chosen` names its
-// results with `choose`, and its twin in `unchosen` writes the same steps as an unnamed list. The
-// lifter's tests lift both and require one IR of the two but for the `choice` of each named step,
-// positions and the names of the functions, and require the names in the order written.
+// results with `choose`. The lifter's tests require each name on the step its alternative wrote, in
+// the order written, and an alternative that calls a function to call a copy of it whose every step
+// carries the name. An unnamed list of several steps is refused (Rejects.scala), so fn-120.1's
+// unnamed twins of these functions are retired; the Go tooling holds the names inert.
 package fixture.choices
 
 import umpire.*
@@ -39,6 +40,8 @@ val admit = action(Party("matching"))
 val pause = action(Party("user"))
 val poll = action(Party("worker"))
 val answer = action(Party("worker"))
+val retry = action(Party("matching"))
+val resume = action(Party("user"))
 
 def oneMore(a: Active): Active = a match
   case Active.none => Active.one
@@ -60,21 +63,6 @@ def admitNamed(s: Admission): List[AdmissionStep] =
       Fact.attemptAdmitted
     ).because("the channel may deliver the message again")
   )
-def admitUnnamed(s: Admission): List[AdmissionStep] =
-  val next = s.copy(phase = Phase.started, active = oneMore(s.active))
-  List(
-    Step(
-      Outcome.accepted,
-      next.copy(message = Message.empty),
-      List(Fact.statusStarted, Fact.attemptAdmitted)
-    ),
-    Step(
-      Outcome.accepted,
-      next.copy(message = Message.redelivery),
-      List(Fact.statusStarted, Fact.attemptAdmitted),
-      "the channel may deliver the message again"
-    )
-  )
 
 // Each spelling of one step: stay, List(Step(...)) with its defaults, Step with every field, and
 // List(Step(...)).because(...).
@@ -86,17 +74,6 @@ def pauseNamed(s: Admission): List[AdmissionStep] = choose(
   ),
   committed -> List(Step(Outcome.accepted, s.copy(phase = Phase.paused), List(Fact.statusPaused)))
     .because("the pause is recorded")
-)
-def pauseUnnamed(s: Admission): List[AdmissionStep] = List(
-  Step(Outcome.accepted, s),
-  Step(Outcome.accepted, s.copy(phase = Phase.paused, message = Message.empty)),
-  Step(Outcome.rejected, s, List(Fact.admissionRejected), "the pause comes too late"),
-  Step(
-    Outcome.accepted,
-    s.copy(phase = Phase.paused),
-    List(Fact.statusPaused),
-    "the pause is recorded"
-  )
 )
 
 // A choose in a branch of a match and of an if.
@@ -110,36 +87,38 @@ def pollNamed(s: Admission): List[AdmissionStep] = s.phase match
     else disabled
   case Phase.paused => choose(held -> stay(s), dropped -> accept(s.copy(message = Message.empty)))
   case _            => disabled
-def pollUnnamed(s: Admission): List[AdmissionStep] = s.phase match
-  case Phase.scheduled =>
-    if s.message == Message.queued then
-      List(
-        Step(Outcome.accepted, s.copy(phase = Phase.started), List(Fact.statusStarted)),
-        Step(Outcome.accepted, s, Nil, "the worker polls again")
-      )
-    else Nil
-  case Phase.paused =>
-    List(Step(Outcome.accepted, s), Step(Outcome.accepted, s.copy(message = Message.empty)))
-  case _ => Nil
 
 // Alternatives that answer different outcomes.
 def answerNamed(s: Admission): List[AdmissionStep] = choose(
   committed -> accept(s.copy(active = Active.none), Fact.statusStarted),
   refused -> List(Step(Outcome.rejected, s, List(Fact.admissionRejected)))
 )
-def answerUnnamed(s: Admission): List[AdmissionStep] = List(
-  Step(Outcome.accepted, s.copy(active = Active.none), List(Fact.statusStarted)),
-  Step(Outcome.rejected, s, List(Fact.admissionRejected))
+
+// A step two actions share: no step while paused, a refusal once started, or the admission. Resume
+// takes it unnamed; the alternatives of retry call it, directly and through another function.
+def admitted(s: Admission, m: Message): List[AdmissionStep] =
+  if s.phase == Phase.paused then disabled
+  else if s.phase == Phase.started then
+    List(Step(Outcome.rejected, s, List(Fact.admissionRejected)))
+  else accept(s.copy(phase = Phase.started, message = m), Fact.statusStarted)
+def redeliveredStep(s: Admission): List[AdmissionStep] = admitted(s, Message.redelivery)
+
+def retryNamed(s: Admission): List[AdmissionStep] = choose(
+  committed -> admitted(s, Message.empty),
+  held -> stay(s),
+  redelivered -> redeliveredStep(s)
 )
+def resumeStep(s: Admission): List[AdmissionStep] = admitted(s, Message.queued)
 
 val chosen = machine[Admission, Outcome, Fact] {
   starts(Admission(Phase.scheduled, Message.queued, Active.none))
   ends(_ => true)
-  steps(admit ~> admitNamed, pause ~> pauseNamed, poll ~> pollNamed, answer ~> answerNamed)
-}
-
-val unchosen = machine[Admission, Outcome, Fact] {
-  starts(Admission(Phase.scheduled, Message.queued, Active.none))
-  ends(_ => true)
-  steps(admit ~> admitUnnamed, pause ~> pauseUnnamed, poll ~> pollUnnamed, answer ~> answerUnnamed)
+  steps(
+    admit ~> admitNamed,
+    pause ~> pauseNamed,
+    poll ~> pollNamed,
+    answer ~> answerNamed,
+    retry ~> retryNamed,
+    resume ~> resumeStep
+  )
 }

@@ -228,8 +228,12 @@ class Fixtures extends munit.FunSuite:
     "choiceTwoSteps",
     "choiceIf",
     "choiceUnnamed",
-    "choiceKept"
+    "choiceKept",
+    "choiceKeptHelper"
   )
+
+  // The refusals of fn-120.2's unnamed branching: several results written without a choose.
+  private val unnamedRejects: Seq[String] = Seq("unnamedList", "unnamedJoin", "unnamedInHelper")
 
   // The refusals of fn-112.10's names taken by default.
   private val defaultRejects: Seq[String] =
@@ -319,7 +323,8 @@ class Fixtures extends munit.FunSuite:
     "splatted",
     "explained"
   ).map("fixture.rejects.Rejects$package$." + _) ++ (selectorRejects ++ patternRejects ++
-    inputRejects ++ totalRejects ++ choiceRejects ++ bundleRejects ++ defaultRejects).map(
+    inputRejects ++ totalRejects ++ choiceRejects ++ unnamedRejects ++ bundleRejects ++
+    defaultRejects).map(
     "fixture.rejects.Rejects$package$." + _
   ) ++ Seq(
     // DefinitionScope pins, a name the compiler made up and a computed accepted outcome, refused in
@@ -1096,52 +1101,76 @@ class Fixtures extends munit.FunSuite:
     strip(direct)
     assertEquals(bundled.toPrettyString, direct.toPrettyString)
 
-  // fn-120.1: named choices (lifts/Choices.scala). Each step function that names its results beside
-  // its unnamed twin: one IR but for the `choice` of each named step, and the names in the order
-  // written. Constructs are compared in the order the IR holds them, so a name in its place is on the
-  // step its alternative wrote.
-  concurrently("choose lifts as the unnamed list of its steps, each named after its token's val"):
+  // fn-120.1, fn-120.2: named choices (lifts/Choices.scala). Each name is on the step its alternative
+  // wrote, in the order written; an alternative that calls a function calls a copy of it, named
+  // `<function>$<choice>`, whose every step carries the name, through the functions it calls in
+  // turn, while the function itself keeps its unnamed steps for the other calls.
+  concurrently("choose names each alternative's step, and a copy of the function it calls"):
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.ObjectNode
-    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
-    val (model, machine, _) = declarations("choices", Seq("chosen", "unchosen"))
-    // The names a tree carries, in the order it holds them, and the tree without them.
-    def choices(n: JsonNode): List[String] =
-      val own = n match
-        case o: ObjectNode if o.has("choice") =>
-          val name = o.path("choice").asText()
-          o.remove("choice"): Unit
-          List(name)
-        case _ => Nil
-      own ++ n.elements().asScala.toList.flatMap(choices)
-    val chosen = mapper.readTree(machine("chosen"))
-    val unchosen = mapper.readTree(machine("unchosen"))
-    assertEquals(choices(unchosen), Nil, "an unnamed step carries a choice")
-    val names = choices(chosen)
-    assertEquals(chosen.toPrettyString, unchosen.toPrettyString)
+    val (model, _, _) = declarations("choices", Seq("chosen"))
+    val prefix = "fixture.choices.Choices$package$."
     def function(name: String): JsonNode = model
       .path("functions")
       .elements()
       .asScala
-      .find(_.path("name").asText() == s"fixture.choices.Choices$$package$$.$name")
+      .find(_.path("name").asText() == prefix + name)
       .getOrElse(fail(s"the choices fixture lifted no function $name"))
-    def steps(f: JsonNode): List[JsonNode] =
-      val own = if f.at("/construct/type").asText() == "umpire.Step" then List(f) else Nil
-      own ++ f.elements().asScala.toList.flatMap(steps)
+    def all(n: JsonNode, keep: JsonNode => Boolean): List[JsonNode] =
+      (if keep(n) then List(n) else Nil) ++ n.elements().asScala.toList.flatMap(all(_, keep))
+    def steps(f: JsonNode) = all(f, _.at("/construct/type").asText() == "umpire.Step")
+    def choices(f: JsonNode) = steps(f).map(_.at("/construct/choice").asText())
+    def calls(f: JsonNode) = all(f, _.has("call")).map(_.at("/call/function").asText())
     val written = Seq(
-      "admit" -> List("committed", "redelivered"),
-      "pause" -> List("held", "dropped", "refused", "committed"),
-      "poll" -> List("committed", "held", "held", "dropped"),
-      "answer" -> List("committed", "refused")
+      "admitNamed" -> List("committed", "redelivered"),
+      "pauseNamed" -> List("held", "dropped", "refused", "committed"),
+      "pollNamed" -> List("committed", "held", "held", "dropped"),
+      "answerNamed" -> List("committed", "refused"),
+      "retryNamed" -> List("held"),
+      "admitted$committed" -> List("committed", "committed"),
+      "admitted$redelivered" -> List("redelivered", "redelivered"),
+      "admitted" -> List("", ""),
+      "resumeStep" -> Nil
     )
-    for (action, expected) <- written do
-      val named = steps(function(s"${action}Named"))
-      assertEquals(named.map(_.at("/construct/choice").asText()), expected, action)
-      assert(
-        steps(function(s"${action}Unnamed")).forall(!_.path("construct").has("choice")),
-        s"${action}Unnamed carries a choice"
+    for (name, expected) <- written do assertEquals(choices(function(name)), expected, name)
+    // The alternatives in the order written: a copy's steps, the step written out, a copy's steps.
+    val retry = function("retryNamed").path("body")
+    assertEquals(retry.at("/binary/op").asText(), "OP_CONCAT")
+    assertEquals(
+      calls(retry),
+      List("admitted$committed", "redeliveredStep$redelivered").map(prefix + _)
+    )
+    assertEquals(retry.at("/binary/left/binary/right/list/items").size(), 1)
+    assertEquals(
+      calls(function("redeliveredStep$redelivered")),
+      List(prefix + "admitted$redelivered")
+    )
+    assertEquals(calls(function("resumeStep")), List(prefix + "admitted"))
+    // A copy is its function but for the names: without its name, its choices and the suffix of the
+    // copies it calls, it is the function, parameters, precondition and every branch alike.
+    def unnamed(f: JsonNode, choice: String): JsonNode =
+      val copy = f.deepCopy[JsonNode]()
+      def strip(n: JsonNode): Unit =
+        n match
+          case o: ObjectNode =>
+            o.remove(java.util.List.of("choice", "name")): Unit
+            if o.has("function") then
+              o.put("function", o.path("function").asText().stripSuffix("$" + choice)): Unit
+          case _ => ()
+        n.elements().asScala.foreach(strip)
+      strip(copy)
+      copy
+    for (name, choice) <- Seq(
+        "admitted" -> "committed",
+        "admitted" -> "redelivered",
+        "redeliveredStep" -> "redelivered"
       )
-    assertEquals(names, written.flatMap(_._2).toList)
+    do
+      assertEquals(
+        unnamed(function(s"$name$$$choice"), choice).toPrettyString,
+        unnamed(function(name), choice).toPrettyString,
+        s"$name$$$choice"
+      )
 
   // fn-112.4, fn-112.7: typed composition selectors (lifts/Members.scala).
   // The production compositions of temporal/standaloneactivity, written with typed selectors and

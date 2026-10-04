@@ -29,8 +29,11 @@ def choice: Choice = Choice()
  * `choose(committed -> accept(...), redelivered -> stay(s))`: the results of a step that can go more
  * than one way, in the order written, each named by its token. The names are metadata no check reads
  * (model/SEMANTICS.md, Named choices), so the results are the ones the same steps give written as an
- * unnamed list. Each alternative is one step written out, and each token names one of them; a choose
- * of one alternative does not compile, since one result is no choice.
+ * unnamed list. Each alternative is one step written out, or a call of a function that gives at most
+ * one, such as a step another action shares, and each token names one of them; an alternative whose
+ * function gives no step is not taken. A choose of one alternative does not compile, since one result
+ * is no choice, and a step function's several results are always a choose: the lifter refuses an
+ * unnamed list of several steps.
  */
 def choose[S, O, F](
     first: (Choice, List[Step[S, O, F]]),
@@ -40,7 +43,7 @@ def choose[S, O, F](
   val alternatives = first +: second +: rest
   for (token, steps) <- alternatives do
     require(alternatives.count(_._1 eq token) == 1, "a choice names one alternative of a choose")
-    require(steps.sizeIs == 1, "each alternative of a choose is one step")
+    require(steps.sizeIs <= 1, "each alternative of a choose is at most one step")
   alternatives.flatMap(_._2).toList
 
 /** A declared, derived or composed machine. */

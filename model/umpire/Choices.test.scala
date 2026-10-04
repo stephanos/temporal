@@ -33,14 +33,22 @@ class Choices extends munit.FunSuite:
     assertNotEquals(choice, choice)
     assertEquals(committed, committed)
 
-  test("choose refuses a token named twice and an alternative that is not one step"):
+  test("an alternative whose function gives no step is not taken"):
+    def lit(on: Boolean): List[LampStep] = if on then accept(true, "lit") else disabled
+    assertEquals(
+      choose[Boolean, Outcome, String](committed -> lit(false), redelivered -> stay(true)),
+      List(Step(Outcome.accepted, true))
+    )
+    assertEquals(
+      choose[Boolean, Outcome, String](committed -> lit(false), redelivered -> lit(false)),
+      Nil
+    )
+
+  test("choose refuses a token named twice and an alternative of more than one step"):
     interceptMessage[IllegalArgumentException](
       "requirement failed: a choice names one alternative of a choose"
     )(choose[Boolean, Outcome, String](committed -> stay(true), committed -> stay(false)): Unit)
-    val oneStep = "requirement failed: each alternative of a choose is one step"
-    interceptMessage[IllegalArgumentException](oneStep)(
-      choose[Boolean, Outcome, String](committed -> Nil, redelivered -> stay(true)): Unit
-    )
+    val oneStep = "requirement failed: each alternative of a choose is at most one step"
     interceptMessage[IllegalArgumentException](oneStep)(
       choose[Boolean, Outcome, String](
         committed -> stay(true),
