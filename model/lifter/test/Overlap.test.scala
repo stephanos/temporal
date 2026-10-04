@@ -8,7 +8,7 @@ import umpire.gate.Tools
  * The lifter's fixtures hold Models of their own (fn-114.10). A fixture that copies a live Model's
  * text drifts whenever that Model changes and tests again what the gate already holds: it lifts every
  * live Model under model/temporal into model/ir and compares it byte for byte. So no fixture under
- * testdata may share more than `threshold` substantive lines with one file under model/temporal.
+ * testdata may share more than `threshold` substantive lines with the files under model/temporal.
  *
  * A substantive line is one with code on it: not blank, not a comment, not an import or a package
  * clause, and not punctuation alone; whitespace inside it is collapsed. A fixture line counts as
