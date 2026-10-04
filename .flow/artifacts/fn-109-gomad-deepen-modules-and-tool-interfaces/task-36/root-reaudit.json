@@ -1,0 +1,43 @@
+{
+  "result": "PASS",
+  "writes": 0,
+  "protected_count": 1044,
+  "source_after_sha256": {
+    "tools/gomad3/runner/internal/exploration/choice/engine.go": "2ddd22a25431d20a74a9eb193911e781adea0bbedb53e39c468a084953cb47c0",
+    "tools/gomad3/runner/internal/exploration/choice/engine_test.go": "1eea49a4fd0772f6280ce85327577aa8a8143b2230ce9b4c7d12124b47f5f30c"
+  },
+  "audit_sha256": "2cfc7c0044d549009218435ed7750bdf74cdf620f957a6ddf53d13ca38c2c98b",
+  "command": "python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/root-reaudit.py",
+  "exit_code": 0,
+  "elapsed_seconds": 1.469954584,
+  "chunk_id": "d7645b",
+  "reviewer_judge": {
+    "success": true,
+    "available": false,
+    "preset": "tier",
+    "reason": "no_key",
+    "tier_line": "Tier: session (jev-unavailable(no_key))",
+    "spawn_model": null,
+    "implementer": "gpt-6.1-sol"
+  },
+  "research_note": {
+    "path": ".flow/tmp/r18-accountability-after-corpus-astra.md",
+    "sha256": "7ba0029eedfdaf35d93e9765cc0e44a6af5ca8c993a193ddf0782f904afe9410",
+    "bound": "Separate frozen research; additive task21 reconciliation recommended after this task checkpoint. No acceptance closure."
+  },
+  "worker_receipts_verified": 19,
+  "metadata_preflight": "Flow block appended its reason to the task summary, duplicating stage lines. Root restored the intended task receipt through task set-spec; authoritative blocked state/reason are retained. No source or worker/reviewer proof changed.",
+  "reviewer_reaudit": {
+    "result": "PASS",
+    "reviewer_receipts_verified": 6,
+    "review_checks_sha256": "82c58301e6e30bbb8f6d4ddc5240be6a2a3f62eedc6e93812e987ba389d77fc7",
+    "metadata_report_sha256": "835ec19c648e169eda71e01980adeed45025c7250bfc221c3b4eb29e4e96cbbd",
+    "source_hashes": {
+      "tools/gomad3/runner/internal/exploration/choice/engine.go": "2ddd22a25431d20a74a9eb193911e781adea0bbedb53e39c468a084953cb47c0",
+      "tools/gomad3/runner/internal/exploration/choice/engine_test.go": "1eea49a4fd0772f6280ce85327577aa8a8143b2230ce9b4c7d12124b47f5f30c"
+    },
+    "writes": 0
+  },
+  "reviewer_reaudit_exit_code": 0,
+  "metadata_review": "SOURCE_PROGRESS_COMMIT_ONLY; no findings; final unmodified staged scope gate remains required"
+}

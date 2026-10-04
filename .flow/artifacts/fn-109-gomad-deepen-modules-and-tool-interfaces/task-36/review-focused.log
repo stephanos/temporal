@@ -1,0 +1,130 @@
+=== RUN   TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy
+=== RUN   TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy/first
+=== RUN   TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy/budget
+=== RUN   TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy/all
+--- PASS: TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy (0.02s)
+    --- PASS: TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy/first (0.00s)
+    --- PASS: TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy/budget (0.00s)
+    --- PASS: TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy/all (0.01s)
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/outcome
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/failed
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/signature
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/trace
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/expected
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/ordinal
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/tape_count
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/reason
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/missing_expected
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/missing_observed
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observation_beyond_prefix_boundary
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observation_at_prefix_boundary
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observed_ordinal
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/rank_override
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observed_kind
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observed_count
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observed_selection
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observed_identity
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observed_digest
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/observed_site
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/expected_kind
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/expected_count
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/expected_rank_override
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/missing_identity
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/duplicate_identity
+=== RUN   TestExplorationRejectsInvalidCandidateDivergence/alternative_capacity
+--- PASS: TestExplorationRejectsInvalidCandidateDivergence (0.24s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/outcome (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/failed (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/signature (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/trace (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/expected (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/ordinal (0.01s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/tape_count (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/reason (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/missing_expected (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/missing_observed (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observation_beyond_prefix_boundary (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observation_at_prefix_boundary (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observed_ordinal (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/rank_override (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observed_kind (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observed_count (0.02s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observed_selection (0.02s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observed_identity (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observed_digest (0.02s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/observed_site (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/expected_kind (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/expected_count (0.06s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/expected_rank_override (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/missing_identity (0.00s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/duplicate_identity (0.07s)
+    --- PASS: TestExplorationRejectsInvalidCandidateDivergence/alternative_capacity (0.00s)
+=== RUN   TestExplorationRejectsPreviousSegmentSchemaVisibly
+--- PASS: TestExplorationRejectsPreviousSegmentSchemaVisibly (0.00s)
+=== RUN   TestExplorationStopsAtExplicitRunDepthAndCapacityBounds
+=== RUN   TestExplorationStopsAtExplicitRunDepthAndCapacityBounds/executions
+=== RUN   TestExplorationStopsAtExplicitRunDepthAndCapacityBounds/depth
+=== RUN   TestExplorationStopsAtExplicitRunDepthAndCapacityBounds/capacity
+--- PASS: TestExplorationStopsAtExplicitRunDepthAndCapacityBounds (0.02s)
+    --- PASS: TestExplorationStopsAtExplicitRunDepthAndCapacityBounds/executions (0.00s)
+    --- PASS: TestExplorationStopsAtExplicitRunDepthAndCapacityBounds/depth (0.02s)
+    --- PASS: TestExplorationStopsAtExplicitRunDepthAndCapacityBounds/capacity (0.00s)
+=== RUN   TestExplorationRoundSegmentReplaysByteIdentically
+--- PASS: TestExplorationRoundSegmentReplaysByteIdentically (0.01s)
+=== RUN   TestExplorationFailurePolicyBaseline
+=== RUN   TestExplorationFailurePolicyBaseline/all
+=== RUN   TestExplorationFailurePolicyBaseline/first
+=== RUN   TestExplorationFailurePolicyBaseline/budget_repeated_below_threshold
+=== RUN   TestExplorationFailurePolicyBaseline/budget_distinct_reaches_threshold
+=== RUN   TestExplorationFailurePolicyBaseline/budget_distinct_below_threshold
+=== RUN   TestExplorationFailurePolicyBaseline/budget_one
+=== RUN   TestExplorationFailurePolicyBaseline/first_bounded_children
+=== RUN   TestExplorationFailurePolicyBaseline/manually_invalid_policy
+--- PASS: TestExplorationFailurePolicyBaseline (0.13s)
+    --- PASS: TestExplorationFailurePolicyBaseline/all (0.07s)
+    --- PASS: TestExplorationFailurePolicyBaseline/first (0.01s)
+    --- PASS: TestExplorationFailurePolicyBaseline/budget_repeated_below_threshold (0.01s)
+    --- PASS: TestExplorationFailurePolicyBaseline/budget_distinct_reaches_threshold (0.01s)
+    --- PASS: TestExplorationFailurePolicyBaseline/budget_distinct_below_threshold (0.01s)
+    --- PASS: TestExplorationFailurePolicyBaseline/budget_one (0.00s)
+    --- PASS: TestExplorationFailurePolicyBaseline/first_bounded_children (0.01s)
+    --- PASS: TestExplorationFailurePolicyBaseline/manually_invalid_policy (0.01s)
+=== RUN   TestExplorationValidatesSiblingsAfterPolicyStop
+=== RUN   TestExplorationValidatesSiblingsAfterPolicyStop/first/candidate
+=== RUN   TestExplorationValidatesSiblingsAfterPolicyStop/first/outcome
+=== RUN   TestExplorationValidatesSiblingsAfterPolicyStop/first/failure
+=== RUN   TestExplorationValidatesSiblingsAfterPolicyStop/first/trace
+=== RUN   TestExplorationValidatesSiblingsAfterPolicyStop/first/prefix
+=== RUN   TestExplorationValidatesSiblingsAfterPolicyStop/first/divergence_with_outcome
+=== RUN   TestExplorationValidatesSiblingsAfterPolicyStop/budget/candidate
+=== RUN   TestExplorationValidatesSiblingsAfterPolicyStop/budget/outcome
+=== RUN   TestExplorationValidatesSiblingsAfterPolicyStop/budget/failure
+=== RUN   TestExplorationValidatesSiblingsAfterPolicyStop/budget/trace
+=== RUN   TestExplorationValidatesSiblingsAfterPolicyStop/budget/prefix
+=== RUN   TestExplorationValidatesSiblingsAfterPolicyStop/budget/divergence_with_outcome
+--- PASS: TestExplorationValidatesSiblingsAfterPolicyStop (0.06s)
+    --- PASS: TestExplorationValidatesSiblingsAfterPolicyStop/first/candidate (0.00s)
+    --- PASS: TestExplorationValidatesSiblingsAfterPolicyStop/first/outcome (0.00s)
+    --- PASS: TestExplorationValidatesSiblingsAfterPolicyStop/first/failure (0.01s)
+    --- PASS: TestExplorationValidatesSiblingsAfterPolicyStop/first/trace (0.00s)
+    --- PASS: TestExplorationValidatesSiblingsAfterPolicyStop/first/prefix (0.00s)
+    --- PASS: TestExplorationValidatesSiblingsAfterPolicyStop/first/divergence_with_outcome (0.00s)
+    --- PASS: TestExplorationValidatesSiblingsAfterPolicyStop/budget/candidate (0.00s)
+    --- PASS: TestExplorationValidatesSiblingsAfterPolicyStop/budget/outcome (0.01s)
+    --- PASS: TestExplorationValidatesSiblingsAfterPolicyStop/budget/failure (0.01s)
+    --- PASS: TestExplorationValidatesSiblingsAfterPolicyStop/budget/trace (0.00s)
+    --- PASS: TestExplorationValidatesSiblingsAfterPolicyStop/budget/prefix (0.02s)
+    --- PASS: TestExplorationValidatesSiblingsAfterPolicyStop/budget/divergence_with_outcome (0.00s)
+=== RUN   TestExplorationRejectsInvalidFailurePolicyConfiguration
+=== RUN   TestExplorationRejectsInvalidFailurePolicyConfiguration/invalid
+=== RUN   TestExplorationRejectsInvalidFailurePolicyConfiguration/budget
+=== RUN   TestExplorationRejectsInvalidFailurePolicyConfiguration/first
+=== RUN   TestExplorationRejectsInvalidFailurePolicyConfiguration/all
+--- PASS: TestExplorationRejectsInvalidFailurePolicyConfiguration (0.00s)
+    --- PASS: TestExplorationRejectsInvalidFailurePolicyConfiguration/invalid (0.00s)
+    --- PASS: TestExplorationRejectsInvalidFailurePolicyConfiguration/budget (0.00s)
+    --- PASS: TestExplorationRejectsInvalidFailurePolicyConfiguration/first (0.00s)
+    --- PASS: TestExplorationRejectsInvalidFailurePolicyConfiguration/all (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice	0.495s

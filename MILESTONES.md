@@ -26,7 +26,7 @@ changes, change the spec and summarize the change here.
 | F10 | [fn-105](.flow/specs/fn-105-gomad-follow-ups-deferred-scope.md) | D12 native Linux replay fix; D26 combined runtime candidate and D27 host-clock candidate awaiting native qualification; D3–D5 architecture, downstream D8–D10, and deferred D6/D11/D15 |
 | Downstream cell | [fn-107](.flow/specs/fn-107-gomad-finish-downstream-cell.md) | Task 5: consumer and both-platform exact replay; blocked by the absent `../downstream` checkout and qualified hosts |
 | Code-size cleanup | [fn-108](.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md) | Task 8: native linux/amd64 qualification for R9 |
-| Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | Tasks 2–12 have merged candidates awaiting acceptance; tasks 13–18 have reviewed source candidates awaiting native gates; task 19's committed architecture candidate awaits formal review after a predispatch tool failure; task 20's earlier guidance has formal SHIP and its nine-flag CLI correction is source-reviewed and committed, while inherited D5 acceptance remains open; task 21 retains matched developmental 10/100 campaigns and finding/preservation evidence, with R18 reconciliation and both native gates incomplete; tasks 23–35 retain reviewed source and disclosure progress; campaign lint drops from 17 to 2 unchanged invariant findings and private-payload cleanup lowers artifact lint from 28 to 21 and public-copy cleanup further lowers it to 10 and directory/verifier cleanup to 4 and reflection-helper cleanup to 2, and architecture provenance passes 67 fixtures with four inherited lint findings, while the historical 419-finding nested receipt and 53 residual CLI production findings and newly clean corpus package lint leave full/native qualification open |
+| Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | Tasks 2–12 have merged candidates awaiting acceptance; tasks 13–18 have reviewed source candidates awaiting native gates; task 19's committed architecture candidate awaits formal review after a predispatch tool failure; task 20's earlier guidance has formal SHIP and its nine-flag CLI correction is source-reviewed and committed, while inherited D5 acceptance remains open; task 21 retains matched developmental 10/100 campaigns and finding/preservation evidence, with R18 reconciliation and both native gates incomplete; tasks 23–36 retain reviewed source and disclosure progress; campaign lint drops from 17 to 2 unchanged invariant findings and private-payload cleanup lowers artifact lint from 28 to 21 and public-copy cleanup further lowers it to 10 and directory/verifier cleanup to 4 and reflection-helper cleanup to 2, and architecture provenance passes 67 fixtures with four inherited lint findings, while the historical 419-finding nested receipt and 53 residual CLI production findings and newly clean corpus and choice package lint leave full/native qualification open |
 | Runtime patch minimization | [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | Tasks 2–4 have merged candidates awaiting native gates; the current final `-U3` exceeds the original baseline, leaving R8's extraction reduction unmet; task 5 retains final evidence and both-platform qualification |
 | Determinism assurance and test strategy | [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) | Tasks 5, 9, and 16 have merged candidates awaiting qualification; task 10's soak gate and contract documentation are delivered and await one retained scheduled or dispatched soak run per platform |
 | Version-pin maintenance | [fn-113](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md) | Tasks 1–4 have merged candidates; final native gates and both-host acceptance remain |
@@ -479,6 +479,20 @@ full/completion/formal/both-native/affected-consumer qualification
 ([corpus-cleanup acceptance](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/acceptance-open.md)).
 Product/document diff checks pass; the full staged diff check retains only the
 immutable Go-env log's empty-GOFLAGS EOF warning (exit 2).
+
+Task 36's independently reviewed Choice Exploration repair expresses the original
+first-failure and distinct-budget stopping predicates directly. Original source/
+test bodies and 1,044 protected inputs stay intact. Eight literal BASE state/
+segment vectors, twelve trailing-sibling error controls and four constructor
+cases preserve validation, input immutability and bounded pre-stop children.
+Developmental package 16/16, focused 8/8, five boundaries, errortype and formatting
+pass; actual choice-package lint falls from one finding to zero with none
+introduced. Review permits source-progress commit only. Original R18/R19,
+round/search/replay, shared fn108, predecessors/task21, matched first-baseline
+identities and full/completion/formal/affected-consumer/both-native gates stay open
+([choice-policy acceptance](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/acceptance-open.md)).
+The full staged diff retains only the immutable empty-GOFLAGS archive EOF warning;
+product/document and every other task-path check pass.
 
 The remaining nested findings retain bounded source owners
 ([path-policy acceptance](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/acceptance-open.md)). Task 21 remains the final

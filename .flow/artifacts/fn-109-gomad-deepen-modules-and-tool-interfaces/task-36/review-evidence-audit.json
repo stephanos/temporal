@@ -1,0 +1,93 @@
+{
+  "result": "PASS",
+  "script_sha256": "5fb4d5247a9b861f510c657751715e2a21ba4a222a2d53ea0d2a659f02806e68",
+  "eight_capture_pairs_equal_final_literals": true,
+  "independent_top_level_tests": {
+    "package": [
+      "TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy",
+      "TestExplorationRejectsInvalidCandidateDivergence",
+      "TestExplorationRejectsPreviousSegmentSchemaVisibly",
+      "TestExplorationExpandsAllNonSelectedRanksBreadthFirst",
+      "TestExplorationDeduplicatesPrefixesAndOutcomesWithoutPruning",
+      "TestExplorationStopsAtExplicitRunDepthAndCapacityBounds",
+      "TestExplorationStartOrdinalExpandsOnlyFromTheStart",
+      "TestExplorationReportsStartAtOrPastRootTrace",
+      "TestExplorationRejectsCandidateAlteringADecisionBeforeTheStart",
+      "TestExplorationSkipsNoOpSelectPollDecisions",
+      "TestExplorationExpandsSelectPollDecisionsOutsideTheNoOpShapes",
+      "TestExplorationRejectsIncompleteExecutionIdentity",
+      "TestExplorationRoundSegmentReplaysByteIdentically",
+      "TestExplorationFailurePolicyBaseline",
+      "TestExplorationValidatesSiblingsAfterPolicyStop",
+      "TestExplorationRejectsInvalidFailurePolicyConfiguration"
+    ],
+    "focused": [
+      "TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy",
+      "TestExplorationRejectsInvalidCandidateDivergence",
+      "TestExplorationRejectsPreviousSegmentSchemaVisibly",
+      "TestExplorationStopsAtExplicitRunDepthAndCapacityBounds",
+      "TestExplorationRoundSegmentReplaysByteIdentically",
+      "TestExplorationFailurePolicyBaseline",
+      "TestExplorationValidatesSiblingsAfterPolicyStop",
+      "TestExplorationRejectsInvalidFailurePolicyConfiguration"
+    ],
+    "boundaries": [
+      "TestArchitecturePublicSignatureFixtures",
+      "TestPackageArchitecture",
+      "TestPublicPackagesDoNotExportTypeAliases",
+      "TestRunnerRequestsCompileInExternalModule",
+      "TestRunnerExternalConsumerCompiles"
+    ]
+  },
+  "independent_new_subtests": {
+    "TestExplorationFailurePolicyBaseline/": [
+      "TestExplorationFailurePolicyBaseline/all",
+      "TestExplorationFailurePolicyBaseline/first",
+      "TestExplorationFailurePolicyBaseline/budget_repeated_below_threshold",
+      "TestExplorationFailurePolicyBaseline/budget_distinct_reaches_threshold",
+      "TestExplorationFailurePolicyBaseline/budget_distinct_below_threshold",
+      "TestExplorationFailurePolicyBaseline/budget_one",
+      "TestExplorationFailurePolicyBaseline/first_bounded_children",
+      "TestExplorationFailurePolicyBaseline/manually_invalid_policy"
+    ],
+    "TestExplorationValidatesSiblingsAfterPolicyStop/": [
+      "TestExplorationValidatesSiblingsAfterPolicyStop/first/candidate",
+      "TestExplorationValidatesSiblingsAfterPolicyStop/first/outcome",
+      "TestExplorationValidatesSiblingsAfterPolicyStop/first/failure",
+      "TestExplorationValidatesSiblingsAfterPolicyStop/first/trace",
+      "TestExplorationValidatesSiblingsAfterPolicyStop/first/prefix",
+      "TestExplorationValidatesSiblingsAfterPolicyStop/first/divergence_with_outcome",
+      "TestExplorationValidatesSiblingsAfterPolicyStop/budget/candidate",
+      "TestExplorationValidatesSiblingsAfterPolicyStop/budget/outcome",
+      "TestExplorationValidatesSiblingsAfterPolicyStop/budget/failure",
+      "TestExplorationValidatesSiblingsAfterPolicyStop/budget/trace",
+      "TestExplorationValidatesSiblingsAfterPolicyStop/budget/prefix",
+      "TestExplorationValidatesSiblingsAfterPolicyStop/budget/divergence_with_outcome"
+    ],
+    "TestExplorationRejectsInvalidFailurePolicyConfiguration/": [
+      "TestExplorationRejectsInvalidFailurePolicyConfiguration/invalid",
+      "TestExplorationRejectsInvalidFailurePolicyConfiguration/budget",
+      "TestExplorationRejectsInvalidFailurePolicyConfiguration/first",
+      "TestExplorationRejectsInvalidFailurePolicyConfiguration/all"
+    ]
+  },
+  "raw_archive_warning": {
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--check",
+      "/dev/null",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/audit-environment.log"
+    ],
+    "exit_code": 3,
+    "stdout": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/audit-environment.log:10: new blank line at EOF.\n",
+    "stderr": ""
+  },
+  "sources": {
+    "tools/gomad3/runner/internal/exploration/choice/engine.go": "2ddd22a25431d20a74a9eb193911e781adea0bbedb53e39c468a084953cb47c0",
+    "tools/gomad3/runner/internal/exploration/choice/engine_test.go": "1eea49a4fd0772f6280ce85327577aa8a8143b2230ce9b4c7d12124b47f5f30c"
+  },
+  "handles_running": 0,
+  "source_index_head_flow_writes": 0
+}

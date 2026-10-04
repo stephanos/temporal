@@ -610,6 +610,21 @@ required and open. Root commits reviewed source progress before another writer.
 Product/document diff checks pass; full staged diff-check retains only the raw
 Go-env log's empty-GOFLAGS EOF warning (exit 2). Its archived bytes stay intact.
 
+Task 36's reviewed Choice Exploration repair replaces only the failure-policy
+switch with its two stopping predicates. Original statements, comments and
+test bodies remain intact; 1,044 protected inputs match admission. Eight literal
+BASE state/segment vectors, twelve trailing-sibling error controls and four
+constructor cases preserve stopping, distinct-budget accounting, bounded
+children, validation and input immutability. Developmental package 16/16,
+focused 8/8, five actual boundaries, errortype and formatting pass; actual
+configured choice lint falls from one exhaustive finding to zero. Review permits
+source-progress commit only. Original R18/R19, round/search/replay, shared fn108,
+predecessors/task21, matched first-baseline identities and full/completion/formal/
+affected-consumer/both-native gates stay required/open. Product/document checks
+pass; full staged diff retains only the immutable empty-GOFLAGS archive EOF
+warning. Root commits before another source writer
+([choice-policy acceptance](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/acceptance-open.md)).
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.

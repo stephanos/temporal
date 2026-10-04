@@ -1,0 +1,5 @@
+tools/gomad3/runner/internal/exploration/choice/engine.go:265:4: missing cases in switch of type choice.FailurePolicy: choice.PolicyAll (exhaustive)
+			switch next.Config.FailurePolicy {
+			^
+1 issues:
+* exhaustive: 1

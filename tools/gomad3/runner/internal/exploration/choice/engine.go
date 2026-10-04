@@ -262,15 +262,12 @@ func CommitRound(state State, round Round, results []Result) (State, RoundSegmen
 				return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d failure signature: %w", index, err)
 			}
 			next.FailureSignatures = insertIdentity(next.FailureSignatures, result.FailureSHA256)
-			switch next.Config.FailurePolicy {
-			case PolicyFirst:
+			if next.Config.FailurePolicy == PolicyFirst {
 				next.StopReason = StopFirstFailure
 				policyStopped = true
-			case PolicyBudget:
-				if uint64(len(next.FailureSignatures)) >= next.Config.FailureBudget {
-					next.StopReason = StopFailureBudget
-					policyStopped = true
-				}
+			} else if next.Config.FailurePolicy == PolicyBudget && uint64(len(next.FailureSignatures)) >= next.Config.FailureBudget {
+				next.StopReason = StopFailureBudget
+				policyStopped = true
 			}
 		}
 		segmentResult := SegmentResult{CandidateSHA256: result.CandidateSHA256, OutcomeSHA256: result.OutcomeSHA256, Failed: result.Failed, FailureSHA256: result.FailureSHA256}

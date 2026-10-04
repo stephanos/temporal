@@ -459,3 +459,185 @@ func segmentBytesWithoutIdentity(t *testing.T, segment RoundSegment) []byte {
 	}
 	return encoded
 }
+
+func TestExplorationFailurePolicyBaseline(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		policy    FailurePolicy
+		budget    uint64
+		distinct  bool
+		maxRuns   uint64
+		wantStop  StopReason
+		wantQueue int
+		wantSeen  int
+		wantOmit  uint64
+		wantState record.SHA256
+		wantRound record.SHA256
+	}{
+		{name: "all", policy: PolicyAll, budget: 1, distinct: true, maxRuns: 32, wantQueue: 5, wantSeen: 11,
+			wantState: "sha256:29c4dc08452b7a9c12c30903218e5c5713bb0674d7942bd05d57711aa0cb8812", wantRound: "sha256:d79236e601b0d4d3d311c978546064b692d2aaad5d8cfcfe192a1744e2117a01"},
+		{name: "first", policy: PolicyFirst, budget: 1, distinct: true, maxRuns: 32, wantStop: StopFirstFailure, wantQueue: 3, wantSeen: 9,
+			wantState: "sha256:69d352959f1ebdaaec6279e5867daa536c2916089012ca7e12a9f4ee028779c7", wantRound: "sha256:cd9f2e71a90ba558444242bfca04c258d1ada489a8a19d74a283e0df3f0157da"},
+		{name: "budget repeated below threshold", policy: PolicyBudget, budget: 2, maxRuns: 32, wantQueue: 5, wantSeen: 11,
+			wantState: "sha256:ad662230644933921d3511069dbdd3eee5a80e5a4f4f643db927520e56e91572", wantRound: "sha256:8e90e14dab1db2dc893780a122765b46cd3568647f97ec13d3e178cc160dac83"},
+		{name: "budget distinct reaches threshold", policy: PolicyBudget, budget: 2, distinct: true, maxRuns: 32, wantStop: StopFailureBudget, wantQueue: 3, wantSeen: 9,
+			wantState: "sha256:37aa647022748626a86853c558a4b18a30c0b21e56be9eb1f740053040383dcf", wantRound: "sha256:259ad174f01508c79720a50b5780451ab28479ef7522ac1fbc3b7a0da6c89c9a"},
+		{name: "budget distinct below threshold", policy: PolicyBudget, budget: 3, distinct: true, maxRuns: 32, wantQueue: 5, wantSeen: 11,
+			wantState: "sha256:bfb984e3d3b5cadeb6284f88342c0ec010024bfc586d90d3e7baad4c72ce1724", wantRound: "sha256:04d682021b88e11f50290d9c480be9cb10aa95f25a055f4d258bd910e4ce20c4"},
+		{name: "budget one", policy: PolicyBudget, budget: 1, distinct: true, maxRuns: 32, wantStop: StopFailureBudget, wantQueue: 3, wantSeen: 9,
+			wantState: "sha256:1b1c5fff432f820a56902b1c7fe6e91a72aedfd696d6a8c943d7162f78a2d893", wantRound: "sha256:e0fe60a8086f9be356128259c1f6157eee1e719cb8e045c1a199c37431262114"},
+		{name: "first bounded children", policy: PolicyFirst, budget: 1, distinct: true, maxRuns: 8, wantStop: StopFirstFailure, wantQueue: 2, wantSeen: 8, wantOmit: 1,
+			wantState: "sha256:c6f2a7990fbb953456acc42b99915236936c8697457124702973efa76a8158a7", wantRound: "sha256:74925aad7beecf12e50bf04d61075c6491deeb501e3458f6d3dbd99695b1a1a4"},
+		{name: "manually invalid policy", policy: FailurePolicy("invalid"), budget: 1, distinct: true, maxRuns: 32, wantQueue: 5, wantSeen: 11,
+			wantState: "sha256:89bf69a4c85ef03f3663a2963e37a8c78d9ef15393b49bf58eca78c59b3e75f2", wantRound: "sha256:eb11a099847a5b68fe653378c0cd7c1741a0c2d8667205678944f11377b2f746"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			state, round, results := failurePolicyRound(t, test.policy, test.budget, test.maxRuns, test.distinct)
+			next, segment, err := CommitRound(state, round, results)
+			if err != nil {
+				t.Fatal(err)
+			}
+			wantFailures := 1
+			if test.distinct {
+				wantFailures = 2
+			}
+			if next.StopReason != test.wantStop || next.LogicalExecutions != 6 || next.CommittedRounds != 2 || len(next.Outcomes) != 6 || len(next.FailureSignatures) != wantFailures || len(next.Queue) != test.wantQueue || len(next.Seen) != test.wantSeen || next.OmittedByExecutionBound != test.wantOmit {
+				t.Fatalf("committed policy state = %#v", next)
+			}
+			_, available := next.NextRound()
+			if available != (test.wantStop == "") {
+				t.Fatalf("next round available = %t, stop = %q", available, next.StopReason)
+			}
+			if segment.Results[4].Failed || segment.Results[4].OutcomeSHA256 != results[4].OutcomeSHA256 || len(segment.Results[4].TraceBytes) == 0 {
+				t.Fatalf("trailing success = %#v", segment.Results[4])
+			}
+			digest, err := StateSHA256(next)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if digest != test.wantState || segment.SHA256 != test.wantRound {
+				t.Fatalf("state/segment identities = %s/%s, want %s/%s", digest, segment.SHA256, test.wantState, test.wantRound)
+			}
+			replayed, err := ReplaySegment(state, segment)
+			if err != nil {
+				t.Fatal(err)
+			}
+			replayedDigest, err := StateSHA256(replayed)
+			if err != nil || replayedDigest != digest {
+				t.Fatalf("replayed identity = %q, error = %v", replayedDigest, err)
+			}
+		})
+	}
+}
+
+func failurePolicyRound(t *testing.T, policy FailurePolicy, budget, maxRuns uint64, distinct bool) (State, Round, []Result) {
+	t.Helper()
+	config := testConfig()
+	config.Parallel, config.MaxExecutions = 5, maxRuns
+	config.FailurePolicy, config.FailureBudget = policy, budget
+	if policy == FailurePolicy("invalid") {
+		config.FailurePolicy = PolicyAll
+	}
+	state, err := New(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	root, _ := state.NextRound()
+	trace := testTape(t, config.Execution, testDecision(t, 0, choice.KindRunnable, 7, 0))
+	state, _, err = CommitRound(state, root, []Result{testResult(root.Candidates[0], trace, "policy root")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	state.Config.FailurePolicy = policy
+	round, ok := state.NextRound()
+	if !ok || len(round.Candidates) != 5 {
+		t.Fatalf("policy round = %#v, available = %t", round, ok)
+	}
+	results := make([]Result, 5)
+	for index, candidate := range round.Candidates {
+		results[index] = Result{CandidateSHA256: candidate.SHA256, OutcomeSHA256: record.HashBytes([]byte{byte(index)})}
+		if index >= 1 && index <= 3 {
+			results[index].Failed = true
+			results[index].FailureSHA256 = record.HashBytes([]byte("failure A"))
+			if index == 3 && distinct {
+				results[index].FailureSHA256 = record.HashBytes([]byte("failure B"))
+			}
+			continue
+		}
+		prefix, err := candidate.PrefixReplayPlan(config.Execution)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var observed choice.Decision
+		for selected := range uint32(7) {
+			observed = testDecision(t, 0, choice.KindRunnable, 7, selected)
+			if observed.Selected == prefix.Decisions[0].Selected {
+				break
+			}
+		}
+		childTrace := testTape(t, config.Execution, observed, testDecision(t, 1, choice.KindRunnable, 3, 0))
+		results[index].Trace = &childTrace
+	}
+	return state, round, results
+}
+
+func TestExplorationValidatesSiblingsAfterPolicyStop(t *testing.T) {
+	for _, policy := range []FailurePolicy{PolicyFirst, PolicyBudget} {
+		for _, test := range []struct {
+			name   string
+			change func(*Result)
+			want   string
+		}{
+			{name: "candidate", change: func(result *Result) { result.CandidateSHA256 = "" }, want: "result 4 does not match candidate"},
+			{name: "outcome", change: func(result *Result) { result.OutcomeSHA256 = "" }, want: "result 4 outcome:"},
+			{name: "failure", change: func(result *Result) { result.Failed = true; result.FailureSHA256 = "" }, want: "result 4 failure signature:"},
+			{name: "trace", change: func(result *Result) { result.Trace = &choice.ReplayPlan{} }, want: "validate choice exploration result 4 trace:"},
+			{name: "prefix", change: func(result *Result) {
+				trace := testTape(t, testConfig().Execution, testDecision(t, 0, choice.KindRunnable, 7, 0))
+				result.Trace = &trace
+			}, want: "validate choice exploration result 4 prefix:"},
+			{name: "divergence with outcome", change: func(result *Result) { result.Divergence = &choice.Divergence{} }, want: "result 4 divergence contains outcome evidence"},
+		} {
+			t.Run(string(policy)+"/"+test.name, func(t *testing.T) {
+				state, round, results := failurePolicyRound(t, policy, 1, 32, true)
+				before, err := canonicaljson.CanonicalJSON(state)
+				if err != nil {
+					t.Fatal(err)
+				}
+				test.change(&results[4])
+				next, segment, err := CommitRound(state, round, results)
+				if err == nil || !strings.Contains(err.Error(), test.want) {
+					t.Fatalf("post-stop sibling error = %v, want %q", err, test.want)
+				}
+				if next.Config.ControllerSHA256 != "" || len(next.Queue) != 0 || next.LogicalExecutions != 0 || segment.Schema != "" || len(segment.Results) != 0 {
+					t.Fatalf("failed transaction returned state = %#v, segment = %#v", next, segment)
+				}
+				after, err := canonicaljson.CanonicalJSON(state)
+				if err != nil || !slices.Equal(before, after) {
+					t.Fatalf("failed transaction mutated input, error = %v", err)
+				}
+			})
+		}
+	}
+}
+
+func TestExplorationRejectsInvalidFailurePolicyConfiguration(t *testing.T) {
+	for _, test := range []struct {
+		policy FailurePolicy
+		budget uint64
+		want   string
+	}{
+		{FailurePolicy("invalid"), 1, `unknown choice exploration failure policy "invalid"`},
+		{PolicyBudget, 0, "choice exploration failure budget must be positive"},
+		{PolicyFirst, 2, "choice exploration failure budget is only configurable in budget mode"},
+		{PolicyAll, 2, "choice exploration failure budget is only configurable in budget mode"},
+	} {
+		t.Run(string(test.policy), func(t *testing.T) {
+			config := testConfig()
+			config.FailurePolicy, config.FailureBudget = test.policy, test.budget
+			if _, err := New(config); err == nil || err.Error() != test.want {
+				t.Fatalf("New() error = %v, want %q", err, test.want)
+			}
+		})
+	}
+}

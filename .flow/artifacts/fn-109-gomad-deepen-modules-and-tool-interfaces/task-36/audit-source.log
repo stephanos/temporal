@@ -1,0 +1,35 @@
+{
+  "base_commit": "b60f4a869fdd1a665b7a419e3bc0ffdf26e6b607",
+  "production_reconstruction_exact": true,
+  "original_test_file_byte_prefix": true,
+  "protected_count": 1044,
+  "protected_unchanged": true,
+  "literal_controls_passed_on_original_production": true,
+  "literal_tests_unchanged_at_final_package": true,
+  "test_counts_top_level": {
+    "baseline-package": 13,
+    "baseline-focused": 5,
+    "baseline-boundaries": 5,
+    "controls-focused": 8,
+    "final-package": 16,
+    "final-focused": 8,
+    "final-boundaries": 5
+  },
+  "diagnostic_delta": {
+    "baseline": 1,
+    "final": 0,
+    "resolved": 1,
+    "introduced": 0,
+    "residual": 0,
+    "rule": "exhaustive"
+  },
+  "sources": {
+    "tools/gomad3/runner/internal/exploration/choice/engine.go": "2ddd22a25431d20a74a9eb193911e781adea0bbedb53e39c468a084953cb47c0",
+    "tools/gomad3/runner/internal/exploration/choice/engine_test.go": "1eea49a4fd0772f6280ce85327577aa8a8143b2230ce9b4c7d12124b47f5f30c"
+  },
+  "generator_inputs_affected": false,
+  "generator_inspection": [
+    "tools/gomad3/Makefile:6-9",
+    "tools/gomad3/internal/gomadtool/generation/protocol/protocol.go:594-615"
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.36",
+  "status": "in_progress",
+  "outcome": "SOURCE_PROGRESS_ONLY",
+  "base_commit": "b60f4a869fdd1a665b7a419e3bc0ffdf26e6b607",
+  "commits": [],
+  "tests": [
+    "go env GOOS GOARCH GOVERSION GOROOT GOMOD GOWORK GOENV GOTOOLCHAIN GOPROXY GOFLAGS",
+    "python3 /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/source_audit.py",
+    "go test -count=1 -tags test_dep -v . -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$'",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./runner/internal/exploration/choice",
+    "go test -count=1 -tags test_dep -v ./runner/internal/exploration/choice -run '^(TestExplorationCommitsDivergenceAndSiblingsUnderEveryPolicy|TestExplorationRoundSegmentReplaysByteIdentically|TestExplorationStopsAtExplicitRunDepthAndCapacityBounds|TestExplorationRejectsInvalidCandidateDivergence|TestExplorationRejectsPreviousSegmentSchemaVisibly|TestExplorationFailurePolicyBaseline|TestExplorationValidatesSiblingsAfterPolicyStop|TestExplorationRejectsInvalidFailurePolicyConfiguration)$'",
+    "gofmt -d runner/internal/exploration/choice/engine.go runner/internal/exploration/choice/engine_test.go",
+    "go test -count=1 -tags test_dep -v ./runner/internal/exploration/choice",
+    "git -C /Users/stephan/Workspace/skunkworks/gomad/temporal diff --check b60f4a869fdd1a665b7a419e3bc0ffdf26e6b607 -- tools/gomad3/runner/internal/exploration/choice/engine.go tools/gomad3/runner/internal/exploration/choice/engine_test.go",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./runner/internal/exploration/choice"
+  ],
+  "prs": [],
+  "actual_model": null,
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "source_before_sha256": {
+    "tools/gomad3/runner/internal/exploration/choice/engine.go": "922ff1f2963bfd9371ff7008e04602c92ff7b93c25ad7c131bbcefb4da9c34a5",
+    "tools/gomad3/runner/internal/exploration/choice/engine_test.go": "8dc19e5739ef012ce68fe0b5fe971d489c1f50b42edece5e8f629650335ec5b4"
+  },
+  "source_after_sha256": {
+    "tools/gomad3/runner/internal/exploration/choice/engine.go": "2ddd22a25431d20a74a9eb193911e781adea0bbedb53e39c468a084953cb47c0",
+    "tools/gomad3/runner/internal/exploration/choice/engine_test.go": "1eea49a4fd0772f6280ce85327577aa8a8143b2230ce9b4c7d12124b47f5f30c"
+  },
+  "source_preservation": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/source-preservation.json",
+  "receipts": [
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/audit-environment.receipt.json",
+      "sha256": "e7704f4a50005b83d9101f027d2ad094e5c23dd6c81a8eab4b9a61851ab474e5",
+      "status": "passed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/audit-source.receipt.json",
+      "sha256": "fdba5bb22d959c54a3d1ac09294101c2f550b75e5292b5bc04332a6692ce6da6",
+      "status": "passed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/baseline-boundaries.receipt.json",
+      "sha256": "fbfcffe2db03a6d30920db6ea54d3c2a6dee4f5e21e876d7f36bcfc5cdb9d183",
+      "status": "passed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/baseline-errortype.receipt.json",
+      "sha256": "845118644a4fd15b7fc36986f4f3f02f10ec2d6959ee69c759143df131117515",
+      "status": "passed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/baseline-focused.receipt.json",
+      "sha256": "895eb84da1e2c6453ea2b891290746607adc951cae5c09c02cd337b448a2559b",
+      "status": "passed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/baseline-gofmt.receipt.json",
+      "sha256": "f90fa68453c5bc6acd95cebca1229dbf409064393f9eb86f2a68335dbd2238b5",
+      "status": "passed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/baseline-lint.receipt.json",
+      "sha256": "1a63fc1ed7ba232eaa66f9ec3bb403b230489e6d6821846594add476b1b27570",
+      "status": "expected_analyzer_red"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/baseline-package.receipt.json",
+      "sha256": "1523e983bb267cf56ee69053757c8357a45acc147f0a799dad439a3c888b41d9",
+      "status": "passed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/capture-focused.receipt.json",
+      "sha256": "53eabce386396ef74e382b1e1f29d94aa035b064b3162d5b86ccc901ba854dcd",
+      "status": "passed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/controls-focused.receipt.json",
+      "sha256": "bc00a12d162cb80236189565d8b6de1a9e2cefbe5d81b68b90c0c0be49eb6fb9",
+      "status": "passed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/diff-correct-product.receipt.json",
+      "sha256": "b867241d85fad071dd6e7f974e5d05abec448f6cd3fb8e553ab2997710032506",
+      "status": "passed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/diff-product.receipt.json",
+      "sha256": "36b397cd2ae858befebb69db930ba0c0e3f5cfdb1327d57a8fe56f65fa66bd2d",
+      "status": "inconclusive"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/diff-raw-environment.receipt.json",
+      "sha256": "441a0d9fe44e432c34c3c7c07f8cdc6b7a828d94ffd0e63c5df66abd39780250",
+      "status": "raw_archive_warning"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/final-boundaries.receipt.json",
+      "sha256": "944207a9faad8a25a924a4e5be2334d1c69bfc56d66296fbf6d357ed36ebca2f",
+      "status": "passed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/final-errortype.receipt.json",
+      "sha256": "9aee96b55c40d9030d9384195238bdf7af91370d83f79d61566dccb178c3381d",
+      "status": "passed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/final-focused.receipt.json",
+      "sha256": "4c841bcc47a16469f58474ac82254e5ffe2ce9e3450ece725dedba576a85984a",
+      "status": "passed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/final-gofmt.receipt.json",
+      "sha256": "cf6fbc744faac68ae8fbf18cff0ca67b38b220923ef839a676fd9bdfcef332b5",
+      "status": "passed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/final-lint.receipt.json",
+      "sha256": "979cad29daa1321ff81f3b31999391cf65252c64f60947262b8a03c7427bbed4",
+      "status": "passed"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/final-package.receipt.json",
+      "sha256": "a288abe96c7bd39113b1ccb9408c7f87bd1a411a68b5524385fe4611bd0ffd12",
+      "status": "passed"
+    }
+  ],
+  "diagnostic_delta": {
+    "baseline": 1,
+    "final": 0,
+    "resolved": 1,
+    "introduced": 0,
+    "residual": 0,
+    "rule": "exhaustive"
+  },
+  "counts": {
+    "baseline-package": 13,
+    "baseline-focused": 5,
+    "baseline-boundaries": 5,
+    "controls-focused": 8,
+    "final-package": 16,
+    "final-focused": 8,
+    "final-boundaries": 5
+  },
+  "required_open": "R18/R19 and relevant original Choice Exploration/round/search/replay, shared fn108, predecessors/task21, matched original first-baseline fixed identities and full/completion/formal/affected-consumer/both-native gates remain required/open. No completion waiver.",
+  "handles": {
+    "commands_running": 0,
+    "delegates": 0
+  },
+  "raw_archive_warning": "audit-environment.log records empty GOFLAGS. git diff --no-index --check exits 3 with one new blank line at EOF; raw bytes retained. Initial diff-product receipt selected root-relative paths from nested cwd and is inconclusive; diff-correct-product uses explicit git -C repository root and passes."
+}

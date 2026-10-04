@@ -1,0 +1,47 @@
+---
+satisfies: [R18, R19]
+---
+# fn-109-gomad-deepen-modules-and-tool-interfaces.36 Preserve Choice Exploration stopping predicates and round identities
+
+## Description
+Preserve Choice Exploration stopping behavior while repairing the incomplete exhaustive policy switch in CommitRound. Task35 reviewed source progress is committed at b60f4a869fdd1a665b7a419e3bc0ffdf26e6b607; original predecessor acceptance remains open.
+
+**Touches:** tools/gomad3/runner/internal/exploration/choice/engine.go, tools/gomad3/runner/internal/exploration/choice/engine_test.go, .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/**
+
+Follow rank2 of .flow/tmp/next-lint-owner-astra-research.md (SHA256 d630038390947c4aac95c322f905e712686c3f97179631351d67c9d1f7535ebd). Replace only CommitRound's failure-policy switch with the two actual stopping predicates: PolicyFirst; else PolicyBudget and distinct failure-signature count >= FailureBudget. Keep the existing two assignments for each effect. PolicyAll and unknown manually constructed policies retain their prior no-op stopping behavior; New still rejects invalid configuration. Keep every original statement/comment outside this exact switch change. No empty enum case, generic dispatch wrapper, policy normalization or new rejection.
+
+Before the production change append bounded characterization for all/first/budget, repeated failure signatures below budget and a distinct signature reaching it, trailing successful and invalid siblings after a stop, unchanged input state on error and fixed BASE literal state/round-segment hashes or canonical bytes. Retain old divergence and replay controls byte-identically. Baseline controls must pass on original production; actual configured baseline exhaustive supplies RED. Expected values are fixed counters/stop reasons/digests captured from BASE, not a second implementation of the predicates. Preserve failure insertion before count comparison, validation of every sibling after stopping, child accumulation/bounded admission, canonical ordering, state/segment/controller identity/schema/domain strings, prefix/tape checks and divergence classifications. If a particular control cannot reach its branch under baseline validity, disclose the exact limit and preserve validation rather than manufacturing a weaker state.
+
+Root owns Flow, parent/MILESTONES, admission/reviews/index/commits. Worker owns only these two source files and task36 proof excluding root/review reports. Preserve engine_divergence_test.go, all other production/tests, config/pins, schemas, APIs and older/unrelated artifacts. No production seam/helper/framework, policy/suppression/retirement/download/bridge/worktree/push/history changes. Research is read-only snapshot work with no shared cache commands.
+
+**Quick commands:** offline cached stock Go1.27.1 first on PATH; GOENV=off GOWORK=off GOTOOLCHAIN=local GOPROXY=off, empty GOFLAGS, unset GOROOT/Gomad seed variables, tests -count=1 -tags test_dep. Serial baseline/final full exploration/choice package and focused old/new characterization; five actual nested-root architecture/public-signature/external-consumer boundaries; actual unfiltered pinned configured package lint --fix=false; errortype, gofmt and exact source reconstruction. Inspect generator inputs; validate when affected. Retain source/tool/config before/after SHA, exact argv/env, UTC/time/exit/raw-log hashes, diagnostic delta and one lean handover. Do not retry unchanged root/full/native/missing-launcher failures or infer a current whole count from historical419. Preserve raw logs including empty effective values; distinguish a raw archive EOF warning from product/doc diff checks if one exists.
+
+## Acceptance
+- Exactly the two stopping predicates replace the original policy switch, retaining each effect assignment and every other original production operation/comment. All/first/budget and invalid New behavior, distinct signature accounting, post-stop sibling validation, input immutability, bounded child admission, canonical ordering, schema/controller/round identities, prefix/tape and divergence behavior stay intact.
+- Append bounded policy/budget/repeated/distinct/post-stop sibling/error-immutability controls and literal fixed BASE canonical state/segment evidence before production editing. They pass on original and final production. Preserve every original fixture/assertion and all of engine_divergence_test.go. Actual unfiltered analyzer RED/diagnostic delta supplies repair evidence; disclose unreachable or missing controls honestly.
+- Baseline/final full package, focused controls, five actual boundaries, errortype/gofmt and source preservation checks pass on available stock Go. Actual configured lint resolves the admitted exhaustive diagnostic with none introduced and all residuals retained. Inspect generator inputs and validate if affected. No configuration, suppression, helper/framework, API/schema/policy changes or inferred fresh whole count.
+- Only engine.go/engine_test.go product source changes; protected inputs and original acceptance remain unchanged. Independent fresh source review must permit only a source-progress checkpoint before another writer. Root commits source/tests/proof/Flow/docs together; full formal review is required when the original full tree is green.
+- Original R18/R19, Choice Exploration round/search/replay and relevant task/predecessor/task21 obligations, shared fn108 assessment/retention, matched original first-baseline fixed identities, full/completion/formal/affected-consumer and qualified native darwin/arm64 plus linux/amd64 gates remain required and open. Complete only when all corresponding original gates pass; otherwise retain reviewed source progress and blocked acceptance. Developmental checks do not fulfill them.
+
+
+## Done summary
+
+# Task 36 source checkpoint and outstanding acceptance
+
+Choice Exploration keeps its first-failure and distinct-signature budget stopping effects. CommitRound now uses two predicates instead of the incomplete switch. Exact reconstruction preserves every other original production statement/comment and the complete original test-file prefix; all 1,044 protected inputs match admission.
+
+The [worker handover](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/handover.md), [evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/evidence.json) and [root read-only audit](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/root-reaudit.json) bind BASE `b60f4a869fdd1a665b7a419e3bc0ffdf26e6b607`. Eight literal BASE state/segment vectors pass before and after the edit. Twelve invalid trailing-sibling cases preserve validation after stopping and input immutability; four constructor cases preserve rejection. Previously accumulated children retain bounded admission. All requested controls are reachable. Manually invalid CommitRound policy retains its prior no-op stopping behavior; New still rejects it.
+
+Fresh independent source review permits a source-progress checkpoint with no findings. Package 16/16, focused 8/8, five actual boundaries, errortype and formatting pass on developmental stock linux/arm64. Actual unfiltered configured choice lint falls from one exhaustive diagnostic to zero, with none introduced. Generator inputs are unaffected. Requested writer/reviewer models are gpt-6.1-sol/high, the same family; actual execution metadata is unavailable.
+
+The initial nested-cwd product diff selected no paths and remains inconclusive. Corrected repository-root product diff passes. The immutable Go-env archive retains its true empty-GOFLAGS EOF warning. Full staged diff-check exits 2 for that exact path/hash/line alone; every other task path must pass. Raw bytes and historical receipts stay unchanged.
+
+Original R18/R19, Choice Exploration round/search/replay, shared fn108 assessment/retention, predecessors/task21, matched original first-baseline fixed identities and full/completion/formal/affected-consumer/native darwin/arm64 plus linux/amd64 gates remain required and open. Developmental package checks supply none of those full/native results. Task36 and task21 remain blocked; the parent remains open with 2/36 done. Root commits the reviewed source/tests/proof/Flow/docs before another source writer.
+
+stage: impl-review - skipped(policy: conductor-deferred; fresh source review passed, full/native qualification remains red)
+stage: plan-sync - skipped(config: disabled; task remains blocked rather than done)
+
+## Evidence
+- Commits: the source-progress commit containing this checkpoint
+- Tests: [worker evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/evidence.json); [independent checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/review-checks.json)
+- PRs: none
