@@ -21,13 +21,15 @@ func (f Family) ID(kind, owner, member string) string {
 func (f Family) Target(machine string) string { return string(f) + ".target." + machine }
 
 // Result is one outcome of a row: the outcome, the next state, and the recorded facts, all as keys.
-// Step holds what the table's builder carries with the result, such as a ComposedStep.
+// Step holds what the table's builder carries with the result, such as a ComposedStep. Because and
+// Choice are what the step record explains and names it: inert, so no key, ID or fingerprint reads them.
 type Result struct {
 	Outcome string   `json:"outcome"`
 	State   string   `json:"state"`
 	Facts   []string `json:"facts"`
 	Step    any      `json:"-"`
 	Because string   `json:"-"`
+	Choice  string   `json:"-"`
 }
 
 // Row is one enabled state and action class. An absent pair is disabled.

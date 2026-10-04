@@ -3,6 +3,7 @@ package golden
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"maps"
 	"os"
 	"path/filepath"
@@ -248,6 +249,106 @@ func TestOriginalMatchAdmitsOnlyTheRecordedDelta(t *testing.T) {
 			change(changed)
 			require.Error(t, inert.MatchOriginal(baseline, changed))
 		})
+	}
+}
+
+// choiceField is the one inert field this delta's named choices add.
+const choiceField = "temporal.server.api.umpire.v1.Construct.choice"
+
+// nameSteps names every step record a Model constructs, anywhere in it, and counts them.
+func nameSteps(t *testing.T, m *umpirespb.Model, name func(i int) string) int {
+	t.Helper()
+	n := 0
+	require.NoError(t, messages(m.ProtoReflect(), func(child protoreflect.Message) (bool, error) {
+		if c, ok := child.Interface().(*umpirespb.Construct); ok && c.GetType() == "umpire.Step" {
+			c.Choice = name(n)
+			n++
+		}
+		return true, nil
+	}))
+	return n
+}
+
+// TestOriginalBaselineAdmitsChoiceNames holds the delta's one choice-name allowance to exactly the
+// names. The IR comparison drops the Functions, where every step record a step function returns is
+// built, so it never reads a name there, with or without the allowance: what such a name could change
+// is compared on the derived outputs instead (tables, answers, receipts, fingerprints and Cases), which
+// the reader's and the lowering's named-choice tests show unchanged by names. A step record outside
+// the Functions, here an argument the job's `ends` passes, is compared here, and only its name is
+// excused: anything else of it that differs, another label, or a baseline that sets a name, is not.
+func TestOriginalBaselineAdmitsChoiceNames(t *testing.T) {
+	delta, err := OriginalDelta()
+	require.NoError(t, err)
+	require.Contains(t, delta.InertFields, choiceField)
+	baseline, current := originalJob(t)
+	step := proto.CloneOf(functionNamed(baseline, "job.close.step").Body.GetIf().Then.GetList().Items[0])
+	for _, m := range []*umpirespb.Model{baseline, current} {
+		ends := m.Machines[0].Ends.GetLambda().Body.GetCall()
+		ends.Args = append(ends.Args, proto.CloneOf(step))
+	}
+	require.NoError(t, delta.MatchOriginal(baseline, current))
+
+	inFunctions := proto.CloneOf(current)
+	closing := functionNamed(inFunctions, "job.close.step").Body.GetIf().Then.GetList()
+	require.Len(t, closing.Items, 2, "closing a running job finishes it or drops it")
+	closing.Items[0].GetConstruct().Choice, closing.Items[1].GetConstruct().Choice = "finished", "dropped"
+	require.NoError(t, delta.MatchOriginal(baseline, inFunctions))
+	require.NoError(t, Delta{}.MatchOriginal(baseline, inFunctions), "the IR comparison reads no Function")
+
+	named := proto.CloneOf(inFunctions)
+	require.Equal(t, 10, nameSteps(t, named, func(i int) string { return fmt.Sprintf("alternative-%d", i) }))
+	require.NoError(t, delta.MatchOriginal(baseline, named))
+	require.Error(t, Delta{}.MatchOriginal(baseline, named), "a name outside the Functions is compared")
+	require.ErrorContains(t, delta.MatchOriginal(named, named), "inert field "+choiceField+" is set in the baseline")
+	require.ErrorContains(t, delta.MatchOriginal(inFunctions, named), "inert field "+choiceField+" is set in the baseline",
+		"a name in a Function of the baseline too")
+
+	outside := func(m *umpirespb.Model) *umpirespb.Construct {
+		args := m.Machines[0].Ends.GetLambda().Body.GetCall().Args
+		return args[len(args)-1].GetConstruct()
+	}
+	for name, change := range map[string]func(*umpirespb.Model){
+		"type":     func(m *umpirespb.Model) { outside(m).Type = "JobState" },
+		"case":     func(m *umpirespb.Model) { outside(m).Case = "accepted" },
+		"argument": func(m *umpirespb.Model) { outside(m).Args[1].GetLiteral().GetEnum().Case = "waiting" },
+		"result":   func(m *umpirespb.Model) { outside(m).Args = outside(m).Args[:3] },
+		"label": func(m *umpirespb.Model) {
+			m.Actions[0].Examples[0].Example = "first"
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			changed := proto.CloneOf(named)
+			change(changed)
+			require.Error(t, delta.MatchOriginal(baseline, changed))
+		})
+	}
+}
+
+// TestOriginalBaselineAdmitsChoiceNamesOnEveryModel names every step record of every current IR Model
+// and lifter fixture: each still matches its baseline under the delta, and a baseline so named is
+// refused.
+func TestOriginalBaselineAdmitsChoiceNamesOnEveryModel(t *testing.T) {
+	root, err := Root()
+	require.NoError(t, err)
+	delta, err := OriginalDelta()
+	require.NoError(t, err)
+	archived, err := OriginalArchive(root)
+	require.NoError(t, err)
+	current, err := OriginalCurrent(root)
+	require.NoError(t, err)
+	baselines, err := OriginalModels(archived)
+	require.NoError(t, err)
+	models, err := OriginalModels(current)
+	require.NoError(t, err)
+	require.Len(t, baselines, 12)
+	applied := map[int]bool{}
+	for _, key := range slices.Sorted(maps.Keys(baselines)) {
+		expected, err := delta.Expected(baselines[key], applied)
+		require.NoError(t, err, key)
+		named := proto.CloneOf(models[key])
+		require.Positive(t, nameSteps(t, named, func(i int) string { return fmt.Sprintf("alternative-%d", i) }), key)
+		require.NoError(t, delta.MatchOriginal(expected, named), key)
+		require.ErrorContains(t, delta.MatchOriginal(named, named), "is set in the baseline", key)
 	}
 }
 

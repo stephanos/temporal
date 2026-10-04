@@ -11,6 +11,13 @@ lift: model/lifter/testdata/lifts/Rejects.scala:484: assumingTwice assumes lampF
 lift: model/lifter/testdata/lifts/Rejects.scala:629: own names the action dim, which takes inputs, and a Scenario lists classes: name one with `dim(...)`
 lift: model/lifter/testdata/lifts/Rejects.scala:196: channel batches's messages are lists, which have no finite catalog in the IR: give them an enum or a record
 lift: model/lifter/testdata/lifts/Rejects.scala:361: limits bound are declared twice with different bounds, here and at model/lifter/testdata/lifts/Rejects.scala:358: a Query's receipt names its limits by name
+lift: model/lifter/testdata/lifts/Rejects.scala:795: the alternative lampOff of a choose is not one step written out: write its step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative
+lift: model/lifter/testdata/lifts/Rejects.scala:786: the alternative lampOn of a choose is not one step written out: write its step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative
+lift: model/lifter/testdata/lifts/Rejects.scala:815: the alternative lampOn of a choose is not one step written out: write its step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative
+lift: model/lifter/testdata/lifts/Rejects.scala:835: an alternative of a choose is written in the call as `token -> step`, not keptOn
+lift: model/lifter/testdata/lifts/Rejects.scala:804: the alternative lampOn of a choose is not one step written out: write its step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative
+lift: model/lifter/testdata/lifts/Rejects.scala:826: a choice is named by the token a val declares, as `val committed = choice` and `choose(committed -> ...)`, not a token no val declares
+lift: model/lifter/testdata/lifts/Rejects.scala:768: choose names lampOn twice: an alternative is named by its token's val, so give each alternative a name of its own
 lift: model/lifter/testdata/lifts/Rejects.scala:79: countdown calls itself, directly or through another function: a recursive function has no IR form, so write the bounded computation out
 lift: model/lifter/testdata/lifts/Rejects.scala:178: channel counts's messages are Int, and their catalog umpire.Finite.of[scala.Int](1, 5) is not `Finite.upTo(n)`: the IR carries an Int only as a range from 0, so declare the channel with one or give its messages an opaque type with a range
 lift: model/lifter/testdata/lifts/Rejects.scala:132: crossedRead reads flips, a Property of second, through the refinement of refining, which refines first
@@ -48,6 +55,7 @@ lift: model/lifter/testdata/lifts/Rejects.scala:638: spare replaces first, and n
 lift: model/lifter/testdata/lifts/Rejects.scala:284: fixture.rejects.SharedB$.share and fixture.rejects.SharedA$.share would share the Definition ID fixture.rejects.Shared$.share: two declarations pinned to one former owner keep the distinct names they had there
 lift: model/lifter/testdata/lifts/Rejects.scala:664: lit of litStays names a def of the lifted sources, which the lifter binds, not ((l: fixture.rejects.Lamp) => l.lit): declare it as `def lit(...)` and pass that
 lift: model/lifter/testdata/lifts/Rejects.scala:214: channel shuffled's order is umpire.Order.fromOrdinal(1), not a case of Order: a channel names its order as Order.fifo or Order.unordered
+lift: model/lifter/testdata/lifts/Rejects.scala:777: choose names lampOn twice, by fixture.rejects.Rejects$package$.lampOn and fixture.rejects.Elsewhere$.lampOn: an alternative is named by its token's val, so give each alternative a name of its own
 lift: model/lifter/testdata/lifts/Rejects.scala:521: in lists its members, so a list passed as `xs*` has no IR form: write them out
 lift: model/lifter/testdata/lifts/Rejects.scala:710: bright is given level twice: supply each input once
 lift: model/lifter/testdata/lifts/Rejects.scala:715: an input supplied by name is written `token := value` in the call, not keptLevel

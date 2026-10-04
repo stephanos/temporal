@@ -102,7 +102,8 @@ func (p *Plan) lower(key string, priority int64, actions []*umpirespb.ActionClas
 		}
 	}
 	c := &Candidate{Key: key, Priority: priority, Model: m, Actions: actions}
-	encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(m)
+	// Named-choice names are inert, so they name no other candidate (model/SEMANTICS.md, Named choices).
+	encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(umpiremodel.WithoutChoiceNames(m))
 	if err != nil {
 		c.Rejection = err.Error()
 		return c

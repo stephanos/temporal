@@ -465,7 +465,8 @@ func rowKeys(decl *umpirespb.Machine, states []Value, classes []Class) error {
 }
 
 // rows evaluates every step function once per state and class, states-major, keeping the enabled
-// pairs as rows and rejecting a result outside the state domain.
+// pairs as rows and rejecting a result outside the state domain and two results of one row with the
+// same name (model/SEMANTICS.md, Named choices).
 // It also keeps each row's transition, and the pairs whose value is a hole as hole rows; a channel's
 // delivery and loss are evaluated as transfers.
 func (in *Interpreter) rows(mm *Machine, states []Value, spec *umpire.TableSpec) error {
@@ -489,11 +490,16 @@ func (in *Interpreter) rows(mm *Machine, states []Value, spec *umpire.TableSpec)
 				continue
 			}
 			row := Row{Key: key, Source: s.Key(), Action: c.Key}
+			named := map[string]bool{}
 			for _, step := range steps {
 				res, err := in.result(mm, c, key, step)
 				if err != nil {
 					return err
 				}
+				if res.Choice != "" && named[res.Choice] {
+					return errorAt(c.at, "%s: row %s has two results named %s", decl.GetName(), key, res.Choice)
+				}
+				named[res.Choice] = true
 				row.Results = append(row.Results, res)
 			}
 			spec.Rows = append(spec.Rows, row)
@@ -519,7 +525,7 @@ func (in *Interpreter) result(m *Machine, c Class, row string, step Value) (Resu
 	if v, ok := m.states[next]; !ok || !v.equal(step.Fields[1]) {
 		return Result{}, errorAt(c.at, "%s: row %s lands in %s, which is outside the state domain", m.Decl.GetName(), row, next)
 	}
-	res := Result{Outcome: step.Fields[0].Key(), State: next, Facts: []string{}, Because: step.Fields[3].Text}
+	res := Result{Outcome: step.Fields[0].Key(), State: next, Facts: []string{}, Because: step.Fields[3].Text, Choice: step.Choice}
 	for _, f := range step.Fields[2].Items {
 		res.Facts = append(res.Facts, f.Key())
 	}

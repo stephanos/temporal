@@ -90,7 +90,7 @@ func (b *binding) compositionSubject(c *umpirespb.Composition) *subject {
 			facts.Items = append(facts.Items, Value{Kind: TextValue, Text: f})
 		}
 		return Value{Kind: RecordValue, Type: StepType,
-			Fields: []Value{{Kind: TextValue, Text: res.Outcome}, reached, facts, {Kind: TextValue, Text: res.Because}}}, nil
+			Fields: []Value{{Kind: TextValue, Text: res.Outcome}, reached, facts, {Kind: TextValue, Text: res.Because}}, Choice: res.Choice}, nil
 	}
 	s.key = func(v Value) (string, error) {
 		if !b.in.conforms(v, named(c.GetStateType())) {

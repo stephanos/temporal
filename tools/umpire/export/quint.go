@@ -386,7 +386,7 @@ func (q *quint) expr(x *umpirespb.Expr, sc scope) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		return q.construct(k.Construct.GetType(), k.Construct.GetCase(), args, at)
+		return q.construct(k.Construct.GetType(), k.Construct.GetCase(), k.Construct.GetChoice(), args, at)
 	case *umpirespb.Expr_Copy:
 		return q.copied(k.Copy, sc)
 	case *umpirespb.Expr_Unary:
@@ -508,13 +508,13 @@ func (q *quint) literal(v *umpirespb.Value, at *umpirespb.Position) (string, err
 		if err != nil {
 			return "", err
 		}
-		return q.construct(k.Enum.GetType(), k.Enum.GetCase(), fields, at)
+		return q.construct(k.Enum.GetType(), k.Enum.GetCase(), "", fields, at)
 	case *umpirespb.Value_Record:
 		fields, err := values(k.Record.GetFields())
 		if err != nil {
 			return "", err
 		}
-		return q.construct(k.Record.GetType(), "", fields, at)
+		return q.construct(k.Record.GetType(), "", "", fields, at)
 	case *umpirespb.Value_List:
 		items, err := values(k.List.GetItems())
 		return "[" + strings.Join(items, ", ") + "]", err
@@ -525,8 +525,10 @@ func (q *quint) literal(v *umpirespb.Value, at *umpirespb.Position) (string, err
 
 var stepFields = []string{"outcome", "state", "facts", "because"}
 
-// construct writes a record, the step record, or an enum case from its arguments in field order.
-func (q *quint) construct(typ, name string, args []string, at *umpirespb.Position) (string, error) {
+// construct writes a record, the step record, or an enum case from its arguments in field order. A
+// step record also carries its choice, the inert name of the alternative it is, as `f_choice`: the
+// step function keeps every alternative in its list, and the checker action picks one by index.
+func (q *quint) construct(typ, name, choice string, args []string, at *umpirespb.Position) (string, error) {
 	record := func(names []string) (string, error) {
 		if len(names) != len(args) {
 			return "", q.unsupported(at, "%s built from %d values, and it has %d fields", typ, len(args), len(names))
@@ -538,7 +540,14 @@ func (q *quint) construct(typ, name string, args []string, at *umpirespb.Positio
 		return "{" + strings.Join(parts, ", ") + "}", nil
 	}
 	if typ == umpiremodel.StepType {
-		return record(stepFields)
+		if !writable(choice) {
+			return "", q.unsupported(at, "the choice %q: a Quint string is written verbatim between double quotes, with no escapes, and only printable ASCII other than a double quote or a backslash is written", choice)
+		}
+		args = append(slices.Clip(args), `"`+choice+`"`)
+		return record(append(slices.Clip(stepFields), "choice"))
+	}
+	if choice != "" {
+		return "", q.unsupported(at, "the choice %q on a value of %s, which is no step record", choice, typ)
 	}
 	decl, ok := q.s.types[typ]
 	if !ok {
@@ -559,6 +568,19 @@ func (q *quint) construct(typ, name string, args []string, at *umpirespb.Positio
 		return tag + "(" + fields + ")", err
 	}
 	return "", q.unsupported(at, "the case %s, which %s does not declare", name, typ)
+}
+
+// writable is whether a name is written as a Quint string literal unchanged. Quint's lexer takes a
+// string to the next double quote and its parser keeps the text between them as it is, so a double
+// quote ends it and a backslash is no escape. Only printable ASCII is written: a name is a Scala
+// identifier, and what Apalache and an ITF trace make of other characters is not established.
+func writable(name string) bool {
+	for i := range len(name) {
+		if c := name[i]; c < 0x20 || c > 0x7e || c == '"' || c == '\\' {
+			return false
+		}
+	}
+	return true
 }
 
 func fieldNames(fields []*umpirespb.Field) []string {
@@ -750,7 +772,7 @@ func (q *quint) stepType(decl *umpirespb.Machine) (state, step string, err error
 			return "", "", err
 		}
 	}
-	return state, fmt.Sprintf("{f_outcome: %s, f_state: %s, f_facts: List[%s], f_because: str}", outcome, state, fact), nil
+	return state, fmt.Sprintf("{f_outcome: %s, f_state: %s, f_facts: List[%s], f_because: str, f_choice: str}", outcome, state, fact), nil
 }
 
 // machine writes one machine: its classes, its step, its starts and ends, the states its starts reach

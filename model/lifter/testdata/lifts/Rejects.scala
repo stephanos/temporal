@@ -753,3 +753,88 @@ val below = machine[Below, Outcome, Nothing] {
 val belowFree = below.scenario.free
 val belowAny = below.property holds (after => after.state.count == 0)
 val upToNegative: Query = query verify belowAny in belowFree limits one
+
+// ### Named choices (fn-120.1)
+
+type LampStep = Step[Lamp, Outcome, Nothing]
+
+val lampOn = choice
+val lampOff = choice
+object Elsewhere:
+  val lampOn = choice
+
+/** One token naming two alternatives. */
+def chosenTwiceStep(l: Lamp): List[LampStep] =
+  choose(lampOn -> stay(l), lampOn -> accept(Lamp(!l.lit)))
+val chosenTwice = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> chosenTwiceStep)
+}
+
+/** Two tokens whose vals have one simple name. */
+def spelledTwiceStep(l: Lamp): List[LampStep] =
+  choose(lampOn -> stay(l), Elsewhere.lampOn -> accept(Lamp(!l.lit)))
+val spelledTwice = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> spelledTwiceStep)
+}
+
+/** An alternative a helper function gives, not written out. */
+def choiceHelperStep(l: Lamp): List[LampStep] =
+  choose(lampOn -> lampStep(l), lampOff -> stay(l))
+val choiceHelper = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> choiceHelperStep)
+}
+
+/** An alternative with no step. */
+def choiceDisabledStep(l: Lamp): List[LampStep] =
+  choose(lampOn -> accept(Lamp(true)), lampOff -> disabled)
+val choiceDisabled = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> choiceDisabledStep)
+}
+
+/** An alternative of two steps. */
+def choiceTwoStepsStep(l: Lamp): List[LampStep] = choose(
+  lampOn -> List(Step(Outcome.accepted, Lamp(true)), Step(Outcome.accepted, Lamp(false))),
+  lampOff -> stay(l)
+)
+val choiceTwoSteps = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> choiceTwoStepsStep)
+}
+
+/** An alternative that is a conditional. */
+def choiceIfStep(l: Lamp): List[LampStep] = choose(
+  lampOn -> (if l.lit then stay(l) else accept(Lamp(true))),
+  lampOff -> stay(l)
+)
+val choiceIf = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> choiceIfStep)
+}
+
+/** Choice tokens no val declares, so they have no name. */
+def choiceUnnamedStep(l: Lamp): List[LampStep] =
+  choose(choice -> stay(l), choice -> accept(Lamp(true)))
+val choiceUnnamed = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> choiceUnnamedStep)
+}
+
+/** An alternative kept in a val, not written in the call. */
+val keptOn: (Choice, List[LampStep]) = lampOn -> List(Step(Outcome.accepted, Lamp(true)))
+def choiceKeptStep(l: Lamp): List[LampStep] = choose(keptOn, lampOff -> stay(l))
+val choiceKept = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> choiceKeptStep)
+}

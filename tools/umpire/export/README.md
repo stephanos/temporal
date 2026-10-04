@@ -23,7 +23,7 @@ copies of them.
 
 | Claim | Backend | What the receipt covers |
 | --- | --- | --- |
-| `transition-agreement` | Quint | Every state a machine's or a composition's starts reach, by every class: the results in order with outcome, state, facts and explanation, and an empty list for a disabled pair. Starts in order; reachable states, ends and classes as sets |
+| `transition-agreement` | Quint | Every state a machine's or a composition's starts reach, by every class: the results in order with outcome, state, facts, explanation and choice name, and an empty list for a disabled pair. Starts in order; reachable states, ends and classes as sets |
 | `monitor-agreement` | Quint | Every step of the product of a machine and its monitors: each monitor's state after the step, whether its verdict is read there, and whether that state violates it. Quint's counterexample of each violated monitor is replayed through Go |
 | `property-agreement` | Quint | Every Property a machine or a composition declares, on every step from every reachable state: whether it is about the step and whether it holds |
 | `checker-coverage` | Quint | `covered`: what Quint's evaluator enumerated. `agreed`: Apalache's bounded verdict on one monitor, with its counterexample replayed through Go. `not-run`: a module Apalache did not take, with its error |
@@ -66,6 +66,12 @@ manual, `quint run`). This gate does not use it that way. The reachable set is a
 module computes itself: it takes as many rounds of successors as Go's table is deep plus one, and the
 dump reports whether a step still leaves the set. The round count is the only number Go gives the
 module. A count that is too small shows as `closed: false` and fails the comparison.
+
+A step record carries the name of the alternative of a named choice it is, as `f_choice`, empty for
+an unnamed one (`model/SEMANTICS.md`, Named choices). The step function keeps every alternative of
+a choice in its result list, in order, each with its name; only a check module's step action picks
+one, by index (`nondet n = oneOf(rs.indices())`). A composed step record carries the empty name, as
+Go's composed results do.
 
 `QuintAgreement` decodes the dump by the IR's types and compares it key by key with Go's tables: a
 machine's from `umpiremodel.Build`, a composition's from `Realizer.Composition`, the reading `umpiremodel.Check`
@@ -128,7 +134,12 @@ comparison found. A dump or a trace that cannot be decoded is an error of the ca
 - a `hole` expression in any function an exported machine reaches, and a machine whose table has a
   hole row. A hole is never written as a disabled action;
 - a channel, a derived delivery or loss, and an inbox operation;
-- an anonymous function anywhere but a machine's `ends`.
+- an anonymous function anywhere but a machine's `ends`;
+- a choice name Quint does not write as it is. Quint's lexer takes a string literal to the next
+  double quote and keeps the text between the quotes with no escapes, so a name with a double quote
+  is refused; so is one with a backslash, a control character or a character outside ASCII, which
+  are not established to survive Apalache and an ITF trace unchanged. The error is at the step
+  record's position.
 
 A value no `match` case accepts and a call outside a function's precondition have no value in the
 module either. They are written as an expression Quint's evaluator stops on (`QNT505`), so the run

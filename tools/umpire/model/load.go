@@ -5,6 +5,8 @@ import (
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 // Load reads a Model in ProtoJSON, rejects fields the schema does not have, and validates it.
@@ -21,4 +23,33 @@ func Load(path string) (*umpirespb.Model, error) {
 		return nil, err
 	}
 	return m, nil
+}
+
+// choiceField is Construct.choice, the name of a named choice's alternative.
+var choiceField = (&umpirespb.Construct{}).ProtoReflect().Descriptor().Fields().ByName("choice")
+
+// WithoutChoiceNames is a copy of a Model with every named choice's names cleared: what an identity
+// hashed from a Model's content reads, since the names are inert (model/SEMANTICS.md, Named choices).
+func WithoutChoiceNames(m *umpirespb.Model) *umpirespb.Model {
+	out := proto.CloneOf(m)
+	clearChoices(out.ProtoReflect())
+	return out
+}
+
+func clearChoices(m protoreflect.Message) {
+	if m.Descriptor() == choiceField.ContainingMessage() {
+		m.Clear(choiceField)
+	}
+	m.Range(func(f protoreflect.FieldDescriptor, v protoreflect.Value) bool {
+		switch {
+		case f.Message() == nil || f.IsMap():
+		case f.IsList():
+			for i := range v.List().Len() {
+				clearChoices(v.List().Get(i).Message())
+			}
+		default:
+			clearChoices(v.Message())
+		}
+		return true
+	})
 }

@@ -183,6 +183,18 @@ class Fixtures extends munit.FunSuite:
     "upToNegative"
   )
 
+  // The refusals of fn-120.1's named choices.
+  private val choiceRejects: Seq[String] = Seq(
+    "chosenTwice",
+    "spelledTwice",
+    "choiceHelper",
+    "choiceDisabled",
+    "choiceTwoSteps",
+    "choiceIf",
+    "choiceUnnamed",
+    "choiceKept"
+  )
+
   private val rejected = Seq(
     "unbounded",
     "waiting",
@@ -227,7 +239,7 @@ class Fixtures extends munit.FunSuite:
     "splatted",
     "explained"
   ).map("fixture.rejects.Rejects$package$." + _) ++ (selectorRejects ++ patternRejects ++
-    inputRejects).map(
+    inputRejects ++ choiceRejects).map(
     "fixture.rejects.Rejects$package$." + _
   ) ++ Seq(
     // DefinitionScope pins, a name the compiler made up and a computed accepted outcome, refused in
@@ -320,7 +332,8 @@ class Fixtures extends munit.FunSuite:
         "NamedInput.scala:21:50",
         "NamedInput.scala:24:27",
         "NamedInput.scala:27:49",
-        "NamedInput.scala:30:31"
+        "NamedInput.scala:30:31",
+        "OneChoice.scala:18:62"
       )
     )
 
@@ -742,6 +755,53 @@ class Fixtures extends munit.FunSuite:
       named("types", "fixture.inputs.Counted").at("/record/fields/1/type").toString,
       """{"intRange":{"high":"2"}}"""
     )
+
+  // fn-120.1: named choices (lifts/Choices.scala). Each step function that names its results beside
+  // its unnamed twin: one IR but for the `choice` of each named step, and the names in the order
+  // written. Constructs are compared in the order the IR holds them, so a name in its place is on the
+  // step its alternative wrote.
+  concurrently("choose lifts as the unnamed list of its steps, each named after its token's val"):
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    val (model, machine, _) = declarations("choices", Seq("chosen", "unchosen"))
+    // The names a tree carries, in the order it holds them, and the tree without them.
+    def choices(n: JsonNode): List[String] =
+      val own = n match
+        case o: ObjectNode if o.has("choice") =>
+          val name = o.path("choice").asText()
+          o.remove("choice"): Unit
+          List(name)
+        case _ => Nil
+      own ++ n.elements().asScala.toList.flatMap(choices)
+    val chosen = mapper.readTree(machine("chosen"))
+    val unchosen = mapper.readTree(machine("unchosen"))
+    assertEquals(choices(unchosen), Nil, "an unnamed step carries a choice")
+    val names = choices(chosen)
+    assertEquals(chosen.toPrettyString, unchosen.toPrettyString)
+    def function(name: String): JsonNode = model
+      .path("functions")
+      .elements()
+      .asScala
+      .find(_.path("name").asText() == s"fixture.choices.Choices$$package$$.$name")
+      .getOrElse(fail(s"the choices fixture lifted no function $name"))
+    def steps(f: JsonNode): List[JsonNode] =
+      val own = if f.at("/construct/type").asText() == "umpire.Step" then List(f) else Nil
+      own ++ f.elements().asScala.toList.flatMap(steps)
+    val written = Seq(
+      "admit" -> List("committed", "redelivered"),
+      "pause" -> List("held", "dropped", "refused", "committed"),
+      "poll" -> List("committed", "held", "held", "dropped"),
+      "answer" -> List("committed", "refused")
+    )
+    for (action, expected) <- written do
+      val named = steps(function(s"${action}Named"))
+      assertEquals(named.map(_.at("/construct/choice").asText()), expected, action)
+      assert(
+        steps(function(s"${action}Unnamed")).forall(!_.path("construct").has("choice")),
+        s"${action}Unnamed carries a choice"
+      )
+    assertEquals(names, written.flatMap(_._2).toList)
 
   // fn-112.4: typed composition selectors (lifts/Members.scala).
   // Each composition of temporal/standaloneactivity beside its typed twin, the later designs derived

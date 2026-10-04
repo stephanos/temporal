@@ -337,8 +337,9 @@ The lifter reads what an author wrote, as written:
   keep.
 - **Step functions:** `if`, `match` with case, alternative, binding and wildcard patterns, local
   `val`s, `copy`, constructors, comparisons, arithmetic, list literals and `++`, and calls of other
-  functions; `Step(…)` and `steps.because("…")` on steps written out. `require` becomes the
-  function's precondition; `ensuring` is not lifted.
+  functions; `Step(…)` and `steps.because("…")` on steps written out, and named choices,
+  `choose(committed -> …, redelivered -> …)` over tokens `val committed = choice`. `require`
+  becomes the function's precondition; `ensuring` is not lifted.
 - **Sugar** (`umpire/Syntax.scala`, lifted by `lifter/Syntax.scala`): `accept(state, facts*)`,
   `stay(s)`, `disabled`, `x.in(a, b, …)`, `a implies b` and `after.records(fact)`. Each is lifted to
   the IR its core form lifts to, and nothing else: `List(Step(accepted, state, List(facts*)))`,
@@ -459,6 +460,36 @@ spelling and require the same IR.
 supplied inputs take the action's declaration order, and an omitted input takes its domain's first
 value, here `unset`. The lifter refuses, at the call's line, a token that is no input of the action
 and a token supplied twice. A value of the wrong type for its token is a compile error.
+
+A step that can go more than one way names each result with `choose`, which is core: it says
+what no other form does, the names of the alternatives, which the IR records on each step record
+as its `choice`.
+
+```scala
+val committed = choice
+val redelivered = choice
+
+def admitted(s: AdmissionState): List[AdmissionStep] = choose(
+  committed -> accept(s.copy(message = Message.empty), AdmissionFact.statusStarted),
+  redelivered -> accept(s.copy(message = Message.redelivery), AdmissionFact.statusStarted)
+    .because("the channel may deliver the message again")
+)
+```
+
+A name is inert metadata (model/SEMANTICS.md, Named choices): the rows, fingerprints, Query
+answers and Cases are the ones the same steps give written as an unnamed list, and the IR differs
+from that list's only by the names. Each alternative is one step written out, `accept(…)`,
+`stay(s)`, `List(Step(…))` or one of those with `.because("…")`, and each name is the simple name
+of its token's `val`. A choose of one alternative does not compile; the lifter refuses, at the
+alternative's line, a name given twice in one choose (one token twice, or two tokens whose `val`s
+share a simple name), an alternative that is not one step written out (a helper's steps, `Nil` or
+`disabled`, two steps, an `if`), a token no `val` declares, and an alternative kept in a `val`
+rather than written in the call. Unnamed lists of several steps still lift while Models move to
+`choose`.
+
+A name is a token of its own, not a case of an enum: an enum used only for names would be lifted
+as an IR type the Model does not otherwise need, and the names of different step functions are not
+one closed set.
 
 A Scenario without `starts` starts in its machine's one declared start, and a composition's in the
 record of its members' starts; where there is not exactly one, it is refused. Evidence is optional.

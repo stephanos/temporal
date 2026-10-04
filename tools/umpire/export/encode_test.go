@@ -119,7 +119,7 @@ func (s *Slice) dumpOfComposition(x *QuintExport, j int) (map[string]any, error)
 				for _, f := range r.Facts {
 					facts = append(facts, f)
 				}
-				steps = append(steps, map[string]any{"f_outcome": r.Outcome, "f_state": state(r.State), "f_facts": facts, "f_because": r.Because})
+				steps = append(steps, map[string]any{"f_outcome": r.Outcome, "f_state": state(r.State), "f_facts": facts, "f_because": r.Because, "f_choice": r.Choice})
 				rec := map[string]any{}
 				for k, reading := range view.Claims[key][class][n] {
 					rec[fmt.Sprintf("p%d", k)] = map[string]any{"about": reading.About, "holds": reading.Holds}
@@ -184,7 +184,7 @@ func (s *Slice) dumpOf(x *QuintExport, i int, mm *umpiremodel.Machine) (map[stri
 					facts = append(facts, x.itf(f, named(decl.GetFactType())))
 				}
 				steps = append(steps, map[string]any{"f_outcome": x.itf(st.Fields[0], named(decl.GetOutcomeType())),
-					"f_state": x.itf(st.Fields[1], stateType), "f_facts": facts, "f_because": st.Fields[3].Text})
+					"f_state": x.itf(st.Fields[1], stateType), "f_facts": facts, "f_because": st.Fields[3].Text, "f_choice": st.Choice})
 			}
 			by = append(by, map[string]any{"cls": class(c), "steps": steps})
 		}

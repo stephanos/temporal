@@ -36,6 +36,10 @@ type Value struct {
 	Case   string
 	Fields []Value
 	Items  []Value
+	// Choice is the name of the alternative of a named choice a step record was built as, or empty.
+	// It is inert (model/SEMANTICS.md, Named choices): Key, equality and every reading of the value
+	// ignore it, and only the result a table keeps of the step reports it.
+	Choice string
 	lambda *umpirespb.Lambda
 	env    *env
 }
@@ -503,7 +507,7 @@ func (in *Interpreter) construct(x *umpirespb.Expr, c *umpirespb.Construct, e *e
 	if c.GetCase() != "" {
 		return Value{Kind: EnumValue, Type: c.GetType(), Case: c.GetCase(), Fields: args}, nil
 	}
-	return Value{Kind: RecordValue, Type: c.GetType(), Fields: args}, nil
+	return Value{Kind: RecordValue, Type: c.GetType(), Fields: args, Choice: c.GetChoice()}, nil
 }
 
 func (in *Interpreter) copy(x *umpirespb.Expr, c *umpirespb.Copy, e *env) (Value, error) {
