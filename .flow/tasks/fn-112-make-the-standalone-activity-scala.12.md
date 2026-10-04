@@ -21,9 +21,37 @@ Declare the queue's shared properties through one `def queueLaws(m)` taking the 
 - [ ] Definition IDs, finite state/class catalogs, transitions, refinements, Query answers and Case bytes match the original baseline. Entity-sensitive fingerprints equal baseline plus precisely the new queue entity metadata.
 - [ ] Focused Scala/Go gate checks pass, docs state ownership and finite bounds, and standalone-only plus combined source metrics are recorded.
 ## Done summary
-TBD
+Extracted the standalone activity's dispatch/matching queue into the reusable `temporal.taskqueue` (model/temporal/taskqueue: Model, Properties, Queries). Commits 0f83fa247f, 7366a57e81.
 
+**What moved / what stays**
+- taskqueue owns: `taskQueueEntity` = Entity("taskQueue", key = "taskQueue"); QueueView/Outstanding, QueueDetail/Custody/Delivered, QueueOutcome, QueueFact; enqueue/deliver/acknowledge/addActivityTask/persistTask/syncMatch (`internal on taskQueueEntity`) and the faults crash/ackLoss/storageLoss (party `fault`, no entity, like the worker's faults); dispatchQueue, dispatchQueueUnderStorageLoss, matchingQueue, lossyMatchingQueue, forgetfulQueue, volatileQueue (all `entity: taskQueue`); Limits `seven`, `twelve`.
+- Properties.scala: `queueLaws(m): QueueLaws(delivers, committedStays)`, declared once over a provider, `committedStays` as `stays(_.custody != Custody.nowhere).unless(_.records(QueueFact.acknowledged))`; `storageLossDrops` on the lossy provider alone.
+- Queries.scala: `providerQueries(m, anyTotal)` (reads `laws.delivers`/`laws.committedStays`; totals 2880/2880/2880/3240), the storage-loss Query.
+- System.scala keeps the admission designs, both composition families (`import taskqueue.*`), the dispatch/admit/settle syncs and the cross-entity claims; Realization names `taskqueue.ackLoss`. Gate roots name the provider Queries under `temporal.taskqueue.Queries$package$` (same order). Imports nothing of standaloneactivity.
+
+**Lifter (with lift + refusal fixtures)**
+- Type names follow a file pin: a top-level type of a file whose declarations pin a former file owner `pkg.File$package$` takes `pkg.<Type>`; two types one lift would name alike are refused (MovedRejects.scala/`movedNameTaken`). DefinitionScope probe now also asserts moved types keep their names.
+- Claim bundles: a case class whose every field is a Property/Scenario/Query folds to its claims and is read by field (Totals.scala bundled-vs-direct IR equality); a mixed case class is refused (`mixedBundle`), as is a field read naming no claim. Fixed a `None.get` crash for a non-bundle case-class constructor in claim position.
+
+**Identity**: family "temporal.activity.standalone.system", Definition IDs (one DefinitionScope pin of `temporal.standaloneactivity.System$package$`) and IR type names (`temporal.standaloneactivity.Queue*`) unchanged. Only delta: the 12 entity attachments in original.json. Original baseline passes; Case bytes and activity.json unchanged.
+
+**Decisions (autonomous)**
+- Faults name no entity (worker precedent); this also keeps ackLoss, which admissionResponseLoss shares, out of the activity race's Cases.
+- `queueLaws(m)` returns a case-class bundle (needed a small lifter rule) so Properties.scala and Queries.scala split cleanly; the free `any.committedStays` total stays a `providerQueries` argument.
+- Type-name pin instead of a type-rename allowance: R1 allows no type-name delta, and fingerprints must stay exact.
+- fn-115's migration golden (closed inventory, by-file positions) needed: `later_inventory` (the new consumer fixture, must exist, not compared), `source_path_splits` (taskqueue files compare as System.scala), `source_root_moves` (moved roots in Model.source), and the original.json attachments applied to its frozen inputs (`golden.Attached`, `Config.Unsplit`), with a unit test.
+- Compositions stay in System.scala; task 8 owns the folder layout.
+
+**Consumer fixture**: lifts/TaskQueue.scala (job over dispatchQueue, over matchingQueue replacing it, and over forgetfulQueue as the control); tools/umpire/model/taskqueue_test.go pins every answer (found/verified; forgetful RefinementRejected with its enqueue, addActivityTask, crash witness).
+
+**Metrics**: standaloneactivity 2628 lines / 200 literals before; after 2281 / 179, taskqueue 418 / 25, combined 2699 / 204 (+71 lines: headers, givens, docs).
+
+**Review**: claude-opus-5-5 high via `--spec claude:claude-opus-5-5:high`; writer and reviewer are the same family (Opus). Round 1 SHIP. P3s: unknown bundle field now refused at its line (7366a57e81, lifter tests re-run); `golden.Attached` re-decodes original.json per Match (cheap, left).
+
+**For task 8**: type pins cover only top-level types of a file pinning a former `$package$` owner; enums moved into vocabulary objects would change IR type names unless the rule is extended. When System.scala is split, extend `source_path_splits` (and `source_root_moves` for moved roots) in golden/config.json.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0f83fa247f, 7366a57e81
+- Tests: make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks (exit 0; lifter tests inside), go test -tags test_dep -count=1 -p 2 -run 'OriginalBaseline|MigrationGoldens|MigrationProjection|IRInventory' ./tools/umpire/internal/golden ./tools/umpire/model ./tools/umpire/lower (exit 0), make lint-model (exit 0), go test -tags test_dep -count=1 -p 2 -timeout 40m -json ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/... (exit 0), GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main make lint-code-fast (exit 0), scala-cli test model/lifter (exit 0, after 7366a57e81's change)
 - PRs:
