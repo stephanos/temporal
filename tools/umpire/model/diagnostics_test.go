@@ -119,7 +119,7 @@ func TestValidateReportsUnrelatedSameStateMachinesAtQueryPosition(t *testing.T) 
 	require.NotNil(t, other)
 	q.Scenario = proto.Clone(other.GetScenario()).(*umpirespb.ClaimRef)
 	// The refusal is at the Query's own line, wherever the Query sits in its file.
-	require.EqualError(t, Validate(m), fmt.Sprintf("model/temporal/nexuscaller/closepolicy/Claims.scala:%d: query ackByOriginal.ackedThenReset "+
+	require.EqualError(t, Validate(m), fmt.Sprintf("model/temporal/nexuscaller/closepolicy/Queries.scala:%d: query ackByOriginal.ackedThenReset "+
 		"pairs a Property of ackByOriginal with a Scenario of rejectAfterClose", q.GetPosition().GetLine()))
 }
 

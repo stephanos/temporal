@@ -338,7 +338,7 @@ type closeClaim struct {
 // assumptions it is conditional on, and an assumption makes fair only what its name says.
 func TestNexusCloseProgressClaimsAreTheSpecimens(t *testing.T) {
 	m := closeModel(t).model
-	const model, claims = "temporal.nexuscaller.closepolicy.Model$package$.", "temporal.nexuscaller.closepolicy.Claims$package$."
+	const model, properties = "temporal.nexuscaller.closepolicy.Model$package$.", "temporal.nexuscaller.closepolicy.Properties$package$."
 	names := map[string]string{}
 	fair := map[string][]string{}
 	for _, a := range m.GetAssumptions() {
@@ -357,7 +357,7 @@ func TestNexusCloseProgressClaimsAreTheSpecimens(t *testing.T) {
 	}, fair)
 
 	reaches := closeClaim{model + "isDone", model + "settled", 6, []string{reporting, delivery}}
-	retained := closeClaim{claims + "awaitingOwner", claims + "ownerKnowsOutcome", 2, []string{delivery, recovery}}
+	retained := closeClaim{properties + "awaitingOwner", properties + "ownerKnowsOutcome", 2, []string{delivery, recovery}}
 	unrecovered := retained
 	unrecovered.Assumptions = []string{delivery}
 	want := map[string]closeClaim{
