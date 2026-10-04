@@ -3,7 +3,7 @@
 The current state of Umpire work: what is being built, what is left, and what is not being done.
 Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the overview across them.
 
-As of 2026-10-03.
+As of 2026-10-04.
 
 ## Keeping this page current
 
@@ -72,7 +72,7 @@ production dispatch fails closed.
 | 4 | fn-114 | Roll the final showcase constructs, including choices, out to every other Model | fn-112 showcase |
 | alongside 3 | fn-118 interface | Settle hint-aware realization helpers with the shared kit; no waiting-behavior changes yet | done in fn-118.1 |
 | after 4 | fn-118 behavior | Derive generated-test waits from API hints, as a separate behavioral change | structural Case-byte freeze verified |
-| after 4 | fn-120 tools | Add model lint (including specification holes), the IR explorer and ITF interchange | final reader contracts and fn-114 roots |
+| after 4 | fn-120 tools | Add model lint (including specification holes and a coverage summary) and the IR explorer | final reader contracts and fn-114 roots |
 | alongside 4 | fn-122 | Capabilities and their laws: shared Temporal promises stated once, adopted per entity | fn-112.10 |
 | after 3 | fn-121 | Shard generated Cases per Case in CI, with HSM/CHASM per Nexus Case | fn-112.10 |
 | last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
@@ -122,7 +122,9 @@ Split out of fn-113 so the specs run in a line. Rolls fn-112's constructs out to
 fixtures, and removes the string-named forms from the framework. Realizations refer to their own
 ids by value, identity evidence lines go, and the contents of each IR file are declared in Scala
 with one lifter run writing all of them. Every Model folder gets the same file names as the
-activity, and no `Claims.scala` remains.
+activity, and no `Claims.scala` remains. A final rename (fn-114.9, owner request 2026-10-04) gives the tool folders
+names that say what they hold: `model/lifter` becomes `model/irgen`, `model/gate` becomes `model/check`
+(absorbing `model/metrics`), and the `model/gen` build cache becomes `model/build`.
 
 ### fn-118: Declare how Temporal APIs behave once, and let the generated tests use it
 
@@ -139,12 +141,13 @@ blocking reads, call cost) are candidates until an existing Case needs one.
 
 ### fn-120: Adopt what Quint does well
 
-Decides on ten suggestions from a review of Quint and adopts four. A `choose` construct names the
+Decides on ten suggestions from a review of Quint and adopts three; ITF interchange was withdrawn by the
+owner on 2026-10-04. A `choose` construct names the
 alternatives of a nondeterministic step and the IR records the names, which is a schema change. A
 lint command reports model-quality findings from the IR (an unreachable case, an action never
 enabled, a Property no Query names, a fact with no evidence) and the gate fails on a new one. An
 explorer steps through a machine from the IR and says why a class is disabled, at its Scala line.
-Umpire traces convert to and from ITF. The lint also reports specification holes (a pair disabled only by a
+The lint also reports specification holes (a pair disabled only by a
 default arm, an enabled class no Property constrains, a Property only pinned Queries ask), with a
 per-operation rules table and a per-state view of MAY, MUST and MUST NOT. Temporal operators, Scenario combinators and Queries answered
 by Quint, Apalache or TLC are recorded as later work with their own specs.
