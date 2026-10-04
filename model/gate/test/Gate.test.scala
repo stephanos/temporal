@@ -80,6 +80,7 @@ class GateSuite extends munit.FunSuite:
     vocabulary("--- PASS: TestModelNamesNoRetiredFrontEnd (0.05s)\\nPASS")
   private val vocabularyCheck =
     "go test -count=1 -tags test_dep -v -run ^TestModelNamesNoRetiredFrontEnd$ ./tools/umpire/model"
+  private val lintRun = "go run ./tools/umpire/cmd/umpire-lint"
 
   test("the command line is refused when it names an unknown or a contradictory flag"):
     def unreachable: Tools = fail("a refused command line runs no tool")
@@ -442,7 +443,8 @@ class GateSuite extends munit.FunSuite:
     assertEquals(checkedIn(repository).values.toSet, Set("{}\n"))
     // An update the environment asks for does not reach a check's test of the lifter.
     assert(repository.ran.contains("lifter update=[]"), repository.ran.mkString("\n"))
-    // A check lowers the checked-in IR beside the build, so its Cases were checked too.
+    // A check lowers the checked-in IR beside the build, so its Cases were checked too; the IR is
+    // not linted while it is stale.
     assertEquals(
       repository.ran.filter(line => line.startsWith("go ") && !line.contains("--linked-api")),
       Seq(vocabularyCheck, "go run ./tools/umpire/cmd/umpire-gen-cases")
@@ -460,19 +462,21 @@ class GateSuite extends munit.FunSuite:
       Seq(
         vocabularyCheck,
         "go run ./tools/umpire/cmd/umpire-gen-cases --update",
+        lintRun,
         "go vet -tags test_dep ./tools/umpire/...",
         "go test -count=1 -tags test_dep ./tools/umpire/..."
       )
     )
     val check = gate(repository.tools, "--skip-go-checks")
     assertEquals(check.status, 0, check.err)
-    // A check that skips the Go checks still holds the vocabulary.
+    // A check that skips the Go checks still holds the vocabulary, and lints the IR it settled.
     assertEquals(
       repository.ran
         .filter(line => line.startsWith("go ") && !line.contains("--linked-api"))
-        .takeRight(2),
-      Seq(vocabularyCheck, "go run ./tools/umpire/cmd/umpire-gen-cases")
+        .takeRight(3),
+      Seq(vocabularyCheck, "go run ./tools/umpire/cmd/umpire-gen-cases", lintRun)
     )
+    assert(check.out.contains("== lint every IR file and print its coverage"), check.out)
 
   /** A repository whose model/ir is current, so only the vocabulary check can stop the gate. */
   private def currentRepository(go: String): Repository =
@@ -566,6 +570,35 @@ class GateSuite extends munit.FunSuite:
     assert(both.err.contains("model/ir/activity.json is stale"), both.err)
     assert(both.err.contains("model/cases/a.json is stale"), both.err)
 
+  test("a check lints the settled IR before the Go checks, and a failing lint fails the gate"):
+    val current = currentRepository(passingVocabulary)
+    val check = gate(current.tools)
+    assertEquals(check.status, 0, check.err)
+    assertEquals(
+      current.ran.filter(line => line.startsWith("go ") && !line.contains("--linked-api")),
+      Seq(
+        vocabularyCheck,
+        "go run ./tools/umpire/cmd/umpire-gen-cases",
+        lintRun,
+        "go vet -tags test_dep ./tools/umpire/...",
+        "go test -count=1 -tags test_dep ./tools/umpire/..."
+      )
+    )
+    val lint =
+      s"""case " $$* " in *"/umpire-lint "*) echo "umpire-lint: 1 unaccepted"; exit 1;; esac
+         |$passingVocabulary""".stripMargin
+    for arguments <- Seq(Seq(), Seq("--skip-go-checks"), Seq("--update", "--skip-go-checks")) do
+      val failing = currentRepository(lint)
+      val answer = gate(failing.tools, arguments*)
+      assertEquals(answer.status, 1, arguments.mkString(" "))
+      assert(answer.err.startsWith("gate: go exited 1 in "), answer.err)
+      assert(answer.err.endsWith(s"$lintRun\n"), answer.err)
+      // The Go checks follow the lint, and do not run after it failed.
+      assertEquals(
+        failing.ran.filter(line => line.startsWith("go ") && !line.contains("--linked-api")).last,
+        lintRun
+      )
+
   test("a file the gate cannot read fails with its path, not a stack trace"):
     val repository = Repository(scalaCli = lifting)
     val answer = gate(repository.tools, "--skip-go-checks")
@@ -638,6 +671,29 @@ class GateSuite extends munit.FunSuite:
     )
     assertEquals(held("b.json")._2, 1000L)
     trees.settle(update = false)
+
+  test("accepted lint findings beside an IR file are no orphan, in a check and in an update"):
+    val accepted = "{\"accepted\": []}\n"
+    val trees = Trees(
+      Map("a.json" -> "{}\n", "a.lint.json" -> accepted, "gone.lint.json" -> accepted),
+      Map("a.json" -> "{}\n")
+    )
+    trees.settle(update = false)
+    trees.settle(update = true)
+    assertEquals(
+      trees.held.view.mapValues(_._1).toMap,
+      Map("a.json" -> "{}\n", "a.lint.json" -> accepted, "gone.lint.json" -> accepted)
+    )
+    // Every other file is still held to what was produced.
+    val left = Trees(
+      Map("a.json" -> "{}\n", "a.lint.json" -> accepted, "a.laws.json" -> "{}\n"),
+      Map("a.json" -> "{}\n")
+    )
+    assertEquals(
+      intercept[GateError](left.settle(update = true)).getMessage,
+      "model/ir/a.laws.json is checked in and nothing produces it: " +
+        "remove it or declare it with irFile"
+    )
 
   test("an update writes nothing while a checked-in file is produced by nothing"):
     val trees = Trees(Map("a.json" -> "{}\n", "old.json" -> "{}\n"), Map("a.json" -> "{ }\n"))

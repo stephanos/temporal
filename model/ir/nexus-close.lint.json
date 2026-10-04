@@ -1,0 +1,588 @@
+{
+  "accepted": [
+    {
+      "kind": "unreachable-value",
+      "owner": "ackByOriginal",
+      "subjects": [
+        "channel=retried",
+        "known=expired"
+      ],
+      "because": "This close policy never takes the steps that reach it (its retry, deadline or retention is another policy's); the state, outcome and fact types are shared by every close policy."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "ackByOriginal",
+      "subjects": [
+        "fact completionDropped",
+        "fact nexusOperationTimedOut",
+        "outcome rejectedPermanent"
+      ],
+      "because": "This close policy never takes the steps that reach it (its retry, deadline or retention is another policy's); the state, outcome and fact types are shared by every close policy."
+    },
+    {
+      "kind": "untaken-choice",
+      "owner": "ackByOriginal",
+      "subjects": [
+        "refused"
+      ],
+      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (closepolicy/Model.scala, rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
+    },
+    {
+      "kind": "unrealized-find",
+      "owner": "ackByOriginal",
+      "subjects": [
+        "ackByOriginal.asyncCompletion",
+        "ackByOriginal.asyncFailure",
+        "ackByOriginal.canceledIsKnown",
+        "ackByOriginal.detachedWorkProceeds",
+        "ackByOriginal.effectWithoutKnowledge",
+        "ackByOriginal.intentWithoutReceipt",
+        "ackByOriginal.lostAfterReset",
+        "ackByOriginal.permanentRejectionAfterClose",
+        "ackByOriginal.receiptWithoutEffect",
+        "ackByOriginal.resetAfterRetention",
+        "ackByOriginal.resetBeforeRetention",
+        "ackByOriginal.transientRejectionAfterClose"
+      ],
+      "because": "A close-policy design Model: its find Queries are searched for witnesses, and no realization runs a close policy against a server."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "ackByOriginal",
+      "subjects": [
+        "callerClose in closed, resetOpen",
+        "complete-canceled in open, closed, resetOpen",
+        "complete-failed in open, closed, resetOpen",
+        "complete-succeeded in open, closed, resetOpen",
+        "handlerFinish-canceled in open, closed, resetOpen",
+        "handlerFinish-failed in open, closed, resetOpen",
+        "handlerFinish-succeeded in open, closed, resetOpen",
+        "requestCancel-callerWorkflow in open, closed, resetOpen",
+        "reset in resetOpen"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "ackByOriginal",
+      "subjects": [
+        "canceledButUnknown",
+        "completionCancels",
+        "completionFails",
+        "completionSucceeds",
+        "finishesAfterClose",
+        "lostAfterReset",
+        "reappliesRetained",
+        "receivedButSucceeded",
+        "rejectedPermanently",
+        "rejectedTransiently",
+        "requestedButUnreceived",
+        "routedToSuccessor"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "untaken-choice",
+      "owner": "ackByOriginalWithDeadline",
+      "subjects": [
+        "refused"
+      ],
+      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (closepolicy/Model.scala, rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
+    },
+    {
+      "kind": "unrealized-find",
+      "owner": "ackByOriginalWithDeadline",
+      "subjects": [
+        "ackByOriginalWithDeadline.expiredAfterClosedLoss",
+        "ackByOriginalWithDeadline.expiredAfterResetLoss",
+        "ackByOriginalWithDeadline.expiredWhileReported",
+        "ackByOriginalWithDeadline.lateCompletionIsDropped"
+      ],
+      "because": "A close-policy design Model: its find Queries are searched for witnesses, and no realization runs a close policy against a server."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "ackByOriginalWithDeadline",
+      "subjects": [
+        "callerClose in closed, resetOpen",
+        "complete-canceled in open, closed, resetOpen",
+        "complete-failed in open, closed, resetOpen",
+        "complete-succeeded in open, closed, resetOpen",
+        "handlerFinish-canceled in open, closed, resetOpen",
+        "handlerFinish-failed in open, closed, resetOpen",
+        "handlerFinish-succeeded in open, closed, resetOpen",
+        "requestCancel-callerWorkflow in open, closed, resetOpen",
+        "reset in resetOpen"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "ackByOriginalWithDeadline",
+      "subjects": [
+        "expiresWhileOwed",
+        "expiresWithNothingOwed",
+        "lateCompletionIsDropped"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unreachable-value",
+      "owner": "forgetsCancelOnReset",
+      "subjects": [
+        "channel=retried",
+        "known=expired"
+      ],
+      "because": "This close policy never takes the steps that reach it (its retry, deadline or retention is another policy's); the state, outcome and fact types are shared by every close policy."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "forgetsCancelOnReset",
+      "subjects": [
+        "fact completionDropped",
+        "fact nexusOperationTimedOut",
+        "outcome rejectedPermanent"
+      ],
+      "because": "This close policy never takes the steps that reach it (its retry, deadline or retention is another policy's); the state, outcome and fact types are shared by every close policy."
+    },
+    {
+      "kind": "untaken-choice",
+      "owner": "forgetsCancelOnReset",
+      "subjects": [
+        "refused"
+      ],
+      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (closepolicy/Model.scala, rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
+    },
+    {
+      "kind": "unrealized-find",
+      "owner": "forgetsCancelOnReset",
+      "subjects": [
+        "forgetsCancelOnReset.asyncCompletion",
+        "forgetsCancelOnReset.asyncFailure",
+        "forgetsCancelOnReset.canceledIsKnown",
+        "forgetsCancelOnReset.detachedWorkProceeds",
+        "forgetsCancelOnReset.effectWithoutKnowledge",
+        "forgetsCancelOnReset.intentWithoutReceipt",
+        "forgetsCancelOnReset.lostAfterReset",
+        "forgetsCancelOnReset.permanentRejectionAfterClose",
+        "forgetsCancelOnReset.receiptWithoutEffect",
+        "forgetsCancelOnReset.resetAfterRetention",
+        "forgetsCancelOnReset.resetBeforeRetention",
+        "forgetsCancelOnReset.transientRejectionAfterClose"
+      ],
+      "because": "A close-policy design Model: its find Queries are searched for witnesses, and no realization runs a close policy against a server."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "forgetsCancelOnReset",
+      "subjects": [
+        "callerClose in closed, resetOpen",
+        "complete-canceled in open, closed, resetOpen",
+        "complete-failed in open, closed, resetOpen",
+        "complete-succeeded in open, closed, resetOpen",
+        "handlerFinish-canceled in open, closed, resetOpen",
+        "handlerFinish-failed in open, closed, resetOpen",
+        "handlerFinish-succeeded in open, closed, resetOpen",
+        "requestCancel-callerWorkflow in open, closed, resetOpen",
+        "reset in resetOpen"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "forgetsCancelOnReset",
+      "subjects": [
+        "canceledButUnknown",
+        "completionCancels",
+        "completionFails",
+        "completionSucceeds",
+        "finishesAfterClose",
+        "lostAfterReset",
+        "reappliesRetained",
+        "receivedButSucceeded",
+        "rejectedPermanently",
+        "rejectedTransiently",
+        "requestedButUnreceived",
+        "routedToSuccessor"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unreachable-value",
+      "owner": "rejectAfterClose",
+      "subjects": [
+        "channel=retried",
+        "known=expired",
+        "retained=pending"
+      ],
+      "because": "This close policy never takes the steps that reach it (its retry, deadline or retention is another policy's); the state, outcome and fact types are shared by every close policy."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "rejectAfterClose",
+      "subjects": [
+        "fact nexusOperationTimedOut",
+        "fact outcomeRetained",
+        "outcome retained"
+      ],
+      "because": "This close policy never takes the steps that reach it (its retry, deadline or retention is another policy's); the state, outcome and fact types are shared by every close policy."
+    },
+    {
+      "kind": "unrealized-find",
+      "owner": "rejectAfterClose",
+      "subjects": [
+        "rejectAfterClose.asyncCompletion",
+        "rejectAfterClose.asyncFailure",
+        "rejectAfterClose.canceledIsKnown",
+        "rejectAfterClose.detachedWorkProceeds",
+        "rejectAfterClose.effectWithoutKnowledge",
+        "rejectAfterClose.intentWithoutReceipt",
+        "rejectAfterClose.lostAfterReset",
+        "rejectAfterClose.permanentRejectionAfterClose",
+        "rejectAfterClose.receiptWithoutEffect",
+        "rejectAfterClose.resetAfterRetention",
+        "rejectAfterClose.resetBeforeRetention",
+        "rejectAfterClose.transientRejectionAfterClose"
+      ],
+      "because": "A close-policy design Model: its find Queries are searched for witnesses, and no realization runs a close policy against a server."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "rejectAfterClose",
+      "subjects": [
+        "callerClose in closed, resetOpen",
+        "complete-canceled in open, closed, resetOpen",
+        "complete-failed in open, closed, resetOpen",
+        "complete-succeeded in open, closed, resetOpen",
+        "handlerFinish-canceled in open, closed, resetOpen",
+        "handlerFinish-failed in open, closed, resetOpen",
+        "handlerFinish-succeeded in open, closed, resetOpen",
+        "requestCancel-callerWorkflow in open, closed, resetOpen",
+        "reset in resetOpen"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "rejectAfterClose",
+      "subjects": [
+        "canceledButUnknown",
+        "completionCancels",
+        "completionFails",
+        "completionSucceeds",
+        "finishesAfterClose",
+        "lostAfterReset",
+        "reappliesRetained",
+        "receivedButSucceeded",
+        "rejectedPermanently",
+        "rejectedTransiently",
+        "requestedButUnreceived",
+        "routedToSuccessor"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unreachable-value",
+      "owner": "rejectAfterCloseWithDeadline",
+      "subjects": [
+        "retained=pending"
+      ],
+      "because": "This close policy never takes the steps that reach it (its retry, deadline or retention is another policy's); the state, outcome and fact types are shared by every close policy."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "rejectAfterCloseWithDeadline",
+      "subjects": [
+        "fact outcomeRetained",
+        "outcome retained"
+      ],
+      "because": "This close policy never takes the steps that reach it (its retry, deadline or retention is another policy's); the state, outcome and fact types are shared by every close policy."
+    },
+    {
+      "kind": "unrealized-find",
+      "owner": "rejectAfterCloseWithDeadline",
+      "subjects": [
+        "rejectAfterCloseWithDeadline.expiredAfterClosedLoss",
+        "rejectAfterCloseWithDeadline.expiredAfterResetLoss",
+        "rejectAfterCloseWithDeadline.expiredWhileReported",
+        "rejectAfterCloseWithDeadline.lateCompletionIsDropped"
+      ],
+      "because": "A close-policy design Model: its find Queries are searched for witnesses, and no realization runs a close policy against a server."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "rejectAfterCloseWithDeadline",
+      "subjects": [
+        "callerClose in closed, resetOpen",
+        "complete-canceled in open, closed, resetOpen",
+        "complete-failed in open, closed, resetOpen",
+        "complete-succeeded in open, closed, resetOpen",
+        "handlerFinish-canceled in open, closed, resetOpen",
+        "handlerFinish-failed in open, closed, resetOpen",
+        "handlerFinish-succeeded in open, closed, resetOpen",
+        "requestCancel-callerWorkflow in open, closed, resetOpen",
+        "reset in resetOpen"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "rejectAfterCloseWithDeadline",
+      "subjects": [
+        "expiresWhileOwed",
+        "expiresWithNothingOwed",
+        "lateCompletionIsDropped"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unreachable-value",
+      "owner": "retainAndRoute",
+      "subjects": [
+        "channel=retried",
+        "known=expired"
+      ],
+      "because": "This close policy never takes the steps that reach it (its retry, deadline or retention is another policy's); the state, outcome and fact types are shared by every close policy."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "retainAndRoute",
+      "subjects": [
+        "fact completionDropped",
+        "fact nexusOperationTimedOut",
+        "outcome rejectedPermanent"
+      ],
+      "because": "This close policy never takes the steps that reach it (its retry, deadline or retention is another policy's); the state, outcome and fact types are shared by every close policy."
+    },
+    {
+      "kind": "untaken-choice",
+      "owner": "retainAndRoute",
+      "subjects": [
+        "refused"
+      ],
+      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (closepolicy/Model.scala, rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
+    },
+    {
+      "kind": "unrealized-find",
+      "owner": "retainAndRoute",
+      "subjects": [
+        "retainAndRoute.asyncCompletion",
+        "retainAndRoute.asyncFailure",
+        "retainAndRoute.canceledIsKnown",
+        "retainAndRoute.detachedWorkProceeds",
+        "retainAndRoute.effectWithoutKnowledge",
+        "retainAndRoute.intentWithoutReceipt",
+        "retainAndRoute.lostAfterReset",
+        "retainAndRoute.permanentRejectionAfterClose",
+        "retainAndRoute.receiptWithoutEffect",
+        "retainAndRoute.resetAfterRetention",
+        "retainAndRoute.resetBeforeRetention",
+        "retainAndRoute.transientRejectionAfterClose"
+      ],
+      "because": "A close-policy design Model: its find Queries are searched for witnesses, and no realization runs a close policy against a server."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "retainAndRoute",
+      "subjects": [
+        "callerClose in closed, resetOpen",
+        "complete-canceled in open, closed, resetOpen",
+        "complete-failed in open, closed, resetOpen",
+        "complete-succeeded in open, closed, resetOpen",
+        "handlerFinish-canceled in open, closed, resetOpen",
+        "handlerFinish-failed in open, closed, resetOpen",
+        "handlerFinish-succeeded in open, closed, resetOpen",
+        "requestCancel-callerWorkflow in open, closed, resetOpen",
+        "reset in resetOpen"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "retainAndRoute",
+      "subjects": [
+        "canceledButUnknown",
+        "completionCancels",
+        "completionFails",
+        "completionSucceeds",
+        "finishesAfterClose",
+        "lostAfterReset",
+        "reappliesRetained",
+        "receivedButSucceeded",
+        "rejectedPermanently",
+        "rejectedTransiently",
+        "requestedButUnreceived",
+        "routedToSuccessor"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unreachable-value",
+      "owner": "retainAndRouteBoundedRetry",
+      "subjects": [
+        "known=expired"
+      ],
+      "because": "This close policy never takes the steps that reach it (its retry, deadline or retention is another policy's); the state, outcome and fact types are shared by every close policy."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "retainAndRouteBoundedRetry",
+      "subjects": [
+        "fact completionDropped",
+        "fact nexusOperationTimedOut",
+        "outcome rejectedPermanent"
+      ],
+      "because": "This close policy never takes the steps that reach it (its retry, deadline or retention is another policy's); the state, outcome and fact types are shared by every close policy."
+    },
+    {
+      "kind": "untaken-choice",
+      "owner": "retainAndRouteBoundedRetry",
+      "subjects": [
+        "refused"
+      ],
+      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (closepolicy/Model.scala, rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "retainAndRouteBoundedRetry",
+      "subjects": [
+        "callerClose in closed, resetOpen",
+        "complete-canceled in open, closed, resetOpen",
+        "complete-failed in open, closed, resetOpen",
+        "complete-succeeded in open, closed, resetOpen",
+        "handlerFinish-canceled in open, closed, resetOpen",
+        "handlerFinish-failed in open, closed, resetOpen",
+        "handlerFinish-succeeded in open, closed, resetOpen",
+        "requestCancel-callerWorkflow in open, closed, resetOpen",
+        "reset in resetOpen"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "untaken-choice",
+      "owner": "retainAndRouteWithDeadline",
+      "subjects": [
+        "refused"
+      ],
+      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (closepolicy/Model.scala, rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
+    },
+    {
+      "kind": "unrealized-find",
+      "owner": "retainAndRouteWithDeadline",
+      "subjects": [
+        "retainAndRouteWithDeadline.expiredAfterClosedLoss",
+        "retainAndRouteWithDeadline.expiredAfterResetLoss",
+        "retainAndRouteWithDeadline.expiredWhileReported",
+        "retainAndRouteWithDeadline.lateCompletionIsDropped"
+      ],
+      "because": "A close-policy design Model: its find Queries are searched for witnesses, and no realization runs a close policy against a server."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "retainAndRouteWithDeadline",
+      "subjects": [
+        "callerClose in closed, resetOpen",
+        "complete-canceled in open, closed, resetOpen",
+        "complete-failed in open, closed, resetOpen",
+        "complete-succeeded in open, closed, resetOpen",
+        "handlerFinish-canceled in open, closed, resetOpen",
+        "handlerFinish-failed in open, closed, resetOpen",
+        "handlerFinish-succeeded in open, closed, resetOpen",
+        "requestCancel-callerWorkflow in open, closed, resetOpen",
+        "reset in resetOpen"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "retainAndRouteWithDeadline",
+      "subjects": [
+        "expiresWhileOwed",
+        "expiresWithNothingOwed",
+        "lateCompletionIsDropped"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unreachable-value",
+      "owner": "truncatesOnReset",
+      "subjects": [
+        "channel=retried",
+        "known=expired"
+      ],
+      "because": "This close policy never takes the steps that reach it (its retry, deadline or retention is another policy's); the state, outcome and fact types are shared by every close policy."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "truncatesOnReset",
+      "subjects": [
+        "fact completionDropped",
+        "fact nexusOperationTimedOut",
+        "outcome rejectedPermanent"
+      ],
+      "because": "This close policy never takes the steps that reach it (its retry, deadline or retention is another policy's); the state, outcome and fact types are shared by every close policy."
+    },
+    {
+      "kind": "untaken-choice",
+      "owner": "truncatesOnReset",
+      "subjects": [
+        "refused"
+      ],
+      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (closepolicy/Model.scala, rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
+    },
+    {
+      "kind": "unrealized-find",
+      "owner": "truncatesOnReset",
+      "subjects": [
+        "truncatesOnReset.asyncCompletion",
+        "truncatesOnReset.asyncFailure",
+        "truncatesOnReset.canceledIsKnown",
+        "truncatesOnReset.detachedWorkProceeds",
+        "truncatesOnReset.effectWithoutKnowledge",
+        "truncatesOnReset.intentWithoutReceipt",
+        "truncatesOnReset.lostAfterReset",
+        "truncatesOnReset.permanentRejectionAfterClose",
+        "truncatesOnReset.receiptWithoutEffect",
+        "truncatesOnReset.resetAfterRetention",
+        "truncatesOnReset.resetBeforeRetention",
+        "truncatesOnReset.transientRejectionAfterClose"
+      ],
+      "because": "A close-policy design Model: its find Queries are searched for witnesses, and no realization runs a close policy against a server."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "truncatesOnReset",
+      "subjects": [
+        "callerClose in closed, resetOpen",
+        "complete-canceled in open, closed, resetOpen",
+        "complete-failed in open, closed, resetOpen",
+        "complete-succeeded in open, closed, resetOpen",
+        "handlerFinish-canceled in open, closed, resetOpen",
+        "handlerFinish-failed in open, closed, resetOpen",
+        "handlerFinish-succeeded in open, closed, resetOpen",
+        "requestCancel-callerWorkflow in open, closed, resetOpen",
+        "reset in resetOpen"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "truncatesOnReset",
+      "subjects": [
+        "canceledButUnknown",
+        "completionCancels",
+        "completionFails",
+        "completionSucceeds",
+        "finishesAfterClose",
+        "lostAfterReset",
+        "reappliesRetained",
+        "receivedButSucceeded",
+        "rejectedPermanently",
+        "rejectedTransiently",
+        "requestedButUnreceived",
+        "routedToSuccessor"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    }
+  ]
+}

@@ -256,13 +256,22 @@ const LawSidecarSuffix = ".laws.json"
 // IsLawSidecar reports whether a path or name is a law sidecar rather than an IR file.
 func IsLawSidecar(path string) bool { return strings.HasSuffix(path, LawSidecarSuffix) }
 
-// IRFiles lists a directory's IR files: its JSON files, apart from the law sidecars beside them.
+// AcceptedSuffix ends the file of lint's accepted findings an author writes beside an IR file,
+// `<file>.lint.json`. It is lint.AcceptedSuffix, which this test-only package does not import.
+const AcceptedSuffix = ".lint.json"
+
+// IsAccepted reports whether a path or name is a file of accepted lint findings rather than an IR
+// file. The lifter produces none, so no archive freezes one.
+func IsAccepted(path string) bool { return strings.HasSuffix(path, AcceptedSuffix) }
+
+// IRFiles lists a directory's IR files: its JSON files, apart from the law sidecars and the accepted
+// lint findings beside them.
 func IRFiles(dir string) ([]string, error) {
 	paths, err := filepath.Glob(filepath.Join(dir, "*.json"))
 	if err != nil {
 		return nil, err
 	}
-	return slices.DeleteFunc(paths, IsLawSidecar), nil
+	return slices.DeleteFunc(paths, func(p string) bool { return IsLawSidecar(p) || IsAccepted(p) }), nil
 }
 
 // inventoried checks that each reduced fixture is an entry of the IR inventory.

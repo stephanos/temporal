@@ -1,0 +1,591 @@
+{
+  "accepted": [
+    {
+      "kind": "never-enabled",
+      "owner": "activityProduct",
+      "subjects": [
+        "workerStop"
+      ],
+      "because": "The product machine does not feel a worker stopping (Model.scala, workerStop is disabled); the protocol and worker machines step it."
+    },
+    {
+      "kind": "unfired-verify",
+      "owner": "activityProduct",
+      "subjects": [
+        "staleAdmission.product.pausedIsNotDispatched"
+      ],
+      "because": "The stale admission design is the deliberately faulty control: its refinement of the product is rejected on purpose, so the Query reads nothing."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "activityProduct",
+      "subjects": [
+        "attemptResult-canceled in scheduled, started, paused",
+        "attemptResult-completed in scheduled, paused",
+        "attemptResult-failed-false in scheduled, paused",
+        "attemptResult-failed-true in scheduled, paused",
+        "attemptStart in started, paused, cancelRequested"
+      ],
+      "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "activityProduct",
+      "subjects": [
+        "control-pause in paused, cancelRequested",
+        "control-unpause in scheduled, started, cancelRequested"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "activityProduct",
+      "subjects": [
+        "workerStop in scheduled, started, paused, cancelRequested"
+      ],
+      "because": "The worker stopping is a fault the Run records; a machine that does not feel it disables it, and the worker and protocol machines step it."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "activityProduct",
+      "subjects": [
+        "attemptResult-canceled",
+        "attemptResult-completed",
+        "attemptResult-failed-false",
+        "attemptResult-failed-true",
+        "attemptStart"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unrealized-find",
+      "owner": "activityProtocol",
+      "subjects": [
+        "competingTimers.scheduleToCloseFirst",
+        "competingTimers.scheduleToStartFirst"
+      ],
+      "because": "A design Model's find Query: it is searched for its witness, and no realization runs this machine against a server."
+    },
+    {
+      "kind": "unread-refinement",
+      "owner": "activityProtocol",
+      "subjects": [
+        "activityProtocol refines activityProduct"
+      ],
+      "because": "The refinement is checked on every check of the Model (Machines 6); no Query reads a product Property through it yet, which the spec that adds product claims to this root takes."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "activityProtocol",
+      "subjects": [
+        "attemptResult-canceled in unstarted, scheduled, backingOff, started, paused, pauseRequested",
+        "attemptResult-completed in unstarted, scheduled, backingOff, paused",
+        "attemptResult-failed-false in unstarted, scheduled, backingOff, paused",
+        "attemptResult-failed-true in unstarted, scheduled, backingOff, paused",
+        "attemptStart in unstarted, backingOff, started, paused, pauseRequested, cancelRequested"
+      ],
+      "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "activityProtocol",
+      "subjects": [
+        "control-pause in unstarted, paused, pauseRequested, cancelRequested",
+        "control-requestCancel in unstarted",
+        "control-terminate in unstarted",
+        "control-unpause in unstarted, scheduled, backingOff, started, cancelRequested",
+        "start-expires-expires-expires in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
+        "start-expires-expires-unset in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
+        "start-expires-unset-expires in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
+        "start-expires-unset-unset in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
+        "start-unset-expires-expires in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
+        "start-unset-expires-unset in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
+        "start-unset-unset-expires in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
+        "start-unset-unset-unset in scheduled, backingOff, started, paused, pauseRequested, cancelRequested"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "activityProtocol",
+      "subjects": [
+        "attemptResult-canceled",
+        "attemptResult-completed",
+        "attemptResult-failed-false",
+        "attemptResult-failed-true",
+        "attemptStart",
+        "backoff",
+        "start-expires-expires-expires",
+        "start-expires-expires-unset",
+        "start-expires-unset-expires",
+        "start-expires-unset-unset",
+        "start-unset-expires-expires",
+        "start-unset-expires-unset",
+        "start-unset-unset-expires",
+        "start-unset-unset-unset",
+        "startToClose",
+        "workerStop"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "activityProtocol",
+      "subjects": [
+        "scheduleToCloseFires",
+        "scheduleToStartFires"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unreachable-value",
+      "owner": "currentAdmission",
+      "subjects": [
+        "active=two"
+      ],
+      "because": "The current admission design admits one attempt at a time, so it never holds two; the type is shared with the stale design, which does."
+    },
+    {
+      "kind": "never-enabled",
+      "owner": "currentAdmission",
+      "subjects": [
+        "attemptResult-canceled",
+        "attemptResult-failed-false",
+        "attemptResult-failed-true",
+        "control-requestCancel",
+        "control-terminate",
+        "control-unpause"
+      ],
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (admission/Model.scala), so they enable nothing and record nothing."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "currentAdmission",
+      "subjects": [
+        "fact statusTimedOut-startToClose",
+        "outcome notFound"
+      ],
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (admission/Model.scala), so they enable nothing and record nothing."
+    },
+    {
+      "kind": "unrealized-find",
+      "owner": "currentAdmission",
+      "subjects": [
+        "currentAdmission.scheduleToCloseFirst",
+        "currentAdmission.scheduleToStartFirst"
+      ],
+      "because": "A design Model's find Query: it is searched for its witness, and no realization runs this machine against a server."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "currentAdmission",
+      "subjects": [
+        "attemptResult-canceled in scheduled, started",
+        "attemptResult-completed in scheduled",
+        "attemptResult-failed-false in scheduled, started",
+        "attemptResult-failed-true in scheduled, started"
+      ],
+      "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "currentAdmission",
+      "subjects": [
+        "control-requestCancel in scheduled, started",
+        "control-terminate in scheduled, started",
+        "control-unpause in scheduled, started"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "currentAdmission",
+      "subjects": [
+        "scheduleToCloseTimesOut",
+        "scheduleToStartTimesOut"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unreachable-value",
+      "owner": "currentRecord",
+      "subjects": [
+        "active=two"
+      ],
+      "because": "The current admission design admits one attempt at a time, so it never holds two; the type is shared with the stale design, which does."
+    },
+    {
+      "kind": "never-enabled",
+      "owner": "currentRecord",
+      "subjects": [
+        "attemptResult-canceled",
+        "attemptResult-failed-false",
+        "attemptResult-failed-true",
+        "control-requestCancel",
+        "control-terminate",
+        "control-unpause"
+      ],
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (admission/Model.scala), so they enable nothing and record nothing."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "currentRecord",
+      "subjects": [
+        "fact statusTimedOut-startToClose",
+        "outcome notFound"
+      ],
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (admission/Model.scala), so they enable nothing and record nothing."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "currentRecord",
+      "subjects": [
+        "attemptResult-canceled in scheduled, started",
+        "attemptResult-completed in scheduled",
+        "attemptResult-failed-false in scheduled, started",
+        "attemptResult-failed-true in scheduled, started"
+      ],
+      "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "currentRecord",
+      "subjects": [
+        "control-requestCancel in scheduled, started",
+        "control-terminate in scheduled, started",
+        "control-unpause in scheduled, started"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "dispatchQueue",
+      "subjects": [
+        "fact ackLost",
+        "fact addInvoked",
+        "fact crashed",
+        "fact matchReserved",
+        "fact storageLost",
+        "fact taskPersisted",
+        "outcome internal",
+        "outcome lost"
+      ],
+      "because": "A task-queue provider design: the dispatch queue is the opaque contract its providers refine, and each provider records only the faults and outcomes of its own design."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "dispatchQueueUnderStorageLoss",
+      "subjects": [
+        "fact ackLost",
+        "fact addInvoked",
+        "fact crashed",
+        "fact matchReserved",
+        "fact taskPersisted",
+        "outcome internal"
+      ],
+      "because": "A task-queue provider design: the dispatch queue is the opaque contract its providers refine, and each provider records only the faults and outcomes of its own design."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "dispatchQueueUnderStorageLoss",
+      "subjects": [
+        "acknowledge",
+        "deliver",
+        "enqueue",
+        "storageLoss"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "forgetfulQueue",
+      "subjects": [
+        "fact storageLost",
+        "outcome lost"
+      ],
+      "because": "A task-queue provider design: the dispatch queue is the opaque contract its providers refine, and each provider records only the faults and outcomes of its own design."
+    },
+    {
+      "kind": "unrealized-find",
+      "owner": "forgetfulQueue",
+      "subjects": [
+        "forgetfulQueue.crashAfterDelivery",
+        "forgetfulQueue.crashAfterInvocation",
+        "forgetfulQueue.crashAfterPersistence",
+        "forgetfulQueue.crashAfterSyncMatch"
+      ],
+      "because": "A design Model's find Query: it is searched for its witness, and no realization runs this machine against a server."
+    },
+    {
+      "kind": "unread-refinement",
+      "owner": "forgetfulQueue",
+      "subjects": [
+        "forgetfulQueue refines dispatchQueue"
+      ],
+      "because": "The refinement is checked on every check of the Model (Machines 6); no Query reads a product Property through it yet, which the spec that adds product claims to this root takes."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "forgetfulQueue",
+      "subjects": [
+        "ackLoss in history, invoked, reserved, persisted"
+      ],
+      "because": "A fault is the environment's and no request the server answers: where the Model disables it the fault cannot happen, which the author decided."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "forgetfulQueue",
+      "subjects": [
+        "enqueue"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "forgetfulQueue",
+      "subjects": [
+        "delivers"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unrealized-find",
+      "owner": "lossyMatchingQueue",
+      "subjects": [
+        "lossyMatchingQueue.crashAfterDelivery",
+        "lossyMatchingQueue.crashAfterInvocation",
+        "lossyMatchingQueue.crashAfterPersistence",
+        "lossyMatchingQueue.crashAfterSyncMatch",
+        "lossyMatchingQueue.storageLoss"
+      ],
+      "because": "A design Model's find Query: it is searched for its witness, and no realization runs this machine against a server."
+    },
+    {
+      "kind": "unread-refinement",
+      "owner": "lossyMatchingQueue",
+      "subjects": [
+        "lossyMatchingQueue refines dispatchQueueUnderStorageLoss"
+      ],
+      "because": "The refinement is checked on every check of the Model (Machines 6); no Query reads a product Property through it yet, which the spec that adds product claims to this root takes."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "lossyMatchingQueue",
+      "subjects": [
+        "ackLoss in history, invoked, reserved, persisted"
+      ],
+      "because": "A fault is the environment's and no request the server answers: where the Model disables it the fault cannot happen, which the author decided."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "lossyMatchingQueue",
+      "subjects": [
+        "delivers",
+        "storageLossDrops"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "matchingQueue",
+      "subjects": [
+        "fact storageLost",
+        "outcome lost"
+      ],
+      "because": "A task-queue provider design: the dispatch queue is the opaque contract its providers refine, and each provider records only the faults and outcomes of its own design."
+    },
+    {
+      "kind": "unrealized-find",
+      "owner": "matchingQueue",
+      "subjects": [
+        "matchingQueue.crashAfterDelivery",
+        "matchingQueue.crashAfterInvocation",
+        "matchingQueue.crashAfterPersistence",
+        "matchingQueue.crashAfterSyncMatch"
+      ],
+      "because": "A design Model's find Query: it is searched for its witness, and no realization runs this machine against a server."
+    },
+    {
+      "kind": "unread-refinement",
+      "owner": "matchingQueue",
+      "subjects": [
+        "matchingQueue refines dispatchQueue"
+      ],
+      "because": "The refinement is checked on every check of the Model (Machines 6); no Query reads a product Property through it yet, which the spec that adds product claims to this root takes."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "matchingQueue",
+      "subjects": [
+        "ackLoss in history, invoked, reserved, persisted"
+      ],
+      "because": "A fault is the environment's and no request the server answers: where the Model disables it the fault cannot happen, which the author decided."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "matchingQueue",
+      "subjects": [
+        "delivers"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "never-enabled",
+      "owner": "staleAdmission",
+      "subjects": [
+        "attemptResult-canceled",
+        "attemptResult-failed-false",
+        "attemptResult-failed-true",
+        "control-requestCancel",
+        "control-terminate",
+        "control-unpause"
+      ],
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (admission/Model.scala), so they enable nothing and record nothing."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "staleAdmission",
+      "subjects": [
+        "fact admissionRejected",
+        "fact statusTimedOut-startToClose",
+        "outcome notFound"
+      ],
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (admission/Model.scala), so they enable nothing and record nothing."
+    },
+    {
+      "kind": "unrealized-find",
+      "owner": "staleAdmission",
+      "subjects": [
+        "staleAdmission.scheduleToCloseFirst",
+        "staleAdmission.scheduleToStartFirst"
+      ],
+      "because": "A design Model's find Query: it is searched for its witness, and no realization runs this machine against a server."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "staleAdmission",
+      "subjects": [
+        "attemptResult-canceled in scheduled, started",
+        "attemptResult-completed in scheduled",
+        "attemptResult-failed-false in scheduled, started",
+        "attemptResult-failed-true in scheduled, started"
+      ],
+      "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "staleAdmission",
+      "subjects": [
+        "control-requestCancel in scheduled, started",
+        "control-terminate in scheduled, started",
+        "control-unpause in scheduled, started"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "staleAdmission",
+      "subjects": [
+        "scheduleToCloseTimesOut",
+        "scheduleToStartTimesOut"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "never-enabled",
+      "owner": "staleRecord",
+      "subjects": [
+        "attemptResult-canceled",
+        "attemptResult-failed-false",
+        "attemptResult-failed-true",
+        "control-requestCancel",
+        "control-terminate",
+        "control-unpause"
+      ],
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (admission/Model.scala), so they enable nothing and record nothing."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "staleRecord",
+      "subjects": [
+        "fact admissionRejected",
+        "fact statusTimedOut-startToClose",
+        "outcome notFound"
+      ],
+      "because": "The admission design models pause and completion only: its other controls and attempt answers are disabled as out of scope (admission/Model.scala), so they enable nothing and record nothing."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "staleRecord",
+      "subjects": [
+        "attemptResult-canceled in scheduled, started",
+        "attemptResult-completed in scheduled",
+        "attemptResult-failed-false in scheduled, started",
+        "attemptResult-failed-true in scheduled, started"
+      ],
+      "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "staleRecord",
+      "subjects": [
+        "control-requestCancel in scheduled, started",
+        "control-terminate in scheduled, started",
+        "control-unpause in scheduled, started"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "volatileQueue",
+      "subjects": [
+        "fact storageLost",
+        "outcome lost"
+      ],
+      "because": "A task-queue provider design: the dispatch queue is the opaque contract its providers refine, and each provider records only the faults and outcomes of its own design."
+    },
+    {
+      "kind": "unrealized-find",
+      "owner": "volatileQueue",
+      "subjects": [
+        "volatileQueue.crashAfterDelivery",
+        "volatileQueue.crashAfterInvocation",
+        "volatileQueue.crashAfterPersistence",
+        "volatileQueue.crashAfterSyncMatch"
+      ],
+      "because": "A design Model's find Query: it is searched for its witness, and no realization runs this machine against a server."
+    },
+    {
+      "kind": "unread-refinement",
+      "owner": "volatileQueue",
+      "subjects": [
+        "volatileQueue refines dispatchQueue"
+      ],
+      "because": "The refinement is checked on every check of the Model (Machines 6); no Query reads a product Property through it yet, which the spec that adds product claims to this root takes."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "volatileQueue",
+      "subjects": [
+        "ackLoss in history, invoked, reserved, persisted"
+      ],
+      "because": "A fault is the environment's and no request the server answers: where the Model disables it the fault cannot happen, which the author decided."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "volatileQueue",
+      "subjects": [
+        "enqueue"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "volatileQueue",
+      "subjects": [
+        "delivers"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    }
+  ]
+}

@@ -17,13 +17,20 @@ import (
 // test-only golden package, which this package cannot import, spells it once more.
 const LawSidecarSuffix = ".laws.json"
 
-// IRPaths lists the IR files of a directory: its JSON files, apart from the law sidecars beside them.
+// AcceptedSuffix ends the file of lint's accepted findings an author writes beside an IR file,
+// `<file>.lint.json`: JSON and no Model. Lint, which imports the reader, names it by this constant.
+const AcceptedSuffix = ".lint.json"
+
+// IRPaths lists the IR files of a directory: its JSON files, apart from the law sidecars and the
+// accepted lint findings beside them.
 func IRPaths(dir string) ([]string, error) {
 	paths, err := filepath.Glob(filepath.Join(dir, "*.json"))
 	if err != nil {
 		return nil, err
 	}
-	return slices.DeleteFunc(paths, func(p string) bool { return strings.HasSuffix(p, LawSidecarSuffix) }), nil
+	return slices.DeleteFunc(paths, func(p string) bool {
+		return strings.HasSuffix(p, LawSidecarSuffix) || strings.HasSuffix(p, AcceptedSuffix)
+	}), nil
 }
 
 // Load reads a Model in ProtoJSON, rejects fields the schema does not have, and validates it.

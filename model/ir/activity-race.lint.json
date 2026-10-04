@@ -1,0 +1,185 @@
+{
+  "accepted": [
+    {
+      "kind": "never-enabled",
+      "owner": "activityProduct",
+      "subjects": [
+        "workerStop"
+      ],
+      "because": "The product machine does not feel a worker stopping (Model.scala, workerStop is disabled); the protocol and worker machines step it."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "activityProduct",
+      "subjects": [
+        "attemptResult-canceled in scheduled, started, paused",
+        "attemptResult-completed in scheduled, paused",
+        "attemptResult-failed-false in scheduled, paused",
+        "attemptResult-failed-true in scheduled, paused",
+        "attemptStart in started, paused, cancelRequested"
+      ],
+      "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "activityProduct",
+      "subjects": [
+        "control-pause in paused, cancelRequested",
+        "control-unpause in scheduled, started, cancelRequested"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "activityProduct",
+      "subjects": [
+        "workerStop in scheduled, started, paused, cancelRequested"
+      ],
+      "because": "The worker stopping is a fault the Run records; a machine that does not feel it disables it, and the worker and protocol machines step it."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "activityProduct",
+      "subjects": [
+        "attemptResult-canceled",
+        "attemptResult-completed",
+        "attemptResult-failed-false",
+        "attemptResult-failed-true",
+        "attemptStart",
+        "control-pause",
+        "control-requestCancel",
+        "control-terminate",
+        "control-unpause",
+        "timeout"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unreachable-value",
+      "owner": "admissionResponseLoss",
+      "subjects": [
+        "record.active=two",
+        "record.phase=completed",
+        "record.phase=paused",
+        "record.phase=pausedWhileHeld",
+        "record.phase=timedOut"
+      ],
+      "because": "This root carries one race of the admission Model: its machine reaches only that race's states, and its types are the full admission Model's."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "admissionResponseLoss",
+      "subjects": [
+        "outcome notFound"
+      ],
+      "because": "This root carries one race of the admission Model: its machine reaches only that race's states, and its types are the full admission Model's."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "admissionResponseLoss",
+      "subjects": [
+        "dispatch"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "admissionResponseLoss",
+      "subjects": [
+        "committedDespiteLostResponse"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unreachable-value",
+      "owner": "heldAdmission",
+      "subjects": [
+        "active=two",
+        "phase=completed",
+        "phase=timedOut"
+      ],
+      "because": "This root carries one race of the admission Model: its machine reaches only that race's states, and its types are the full admission Model's."
+    },
+    {
+      "kind": "never-enabled",
+      "owner": "heldAdmission",
+      "subjects": [
+        "control-requestCancel",
+        "control-terminate",
+        "control-unpause"
+      ],
+      "because": "This root carries one race of the admission Model: its machine reaches only that race's states, and its types are the full admission Model's."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "heldAdmission",
+      "subjects": [
+        "fact admissionCommitFailed",
+        "fact statusCompleted",
+        "fact statusTimedOut-scheduleToClose",
+        "fact statusTimedOut-scheduleToStart",
+        "fact statusTimedOut-startToClose",
+        "outcome notFound"
+      ],
+      "because": "This root carries one race of the admission Model: its machine reaches only that race's states, and its types are the full admission Model's."
+    },
+    {
+      "kind": "unevidenced-fact",
+      "owner": "heldAdmission",
+      "subjects": [
+        "admissionCommitFailed",
+        "deliveryAnswered",
+        "statusCompleted",
+        "statusStarted",
+        "statusTimedOut"
+      ],
+      "because": "The race realization confirms only the facts of the race it runs; the rest are the admission Model's, recorded by steps its Cases do not take."
+    },
+    {
+      "kind": "unread-refinement",
+      "owner": "heldAdmission",
+      "subjects": [
+        "heldAdmission refines activityProduct"
+      ],
+      "because": "The refinement is checked on every check of the Model (Machines 6); no Query reads a product Property through it yet, which the spec that adds product claims to this root takes."
+    },
+    {
+      "kind": "unmodeled-api-value",
+      "owner": "heldAdmission",
+      "subjects": [
+        "temporal.api.activity.v1.ActivityExecutionInfo.status ACTIVITY_EXECUTION_STATUS_CANCELED",
+        "temporal.api.activity.v1.ActivityExecutionInfo.status ACTIVITY_EXECUTION_STATUS_COMPLETED",
+        "temporal.api.activity.v1.ActivityExecutionInfo.status ACTIVITY_EXECUTION_STATUS_FAILED",
+        "temporal.api.activity.v1.ActivityExecutionInfo.status ACTIVITY_EXECUTION_STATUS_TERMINATED",
+        "temporal.api.activity.v1.ActivityExecutionInfo.status ACTIVITY_EXECUTION_STATUS_TIMED_OUT"
+      ],
+      "because": "The race realizations poll the activity's status only for the pause their races end in; the statuses the full realization maps are not this root's."
+    },
+    {
+      "kind": "unmodeled-api-value",
+      "owner": "heldAdmission",
+      "subjects": [
+        "temporal.api.activity.v1.ActivityExecutionInfo.status ACTIVITY_EXECUTION_STATUS_RUNNING"
+      ],
+      "because": "A poll waits through this status on its way to a terminal one; no Model fact maps it, as the Model reads the start from the Run's own record."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "heldAdmission",
+      "subjects": [
+        "control-requestCancel in scheduled, started",
+        "control-terminate in scheduled, started",
+        "control-unpause in scheduled, started"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "heldAdmission",
+      "subjects": [
+        "staleDeliveryRejected"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    }
+  ]
+}

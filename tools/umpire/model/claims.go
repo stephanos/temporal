@@ -355,6 +355,24 @@ func (r *Realizer) ClassKey(c *umpirespb.ActionClass) string { return r.b.classK
 // Machine is an interpreted machine by name, or nil for one that could not be interpreted.
 func (r *Realizer) Machine(name string) *Machine { return r.b.machines[name] }
 
+// Refinement is a refining machine's declared refinement as Check reads it (RefineTables): each row
+// result and the product action that carries it, nil for a stutter, or why the refinement is not
+// established, rejected or left unknown by a hole.
+func (r *Realizer) Refinement(machine string) ([]RefinementRow, error) {
+	s := r.b.subject(machine)
+	if s.err != nil {
+		return nil, s.err
+	}
+	if s.machine == nil || s.machine.Decl.GetRefines() == nil {
+		return nil, &Error{Message: machine + " refines no machine"}
+	}
+	checked := r.b.refinement(s)
+	if checked.err != nil {
+		return nil, checked.err
+	}
+	return checked.ref.Rows, nil
+}
+
 // Bound is one Query of the bound Model as a reader of recorded steps takes it: the table Check reads
 // the Query on, where its Scenario starts, and its Property and the machine's monitors as functions of
 // that table's steps. They are the functions Check declares to the generic search, so a step read
