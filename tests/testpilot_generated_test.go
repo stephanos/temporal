@@ -160,7 +160,7 @@ func TestTestpilotGeneratedCases(t *testing.T) {
 			fixture, err := testpilotcore.LoadGeneratedCase(generatedCaseDirectory, entry)
 			require.NoError(t, err)
 			if !bindsNexusEndpoint(fixture.Source) {
-				runGeneratedCaseOnCluster(t, entry, fixture, name, "", []testpilotcore.SwitchSetting{
+				runGeneratedCaseOnCluster(t, entry, fixture, "", []testpilotcore.SwitchSetting{
 					{Setting: activity.Enabled, Value: true},
 					{Setting: activity.EnableStandaloneActivityOperatorCommands, Value: true},
 					{Setting: dynamicconfig.EnableChasm, Value: true},
@@ -175,7 +175,7 @@ func TestTestpilotGeneratedCases(t *testing.T) {
 				t.Run(value.Name, func(t *testing.T) {
 					// Standalone activity needs CHASM independently of the Nexus implementation switch.
 					settings := append(slices.Clone(value.Settings), testpilotcore.SwitchSetting{Setting: dynamicconfig.EnableChasm, Value: true})
-					verdict := runGeneratedCaseOnCluster(t, entry, fixture, name+"-"+value.Name, value.Name, settings)
+					verdict := runGeneratedCaseOnCluster(t, entry, fixture, value.Name, settings)
 					results = append(results, testpilotcore.SwitchVerdict{Value: value.Name, Verdict: verdict})
 				})
 			}
@@ -190,7 +190,7 @@ func TestTestpilotGeneratedCases(t *testing.T) {
 // the switch value the cluster runs under, empty for a Case with no switch: under a value, a Profile
 // that rejects the Case as unsupported fails naming the value, since the other value running and this
 // one not is a finding; with no switch it skips, since no agreement depends on it.
-func runGeneratedCaseOnCluster(t *testing.T, entry lower.GeneratedCase, fixture *testpilotcore.ModelCase, artifact, value string, settings []testpilotcore.SwitchSetting) *testpilotspb.Verdict {
+func runGeneratedCaseOnCluster(t *testing.T, entry lower.GeneratedCase, fixture *testpilotcore.ModelCase, value string, settings []testpilotcore.SwitchSetting) *testpilotspb.Verdict {
 	t.Helper()
 	options := make([]testcore.TestOption, 0, len(settings))
 	for _, setting := range settings {
@@ -261,6 +261,10 @@ func runGeneratedCaseOnCluster(t *testing.T, entry lower.GeneratedCase, fixture 
 					require.NoError(t, err)
 					trace, err := explore.RenderTrace(&explore.Candidate{Model: model, Case: fixture.Source, Identity: identity, Digest: "generated:" + entry.Model + "/" + entry.Query.Name}, entry.Query.Name, result.run, result.assessment, root)
 					require.NoError(t, err)
+					artifact := testpilotcore.GeneratedCaseName(entry)
+					if value != "" {
+						artifact += "-" + value
+					}
 					writeExplorationArtifact(t, artifact+".html", trace)
 				}
 			}
