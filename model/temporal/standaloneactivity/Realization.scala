@@ -4,14 +4,12 @@
  *
  * No kind of evidence depends on seeing a state the activity passes through on its own: with a
  * running worker a scheduled activity is started, and a started one answered, before any read need
- * see either. What a call the controller makes was answered is the Run's record of that call; that an
- * attempt started, and which, is the Run's record of the attempt the worker was delivered; and a
- * status is read back from DescribeActivityExecution only where the activity stays in it, paused
- * until the controller releases it, or over.
+ * see either. A call's answer is the Run's record of that call; an attempt start is the Run's record
+ * of the attempt the worker was delivered; and a status is read back from DescribeActivityExecution
+ * only where the activity stays in it, paused until the controller releases it, or over.
  *
- * The roles, bindings, window and run records every Temporal realization shares are the kit's
- * (temporal/realize). Nothing here builds a Case: the lifter emits the declarations into the IR and
- * Go lowers a Query's witness through them (tools/umpire/lower).
+ * The roles, bindings, window and run records are the kit's (temporal/realize); Go lowers a
+ * Query's witness through these declarations (tools/umpire/lower).
  */
 package temporal
 package standaloneactivity
@@ -20,11 +18,8 @@ import umpire.*
 import umpire.realize.*
 import umpire.realize.Instruction.{AttemptCanceled, AttemptFailure, Fault, Finish, Hold, Release}
 import temporal.realize.*
-import io.temporal.api.workflowservice.v1.*
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
-import io.temporal.api.enums.v1.ActivityExecutionStatus
 import io.temporal.api.enums.v1.ActivityExecutionStatus.*
-import io.temporal.api.activity.v1.ActivityExecutionInfo
 import io.temporal.api.failure.v1.{ApplicationFailureInfo, Failure}
 import temporal.server.api.testpilot.v1.{DeliveryAdmissionDecision, InstructionOutcome}
 import temporal.server.api.testpilot.v1.DeliveryAdmissionDecision.*
@@ -32,30 +27,17 @@ import temporal.server.api.testpilot.v1.DeliveryAdmissionDecision.*
 import ActivityFamily.given
 import Timeout.{expires, unset}
 import worker.workerStop
-import admission.{
-  admissionResponseLoss,
-  dispatch,
-  heldAdmission,
-  AdmissionFact,
-  AdmissionResponseFact
-}
+import admission.{admissionResponseLoss, dispatch, heldAdmission, AdmissionFact}
+import admission.AdmissionResponseFact
 
 object ActivityRealization:
-  // ### Reading a status back
-
-  /**
-   * One status as DescribeActivityExecution reports it. Each kind counts in a source of its own,
-   * because one poll reads one source.
-   */
+  /** A status DescribeActivityExecution reports, each kind in its own source: a poll reads one. */
   private def status(fact: Fact) = Evidence.read(
     id = evidenceId(fact),
     records = fact,
     source = sourceId(fact),
-    from = Recorded.single(
-      METHOD_DESCRIBE_ACTIVITY_EXECUTION,
-      Field[DescribeActivityExecutionResponse, ActivityExecutionInfo](_.getInfo)
-    ),
-    operation = Field[ActivityExecutionInfo, String](_.activityId),
+    from = Recorded.single(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Field(_.getInfo)),
+    operation = Field(_.activityId),
     commitment = Commitment.reported
   )
 
@@ -72,16 +54,13 @@ object ActivityRealization:
   /** Polls the activity's description until it reads the status the fact's evidence names. */
   private def awaitStatus(fact: Fact) =
     await(status(fact), workflowService)(
-      Condition.equal(
-        Field[ActivityExecutionInfo, ActivityExecutionStatus](_.status),
-        Operand.enumValue(activityStatus(fact))
-      )
+      Condition.equal(Field(_.status), Operand.enumValue(activityStatus(fact)))
     ) {
       field(_.namespace) := workerNamespace
       field(_.activityId) := run
     }
 
-  // ### The controller's calls and controls
+  // ### The controller
 
   private val stopWorker = Fault(taskQueue, FaultKind.workerStop)
   private val stopWorkerUntilReleased = Fault(taskQueue, FaultKind.workerStop)
@@ -91,10 +70,9 @@ object ActivityRealization:
   private val activityType = perCase("activity")
 
   /**
-   * The start every class of the start action makes, under the run's id. A class adds the deadlines
+   * The start every class of the start action makes, under the run's id; a class adds the deadlines
    * it sets. The server refuses a start that sets neither a start-to-close nor a schedule-to-close
-   * deadline, so a class that sets none still carries a start-to-close deadline, one no Case lives
-   * to see.
+   * deadline, so a class that sets none carries a start-to-close deadline no Case lives to see.
    */
   private val startActivity = rpc(workflowService, METHOD_START_ACTIVITY_EXECUTION) {
     field(_.namespace) := workerNamespace
@@ -132,23 +110,17 @@ object ActivityRealization:
   private val awaitTerminated = awaitStatus(ProtocolFact.statusTerminated)
   private val awaitTimedOut = awaitStatus(ProtocolFact.statusTimedOut)
 
-  // The controller's sequence is the one order every functional Query's path makes its calls in:
-  // the worker stops before the start where the path says so, a pause is read back before its
-  // release, a cancel request and a terminate follow, and the status the activity ends in is read
-  // last.
-  //
-  // A pause is read back only of an activity no worker has taken. With a running worker the first
-  // attempt is delivered, and may be answered, before the pause lands, and the pause of a held
-  // attempt is a request whose release schedules nothing: the release's answer would then be evidence
-  // of a scheduling that did not happen. So a path that pauses keeps the Case's worker from polling
-  // from before the start until the release.
+  // The one order every functional Query's path makes its calls in. A pause is read back only of an
+  // activity no worker has taken: a running worker may be delivered the first attempt, and answer
+  // it, before the pause lands, and a held attempt's pause is a request whose release schedules
+  // nothing, so that release's answer would evidence a scheduling that did not happen. So a path
+  // that pauses keeps the worker from polling from before the start until the release.
   private val standaloneController = controller(
     perform(workerStop -> stopWorker),
     onPath(control(Control.pause))(stopWorkerUntilReleased),
     perform(
       start(unset, unset, unset) -> startUnreached,
-      start(Inputs.scheduleToStart := expires) -> startActivity.setting {
-        field(_.getStartToCloseTimeout.seconds) := unreachedDeadline
+      start(Inputs.scheduleToStart := expires) -> startUnreached.setting {
         field(_.getScheduleToStartTimeout.seconds) := deadline
       },
       start(Inputs.startToClose := expires) -> startActivity.setting {
@@ -173,19 +145,13 @@ object ActivityRealization:
   /** The failure an attempt that fails ends with. */
   private def attemptFailure(nonRetryable: Boolean) = AttemptFailure(
     Proto[Failure](
-      ProtoField.typed(Field[Failure, String](_.message), ProtoValue.text("attempt failed")),
+      ProtoField.typed(Field(_.message), ProtoValue.text("attempt failed")),
       ProtoField.typed(
-        Field[Failure, ApplicationFailureInfo](_.getApplicationFailureInfo),
+        Field(_.getApplicationFailureInfo),
         ProtoValue.message(
           Proto[ApplicationFailureInfo](
-            ProtoField.typed(
-              Field[ApplicationFailureInfo, String](_.`type`),
-              ProtoValue.text("AttemptFailed")
-            ),
-            ProtoField.typed(
-              Field[ApplicationFailureInfo, Boolean](_.nonRetryable),
-              ProtoValue.flag(nonRetryable)
-            )
+            ProtoField.typed(Field(_.`type`), ProtoValue.text("AttemptFailed")),
+            ProtoField.typed(Field(_.nonRetryable), ProtoValue.flag(nonRetryable))
           )
         )
       )
@@ -197,10 +163,7 @@ object ActivityRealization:
   private val failActivity = attemptFailure(nonRetryable = true)
   private val cancelAttempt = AttemptCanceled
 
-  /**
-   * The activity's attempts. Each delivery of an attempt to the worker is the attempt start, and the
-   * answers the path gives are the attempts in order.
-   */
+  /** The activity's attempts: each delivery to the worker is an attempt start, answered in order. */
   private val attempts = script(
     "activity",
     Activation.Activity(activityType, caseWorker, taskQueue, starts = Vector(attemptStart))
@@ -213,11 +176,10 @@ object ActivityRealization:
     )
   )
 
-  // An activity is scheduled by its start, again by the release of a pause, and again by a failure
-  // the server retries, and a worker is delivered each of its attempts. Each of those steps has
-  // evidence of its own that stays true once it is so: the start call's answer; the release's answer;
-  // and the second attempt's delivery, which is what shows that the first failed, that the activity
-  // was scheduled again and that a worker took it again, and so confirms the three steps at once.
+  // An activity is scheduled by its start, again by a pause's release, and again by a retried
+  // failure. Each has evidence that stays true: the start's answer, the release's answer, and the
+  // second attempt's delivery, which shows the first failed, the activity was scheduled again and a
+  // worker took it again, confirming the three at once.
 
   /** One standalone activity a controller starts and the Case's own worker runs. */
   val standalone: Realization = temporalRealization(
@@ -253,21 +215,17 @@ object ActivityRealization:
   )
 
   // ### The held race
-  //
-  // A controller starts one activity on a queue no worker polls, holds its dispatch at the cut
-  // between history's validated dispatch task and matching, pauses it, reads the pause back, and
-  // releases the old message. The release delivers it to admission, so it performs the attempt
-  // start, and records what admission committed for it: the commit observation. A Driver realizes
-  // the hold only where its environment runs the server, so the canary refuses the Case before any
-  // I/O.
+  // A controller starts one activity on a queue no worker polls, holds its dispatch between
+  // history's validated dispatch task and matching, pauses it, reads the pause back, and releases the
+  // old message to admission, which records what it committed. A Driver realizes the hold only
+  // where its environment runs the server, so the canary refuses the Case before any I/O.
 
   private val dispatchHold =
     Actuator("hold-dispatch", ControlKind.HoldDispatched(dispatch), taskQueue)
   private val holdDispatch = Hold(dispatchHold)
 
-  // The hold lets no dispatch of the activity reach admission before the release, and the release
-  // records an attempt admission commits for any delivery of it: its record is every admission there
-  // was, so the release closes that kind, and a Run that records none admitted none.
+  // The hold lets no dispatch reach admission before the release, and the release records every
+  // admission there was of it, so it closes that kind: a Run that records none admitted none.
   private val releaseDispatch =
     command(Release(dispatchHold), closes = Vector(evidenceId(AdmissionFact.attemptAdmitted)))
 
@@ -275,21 +233,22 @@ object ActivityRealization:
   private val loseAdmissionResponse =
     Command("release-dispatch", Fault(taskQueue, FaultKind.admissionResponseLoss))
 
+  /** That admission committed `decision`, as the release's record of the delivery names it. */
+  private def decided(decision: DeliveryAdmissionDecision): Condition[InstructionOutcome] =
+    Condition.equal(Field(_.getDeliveryAdmission.decision), Operand.enumValue(decision))
+  private val admitted = decided(DELIVERY_ADMISSION_DECISION_ADMITTED)
+  private val rejected = decided(DELIVERY_ADMISSION_DECISION_REJECTED)
+
   /**
-   * What admission committed for the released delivery, from the release's own record: the
-   * decision the server committed, never what a caller was told. It is keyed by the activity the
-   * record names, so a decision of another activity is no evidence of this one; and the delivery is
-   * the stamp the message carried, which tells two deliveries apart. A lost answer's record also
-   * numbers the attempt admission committed, which must be one.
+   * What admission committed for the released delivery, from the release's record where it meets
+   * `guard`: never what a caller was told; keyed by the record's activity, stamped with its delivery.
    */
   private def committed(
       fact: Fact,
-      decision: DeliveryAdmissionDecision,
       release: Command | Instruction,
-      exhaustive: Boolean,
-      attempt: Vector[Condition[InstructionOutcome]],
-      fields: Vector[TypedEvidenceField[InstructionOutcome, ?]]
-  ) = Evidence.runEvent(
+      exhaustive: Boolean = false,
+      fields: Vector[TypedEvidenceField[InstructionOutcome, ?]] = Vector.empty
+  )(guard: Condition[InstructionOutcome]*) = Evidence.runEvent(
     id = evidenceId(fact),
     records = fact,
     source = runRecord,
@@ -299,38 +258,18 @@ object ActivityRealization:
       release,
       key = Operand.path(
         Operand.Projected.as[InstructionOutcome],
-        Field[InstructionOutcome, String](_.getDeliveryAdmission.activityId)
+        Field(_.getDeliveryAdmission.activityId)
       ),
-      guard = Some(
-        Condition.all(
-          succeeded,
-          (Vector(
-            Condition.equal(
-              Field[InstructionOutcome, DeliveryAdmissionDecision](_.getDeliveryAdmission.decision),
-              Operand.enumValue(decision)
-            )
-          ) ++ attempt)*
-        )
-      )
+      guard = Some(Condition.all(succeeded, guard*))
     ),
     commitment = Commitment.durable,
-    fields = Vector(
-      EvidenceField.typed(
-        "delivery",
-        Field[InstructionOutcome, String](_.getDeliveryAdmission.deliveryId),
-        role = Some(FieldRole.delivery)
-      )
-    ) ++ fields ++ Vector(
-      EvidenceField.typed(
-        "activityRun",
-        Field[InstructionOutcome, String](_.getDeliveryAdmission.activityRunId)
-      )
-    ),
+    fields = Vector(deliveryField(Field(_.getDeliveryAdmission.deliveryId))) ++ fields :+
+      activityRunField(Field(_.getDeliveryAdmission.activityRunId)),
     exhaustive = exhaustive
   )
 
-  // The machine starts scheduled, so no step of a path is the start: every Case carries it. It sets
-  // one deadline, a start-to-close no Case lives to see, so no deadline competes with the delivery.
+  // The machine starts scheduled, so every Case carries the start. Its one deadline, a start-to-close
+  // no Case lives to see, competes with no delivery.
 
   /** The stale dispatch of one paused activity, held, then delivered to admission. */
   val heldDelivery: Realization = temporalRealization(
@@ -349,22 +288,8 @@ object ActivityRealization:
     evidence = Vector(
       answered(AdmissionFact.dispatchSent, holdDispatch),
       status(AdmissionFact.statusPaused),
-      committed(
-        AdmissionFact.admissionRejected,
-        DELIVERY_ADMISSION_DECISION_REJECTED,
-        releaseDispatch,
-        false,
-        Vector.empty,
-        Vector.empty
-      ),
-      committed(
-        AdmissionFact.attemptAdmitted,
-        DELIVERY_ADMISSION_DECISION_ADMITTED,
-        releaseDispatch,
-        true,
-        Vector.empty,
-        Vector.empty
-      )
+      committed(AdmissionFact.admissionRejected, releaseDispatch)(rejected),
+      committed(AdmissionFact.attemptAdmitted, releaseDispatch, exhaustive = true)(admitted)
     ),
     controls = Vector(dispatchHold)
   )
@@ -383,25 +308,12 @@ object ActivityRealization:
     ),
     evidence = Vector(
       answered(AdmissionResponseFact.dispatchSent, holdDispatch),
+      // A lost answer's record also numbers the attempt admission committed, which must be one.
       committed(
         AdmissionResponseFact.attemptAdmitted,
-        DELIVERY_ADMISSION_DECISION_ADMITTED,
         loseAdmissionResponse,
-        false,
-        Vector(
-          Condition.greater(
-            Field[InstructionOutcome, Int](_.getDeliveryAdmission.attempt),
-            Operand.integer(0)
-          )
-        ),
-        Vector(
-          EvidenceField.typed(
-            "attempt",
-            Field[InstructionOutcome, Int](_.getDeliveryAdmission.attempt),
-            role = Some(FieldRole.attempt)
-          )
-        )
-      )
+        fields = Vector(attemptField(Field(_.getDeliveryAdmission.attempt)))
+      )(admitted, Condition.greater(Field(_.getDeliveryAdmission.attempt), Operand.integer(0)))
     ),
     controls = Vector(dispatchHold)
   )

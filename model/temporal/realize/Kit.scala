@@ -244,20 +244,23 @@ def delivered(
   ),
   commitment = Commitment.reported,
   fields = Vector(
-    EvidenceField.typed(
-      "attempt",
-      Field[InstructionOutcome, Int](_.getActivityAttempt.sdkAttempt),
-      role = Some(FieldRole.attempt)
-    ),
-    EvidenceField.typed(
-      "delivery",
-      Field[InstructionOutcome, String](_.getActivityAttempt.deliveryId),
-      role = Some(FieldRole.delivery)
-    ),
-    EvidenceField.typed(
-      "activityRun",
-      Field[InstructionOutcome, String](_.getActivityAttempt.activityRunId)
-    )
+    attemptField(Field(_.getActivityAttempt.sdkAttempt)),
+    deliveryField(Field(_.getActivityAttempt.deliveryId)),
+    activityRunField(Field(_.getActivityAttempt.activityRunId))
   ),
   confirms = Vector(confirms*)
 )
+
+// ### The fields a Run's record of an attempt carries, read at the record's own path
+
+/** The attempt's number, as the server counts attempts. */
+def attemptField(path: Field[InstructionOutcome, Int]) =
+  EvidenceField.typed("attempt", path, role = Some(FieldRole.attempt))
+
+/** The stamp of the delivery, which tells two deliveries of one attempt apart. */
+def deliveryField(path: Field[InstructionOutcome, String]) =
+  EvidenceField.typed("delivery", path, role = Some(FieldRole.delivery))
+
+/** The activity run the attempt belongs to. */
+def activityRunField(path: Field[InstructionOutcome, String]) =
+  EvidenceField.typed("activityRun", path)
