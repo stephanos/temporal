@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-110-gomad-minimize-the-runtime-patch.3.md",
   "status": "todo",
   "title": "Relocate crypto initialization and syscall declarations to overlays",
-  "updated_at": "2026-10-01T01:03:53.768439Z"
+  "updated_at": "2026-10-04T05:38:09.519895Z"
 }
