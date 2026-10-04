@@ -120,7 +120,9 @@ composition selectors, `Declares[S]` and the claim patterns. Task 5 is done: inp
 with `:=` and `UpTo` counters. Task 11 is done: every Query carries an author-written total (largest 887,040)
 that Go recomputes and refuses when wrong. fn-120.1 (named choices: `choose` with named alternatives, inert in the IR and
 exported to Quint) is merged. Task 6 is done: the product, protocol and admission machines use the new DSL
-with `choose`, Case bytes unchanged. Task 7 is next. Before tasks 6 and 7 change a
+with `choose`, Case bytes unchanged. Task 7 is done: queue providers and compositions are derived, scenarios
+use typed `synced`/`own` steps, the shared admission claims are single defs over `Declares[S]`, and no string
+keys remain (feature now 2,640 lines). Task 12 (task-queue entity) is next, then 8, 9 and 10. Before tasks 6 and 7 change a
 production function body, they extend or re-capture the fn-115 migration golden (`TestMigrationGoldens`), which
 still compares function bodies. Task 6 made the 168 state/action pairs disabled only by a default arm explicit. Recorded follow-ups the
 behavior freeze forbids changing here: the witness-only Properties `terminated` and
