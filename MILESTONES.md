@@ -72,7 +72,6 @@ production dispatch fails closed.
 | --- | --- | --- | --- |
 | 1 | fn-114 | Roll the fn-112 showcase constructs, including choices, out to every other Model; then shrink copied fixture text and rename the model/ tool folders | — (in progress) |
 | alongside 1 | fn-122 | Capabilities and their laws: shared Temporal promises stated once, adopted per entity | — (in progress) |
-| alongside 1 | fn-121 | Shard generated Cases per Case in CI, with HSM/CHASM per Nexus Case | tasks 1-2 done and merged (each Case is its own shard unit, names pinned by a golden); task 3 needs GitHub CI |
 | alongside 1 | fn-120 rollout and tools | fn-120.2 done (unnamed branching refused; `choose` accepts helper calls); fn-120.3 model lint done; the IR explorer (fn-120.4) is deferred by the owner; fn-120.5 closes | started early: fn-114's remaining tasks are cleanup |
 | alongside 1 | fn-118 behavior | fn-118.3 done (Testpilot waits by condition within declared bounds, read-once evidence, scale factor); fn-118.2 hints in the kit in progress; then derived waits | started early, as above |
 | alongside | fn-124 | Cleanup: delete archives, trim the checker, make the Run judge declare-only, retire the migration harness, split the model package | tasks 1-2 done (archives deleted, checker trimmed); 3 after fn-118; 7 after fn-114/120/122 close; 8 last |
@@ -94,7 +93,7 @@ test-shape changes. `ShutdownWorker` returns early when the task queue's root pa
 (`service/matching/matching_engine.go`, upstream #9424), never records the worker as shut down, and later polls
 hang until `stop-worker` runs out its 10 s limit. With `frontend.enableMatchingFanOutForPollCancellation=false`
 the same Cases are satisfied in 20 of 20 Runs. The choice is a server fix or that setting in the generated
-test's Profile; fn-121.3's sharded CI run stays red on these Cases until then. `terminateSettles` and both
+test's Profile; `terminateSettles` and both
 scheduleToStartTimeout Cases are affected too, under both Nexus implementations; with the setting off they pass
 10 of 10 Runs. fn-125.6 declares that setting as a `workerStop` precondition and drafts the upstream report.
 
@@ -181,13 +180,6 @@ The workflow is the Driver's interpreter executing the Case; testing a hand-writ
 function is out of scope. Tasks 1 and 2 are done: the Driver schedules an activity, routes its
 retries to the Case's script and can withhold an attempt so the server times it out.
 
-### fn-121: Shard generated Cases per Case in CI
-
-CI shards functional tests by test name, and the salt optimizer balances by depth-2 names. Today
-every generated Case runs inside `TestTestpilotGeneratedCases/<hsm|chasm>`, so two blocks hold all
-Cases, standalone activity Cases run twice, and the Testpilot tests run only in the unsharded
-`umpire-check-live-tests`. The spec names each Case at depth 2, runs HSM and CHASM only for Nexus
-Cases, pins the names to the manifest and runs the generated Cases in the sharded functional job.
 
 ### fn-122: Capabilities and their laws
 

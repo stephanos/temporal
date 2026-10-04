@@ -233,7 +233,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-121-shard-generated-cases-per-case-in-ci.md",
-  "status": "open",
+  "status": "done",
   "title": "Shard generated Cases per Case in CI",
   "tracker": {
     "baseHashFlow": null,
@@ -246,5 +246,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T16:26:42.674537Z"
+  "updated_at": "2026-10-04T23:29:07.908331Z"
 }

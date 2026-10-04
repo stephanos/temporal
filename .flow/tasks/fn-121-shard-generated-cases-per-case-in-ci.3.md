@@ -47,8 +47,8 @@ make umpire-check-cases && make lint-code-fast && make umpire-check-live-tests
 - [ ] `make umpire-check-cases` and `make lint-code-fast` pass; no Case, manifest, IR or fixture byte changed.
 
 ## Done summary
-TBD
-
+Blocked:
+Blocked: Closed: won't do. Owner decision 2026-10-04: fn-121 needs no CI verification, so the generated-Case test stays under `test_dep && integration` and runs through `make umpire-check-live-tests`; it does not join the sharded functional job. Tasks 1 and 2 delivered the per-Case shard units and the name golden. Moving the test into the sharded job would also put the four Cases hit by the matching ShutdownWorker race (MILESTONES "Open for the owner"; fn-125.6) into CI before their precondition exists.
 ## Evidence
 - Commits:
 - Tests:

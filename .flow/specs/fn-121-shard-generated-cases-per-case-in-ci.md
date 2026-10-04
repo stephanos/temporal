@@ -102,3 +102,7 @@ Task fn-121-shard-generated-cases-per-case-in-ci.1 validates the core approach (
 | R5 | The generated-Case test and the helpers it needs build under `test_dep` alone, so `make functional-test-coverage` runs it sharded, and `make umpire-check-live-tests` still runs it under `test_dep integration` with the `^TestTestpilot` selector. Errors: the hand-written Testpilot suites keep `test_dep && integration` and do not enter the functional job; a `test_dep`-only build of `./tests` compiles. | fn-121-shard-generated-cases-per-case-in-ci.3 | — |
 | R6 | The comment on the Nexus implementation switch name states that the functional tests declare the switch and its value names, and that no Model, IR or Case declares it or depends on it (no error surface beyond the comment). | fn-121-shard-generated-cases-per-case-in-ci.1 | — |
 | R7 | No Case, manifest, IR or fixture byte changes; the done summary cites the Case check target, the before and after wall-clock of the generated-Case test unsharded and per shard with five shards locally, and the cluster and Run counts. Errors: a changed byte stops the task. | fn-121-shard-generated-cases-per-case-in-ci.3 | — |
+
+## Closed
+
+Closed 2026-10-04 at the owner's request: no CI verification is needed. Tasks 1 and 2 are done (each generated Case is its own depth-2 shard unit, names pinned by a golden); task 3 (moving the test into the sharded functional job with CI evidence) is closed as won't do.
