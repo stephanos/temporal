@@ -1,0 +1,22 @@
+=== RUN   TestErrorProvenanceEmptySliceAlias
+=== RUN   TestErrorProvenanceEmptySliceAlias/dirty
+    error_provenance_test.go:149: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:149: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptySliceAliasdirty432514135/001/internal/canonicaljson/helper.go:1:88 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Dirty -> time.Now}]
+    error_provenance_test.go:149: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptySliceAliasdirty432514135/001/internal/canonicaljson/helper.go:1:88 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestErrorProvenanceEmptySliceAlias/clean
+    error_provenance_test.go:149: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:149: metadata {linux amd64} package edges=0 effects=[]
+    error_provenance_test.go:149: metadata {darwin arm64} package edges=0 effects=[]
+--- PASS: TestErrorProvenanceEmptySliceAlias (1.59s)
+    --- PASS: TestErrorProvenanceEmptySliceAlias/dirty (0.81s)
+    --- PASS: TestErrorProvenanceEmptySliceAlias/clean (0.78s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	1.597s

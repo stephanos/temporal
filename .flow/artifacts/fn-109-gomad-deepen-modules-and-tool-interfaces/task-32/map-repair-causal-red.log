@@ -1,0 +1,47 @@
+=== RUN   TestErrorProvenanceEmptyMapAlias
+=== RUN   TestErrorProvenanceEmptyMapAlias/dirty
+    error_provenance_test.go:164: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:164: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptyMapAliasdirty3379146702/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:164: returned callback escaped {linux amd64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptyMapAliasdirty3379146702/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:164: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptyMapAliasdirty3379146702/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:164: returned callback escaped {darwin arm64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptyMapAliasdirty3379146702/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestErrorProvenanceEmptyMapAlias/clean
+    error_provenance_test.go:164: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:164: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptyMapAliasclean2267080774/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:164: pure callback rejected {linux amd64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptyMapAliasclean2267080774/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:164: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptyMapAliasclean2267080774/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:164: pure callback rejected {darwin arm64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptyMapAliasclean2267080774/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestErrorProvenanceEmptyMapAlias/nil-interface-elements
+    error_provenance_test.go:164: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:164: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptyMapAliasnil-interface-elements1623361654/001/record/pure.go:1:171 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unknown dynamic callback receiver error}]
+    error_provenance_test.go:164: pure callback rejected {linux amd64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptyMapAliasnil-interface-elements1623361654/001/record/pure.go:1:171 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unknown dynamic callback receiver error}]
+    error_provenance_test.go:164: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptyMapAliasnil-interface-elements1623361654/001/record/pure.go:1:171 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unknown dynamic callback receiver error}]
+    error_provenance_test.go:164: pure callback rejected {darwin arm64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptyMapAliasnil-interface-elements1623361654/001/record/pure.go:1:171 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unknown dynamic callback receiver error}]
+=== RUN   TestErrorProvenanceEmptyMapAlias/unknown-interface-elements
+    error_provenance_test.go:164: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:164: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptyMapAliasunknown-interface-elements57093456/001/record/pure.go:1:171 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unknown dynamic callback receiver error}]
+    error_provenance_test.go:164: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceEmptyMapAliasunknown-interface-elements57093456/001/record/pure.go:1:171 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unknown dynamic callback receiver error}]
+--- FAIL: TestErrorProvenanceEmptyMapAlias (3.29s)
+    --- FAIL: TestErrorProvenanceEmptyMapAlias/dirty (0.80s)
+    --- FAIL: TestErrorProvenanceEmptyMapAlias/clean (0.87s)
+    --- FAIL: TestErrorProvenanceEmptyMapAlias/nil-interface-elements (0.80s)
+    --- PASS: TestErrorProvenanceEmptyMapAlias/unknown-interface-elements (0.81s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	3.292s
+FAIL

@@ -1,0 +1,306 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.32",
+  "status": "in_progress",
+  "base_commit": "f931c9879e3017b346562667b9f6fbcc4db458ec",
+  "commits": [],
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "actual_model": "unknown; host execution metadata unavailable",
+  "historical_files": {
+    "audit.py": "99383e78b8b0bdc4c5e8c3909a20123c9ca6253cfac73183286c0efc9a32d202",
+    "baseline-errortype.json": "24aa5e3d66d66626255c024c76d12e13dedcbf1d47ffdb98db5a6e0b63ab6a2a",
+    "baseline-errortype.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "baseline-lint.json": "0ef09335fb87d5d45586071c3698abd227a8b497b48cace2cbff1b30c3a23014",
+    "baseline-lint.log": "1da024342f80e95ecb9a1539f8bebe7511e6e2da4757142d005b04baa6deec7a",
+    "baseline-package.json": "dd75c0a8c6cf4cb6231a79bb9e720c16d305c1c35d7d4558e5a46600355c5e7b",
+    "baseline-package.log": "daa4d6c5fcf43c3dd945f5588d9b49b857228232e7fc3e9ffe0ae8a5fa846158",
+    "baseline.json": "c8a6a7e66096ea368980b3d58cc405ed8404ae2976e4044fcf67b085de241e83",
+    "causal-red.json": "25992a9b627a2c5fab03f7ca54d72ee8f90f731a775979af567c7392ec73025d",
+    "causal-red.log": "1ee499696593eb6c08560624f574044df0dba9a4ee16350168ea4aa980b633a2",
+    "conversion-stage-test.json": "7dd441716096b2ee2f7b60ae45d26375e18f889423815fbe69f7478339729e57",
+    "conversion-stage-test.log": "104fab084ec2aff2011132d6f16d15c49038c3aba7290caf5f6a0b3cd362ed18",
+    "conversion-stage.json": "0de18e1ed2a6118e61a4447649f6ecd337674edea69c81d7da10dba2be958ed5",
+    "environment.json": "5b03aedf79a008492462c38b336e24f5f3e1da5cef50eca9fdea57f1e1b40116",
+    "environment.log": "e7720d79211a915659324e03935ad7e3040396c871292069f87e3207b643bebb",
+    "evidence.json": "91231617d9002e3a6334aa831d8d33852b9deee0f63d0779cbbb4b1b4b38480b",
+    "final-boundaries.json": "c20cbb564b73bb7465fd53d936fb4aba975a2323e9fded8bdebedb1390e01ad7",
+    "final-boundaries.log": "a306731a2cdf694d5b98da3020f3a18d6f046876dc0919013f5a7b53db10d71c",
+    "final-causal.json": "a79b534952711797c03f2b61ae298ecdb5305ec613a1428377d8b5d2446146e0",
+    "final-causal.log": "308ef05c717b07a081604513dd997ed251b24ad7837273c25abe2753eb4a099c",
+    "final-consumer.json": "6ed20724ff9a4729a54d76d6ecdff8a91d9b6cc191649e49b54ae03719c0baf3",
+    "final-consumer.log": "c58cc54dde13285528267317c437cc99f922a0130001d9f306303cb580537f0c",
+    "final-errortype.json": "744522415ae76b766b2edfcf50276c64403a3b03a559db61a875f6eb9ef0d0ef",
+    "final-errortype.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-lint.json": "5a35f790dfcf55603f78f1a2436f47750c03b1916c948ee9db772a4fc4af255e",
+    "final-lint.log": "1da024342f80e95ecb9a1539f8bebe7511e6e2da4757142d005b04baa6deec7a",
+    "final-package.json": "35b09e074ad61864c5c0b3b9faea43c31cb4d070d5ccd2f21223c29d55a1ad4b",
+    "final-package.log": "a4b35c70f65238d810101e7cfc5c1746caa893bc1b2a7f4737b805e8696562af",
+    "final-public-consumer-boundaries.json": "9fa067377a37723f87fc7dced0f79d28228977f893c49c6c2c27f0823525b0a0",
+    "final-public-consumer-boundaries.log": "cb486c92f3e57ed67941fa9ab3c9086357c1c29f96749745db56f4875ff65254",
+    "final-static.json": "c95ca67adb7fdeb37a33ded6cecd362e3b047b24281d5e29ee83681e6e6ed214",
+    "final-static.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final-validate.json": "05f3bd4a62d6b0e17c72558ae4c492dc29853bb2bac9e0bc52cb3bdd988ced5d",
+    "final-validate.log": "b3b9b9029c8440ebe3a8a1dd46fa28f1aee5bd9396eeffb91e1df2a2774a1ca2",
+    "handover.md": "bcfe69a7484cf5966e285fe98fae1e50f5fc8ba0ac62ea8758e0c8959923f3f1",
+    "independent-source-review-checks.json": "67a30b4514884051cba5e275c85507ba628786bd3bcc1c2f50feee156b0194fd",
+    "independent-source-review.md": "ac11435f56e93932cb47063af3f70963a6b47bec25ba50486b1cd0fab0ab0fa2",
+    "review-alias-baseline.json": "3593faefe2a91178998b00a651330385607dcda000ef9f32273e9a04de7016d2",
+    "review-alias-baseline.log": "73b5e60dbf0b42b119420e4bd8d209c9d4191f3c40fd8d815d3c630a65c3b9ab",
+    "review-alias-candidate.json": "6429d241918617411d48510f2d9b3ad6be9b43a490a5109244430023c32fc86e",
+    "review-alias-candidate.log": "d76dfeadf4bbabd39e9549a3b234466d40e16f5e462b8b55d7d699537b90e920",
+    "review-alias-full-baseline.json": "6a88120bc1b2e46b4d230a5ba76311f029bf223890a38815af487e091e49b12d",
+    "review-alias-full-baseline.log": "131b34286b25746fe7d75ac3c082964d48bd8081be167d17e99f79920dd8a5e4",
+    "review-alias-full-candidate.json": "5c6efd84848b5801c1b80d65444356c4d847b1067e8a67ad113e5127095d16ae",
+    "review-alias-full-candidate.log": "4a67d7821a1e9a7937b576e685297c0e72eada2585f054bd95a49d1e3b04e0db",
+    "review-alias-probe.py": "661f2317cc83f1af756e483280a5e5377f06319cd5703c1f501f7fe8fed6a19e",
+    "review-audit.py": "d9973b65f27035ae699da520b6598c23b5cf14a011d062cec20140260cf0c9cf",
+    "review-boundaries.json": "4b9c03de60a54aaafb3ca58294e0acaca0e448fc1cd1709368b3ca20ddc999ab",
+    "review-boundaries.log": "417381f44b0b1482fbdbc1cb2078f07d9f567fb6c4a090ead6d65e68d668e9f7",
+    "review-consumer.json": "ecbdb5450fa061543c91db3a1606552663d3dd6ac6e6ce3c36d5dad2c02eb9b8",
+    "review-consumer.log": "e37950c33361825a2429c03bbf0427ec157ea5ffa62846513cd9d85eb2a7fd6f",
+    "review-errortype.json": "9c4bb78ca0babf05dbf932cf136c97048dad203f8551d700dac6ef52973b5075",
+    "review-errortype.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "review-focused.json": "4e896bc694657ae13f1c5354c64a94caa1ffbdb1c7ce7804272b9ddfd0c7c76a",
+    "review-focused.log": "25ca020503f408255e52f5cf7246f55e981acc7bb48d4644161c74a63bed7422",
+    "review-lint.json": "57fece92bc0fe9fe18dbbd9521440fdb64e4542d65153756ce0473d0cb48bd78",
+    "review-lint.log": "1da024342f80e95ecb9a1539f8bebe7511e6e2da4757142d005b04baa6deec7a",
+    "review-package.json": "d8df3e7b7de0d45b57268d3dbcb20a4c245e660c94bd5f1c734f82bcc7092ae6",
+    "review-package.log": "45fce6c73e82fc9f8882f6450193fdf7b7373ffcde5833fd80fbbf52bf58d292",
+    "review-runner.py": "b8e14465f30ee09b6bf655a5054546a05773518429678348c4387858edaaa863",
+    "review-static.json": "a7b8c0a395c1923407fa7033224966fc3394204af3e64372e6a287064b69292f",
+    "review-static.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "review-validate.json": "68c334eac7c99ab03c89ba0af46632cb6a707f329cbcd3678593c54522c13191",
+    "review-validate.log": "23526df5ff015aa7ea83d107d454d6e79f077c768dd884efbc2fb73e7903b679",
+    "review-worker-audit.json": "ae85f96852562a155dfe8678b4bfeefe4ec08de64f0d133d77a1a9e6e66da1e5",
+    "review-worker-audit.log": "6da91e6c691cba08096ad48aa0610e07b1fe91dde1493cb5338e47bd1a785769",
+    "run-gate.py": "73f2504a92a53717a05d0339240be2717f62c8d5736cdbb39f0781288ffaadc7",
+    "source-admission.json": "c1836b62d81c547cd862b0cae20e1bf5e13213e94e134ae9debdbf81a9914c84",
+    "sources/baseline/effects.go": "9796dff5b296f6c0cdadaa47434e30ee064eaf4a94a8210e3608dbb035fcd9eb",
+    "sources/baseline/standard.go": "5c2a524847bcf16b7eb2694255209a7c5a49ea15cda96d539ca3b6d71aef9106",
+    "sources/conversion-stage/effects.go": "1f7f97a6d9b4f8d335d4649a81c6a9c58648ff0f17fbc1f3deb7fd50bb8a5047",
+    "sources/conversion-stage/error_provenance_test.go": "20c4b8391b30976f16597d8748b4f1f4029c229e7f83781b3eb9e6e38c686669",
+    "sources/conversion-stage/standard.go": "715616cb447c988a2e7a4a917e56fc79b26d37309907f575e8894c650255b37e",
+    "sources/test-first/effects.go": "9796dff5b296f6c0cdadaa47434e30ee064eaf4a94a8210e3608dbb035fcd9eb",
+    "sources/test-first/error_provenance_test.go": "20c4b8391b30976f16597d8748b4f1f4029c229e7f83781b3eb9e6e38c686669",
+    "sources/test-first/standard.go": "5c2a524847bcf16b7eb2694255209a7c5a49ea15cda96d539ca3b6d71aef9106",
+    "sources/unwrap-stage/effects.go": "9796dff5b296f6c0cdadaa47434e30ee064eaf4a94a8210e3608dbb035fcd9eb",
+    "sources/unwrap-stage/error_provenance_test.go": "20c4b8391b30976f16597d8748b4f1f4029c229e7f83781b3eb9e6e38c686669",
+    "sources/unwrap-stage/standard.go": "715616cb447c988a2e7a4a917e56fc79b26d37309907f575e8894c650255b37e",
+    "sources/writer-stage/effects.go": "1f7f97a6d9b4f8d335d4649a81c6a9c58648ff0f17fbc1f3deb7fd50bb8a5047",
+    "sources/writer-stage/error_provenance_test.go": "e711523d6876fbe769dd1a1b46d407d47fede18b1bdd382b08deea5b1a9b910a",
+    "sources/writer-stage/standard.go": "efad9411c3876b452d4d2f4905a4ba1cb92b43a0428ea2f039c94b3e5d9fd88d",
+    "test-first.json": "5ba659285957da6ece35c10d9e718df91ab37f05e544fd0f5e4cc9dff1e18c34",
+    "unwrap-stage-test.json": "c6b4cbce0b52d9e09a31d6c9bc83756454829f5cceae264cce281b869254113a",
+    "unwrap-stage-test.log": "843a126a3dbd1f7243dd8f1a3a0eec8c46eb4dd9f4da8b059bfae59f6e1512dd",
+    "unwrap-stage.json": "0aa46ba58f4c98ae51981e19d8810bc04eadb06e39df909365fad423e32abddd",
+    "writer-stage-test.json": "905088a3671f6b42f20a8f5b84797f08d505677103936d0cbc7efcfa1ee30a4e",
+    "writer-stage-test.log": "c594f538ee1ac2f52dbe9894937e95d7e5aebe74ca2dd1a1bf8f0c705545df33",
+    "writer-stage.json": "6880e59fa8cac287c592b88e7e6ccfa5082225d176414380a66781405417f587"
+  },
+  "command_receipts": [
+    {
+      "path": "repair-causal-red.json",
+      "sha256": "7056e753c08a9369a622f70ada93a8bed9049f417ebd2afffd1bba83f5fbc679",
+      "expected_exit": 1,
+      "stage": "repair-test-first",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture -run '^TestErrorProvenanceEmptySliceAlias$'",
+      "observation": "expected causal RED"
+    },
+    {
+      "path": "repair-alias-green.json",
+      "sha256": "5b614acb7180bc1ca4d18312a3fec45d2d49a59958bc45a8894cee2f4b111fc2",
+      "expected_exit": 0,
+      "stage": "repair-candidate",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture -run '^TestErrorProvenanceEmptySliceAlias$'",
+      "observation": "green"
+    },
+    {
+      "path": "repair-controls.json",
+      "sha256": "d7d626eae8a1cf827be5c07b30d4d449d6a80dbb0c0c9b3b75412eab0e672d3d",
+      "expected_exit": 0,
+      "stage": "repair-final",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture -run '^TestErrorProvenanceEmptySliceAlias$'",
+      "observation": "green"
+    },
+    {
+      "path": "repair-package.json",
+      "sha256": "59e8228b1f96f7c35b4e86394c7fec20d7db05061b910e1929393a44218c2362",
+      "expected_exit": 0,
+      "stage": "repair-final",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture",
+      "observation": "green"
+    },
+    {
+      "path": "repair-focused.json",
+      "sha256": "89e8b8fc41fabf781010b16589696fb1da8a834645b103d4c3e4ba438cb6acf9",
+      "expected_exit": 0,
+      "stage": "repair-final",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture -run 'TestErrorProvenance|TestEffectCallbackContextsAndUnwrapReturns|TestDependencyInitialization|TestThirdPartyInitialization|TestStandardStartupIdentity|TestMemorySummarySourceIdentity|TestCallbackContainerMutations|TestRangeAssignmentSlots|TestImplicitCallbackPrecedence|TestPureMemoryFormattingAndJSON'",
+      "observation": "green"
+    },
+    {
+      "path": "repair-boundaries.json",
+      "sha256": "7bf0f377d7f037b49b875bbf9ed585fa6c0907b34e48b3edfba84cf363e5c4dd",
+      "expected_exit": 0,
+      "stage": "repair-final",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./cmd/gomadtool -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$'",
+      "observation": "inconclusive: wrong package, zero selected tests"
+    },
+    {
+      "path": "repair-broader.json",
+      "sha256": "6247c2fbc27dd661f37bbf43850b732e9fa4cefda50a66eda5e897784a67d9f6",
+      "expected_exit": 0,
+      "stage": "repair-final",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./cmd/gomadtool -run '^(TestPureModulesHaveNoHostEffects|TestExactModuleEdges|TestHostPackageVet)$'",
+      "observation": "inconclusive: wrong package, zero selected tests"
+    },
+    {
+      "path": "repair-consumer.json",
+      "sha256": "661c58b17fd55aa8f199dcb6a95dcf8d4adad93cf72df5362889e916672cee38",
+      "expected_exit": 0,
+      "stage": "repair-final",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./cmd/gomadtool",
+      "observation": "green"
+    },
+    {
+      "path": "repair-lint.json",
+      "sha256": "a29af93607b024c9146afa538a037f1bbcec6738f5d2d42d6f9221f4396199ed",
+      "expected_exit": 1,
+      "stage": "repair-final",
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config /Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --build-tags test_dep --fix=false ./internal/gomadtool/architecture",
+      "observation": "inherited lint residual"
+    },
+    {
+      "path": "repair-errortype.json",
+      "sha256": "ebbbe48c4578b48ff20f6828cbaacf9b12261f03a03b146d331215280ba043aa",
+      "expected_exit": 0,
+      "stage": "repair-final",
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/errortype -tags test_dep ./internal/gomadtool/architecture",
+      "observation": "green"
+    },
+    {
+      "path": "repair-validate.json",
+      "sha256": "3b0c88cb31e22dc5a829d128aafa6db9bcffeb830ae012dfce08ca2b56bd533a",
+      "expected_exit": 0,
+      "stage": "repair-final",
+      "command": "make validate 'GOFLAGS=-tags=test_dep -count=1'",
+      "observation": "green"
+    },
+    {
+      "path": "repair-static.json",
+      "sha256": "45ec8bc0c02dc3259b0792e2b8969254c33f23a53f81f51dbdd4d0a2d101bcb3",
+      "expected_exit": 0,
+      "stage": "repair-final",
+      "command": "bash -c 'git diff --check -- internal/gomadtool/architecture/effects.go internal/gomadtool/architecture/standard.go internal/gomadtool/architecture/error_provenance_test.go && /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l internal/gomadtool/architecture/effects.go internal/gomadtool/architecture/standard.go internal/gomadtool/architecture/error_provenance_test.go'",
+      "observation": "green"
+    },
+    {
+      "path": "repair-root-boundaries.json",
+      "sha256": "2b76f4e992f0fb9783717b787771285e73f781fa0b7d60b13d8fc95655071278",
+      "expected_exit": 0,
+      "stage": "repair-final",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v . -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$'",
+      "observation": "green"
+    },
+    {
+      "path": "repair-root-broader.json",
+      "sha256": "f57b44bf09958490a35e4978162fab3ff445ba4e73585686bd387474c75a63b8",
+      "expected_exit": 0,
+      "stage": "repair-final",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v . -run '^(TestPureModulesHaveNoHostEffects|TestExactModuleEdges|TestHostPackageVet)$'",
+      "observation": "green"
+    }
+  ],
+  "snapshots": [
+    {
+      "path": "repair-baseline.json",
+      "sha256": "6880e59fa8cac287c592b88e7e6ccfa5082225d176414380a66781405417f587"
+    },
+    {
+      "path": "repair-test-first.json",
+      "sha256": "6bb4618df22b7350c67eec01e9ebe75d879564094d699d3d316912797eec3f62"
+    },
+    {
+      "path": "repair-candidate.json",
+      "sha256": "95ff08acd002d977c3061509d34fc8820d5cacb3abc4871adbbc9a8dc48d0209"
+    },
+    {
+      "path": "repair-final.json",
+      "sha256": "e96c91facaee12e224b480a3f4abc8d2abb284b2037ed932b7a47b040ba6c5d4"
+    }
+  ],
+  "required_boundaries": [
+    "TestPackageArchitecture",
+    "TestPublicPackagesDoNotExportTypeAliases",
+    "TestArchitecturePublicSignatureFixtures",
+    "TestRunnerRequestsCompileInExternalModule",
+    "TestRunnerExternalConsumerCompiles"
+  ],
+  "tests": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture -run '^TestErrorProvenanceEmptySliceAlias$'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture -run '^TestErrorProvenanceEmptySliceAlias$'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture -run '^TestErrorProvenanceEmptySliceAlias$'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture -run 'TestErrorProvenance|TestEffectCallbackContextsAndUnwrapReturns|TestDependencyInitialization|TestThirdPartyInitialization|TestStandardStartupIdentity|TestMemorySummarySourceIdentity|TestCallbackContainerMutations|TestRangeAssignmentSlots|TestImplicitCallbackPrecedence|TestPureMemoryFormattingAndJSON'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./cmd/gomadtool -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./cmd/gomadtool -run '^(TestPureModulesHaveNoHostEffects|TestExactModuleEdges|TestHostPackageVet)$'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./cmd/gomadtool",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config /Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --build-tags test_dep --fix=false ./internal/gomadtool/architecture",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype -tags test_dep ./internal/gomadtool/architecture",
+    "make validate 'GOFLAGS=-tags=test_dep -count=1'",
+    "bash -c 'git diff --check -- internal/gomadtool/architecture/effects.go internal/gomadtool/architecture/standard.go internal/gomadtool/architecture/error_provenance_test.go && /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l internal/gomadtool/architecture/effects.go internal/gomadtool/architecture/standard.go internal/gomadtool/architecture/error_provenance_test.go'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v . -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v . -run '^(TestPureModulesHaveNoHostEffects|TestExactModuleEdges|TestHostPackageVet)$'"
+  ],
+  "source_repair": "Fresh make slice allocation initializes a shared, statically typed, known-zero element slot before conversion header copy; no blanket conversion/unknown-slice waiver.",
+  "causal_proof": {
+    "review": "review-alias-full-{baseline,candidate}.log",
+    "permanent_red": "repair-causal-red.log",
+    "first_green": "repair-alias-green.log",
+    "controls": "repair-controls.log",
+    "final": "repair-focused.log",
+    "new_fixtures": 6,
+    "original_fixtures_preserved": 29,
+    "final_fixtures": 35,
+    "metadata_observations": 70
+  },
+  "diagnostics": {
+    "baseline": 4,
+    "residual": 4,
+    "introduced": 0,
+    "resolved": 0,
+    "line_changes": 0,
+    "lint": "repair-lint.log byte-identical baseline-lint.log",
+    "errortype": 0
+  },
+  "qualification": "stock Go1.27.1 linux/arm64 developmental only; Load metadata linux/amd64 + darwin/arm64, not native",
+  "qualification_open": [
+    "R8",
+    "R18",
+    "R19",
+    "task19",
+    "fn105D4",
+    "full",
+    "completion",
+    "formal",
+    "darwin/arm64 patched-native",
+    "linux/amd64 patched-native",
+    "affected-consumer native"
+  ],
+  "review": "host-deferred corrective review owned by conductor; no worker verdict",
+  "delegates": 0,
+  "live_handles": 0,
+  "handover_audit_refs": [
+    {
+      "path": "repair-handover.md",
+      "sha256": "69674124ceead2cac1709bc721698174effed860553e151836aac8c50dd2173b"
+    },
+    {
+      "path": "repair-audit.py",
+      "sha256": "d6679594119667a2674dc4119a314b55a9e9faab7aa7c7e74e7986de74c0adda"
+    }
+  ],
+  "audit": {
+    "command": "python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/repair-audit.py",
+    "mode": "read-only historical saved-stage replay plus repaired current-tree verification"
+  }
+}

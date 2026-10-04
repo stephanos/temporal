@@ -1,0 +1,10 @@
+{
+	"CGO_ENABLED": "1",
+	"GOARCH": "arm64",
+	"GOCACHE": "/home/agent/.cache/go-build",
+	"GOEXPERIMENT": "",
+	"GOMODCACHE": "/home/agent/go/pkg/mod",
+	"GOOS": "linux",
+	"GOROOT": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64",
+	"GOVERSION": "go1.27.1"
+}

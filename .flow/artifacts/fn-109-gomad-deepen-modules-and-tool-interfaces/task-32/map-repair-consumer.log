@@ -1,0 +1,114 @@
+=== RUN   TestRunAdapterRegenerateInputStatuses
+=== RUN   TestRunAdapterRegenerateInputStatuses/usage
+=== RUN   TestRunAdapterRegenerateInputStatuses/unknown_module
+=== RUN   TestRunAdapterRegenerateInputStatuses/verify_usage
+=== RUN   TestRunAdapterRegenerateInputStatuses/recover_nothing
+=== RUN   TestRunAdapterRegenerateInputStatuses/conflicting_approval_aliases
+=== RUN   TestRunAdapterRegenerateInputStatuses/stage_requires_approval
+--- PASS: TestRunAdapterRegenerateInputStatuses (0.00s)
+    --- PASS: TestRunAdapterRegenerateInputStatuses/usage (0.00s)
+    --- PASS: TestRunAdapterRegenerateInputStatuses/unknown_module (0.00s)
+    --- PASS: TestRunAdapterRegenerateInputStatuses/verify_usage (0.00s)
+    --- PASS: TestRunAdapterRegenerateInputStatuses/recover_nothing (0.00s)
+    --- PASS: TestRunAdapterRegenerateInputStatuses/conflicting_approval_aliases (0.00s)
+    --- PASS: TestRunAdapterRegenerateInputStatuses/stage_requires_approval (0.00s)
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/root_packs
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/elsewhere
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_module_report
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_file_report
+--- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes (1.37s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset (0.23s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/root_packs (0.28s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/elsewhere (0.21s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_module_report (0.30s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_file_report (0.35s)
+=== RUN   TestRunCompatibilityPackCheckRequiresTheRepositoryWorkingDirectoryTable
+--- PASS: TestRunCompatibilityPackCheckRequiresTheRepositoryWorkingDirectoryTable (0.04s)
+=== RUN   TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas
+=== RUN   TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas/module_report
+=== RUN   TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas/file_report
+--- PASS: TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas (0.00s)
+    --- PASS: TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas/module_report (0.00s)
+    --- PASS: TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas/file_report (0.00s)
+=== RUN   TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree
+--- PASS: TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree (0.00s)
+=== RUN   TestSavedReportCannotSuppressAnotherMappedModule
+--- PASS: TestSavedReportCannotSuppressAnotherMappedModule (0.00s)
+=== RUN   TestCompatibilityPackPathsHonorAnExternalRoot
+--- PASS: TestCompatibilityPackPathsHonorAnExternalRoot (0.00s)
+=== RUN   TestCompatibilityPathBaseKeepsDefaultPathsRootRelative
+--- PASS: TestCompatibilityPathBaseKeepsDefaultPathsRootRelative (0.00s)
+=== RUN   TestDiagnosticDiffStatusesAndNoPartialInvalidResult
+=== RUN   TestDiagnosticDiffStatusesAndNoPartialInvalidResult/equal
+=== RUN   TestDiagnosticDiffStatusesAndNoPartialInvalidResult/different
+=== RUN   TestDiagnosticDiffStatusesAndNoPartialInvalidResult/json
+=== RUN   TestDiagnosticDiffStatusesAndNoPartialInvalidResult/truncated
+=== RUN   TestDiagnosticDiffStatusesAndNoPartialInvalidResult/recording
+--- PASS: TestDiagnosticDiffStatusesAndNoPartialInvalidResult (0.01s)
+    --- PASS: TestDiagnosticDiffStatusesAndNoPartialInvalidResult/equal (0.00s)
+    --- PASS: TestDiagnosticDiffStatusesAndNoPartialInvalidResult/different (0.00s)
+    --- PASS: TestDiagnosticDiffStatusesAndNoPartialInvalidResult/json (0.00s)
+    --- PASS: TestDiagnosticDiffStatusesAndNoPartialInvalidResult/truncated (0.00s)
+    --- PASS: TestDiagnosticDiffStatusesAndNoPartialInvalidResult/recording (0.00s)
+=== RUN   TestRunBuildKey
+--- PASS: TestRunBuildKey (0.00s)
+=== RUN   TestRunBuildKeyRejectsIncompleteInput
+--- PASS: TestRunBuildKeyRejectsIncompleteInput (0.00s)
+=== RUN   TestRunCompatibilityPackCheckReportsOperationalFailure
+--- PASS: TestRunCompatibilityPackCheckReportsOperationalFailure (0.00s)
+=== RUN   TestRunCompatibilityPackGenerateWithoutApprovalRegeneratesRecordedRequests
+--- PASS: TestRunCompatibilityPackGenerateWithoutApprovalRegeneratesRecordedRequests (0.00s)
+=== RUN   TestRunRejectsRemovedTestMode
+--- PASS: TestRunRejectsRemovedTestMode (0.00s)
+=== RUN   TestRunPatchValidateChecksCurrentModule
+--- PASS: TestRunPatchValidateChecksCurrentModule (0.07s)
+=== RUN   TestRunScriptValidateChecksCurrentModule
+--- PASS: TestRunScriptValidateChecksCurrentModule (0.00s)
+=== RUN   TestRunPatchCommandsRejectIncompleteInput
+--- PASS: TestRunPatchCommandsRejectIncompleteInput (0.00s)
+=== RUN   TestRunToolchainBuildRejectsIncompleteInput
+--- PASS: TestRunToolchainBuildRejectsIncompleteInput (0.00s)
+=== RUN   TestRunTestRejectsIncompleteInput
+--- PASS: TestRunTestRejectsIncompleteInput (0.00s)
+=== RUN   TestBootstrapGofmtResolvesInstalledTool
+--- PASS: TestBootstrapGofmtResolvesInstalledTool (0.02s)
+=== RUN   TestRunCheckedRunWritesCompatibilityResult
+--- PASS: TestRunCheckedRunWritesCompatibilityResult (0.01s)
+=== RUN   TestRunCheckedRunDistinguishesExit124FromTimeout
+--- PASS: TestRunCheckedRunDistinguishesExit124FromTimeout (0.00s)
+=== RUN   TestRunPinImpactReportsInvalidatedPinsWithoutTouchingTheModule
+--- PASS: TestRunPinImpactReportsInvalidatedPinsWithoutTouchingTheModule (0.57s)
+=== RUN   TestRunPinImpactReportsANewerGoDirectiveAsUnknownPins
+--- PASS: TestRunPinImpactReportsANewerGoDirectiveAsUnknownPins (0.06s)
+=== RUN   TestRunPinImpactReportsADependencyRequiringNewerGoAsUnknownPins
+--- PASS: TestRunPinImpactReportsADependencyRequiringNewerGoAsUnknownPins (0.06s)
+=== RUN   TestRunPinImpactReadsTheBaselineFromGit
+--- PASS: TestRunPinImpactReadsTheBaselineFromGit (0.06s)
+=== RUN   TestRunPinImpactStatuses
+=== RUN   TestRunPinImpactStatuses/both_baselines
+=== RUN   TestRunPinImpactStatuses/malformed_module
+=== RUN   TestRunPinImpactStatuses/missing_module
+=== RUN   TestRunPinImpactStatuses/unreachable_proxy
+--- PASS: TestRunPinImpactStatuses (0.03s)
+    --- PASS: TestRunPinImpactStatuses/both_baselines (0.00s)
+    --- PASS: TestRunPinImpactStatuses/malformed_module (0.02s)
+    --- PASS: TestRunPinImpactStatuses/missing_module (0.00s)
+    --- PASS: TestRunPinImpactStatuses/unreachable_proxy (0.01s)
+=== RUN   TestRunPinImpactFileFlagsKeepTheV1Report
+--- PASS: TestRunPinImpactFileFlagsKeepTheV1Report (0.07s)
+=== RUN   TestSoakRejectsInvalidInvocationsAsInvalidInput
+=== RUN   TestSoakRejectsInvalidInvocationsAsInvalidInput/missing_directories
+=== RUN   TestSoakRejectsInvalidInvocationsAsInvalidInput/missing_manifest
+=== RUN   TestSoakRejectsInvalidInvocationsAsInvalidInput/positional_argument
+=== RUN   TestSoakRejectsInvalidInvocationsAsInvalidInput/invalid_seed
+--- PASS: TestSoakRejectsInvalidInvocationsAsInvalidInput (0.00s)
+    --- PASS: TestSoakRejectsInvalidInvocationsAsInvalidInput/missing_directories (0.00s)
+    --- PASS: TestSoakRejectsInvalidInvocationsAsInvalidInput/missing_manifest (0.00s)
+    --- PASS: TestSoakRejectsInvalidInvocationsAsInvalidInput/positional_argument (0.00s)
+    --- PASS: TestSoakRejectsInvalidInvocationsAsInvalidInput/invalid_seed (0.00s)
+=== RUN   TestGitFileDistinguishesAnIntroducedFileFromAnInvalidRevision
+--- PASS: TestGitFileDistinguishesAnIntroducedFileFromAnInvalidRevision (0.02s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	2.400s

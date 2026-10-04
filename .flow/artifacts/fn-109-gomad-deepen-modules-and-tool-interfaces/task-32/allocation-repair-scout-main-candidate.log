@@ -1,0 +1,251 @@
+=== RUN   TestAllocationAliasScout
+=== RUN   TestAllocationAliasScout/new-struct/dirty
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-structdirty3239363711/001/internal/canonicaljson/helper.go:1:103 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Dirty -> time.Now}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-structdirty3239363711/001/internal/canonicaljson/helper.go:1:103 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestAllocationAliasScout/new-struct/clean
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[]
+=== RUN   TestAllocationAliasScout/new-array/dirty
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-arraydirty4007691504/001/record/pure.go:1:193 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: returned callback escaped {linux amd64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-arraydirty4007691504/001/record/pure.go:1:193 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-arraydirty4007691504/001/record/pure.go:1:193 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: returned callback escaped {darwin arm64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-arraydirty4007691504/001/record/pure.go:1:193 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestAllocationAliasScout/new-array/clean
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-arrayclean1096030632/001/record/pure.go:1:193 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {linux amd64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-arrayclean1096030632/001/record/pure.go:1:193 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-arrayclean1096030632/001/record/pure.go:1:193 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {darwin arm64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-arrayclean1096030632/001/record/pure.go:1:193 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestAllocationAliasScout/new-function/dirty
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.003s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-functiondirty4041604454/001/record/pure.go:1:190 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: returned callback escaped {linux amd64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-functiondirty4041604454/001/record/pure.go:1:190 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-functiondirty4041604454/001/record/pure.go:1:190 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: returned callback escaped {darwin arm64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-functiondirty4041604454/001/record/pure.go:1:190 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestAllocationAliasScout/new-function/clean
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-functionclean3829045119/001/record/pure.go:1:190 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {linux amd64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-functionclean3829045119/001/record/pure.go:1:190 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-functionclean3829045119/001/record/pure.go:1:190 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {darwin arm64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-functionclean3829045119/001/record/pure.go:1:190 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestAllocationAliasScout/new-map/dirty
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-mapdirty2981338790/001/record/pure.go:1:198 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: returned callback escaped {linux amd64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-mapdirty2981338790/001/record/pure.go:1:198 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-mapdirty2981338790/001/record/pure.go:1:198 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: returned callback escaped {darwin arm64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-mapdirty2981338790/001/record/pure.go:1:198 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestAllocationAliasScout/new-map/clean
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-mapclean25624266/001/record/pure.go:1:198 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {linux amd64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-mapclean25624266/001/record/pure.go:1:198 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-mapclean25624266/001/record/pure.go:1:198 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {darwin arm64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-mapclean25624266/001/record/pure.go:1:198 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestAllocationAliasScout/new-slice/dirty
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-slicedirty2843611551/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: returned callback escaped {linux amd64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-slicedirty2843611551/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-slicedirty2843611551/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: returned callback escaped {darwin arm64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-slicedirty2843611551/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestAllocationAliasScout/new-slice/clean
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-sliceclean520730810/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {linux amd64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-sliceclean520730810/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-sliceclean520730810/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {darwin arm64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutnew-sliceclean520730810/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestAllocationAliasScout/map-literal/dirty
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.004s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutmap-literaldirty1438898746/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: returned callback escaped {linux amd64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutmap-literaldirty1438898746/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutmap-literaldirty1438898746/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: returned callback escaped {darwin arm64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutmap-literaldirty1438898746/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestAllocationAliasScout/map-literal/clean
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutmap-literalclean2353627891/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {linux amd64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutmap-literalclean2353627891/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutmap-literalclean2353627891/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {darwin arm64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutmap-literalclean2353627891/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestAllocationAliasScout/array-address-literal/dirty
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-literaldirty375529/001/record/pure.go:1:191 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: returned callback escaped {linux amd64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-literaldirty375529/001/record/pure.go:1:191 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-literaldirty375529/001/record/pure.go:1:191 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: returned callback escaped {darwin arm64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-literaldirty375529/001/record/pure.go:1:191 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestAllocationAliasScout/array-address-literal/clean
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-literalclean1733807410/001/record/pure.go:1:191 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {linux amd64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-literalclean1733807410/001/record/pure.go:1:191 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-literalclean1733807410/001/record/pure.go:1:191 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {darwin arm64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-literalclean1733807410/001/record/pure.go:1:191 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestAllocationAliasScout/array-address-zero-var/dirty
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-zero-vardirty246787859/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: returned callback escaped {linux amd64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-zero-vardirty246787859/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-zero-vardirty246787859/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: returned callback escaped {darwin arm64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-zero-vardirty246787859/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestAllocationAliasScout/array-address-zero-var/clean
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-zero-varclean1532162223/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {linux amd64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-zero-varclean1532162223/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-zero-varclean1532162223/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {darwin arm64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutarray-address-zero-varclean1532162223/001/record/pure.go:1:192 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestAllocationAliasScout/slice-literal-nil/dirty
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutslice-literal-nildirty1305978065/001/internal/canonicaljson/helper.go:1:103 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Dirty -> time.Now}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutslice-literal-nildirty1305978065/001/internal/canonicaljson/helper.go:1:103 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestAllocationAliasScout/slice-literal-nil/clean
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[]
+=== RUN   TestAllocationAliasScout/struct-address-literal/dirty
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutstruct-address-literaldirty3409892003/001/internal/canonicaljson/helper.go:1:103 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Dirty -> time.Now}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutstruct-address-literaldirty3409892003/001/internal/canonicaljson/helper.go:1:103 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestAllocationAliasScout/struct-address-literal/clean
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[]
+=== RUN   TestAllocationAliasScout/struct-address-zero-var/dirty
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutstruct-address-zero-vardirty3810339165/001/internal/canonicaljson/helper.go:1:103 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Dirty -> time.Now}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutstruct-address-zero-vardirty3810339165/001/internal/canonicaljson/helper.go:1:103 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestAllocationAliasScout/struct-address-zero-var/clean
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[]
+=== RUN   TestAllocationAliasScout/function-address-zero-var/dirty
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutfunction-address-zero-vardirty1648499000/001/internal/canonicaljson/helper.go:1:103 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Dirty -> time.Now} {unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutfunction-address-zero-vardirty1648499000/001/record/pure.go:1:189 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutfunction-address-zero-vardirty1648499000/001/internal/canonicaljson/helper.go:1:103 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Dirty -> time.Now} {unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutfunction-address-zero-vardirty1648499000/001/record/pure.go:1:189 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestAllocationAliasScout/function-address-zero-var/clean
+    error_provenance_test.go:188: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:188: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutfunction-address-zero-varclean2744469839/001/record/pure.go:1:189 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {linux amd64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutfunction-address-zero-varclean2744469839/001/record/pure.go:1:189 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutfunction-address-zero-varclean2744469839/001/record/pure.go:1:189 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:188: pure callback rejected {darwin arm64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutfunction-address-zero-varclean2744469839/001/record/pure.go:1:189 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+--- FAIL: TestAllocationAliasScout (26.43s)
+    --- PASS: TestAllocationAliasScout/new-struct/dirty (1.28s)
+    --- PASS: TestAllocationAliasScout/new-struct/clean (1.21s)
+    --- FAIL: TestAllocationAliasScout/new-array/dirty (1.15s)
+    --- FAIL: TestAllocationAliasScout/new-array/clean (1.12s)
+    --- FAIL: TestAllocationAliasScout/new-function/dirty (0.99s)
+    --- FAIL: TestAllocationAliasScout/new-function/clean (1.04s)
+    --- FAIL: TestAllocationAliasScout/new-map/dirty (1.00s)
+    --- FAIL: TestAllocationAliasScout/new-map/clean (1.11s)
+    --- FAIL: TestAllocationAliasScout/new-slice/dirty (1.03s)
+    --- FAIL: TestAllocationAliasScout/new-slice/clean (1.16s)
+    --- FAIL: TestAllocationAliasScout/map-literal/dirty (1.18s)
+    --- FAIL: TestAllocationAliasScout/map-literal/clean (1.22s)
+    --- FAIL: TestAllocationAliasScout/array-address-literal/dirty (1.03s)
+    --- FAIL: TestAllocationAliasScout/array-address-literal/clean (0.99s)
+    --- FAIL: TestAllocationAliasScout/array-address-zero-var/dirty (1.11s)
+    --- FAIL: TestAllocationAliasScout/array-address-zero-var/clean (1.30s)
+    --- PASS: TestAllocationAliasScout/slice-literal-nil/dirty (1.14s)
+    --- PASS: TestAllocationAliasScout/slice-literal-nil/clean (1.12s)
+    --- PASS: TestAllocationAliasScout/struct-address-literal/dirty (1.29s)
+    --- PASS: TestAllocationAliasScout/struct-address-literal/clean (1.02s)
+    --- PASS: TestAllocationAliasScout/struct-address-zero-var/dirty (0.94s)
+    --- PASS: TestAllocationAliasScout/struct-address-zero-var/clean (0.93s)
+    --- PASS: TestAllocationAliasScout/function-address-zero-var/dirty (0.97s)
+    --- FAIL: TestAllocationAliasScout/function-address-zero-var/clean (1.09s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	26.436s
+FAIL

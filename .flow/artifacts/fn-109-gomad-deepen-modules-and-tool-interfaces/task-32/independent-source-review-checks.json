@@ -1,0 +1,186 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.32",
+  "verdict": "NEEDS_WORK",
+  "actionable_important": 1,
+  "worker_receipts_verified": 17,
+  "review_receipts": [
+    {
+      "path": "review-package.json",
+      "sha256": "d8df3e7b7de0d45b57268d3dbcb20a4c245e660c94bd5f1c734f82bcc7092ae6",
+      "exit": 0,
+      "elapsed_seconds": 95.5106086290034,
+      "log": "review-package.log",
+      "log_sha256": "45fce6c73e82fc9f8882f6450193fdf7b7373ffcde5833fd80fbbf52bf58d292"
+    },
+    {
+      "path": "review-focused.json",
+      "sha256": "4e896bc694657ae13f1c5354c64a94caa1ffbdb1c7ce7804272b9ddfd0c7c76a",
+      "exit": 0,
+      "elapsed_seconds": 93.66334137800732,
+      "log": "review-focused.log",
+      "log_sha256": "25ca020503f408255e52f5cf7246f55e981acc7bb48d4644161c74a63bed7422"
+    },
+    {
+      "path": "review-boundaries.json",
+      "sha256": "4b9c03de60a54aaafb3ca58294e0acaca0e448fc1cd1709368b3ca20ddc999ab",
+      "exit": 0,
+      "elapsed_seconds": 8.649046253995039,
+      "log": "review-boundaries.log",
+      "log_sha256": "417381f44b0b1482fbdbc1cb2078f07d9f567fb6c4a090ead6d65e68d668e9f7"
+    },
+    {
+      "path": "review-consumer.json",
+      "sha256": "ecbdb5450fa061543c91db3a1606552663d3dd6ac6e6ce3c36d5dad2c02eb9b8",
+      "exit": 0,
+      "elapsed_seconds": 1.9139162089995807,
+      "log": "review-consumer.log",
+      "log_sha256": "e37950c33361825a2429c03bbf0427ec157ea5ffa62846513cd9d85eb2a7fd6f"
+    },
+    {
+      "path": "review-lint.json",
+      "sha256": "57fece92bc0fe9fe18dbbd9521440fdb64e4542d65153756ce0473d0cb48bd78",
+      "exit": 1,
+      "elapsed_seconds": 0.4618502080120379,
+      "log": "review-lint.log",
+      "log_sha256": "1da024342f80e95ecb9a1539f8bebe7511e6e2da4757142d005b04baa6deec7a"
+    },
+    {
+      "path": "review-errortype.json",
+      "sha256": "9c4bb78ca0babf05dbf932cf136c97048dad203f8551d700dac6ef52973b5075",
+      "exit": 0,
+      "elapsed_seconds": 0.627268083000672,
+      "log": "review-errortype.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "review-validate.json",
+      "sha256": "68c334eac7c99ab03c89ba0af46632cb6a707f329cbcd3678593c54522c13191",
+      "exit": 0,
+      "elapsed_seconds": 5.406569043989293,
+      "log": "review-validate.log",
+      "log_sha256": "23526df5ff015aa7ea83d107d454d6e79f077c768dd884efbc2fb73e7903b679"
+    },
+    {
+      "path": "review-static.json",
+      "sha256": "a7b8c0a395c1923407fa7033224966fc3394204af3e64372e6a287064b69292f",
+      "exit": 0,
+      "elapsed_seconds": 0.04830933301127516,
+      "log": "review-static.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "review-worker-audit.json",
+      "sha256": "ae85f96852562a155dfe8678b4bfeefe4ec08de64f0d133d77a1a9e6e66da1e5",
+      "exit": 0,
+      "elapsed_seconds": 2.9190485010039993,
+      "log": "review-worker-audit.log",
+      "log_sha256": "6da91e6c691cba08096ad48aa0610e07b1fe91dde1493cb5338e47bd1a785769"
+    },
+    {
+      "path": "review-alias-candidate.json",
+      "sha256": "6429d241918617411d48510f2d9b3ad6be9b43a490a5109244430023c32fc86e",
+      "exit": 1,
+      "elapsed_seconds": 2.0815643340029055,
+      "log": "review-alias-candidate.log",
+      "log_sha256": "d76dfeadf4bbabd39e9549a3b234466d40e16f5e462b8b55d7d699537b90e920"
+    },
+    {
+      "path": "review-alias-baseline.json",
+      "sha256": "3593faefe2a91178998b00a651330385607dcda000ef9f32273e9a04de7016d2",
+      "exit": 0,
+      "elapsed_seconds": 1.9940161679987796,
+      "log": "review-alias-baseline.log",
+      "log_sha256": "73b5e60dbf0b42b119420e4bd8d209c9d4191f3c40fd8d815d3c630a65c3b9ab"
+    },
+    {
+      "path": "review-alias-full-candidate.json",
+      "sha256": "5c6efd84848b5801c1b80d65444356c4d847b1067e8a67ad113e5127095d16ae",
+      "exit": 1,
+      "elapsed_seconds": 2.8364330850017723,
+      "log": "review-alias-full-candidate.log",
+      "log_sha256": "4a67d7821a1e9a7937b576e685297c0e72eada2585f054bd95a49d1e3b04e0db"
+    },
+    {
+      "path": "review-alias-full-baseline.json",
+      "sha256": "6a88120bc1b2e46b4d230a5ba76311f029bf223890a38815af487e091e49b12d",
+      "exit": 0,
+      "elapsed_seconds": 2.8572513350081863,
+      "log": "review-alias-full-baseline.log",
+      "log_sha256": "131b34286b25746fe7d75ac3c082964d48bd8081be167d17e99f79920dd8a5e4"
+    }
+  ],
+  "source": {
+    "tools/gomad3/internal/gomadtool/architecture/architecture.go": "68734d4d0967e8bf3fe33fab2c9256b678d0f431d42c6de14012526bf278a929",
+    "tools/gomad3/internal/gomadtool/architecture/architecture_test.go": "ddc61684415ca6159ad92fc94b3ae7a89dbe9035357fa62f578b481387e3dc70",
+    "tools/gomad3/internal/gomadtool/architecture/edges.go": "50c0ee3fc8869bfc43ef8194044987641fd526cfb8aef7bccdc8bd6e4c92ce10",
+    "tools/gomad3/internal/gomadtool/architecture/effects.go": "1f7f97a6d9b4f8d335d4649a81c6a9c58648ff0f17fbc1f3deb7fd50bb8a5047",
+    "tools/gomad3/internal/gomadtool/architecture/effects_test.go": "29b583b567305a207dbf4ab169961989e68b518a4722ac77d9d548a668093fd7",
+    "tools/gomad3/internal/gomadtool/architecture/error_provenance_test.go": "e711523d6876fbe769dd1a1b46d407d47fede18b1bdd382b08deea5b1a9b910a",
+    "tools/gomad3/internal/gomadtool/architecture/initialization.go": "2db7f3747c3f192372837619f4a7e07008b4f9e3a971208239efe0b3a7d5a36c",
+    "tools/gomad3/internal/gomadtool/architecture/initialization_test.go": "3cec7fb9a3378060d67f655a2a79c69c6619c2e8dc58a3fa000758423690e1da",
+    "tools/gomad3/internal/gomadtool/architecture/memory_sources.go": "fb3745d1e66ea12f9e48e5ca9787d0bf11ec004f490e3c6e7f5ef8e6e6c11faf",
+    "tools/gomad3/internal/gomadtool/architecture/mutation_test.go": "e9f2575ce130caf92490b6368c14415a2e8fc78e610126a9d66ae9f414719a03",
+    "tools/gomad3/internal/gomadtool/architecture/program.go": "a3f3dcd71de31609621095e45f485638b40a5225146940ee9b4fca5773748fc7",
+    "tools/gomad3/internal/gomadtool/architecture/range_test.go": "f807d65cab62673106ee6779a6d36b7195caa475504417a2ff5d871b95ff448f",
+    "tools/gomad3/internal/gomadtool/architecture/signature_test.go": "9b2d3aeefb7ba75a967fcae628f05f88923dadbc19063eb1bef7fbcd4bd62b47",
+    "tools/gomad3/internal/gomadtool/architecture/standard.go": "efad9411c3876b452d4d2f4905a4ba1cb92b43a0428ea2f039c94b3e5d9fd88d",
+    "tools/gomad3/internal/gomadtool/architecture/startup_sources.go": "4ac7e60bae82eeeffe74a240bb4d64c4c24b9f2452e727dfc01239cbba386ada"
+  },
+  "protected_files": 1042,
+  "protected_aggregate_sha256": "b4ca4bdd63eb9426d63446b41042ccc0f825c8402b33faf6197f020d855f1e61",
+  "new_causal_fixtures": 29,
+  "metadata_observations": 58,
+  "architecture_top_level_tests": 22,
+  "focused_top_level_tests": 12,
+  "consumer_top_level_tests": 30,
+  "boundary_tests": [
+    "TestPackageArchitecture",
+    "TestPublicPackagesDoNotExportTypeAliases",
+    "TestArchitecturePublicSignatureFixtures",
+    "TestRunnerRequestsCompileInExternalModule",
+    "TestRunnerExternalConsumerCompiles"
+  ],
+  "lint": {
+    "inherited": 4,
+    "introduced": 0,
+    "resolved": 0
+  },
+  "errortype": 0,
+  "review_probe": {
+    "fixtures": 3,
+    "candidate_failures": 2,
+    "baseline_failures": 0,
+    "test_source_sha256": "2ebaf41e793da0f001039ca7f33581e99a44685af7715e34c0274177d987cbaa"
+  },
+  "qualified_native": false,
+  "formal_review": false,
+  "live_handles": 0,
+  "finding": {
+    "severity": "Important",
+    "file": "tools/gomad3/internal/gomadtool/architecture/effects.go",
+    "line": 750,
+    "issue": "Conversion shallow-copy detaches first slice-element mutation from caller; dirty path lost and clean alias falsely rejected",
+    "required_repair": "Preserve shared element provenance through converted slices with initially nil elements and add dirty/clean regressions in admitted new test"
+  },
+  "new_test_stage_delta": "Exactly one metadata t.Logf insertion; fixture recipes/counters/assertions unchanged, new test file bytes differ",
+  "qualification_open": [
+    "R8",
+    "R18",
+    "R19",
+    "task19",
+    "fn105D4",
+    "predecessors",
+    "task21",
+    "first-baseline fixed identities",
+    "full",
+    "completion",
+    "formal",
+    "darwin/arm64 patched-native",
+    "linux/amd64 patched-native",
+    "affected-consumer native"
+  ],
+  "report_sha256": "ac11435f56e93932cb47063af3f70963a6b47bec25ba50486b1cd0fab0ab0fa2",
+  "review_audit_sha256": "d9973b65f27035ae699da520b6598c23b5cf14a011d062cec20140260cf0c9cf",
+  "review_runner_sha256": "b8e14465f30ee09b6bf655a5054546a05773518429678348c4387858edaaa863",
+  "review_probe_sha256": "661f2317cc83f1af756e483280a5e5377f06319cd5703c1f501f7fe8fed6a19e"
+}

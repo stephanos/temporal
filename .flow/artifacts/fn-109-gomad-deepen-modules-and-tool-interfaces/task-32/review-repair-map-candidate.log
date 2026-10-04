@@ -1,0 +1,28 @@
+{"stage": "candidate", "test_source_sha256": "5e9179895ac89bcc7c62985bf0c27b65c16cecbf189c6981355a6fea75ec4e4a", "extra_fixture_source": "\nfunc TestRepairReviewMapAlias(t *testing.T) {\n for _, test := range []errorProvenanceFixture{\n  {name:\"dirty\", code:`v:=make(map[int]func());helper.Set(helper.Callbacks(v));v[0]()`, helper:`func Dirty(){Calls++;_=time.Now()};type Callbacks map[int]func();func Set(v Callbacks){v[0]=Dirty}`, calls:1, callback:\"canonicaljson.Dirty\"},\n  {name:\"clean\", code:`v:=make(map[int]func());helper.Set(helper.Callbacks(v));v[0]()`, helper:`func Clean(){};type Callbacks map[int]func();func Set(v Callbacks){v[0]=Clean}`},\n } {t.Run(test.name,func(t *testing.T){checkErrorProvenance(t,test)})}\n}\n", "overlay": {"/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/error_provenance_test.go": "/home/agent/.cache/codex-build/tmp/task32-repair-map-review-o99_ziba/error_provenance_test.go"}}
+=== RUN   TestRepairReviewMapAlias
+=== RUN   TestRepairReviewMapAlias/dirty
+    error_provenance_test.go:161: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:161: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestRepairReviewMapAliasdirty1271899303/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:161: returned callback escaped {linux amd64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestRepairReviewMapAliasdirty1271899303/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:161: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestRepairReviewMapAliasdirty1271899303/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:161: returned callback escaped {darwin arm64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestRepairReviewMapAliasdirty1271899303/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestRepairReviewMapAlias/clean
+    error_provenance_test.go:161: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:161: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestRepairReviewMapAliasclean3240590510/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:161: pure callback rejected {linux amd64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestRepairReviewMapAliasclean3240590510/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:161: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestRepairReviewMapAliasclean3240590510/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:161: pure callback rejected {darwin arm64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestRepairReviewMapAliasclean3240590510/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+--- FAIL: TestRepairReviewMapAlias (2.45s)
+    --- FAIL: TestRepairReviewMapAlias/dirty (1.32s)
+    --- FAIL: TestRepairReviewMapAlias/clean (1.13s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	2.459s
+FAIL

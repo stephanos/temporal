@@ -1,0 +1,15 @@
+tools/gomad3/internal/gomadtool/architecture/initialization.go:123:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(digest, "%x  %s\n", sha256.Sum256(data), entry.Name())
+		           ^
+tools/gomad3/internal/gomadtool/architecture/standard.go:222:3: QF1003: could use tagged switch on id (staticcheck)
+		if id == "fmt.Errorf" {
+		^
+tools/gomad3/internal/gomadtool/architecture/standard.go:304:4: QF1003: could use tagged switch on id (staticcheck)
+			if id == "encoding/json.*Decoder.Decode" {
+			^
+tools/gomad3/internal/gomadtool/architecture/standard.go:390:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(digest, "%x  %s\n", sha256.Sum256(data), entry.Name())
+		           ^
+4 issues:
+* errcheck: 2
+* staticcheck: 2

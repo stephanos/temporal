@@ -1,0 +1,24 @@
+
+func TestAllocationAliasScout(t *testing.T) {
+ cases:=[]struct{name,code,definition,set string}{
+  {"new-struct",`v:=new(helper.Box);helper.Set((*helper.Other)(v));v.F()`,`type Box struct{F func()};type Other Box`,`func Set(v *Other){v.F=CALLBACK}`},
+  {"new-array",`v:=new([1]func());helper.Set((*helper.Other)(v));v[0]()`,`type Other [1]func()`,`func Set(v *Other){v[0]=CALLBACK}`},
+  {"new-function",`v:=new(func());helper.Set((*helper.Other)(v));(*v)()`,`type Other func()`,`func Set(v *Other){*v=CALLBACK}`},
+  {"new-map",`v:=new(map[int]func());helper.Set((*helper.Other)(v));(*v)[0]()`,`type Other map[int]func()`,`func Set(v *Other){*v=Other{0:CALLBACK}}`},
+  {"new-slice",`v:=new([]func());helper.Set((*helper.Other)(v));(*v)[0]()`,`type Other []func()`,`func Set(v *Other){*v=Other{CALLBACK}}`},
+  {"map-literal",`v:=map[int]func(){};helper.Set(helper.Other(v));v[0]()`,`type Other map[int]func()`,`func Set(v Other){v[0]=CALLBACK}`},
+  {"array-address-literal",`v:=&[1]func(){};helper.Set((*helper.Other)(v));v[0]()`,`type Other [1]func()`,`func Set(v *Other){v[0]=CALLBACK}`},
+  {"array-address-zero-var",`var v [1]func();helper.Set((*helper.Other)(&v));v[0]()`,`type Other [1]func()`,`func Set(v *Other){v[0]=CALLBACK}`},
+  {"slice-literal-nil",`v:=[]func(){nil};helper.Set(helper.Other(v));v[0]()`,`type Other []func()`,`func Set(v Other){v[0]=CALLBACK}`},
+  {"struct-address-literal",`v:=&helper.Box{};helper.Set((*helper.Other)(v));v.F()`,`type Box struct{F func()};type Other Box`,`func Set(v *Other){v.F=CALLBACK}`},
+  {"struct-address-zero-var",`var v helper.Box;helper.Set((*helper.Other)(&v));v.F()`,`type Box struct{F func()};type Other Box`,`func Set(v *Other){v.F=CALLBACK}`},
+  {"function-address-zero-var",`var v func();helper.Set((*helper.Other)(&v));v()`,`type Other func()`,`func Set(v *Other){*v=CALLBACK}`},
+ }
+ for _,c:=range cases {for _,dirty:=range []bool{true,false}{
+  name:="clean"; callback:="Clean"; calls:=0
+  if dirty{name="dirty";callback="Dirty";calls=1}
+  fixture:=errorProvenanceFixture{name:c.name+"/"+name,code:c.code,helper:`func Clean(){};func Dirty(){Calls++;_=time.Now()};`+c.definition+`;`+strings.ReplaceAll(c.set,"CALLBACK",callback),calls:calls}
+  if dirty{fixture.callback="canonicaljson.Dirty"}
+  t.Run(fixture.name,func(t *testing.T){checkErrorProvenance(t,fixture)})
+ }}
+}

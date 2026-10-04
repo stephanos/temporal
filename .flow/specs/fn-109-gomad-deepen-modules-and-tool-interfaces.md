@@ -539,6 +539,26 @@ proof remain unexecuted. Original R13/R18/R19, task 12/predecessors, task 21,
 matched first-baseline fixed identities and complete/full/formal/both-native
 qualification remain open. Root commits progress before another source writer.
 
+Task 32's independently reviewed error-provenance candidate preserves named-slice
+single-error Unwrap traversal, destination concrete conversion callbacks and fmt
+writer-error results. Six fresh allocation alias families retain shared existing
+storage; conversion-local array/struct copies isolate value cells while nested
+references retain their callback path. All 39 earlier fixture bodies remain an
+exact prefix of the final 67 stock-host fixtures and 134 supported-metadata
+observations. Whole architecture, focused, five actual boundaries, broader
+purity/edges/host-vet, gomadtool consumer, errortype, source-scoped static and generator checks
+pass on developmental linux/arm64. Actual unfiltered architecture lint retains
+four byte-identical inherited findings, with none introduced or resolved.
+The full staged diff-check retains one historical archived handover EOF blank;
+source and newly written root-document checks are separately clean.
+Fresh corrective review and root read-only audit permit SOURCE_PROGRESS_COMMIT_ONLY,
+with no actionable introduced defects. Historical failures and inconclusive
+probes remain disclosed; this is no universal copy, length/capacity or formatting
+completeness claim. Task 21 consumes the evidence. Original R8/R18/R19,
+task 19/fn-105 D4, predecessors, matched first-baseline identities and complete/
+full/formal/both-native/affected-consumer qualification remain open. Root commits
+reviewed progress before another source writer.
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.

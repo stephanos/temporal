@@ -1,0 +1,10 @@
+
+func TestAllocationAliasScoutEmpty(t *testing.T) {
+ for _,test:=range []errorProvenanceFixture{
+  {name:"make-map",code:`v:=make(map[int]helper.Leaf);_ = fmt.Sprint(helper.Other(v))`,helper:`type Leaf struct{};func(Leaf)String()string{Calls++;_=time.Now();return "leaf"};type Other map[int]Leaf`},
+  {name:"literal-map",code:`v:=map[int]helper.Leaf{};_ = fmt.Sprint(helper.Other(v))`,helper:`type Leaf struct{};func(Leaf)String()string{Calls++;_=time.Now();return "leaf"};type Other map[int]Leaf`},
+  {name:"make-zero-slice",code:`v:=make([]helper.Leaf,0);_ = fmt.Sprint(helper.Other(v))`,helper:`type Leaf struct{};func(Leaf)String()string{Calls++;_=time.Now();return "leaf"};type Other []Leaf`},
+  {name:"literal-zero-slice",code:`v:=[]helper.Leaf{};_ = fmt.Sprint(helper.Other(v))`,helper:`type Leaf struct{};func(Leaf)String()string{Calls++;_=time.Now();return "leaf"};type Other []Leaf`},
+  {name:"literal-zero-array",code:`v:=[0]helper.Leaf{};_ = fmt.Sprint(helper.Other(v))`,helper:`type Leaf struct{};func(Leaf)String()string{Calls++;_=time.Now();return "leaf"};type Other [0]Leaf`},
+ }{t.Run(test.name,func(t *testing.T){checkErrorProvenance(t,test)})}
+}

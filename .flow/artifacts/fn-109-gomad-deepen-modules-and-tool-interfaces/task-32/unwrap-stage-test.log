@@ -1,0 +1,74 @@
+=== RUN   TestErrorProvenanceUnwrap
+=== RUN   TestErrorProvenanceUnwrap/single-named-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceUnwrap/joined-named-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+=== RUN   TestErrorProvenanceUnwrap/wrapped-named-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceUnwrap/as-named-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceUnwrap/direct-named-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceUnwrap/true-multi
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceUnwrap/single-only
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceUnwrap/clean-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceUnwrap/nil-child
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceUnwrap/empty-multi
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+--- PASS: TestErrorProvenanceUnwrap (8.53s)
+    --- PASS: TestErrorProvenanceUnwrap/single-named-slice (1.06s)
+    --- PASS: TestErrorProvenanceUnwrap/joined-named-slice (0.87s)
+    --- PASS: TestErrorProvenanceUnwrap/wrapped-named-slice (0.93s)
+    --- PASS: TestErrorProvenanceUnwrap/as-named-slice (0.91s)
+    --- PASS: TestErrorProvenanceUnwrap/direct-named-slice (0.78s)
+    --- PASS: TestErrorProvenanceUnwrap/true-multi (0.74s)
+    --- PASS: TestErrorProvenanceUnwrap/single-only (0.77s)
+    --- PASS: TestErrorProvenanceUnwrap/clean-slice (0.80s)
+    --- PASS: TestErrorProvenanceUnwrap/nil-child (0.83s)
+    --- PASS: TestErrorProvenanceUnwrap/empty-multi (0.82s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	8.532s

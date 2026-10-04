@@ -1,0 +1,81 @@
+{
+  "command": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-v",
+    "./internal/gomadtool/architecture",
+    "-run",
+    "^TestErrorProvenanceEmptyMapAlias$"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "environment": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOFLAGS": "",
+    "GOMADSEED": null,
+    "GOMAD3_CHILD_SEED": null
+  },
+  "started": "2026-10-04T18:35:25.465811+00:00",
+  "ended": "2026-10-04T18:35:29.197307+00:00",
+  "elapsed_seconds": 3.731450876002782,
+  "exit": 1,
+  "timed_out": false,
+  "timeout_seconds": 600,
+  "source_before": {
+    "tools/gomad3/internal/gomadtool/architecture/architecture.go": "68734d4d0967e8bf3fe33fab2c9256b678d0f431d42c6de14012526bf278a929",
+    "tools/gomad3/internal/gomadtool/architecture/architecture_test.go": "ddc61684415ca6159ad92fc94b3ae7a89dbe9035357fa62f578b481387e3dc70",
+    "tools/gomad3/internal/gomadtool/architecture/edges.go": "50c0ee3fc8869bfc43ef8194044987641fd526cfb8aef7bccdc8bd6e4c92ce10",
+    "tools/gomad3/internal/gomadtool/architecture/effects.go": "2dfa255d9a4efe54471c1d53ea48c6abf7ad80410471e05e0e1dde1e17a41469",
+    "tools/gomad3/internal/gomadtool/architecture/effects_test.go": "29b583b567305a207dbf4ab169961989e68b518a4722ac77d9d548a668093fd7",
+    "tools/gomad3/internal/gomadtool/architecture/error_provenance_test.go": "4663ca0c0035d8f8a5d9097b52e47d5a5638309a03e49ebe9d1f874f77f6a0b6",
+    "tools/gomad3/internal/gomadtool/architecture/initialization.go": "2db7f3747c3f192372837619f4a7e07008b4f9e3a971208239efe0b3a7d5a36c",
+    "tools/gomad3/internal/gomadtool/architecture/initialization_test.go": "3cec7fb9a3378060d67f655a2a79c69c6619c2e8dc58a3fa000758423690e1da",
+    "tools/gomad3/internal/gomadtool/architecture/memory_sources.go": "fb3745d1e66ea12f9e48e5ca9787d0bf11ec004f490e3c6e7f5ef8e6e6c11faf",
+    "tools/gomad3/internal/gomadtool/architecture/mutation_test.go": "e9f2575ce130caf92490b6368c14415a2e8fc78e610126a9d66ae9f414719a03",
+    "tools/gomad3/internal/gomadtool/architecture/program.go": "a3f3dcd71de31609621095e45f485638b40a5225146940ee9b4fca5773748fc7",
+    "tools/gomad3/internal/gomadtool/architecture/range_test.go": "f807d65cab62673106ee6779a6d36b7195caa475504417a2ff5d871b95ff448f",
+    "tools/gomad3/internal/gomadtool/architecture/signature_test.go": "9b2d3aeefb7ba75a967fcae628f05f88923dadbc19063eb1bef7fbcd4bd62b47",
+    "tools/gomad3/internal/gomadtool/architecture/standard.go": "efad9411c3876b452d4d2f4905a4ba1cb92b43a0428ea2f039c94b3e5d9fd88d",
+    "tools/gomad3/internal/gomadtool/architecture/startup_sources.go": "4ac7e60bae82eeeffe74a240bb4d64c4c24b9f2452e727dfc01239cbba386ada"
+  },
+  "source_after": {
+    "tools/gomad3/internal/gomadtool/architecture/architecture.go": "68734d4d0967e8bf3fe33fab2c9256b678d0f431d42c6de14012526bf278a929",
+    "tools/gomad3/internal/gomadtool/architecture/architecture_test.go": "ddc61684415ca6159ad92fc94b3ae7a89dbe9035357fa62f578b481387e3dc70",
+    "tools/gomad3/internal/gomadtool/architecture/edges.go": "50c0ee3fc8869bfc43ef8194044987641fd526cfb8aef7bccdc8bd6e4c92ce10",
+    "tools/gomad3/internal/gomadtool/architecture/effects.go": "2dfa255d9a4efe54471c1d53ea48c6abf7ad80410471e05e0e1dde1e17a41469",
+    "tools/gomad3/internal/gomadtool/architecture/effects_test.go": "29b583b567305a207dbf4ab169961989e68b518a4722ac77d9d548a668093fd7",
+    "tools/gomad3/internal/gomadtool/architecture/error_provenance_test.go": "4663ca0c0035d8f8a5d9097b52e47d5a5638309a03e49ebe9d1f874f77f6a0b6",
+    "tools/gomad3/internal/gomadtool/architecture/initialization.go": "2db7f3747c3f192372837619f4a7e07008b4f9e3a971208239efe0b3a7d5a36c",
+    "tools/gomad3/internal/gomadtool/architecture/initialization_test.go": "3cec7fb9a3378060d67f655a2a79c69c6619c2e8dc58a3fa000758423690e1da",
+    "tools/gomad3/internal/gomadtool/architecture/memory_sources.go": "fb3745d1e66ea12f9e48e5ca9787d0bf11ec004f490e3c6e7f5ef8e6e6c11faf",
+    "tools/gomad3/internal/gomadtool/architecture/mutation_test.go": "e9f2575ce130caf92490b6368c14415a2e8fc78e610126a9d66ae9f414719a03",
+    "tools/gomad3/internal/gomadtool/architecture/program.go": "a3f3dcd71de31609621095e45f485638b40a5225146940ee9b4fca5773748fc7",
+    "tools/gomad3/internal/gomadtool/architecture/range_test.go": "f807d65cab62673106ee6779a6d36b7195caa475504417a2ff5d871b95ff448f",
+    "tools/gomad3/internal/gomadtool/architecture/signature_test.go": "9b2d3aeefb7ba75a967fcae628f05f88923dadbc19063eb1bef7fbcd4bd62b47",
+    "tools/gomad3/internal/gomadtool/architecture/standard.go": "efad9411c3876b452d4d2f4905a4ba1cb92b43a0428ea2f039c94b3e5d9fd88d",
+    "tools/gomad3/internal/gomadtool/architecture/startup_sources.go": "4ac7e60bae82eeeffe74a240bb4d64c4c24b9f2452e727dfc01239cbba386ada"
+  },
+  "stable": true,
+  "protected_before": {
+    "files": 1042,
+    "aggregate_sha256": "b4ca4bdd63eb9426d63446b41042ccc0f825c8402b33faf6197f020d855f1e61"
+  },
+  "protected_after": {
+    "files": 1042,
+    "aggregate_sha256": "b4ca4bdd63eb9426d63446b41042ccc0f825c8402b33faf6197f020d855f1e61"
+  },
+  "tools": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+  },
+  "config_sha256": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+  "log": "map-repair-causal-red.log",
+  "log_sha256": "7de5e740ef91cc177446f3c3a751b07c0a59049d1e775099d2ea5a1b24cbfd2a"
+}

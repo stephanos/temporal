@@ -1,0 +1,60 @@
+=== RUN   TestAllocationAliasScoutEmpty
+=== RUN   TestAllocationAliasScoutEmpty/make-map
+    error_provenance_test.go:175: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.003s
+    error_provenance_test.go:175: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptymake-map3640751868/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+    error_provenance_test.go:175: pure callback rejected {linux amd64}: [{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptymake-map3640751868/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+    error_provenance_test.go:175: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptymake-map3640751868/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+    error_provenance_test.go:175: pure callback rejected {darwin arm64}: [{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptymake-map3640751868/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+=== RUN   TestAllocationAliasScoutEmpty/literal-map
+    error_provenance_test.go:175: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:175: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptyliteral-map1490922219/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+    error_provenance_test.go:175: pure callback rejected {linux amd64}: [{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptyliteral-map1490922219/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+    error_provenance_test.go:175: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptyliteral-map1490922219/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+    error_provenance_test.go:175: pure callback rejected {darwin arm64}: [{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptyliteral-map1490922219/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+=== RUN   TestAllocationAliasScoutEmpty/make-zero-slice
+    error_provenance_test.go:175: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:175: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptymake-zero-slice2631422596/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+    error_provenance_test.go:175: pure callback rejected {linux amd64}: [{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptymake-zero-slice2631422596/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+    error_provenance_test.go:175: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptymake-zero-slice2631422596/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+    error_provenance_test.go:175: pure callback rejected {darwin arm64}: [{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptymake-zero-slice2631422596/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+=== RUN   TestAllocationAliasScoutEmpty/literal-zero-slice
+    error_provenance_test.go:175: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:175: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptyliteral-zero-slice2469117872/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+    error_provenance_test.go:175: pure callback rejected {linux amd64}: [{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptyliteral-zero-slice2469117872/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+    error_provenance_test.go:175: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptyliteral-zero-slice2469117872/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+    error_provenance_test.go:175: pure callback rejected {darwin arm64}: [{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptyliteral-zero-slice2469117872/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+=== RUN   TestAllocationAliasScoutEmpty/literal-zero-array
+    error_provenance_test.go:175: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.003s
+    error_provenance_test.go:175: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptyliteral-zero-array2726129430/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+    error_provenance_test.go:175: pure callback rejected {linux amd64}: [{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptyliteral-zero-array2726129430/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+    error_provenance_test.go:175: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptyliteral-zero-array2726129430/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+    error_provenance_test.go:175: pure callback rejected {darwin arm64}: [{host-effect  /home/agent/.cache/codex-build/tmp/TestAllocationAliasScoutEmptyliteral-zero-array2726129430/001/internal/canonicaljson/helper.go:1:119 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.String -> time.Now}]
+--- FAIL: TestAllocationAliasScoutEmpty (5.64s)
+    --- FAIL: TestAllocationAliasScoutEmpty/make-map (1.17s)
+    --- FAIL: TestAllocationAliasScoutEmpty/literal-map (0.84s)
+    --- FAIL: TestAllocationAliasScoutEmpty/make-zero-slice (1.37s)
+    --- FAIL: TestAllocationAliasScoutEmpty/literal-zero-slice (1.20s)
+    --- FAIL: TestAllocationAliasScoutEmpty/literal-zero-array (1.06s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	5.653s
+FAIL

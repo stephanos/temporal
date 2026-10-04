@@ -1,0 +1,86 @@
+import datetime
+import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+ROOT = Path('/Users/stephan/Workspace/skunkworks/gomad/temporal')
+OUT = ROOT / '.flow/tmp/task32-allocation-alias-scout-proof'
+ARCH = ROOT / 'tools/gomad3/internal/gomadtool/architecture'
+BASE = 'f931c9879e3017b346562667b9f6fbcc4db458ec'
+GO = '/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go'
+EXTRA = r'''
+func TestAllocationAliasScout(t *testing.T) {
+ cases:=[]struct{name,code,definition,set string}{
+  {"new-struct",`v:=new(helper.Box);helper.Set((*helper.Other)(v));v.F()`,`type Box struct{F func()};type Other Box`,`func Set(v *Other){v.F=CALLBACK}`},
+  {"new-array",`v:=new([1]func());helper.Set((*helper.Other)(v));v[0]()`,`type Other [1]func()`,`func Set(v *Other){v[0]=CALLBACK}`},
+  {"new-function",`v:=new(func());helper.Set((*helper.Other)(v));(*v)()`,`type Other func()`,`func Set(v *Other){*v=CALLBACK}`},
+  {"new-map",`v:=new(map[int]func());helper.Set((*helper.Other)(v));(*v)[0]()`,`type Other map[int]func()`,`func Set(v *Other){*v=Other{0:CALLBACK}}`},
+  {"new-slice",`v:=new([]func());helper.Set((*helper.Other)(v));(*v)[0]()`,`type Other []func()`,`func Set(v *Other){*v=Other{CALLBACK}}`},
+  {"map-literal",`v:=map[int]func(){};helper.Set(helper.Other(v));v[0]()`,`type Other map[int]func()`,`func Set(v Other){v[0]=CALLBACK}`},
+  {"array-address-literal",`v:=&[1]func(){};helper.Set((*helper.Other)(v));v[0]()`,`type Other [1]func()`,`func Set(v *Other){v[0]=CALLBACK}`},
+  {"array-address-zero-var",`var v [1]func();helper.Set((*helper.Other)(&v));v[0]()`,`type Other [1]func()`,`func Set(v *Other){v[0]=CALLBACK}`},
+  {"slice-literal-nil",`v:=[]func(){nil};helper.Set(helper.Other(v));v[0]()`,`type Other []func()`,`func Set(v Other){v[0]=CALLBACK}`},
+  {"struct-address-literal",`v:=&helper.Box{};helper.Set((*helper.Other)(v));v.F()`,`type Box struct{F func()};type Other Box`,`func Set(v *Other){v.F=CALLBACK}`},
+  {"struct-address-zero-var",`var v helper.Box;helper.Set((*helper.Other)(&v));v.F()`,`type Box struct{F func()};type Other Box`,`func Set(v *Other){v.F=CALLBACK}`},
+  {"function-address-zero-var",`var v func();helper.Set((*helper.Other)(&v));v()`,`type Other func()`,`func Set(v *Other){*v=CALLBACK}`},
+ }
+ for _,c:=range cases {for _,dirty:=range []bool{true,false}{
+  name:="clean"; callback:="Clean"; calls:=0
+  if dirty{name="dirty";callback="Dirty";calls=1}
+  fixture:=errorProvenanceFixture{name:c.name+"/"+name,code:c.code,helper:`func Clean(){};func Dirty(){Calls++;_=time.Now()};`+c.definition+`;`+strings.ReplaceAll(c.set,"CALLBACK",callback),calls:calls}
+  if dirty{fixture.callback="canonicaljson.Dirty"}
+  t.Run(fixture.name,func(t *testing.T){checkErrorProvenance(t,fixture)})
+ }}
+}
+'''
+
+def digest(data):
+    return hashlib.sha256(data).hexdigest()
+
+def snapshot():
+    return {str(p.relative_to(ROOT)): digest(p.read_bytes()) for p in sorted(ARCH.glob('*.go'))}
+
+stage=sys.argv[1]
+assert stage in ('candidate','baseline')
+OUT.mkdir(exist_ok=True)
+assert not (OUT/(stage+'.json')).exists()
+assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()==BASE
+before=snapshot()
+environment=dict(os.environ)
+environment.update(GOWORK='off',GOTOOLCHAIN='local',GOPROXY='off',GOFLAGS='')
+environment['PATH']=str(Path(GO).parent)+':'+environment['PATH']
+for key in ('GOMADSEED','GOMAD3_CHILD_SEED'):
+    environment.pop(key,None)
+bound=OUT/stage
+bound.mkdir()
+replacement={}
+source_bindings={}
+for name in ('effects.go','standard.go','error_provenance_test.go'):
+    original=(ARCH/name).read_bytes()
+    data=original
+    if stage=='baseline' and name!='error_provenance_test.go':
+        data=subprocess.check_output(['git','show',BASE+':tools/gomad3/internal/gomadtool/architecture/'+name],cwd=ROOT)
+        saved=(ROOT/'.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/sources/baseline'/name).read_bytes()
+        assert data==saved
+    if name=='error_provenance_test.go':
+        data+=EXTRA.encode()
+    target=bound/name
+    target.write_bytes(data)
+    replacement[str(ARCH/name)]=str(target)
+    source_bindings[name]={'working_sha256':digest(original),'bound_sha256':digest(data),'bytes':len(data)}
+overlay=bound/'overlay.json'
+overlay.write_text(json.dumps({'Replace':replacement},indent=2)+'\n')
+command=[GO,'test','-count=1','-tags','test_dep','-v','-overlay',str(overlay),'./internal/gomadtool/architecture','-run','^TestAllocationAliasScout$']
+start=datetime.datetime.now(datetime.timezone.utc).isoformat()
+clock=time.monotonic()
+with (OUT/(stage+'.log')).open('x') as log:
+    result=subprocess.run(command,cwd=ROOT/'tools/gomad3',env=environment,stdout=log,stderr=subprocess.STDOUT,timeout=300)
+receipt={'stage':stage,'base':BASE,'command':command,'cwd':str(ROOT/'tools/gomad3'),'environment':{k:environment.get(k) for k in ('PATH','GOWORK','GOTOOLCHAIN','GOPROXY','GOFLAGS','GOMADSEED','GOMAD3_CHILD_SEED')},'source_before':before,'source_after':snapshot(),'source_bindings':source_bindings,'overlay':replacement,'overlay_sha256':digest(overlay.read_bytes()),'tool_sha256':digest(Path(GO).read_bytes()),'probe_sha256':digest(Path(__file__).read_bytes()),'extra_sha256':digest(EXTRA.encode()),'started':start,'ended':datetime.datetime.now(datetime.timezone.utc).isoformat(),'elapsed_seconds':time.monotonic()-clock,'exit':result.returncode,'log':str(OUT/(stage+'.log')),'log_sha256':digest((OUT/(stage+'.log')).read_bytes())}
+assert receipt['source_before']==receipt['source_after']
+(OUT/(stage+'.json')).write_text(json.dumps(receipt,indent=2)+'\n')
+print(json.dumps({'stage':stage,'exit':result.returncode,'elapsed_seconds':receipt['elapsed_seconds'],'receipt':str(OUT/(stage+'.json'))}))
+sys.exit(result.returncode)

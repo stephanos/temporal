@@ -1,0 +1,28 @@
+{"stage": "candidate", "test_source_sha256": "feb2df27cddc4085565a8f3599be73e25488e8ab6a3d7750a745598a02511353", "extra_fixture_source": "\nfunc TestFinalReviewMapLiteralAlias(t *testing.T) {\n for _, test := range []errorProvenanceFixture{\n  {name:\"dirty\", code:`v:=map[int]func(){};helper.Set(helper.Callbacks(v));v[0]()`, helper:`func Dirty(){Calls++;_=time.Now()};type Callbacks map[int]func();func Set(v Callbacks){v[0]=Dirty}`, calls:1, callback:\"canonicaljson.Dirty\"},\n  {name:\"clean\", code:`v:=map[int]func(){};helper.Set(helper.Callbacks(v));v[0]()`, helper:`func Clean(){};type Callbacks map[int]func();func Set(v Callbacks){v[0]=Clean}`},\n } {t.Run(test.name,func(t *testing.T){checkErrorProvenance(t,test)})}\n}\n", "overlay": {"/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/error_provenance_test.go": "/home/agent/.cache/codex-build/tmp/task32-final-map-literal-review-84gvek5f/error_provenance_test.go"}}
+=== RUN   TestFinalReviewMapLiteralAlias
+=== RUN   TestFinalReviewMapLiteralAlias/dirty
+    error_provenance_test.go:172: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:172: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestFinalReviewMapLiteralAliasdirty2696777254/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:172: returned callback escaped {linux amd64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestFinalReviewMapLiteralAliasdirty2696777254/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:172: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestFinalReviewMapLiteralAliasdirty2696777254/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:172: returned callback escaped {darwin arm64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestFinalReviewMapLiteralAliasdirty2696777254/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestFinalReviewMapLiteralAlias/clean
+    error_provenance_test.go:172: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.022s
+    error_provenance_test.go:172: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestFinalReviewMapLiteralAliasclean640846228/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:172: pure callback rejected {linux amd64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestFinalReviewMapLiteralAliasclean640846228/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:172: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestFinalReviewMapLiteralAliasclean640846228/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:172: pure callback rejected {darwin arm64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestFinalReviewMapLiteralAliasclean640846228/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+--- FAIL: TestFinalReviewMapLiteralAlias (6.57s)
+    --- FAIL: TestFinalReviewMapLiteralAlias/dirty (2.93s)
+    --- FAIL: TestFinalReviewMapLiteralAlias/clean (3.64s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	6.591s
+FAIL

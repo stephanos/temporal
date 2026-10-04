@@ -1,0 +1,20 @@
+# Task32 allocation corrective handover
+
+Fresh allocation origins now retain shared element/pointee cells across named reference conversions. Array/struct conversions isolate value cells while preserving nested references. Only effects.go and appended error_provenance_test.go changed in this corrective phase; standard.go is byte-identical to the original writer stage. The previous39-fixture prefix, all old tracked tests, and1042 protected files remain exact.
+
+Test-first allocation-repair-causal-red-valid proves12 introduced alias failures (six dirty/clean families). The bounded Git-BASE overlay passes all12, but exits1 on seven supplementary inherited failures: two value-copy false positives and five empty concrete-element formatting false positives. The origin-stage repair closes the12 aliases and five empty-value cases; its two remaining value-copy failures justify the conversion-local copy helper. Final causal-green, package and focused receipts pass all67 fixtures (134 metadata observations), with independent literal stock counts and exact callback paths. The earlier causal-red receipt is retained: nil-new-interface had an unused helper import and is explicitly inconclusive, corrected before any production edit.
+
+The16 appended controls cover positive zero-array callbacks, capacity/reslicing, fresh nil interface, unknown producer fail-closed behavior, finite recursive zero construction, array/struct value-copy isolation, nested reference sharing, new struct callbacks, and five empty aggregate-value cases. This is bounded evidence, not universal copy/formatting semantics: no map-key fallback repair, assignment/parameter copy sweep, separate length/capacity model, or graph/memo refactor.
+
+Final gates: whole architecture26 top-level tests, focused16, actual root five public boundaries, root purity/edges/host-vet three, and gomadtool consumer30 pass. Actual pinned unfiltered lint exits1 with the same four byte-identical inherited diagnostics (initialization.go123 errcheck; standard.go222/304 QF1003 and390 errcheck): introduced0/resolved0/line-position delta0. Errortype, make validate (without regeneration), and frozen diff/gofmt pass. Receipts record exact argv/cwd/env/tool/config/log hashes, timings, child exits and complete15-source/protected before/after bindings.
+
+Read-only reproduction: python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/allocation-repair-audit.py
+Evidence: allocation-repair-evidence.json. Five bounded snapshots retain only the admitted three paths plus complete source maps. No test/gate rerun is needed to read evidence.
+
+The new auditor preserves234 historical artifacts (including the finalized root admission) and replays80 historical receipts through immutable auditors using three exact-count map-current-source substitutions and four final-review-current-source substitutions. Existing nested historical assertions/counts are unchanged. Current source is independently bound to allocation-repair-final. Four scout receipts are archived and their three effective source bindings reconstructed from retained baseline/map stages plus extra fixture text; no scratch-path dependency. Prior two inconclusive zero selections and disclosed concurrency audit failure/stable retry remain historical evidence. Equality checks run only after proof writes finish.
+
+Qualification: developmental stock Go1.27.1 linux/arm64; analyzer metadata linux/amd64 and darwin/arm64; host-vet also actual linux/arm64. Patched native Go remains absent. Original R8/R18/R19/task19/fn105D4/task21/fixed-baseline/full/native/formal/completion acceptance remains open; no unchanged qualification retries or formal verdict.
+
+Tier: session (jev-unavailable(no_key)); requested gpt-6.1-sol/high; actual execution model metadata unknown. Delegates0. All owned commands terminal. No Git/index/Flow/lifecycle mutations; task remains in_progress for root's same-context independent corrective review and commit.
+stage: impl-review - skipped(policy: host-deferred - conductor owns the gate)
+

@@ -1,0 +1,240 @@
+=== RUN   TestErrorProvenanceUnwrap
+=== RUN   TestErrorProvenanceUnwrap/single-named-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:34: returned callback escaped {linux amd64} (canonicaljson.Leaf.Is): []
+    error_provenance_test.go:34: returned callback escaped {darwin arm64} (canonicaljson.Leaf.Is): []
+=== RUN   TestErrorProvenanceUnwrap/joined-named-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:34: returned callback escaped {linux amd64} (canonicaljson.Leaf.Is): []
+    error_provenance_test.go:34: returned callback escaped {darwin arm64} (canonicaljson.Leaf.Is): []
+=== RUN   TestErrorProvenanceUnwrap/wrapped-named-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:34: returned callback escaped {linux amd64} (canonicaljson.Leaf.Is): []
+    error_provenance_test.go:34: returned callback escaped {darwin arm64} (canonicaljson.Leaf.Is): []
+=== RUN   TestErrorProvenanceUnwrap/as-named-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.010s
+    error_provenance_test.go:34: returned callback escaped {linux amd64} (canonicaljson.Leaf.As): []
+    error_provenance_test.go:34: returned callback escaped {darwin arm64} (canonicaljson.Leaf.As): []
+=== RUN   TestErrorProvenanceUnwrap/direct-named-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceUnwrap/true-multi
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceUnwrap/single-only
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceUnwrap/clean-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceUnwrap/nil-child
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.005s
+=== RUN   TestErrorProvenanceUnwrap/empty-multi
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.003s
+=== RUN   TestErrorProvenanceUnwrap/nil-slice-node
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.003s
+    error_provenance_test.go:34: returned callback escaped {linux amd64} (canonicaljson.Leaf.Is): []
+    error_provenance_test.go:34: returned callback escaped {darwin arm64} (canonicaljson.Leaf.Is): []
+--- FAIL: TestErrorProvenanceUnwrap (11.37s)
+    --- FAIL: TestErrorProvenanceUnwrap/single-named-slice (1.00s)
+    --- FAIL: TestErrorProvenanceUnwrap/joined-named-slice (0.85s)
+    --- FAIL: TestErrorProvenanceUnwrap/wrapped-named-slice (0.84s)
+    --- FAIL: TestErrorProvenanceUnwrap/as-named-slice (0.87s)
+    --- PASS: TestErrorProvenanceUnwrap/direct-named-slice (0.87s)
+    --- PASS: TestErrorProvenanceUnwrap/true-multi (0.80s)
+    --- PASS: TestErrorProvenanceUnwrap/single-only (0.93s)
+    --- PASS: TestErrorProvenanceUnwrap/clean-slice (1.21s)
+    --- PASS: TestErrorProvenanceUnwrap/nil-child (1.10s)
+    --- PASS: TestErrorProvenanceUnwrap/empty-multi (1.43s)
+    --- FAIL: TestErrorProvenanceUnwrap/nil-slice-node (1.47s)
+=== RUN   TestErrorProvenanceConversion
+=== RUN   TestErrorProvenanceConversion/typed-source
+    error_provenance_test.go:52: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:52: returned callback escaped {linux amd64} (canonicaljson.Leaf.Error): []
+    error_provenance_test.go:52: returned callback escaped {darwin arm64} (canonicaljson.Leaf.Error): []
+=== RUN   TestErrorProvenanceConversion/supplier
+    error_provenance_test.go:52: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.003s
+    error_provenance_test.go:52: returned callback escaped {linux amd64} (canonicaljson.Leaf.Error): []
+    error_provenance_test.go:52: returned callback escaped {darwin arm64} (canonicaljson.Leaf.Error): []
+=== RUN   TestErrorProvenanceConversion/interface-dynamic-type
+    error_provenance_test.go:52: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.003s
+    error_provenance_test.go:52: returned callback escaped {linux amd64} (canonicaljson.Leaf.Error): []
+    error_provenance_test.go:52: returned callback escaped {darwin arm64} (canonicaljson.Leaf.Error): []
+=== RUN   TestErrorProvenanceConversion/external-typed-source
+    error_provenance_test.go:52: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.006s
+    error_provenance_test.go:52: returned callback escaped {linux amd64} (dependency.Leaf.Error): []
+    error_provenance_test.go:52: returned callback escaped {darwin arm64} (dependency.Leaf.Error): []
+=== RUN   TestErrorProvenanceConversion/clean-return
+    error_provenance_test.go:52: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+=== RUN   TestErrorProvenanceConversion/noninvoked-return
+    error_provenance_test.go:52: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceConversion/unrelated-caller
+    error_provenance_test.go:52: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceConversion/function-payload
+    error_provenance_test.go:52: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceConversion/slice-alias
+    error_provenance_test.go:52: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceConversion/pointer-alias
+    error_provenance_test.go:52: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+--- FAIL: TestErrorProvenanceConversion (10.09s)
+    --- FAIL: TestErrorProvenanceConversion/typed-source (1.63s)
+    --- FAIL: TestErrorProvenanceConversion/supplier (1.46s)
+    --- FAIL: TestErrorProvenanceConversion/interface-dynamic-type (0.91s)
+    --- FAIL: TestErrorProvenanceConversion/external-typed-source (1.01s)
+    --- PASS: TestErrorProvenanceConversion/clean-return (0.92s)
+    --- PASS: TestErrorProvenanceConversion/noninvoked-return (0.82s)
+    --- PASS: TestErrorProvenanceConversion/unrelated-caller (0.80s)
+    --- PASS: TestErrorProvenanceConversion/function-payload (0.76s)
+    --- PASS: TestErrorProvenanceConversion/slice-alias (0.89s)
+    --- PASS: TestErrorProvenanceConversion/pointer-alias (0.89s)
+=== RUN   TestErrorProvenanceWriter
+=== RUN   TestErrorProvenanceWriter/fprint
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=7
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:68: returned callback escaped {linux amd64} (canonicaljson.Leaf.Error): []
+    error_provenance_test.go:68: returned callback escaped {darwin arm64} (canonicaljson.Leaf.Error): []
+=== RUN   TestErrorProvenanceWriter/fprintf
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=7
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:68: returned callback escaped {linux amd64} (canonicaljson.Leaf.Error): []
+    error_provenance_test.go:68: returned callback escaped {darwin arm64} (canonicaljson.Leaf.Error): []
+=== RUN   TestErrorProvenanceWriter/fprintln
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=7
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:68: returned callback escaped {linux amd64} (canonicaljson.Leaf.Error): []
+    error_provenance_test.go:68: returned callback escaped {darwin arm64} (canonicaljson.Leaf.Error): []
+=== RUN   TestErrorProvenanceWriter/wrapped-is
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:68: returned callback escaped {linux amd64} (canonicaljson.Leaf.Is): []
+    error_provenance_test.go:68: returned callback escaped {darwin arm64} (canonicaljson.Leaf.Is): []
+=== RUN   TestErrorProvenanceWriter/nil-return
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=7
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceWriter/clean-return
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceWriter/noninvoked-return
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+=== RUN   TestErrorProvenanceWriter/unknown-return
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:68: returned callback escaped {linux amd64} (): []
+    error_provenance_test.go:68: returned callback escaped {darwin arm64} (): []
+--- FAIL: TestErrorProvenanceWriter (7.20s)
+    --- FAIL: TestErrorProvenanceWriter/fprint (0.81s)
+    --- FAIL: TestErrorProvenanceWriter/fprintf (0.94s)
+    --- FAIL: TestErrorProvenanceWriter/fprintln (0.86s)
+    --- FAIL: TestErrorProvenanceWriter/wrapped-is (1.09s)
+    --- PASS: TestErrorProvenanceWriter/nil-return (0.79s)
+    --- PASS: TestErrorProvenanceWriter/clean-return (1.03s)
+    --- PASS: TestErrorProvenanceWriter/noninvoked-return (0.82s)
+    --- FAIL: TestErrorProvenanceWriter/unknown-return (0.86s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	28.661s
+FAIL

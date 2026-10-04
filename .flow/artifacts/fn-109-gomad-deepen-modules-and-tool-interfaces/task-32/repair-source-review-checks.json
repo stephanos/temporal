@@ -1,0 +1,268 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.32",
+  "base_commit": "f931c9879e3017b346562667b9f6fbcc4db458ec",
+  "verdict": "NEEDS_WORK",
+  "closed_findings": [
+    "Initial Important converted fresh slice first-element alias finding"
+  ],
+  "actionable_findings": [
+    {
+      "severity": "Important",
+      "file": "tools/gomad3/internal/gomadtool/architecture/effects.go",
+      "line": 750,
+      "issue": "Converted fresh maps lose first inserted concrete callback and reject clean callback; slice-only allocation repair leaves map alias regression"
+    }
+  ],
+  "historical_worker_receipts": 17,
+  "historical_review_receipts": 13,
+  "historical_files": 89,
+  "writer_repair_receipts": 14,
+  "writer_inconclusive_zero_selections": 2,
+  "new_review_receipts": [
+    {
+      "path": "review-repair-package.json",
+      "sha256": "bd724630f7db42f54895f9bd1d2ded019d34c7ff0fb679b1e260377b4b1ec202",
+      "exit": 0,
+      "elapsed_seconds": 109.88440976000857,
+      "log": "review-repair-package.log",
+      "log_sha256": "355508d0ea6d653c0e1951ed023f86e7aef20a6f341ce72c65de98654a01d474",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./internal/gomadtool/architecture"
+      ]
+    },
+    {
+      "path": "review-repair-focused.json",
+      "sha256": "b813bfc139b8011514b605cc34af5eea9effc1f0e8f9d4397783531143fd0fb3",
+      "exit": 0,
+      "elapsed_seconds": 109.55228567800077,
+      "log": "review-repair-focused.log",
+      "log_sha256": "2a273d09b054b45c3f69915d81a64b8e502626d106cd1461a49232d224be36ec",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./internal/gomadtool/architecture",
+        "-run",
+        "^(TestErrorProvenance|TestEffectCallbackContextsAndUnwrapReturns|TestDependencyInitialization|TestThirdPartyInitialization|TestStandardStartupIdentity|TestMemorySummarySourceIdentity|TestCallbackContainerMutations|TestRangeAssignmentSlots|TestImplicitCallbackPrecedence|TestPureMemoryFormattingAndJSON)"
+      ]
+    },
+    {
+      "path": "review-repair-boundaries.json",
+      "sha256": "aa3ea39ee3d8889163c254b53e45a24ce3b5a32163ca6ac035996b9837f9b0c2",
+      "exit": 0,
+      "elapsed_seconds": 11.797995339002227,
+      "log": "review-repair-boundaries.log",
+      "log_sha256": "2beda7e3daac1501c6bd48cdc61933aa0002e24de58403ccdf1b49f7d7c8de4c",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        ".",
+        "-run",
+        "^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$"
+      ]
+    },
+    {
+      "path": "review-repair-broader.json",
+      "sha256": "6df75798717f42b157b51dc11c4839694a323c6ae74dd70e0e693a8faa5a22c9",
+      "exit": 0,
+      "elapsed_seconds": 37.643647393007996,
+      "log": "review-repair-broader.log",
+      "log_sha256": "9f01f3dc2cd78c3475ef97e70d6f89dcb5d0d484f3eb25a2d560c985eba9a781",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        ".",
+        "-run",
+        "^(TestPureModulesHaveNoHostEffects|TestExactModuleEdges|TestHostPackageVet)$"
+      ]
+    },
+    {
+      "path": "review-repair-consumer.json",
+      "sha256": "c2f93239f6539b07c165e99581f992e138661957f9f5052355c19307f7097403",
+      "exit": 0,
+      "elapsed_seconds": 3.1631614600046305,
+      "log": "review-repair-consumer.log",
+      "log_sha256": "60309d34f8fdc8676fea4b78b5cbd5c2d394a7df538c74c70deae397fbee814d",
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./cmd/gomadtool"
+      ]
+    },
+    {
+      "path": "review-repair-lint.json",
+      "sha256": "03f260137feac28a9e3a9d9494362e832f24e54c2479a3ec37a4f60c7f7bba1e",
+      "exit": 1,
+      "elapsed_seconds": 1.6087304590037093,
+      "log": "review-repair-lint.log",
+      "log_sha256": "1da024342f80e95ecb9a1539f8bebe7511e6e2da4757142d005b04baa6deec7a",
+      "command": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml",
+        "--build-tags",
+        "test_dep",
+        "--fix=false",
+        "./internal/gomadtool/architecture"
+      ]
+    },
+    {
+      "path": "review-repair-errortype.json",
+      "sha256": "eb32786062b3a58dfd4beb75bda5824251cf833ddc6be9975fd73d08d1871857",
+      "exit": 0,
+      "elapsed_seconds": 1.6660067919874564,
+      "log": "review-repair-errortype.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "command": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-tags",
+        "test_dep",
+        "./internal/gomadtool/architecture"
+      ]
+    },
+    {
+      "path": "review-repair-validate.json",
+      "sha256": "41eda656d9950d96564e50127185e82c31b21d490852b3e467db54b60b35944c",
+      "exit": 0,
+      "elapsed_seconds": 5.519648795001558,
+      "log": "review-repair-validate.log",
+      "log_sha256": "b3b9b9029c8440ebe3a8a1dd46fa28f1aee5bd9396eeffb91e1df2a2774a1ca2",
+      "command": [
+        "make",
+        "validate",
+        "GOFLAGS=-tags=test_dep -count=1"
+      ]
+    },
+    {
+      "path": "review-repair-static.json",
+      "sha256": "1df18c57153fdd92131c84cc681bb39eeb552d82ada34b010694c366f6eb99cb",
+      "exit": 0,
+      "elapsed_seconds": 0.0418563749990426,
+      "log": "review-repair-static.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "command": [
+        "bash",
+        "-c",
+        "git diff --check -- internal/gomadtool/architecture/effects.go internal/gomadtool/architecture/standard.go internal/gomadtool/architecture/error_provenance_test.go && /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l internal/gomadtool/architecture/effects.go internal/gomadtool/architecture/standard.go internal/gomadtool/architecture/error_provenance_test.go"
+      ]
+    },
+    {
+      "path": "review-repair-map-candidate.json",
+      "sha256": "0c69d7c203fd804a30c7420b5d740f6b3b29c31522965b321b49e586f52914bb",
+      "exit": 1,
+      "elapsed_seconds": 3.162391542995465,
+      "log": "review-repair-map-candidate.log",
+      "log_sha256": "1232335232391437c5e246bdf44dc404829a65d64c3b16e6a9bb94d70be84120",
+      "command": [
+        "python3",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/review-repair-map-probe.py",
+        "candidate"
+      ]
+    },
+    {
+      "path": "review-repair-map-baseline.json",
+      "sha256": "07331dcd11c88c52b2519919719ef087fd9f5caaff7e86b64756fef1e4d9ab7e",
+      "exit": 0,
+      "elapsed_seconds": 3.0850342929916224,
+      "log": "review-repair-map-baseline.log",
+      "log_sha256": "29e83fc89deec943a74331b587e1dadbccf165cb9de289d12f0c3ca15fd39e21",
+      "command": [
+        "python3",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/review-repair-map-probe.py",
+        "baseline"
+      ]
+    },
+    {
+      "path": "review-repair-worker-audit.json",
+      "sha256": "6002c86359150c0f3773b0465075ea1297ba657f5aa79600d6b6bfcbe66243d7",
+      "exit": 1,
+      "elapsed_seconds": 6.4542342530039605,
+      "log": "review-repair-worker-audit.log",
+      "log_sha256": "6d3a8f20b174aa18b44f122f8b85c9c51ae73f439310fce0cd8cd22d92d6a334",
+      "command": [
+        "python3",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/repair-audit.py"
+      ]
+    },
+    {
+      "path": "review-repair-worker-audit-stable.json",
+      "sha256": "e20fab25fdba4af650efb11ccfedc08776f15e933d803a74ffbd6a5ac1b276f3",
+      "exit": 0,
+      "elapsed_seconds": 6.177441211999394,
+      "log": "review-repair-worker-audit-stable.log",
+      "log_sha256": "ec3b2680a183d23c4c9798cf3a73123fd0e9a3e6e2469a8d9f7e83fef27604bc",
+      "command": [
+        "python3",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/repair-audit.py"
+      ]
+    }
+  ],
+  "source": {
+    "tools/gomad3/internal/gomadtool/architecture/architecture.go": "68734d4d0967e8bf3fe33fab2c9256b678d0f431d42c6de14012526bf278a929",
+    "tools/gomad3/internal/gomadtool/architecture/architecture_test.go": "ddc61684415ca6159ad92fc94b3ae7a89dbe9035357fa62f578b481387e3dc70",
+    "tools/gomad3/internal/gomadtool/architecture/edges.go": "50c0ee3fc8869bfc43ef8194044987641fd526cfb8aef7bccdc8bd6e4c92ce10",
+    "tools/gomad3/internal/gomadtool/architecture/effects.go": "2dfa255d9a4efe54471c1d53ea48c6abf7ad80410471e05e0e1dde1e17a41469",
+    "tools/gomad3/internal/gomadtool/architecture/effects_test.go": "29b583b567305a207dbf4ab169961989e68b518a4722ac77d9d548a668093fd7",
+    "tools/gomad3/internal/gomadtool/architecture/error_provenance_test.go": "4a81a371ee3e754304319c8bf46d1fdc2ac755ee8a26d7d8a237baa0017cc8fb",
+    "tools/gomad3/internal/gomadtool/architecture/initialization.go": "2db7f3747c3f192372837619f4a7e07008b4f9e3a971208239efe0b3a7d5a36c",
+    "tools/gomad3/internal/gomadtool/architecture/initialization_test.go": "3cec7fb9a3378060d67f655a2a79c69c6619c2e8dc58a3fa000758423690e1da",
+    "tools/gomad3/internal/gomadtool/architecture/memory_sources.go": "fb3745d1e66ea12f9e48e5ca9787d0bf11ec004f490e3c6e7f5ef8e6e6c11faf",
+    "tools/gomad3/internal/gomadtool/architecture/mutation_test.go": "e9f2575ce130caf92490b6368c14415a2e8fc78e610126a9d66ae9f414719a03",
+    "tools/gomad3/internal/gomadtool/architecture/program.go": "a3f3dcd71de31609621095e45f485638b40a5225146940ee9b4fca5773748fc7",
+    "tools/gomad3/internal/gomadtool/architecture/range_test.go": "f807d65cab62673106ee6779a6d36b7195caa475504417a2ff5d871b95ff448f",
+    "tools/gomad3/internal/gomadtool/architecture/signature_test.go": "9b2d3aeefb7ba75a967fcae628f05f88923dadbc19063eb1bef7fbcd4bd62b47",
+    "tools/gomad3/internal/gomadtool/architecture/standard.go": "efad9411c3876b452d4d2f4905a4ba1cb92b43a0428ea2f039c94b3e5d9fd88d",
+    "tools/gomad3/internal/gomadtool/architecture/startup_sources.go": "4ac7e60bae82eeeffe74a240bb4d64c4c24b9f2452e727dfc01239cbba386ada"
+  },
+  "protected_files": 1042,
+  "protected_aggregate_sha256": "b4ca4bdd63eb9426d63446b41042ccc0f825c8402b33faf6197f020d855f1e61",
+  "architecture_top_level_tests": 23,
+  "focused_top_level_tests": 13,
+  "consumer_top_level_tests": 30,
+  "causal_fixtures": 35,
+  "metadata_observations": 70,
+  "required_boundary_tests": 5,
+  "broader_boundary_tests": 3,
+  "map_probe": {
+    "baseline_exit": 0,
+    "candidate_exit": 1,
+    "candidate_failures": 2,
+    "source_sha256": "5e9179895ac89bcc7c62985bf0c27b65c16cecbf189c6981355a6fea75ec4e4a"
+  },
+  "lint": {
+    "inherited": 4,
+    "introduced": 0,
+    "resolved": 0
+  },
+  "errortype": 0,
+  "audit_retry": "First attempt failed whole-artifact equality because report was written concurrently; immutable stable retry passes after writes ended",
+  "qualified_native": false,
+  "formal_review": false,
+  "live_handles": 0,
+  "report_sha256": "e26ca085d7ff32eae28b0e7abe80026bbf1d05b09a2160da7ad2794df5fbac16",
+  "review_audit_sha256": "1ce24cab540eab04c599aa80304854079dd082b2877ead250891936e23b53e33",
+  "review_runner_sha256": "21ef2f7f5bf03813884906ba54297d807447f70e2e6a1a77050aa1ec7396e9c5",
+  "review_probe_sha256": "e797ae15fd26d6d6457f3a5d0194b89691336373d291fedf7fea615a136b6ebd"
+}

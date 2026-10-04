@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/repair-audit.py", line 183, in <module>
+    assert frozen_artifacts == {str(path.relative_to(OUT)):digest(path) for path in sorted(OUT.rglob('*')) if path.is_file()}
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

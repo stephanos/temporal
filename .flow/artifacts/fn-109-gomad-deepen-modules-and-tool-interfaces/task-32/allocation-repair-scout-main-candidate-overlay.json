@@ -1,0 +1,7 @@
+{
+  "Replace": {
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/task32-allocation-alias-scout-proof/candidate/effects.go",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/standard.go": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/task32-allocation-alias-scout-proof/candidate/standard.go",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/error_provenance_test.go": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/tmp/task32-allocation-alias-scout-proof/candidate/error_provenance_test.go"
+  }
+}

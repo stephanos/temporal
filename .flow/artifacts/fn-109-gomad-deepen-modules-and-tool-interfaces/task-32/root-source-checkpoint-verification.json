@@ -1,0 +1,50 @@
+{
+  "phase": "pre",
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.32",
+  "status": "blocked",
+  "spec_status": "open",
+  "done_tasks": 2,
+  "total_tasks": 32,
+  "head": "e95d9fa1b61951388818715677e5c42b0c03ee0f",
+  "source_progress_commit": null,
+  "selected_paths": 344,
+  "selected_content_files": 343,
+  "selected_content_aggregate_sha256": "97b7459313ec07ccc929052818b43463c44d1e803d17309f79ae0fa0e885135a",
+  "proof_files": 335,
+  "immutable_writer_files": 305,
+  "new_review_receipts": 10,
+  "protected": {
+    "files": 1042,
+    "aggregate_sha256": "b4ca4bdd63eb9426d63446b41042ccc0f825c8402b33faf6197f020d855f1e61"
+  },
+  "causal_fixtures": 67,
+  "metadata_observations": 134,
+  "inherited_lint": 4,
+  "introduced_lint": 0,
+  "original_task_prefix_unchanged": true,
+  "original_parent_criteria_unchanged": true,
+  "original_milestone_scope_unchanged": true,
+  "document_only_checkpoint": "e95d9fa1b61951388818715677e5c42b0c03ee0f",
+  "gate_script_sha256": "d0134382b9b676cc830fefdce19ebc375206ae8707ce7c640ae29a6b4eb030fe",
+  "root_source_checks_sha256": "824b94b018b338039ec9cf28368483818d6aa61612326890e1ad51ad1ad43d27",
+  "formal_ship": false,
+  "native_qualified": false,
+  "writes": 0,
+  "full_checkpoint_diff_check": {
+    "command": [
+      "git",
+      "diff",
+      "--cached",
+      "--check"
+    ],
+    "exit": 2,
+    "raw_output": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/allocation-repair-handover.md:20: new blank line at EOF.\n",
+    "classification": "one frozen historical archived handover EOF blank; not Git-BASE-inherited or a passing full-index quality gate"
+  },
+  "source_and_new_root_document_diff_check_exit": 0,
+  "observed_command": "python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/root-source-checkpoint-gate.py pre",
+  "observed_session": 49906,
+  "observed_exit": 0,
+  "observed_at_host_clock": "2026-10-04 20:23:17 UTC",
+  "result_interpretation": "Provenance and selected-index bindings verified; full-index whitespace quality remains red, no formal/native or task completion claim."
+}

@@ -1,0 +1,60 @@
+import hashlib
+import json
+from pathlib import Path
+import re
+import subprocess
+
+ROOT=Path('/Users/stephan/Workspace/skunkworks/gomad/temporal')
+OUT=ROOT/'.flow/tmp'
+BASE='f931c9879e3017b346562667b9f6fbcc4db458ec'
+ARCH=ROOT/'tools/gomad3/internal/gomadtool/architecture'
+GO='/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go'
+def digest(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+summary={}
+for kind,fixtures,ones in [('proof',24,12),('empty-proof',5,0)]:
+    for stage in ('candidate','baseline'):
+        directory=OUT/('task32-allocation-alias-scout-'+kind)
+        receipt=json.loads((directory/(stage+'.json')).read_text())
+        assert receipt['exit']==1
+        assert receipt['base']==BASE
+        assert receipt['source_before']==receipt['source_after']
+        assert all(digest(ROOT/name)==sha for name,sha in receipt['source_after'].items())
+        assert digest(receipt['log'])==receipt['log_sha256']
+        assert digest(GO)==receipt['tool_sha256']
+        script=OUT/('task32-allocation-alias-scout-'+('empty-probe.py' if kind=='empty-proof' else 'probe.py'))
+        assert digest(script)==receipt['probe_sha256']
+        assert receipt['environment']['GOWORK']=='off'
+        assert receipt['environment']['GOTOOLCHAIN']=='local'
+        assert receipt['environment']['GOPROXY']=='off'
+        assert receipt['environment']['GOFLAGS']==''
+        assert receipt['environment']['GOMADSEED'] is None
+        assert receipt['environment']['GOMAD3_CHILD_SEED'] is None
+        assert receipt['environment']['PATH'].split(':')[0]==str(Path(GO).parent)
+        assert receipt['cwd']==str(ROOT/'tools/gomad3')
+        assert receipt['command'][:6]==[GO,'test','-count=1','-tags','test_dep','-v']
+        assert receipt['command'][6]=='-overlay'
+        assert receipt['command'][8:]==['./internal/gomadtool/architecture','-run','^TestAllocationAliasScoutEmpty$' if kind=='empty-proof' else '^TestAllocationAliasScout$']
+        assert digest(receipt['command'][7])==receipt['overlay_sha256']
+        overlay=json.loads(Path(receipt['command'][7]).read_text())
+        assert overlay['Replace']==receipt['overlay']
+        for name,binding in receipt['source_bindings'].items():
+            bound=Path(receipt['overlay'][str(ARCH/name)])
+            assert digest(bound)==binding['bound_sha256']
+            assert bound.stat().st_size==binding['bytes']
+            assert digest(ARCH/name)==binding['working_sha256']
+            if stage=='baseline' and name!='error_provenance_test.go':
+                git=subprocess.check_output(['git','show',BASE+':tools/gomad3/internal/gomadtool/architecture/'+name],cwd=ROOT)
+                assert git==bound.read_bytes()
+        log=Path(receipt['log']).read_text()
+        assert len(re.findall(r'actual callbacks=1 writer count=0',log))==ones
+        assert len(re.findall(r'actual callbacks=0 writer count=0',log))==fixtures-ones
+        assert len(re.findall(r'--- PASS: TestBehavior',log))==fixtures
+        assert len(re.findall(r'metadata \{linux amd64\} package edges=0',log))==fixtures
+        assert len(re.findall(r'metadata \{darwin arm64\} package edges=0',log))==fixtures
+        statuses=re.findall(r'--- (PASS|FAIL): (TestAllocationAliasScout(?:Empty)?/\S+) ',log)
+        assert len(statuses)==fixtures
+        summary[kind+'/'+stage]={'exit':receipt['exit'],'fixtures':fixtures,'runtime_callbacks1':ones,'runtime_callbacks0':fixtures-ones,'linux_metadata':fixtures,'darwin_metadata':fixtures,'statuses':dict((name,status) for status,name in statuses),'receipt_sha256':digest(directory/(stage+'.json'))}
+assert digest(OUT/'task32-allocation-alias-scout-probe.py')=='a189a55e92a33fc285b48219915da31ff927ea79755138a5a5a016a91ddd54fa'
+assert digest(OUT/'task32-allocation-alias-scout-empty-probe.py')=='6924c68e81bf5903da3931567d7e5c116124f32d30c5c799d96df1e5a58e02b8'
+print(json.dumps({'audit':'PASS','source_stable':True,'receipts':summary},indent=2))

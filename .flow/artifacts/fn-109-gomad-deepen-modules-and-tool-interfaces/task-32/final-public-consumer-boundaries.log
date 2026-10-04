@@ -1,0 +1,28 @@
+=== RUN   TestArchitecturePublicSignatureFixtures
+=== RUN   TestArchitecturePublicSignatureFixtures/nested-container
+=== RUN   TestArchitecturePublicSignatureFixtures/alias
+=== RUN   TestArchitecturePublicSignatureFixtures/defined-rhs
+=== RUN   TestArchitecturePublicSignatureFixtures/interface-result
+=== RUN   TestArchitecturePublicSignatureFixtures/generic-constraint
+=== RUN   TestArchitecturePublicSignatureFixtures/foreign-generic-argument
+=== RUN   TestArchitecturePublicSignatureFixtures/promoted-method
+=== RUN   TestArchitecturePublicSignatureFixtures/private-storage
+=== RUN   TestArchitecturePublicSignatureFixtures/private-defined-graph
+=== RUN   TestArchitecturePublicSignatureFixtures/recursive-public-graph
+--- PASS: TestArchitecturePublicSignatureFixtures (0.20s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/nested-container (0.02s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/alias (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/defined-rhs (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/interface-result (0.08s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/generic-constraint (0.02s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/foreign-generic-argument (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/promoted-method (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/private-storage (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/private-defined-graph (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/recursive-public-graph (0.01s)
+=== RUN   TestRunnerRequestsCompileInExternalModule
+--- PASS: TestRunnerRequestsCompileInExternalModule (0.12s)
+=== RUN   TestRunnerExternalConsumerCompiles
+--- PASS: TestRunnerExternalConsumerCompiles (0.06s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3	0.387s

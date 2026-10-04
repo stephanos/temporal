@@ -1,0 +1,142 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.32",
+  "status": "blocked; verified source progress only",
+  "original_base": "f931c9879e3017b346562667b9f6fbcc4db458ec",
+  "precheckpoint_head": "e95d9fa1b61951388818715677e5c42b0c03ee0f",
+  "source_progress_commit": null,
+  "source": {
+    "tools/gomad3/internal/gomadtool/architecture/effects.go": "42828ad3f181b87f9e857db067a5474c3c947721bdb40cdb751fb1f3f0c7844b",
+    "tools/gomad3/internal/gomadtool/architecture/standard.go": "efad9411c3876b452d4d2f4905a4ba1cb92b43a0428ea2f039c94b3e5d9fd88d",
+    "tools/gomad3/internal/gomadtool/architecture/error_provenance_test.go": "6280351c2184961fdb24be4c482bb64d8350750883373f6245ace742e5608598"
+  },
+  "protected": {
+    "files": 1042,
+    "aggregate_sha256": "b4ca4bdd63eb9426d63446b41042ccc0f825c8402b33faf6197f020d855f1e61"
+  },
+  "original_task_prefix_sha256": "9c4a060d06c64e2a9a7ef51821746b7a8f608d64e9f729d3ce5da793adaf2a4e",
+  "immutable_artifacts": {
+    "allocation-repair-handover.md": "3dd044220f4e86044b065b426920d83abeb5d738e6082c093b7622d3e15925e3",
+    "allocation-repair-evidence.json": "e66217ce65819c24809fc357b7278d429a42ecbbccf48ac4169ee1591b58fb42",
+    "allocation-repair-audit.py": "ffbfe363b472e93b8a59c6225e30172830a41ace943a4ec5a2339526bca00ad0",
+    "allocation-source-review.md": "c5cd2108c2cceb25c49b854877957c73214bfdacdbe4e0ae05e248d559c0a80c",
+    "allocation-source-review-checks.json": "7bfedaded818602de10a633254648fcc5ee11a6e29bbbe9709bd0c4f96630a60",
+    "allocation-review-audit.py": "885ab57181eac25be47ed89bd5a74069c1d68a172856c88d85a525c864ebf530"
+  },
+  "root_read_only_audit": {
+    "session": 87340,
+    "command": "python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/allocation-review-audit.py",
+    "started_host_clock": "2026-10-04 20:02:19 UTC",
+    "ended_host_clock": "2026-10-04 20:02:54 UTC",
+    "exit": 0,
+    "base": "f931c9879e3017b346562667b9f6fbcc4db458ec",
+    "verdict": "SOURCE_PROGRESS_COMMIT_ONLY",
+    "audit_sha256": "885ab57181eac25be47ed89bd5a74069c1d68a172856c88d85a525c864ebf530",
+    "checks_sha256": "7bfedaded818602de10a633254648fcc5ee11a6e29bbbe9709bd0c4f96630a60",
+    "report_sha256": "c5cd2108c2cceb25c49b854877957c73214bfdacdbe4e0ae05e248d559c0a80c",
+    "document_delta": "Authorized exact staged-only AGENTS 9-line delta; historical AGENTS check uses explicit one-count Git BASE view; all original artifacts immutable",
+    "all_agents_terminal": true,
+    "source_and_flow_unchanged": true
+  },
+  "authoritative_verdict": "SOURCE_PROGRESS_COMMIT_ONLY; no actionable introduced defects",
+  "gate_summary": {
+    "architecture_top_level": 26,
+    "focused_top_level": 16,
+    "stock_host_causal_fixtures": 67,
+    "metadata_observations": 134,
+    "required_root_boundaries": 5,
+    "broader_boundaries": 3,
+    "consumer_top_level": 30,
+    "unfiltered_lint_exit": 1,
+    "inherited_lint": 4,
+    "introduced_lint": 0,
+    "resolved_lint": 0,
+    "errortype_exit": 0,
+    "generator_validate_exit": 0,
+    "source_scoped_static_exit": 0
+  },
+  "routing": {
+    "requested_implementer": "gpt-6.1-sol at high",
+    "requested_reviewer": "gpt-6.1-sol at high",
+    "actual_execution_model": null,
+    "same_configured_codex_family": true,
+    "tier": "session (jev-unavailable(no_key))"
+  },
+  "document_checkpoint": {
+    "commit": "e95d9fa1b61951388818715677e5c42b0c03ee0f",
+    "only_changed_path": "AGENTS.md",
+    "sha256": "3ce85bf0fd1be8f06398b71eeae1959f0ee7081c885a431bb7764c79c39d602f",
+    "historical_sha256": "1d1647deacf876fd634c64c2760194e210f67198fd31194fd4e464be6bc80f0d",
+    "exact_added_lines": 9,
+    "archived_audit_substitution_count": 1,
+    "archived_audits_unchanged": true
+  },
+  "acceptance_open": [
+    "original R8/R18/R19",
+    "task19/fn105D4",
+    "predecessors/task21",
+    "fixed first-baseline identities",
+    "affected consumer/integration",
+    "complete/full/completion/formal",
+    "both patched-native qualification"
+  ],
+  "native_qualified": false,
+  "formal_ship": false,
+  "all_attributable_handles_and_delegates_terminal": true,
+  "verification_policy": "Reuse frozen source-bound product gates; fresh root checkpoint gate binds unchanged source/evidence, original criteria, exact authorized document commit and scoped index. No unchanged environment failure retry.",
+  "metadata_review": {
+    "agent": "/root/task32_checkpoint_metadata_review",
+    "requested_model": "gpt-6.1-sol at high",
+    "actual_execution_model": null,
+    "verdict": "no Important/Critical documentation mismatches; corrected relative links and original-prefix/separator recheck passed",
+    "commands_terminal": true,
+    "source_review_repeated": false,
+    "archived_whitespace_handling": "Final five-document disclosure recheck passed: full-index exit2/raw historical whitespace is explicitly separate from clean source/root-document checks; no Important/Critical mismatch or full-index-green overclaim."
+  },
+  "checkpoint_gate_observations": [
+    {
+      "session": 85088,
+      "phase": "draft precommit",
+      "command": "python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/root-source-checkpoint-gate.py pre",
+      "exit": 1,
+      "cause": "Root outcome replacement omitted blank line before Finding coverage; exact parent binding correctly failed.",
+      "raw_output": "Traceback (most recent call last):\n  File \"/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/root-source-checkpoint-gate.py\", line 76, in <module>\n    assert (ROOT / parent_path).read_text() == parent_baseline.replace('## Finding coverage', PARENT_OUTCOME + '\\n## Finding coverage')\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+      "product_source_and_archived_proof_unchanged": true,
+      "disposition": "Add document separator and repair task-relative evidence links; rerun scoped checkpoint binding, not product gates."
+    },
+    {
+      "session": 37357,
+      "phase": "corrected precommit",
+      "exit": 1,
+      "cause": "flowctl task set-spec updated task32 JSON after the prior staging; index-content parity correctly detected stale staged metadata.",
+      "raw_output": "Traceback (most recent call last):\n  File \"/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/root-source-checkpoint-gate.py\", line 115, in <module>\n    assert git('show', ':' + path) == (ROOT / path).read_bytes(), path\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.32.json\n",
+      "product_source_and_archived_proof_unchanged": true,
+      "disposition": "Restage exact task32 metadata and verify the full authorized index."
+    },
+    {
+      "session": 95696,
+      "phase": "restaged precommit",
+      "exit": 1,
+      "cause": "All source/proof/index bindings passed; full staged diff-check exits2 on one immutable worker-handover EOF blank.",
+      "raw_output": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/allocation-repair-handover.md:20: new blank line at EOF.\nTraceback (most recent call last):\n  File \"/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/root-source-checkpoint-gate.py\", line 126, in <module>\n    subprocess.run(['git', 'diff', '--cached', '--check'], cwd=ROOT, check=True)\n    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.14/subprocess.py\", line 578, in run\n    raise CalledProcessError(retcode, process.args,\n                             output=stdout, stderr=stderr)\nsubprocess.CalledProcessError: Command '['git', 'diff', '--cached', '--check']' returned non-zero exit status 2.\n",
+      "product_source_and_archived_proof_unchanged": true,
+      "disposition": "Preserve audited raw handover; classify red full-index diagnostic explicitly, separately check source and new root documents; no lint/config or acceptance waiver."
+    },
+    {
+      "session": 78872,
+      "phase": "explicit residual precommit",
+      "exit": 0,
+      "provenance_binding": "344 selected paths,305 immutable writer files,10 new review receipts,1042 protected inputs,original criteria/prefix unchanged",
+      "full_index_diff_check_exit": 2,
+      "source_and_new_root_document_diff_check_exit": 0,
+      "writes": 0
+    }
+  ],
+  "full_checkpoint_diff_check": {
+    "command": "git diff --cached --check",
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "exit": 2,
+    "raw_output": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/allocation-repair-handover.md:20: new blank line at EOF.\n",
+    "classification": "sole frozen historical archived handover EOF blank; not Git-BASE-inherited; no passing full-index quality claim",
+    "archived_handover_sha256": "3dd044220f4e86044b065b426920d83abeb5d738e6082c093b7622d3e15925e3"
+  }
+}

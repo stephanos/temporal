@@ -1,0 +1,37 @@
+{"stage": "candidate", "test_source_sha256": "2ebaf41e793da0f001039ca7f33581e99a44685af7715e34c0274177d987cbaa", "extra_fixture_source": "\nfunc TestReviewAliasProvenance(t *testing.T) {\n for _, test := range []errorProvenanceFixture{\n  {name:\"zero-slice-alias\", code:`v:=make([]func(),1);helper.Set(helper.Callbacks(v));v[0]()`, helper:`func Dirty(){Calls++;_=time.Now()};type Callbacks []func();func Set(v Callbacks){v[0]=Dirty}`, calls:1, callback:\"canonicaljson.Dirty\"},\n  {name:\"zero-pointer-alias\", code:`v:=new(helper.Box);helper.Set((*helper.Other)(v));v.F()`, helper:`func Dirty(){Calls++;_=time.Now()};type Box struct{F func()};type Other Box;func Set(v *Other){v.F=Dirty}`, calls:1, callback:\"canonicaljson.Dirty\"},\n  {name:\"zero-slice-clean\", code:`v:=make([]func(),1);helper.Set(helper.Callbacks(v));v[0]()`, helper:`func Clean(){};type Callbacks []func();func Set(v Callbacks){v[0]=Clean}`},\n } {t.Run(test.name,func(t *testing.T){checkErrorProvenance(t,test)})}\n}\n", "overlay": {"/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/error_provenance_test.go": "/home/agent/.cache/codex-build/tmp/task32-review-alias-3pc2gy_y/error_provenance_test.go"}}
+=== RUN   TestReviewAliasProvenance
+=== RUN   TestReviewAliasProvenance/zero-slice-alias
+    error_provenance_test.go:149: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:149: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestReviewAliasProvenancezero-slice-alias3414074396/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:149: returned callback escaped {linux amd64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestReviewAliasProvenancezero-slice-alias3414074396/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:149: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestReviewAliasProvenancezero-slice-alias3414074396/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:149: returned callback escaped {darwin arm64} (canonicaljson.Dirty): [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestReviewAliasProvenancezero-slice-alias3414074396/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+=== RUN   TestReviewAliasProvenance/zero-pointer-alias
+    error_provenance_test.go:149: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:149: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestReviewAliasProvenancezero-pointer-alias2222039144/001/internal/canonicaljson/helper.go:1:88 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Dirty -> time.Now}]
+    error_provenance_test.go:149: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestReviewAliasProvenancezero-pointer-alias2222039144/001/internal/canonicaljson/helper.go:1:88 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestReviewAliasProvenance/zero-slice-clean
+    error_provenance_test.go:149: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:149: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestReviewAliasProvenancezero-slice-clean1759157925/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:149: pure callback rejected {linux amd64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestReviewAliasProvenancezero-slice-clean1759157925/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:149: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestReviewAliasProvenancezero-slice-clean1759157925/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+    error_provenance_test.go:149: pure callback rejected {darwin arm64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestReviewAliasProvenancezero-slice-clean1759157925/001/record/pure.go:1:196 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unresolved callback}]
+--- FAIL: TestReviewAliasProvenance (2.36s)
+    --- FAIL: TestReviewAliasProvenance/zero-slice-alias (0.82s)
+    --- PASS: TestReviewAliasProvenance/zero-pointer-alias (0.78s)
+    --- FAIL: TestReviewAliasProvenance/zero-slice-clean (0.76s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	2.361s
+FAIL

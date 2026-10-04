@@ -1,0 +1,191 @@
+{
+  "command_receipts": [
+    {
+      "path": "baseline-package.json",
+      "sha256": "dd75c0a8c6cf4cb6231a79bb9e720c16d305c1c35d7d4558e5a46600355c5e7b",
+      "expected_exit": 0
+    },
+    {
+      "path": "baseline-lint.json",
+      "sha256": "0ef09335fb87d5d45586071c3698abd227a8b497b48cace2cbff1b30c3a23014",
+      "expected_exit": 1
+    },
+    {
+      "path": "baseline-errortype.json",
+      "sha256": "24aa5e3d66d66626255c024c76d12e13dedcbf1d47ffdb98db5a6e0b63ab6a2a",
+      "expected_exit": 0
+    },
+    {
+      "path": "causal-red.json",
+      "sha256": "25992a9b627a2c5fab03f7ca54d72ee8f90f731a775979af567c7392ec73025d",
+      "expected_exit": 1
+    },
+    {
+      "path": "unwrap-stage-test.json",
+      "sha256": "c6b4cbce0b52d9e09a31d6c9bc83756454829f5cceae264cce281b869254113a",
+      "expected_exit": 0
+    },
+    {
+      "path": "conversion-stage-test.json",
+      "sha256": "7dd441716096b2ee2f7b60ae45d26375e18f889423815fbe69f7478339729e57",
+      "expected_exit": 0
+    },
+    {
+      "path": "writer-stage-test.json",
+      "sha256": "905088a3671f6b42f20a8f5b84797f08d505677103936d0cbc7efcfa1ee30a4e",
+      "expected_exit": 0
+    },
+    {
+      "path": "final-package.json",
+      "sha256": "35b09e074ad61864c5c0b3b9faea43c31cb4d070d5ccd2f21223c29d55a1ad4b",
+      "expected_exit": 0
+    },
+    {
+      "path": "final-causal.json",
+      "sha256": "a79b534952711797c03f2b61ae298ecdb5305ec613a1428377d8b5d2446146e0",
+      "expected_exit": 0
+    },
+    {
+      "path": "final-boundaries.json",
+      "sha256": "c20cbb564b73bb7465fd53d936fb4aba975a2323e9fded8bdebedb1390e01ad7",
+      "expected_exit": 0
+    },
+    {
+      "path": "final-public-consumer-boundaries.json",
+      "sha256": "9fa067377a37723f87fc7dced0f79d28228977f893c49c6c2c27f0823525b0a0",
+      "expected_exit": 0
+    },
+    {
+      "path": "final-consumer.json",
+      "sha256": "6ed20724ff9a4729a54d76d6ecdff8a91d9b6cc191649e49b54ae03719c0baf3",
+      "expected_exit": 0
+    },
+    {
+      "path": "final-validate.json",
+      "sha256": "05f3bd4a62d6b0e17c72558ae4c492dc29853bb2bac9e0bc52cb3bdd988ced5d",
+      "expected_exit": 0
+    },
+    {
+      "path": "final-lint.json",
+      "sha256": "5a35f790dfcf55603f78f1a2436f47750c03b1916c948ee9db772a4fc4af255e",
+      "expected_exit": 1
+    },
+    {
+      "path": "final-errortype.json",
+      "sha256": "744522415ae76b766b2edfcf50276c64403a3b03a559db61a875f6eb9ef0d0ef",
+      "expected_exit": 0
+    },
+    {
+      "path": "environment.json",
+      "sha256": "5b03aedf79a008492462c38b336e24f5f3e1da5cef50eca9fdea57f1e1b40116",
+      "expected_exit": 0
+    },
+    {
+      "path": "final-static.json",
+      "sha256": "c95ca67adb7fdeb37a33ded6cecd362e3b047b24281d5e29ee83681e6e6ed214",
+      "expected_exit": 0
+    }
+  ],
+  "snapshots": [
+    {
+      "path": "baseline.json",
+      "sha256": "c8a6a7e66096ea368980b3d58cc405ed8404ae2976e4044fcf67b085de241e83"
+    },
+    {
+      "path": "test-first.json",
+      "sha256": "5ba659285957da6ece35c10d9e718df91ab37f05e544fd0f5e4cc9dff1e18c34"
+    },
+    {
+      "path": "unwrap-stage.json",
+      "sha256": "0aa46ba58f4c98ae51981e19d8810bc04eadb06e39df909365fad423e32abddd"
+    },
+    {
+      "path": "conversion-stage.json",
+      "sha256": "0de18e1ed2a6118e61a4447649f6ecd337674edea69c81d7da10dba2be958ed5"
+    },
+    {
+      "path": "writer-stage.json",
+      "sha256": "6880e59fa8cac287c592b88e7e6ccfa5082225d176414380a66781405417f587"
+    }
+  ],
+  "tests": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config /Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --build-tags test_dep --fix=false ./internal/gomadtool/architecture",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype -tags test_dep ./internal/gomadtool/architecture",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture -run '^TestErrorProvenance'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture -run '^TestErrorProvenanceUnwrap/(single-named-slice|joined-named-slice|wrapped-named-slice|as-named-slice|direct-named-slice|true-multi|single-only|clean-slice|nil-child|empty-multi)$'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture -run '^TestErrorProvenance(Unwrap|Conversion)'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture -run '^TestErrorProvenanceWriter$'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./internal/gomadtool/architecture -run '^TestErrorProvenance'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v . -run '^(TestPackageArchitecture|TestExactModuleEdges|TestPublicPackagesDoNotExportTypeAliases|TestPureModulesHaveNoHostEffects|TestHostPackageVet)$'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v . -run '^(TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$'",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./cmd/gomadtool",
+    "make validate 'GOFLAGS=-tags=test_dep -count=1'",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config /Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --build-tags test_dep --fix=false ./internal/gomadtool/architecture",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype -tags test_dep ./internal/gomadtool/architecture",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go env -json GOOS GOARCH GOROOT GOVERSION GOEXPERIMENT GOCACHE GOMODCACHE CGO_ENABLED",
+    "bash -c 'git diff --check -- internal/gomadtool/architecture/effects.go internal/gomadtool/architecture/standard.go internal/gomadtool/architecture/error_provenance_test.go && /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l internal/gomadtool/architecture/effects.go internal/gomadtool/architecture/standard.go internal/gomadtool/architecture/error_provenance_test.go'"
+  ],
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.32",
+  "status": "in_progress",
+  "base_commit": "f931c9879e3017b346562667b9f6fbcc4db458ec",
+  "commits": [],
+  "prs": [],
+  "scope": [
+    "tools/gomad3/internal/gomadtool/architecture/effects.go",
+    "tools/gomad3/internal/gomadtool/architecture/standard.go",
+    "tools/gomad3/internal/gomadtool/architecture/error_provenance_test.go"
+  ],
+  "required_boundaries": [
+    "TestPackageArchitecture",
+    "TestPublicPackagesDoNotExportTypeAliases",
+    "TestArchitecturePublicSignatureFixtures",
+    "TestRunnerRequestsCompileInExternalModule",
+    "TestRunnerExternalConsumerCompiles"
+  ],
+  "baseline": "architecture green; unfiltered lint red with 4 inherited diagnostics; errortype green",
+  "diagnostics": {
+    "lint": {
+      "baseline": 4,
+      "final": 4,
+      "introduced": [],
+      "resolved": [],
+      "residual": [
+        "initialization.go:123:14 errcheck fmt.Fprintf",
+        "standard.go:222:3 QF1003 tagged switch",
+        "standard.go:304:4 QF1003 tagged switch",
+        "standard.go:390:14 errcheck fmt.Fprintf"
+      ],
+      "comparison": "baseline-lint.log equals final-lint.log byte-for-byte"
+    },
+    "errortype": {
+      "baseline": 0,
+      "final": 0
+    }
+  },
+  "proof": {
+    "fixtures": 29,
+    "causal_red": 14,
+    "known_callback_red": 13,
+    "unknown_provenance_red": 1,
+    "stock_dirty_callbacks": 1,
+    "stock_controls_callbacks": 0,
+    "metadata_platforms": [
+      "linux/amd64",
+      "darwin/arm64"
+    ],
+    "metadata_observations": 58,
+    "source_snapshot_inventory": {
+      "baseline": 14,
+      "test_first": 15,
+      "final": 15
+    }
+  },
+  "qualification": "developmental stock Go1.27.1 linux/arm64 only; supported patched-native/full/formal and original owner acceptance remain open",
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "delegated": 0,
+  "review": "deferred to conductor",
+  "handover": "handover.md",
+  "audit": "audit.py"
+}
