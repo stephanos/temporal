@@ -16,7 +16,7 @@ final case class AdmissionClaims(
     closeDeadline: Property[AdmissionState]
 )
 
-def admissionClaims(m: Machine[AdmissionState, Outcome, AdmissionFact]): AdmissionClaims =
+def admissionClaims(m: Machine[AdmissionState, Outcome, AdmissionFact]) =
   val scheduleToStartTimesOut = m.property when scheduleToStart holds (after =>
     after.records(AdmissionFact.statusTimedOut(TimeoutType.scheduleToStart))
   )

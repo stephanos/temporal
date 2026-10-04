@@ -331,6 +331,11 @@ gate; `make fmt-model` formats them and `make fix-model` applies the lint rewrit
 lint rule forbids where no rewrite keeps the behavior carries a line-scoped
 `// scalafix:ok <rule>`.
 
+A Model writes a declaration's type only where inference would give a different one, such as a
+step function whose body is `disabled` or `stay(s)` (inferred with no facts), a `Long` written as
+an `Int` literal, or a call whose type argument or `given` the expected type decides, or where the
+lifter needs it; the lifter reads an inferred type as it reads a written one.
+
 The lifter reads what an author wrote, as written:
 
 - **Declarations:** `machine[S, O, F] { … }` blocks, with `forEntity`, `starts`, `ends`,

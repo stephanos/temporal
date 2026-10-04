@@ -27,7 +27,7 @@ given Family = Family("temporal.nexus.caller.closepolicy")
  * The logical operation. `operation` is keyed by the scheduled event of one run's history, which
  * cannot follow the operation into a reset successor; the request identity can.
  */
-val nexusRequest: Entity = Entity(key = "requestId", refer = Map("owner" -> workflow))
+val nexusRequest = Entity(key = "requestId", refer = Map("owner" -> workflow))
 
 // ### Design vocabulary: one logical operation, the original run and one reset successor
 
@@ -169,7 +169,7 @@ val handlerFinish = action(handler).on(operation).input(result)
 /** The cancel request reaches the handler. */
 val deliverCancel = internal
 
-val opened: CloseResetState = CloseResetState(
+val opened = CloseResetState(
   Caller.open,
   Intent.none,
   Handler.running,
@@ -180,14 +180,14 @@ val opened: CloseResetState = CloseResetState(
 
 // ### Step functions
 
-def closeStep(s: CloseResetState): List[CloseResetStep] =
+def closeStep(s: CloseResetState) =
   if s.caller != Caller.open then disabled
   else accept(s.copy(caller = Caller.closed), Fact.workflowClosed)
 
 /**
  * One cancellation, while the handler has neither finished nor been asked, by a run still open.
  */
-def cancelStep(s: CloseResetState, p: Principal): List[CloseResetStep] =
+def cancelStep(s: CloseResetState, p: Principal) =
   if s.intent != Intent.none || s.caller == Caller.closed || s.handler != Handler.running then
     disabled
   else accept(s.copy(intent = Intent.requested(p)), Fact.cancelRequested(p))
@@ -195,17 +195,17 @@ def cancelStep(s: CloseResetState, p: Principal): List[CloseResetStep] =
 /**
  * The request in flight reaches a handler still working. A closed run's request is still delivered.
  */
-def cancelDeliveryStep(s: CloseResetState): List[CloseResetStep] =
+def cancelDeliveryStep(s: CloseResetState) =
   if s.intent == Intent.none || s.handler != Handler.running then disabled
   else accept(s.copy(handler = Handler.cancelReceived), Fact.cancelReceived)
 
-def working(h: Handler): Boolean = h.in(Handler.running, Handler.cancelReceived)
+def working(h: Handler) = h.in(Handler.running, Handler.cancelReceived)
 
 /**
  * The handler's irreversible effect, and its first report. A canceled result needs the handler to
  * have received the cancel request; having received it, the handler may still succeed or fail.
  */
-def finishStep(s: CloseResetState, r: Resolution): List[CloseResetStep] =
+def finishStep(s: CloseResetState, r: Resolution) =
   if !working(s.handler) then disabled
   else if r == Resolution.canceled && s.handler != Handler.cancelReceived then disabled
   else
@@ -215,7 +215,7 @@ def finishStep(s: CloseResetState, r: Resolution): List[CloseResetStep] =
     )
 
 /** The history event that records an outcome, by the baseline's names. */
-def recorded(r: Resolution): Fact = r match
+def recorded(r: Resolution) = r match
   case Resolution.succeeded => Fact.nexusOperationCompleted
   case Resolution.failed    => Fact.nexusOperationFailed
   case Resolution.canceled  => Fact.nexusOperationCanceled
@@ -223,20 +223,20 @@ def recorded(r: Resolution): Fact = r match
 /**
  * A history records an outcome once: a second delivery of it records nothing.
  */
-def recordedOnce(s: CloseResetState, k: Knowledge, r: Resolution): List[Fact] =
+def recordedOnce(s: CloseResetState, k: Knowledge, r: Resolution) =
   if s.known == k then Nil else List(recorded(r))
 
-def carries(c: Completion, r: Resolution): Boolean =
+def carries(c: Completion, r: Resolution) =
   c.in(Completion.inFlight(r), Completion.retried(r))
 
 /**
  * Whether a delivery that does not end the report leaves it to be delivered again.
  */
-def redelivers(d: Redelivery, c: Completion, r: Resolution): Boolean = d == Redelivery.untilAck ||
+def redelivers(d: Redelivery, c: Completion, r: Resolution) = d == Redelivery.untilAck ||
   c == Completion.inFlight(r)
 
 /** The report as the channel holds it for its next delivery. */
-def again(d: Redelivery, r: Resolution): Completion =
+def again(d: Redelivery, r: Resolution) =
   if d == Redelivery.untilAck then Completion.inFlight(r) else Completion.retried(r)
 
 // The ways a delivery that leaves the report to be delivered again can go.
@@ -254,7 +254,7 @@ def committed(
     s: CloseResetState,
     k: Knowledge,
     r: Resolution
-): List[CloseResetStep] =
+) =
   if redelivers(d, s.channel, r) then
     choose(
       taken -> accept(s.copy(known = k, channel = Completion.none), recordedOnce(s, k, r)*),
@@ -264,7 +264,7 @@ def committed(
     )
   else accept(s.copy(known = k, channel = Completion.none), recordedOnce(s, k, r)*)
 
-def keptAtOperation(d: Redelivery, s: CloseResetState, r: Resolution): List[CloseResetStep] =
+def keptAtOperation(d: Redelivery, s: CloseResetState, r: Resolution) =
   if redelivers(d, s.channel, r) then
     choose(
       taken -> List(
@@ -296,7 +296,7 @@ def keptAtOperation(d: Redelivery, s: CloseResetState, r: Resolution): List[Clos
  * A permanent rejection ends the report: the handler stops reporting. A `choose` writes this step
  * out in its alternative, since an alternative is one step written out, not a helper's.
  */
-def dropped(s: CloseResetState): List[CloseResetStep] =
+def dropped(s: CloseResetState) =
   List(
     Step(
       Answer.rejectedPermanent,
@@ -305,7 +305,7 @@ def dropped(s: CloseResetState): List[CloseResetStep] =
     )
   )
 
-def rejectedByClosed(d: Redelivery, s: CloseResetState, r: Resolution): List[CloseResetStep] =
+def rejectedByClosed(d: Redelivery, s: CloseResetState, r: Resolution) =
   if redelivers(d, s.channel, r) then
     choose(
       refused -> List(
@@ -319,7 +319,7 @@ def rejectedByClosed(d: Redelivery, s: CloseResetState, r: Resolution): List[Clo
     )
   else dropped(s)
 
-def deliverStep(p: Policy, d: Redelivery, s: CloseResetState, r: Resolution): List[CloseResetStep] =
+def deliverStep(p: Policy, d: Redelivery, s: CloseResetState, r: Resolution) =
   if !carries(s.channel, r) then disabled
   // The deadline resolved the operation: a completion after it finds nothing to complete.
   else if s.known == Knowledge.expired then dropped(s)
@@ -333,22 +333,22 @@ def deliverStep(p: Policy, d: Redelivery, s: CloseResetState, r: Resolution): Li
           accept(s.copy(channel = Completion.none)).because("the original run acknowledges it")
         else committed(d, s, Knowledge.successor(r), r)
 
-def fromRetention(x: Retained): Knowledge = x match
+def fromRetention(x: Retained) = x match
   case Retained.pending(r) => Knowledge.successor(r)
   case Retained.none       => Knowledge.none
 
-def reapplied(rule: Reset, s: CloseResetState): Knowledge = s.known match
+def reapplied(rule: Reset, s: CloseResetState) = s.known match
   case Knowledge.original(r) =>
     if rule == Reset.truncates then fromRetention(s.retained) else Knowledge.successor(r)
   case Knowledge.expired => Knowledge.expired
   case _                 => fromRetention(s.retained)
 
-def carried(rule: Reset, i: Intent): Intent = if rule == Reset.forgetsCancel then Intent.none else i
+def carried(rule: Reset, i: Intent) = if rule == Reset.forgetsCancel then Intent.none else i
 
 /**
  * What the successor's history records at its start: the reset, and the outcome it reapplies.
  */
-def resetFacts(k: Knowledge): List[Fact] = k match
+def resetFacts(k: Knowledge) = k match
   case Knowledge.successor(r) => List(Fact.workflowReset, Fact.outcomeReapplied, recorded(r))
   case _                      => List(Fact.workflowReset)
 
@@ -357,7 +357,7 @@ def resetFacts(k: Knowledge): List[Fact] = k match
  * ownership, reapplies the outcome the original run recorded or the operation retained, and keeps
  * the cancel intent. It cannot undo the handler's effect.
  */
-def resetStep(rule: Reset, s: CloseResetState): List[CloseResetStep] =
+def resetStep(rule: Reset, s: CloseResetState) =
   if s.caller == Caller.resetOpen then disabled
   else
     accept(
@@ -374,14 +374,14 @@ def resetStep(rule: Reset, s: CloseResetState): List[CloseResetStep] =
  * The schedule-to-close deadline resolves an operation whose owner knows no outcome. A closed run's
  * history is frozen, so no deadline fires in it.
  */
-def expireStep(s: CloseResetState): List[CloseResetStep] =
+def expireStep(s: CloseResetState) =
   if s.caller == Caller.closed || s.known != Knowledge.none then disabled
   else accept(s.copy(known = Knowledge.expired), Fact.nexusOperationTimedOut)
 
 // ### Promises
 
 /** The run that owns the operation records this outcome. */
-def ownerKnows(s: CloseResetState, r: Resolution): Boolean =
+def ownerKnows(s: CloseResetState, r: Resolution) =
   if s.caller == Caller.resetOpen then s.known == Knowledge.successor(r)
   else s.known == Knowledge.original(r)
 
@@ -390,14 +390,14 @@ def ownerKnows(s: CloseResetState, r: Resolution): Boolean =
  * operation's retention, or a report still in flight. An operation its deadline resolved waits for
  * no outcome.
  */
-def outcomePreserved(after: CloseResetStep): Boolean = after.state.handler match
+def outcomePreserved(after: CloseResetStep) = after.state.handler match
   case Handler.done(r) =>
     ownerKnows(after.state, r) ||
     after.state.retained == Retained.pending(r) || carries(after.state.channel, r) ||
     after.state.known == Knowledge.expired
   case _ => true
 
-def keptOrOwed(after: CloseResetStep, r: Resolution): Boolean =
+def keptOrOwed(after: CloseResetStep, r: Resolution) =
   after.outcome.in(Answer.accepted, Answer.retained) implies
     (after.state.channel != Completion.none || ownerKnows(after.state, r) ||
       after.state.retained == Retained.pending(r))
@@ -406,19 +406,19 @@ def keptOrOwed(after: CloseResetStep, r: Resolution): Boolean =
  * An acknowledgment ends the handler's report only once the owner committed or the operation
  * retained the outcome.
  */
-def ackOnlyWhenKept(before: CloseResetState, after: CloseResetStep): Boolean = before.channel match
+def ackOnlyWhenKept(before: CloseResetState, after: CloseResetStep) = before.channel match
   case Completion.inFlight(r) => keptOrOwed(after, r)
   case Completion.retried(r)  => keptOrOwed(after, r)
   case Completion.none        => true
 
-def isDone(s: CloseResetState): Boolean = !working(s.handler)
+def isDone(s: CloseResetState) = !working(s.handler)
 
 /**
  * Where a path may end: the handler is still working, or its outcome reached the owner, or the
  * operation retained it for a successor a closed run may never get, or the deadline resolved the
  * wait. Any other state with no step is a lost outcome.
  */
-def settled(s: CloseResetState): Boolean = s.handler match
+def settled(s: CloseResetState) = s.handler match
   case Handler.done(r) =>
     ownerKnows(s, r) ||
     (s.caller == Caller.closed && s.retained == Retained.pending(r)) || s.known == Knowledge.expired
@@ -444,12 +444,12 @@ enum Outcomes derives Finite:
   case one(result: Resolution)
   case several
 
-def withOutcome(seen: Outcomes, r: Resolution): Outcomes = seen match
+def withOutcome(seen: Outcomes, r: Resolution) = seen match
   case Outcomes.none    => Outcomes.one(r)
   case Outcomes.one(x)  => if x == r then seen else Outcomes.several
   case Outcomes.several => Outcomes.several
 
-def outcomesAfter(seen: Outcomes, k: Knowledge): Outcomes = k match
+def outcomesAfter(seen: Outcomes, k: Knowledge) = k match
   case Knowledge.original(r)  => withOutcome(seen, r)
   case Knowledge.successor(r) => withOutcome(seen, r)
   case _                      => seen
@@ -465,11 +465,11 @@ enum Asked derives Finite:
   case by(principal: Principal)
   case lost
 
-def askedBy(i: Intent): Asked = i match
+def askedBy(i: Intent) = i match
   case Intent.requested(p) => Asked.by(p)
   case Intent.none         => Asked.nobody
 
-def askedAfter(asked: Asked, i: Intent): Asked = asked match
+def askedAfter(asked: Asked, i: Intent) = asked match
   case Asked.nobody => askedBy(i)
   case Asked.by(p)  => if i == Intent.requested(p) then asked else Asked.lost
   case Asked.lost   => Asked.lost
@@ -490,33 +490,33 @@ val cancelPrincipal =
 /**
  * Retention outlives a crash: no design has a step that loses a retained outcome.
  */
-val retentionDurable: Assumption = assume("retentionSurvivesCrash")
+val retentionDurable = assume("retentionSurvivesCrash")
 
 /**
  * A transient rejection is not repeated forever. A machine that assumes it has the channel that
  * redelivers once.
  */
-val retryFair: Assumption = assume("transientRejectionEventuallyAccepted")
+val retryFair = assume("transientRejectionEventuallyAccepted")
 
 /**
  * The schedule-to-close deadline is set and fires. Only a machine that assumes it has the timer. No
  * claim needs the timer fair: the machines that have it redeliver once, so none has a cycle.
  */
-val deadlineExpires: Assumption = assume("scheduleToCloseExpires")
+val deadlineExpires = assume("scheduleToCloseExpires")
 
 /**
  * The handler reports until acknowledged or permanently rejected, as the channel holds the report.
  */
-val reporting: Assumption = assume("handlerReportsUntilAckOrPermanent")
+val reporting = assume("handlerReportsUntilAckOrPermanent")
 
 /** A delivery that stays enabled is eventually made. */
-val deliveryFair: Assumption = assume("enabledDeliveryAndRecoveryActionsEventuallyRun")
+val deliveryFair = assume("enabledDeliveryAndRecoveryActionsEventuallyRun")
   .fair(complete)
 
 /**
  * The closed run is eventually reset, and the reset reapplies what the operation retained.
  */
-val recovery: Assumption = assume("currentOwnerEventuallyRecoversAndReappliesRetainedOutcome")
+val recovery = assume("currentOwnerEventuallyRecoversAndReappliesRetainedOutcome")
   .fair(reset)
 
 // ### The designs differ only in the policy, the reset and the channel their steps pass

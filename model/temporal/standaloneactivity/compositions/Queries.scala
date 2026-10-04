@@ -7,7 +7,7 @@ import taskqueue.*
 import admission.dispatch
 
 /** Over the opaque queue: every claim and path of the design `c`. */
-def overQueueQueries(c: Composition[OverQueue]): Vector[Query] =
+def overQueueQueries(c: Composition[OverQueue]) =
   val claims = overQueueClaims(c)
   val staleDeliveryAfterPause = c.scenario.actions(
     c.synced(_.activity -> dispatch),
@@ -43,7 +43,7 @@ val currentOverQueueQueries = overQueueQueries(currentOverQueue)
 val staleOverQueueQueries = overQueueQueries(staleOverQueue)
 
 /** Over the detailed queue: `anyTotal` is the static combination count of the `any` Queries. */
-def overMatchingQueries(c: Composition[OverMatching], anyTotal: Int): Vector[Query] =
+def overMatchingQueries(c: Composition[OverMatching], anyTotal: Int) =
   val claims = overMatchingClaims(c)
   val staleDeliveryAfterPause = c.scenario.actions(
     c.synced(_.activity -> dispatch),

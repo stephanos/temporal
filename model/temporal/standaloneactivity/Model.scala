@@ -24,10 +24,10 @@ object SystemFamily:
 
 // The caller starts and controls the activity. The worker's stop is the worker's own action,
 // `workerStop`: nothing it records names the activity, so the activity's machines keep their state.
-val caller: Party = Party()
+val caller = Party()
 
 /** Named by the id the caller chose: every read carries it, so no run id or event id is needed. */
-val activity: Entity = Entity(key = "activityId")
+val activity = Entity(key = "activityId")
 
 /** Whether the start request sets a deadline. */
 enum Timeout derives Finite:
@@ -82,7 +82,7 @@ val control = action(caller)
 
 // A retry shows the caller only the attempt count DescribeActivityExecution reports. The statuses
 // observe one status field; whether a catalog tells them apart is left to the realization.
-val attemptCount: Observation = Observation(on = activity, read = "attempt")
+val attemptCount = Observation(on = activity, read = "attempt")
 
 /** A step's outcome, shared by both machines by name. */
 enum Outcome derives Finite:
@@ -109,21 +109,21 @@ object Product:
   import ProductPhase.*
   import ProductFact.*
 
-  def terminal(s: ProductState): Boolean =
+  def terminal(s: ProductState) =
     s.phase.in(completed, failed, canceled, terminated, timedOut)
 
   /** A paused activity, which no worker is given. */
-  def paused(s: ProductState): Boolean = s.phase == ProductPhase.paused
+  def paused(s: ProductState) = s.phase == ProductPhase.paused
 
-  def running(s: ProductState): Boolean = s.phase == started
+  def running(s: ProductState) = s.phase == started
 
   /** Where a worker holds the attempt, so its answer settles the activity. */
-  def held(s: ProductState): Boolean = s.phase.in(started, cancelRequested)
+  def held(s: ProductState) = s.phase.in(started, cancelRequested)
 
   /** Where a pause takes effect: before an attempt starts or while one runs. */
-  def pausable(s: ProductState): Boolean = s.phase.in(scheduled, started)
+  def pausable(s: ProductState) = s.phase.in(scheduled, started)
 
-  def attemptStart(s: ProductState): List[ProductStep] =
+  def attemptStart(s: ProductState) =
     if s.phase != scheduled then disabled else accept(ProductState(started), statusStarted)
 
   /**
@@ -131,7 +131,7 @@ object Product:
    * (TransitionRescheduled), or canceled under a cancel request; the protocol adds the backoff. A
    * canceled answer settles only an activity whose cancellation was requested.
    */
-  def attemptResult(s: ProductState, result: AttemptResult): List[ProductStep] =
+  def attemptResult(s: ProductState, result: AttemptResult) =
     if !held(s) then disabled
     else
       result match
@@ -148,7 +148,7 @@ object Product:
    * A control on an activity that is over is not found. A pause of a paused or cancel-requested
    * activity, or an unpause of one not paused, is FailedPrecondition; the protocol lists them.
    */
-  def control(s: ProductState, c: Control): List[ProductStep] =
+  def control(s: ProductState, c: Control) =
     if terminal(s) then List(Step(Outcome.notFound, s))
     else
       c match
@@ -163,7 +163,7 @@ object Product:
   def workerStop(@unused s: ProductState): List[ProductStep] = disabled
 
   /** One of the activity's deadlines firing. Which deadline is the protocol's account of how. */
-  def timeout(s: ProductState): List[ProductStep] =
+  def timeout(s: ProductState) =
     if terminal(s) then disabled else accept(ProductState(timedOut), statusTimedOut)
 
 val timeout = timer
@@ -194,7 +194,7 @@ enum TimeoutType derives Finite:
   case scheduleToClose, scheduleToStart, startToClose
 
 /** Bounds the attempt count, as the type of `ProtocolState.attempts` does. */
-val attemptBound: Int = 2
+val attemptBound = 2
 
 /** 12 phases, 3 attempt counts (`0..attemptBound`) and 3 deadline flags: 288 states. */
 final case class ProtocolState(
@@ -218,17 +218,17 @@ object Protocol:
   import Phase.*
   import ProtocolFact.*
 
-  def terminal(p: Phase): Boolean = p.in(completed, failed, canceled, terminated, timedOut)
+  def terminal(p: Phase) = p.in(completed, failed, canceled, terminated, timedOut)
 
   /** Started and not over: the phases a deadline can fire in. */
-  def live(p: Phase): Boolean =
+  def live(p: Phase) =
     p.in(scheduled, backingOff, started, paused, pauseRequested, cancelRequested)
 
   /** Where a worker holds the attempt: what start-to-close covers and a worker's answer settles. */
-  def held(p: Phase): Boolean = p.in(started, pauseRequested, cancelRequested)
+  def held(p: Phase) = p.in(started, pauseRequested, cancelRequested)
 
   /** Waiting for a worker: the phases before an attempt is held, which schedule-to-start covers. */
-  def waiting(p: Phase): Boolean = p.in(scheduled, backingOff)
+  def waiting(p: Phase) = p.in(scheduled, backingOff)
 
   def saturatingSucc(a: UpTo[2]): UpTo[2] = UpTo((a + 1).min(attemptBound))
 
@@ -237,7 +237,7 @@ object Protocol:
       scheduleToClose: Timeout,
       scheduleToStart: Timeout,
       startToClose: Timeout
-  ): List[ProtocolStep] =
+  ) =
     if s.phase != Phase.unstarted then disabled
     else
       accept(
@@ -246,7 +246,7 @@ object Protocol:
       )
 
   /** The worker's poll takes the attempt and raises the count the caller reads back. */
-  def attemptStart(s: ProtocolState): List[ProtocolStep] =
+  def attemptStart(s: ProtocolState) =
     if s.phase != scheduled then disabled
     else
       accept(
@@ -260,7 +260,7 @@ object Protocol:
    * settles a cancel-requested one as canceled and lands a pause-requested one in paused
    * (TransitionAttemptFailedWhilePauseRequested). A canceled answer needs a cancel request.
    */
-  def attemptResult(s: ProtocolState, result: AttemptResult): List[ProtocolStep] =
+  def attemptResult(s: ProtocolState, result: AttemptResult) =
     if !held(s.phase) then disabled
     else
       result match
@@ -283,7 +283,7 @@ object Protocol:
    * non-unpausable state", chasm/lib/activity/operator_commands.go), and a rejecting row would add
    * rows to the table, so they stay disabled until the behavior freeze lifts.
    */
-  def control(s: ProtocolState, c: Control): List[ProtocolStep] =
+  def control(s: ProtocolState, c: Control) =
     if terminal(s.phase) then List(Step(Outcome.notFound, s))
     else if s.phase == Phase.unstarted then disabled // no activity yet, so nothing to control
     else
@@ -321,17 +321,17 @@ object Protocol:
   def backoff(s: ProtocolState): List[ProtocolStep] =
     if s.phase != backingOff then disabled else accept(s.copy(phase = scheduled))
 
-  def scheduleToClose(s: ProtocolState): List[ProtocolStep] =
+  def scheduleToClose(s: ProtocolState) =
     if live(s.phase) && s.scheduleToClose == Timeout.expires then
       accept(s.copy(phase = timedOut), statusTimedOut(TimeoutType.scheduleToClose))
     else disabled
 
-  def scheduleToStart(s: ProtocolState): List[ProtocolStep] =
+  def scheduleToStart(s: ProtocolState) =
     if waiting(s.phase) && s.scheduleToStart == Timeout.expires then
       accept(s.copy(phase = timedOut), statusTimedOut(TimeoutType.scheduleToStart))
     else disabled
 
-  def startToClose(s: ProtocolState): List[ProtocolStep] =
+  def startToClose(s: ProtocolState) =
     if held(s.phase) && s.startToClose == Timeout.expires then
       accept(s.copy(phase = timedOut), statusTimedOut(TimeoutType.startToClose))
     else disabled
@@ -340,7 +340,7 @@ object Protocol:
    * Unstarted and backing off read as scheduled. A pause request reads as started: the worker still
    * holds the attempt, its every answer is a product row from started, and the request stutters.
    */
-  def productOf(s: ProtocolState): ProductState = s.phase match
+  def productOf(s: ProtocolState) = s.phase match
     case Phase.unstarted | Phase.scheduled | Phase.backingOff =>
       ProductState(ProductPhase.scheduled)
     case Phase.started | Phase.pauseRequested => ProductState(ProductPhase.started)
@@ -358,7 +358,7 @@ val scheduleToStart = timer
 val startToClose = timer
 
 /** Where every path begins: before the activity exists, with every deadline at its first value. */
-val unstarted: ProtocolState =
+val unstarted =
   ProtocolState(Phase.unstarted, UpTo(0), Timeout.unset, Timeout.unset, Timeout.unset)
 
 /** A timeout is confirmed by the one status observation, whichever deadline fired. */

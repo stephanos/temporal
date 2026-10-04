@@ -21,5 +21,5 @@ final class RequestField[Req, V] private[realize] (val target: Field[Req, V])
  * selector is typed against it and no line repeats it; `:=` is the named slot's one operator, as for
  * an action's input. Core form: `Assignment.typed(Field[Req, V](_.namespace), operand)`.
  */
-def field[Req, V](using RequestScope[Req])(select: Req => V): RequestField[Req, V] =
+def field[Req, V](using RequestScope[Req])(select: Req => V) =
   RequestField(Field(select))

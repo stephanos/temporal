@@ -17,7 +17,7 @@ final case class OverQueueClaims(
     failedCommit: Property[OverQueue]
 )
 
-def overQueueClaims(c: Composition[OverQueue]): OverQueueClaims =
+def overQueueClaims(c: Composition[OverQueue]) =
   val failedCommitKeepsTheMessage = c.property holds (after =>
     after.records(_.activity, AdmissionFact.admissionCommitFailed) implies
       (after.state.queue.outstanding != Outstanding.empty &&
@@ -36,7 +36,7 @@ final case class OverMatchingClaims(
     terminal: Property[OverMatching]
 )
 
-def overMatchingClaims(c: Composition[OverMatching]): OverMatchingClaims = OverMatchingClaims(
+def overMatchingClaims(c: Composition[OverMatching]) = OverMatchingClaims(
   notAdmittedWhilePaused(c)(OverMatching.paused, OverMatching.running),
   atMostOneActive(c)(OverMatching.twoActive),
   terminalStays(c)(OverMatching.terminal, OverMatching.phase)

@@ -58,28 +58,28 @@ object Admission:
   import AdmissionFact.*
 
   /** Paused before any attempt was admitted: the pause a delivery must not get past. */
-  def paused(s: AdmissionState): Boolean = s.phase == AdmissionPhase.paused
-  def running(s: AdmissionState): Boolean = s.phase == AdmissionPhase.started
-  def terminal(s: AdmissionState): Boolean =
+  def paused(s: AdmissionState) = s.phase == AdmissionPhase.paused
+  def running(s: AdmissionState) = s.phase == AdmissionPhase.started
+  def terminal(s: AdmissionState) =
     s.phase.in(AdmissionPhase.completed, AdmissionPhase.timedOut)
-  def twoActive(s: AdmissionState): Boolean = s.active == Active.two
-  def phase(s: AdmissionState): AdmissionPhase = s.phase
+  def twoActive(s: AdmissionState) = s.active == Active.two
+  def phase(s: AdmissionState) = s.phase
 
   /** No unpause is in scope, so a pause is where a path may end, as a completion is. */
-  def ends(s: AdmissionState): Boolean =
+  def ends(s: AdmissionState) =
     !s.phase.in(AdmissionPhase.scheduled, AdmissionPhase.started)
 
-  def oneMore(a: Active): Active = if a == Active.none then Active.one else Active.two
-  def oneLess(a: Active): Active = if a == Active.two then Active.one else Active.none
+  def oneMore(a: Active) = if a == Active.none then Active.one else Active.two
+  def oneLess(a: Active) = if a == Active.two then Active.one else Active.none
 
-  def admit(s: AdmissionState): AdmissionState =
+  def admit(s: AdmissionState) =
     s.copy(phase = AdmissionPhase.started, active = oneMore(s.active), answer = Answer.owed)
 
-  def dispatch(s: AdmissionState): List[AdmissionStep] =
+  def dispatch(s: AdmissionState) =
     if s.phase != AdmissionPhase.scheduled then disabled else accept(s, dispatchSent)
 
   /** A pause keeps whatever message is in flight: nothing recalls it. */
-  def control(s: AdmissionState, c: Control): List[AdmissionStep] = c match
+  def control(s: AdmissionState, c: Control) = c match
     case Control.pause =>
       s.phase match
         case AdmissionPhase.scheduled => accept(s.copy(phase = AdmissionPhase.paused), statusPaused)
@@ -90,7 +90,7 @@ object Admission:
     case Control.unpause | Control.requestCancel | Control.terminate => disabled // out of scope
 
   /** Its durable update commits or fails; a failed commit owes no answer, so its delivery stays. */
-  def admitted(s: AdmissionState): List[AdmissionStep] = choose(
+  def admitted(s: AdmissionState) = choose(
     admissionCommits -> accept(admit(s), statusStarted, attemptAdmitted),
     admissionCommitFails -> accept(s, admissionCommitFailed)
       .because("the durable update fails: nothing is admitted and the message stays deliverable")
@@ -100,23 +100,23 @@ object Admission:
    * The corrected design re-reads current eligibility: a delivery that meets a paused activity or
    * an admitted attempt is answered and admits nothing.
    */
-  def admitCurrent(s: AdmissionState): List[AdmissionStep] =
+  def admitCurrent(s: AdmissionState) =
     if s.phase == AdmissionPhase.scheduled then admitted(s)
     else accept(s.copy(answer = Answer.owed), admissionRejected)
 
   /** The deliberately faulty design: admission trusts the eligibility the message was sent with. */
-  def admitStale(s: AdmissionState): List[AdmissionStep] = admitted(s)
+  def admitStale(s: AdmissionState) = admitted(s)
 
   /** Admission as the corrected design decides it, with no failure of its durable update. */
-  def admitHeld(s: AdmissionState): List[AdmissionStep] =
+  def admitHeld(s: AdmissionState) =
     if s.phase == AdmissionPhase.scheduled then accept(admit(s), statusStarted, attemptAdmitted)
     else accept(s.copy(answer = Answer.owed), admissionRejected)
 
-  def answerDelivery(s: AdmissionState): List[AdmissionStep] =
+  def answerDelivery(s: AdmissionState) =
     if s.answer != Answer.owed then disabled
     else accept(s.copy(answer = Answer.settled), deliveryAnswered)
 
-  def attemptResult(s: AdmissionState, r: AttemptResult): List[AdmissionStep] = r match
+  def attemptResult(s: AdmissionState, r: AttemptResult) = r match
     case AttemptResult.completed =>
       if s.phase != AdmissionPhase.started then disabled
       else
@@ -127,18 +127,18 @@ object Admission:
     case AttemptResult.failed(_) | AttemptResult.canceled => disabled
 
   /** Covers the wait for a worker, so it fires only before an attempt is admitted. */
-  def scheduleToStart(s: AdmissionState): List[AdmissionStep] =
+  def scheduleToStart(s: AdmissionState) =
     if s.phase == AdmissionPhase.scheduled then timeOut(s, TimeoutType.scheduleToStart)
     else disabled
 
   /** Covers the whole activity, so it competes with the other deadline while none has fired. */
-  def scheduleToClose(s: AdmissionState): List[AdmissionStep] =
+  def scheduleToClose(s: AdmissionState) =
     if terminal(s) then disabled else timeOut(s, TimeoutType.scheduleToClose)
 
-  def timeOut(s: AdmissionState, t: TimeoutType): List[AdmissionStep] =
+  def timeOut(s: AdmissionState, t: TimeoutType) =
     accept(s.copy(phase = AdmissionPhase.timedOut, active = Active.none), statusTimedOut(t))
 
-  def productOf(s: AdmissionState): ProductState = s.phase match
+  def productOf(s: AdmissionState) = s.phase match
     case AdmissionPhase.scheduled => ProductState(ProductPhase.scheduled)
     case AdmissionPhase.paused | AdmissionPhase.pausedWhileHeld => ProductState(ProductPhase.paused)
     case AdmissionPhase.started   => ProductState(ProductPhase.started)
@@ -146,7 +146,7 @@ object Admission:
     case AdmissionPhase.timedOut  => ProductState(ProductPhase.timedOut)
 
   /** A caller reads statuses and nothing of the dispatch, the admission or its answer. */
-  def productSees(f: AdmissionFact): Boolean = f match
+  def productSees(f: AdmissionFact) = f match
     case AdmissionFact.statusStarted | AdmissionFact.statusPaused | AdmissionFact.statusCompleted |
         AdmissionFact.statusTimedOut(_) =>
       true
@@ -156,14 +156,14 @@ object Admission:
       false
 
   /** The active attempts after a step, counted from what it records. */
-  def countActive(active: Active, after: AdmissionStep): Active =
+  def countActive(active: Active, after: AdmissionStep) =
     if after.records(attemptAdmitted) then oneMore(active)
     else if after.records(statusCompleted) then oneLess(active)
     else if after.state.phase == AdmissionPhase.timedOut then Active.none
     else active
 
   /** Whether the activity is over after a step, and whether it left where it ended. */
-  def finality(f: Finality, after: AdmissionStep): Finality =
+  def finality(f: Finality, after: AdmissionStep) =
     if f == Finality.reopened then Finality.reopened
     else if terminal(after.state) then Finality.closed
     else if f == Finality.closed then Finality.reopened
@@ -243,15 +243,15 @@ enum AdmissionResponseFact derives Finite:
 
 type ResponseLossStep = Step[AdmissionResponseState, Outcome, AdmissionResponseFact]
 
-val responseLossInitial: AdmissionResponseState = AdmissionResponseState(scheduledIdle, true)
+val responseLossInitial = AdmissionResponseState(scheduledIdle, true)
 val committedThenLost = choice
 val failedThenLost = choice
 
 object ResponseLoss:
-  def dispatch(s: AdmissionResponseState): List[ResponseLossStep] =
+  def dispatch(s: AdmissionResponseState) =
     if !s.lossAvailable then disabled else accept(s, AdmissionResponseFact.dispatchSent)
 
-  def ackLoss(s: AdmissionResponseState): List[ResponseLossStep] =
+  def ackLoss(s: AdmissionResponseState) =
     if !s.lossAvailable then disabled
     else
       choose(

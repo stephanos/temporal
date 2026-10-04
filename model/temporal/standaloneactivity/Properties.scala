@@ -28,7 +28,7 @@ val nonRetryableFails =
   }
 
 /** Completed on the second attempt of an activity with no deadline set. */
-val completedOnRetry: ProtocolState =
+val completedOnRetry =
   ProtocolState(Phase.completed, UpTo(attemptBound), Timeout.unset, Timeout.unset, Timeout.unset)
 
 /**
@@ -83,12 +83,12 @@ val startedByPollingWorker = standaloneActivity.property
 def notAdmittedWhilePaused[S](m: Declares[S])(
     paused: S => Boolean,
     running: S => Boolean
-): Property[S] =
+) =
   m.property("notAdmittedWhilePaused").never(s => running(s.state)).from(paused)
 
 /** No step leaves two admitted attempts active. */
 def atMostOneActive[S](m: Declares[S])(twoActive: S => Boolean): Property[S] =
   m.property("atMostOneActive").never(s => twoActive(s.state))
 
-def terminalStays[S, P](m: Declares[S])(terminal: S => Boolean, phase: S => P): Property[S] =
+def terminalStays[S, P](m: Declares[S])(terminal: S => Boolean, phase: S => P) =
   m.property("terminalStays").once(terminal).keeps(phase)

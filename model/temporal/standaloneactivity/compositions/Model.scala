@@ -29,13 +29,13 @@ final case class OverQueue(activity: AdmissionState, queue: QueueView)
 
 /** The record's status sets, read through the composition's `activity` member. */
 object OverQueue:
-  def paused(s: OverQueue): Boolean = Admission.paused(s.activity)
-  def running(s: OverQueue): Boolean = Admission.running(s.activity)
-  def terminal(s: OverQueue): Boolean = Admission.terminal(s.activity)
-  def twoActive(s: OverQueue): Boolean = Admission.twoActive(s.activity)
-  def phase(s: OverQueue): AdmissionPhase = s.activity.phase
+  def paused(s: OverQueue) = Admission.paused(s.activity)
+  def running(s: OverQueue) = Admission.running(s.activity)
+  def terminal(s: OverQueue) = Admission.terminal(s.activity)
+  def twoActive(s: OverQueue) = Admission.twoActive(s.activity)
+  def phase(s: OverQueue) = s.activity.phase
 
-val currentOverQueue: Composition[OverQueue] =
+val currentOverQueue =
   compose[OverQueue](_.activity -> currentRecord, _.queue -> dispatchQueue)
     .sync(_.activity -> dispatch, _.queue -> enqueue)
     .sync("admit", _.activity -> attemptStart, _.queue -> deliver)
@@ -52,13 +52,13 @@ final case class OverMatching(activity: AdmissionState, queue: QueueDetail)
 
 /** The record's status sets, read through the composition's `activity` member. */
 object OverMatching:
-  def paused(s: OverMatching): Boolean = Admission.paused(s.activity)
-  def running(s: OverMatching): Boolean = Admission.running(s.activity)
-  def terminal(s: OverMatching): Boolean = Admission.terminal(s.activity)
-  def twoActive(s: OverMatching): Boolean = Admission.twoActive(s.activity)
-  def phase(s: OverMatching): AdmissionPhase = s.activity.phase
+  def paused(s: OverMatching) = Admission.paused(s.activity)
+  def running(s: OverMatching) = Admission.running(s.activity)
+  def terminal(s: OverMatching) = Admission.terminal(s.activity)
+  def twoActive(s: OverMatching) = Admission.twoActive(s.activity)
+  def phase(s: OverMatching) = s.activity.phase
 
-val currentOverMatching: Composition[OverMatching] =
+val currentOverMatching =
   compose[OverMatching](_.activity -> currentRecord, _.queue -> matchingQueue)
     .sync(_.activity -> dispatch, _.queue -> enqueue)
     .sync("admit", _.activity -> attemptStart, _.queue -> deliver)

@@ -6,7 +6,7 @@ import umpire.*
 import umpire.realize.{Conformance, MonitorExpectation, Outcome as RunOutcome, RunExpectation}
 
 /** Every claim and path, declared on the design `m`, since each belongs to one machine. */
-def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector[Query] =
+def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]) =
   val claims = admissionClaims(m)
   val staleDeliveryAfterPause = m.scenario.actions(dispatch, control(Control.pause), attemptStart)
   val admittedBeforePause = m.scenario.actions(dispatch, attemptStart, control(Control.pause))
@@ -42,8 +42,8 @@ def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector
       .in(staleDeliveryAfterPause) limits three total 108
   )
 
-val currentQueries: Vector[Query] = admissionQueries(currentAdmission)
-val staleQueries: Vector[Query] = admissionQueries(staleAdmission)
+val currentQueries = admissionQueries(currentAdmission)
+val staleQueries = admissionQueries(staleAdmission)
 
 // ### The held race and the lost response, as a server's Run is checked
 

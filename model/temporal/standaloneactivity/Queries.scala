@@ -11,7 +11,7 @@ import Timeout.expires
 
 // What a live Run is expected to show, shared with the system contract's Queries.
 val satisfied = RunExpectation(Conformance.conformant, Outcome.satisfied)
-def inconclusive(reason: String): RunExpectation =
+def inconclusive(reason: String) =
   RunExpectation(Conformance.conformant, Outcome.inconclusive, reason)
 val explanationsDisagree = "the executions that explain the evidence disagree"
 val neverEvaluated =
@@ -116,7 +116,7 @@ object Functional:
   val startToCloseTimeout =
     query find startToCloseFires in Paths.startToCloseExpires limits three total 864
 
-  val all: Vector[Query] = Vector(
+  val all = Vector(
     completion,
     nonRetryableFailure,
     retry,
@@ -138,7 +138,7 @@ val pauseHolds =
   query verify pausedIsNotDispatched in Paths.pausedThenCompleted limits six total 1440
 
 /** Neither deadline is ordered before the other: each firing is a trace of its own. */
-val competingTimers: Vector[Query] = Vector(
+val competingTimers = Vector(
   query("competingTimers.scheduleToStartFirst") find scheduleToStartFires in
     Paths.bothDeadlinesStartFirst limits three total 576,
   query("competingTimers.scheduleToCloseFirst") find scheduleToCloseFires in
