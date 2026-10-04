@@ -865,3 +865,33 @@ val choiceKept = machine[Lamp, Outcome, Nothing] {
   ends(_ => true)
   steps(flip ~> choiceKeptStep)
 }
+
+// ### Claims a shared def declares together, as a bundle read back by field (fn-112.12)
+
+/** A case class one field of which is no claim: it bundles none, so building it declares nothing. */
+final case class Mixed(flipped: Property[Flag], count: Int)
+
+def mixedLaws(m: Machine[Flag, Outcome, Nothing]): Mixed =
+  Mixed(m.property("mixedFlips") holds (after => after.outcome == Outcome.accepted), 1)
+def mixedQueries(m: Machine[Flag, Outcome, Nothing]): Vector[Query] =
+  val laws = mixedLaws(m)
+  Vector(query(s"${m.name}.mixedFlips") verify laws.flipped in secondFlips limits one total 2)
+val mixedBundle: Vector[Query] = mixedQueries(second)
+
+// ### A type moved under a DefinitionScope keeps its former name (MovedRejects.scala, fn-112.12)
+
+/** The gauge fixture.rejects keeps, whose name the Gauge MovedRejects.scala moved out still takes. */
+enum Gauge derives Finite:
+  case low, high
+
+final case class Gauges(kept: Gauge, taken: moved.Gauge) derives Finite
+
+val gaugeTick = action(Party("fixture"))
+def gaugeStep(g: Gauges): List[Step[Gauges, Outcome, Nothing]] = List(Step(Outcome.accepted, g))
+
+/** One machine whose state reads both gauges, which the IR would name alike. */
+val movedNameTaken = machine[Gauges, Outcome, Nothing] {
+  starts(Gauges(Gauge.low, moved.Gauge.empty))
+  ends(_ => true)
+  steps(gaugeTick ~> gaugeStep)
+}

@@ -1,7 +1,8 @@
 package model
 
-// The standalone activity's system contract, lifted from scala/temporal/standaloneactivity/System.scala
-// into ir/activity-system.json and checked here through Check alone. What each test expects is the
+// The standalone activity's system contract, lifted from model/temporal/standaloneactivity/System.scala
+// and the shared task queue it composes, model/temporal/taskqueue, into ir/activity-system.json and
+// checked here through Check alone: the provider checks below are the queue's own. What each test expects is the
 // trace oracle of model/specimens/activity.md it names, in the keys of the lifted Model: the
 // specimen's supported sketch folds the delivery into the record's state, and this Model keeps the
 // record and the queue apart, so a row is keyed by the record's state, or by both members' states.

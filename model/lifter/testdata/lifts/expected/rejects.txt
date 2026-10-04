@@ -36,7 +36,9 @@ lift: model/lifter/testdata/lifts/Rejects.scala:642: loopPair is derived from it
 lift: model/lifter/testdata/lifts/Rejects.scala:579: right of memberIncompatible holds a fixture.rejects.Lamp, and first is a machine of fixture.rejects.Flag: a member is a machine of its field's type
 lift: model/lifter/testdata/lifts/Rejects.scala:572: compose names a member by one field of Lamps, such as `_.left`, not `_.left.lit`
 lift: model/lifter/testdata/lifts/Rejects.scala:165: middle replaces first, and no member fills middle
+lift: model/lifter/testdata/lifts/Rejects.scala:875: fixture.rejects.Mixed bundles no claims, since count holds no Property, Scenario or Query: a case class bundles the claims a shared def declares together when its every field holds one
 lift: model/lifter/testdata/lifts/Rejects.scala:625: Scenario mixedFlips of flipPair lists push beside composed classes: a composition's Scenario selects each of its classes with `.synced(_.member -> action)` or `.own(_.member, action)`
+lift: model/lifter/testdata/lifts/MovedRejects.scala:13: fixture.rejects.moved.Gauge and fixture.rejects.Gauge would both be named fixture.rejects.Gauge in the IR: a type moved under a DefinitionScope keeps a name no other type of the Model has
 lift: model/lifter/testdata/lifts/Rejects.scala:719: level is no input of dim, which declares no input by a token: supply an input the action declares
 lift: model/lifter/testdata/lifts/Rejects.scala:135: limits backwards declare -1 steps; a bound is at least 0
 lift: root fixture.rejects.Rejects$package$.noSuchRoot: names no declaration of the lifted sources

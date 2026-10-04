@@ -32,6 +32,9 @@ private enum Decl:
   /** An integer literal, such as the total a shared def's call supplies. */
   case Number(value: Long)
 
+  /** A bundle of claims a shared def declares together, by field. */
+  case Bundle(fields: Map[String, Decl])
+
 private[lift] trait Claims:
   self: Lifting =>
   import ctx.*
@@ -297,6 +300,18 @@ private[lift] trait Claims:
     case Apply(Select(companion, "apply"), _)
         if companion.tpe.typeSymbol.companionClass.fullName == "umpire.Limits" =>
       Decl.Bounds(limitsOf(t, captured(named, "Limits", "`Limits(\"...\", ...)`", t)))
+    // A bundle of claims one shared def declares together, such as the laws `queueLaws(m)`
+    // declares of a provider: built by its case class's constructor, each claim folded, and read
+    // back by field.
+    case Apply(Select(companion, "apply"), args)
+        if bundle(companion.tpe.typeSymbol.companionClass) =>
+      val fields = companion.tpe.typeSymbol.companionClass.caseFields.map(_.name)
+      Decl.Bundle(fields.zip(args.map(fold(_, env))).toMap)
+    case Select(b, field) if bundle(b.tpe.widen.dealias.typeSymbol) =>
+      fold(b, env) match
+        case Decl.Bundle(fields) => fields(field)
+        case other               =>
+          fail(t, s"$field reads a claim of a bundle its constructor built, not of $other")
 
     case Apply(
           Apply(Apply(TypeApply(Ident("leadsTo"), _), List(m)), List(name)),
@@ -332,10 +347,35 @@ private[lift] trait Claims:
       )
     // A helper function of the lifted sources that declares: its body, with its arguments bound.
     case Apply(fn, _) if isFunction(fn.symbol) =>
+      // A case class built by its constructor or its companion's apply: one that bundles claims is
+      // folded above, and any other declares nothing (its constructor has no body to read).
+      val built =
+        if fn.symbol.isClassConstructor then fn.symbol.owner
+        else if fn.symbol.name == "apply" && fn.symbol.flags.is(Flags.Synthetic) then
+          fn.symbol.owner.companionClass
+        else Symbol.noSymbol
       defs(fn.symbol) match
-        case d: DefDef => declaring(d, t, env)
-        case _         => fail(t, s"${fn.symbol.fullName} is not a function of the lifted sources")
+        case _ if built.flags.is(Flags.Case) && !built.flags.is(Flags.Enum) =>
+          val others = fieldTypes(built).collect { case (f, tpe) if !claimType(tpe) => f }
+          fail(
+            t,
+            s"${built.fullName} bundles no claims, since ${others.mkString(", ")} holds no " +
+              "Property, Scenario or Query: a case class bundles the claims a shared def declares " +
+              "together when its every field holds one"
+          )
+        case d: DefDef if d.rhs.nonEmpty => declaring(d, t, env)
+        case _ => fail(t, s"${fn.symbol.fullName} is not a function of the lifted sources")
     case other => fail(other, s"not a declaration the IR carries: ${other.show}")
+
+  /**
+   * Whether `cls` bundles claims: a case class of the lifted sources whose every field is a
+   * Property, a Scenario or a Query.
+   */
+  def bundle(cls: Symbol): Boolean =
+    cls.flags.is(Flags.Case) && !cls.flags.is(Flags.Enum) && cls.caseFields.nonEmpty &&
+      fieldTypes(cls).forall((_, tpe) => claimType(tpe))
+  private def claimType(tpe: TypeRepr): Boolean =
+    Seq("umpire.Property", "umpire.Scenario", "umpire.Query").exists(isNamed(tpe, _))
 
   /**
    * Records the total the Query `name` asserts, `n`: an integer literal, or a parameter of the

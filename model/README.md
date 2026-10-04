@@ -287,7 +287,7 @@ requires exactly that of a live Run and of its replay.
 | Path | What it holds |
 | --- | --- |
 | `model/umpire` | The DSL: what an author writes a Model with. Realization declarations are in `umpire/realize` |
-| `model/temporal` | The Models, one folder per feature: `nexuscaller`, `standaloneactivity`, `worker` |
+| `model/temporal` | The Models, one folder per feature: `nexuscaller`, `standaloneactivity`, `worker`, and `taskqueue`, the shared task-queue entity features compose |
 | `model/lifter` | The lifter. `testdata` holds Models it must lift and Models it must refuse |
 | `model/ir` | The checked-in Umpire IR, one file per lifted Model |
 | `model/cases` | The checked-in Cases and `manifest.json` |
@@ -332,7 +332,9 @@ The lifter reads what an author wrote, as written:
   machine and a composition, so one function over `m: Declares[S]` declares a Property on either.
   A function-valued argument of such a function names a def of the lifted sources, which the
   lifter binds where the function is called, as it binds a machine argument; a type parameter
-  reads as the type the call applies it to.
+  reads as the type the call applies it to. A case class whose every field is a Property, Scenario
+  or Query bundles claims: built by its constructor in such a function, it lifts as its claims, and
+  `x.field` reads one back.
 - **Types:** enums with and without case fields, case classes, and bounded counters `UpTo[N]`: a
   field `attempts: UpTo[2]` has the values 0, 1 and 2, lifted as the IR int range 0..2, and a step
   writes one with `UpTo(n)`. It replaces integer fields bounded by the per-record
@@ -400,6 +402,11 @@ name for the former owner: each ID is `<former owner>.<val name>`. An owner pins
 an owner that pins and not to itself, and no two declarations may share an ID. Owners nested in a
 pinned one keep their own IDs. No declaration names an ID of its own.
 
+Type names follow the same pin. A top-level type belongs to its package, not its file, so a type at
+the top level of a file whose declarations pin a former file owner `pkg.File$package$` takes the IR
+name `pkg.<Type>` it had there; a pin of an object owner `pkg.Obj$` leaves type names alone. Two
+types one lift reads that would share an IR name are refused.
+
 A derived machine is another machine's declaration with one thing changed, named after its own
 `val` in the `given Family`, as a restricted one is. Chained, they lift from the `val` of the last:
 
@@ -441,6 +448,18 @@ field or no member, a member of another state type, a sync of an action the memb
 a `synced` that matches no sync or several, an `own` of a paired or foreign action, and a
 replacement of a replacing member by a machine that refines nothing.
 
+The queue in that example is the task queue, `model/temporal/taskqueue`: a shared entity
+(`taskQueue`, keyed by the queue's name) that a feature composes by synchronizing its own actions
+with `enqueue`, `deliver` and `acknowledge`, and that imports nothing of any feature. It owns the
+opaque contract `dispatchQueue`, the providers that refine it (`matchingQueue`, the lossy one and
+the violating controls), the laws `queueLaws` every provider is held to, and the provider Queries.
+A feature keeps its own syncs and its cross-entity claims, as the standalone activity's
+`System.scala` does. The queue is a bounded abstraction, not a general queue: one message at a
+time, delivered at most twice before its acknowledgment. The detailed provider's table, and a
+design composed with it, has depth ten, so its free Queries run within `twelve`. Its declarations
+keep the family, Definition IDs and type names they had in the standalone activity's system
+contract, through the pin and the type-name rule above.
+
 A claim over several designs is one function over `Declares[S]` whose state-dependent parts are
 parameters, and each call passes defs of the lifted sources:
 
@@ -454,6 +473,21 @@ val onRecord = notAdmittedWhilePaused(currentRecord)(Admission.paused, Admission
 A lambda passed for such a parameter is refused at its line, naming the def to write, and so is a
 claim pattern after `when` (a pattern reads every step) and a `keeps` projection that is not a field
 path.
+
+Such a function returns several claims as a bundle, a case class whose every field is a Property,
+Scenario or Query. The lifter folds the constructor's call to its claims, and a field read to the
+one claim it names, as `providerQueries` reads `laws.delivers`:
+
+```scala
+final case class QueueLaws(delivers: Property[QueueDetail], committedStays: Property[QueueDetail])
+
+def queueLaws(m: Machine[QueueDetail, QueueOutcome, QueueFact]): QueueLaws = QueueLaws(
+  m.property("delivers") when deliver holds (after => after.records(QueueFact.delivered)),
+  m.property("committedStays")
+    .stays(_.custody != Custody.nowhere)
+    .unless(_.records(QueueFact.acknowledged))
+)
+```
 
 Sugar is kept apart from the core declarations: framework sugar in `umpire/Syntax.scala`, its
 lifting in `lifter/Syntax.scala`, each definition documented with `Core form:` and the core

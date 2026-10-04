@@ -344,8 +344,11 @@ func TestMigrationProjectionPreservesSemantics(t *testing.T) {
 	require.NoError(t, err)
 	for _, path := range slices.Sorted(maps.Keys(models)) {
 		t.Run(migrationKey(path), func(t *testing.T) {
-			original := new(umpirespb.Model)
-			require.NoError(t, protojson.Unmarshal(originals[migrationKey(path)], original))
+			frozen := new(umpirespb.Model)
+			require.NoError(t, protojson.Unmarshal(originals[migrationKey(path)], frozen))
+			// The task-queue entity fn-112 attaches is read on the frozen input too, as Match reads it.
+			original, err := golden.Attached(frozen)
+			require.NoError(t, err)
 			mapped, err := cfg.Migrate(original)
 			require.NoError(t, err)
 			migrate := locationMigrator(cfg)
@@ -429,6 +432,10 @@ func locationProjection(cfg golden.Config) func(string) string {
 			}
 		}
 		current[rename.New] = rename.New
+	}
+	// A file split out of another names, as Match compares it, the file its declarations came from.
+	for _, split := range cfg.Splits {
+		current[split.Old] = current[split.New]
 	}
 	files := slices.SortedFunc(maps.Keys(current), func(x, y string) int { return cmp.Or(len(y)-len(x), strings.Compare(x, y)) })
 	for i := range files {

@@ -31,12 +31,21 @@ var configBytes []byte
 
 type Substitution struct{ Old, New string }
 type Config struct {
-	Inventory []string       `json:"ir_inventory"`
-	Paths     []Substitution `json:"source_path_substitutions"`
-	Labels    []Substitution `json:"source_label_substitutions"`
+	Inventory []string `json:"ir_inventory"`
+	// Later are the IR files added after the goldens were captured, such as a lifter fixture of a
+	// later construct: each must exist, and none is compared, since no golden froze it.
+	Later  []string       `json:"later_inventory"`
+	Paths  []Substitution `json:"source_path_substitutions"`
+	Labels []Substitution `json:"source_label_substitutions"`
 	// Renames are the source files renamed after the mapped goldens were captured, from the path
 	// Paths maps them to. The mapped goldens keep that path; the current IR has the renamed one.
-	Renames    []Substitution `json:"source_path_renames"`
+	Renames []Substitution `json:"source_path_renames"`
+	// Splits are the source files split out of another after the mapped goldens were captured, from
+	// the current file to the one its declarations came from: a position in it compares as one there.
+	Splits []Substitution `json:"source_path_splits"`
+	// RootMoves are the roots whose declarations moved to another owner with them, from the frozen
+	// root to the current one: a current Model's source names each by its frozen root.
+	RootMoves  []Substitution `json:"source_root_moves"`
 	Projection Projection     `json:"projection"`
 }
 
@@ -150,6 +159,15 @@ func Root() (string, error) {
 	}
 }
 
+// underBase maps each inventory path, spelled under model/scalav2, to its path under base.
+func underBase(paths []string, base string) map[string]string {
+	out := make(map[string]string, len(paths))
+	for _, path := range paths {
+		out[base+strings.TrimPrefix(path, "model/scalav2")] = path
+	}
+	return out
+}
+
 func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
 	base := "model/scalav2"
 	if _, err := os.Stat(filepath.Join(root, base)); errors.Is(err, fs.ErrNotExist) {
@@ -157,10 +175,7 @@ func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
 	} else if err != nil {
 		return nil, err
 	}
-	expected := make(map[string]string, len(c.Inventory))
-	for _, path := range c.Inventory {
-		expected[base+strings.TrimPrefix(path, "model/scalav2")] = path
-	}
+	expected, later := underBase(c.Inventory, base), underBase(c.Later, base)
 	found := map[string]bool{}
 	for _, dir := range []string{"ir", "lifter/testdata/lifts/expected"} {
 		paths, err := filepath.Glob(filepath.Join(root, base, dir, "*.json"))
@@ -172,10 +187,16 @@ func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
 			if err != nil {
 				return nil, err
 			}
-			if _, ok := expected[rel]; !ok {
+			found[rel] = true
+			_, listed := expected[rel]
+			if _, added := later[rel]; !listed && !added {
 				return nil, fmt.Errorf("unknown IR inventory entry %s", rel)
 			}
-			found[rel] = true
+		}
+	}
+	for _, path := range slices.Sorted(maps.Keys(later)) {
+		if !found[path] {
+			return nil, fmt.Errorf("missing later IR inventory entry %s", path)
 		}
 	}
 	out := map[string]*umpirespb.Model{}
@@ -294,6 +315,14 @@ func (c Config) Match(original, current *umpirespb.Model) (bool, error) {
 	if mapped, err = c.Rename(mapped); err != nil {
 		return false, err
 	}
+	// fn-112's R20 task-queue entity, the one metadata the original baseline adds, is the frozen
+	// input's too, and a declaration split out of a file compares as one of the file it left.
+	if mapped, err = Attached(mapped); err != nil {
+		return false, err
+	}
+	if current, err = c.Unsplit(current); err != nil {
+		return false, err
+	}
 	if proto.Equal(mapped, current) {
 		return true, nil
 	}
@@ -308,6 +337,49 @@ func (c Config) Match(original, current *umpirespb.Model) (bool, error) {
 		return false, errors.New("IR differs outside the closed source migration")
 	}
 	return true, nil
+}
+
+// Attached gives a frozen input with the original baseline's entity attachments applied
+// (original.json): the entity metadata fn-112's R20 adds to existing declarations.
+func Attached(original *umpirespb.Model) (*umpirespb.Model, error) {
+	delta, err := OriginalDelta()
+	if err != nil {
+		return nil, err
+	}
+	return delta.Expected(original, map[int]bool{})
+}
+
+// Unsplit gives a current Model with every position in a split file naming the file its
+// declaration came from, and its source naming each moved root by its frozen name, in the sorted
+// order the lifter lists roots in.
+func (c Config) Unsplit(current *umpirespb.Model) (*umpirespb.Model, error) {
+	if len(c.Splits) == 0 && len(c.RootMoves) == 0 {
+		return current, nil
+	}
+	m := proto.CloneOf(current)
+	if roots, ok := strings.CutPrefix(m.GetSource(), "model: "); ok && len(c.RootMoves) > 0 {
+		names := strings.Split(roots, ", ")
+		for i, name := range names {
+			for _, move := range c.RootMoves {
+				if name == move.New {
+					names[i] = move.Old
+				}
+			}
+		}
+		slices.Sort(names)
+		m.Source = "model: " + strings.Join(names, ", ")
+	}
+	err := positions(m.ProtoReflect(), func(p protoreflect.Message) error {
+		field := p.Descriptor().Fields().ByName("file")
+		for _, s := range c.Splits {
+			if p.Get(field).String() == s.Old {
+				p.Set(field, protoreflect.ValueOfString(s.New))
+				break
+			}
+		}
+		return nil
+	})
+	return m, err
 }
 
 // FunctionsRenamed checks that every function-name substitution renames a Function of some frozen

@@ -4,7 +4,7 @@
     "name": "temporal.standaloneactivity.Active",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 42
+      "line": 46
     },
     "enum": {
       "cases": [ {
@@ -19,7 +19,7 @@
     "name": "temporal.standaloneactivity.AdmissionFact",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 59
+      "line": 63
     },
     "enum": {
       "cases": [ {
@@ -52,7 +52,7 @@
     "name": "temporal.standaloneactivity.AdmissionPhase",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 35
+      "line": 39
     },
     "enum": {
       "cases": [ {
@@ -73,7 +73,7 @@
     "name": "temporal.standaloneactivity.AdmissionResponseFact",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 958
+      "line": 611
     },
     "enum": {
       "cases": [ {
@@ -86,7 +86,7 @@
     "name": "temporal.standaloneactivity.AdmissionResponseState",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 955
+      "line": 608
     },
     "record": {
       "fields": [ {
@@ -105,7 +105,7 @@
     "name": "temporal.standaloneactivity.AdmissionState",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 52
+      "line": 56
     },
     "record": {
       "fields": [ {
@@ -129,7 +129,7 @@
     "name": "temporal.standaloneactivity.Answer",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 49
+      "line": 53
     },
     "enum": {
       "cases": [ {
@@ -180,7 +180,7 @@
     "name": "temporal.standaloneactivity.Finality",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 210
+      "line": 214
     },
     "enum": {
       "cases": [ {
@@ -482,7 +482,7 @@
     "name": "admissionResponseLoss.evidence",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 993
+      "line": 646
     },
     "params": [ {
       "name": "admissionResponseFact",
@@ -493,13 +493,13 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 993
+        "line": 646
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 993
+            "line": 646
           },
           "var": "admissionResponseFact"
         },
@@ -515,7 +515,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 993
+              "line": 646
             },
             "literal": {
               "text": "dispatchSent"
@@ -533,7 +533,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 993
+              "line": 646
             },
             "literal": {
               "text": "attemptAdmitted"
@@ -546,7 +546,7 @@
     "name": "admissionResponseLoss.property.committedDespiteLostResponse",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 1001
+      "line": 654
     },
     "params": [ {
       "name": "after",
@@ -557,14 +557,14 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 1002
+        "line": 655
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 1002
+            "line": 655
           },
           "literal": {
             "enum": {
@@ -576,13 +576,13 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 1002
+            "line": 655
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 1002
+                "line": 655
               },
               "var": "after"
             },
@@ -595,7 +595,7 @@
     "name": "heldAdmission.evidence",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 918
+      "line": 571
     },
     "params": [ {
       "name": "admissionFact",
@@ -606,13 +606,13 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 918
+        "line": 571
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 918
+            "line": 571
           },
           "var": "admissionFact"
         },
@@ -628,7 +628,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 918
+              "line": 571
             },
             "literal": {
               "text": "statusStarted"
@@ -646,7 +646,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 918
+              "line": 571
             },
             "literal": {
               "text": "statusPaused"
@@ -664,7 +664,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 918
+              "line": 571
             },
             "literal": {
               "text": "statusCompleted"
@@ -683,7 +683,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 918
+              "line": 571
             },
             "literal": {
               "text": "statusTimedOut"
@@ -701,7 +701,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 918
+              "line": 571
             },
             "literal": {
               "text": "dispatchSent"
@@ -719,7 +719,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 918
+              "line": 571
             },
             "literal": {
               "text": "attemptAdmitted"
@@ -737,7 +737,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 918
+              "line": 571
             },
             "literal": {
               "text": "admissionRejected"
@@ -755,7 +755,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 918
+              "line": 571
             },
             "literal": {
               "text": "admissionCommitFailed"
@@ -773,7 +773,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 918
+              "line": 571
             },
             "literal": {
               "text": "deliveryAnswered"
@@ -786,7 +786,7 @@
     "name": "heldAdmission.property.staleDeliveryRejected",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 929
+      "line": 582
     },
     "params": [ {
       "name": "after",
@@ -797,14 +797,14 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 930
+        "line": 583
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 930
+            "line": 583
           },
           "literal": {
             "enum": {
@@ -816,13 +816,13 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 930
+            "line": 583
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 930
+                "line": 583
               },
               "var": "after"
             },
@@ -2458,7 +2458,7 @@
     "name": "temporal.standaloneactivity.System$package$.admissionEnds",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 191
+      "line": 195
     },
     "params": [ {
       "name": "s",
@@ -2469,27 +2469,27 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 192
+        "line": 196
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 192
+            "line": 196
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 192
+                "line": 196
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 192
+                    "line": 196
                   },
                   "var": "s"
                 },
@@ -2499,13 +2499,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 192
+                "line": 196
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 192
+                    "line": 196
                   },
                   "literal": {
                     "enum": {
@@ -2516,7 +2516,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 192
+                    "line": 196
                   },
                   "literal": {
                     "enum": {
@@ -2535,7 +2535,7 @@
     "name": "temporal.standaloneactivity.System$package$.admissionOver",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 75
+      "line": 79
     },
     "params": [ {
       "name": "p",
@@ -2546,27 +2546,27 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 76
+        "line": 80
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 76
+            "line": 80
           },
           "var": "p"
         },
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 76
+            "line": 80
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 76
+                "line": 80
               },
               "literal": {
                 "enum": {
@@ -2577,7 +2577,7 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 76
+                "line": 80
               },
               "literal": {
                 "enum": {
@@ -2594,7 +2594,7 @@
     "name": "temporal.standaloneactivity.System$package$.admitHeld",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 902
+      "line": 555
     },
     "params": [ {
       "name": "s",
@@ -2605,26 +2605,26 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 903
+        "line": 556
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 903
+            "line": 556
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 903
+                "line": 556
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 903
+                    "line": 556
                   },
                   "var": "s"
                 },
@@ -2634,7 +2634,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 903
+                "line": 556
               },
               "literal": {
                 "enum": {
@@ -2648,13 +2648,13 @@
         "then": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 904
+            "line": 557
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 904
+                "line": 557
               },
               "construct": {
                 "type": "umpire.Step",
@@ -2672,13 +2672,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 905
+                    "line": 558
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 905
+                        "line": 558
                       },
                       "var": "s"
                     },
@@ -2687,7 +2687,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/standaloneactivity/System.scala",
-                          "line": 905
+                          "line": 558
                         },
                         "literal": {
                           "enum": {
@@ -2701,20 +2701,20 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/standaloneactivity/System.scala",
-                          "line": 905
+                          "line": 558
                         },
                         "call": {
                           "function": "temporal.standaloneactivity.System$package$.oneMore",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/System.scala",
-                              "line": 905
+                              "line": 558
                             },
                             "field": {
                               "base": {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/System.scala",
-                                  "line": 905
+                                  "line": 558
                                 },
                                 "var": "s"
                               },
@@ -2728,7 +2728,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/standaloneactivity/System.scala",
-                          "line": 905
+                          "line": 558
                         },
                         "literal": {
                           "enum": {
@@ -2742,13 +2742,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 906
+                    "line": 559
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 906
+                        "line": 559
                       },
                       "literal": {
                         "enum": {
@@ -2759,7 +2759,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 907
+                        "line": 560
                       },
                       "literal": {
                         "enum": {
@@ -2772,7 +2772,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 904
+                    "line": 557
                   },
                   "literal": {
                     "text": ""
@@ -2785,13 +2785,13 @@
         "else": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 909
+            "line": 562
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 909
+                "line": 562
               },
               "construct": {
                 "type": "umpire.Step",
@@ -2809,13 +2809,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 909
+                    "line": 562
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 909
+                        "line": 562
                       },
                       "var": "s"
                     },
@@ -2824,7 +2824,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/standaloneactivity/System.scala",
-                          "line": 909
+                          "line": 562
                         },
                         "literal": {
                           "enum": {
@@ -2838,13 +2838,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 909
+                    "line": 562
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 909
+                        "line": 562
                       },
                       "literal": {
                         "enum": {
@@ -2857,7 +2857,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 909
+                    "line": 562
                   },
                   "literal": {
                     "text": ""
@@ -2873,7 +2873,7 @@
     "name": "temporal.standaloneactivity.System$package$.answerStep",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 141
+      "line": 145
     },
     "params": [ {
       "name": "s",
@@ -2884,26 +2884,26 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 142
+        "line": 146
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 142
+            "line": 146
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 142
+                "line": 146
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 142
+                    "line": 146
                   },
                   "var": "s"
                 },
@@ -2913,7 +2913,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 142
+                "line": 146
               },
               "literal": {
                 "enum": {
@@ -2927,20 +2927,20 @@
         "then": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 142
+            "line": 146
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 143
+            "line": 147
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 143
+                "line": 147
               },
               "construct": {
                 "type": "umpire.Step",
@@ -2958,13 +2958,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 143
+                    "line": 147
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 143
+                        "line": 147
                       },
                       "var": "s"
                     },
@@ -2973,7 +2973,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/standaloneactivity/System.scala",
-                          "line": 143
+                          "line": 147
                         },
                         "literal": {
                           "enum": {
@@ -2987,13 +2987,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 143
+                    "line": 147
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 143
+                        "line": 147
                       },
                       "literal": {
                         "enum": {
@@ -3006,7 +3006,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 143
+                    "line": 147
                   },
                   "literal": {
                     "text": ""
@@ -3022,7 +3022,7 @@
     "name": "temporal.standaloneactivity.System$package$.atMostOneActiveAttempt.after",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 207
+      "line": 211
     },
     "params": [ {
       "name": "after",
@@ -3033,14 +3033,14 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 207
+        "line": 211
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 207
+            "line": 211
           },
           "literal": {
             "enum": {
@@ -3052,13 +3052,13 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 207
+            "line": 211
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 207
+                "line": 211
               },
               "var": "after"
             },
@@ -3071,7 +3071,7 @@
     "name": "temporal.standaloneactivity.System$package$.atMostOneActiveAttempt.next",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 205
+      "line": 209
     },
     "params": [ {
       "name": "active",
@@ -3092,20 +3092,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 206
+        "line": 210
       },
       "call": {
         "function": "temporal.standaloneactivity.System$package$.countActive",
         "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 206
+            "line": 210
           },
           "var": "active"
         }, {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 206
+            "line": 210
           },
           "var": "after"
         } ]
@@ -3115,7 +3115,7 @@
     "name": "temporal.standaloneactivity.System$package$.atMostOneActiveAttempt.violated",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 207
+      "line": 211
     },
     "params": [ {
       "name": "active",
@@ -3126,21 +3126,21 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 207
+        "line": 211
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 207
+            "line": 211
           },
           "var": "active"
         },
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 207
+            "line": 211
           },
           "literal": {
             "enum": {
@@ -3155,7 +3155,7 @@
     "name": "temporal.standaloneactivity.System$package$.countActive",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 198
+      "line": 202
     },
     "params": [ {
       "name": "active",
@@ -3171,20 +3171,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 199
+        "line": 203
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 199
+            "line": 203
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 199
+                "line": 203
               },
               "literal": {
                 "enum": {
@@ -3196,13 +3196,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 199
+                "line": 203
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 199
+                    "line": 203
                   },
                   "var": "after"
                 },
@@ -3214,14 +3214,14 @@
         "then": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 199
+            "line": 203
           },
           "call": {
             "function": "temporal.standaloneactivity.System$package$.oneMore",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 199
+                "line": 203
               },
               "var": "active"
             } ]
@@ -3230,20 +3230,20 @@
         "else": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 200
+            "line": 204
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 200
+                "line": 204
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 200
+                    "line": 204
                   },
                   "literal": {
                     "enum": {
@@ -3255,13 +3255,13 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 200
+                    "line": 204
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 200
+                        "line": 204
                       },
                       "var": "after"
                     },
@@ -3273,14 +3273,14 @@
             "then": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 200
+                "line": 204
               },
               "call": {
                 "function": "temporal.standaloneactivity.System$package$.oneLess",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 200
+                    "line": 204
                   },
                   "var": "active"
                 } ]
@@ -3289,32 +3289,32 @@
             "else": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 201
+                "line": 205
               },
               "if": {
                 "condition": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 201
+                    "line": 205
                   },
                   "binary": {
                     "op": "OP_EQ",
                     "left": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 201
+                        "line": 205
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/temporal/standaloneactivity/System.scala",
-                            "line": 201
+                            "line": 205
                           },
                           "field": {
                             "base": {
                               "position": {
                                 "file": "model/temporal/standaloneactivity/System.scala",
-                                "line": 201
+                                "line": 205
                               },
                               "var": "after"
                             },
@@ -3327,7 +3327,7 @@
                     "right": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 201
+                        "line": 205
                       },
                       "literal": {
                         "enum": {
@@ -3341,7 +3341,7 @@
                 "then": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 201
+                    "line": 205
                   },
                   "literal": {
                     "enum": {
@@ -3353,7 +3353,7 @@
                 "else": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 202
+                    "line": 206
                   },
                   "var": "active"
                 }
@@ -3367,7 +3367,7 @@
     "name": "temporal.standaloneactivity.System$package$.dispatchStep",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 88
+      "line": 92
     },
     "params": [ {
       "name": "s",
@@ -3378,26 +3378,26 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 89
+        "line": 93
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 89
+            "line": 93
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 89
+                "line": 93
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 89
+                    "line": 93
                   },
                   "var": "s"
                 },
@@ -3407,7 +3407,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 89
+                "line": 93
               },
               "literal": {
                 "enum": {
@@ -3421,20 +3421,20 @@
         "then": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 89
+            "line": 93
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 90
+            "line": 94
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 90
+                "line": 94
               },
               "construct": {
                 "type": "umpire.Step",
@@ -3452,19 +3452,19 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 90
+                    "line": 94
                   },
                   "var": "s"
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 90
+                    "line": 94
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 90
+                        "line": 94
                       },
                       "literal": {
                         "enum": {
@@ -3477,7 +3477,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 90
+                    "line": 94
                   },
                   "literal": {
                     "text": ""
@@ -3493,7 +3493,7 @@
     "name": "temporal.standaloneactivity.System$package$.finality",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 213
+      "line": 217
     },
     "params": [ {
       "name": "f",
@@ -3509,13 +3509,13 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 213
+        "line": 217
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 213
+            "line": 217
           },
           "var": "f"
         },
@@ -3531,7 +3531,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 214
+              "line": 218
             },
             "literal": {
               "enum": {
@@ -3547,32 +3547,32 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 216
+              "line": 220
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/temporal/standaloneactivity/System.scala",
-                  "line": 216
+                  "line": 220
                 },
                 "call": {
                   "function": "temporal.standaloneactivity.System$package$.admissionOver",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/standaloneactivity/System.scala",
-                      "line": 216
+                      "line": 220
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/temporal/standaloneactivity/System.scala",
-                          "line": 216
+                          "line": 220
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/standaloneactivity/System.scala",
-                              "line": 216
+                              "line": 220
                             },
                             "var": "after"
                           },
@@ -3587,7 +3587,7 @@
               "then": {
                 "position": {
                   "file": "model/temporal/standaloneactivity/System.scala",
-                  "line": 216
+                  "line": 220
                 },
                 "literal": {
                   "enum": {
@@ -3599,27 +3599,27 @@
               "else": {
                 "position": {
                   "file": "model/temporal/standaloneactivity/System.scala",
-                  "line": 217
+                  "line": 221
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/System.scala",
-                      "line": 217
+                      "line": 221
                     },
                     "binary": {
                       "op": "OP_EQ",
                       "left": {
                         "position": {
                           "file": "model/temporal/standaloneactivity/System.scala",
-                          "line": 217
+                          "line": 221
                         },
                         "var": "f"
                       },
                       "right": {
                         "position": {
                           "file": "model/temporal/standaloneactivity/System.scala",
-                          "line": 217
+                          "line": 221
                         },
                         "literal": {
                           "enum": {
@@ -3633,7 +3633,7 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/System.scala",
-                      "line": 217
+                      "line": 221
                     },
                     "literal": {
                       "enum": {
@@ -3645,7 +3645,7 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/System.scala",
-                      "line": 218
+                      "line": 222
                     },
                     "literal": {
                       "enum": {
@@ -3665,7 +3665,7 @@
     "name": "temporal.standaloneactivity.System$package$.loseAdmissionAnswer",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 972
+      "line": 625
     },
     "params": [ {
       "name": "s",
@@ -3676,26 +3676,26 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 975
+        "line": 628
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 975
+            "line": 628
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 975
+                "line": 628
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 975
+                    "line": 628
                   },
                   "var": "s"
                 },
@@ -3707,20 +3707,20 @@
         "then": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 975
+            "line": 628
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 977
+            "line": 630
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 978
+                "line": 631
               },
               "construct": {
                 "type": "umpire.Step",
@@ -3738,26 +3738,26 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 979
+                    "line": 632
                   },
                   "construct": {
                     "type": "temporal.standaloneactivity.AdmissionResponseState",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 980
+                        "line": 633
                       },
                       "copy": {
                         "base": {
                           "position": {
                             "file": "model/temporal/standaloneactivity/System.scala",
-                            "line": 980
+                            "line": 633
                           },
                           "field": {
                             "base": {
                               "position": {
                                 "file": "model/temporal/standaloneactivity/System.scala",
-                                "line": 980
+                                "line": 633
                               },
                               "var": "s"
                             },
@@ -3769,7 +3769,7 @@
                           "value": {
                             "position": {
                               "file": "model/temporal/standaloneactivity/System.scala",
-                              "line": 981
+                              "line": 634
                             },
                             "literal": {
                               "enum": {
@@ -3783,26 +3783,26 @@
                           "value": {
                             "position": {
                               "file": "model/temporal/standaloneactivity/System.scala",
-                              "line": 982
+                              "line": 635
                             },
                             "call": {
                               "function": "temporal.standaloneactivity.System$package$.oneMore",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/System.scala",
-                                  "line": 982
+                                  "line": 635
                                 },
                                 "field": {
                                   "base": {
                                     "position": {
                                       "file": "model/temporal/standaloneactivity/System.scala",
-                                      "line": 982
+                                      "line": 635
                                     },
                                     "field": {
                                       "base": {
                                         "position": {
                                           "file": "model/temporal/standaloneactivity/System.scala",
-                                          "line": 982
+                                          "line": 635
                                         },
                                         "var": "s"
                                       },
@@ -3819,7 +3819,7 @@
                           "value": {
                             "position": {
                               "file": "model/temporal/standaloneactivity/System.scala",
-                              "line": 983
+                              "line": 636
                             },
                             "literal": {
                               "enum": {
@@ -3833,7 +3833,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 985
+                        "line": 638
                       },
                       "literal": {
                         "bool": false
@@ -3843,13 +3843,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 987
+                    "line": 640
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 987
+                        "line": 640
                       },
                       "literal": {
                         "enum": {
@@ -3862,7 +3862,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 978
+                    "line": 631
                   },
                   "literal": {
                     "text": ""
@@ -3873,7 +3873,7 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 989
+                "line": 642
               },
               "construct": {
                 "type": "umpire.Step",
@@ -3891,13 +3891,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 989
+                    "line": 642
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 989
+                        "line": 642
                       },
                       "var": "s"
                     },
@@ -3906,7 +3906,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/standaloneactivity/System.scala",
-                          "line": 989
+                          "line": 642
                         },
                         "literal": {
                           "bool": false
@@ -3917,13 +3917,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 989
+                    "line": 642
                   },
                   "list": { }
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 989
+                    "line": 642
                   },
                   "literal": {
                     "text": "the durable update failed before its answer was lost"
@@ -3938,6 +3938,71 @@
     }
   }, {
     "name": "temporal.standaloneactivity.System$package$.oneLess",
+    "position": {
+      "file": "model/temporal/standaloneactivity/System.scala",
+      "line": 112
+    },
+    "params": [ {
+      "name": "a",
+      "type": {
+        "named": "temporal.standaloneactivity.Active"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/System.scala",
+        "line": 112
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/temporal/standaloneactivity/System.scala",
+            "line": 112
+          },
+          "var": "a"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.Active",
+                "case": "two"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/standaloneactivity/System.scala",
+              "line": 113
+            },
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.Active",
+                "case": "one"
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "wildcard": { }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/standaloneactivity/System.scala",
+              "line": 114
+            },
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.Active",
+                "case": "none"
+              }
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.standaloneactivity.System$package$.oneMore",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
       "line": 108
@@ -3966,7 +4031,7 @@
             "literal": {
               "enum": {
                 "type": "temporal.standaloneactivity.Active",
-                "case": "two"
+                "case": "none"
               }
             }
           },
@@ -3994,71 +4059,6 @@
             "literal": {
               "enum": {
                 "type": "temporal.standaloneactivity.Active",
-                "case": "none"
-              }
-            }
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.standaloneactivity.System$package$.oneMore",
-    "position": {
-      "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 104
-    },
-    "params": [ {
-      "name": "a",
-      "type": {
-        "named": "temporal.standaloneactivity.Active"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 104
-      },
-      "match": {
-        "scrutinee": {
-          "position": {
-            "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 104
-          },
-          "var": "a"
-        },
-        "cases": [ {
-          "pattern": {
-            "literal": {
-              "enum": {
-                "type": "temporal.standaloneactivity.Active",
-                "case": "none"
-              }
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 105
-            },
-            "literal": {
-              "enum": {
-                "type": "temporal.standaloneactivity.Active",
-                "case": "one"
-              }
-            }
-          }
-        }, {
-          "pattern": {
-            "wildcard": { }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 106
-            },
-            "literal": {
-              "enum": {
-                "type": "temporal.standaloneactivity.Active",
                 "case": "two"
               }
             }
@@ -4070,7 +4070,7 @@
     "name": "temporal.standaloneactivity.System$package$.pauseStep",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 93
+      "line": 97
     },
     "params": [ {
       "name": "s",
@@ -4086,13 +4086,13 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 93
+        "line": 97
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 93
+            "line": 97
           },
           "var": "c"
         },
@@ -4108,19 +4108,19 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 95
+              "line": 99
             },
             "match": {
               "scrutinee": {
                 "position": {
                   "file": "model/temporal/standaloneactivity/System.scala",
-                  "line": 95
+                  "line": 99
                 },
                 "field": {
                   "base": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/System.scala",
-                      "line": 95
+                      "line": 99
                     },
                     "var": "s"
                   },
@@ -4139,13 +4139,13 @@
                 "body": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 97
+                    "line": 101
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 97
+                        "line": 101
                       },
                       "construct": {
                         "type": "umpire.Step",
@@ -4163,13 +4163,13 @@
                         }, {
                           "position": {
                             "file": "model/temporal/standaloneactivity/System.scala",
-                            "line": 97
+                            "line": 101
                           },
                           "copy": {
                             "base": {
                               "position": {
                                 "file": "model/temporal/standaloneactivity/System.scala",
-                                "line": 97
+                                "line": 101
                               },
                               "var": "s"
                             },
@@ -4178,7 +4178,7 @@
                               "value": {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/System.scala",
-                                  "line": 97
+                                  "line": 101
                                 },
                                 "literal": {
                                   "enum": {
@@ -4192,13 +4192,13 @@
                         }, {
                           "position": {
                             "file": "model/temporal/standaloneactivity/System.scala",
-                            "line": 97
+                            "line": 101
                           },
                           "list": {
                             "items": [ {
                               "position": {
                                 "file": "model/temporal/standaloneactivity/System.scala",
-                                "line": 97
+                                "line": 101
                               },
                               "literal": {
                                 "enum": {
@@ -4211,7 +4211,7 @@
                         }, {
                           "position": {
                             "file": "model/temporal/standaloneactivity/System.scala",
-                            "line": 97
+                            "line": 101
                           },
                           "literal": {
                             "text": ""
@@ -4233,13 +4233,13 @@
                 "body": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 99
+                    "line": 103
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 99
+                        "line": 103
                       },
                       "construct": {
                         "type": "umpire.Step",
@@ -4257,13 +4257,13 @@
                         }, {
                           "position": {
                             "file": "model/temporal/standaloneactivity/System.scala",
-                            "line": 99
+                            "line": 103
                           },
                           "copy": {
                             "base": {
                               "position": {
                                 "file": "model/temporal/standaloneactivity/System.scala",
-                                "line": 99
+                                "line": 103
                               },
                               "var": "s"
                             },
@@ -4272,7 +4272,7 @@
                               "value": {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/System.scala",
-                                  "line": 99
+                                  "line": 103
                                 },
                                 "literal": {
                                   "enum": {
@@ -4286,13 +4286,13 @@
                         }, {
                           "position": {
                             "file": "model/temporal/standaloneactivity/System.scala",
-                            "line": 99
+                            "line": 103
                           },
                           "list": {
                             "items": [ {
                               "position": {
                                 "file": "model/temporal/standaloneactivity/System.scala",
-                                "line": 99
+                                "line": 103
                               },
                               "literal": {
                                 "enum": {
@@ -4305,7 +4305,7 @@
                         }, {
                           "position": {
                             "file": "model/temporal/standaloneactivity/System.scala",
-                            "line": 99
+                            "line": 103
                           },
                           "literal": {
                             "text": ""
@@ -4338,7 +4338,7 @@
                 "body": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 100
+                    "line": 104
                   },
                   "list": { }
                 }
@@ -4365,7 +4365,7 @@
                 "body": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 101
+                    "line": 105
                   },
                   "list": { }
                 }
@@ -4402,7 +4402,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 102
+              "line": 106
             },
             "list": { }
           }
@@ -4413,7 +4413,7 @@
     "name": "temporal.standaloneactivity.System$package$.productOfAdmission",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 173
+      "line": 177
     },
     "params": [ {
       "name": "s",
@@ -4424,19 +4424,19 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 173
+        "line": 177
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 173
+            "line": 177
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 173
+                "line": 177
               },
               "var": "s"
             },
@@ -4455,14 +4455,14 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 174
+              "line": 178
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
               "args": [ {
                 "position": {
                   "file": "model/temporal/standaloneactivity/System.scala",
-                  "line": 174
+                  "line": 178
                 },
                 "literal": {
                   "enum": {
@@ -4496,14 +4496,14 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 175
+              "line": 179
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
               "args": [ {
                 "position": {
                   "file": "model/temporal/standaloneactivity/System.scala",
-                  "line": 175
+                  "line": 179
                 },
                 "literal": {
                   "enum": {
@@ -4526,14 +4526,14 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 176
+              "line": 180
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
               "args": [ {
                 "position": {
                   "file": "model/temporal/standaloneactivity/System.scala",
-                  "line": 176
+                  "line": 180
                 },
                 "literal": {
                   "enum": {
@@ -4556,14 +4556,14 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 177
+              "line": 181
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
               "args": [ {
                 "position": {
                   "file": "model/temporal/standaloneactivity/System.scala",
-                  "line": 177
+                  "line": 181
                 },
                 "literal": {
                   "enum": {
@@ -4586,14 +4586,14 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 178
+              "line": 182
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
               "args": [ {
                 "position": {
                   "file": "model/temporal/standaloneactivity/System.scala",
-                  "line": 178
+                  "line": 182
                 },
                 "literal": {
                   "enum": {
@@ -4611,7 +4611,7 @@
     "name": "temporal.standaloneactivity.System$package$.productSees",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 181
+      "line": 185
     },
     "params": [ {
       "name": "f",
@@ -4622,13 +4622,13 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 181
+        "line": 185
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 181
+            "line": 185
           },
           "var": "f"
         },
@@ -4670,7 +4670,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 184
+              "line": 188
             },
             "literal": {
               "bool": true
@@ -4720,7 +4720,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/System.scala",
-              "line": 188
+              "line": 192
             },
             "literal": {
               "bool": false
@@ -4733,7 +4733,7 @@
     "name": "temporal.standaloneactivity.System$package$.responseLossDispatch",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 963
+      "line": 616
     },
     "params": [ {
       "name": "s",
@@ -4744,26 +4744,26 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 966
+        "line": 619
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 966
+            "line": 619
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 966
+                "line": 619
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 966
+                    "line": 619
                   },
                   "var": "s"
                 },
@@ -4775,20 +4775,20 @@
         "then": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 966
+            "line": 619
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 967
+            "line": 620
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 967
+                "line": 620
               },
               "construct": {
                 "type": "umpire.Step",
@@ -4806,19 +4806,19 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 967
+                    "line": 620
                   },
                   "var": "s"
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 967
+                    "line": 620
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/System.scala",
-                        "line": 967
+                        "line": 620
                       },
                       "literal": {
                         "enum": {
@@ -4831,7 +4831,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 967
+                    "line": 620
                   },
                   "literal": {
                     "text": ""
@@ -4847,7 +4847,7 @@
     "name": "temporal.standaloneactivity.System$package$.terminalFinality.next",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 221
+      "line": 225
     },
     "params": [ {
       "name": "f",
@@ -4868,20 +4868,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 222
+        "line": 226
       },
       "call": {
         "function": "temporal.standaloneactivity.System$package$.finality",
         "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 222
+            "line": 226
           },
           "var": "f"
         }, {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 222
+            "line": 226
           },
           "var": "after"
         } ]
@@ -4891,7 +4891,7 @@
     "name": "temporal.standaloneactivity.System$package$.terminalFinality.violated",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 223
+      "line": 227
     },
     "params": [ {
       "name": "finality",
@@ -4902,21 +4902,21 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 223
+        "line": 227
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 223
+            "line": 227
           },
           "var": "finality"
         },
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 223
+            "line": 227
           },
           "literal": {
             "enum": {
@@ -5007,8 +5007,8 @@
     "id": "temporal.standaloneactivity.System$package$.ackLoss",
     "name": "ackLoss",
     "position": {
-      "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 467
+      "file": "model/temporal/taskqueue/Model.scala",
+      "line": 149
     },
     "party": "fault"
   }, {
@@ -5016,7 +5016,7 @@
     "name": "answerDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 70
+      "line": 74
     },
     "party": "system",
     "internal": true
@@ -5025,7 +5025,7 @@
     "name": "dispatch",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 67
+      "line": 71
     },
     "party": "system",
     "internal": true
@@ -5142,7 +5142,7 @@
     "name": "admissionResponseLoss",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 993
+      "line": 646
     },
     "entity": "activity",
     "stateType": "temporal.standaloneactivity.AdmissionResponseState",
@@ -5151,21 +5151,21 @@
     "starts": [ {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 961
+        "line": 614
       },
       "construct": {
         "type": "temporal.standaloneactivity.AdmissionResponseState",
         "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 73
+            "line": 77
           },
           "construct": {
             "type": "temporal.standaloneactivity.AdmissionState",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 73
+                "line": 77
               },
               "literal": {
                 "enum": {
@@ -5176,7 +5176,7 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 73
+                "line": 77
               },
               "literal": {
                 "enum": {
@@ -5187,7 +5187,7 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 73
+                "line": 77
               },
               "literal": {
                 "enum": {
@@ -5200,7 +5200,7 @@
         }, {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 961
+            "line": 614
           },
           "literal": {
             "bool": true
@@ -5211,7 +5211,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 996
+        "line": 649
       },
       "lambda": {
         "params": [ {
@@ -5223,20 +5223,20 @@
         "body": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 996
+            "line": 649
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 996
+                "line": 649
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/System.scala",
-                    "line": 996
+                    "line": 649
                   },
                   "var": "s"
                 },
@@ -5252,14 +5252,14 @@
       "function": "temporal.standaloneactivity.System$package$.responseLossDispatch",
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 997
+        "line": 650
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.ackLoss",
       "function": "temporal.standaloneactivity.System$package$.loseAdmissionAnswer",
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 997
+        "line": 650
       }
     } ],
     "evidence": "admissionResponseLoss.evidence"
@@ -5268,7 +5268,7 @@
     "name": "heldAdmission",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 911
+      "line": 564
     },
     "entity": "activity",
     "stateType": "temporal.standaloneactivity.AdmissionState",
@@ -5277,14 +5277,14 @@
     "starts": [ {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 73
+        "line": 77
       },
       "construct": {
         "type": "temporal.standaloneactivity.AdmissionState",
         "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 73
+            "line": 77
           },
           "literal": {
             "enum": {
@@ -5295,7 +5295,7 @@
         }, {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 73
+            "line": 77
           },
           "literal": {
             "enum": {
@@ -5306,7 +5306,7 @@
         }, {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 73
+            "line": 77
           },
           "literal": {
             "enum": {
@@ -5320,7 +5320,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 917
+        "line": 570
       },
       "lambda": {
         "params": [ {
@@ -5332,14 +5332,14 @@
         "body": {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 917
+            "line": 570
           },
           "call": {
             "function": "temporal.standaloneactivity.System$package$.admissionEnds",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 917
+                "line": 570
               },
               "var": "s"
             } ]
@@ -5352,28 +5352,28 @@
       "function": "temporal.standaloneactivity.System$package$.dispatchStep",
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 920
+        "line": 573
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.control",
       "function": "temporal.standaloneactivity.System$package$.pauseStep",
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 921
+        "line": 574
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart",
       "function": "temporal.standaloneactivity.System$package$.admitHeld",
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 922
+        "line": 575
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.answerDelivery",
       "function": "temporal.standaloneactivity.System$package$.answerStep",
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 923
+        "line": 576
       }
     } ],
     "evidence": "heldAdmission.evidence",
@@ -5389,7 +5389,7 @@
     "name": "atMostOneActiveAttempt",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 204
+      "line": 208
     },
     "state": {
       "named": "temporal.standaloneactivity.Active"
@@ -5397,7 +5397,7 @@
     "initial": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 205
+        "line": 209
       },
       "literal": {
         "enum": {
@@ -5414,7 +5414,7 @@
     "name": "terminalFinality",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 220
+      "line": 224
     },
     "state": {
       "named": "temporal.standaloneactivity.Finality"
@@ -5422,7 +5422,7 @@
     "initial": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 221
+        "line": 225
       },
       "literal": {
         "enum": {
@@ -5440,7 +5440,7 @@
     "name": "committedDespiteLostResponse",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 1001
+      "line": 654
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.System$package$.ackLoss"
@@ -5451,7 +5451,7 @@
     "name": "staleDeliveryRejected",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 929
+      "line": 582
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart"
@@ -5463,26 +5463,26 @@
     "name": "oneLostResponse",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 1007
+      "line": 660
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 961
+        "line": 614
       },
       "construct": {
         "type": "temporal.standaloneactivity.AdmissionResponseState",
         "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 73
+            "line": 77
           },
           "construct": {
             "type": "temporal.standaloneactivity.AdmissionState",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 73
+                "line": 77
               },
               "literal": {
                 "enum": {
@@ -5493,7 +5493,7 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 73
+                "line": 77
               },
               "literal": {
                 "enum": {
@@ -5504,7 +5504,7 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/System.scala",
-                "line": 73
+                "line": 77
               },
               "literal": {
                 "enum": {
@@ -5517,7 +5517,7 @@
         }, {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 961
+            "line": 614
           },
           "literal": {
             "bool": true
@@ -5535,19 +5535,19 @@
     "name": "heldStaleDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 934
+      "line": 587
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/System.scala",
-        "line": 73
+        "line": 77
       },
       "construct": {
         "type": "temporal.standaloneactivity.AdmissionState",
         "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 73
+            "line": 77
           },
           "literal": {
             "enum": {
@@ -5558,7 +5558,7 @@
         }, {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 73
+            "line": 77
           },
           "literal": {
             "enum": {
@@ -5569,7 +5569,7 @@
         }, {
           "position": {
             "file": "model/temporal/standaloneactivity/System.scala",
-            "line": 73
+            "line": 77
           },
           "literal": {
             "enum": {
@@ -5598,7 +5598,7 @@
     "name": "admissionResponseLoss.committed",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 1006
+      "line": 659
     },
     "form": "FORM_FIND",
     "property": {
@@ -5624,7 +5624,7 @@
     "name": "heldAdmission.staleDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/System.scala",
-      "line": 934
+      "line": 587
     },
     "form": "FORM_FIND",
     "property": {

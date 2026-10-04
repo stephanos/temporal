@@ -792,7 +792,7 @@ object ActivityRealization:
           Item(performs =
             Vector(
               Performance(
-                ackLoss,
+                taskqueue.ackLoss,
                 Command(releaseCommand, Fault(taskQueueRole, FaultKind.admissionResponseLoss))
               )
             )

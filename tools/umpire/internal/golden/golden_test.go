@@ -109,6 +109,14 @@ func TestIRInventoryRejectsMissingAndUnknownFiles(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "other.json"), []byte(`{}`), 0644))
 	_, err = cfg.Inputs(root)
 	require.ErrorContains(t, err, "unknown IR inventory entry")
+	// A file added after the goldens were captured is admitted where listed as later, and not compared.
+	cfg.Later = []string{"model/scalav2/ir/other.json"}
+	inputs, err = cfg.Inputs(root)
+	require.NoError(t, err)
+	require.Len(t, inputs, 1)
+	require.NoError(t, os.Remove(filepath.Join(dir, "other.json")))
+	_, err = cfg.Inputs(root)
+	require.ErrorContains(t, err, "missing later IR inventory entry")
 }
 
 func projectedJob(t *testing.T) (cfg Config, original, current *umpirespb.Model) {
@@ -469,4 +477,26 @@ func TestCaseProjectionDropsOnlyAnExplorationID(t *testing.T) {
 	p.CaseIDs = append(p.CaseIDs, "other")
 	_, err = p.Case(ExplorationCase, explored(a, "take"), a)
 	require.ErrorContains(t, err, "unknown lowered Case kind")
+}
+
+// A declaration split out of a file compares as one of the file it left, and a moved root by its
+// frozen name in the frozen order; positions in other files and other roots are kept.
+func TestUnsplitNamesTheFileAndRootADeclarationLeft(t *testing.T) {
+	cfg := Config{
+		Splits:    []Substitution{{Old: "model/b/Queue.scala", New: "model/a/System.scala"}},
+		RootMoves: []Substitution{{Old: "a.System$package$.queue", New: "b.Queue$package$.queue"}},
+	}
+	current := &umpirespb.Model{
+		Source: "model: a.System$package$.record, b.Queue$package$.queue",
+		Machines: []*umpirespb.Machine{
+			{Name: "queue", Position: &umpirespb.Position{File: "model/b/Queue.scala", Line: 3}},
+			{Name: "record", Position: &umpirespb.Position{File: "model/a/Other.scala", Line: 4}},
+		},
+	}
+	unsplit, err := cfg.Unsplit(current)
+	require.NoError(t, err)
+	require.Equal(t, "model: a.System$package$.queue, a.System$package$.record", unsplit.GetSource())
+	require.Equal(t, "model/a/System.scala", unsplit.GetMachines()[0].GetPosition().GetFile())
+	require.Equal(t, "model/a/Other.scala", unsplit.GetMachines()[1].GetPosition().GetFile())
+	require.Equal(t, "model/b/Queue.scala", current.GetMachines()[0].GetPosition().GetFile(), "the current Model is kept")
 }

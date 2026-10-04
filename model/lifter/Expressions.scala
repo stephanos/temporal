@@ -31,7 +31,7 @@ private[lift] trait Expressions:
     ir.Value.Kind.Enum(ir.EnumValue(`type` = tpe, `case` = c))
   def enumLiteral(sym: Symbol, at: Tree): ir.Expr =
     declareType(enumOf(sym), at)
-    lit(enumValue(enumOf(sym).fullName, sym.name), at)
+    lit(enumValue(irTypeName(enumOf(sym)), sym.name), at)
   def list(items: Seq[ir.Expr], at: Tree): ir.Expr = expr(at)(E.List(ir.ListOf(items)))
   def text(s: String, at: Tree): ir.Expr = lit(ir.Value.Kind.Text(s), at)
   def binary(op: ir.Binary.Op, l: ir.Expr, r: ir.Expr, at: Tree): ir.Expr =
@@ -399,10 +399,10 @@ private[lift] trait Expressions:
       val c =
         if cls.flags.is(Flags.Enum) then
           declareType(enumOf(cls), t)
-          ir.Construct(`type` = enumOf(cls).fullName, `case` = cls.name, args = lifted)
+          ir.Construct(`type` = irTypeName(enumOf(cls)), `case` = cls.name, args = lifted)
         else
           declareType(cls, t)
-          ir.Construct(`type` = cls.fullName, args = lifted)
+          ir.Construct(`type` = irTypeName(cls), args = lifted)
       expr(t)(E.Construct(c))
 
     // A call of another function of the lifted sources, or of a function-valued parameter bound to
@@ -562,7 +562,7 @@ private[lift] trait Expressions:
       P.Literal(ir.Value(enumValue(optionType(optionArg(scrutinee, p), p), "None")))
     case r: Ref if isEnumCase(r.symbol) =>
       declareType(enumOf(r.symbol), p)
-      P.Literal(ir.Value(enumValue(enumOf(r.symbol).fullName, r.symbol.name)))
+      P.Literal(ir.Value(enumValue(irTypeName(enumOf(r.symbol)), r.symbol.name)))
     case Unapply(TypeApply(fun, List(arg)), _, List(inner))
         if fun.symbol.owner.companionClass.fullName == "scala.Some" =>
       val tpe = optionType(arg.tpe, p)
@@ -575,7 +575,7 @@ private[lift] trait Expressions:
       val types = fieldTypes(cls).map(_._2)
       P.Case(
         ir.CasePattern(
-          `type` = enumOf(cls).fullName,
+          `type` = irTypeName(enumOf(cls)),
           `case` = cls.name,
           fields = fields.zipWithIndex.map((f, i) => pattern(f, types.lift(i).getOrElse(scrutinee)))
         )

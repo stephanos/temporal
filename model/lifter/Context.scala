@@ -184,6 +184,47 @@ final private[lift] class Context(using val quotes: Quotes)(
       case _ => idTakenBy(id) = sym
     id
 
+  // The type each IR type name was taken by, and the name each type takes, computed once.
+  private val typeTakenBy = mutable.Map.empty[String, Symbol]
+  private val typeNames = mutable.Map.empty[Symbol, String]
+
+  /**
+   * The name the IR gives the type `sym`: its full name, or, for a type at the top level of a file
+   * whose declarations pin a former file owner `<package>.<File>$package$`, the name it had in that
+   * package. A top-level type is its package's, not its file's, so the file's pin is the one that
+   * says where it came from. Two types the lift reads that would share a name are refused.
+   */
+  def irTypeName(sym: Symbol): String = typeNames.getOrElseUpdate(
+    sym, {
+      val name = pinnedTypeName(sym)
+      typeTakenBy.get(name) match
+        case Some(other) if other != sym =>
+          fail(
+            sym.tree,
+            s"${sym.fullName} and ${other.fullName} would both be named $name in the IR: a type " +
+              "moved under a DefinitionScope keeps a name no other type of the Model has"
+          )
+        case _ => typeTakenBy(name) = sym
+      name
+    }
+  )
+
+  private def pinnedTypeName(sym: Symbol): String =
+    val file = Option
+      .when(sym.maybeOwner.isPackageDef)(scala.util.Try(pos(sym.tree).file).toOption)
+      .flatten
+    val former = file.flatMap { f =>
+      scopes.keys
+        .find(o => o.maybeOwner == sym.owner && o.name.endsWith("$package$") && scopeFile(o) == f)
+        .flatMap(pinOf)
+        .filter(_.endsWith("$package$"))
+    }
+    former.fold(sym.fullName)(f => s"${f.take(f.lastIndexOf('.'))}.${sym.name}")
+
+  // The file a pinned owner's DefinitionScope is declared in.
+  private def scopeFile(owner: Symbol): String =
+    scopes.get(owner).flatMap(_.headOption).map(pos(_).file).getOrElse("")
+
   /** The former owner `owner` pins, refusing a pin that is doubled, nested, or of itself. */
   private def pinOf(owner: Symbol): Option[String] =
     scopes.get(owner).map {

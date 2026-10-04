@@ -38,17 +38,19 @@ object Roots:
     "temporal.standaloneactivity.ActivityRealization$.standalone"
   )
 
-  // Its system contract, the admission designs and the dispatch queue's providers:
+  // Its system contract, the admission designs, and the shared task queue's providers it composes:
   // ir/activity-system.json. A composition no Query runs over is a root of its own.
   private val activitySystem = Seq(
     "currentQueries",
     "staleQueries",
-    "competingTimers",
+    "competingTimers"
+  ).map("temporal.standaloneactivity.System$package$." + _) ++ Seq(
     "matchingQueueQueries",
     "forgetfulQueueQueries",
     "volatileQueueQueries",
     "lossyMatchingQueueQueries",
-    "storageLossQuery",
+    "storageLossQuery"
+  ).map("temporal.taskqueue.Queries$package$." + _) ++ Seq(
     "currentOverQueueQueries",
     "staleOverQueueQueries",
     "currentOverMatchingQueries",

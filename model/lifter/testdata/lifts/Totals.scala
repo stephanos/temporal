@@ -2,7 +2,9 @@
 // Int parameter of a shared def over a machine, supplied as a literal at each call. The lifter's tests
 // lift `queries`, `lampTotals` and `plainLampTotals` and require each spelling's record to differ
 // from its twin's in nothing but its name and position, and the shared def's instances in nothing
-// but their machine and total.
+// but their machine and total. Two claims one shared def declares together, as a case-class bundle
+// its Queries read by field, lift (`bundledLamp`, `bundledPlainLamp`) as the same claims declared
+// directly (`directLamp`, `directPlainLamp`) do, but for the words `bundled` and `direct` in their names.
 package fixture.totals
 
 import umpire.*
@@ -66,3 +68,39 @@ def lampQueries(m: Machine[Lamp, Outcome, Nothing], total: Int): Vector[Query] =
 val queries: Vector[Query] = Vector(infixTotal, dottedTotal, totalThenExpect, expectThenTotal)
 val lampTotals: Vector[Query] = lampQueries(lamp, 12)
 val plainLampTotals: Vector[Query] = lampQueries(plainLamp, 4)
+
+// ### Two claims a shared def declares together, as a bundle read back by field
+
+/** The claims every lamp is held to, declared together by `lampLaws`. */
+final case class LampLaws(lit: Property[Lamp], unlit: Property[Lamp])
+
+def lampLaws(m: Machine[Lamp, Outcome, Nothing]): LampLaws = LampLaws(
+  m.property("bundledLit") holds (after => after.state.lit),
+  m.property("bundledUnlit") holds (after => !after.state.lit)
+)
+
+/** The laws of `m`, each read from the bundle by field. Free, so 12 on `lamp` and 4 on `plainLamp`. */
+def bundledLawQueries(m: Machine[Lamp, Outcome, Nothing], total: Int): Vector[Query] =
+  val laws = lampLaws(m)
+  val any = m.scenario("bundledAny").free
+  Vector(
+    query(s"${m.name}.bundledLit") find laws.lit in any limits two total total,
+    query(s"${m.name}.bundledUnlit") find laws.unlit in any limits two total total
+  )
+
+/** The same claims declared directly. */
+def directLawQueries(m: Machine[Lamp, Outcome, Nothing], total: Int): Vector[Query] =
+  val any = m.scenario("directAny").free
+  Vector(
+    query(s"${m.name}.directLit") find (m.property("directLit") holds (after =>
+      after.state.lit
+    )) in any limits two total total,
+    query(s"${m.name}.directUnlit") find (m.property("directUnlit") holds (after =>
+      !after.state.lit
+    )) in any limits two total total
+  )
+
+val bundledLamp: Vector[Query] = bundledLawQueries(lamp, 12)
+val bundledPlainLamp: Vector[Query] = bundledLawQueries(plainLamp, 4)
+val directLamp: Vector[Query] = directLawQueries(lamp, 12)
+val directPlainLamp: Vector[Query] = directLawQueries(plainLamp, 4)

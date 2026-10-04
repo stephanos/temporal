@@ -17,6 +17,13 @@ import umpire.gate.{Ran, Tools}
  * they left, and lifted again. The functions they declare carry the new owner, so the move took; the
  * IDs must be exactly those of testdata/lifts/expected and of fn-112.1's owner map,
  * tools/umpire/internal/golden/testdata/original/owners.json.
+ *
+ * A type declared at the top level of a file is its package's, so the pin of the file's former owner
+ * `<package>.<File>$package$` also keeps the name it had there: moved into another package, the
+ * fixtures' `types` (their names, fields and every reference to a type) are exactly those of
+ * testdata/lifts/expected but for positions. A type moved under an object is the object's member and
+ * an object's pin leaves type names alone, so there they carry the object and are not the expected
+ * ones.
  */
 class DefinitionScope extends munit.FunSuite:
   override val munitTimeout: Duration = 20.minutes
@@ -155,10 +162,30 @@ class DefinitionScope extends munit.FunSuite:
       )
     )
 
-  private def pinned(probes: Seq[(String, String, String, String)]): Unit =
+  // A fixture's types without their positions, which the move shifts.
+  private def types(ir: String): String =
+    val all = mapper.readTree(ir).path("types").deepCopy[com.fasterxml.jackson.databind.JsonNode]()
+    def strip(n: com.fasterxml.jackson.databind.JsonNode): Unit =
+      n match
+        case o: com.fasterxml.jackson.databind.node.ObjectNode => o.remove("position"): Unit
+        case _                                                 => ()
+      n.elements().asScala.foreach(strip)
+    strip(all)
+    all.toPrettyString
+
+  private def pinned(probes: Seq[(String, String, String, String)], typesKept: Boolean): Unit =
     for (fixture, former, owner, ir) <- probes do
-      val expected = ids(Files.readString(lifts.resolve(s"expected/$fixture.json")))
+      val stored = Files.readString(lifts.resolve(s"expected/$fixture.json"))
+      val expected = ids(stored)
       val now = ids(ir)
+      if typesKept then
+        assertEquals(types(ir), types(stored), s"$fixture types under the pin of $former in $owner")
+      else
+        assertNotEquals(
+          types(ir),
+          types(stored),
+          s"$fixture types moved under $owner kept their names"
+        )
       val functions = mapper.readTree(ir).path("functions").elements().asScala.map(_.path("name"))
       assert(
         functions.exists(_.asText().startsWith(owner + ".")),
@@ -180,12 +207,16 @@ class DefinitionScope extends munit.FunSuite:
         "object",
         (source, _, former) => underObject(source, former),
         (_, pkg) => s"$pkg.Moved$$"
-      )
+      ),
+      typesKept = false
     )
 
-  test("a declaration moved into another package keeps its ID under one pin of its former owner"):
+  test(
+    "a declaration moved into another package keeps its ID and its types their names under one pin"
+  ):
     pinned(
-      moved("package", underPackage, (stem, pkg) => s"$pkg.moved.$stem$$package$$")
+      moved("package", underPackage, (stem, pkg) => s"$pkg.moved.$stem$$package$$"),
+      typesKept = true
     )
 
   test("every symbol-based kind is probed"):

@@ -2,8 +2,9 @@
 // their types once, the composition names its members, syncs and Scenario classes by field
 // selectors, the Scenarios start where their machines do, the evidence lists only the fact whose
 // evidence is not its name, the refined read needs no given, and one DefinitionScope keeps every
-// symbol-based Definition ID Spelled.scala's owner gives. The lifter's tests lift both and require one
-// IR of the two, but for positions and the owner of the types and functions each file declares.
+// symbol-based Definition ID Spelled.scala's owner gives and every top-level type's name in
+// fixture.spelled. The lifter's tests lift both and require one IR of the two, but for positions and
+// the owner of the functions each file declares.
 package fixture.captured
 
 import umpire.*

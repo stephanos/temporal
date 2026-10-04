@@ -184,8 +184,8 @@ private[lift] trait Syntax:
     val value = literalValue(fact)
     val factType = value.kind match
       case ir.Value.Kind.Enum(e) => e.`type`
-      case _                     => fact.tpe.widen.dealias.typeSymbol.fullName
-    for c <- compositions.values if c.stateType == state.typeSymbol.fullName do
+      case _                     => irTypeName(fact.tpe.widen.dealias.typeSymbol)
+    for c <- compositions.values if c.stateType == irTypeName(state.typeSymbol) do
       val m = c.members
         .find(_.field == field)
         .getOrElse(

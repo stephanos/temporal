@@ -138,7 +138,9 @@ class Fixtures extends munit.FunSuite:
       "fixture.realizations.Realizations$package$.errandWithdrawn",
       "fixture.realizations.Realizations$package$.tallyRealization",
       "fixture.realizations.Realizations$package$.tallyOpens"
-    )
+    ),
+    "taskqueue" -> Seq("queueQueries", "matchingQueries", "forgetfulQueries")
+      .map("fixture.taskqueue.TaskQueue$package$." + _)
   )
   // The refusals of fn-112.4's typed composition selectors, in lifts/Rejects.scala.
   private val selectorRejects: Seq[String] = Seq(
@@ -205,6 +207,9 @@ class Fixtures extends munit.FunSuite:
     "choiceKept"
   )
 
+  // The refusals of fn-112.12's claim bundles and of a moved type whose pinned name is taken.
+  private val bundleRejects: Seq[String] = Seq("mixedBundle", "movedNameTaken")
+
   private val rejected = Seq(
     "unbounded",
     "waiting",
@@ -249,7 +254,7 @@ class Fixtures extends munit.FunSuite:
     "splatted",
     "explained"
   ).map("fixture.rejects.Rejects$package$." + _) ++ (selectorRejects ++ patternRejects ++
-    inputRejects ++ totalRejects ++ choiceRejects).map(
+    inputRejects ++ totalRejects ++ choiceRejects ++ bundleRejects).map(
     "fixture.rejects.Rejects$package$." + _
   ) ++ Seq(
     // DefinitionScope pins, a name the compiler made up and a computed accepted outcome, refused in
@@ -551,8 +556,9 @@ class Fixtures extends munit.FunSuite:
 
   // The same Model spelled out (Spelled.scala) and with names taken from vals, a given family, defaulted
   // starts and evidence and a refinement read with no given (Captured.scala): one IR, but for positions
-  // and the owner of the types and functions each file declares. Captured.scala pins Spelled.scala's
-  // owner, so its symbol-based Definition IDs are Spelled.scala's before anything is substituted.
+  // and the owner of the functions each file declares. Captured.scala pins Spelled.scala's owner, so
+  // its symbol-based Definition IDs and the names of its top-level types are Spelled.scala's before
+  // anything is substituted.
   concurrently("captured names, a given family and defaults lift to the IR spelled-out forms do"):
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     def spelledAs(fixture: String): String =
@@ -589,6 +595,13 @@ class Fixtures extends munit.FunSuite:
           s"${d.path("id").asText()} is not pinned to Spelled.scala's owner"
         )
     val spelled = mapper.readTree(spelledAs("spelled"))
+    def typeNames(model: com.fasterxml.jackson.databind.JsonNode) =
+      model.path("types").elements().asScala.map(_.path("name").asText()).toList
+    assertEquals(
+      typeNames(ids),
+      typeNames(spelled),
+      "Captured.scala's types keep Spelled.scala's names"
+    )
     val same = mapper.readTree(
       captured
         .replace("fixture.captured.Captured$package$", "fixture.spelled.Spelled$package$")
@@ -800,6 +813,37 @@ class Fixtures extends munit.FunSuite:
     assertEquals(total("plainLamp.anyLit"), "4")
     assertEquals(without("plainLamp.anyLit").replace("plainLamp", "lamp"), without("lamp.anyLit"))
 
+  // fn-112.12: claims one shared def declares together as a case-class bundle, read back by field
+  // (lifts/Totals.scala), lift to the IR of the same claims declared directly on each machine.
+  concurrently("a bundle of claims built by its constructor and read by field lifts as its claims"):
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    def lifting(spelling: String): JsonNode =
+      val out = lifted(s"bundle-$spelling")
+      val roots = Seq("Lamp", "PlainLamp").map(m => s"fixture.totals.Totals$$package$$.$spelling$m")
+      val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
+      assert(!result.failed, result.diagnostics)
+      mapper.readTree(Files.readString(out).replace(spelling, "direct"))
+    def strip(n: JsonNode): Unit =
+      n match
+        case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
+        case _             => ()
+      n.elements().asScala.foreach(strip)
+    val (bundled, direct) = (lifting("bundled"), lifting("direct"))
+    val names = bundled
+      .path("properties")
+      .elements()
+      .asScala
+      .map(p => s"${p.path("machine").asText()}.${p.path("name").asText()}")
+    assertEquals(
+      names.toList.sorted,
+      List("lamp.directLit", "lamp.directUnlit", "plainLamp.directLit", "plainLamp.directUnlit")
+    )
+    strip(bundled)
+    strip(direct)
+    assertEquals(bundled.toPrettyString, direct.toPrettyString)
+
   // fn-120.1: named choices (lifts/Choices.scala). Each step function that names its results beside
   // its unnamed twin: one IR but for the `choice` of each named step, and the names in the order
   // written. Constructs are compared in the order the IR holds them, so a name in its place is on the
@@ -932,6 +976,48 @@ class Fixtures extends munit.FunSuite:
       .toList
     assertEquals(bound("leftSwitch"), List("Left$.tap", "Left$.flick", "Members$package$.turnOn"))
     assertEquals(bound("rightSwitch"), List("Right$.tap", "Right$.flick"))
+
+  // fn-112.12: an independent consumer of the shared task queue (lifts/TaskQueue.scala).
+  test("a consumer of temporal/taskqueue lifts the shared queue and nothing of the activity"):
+    import com.fasterxml.jackson.databind.JsonNode
+    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("taskqueue"))
+    def all(kind: String) = model.path(kind).elements().asScala.toList
+    def named(kind: String, name: String) =
+      all(kind).find(_.path("name").asText() == name).getOrElse(fail(s"no $kind $name"))
+    def names(n: JsonNode, field: String) = n.elements().asScala.map(_.path(field).asText()).toList
+    // The queue's declarations keep the IDs and family they had in the standalone activity's file.
+    val frozen = "temporal.standaloneactivity.System$package$."
+    assertEquals(named("machines", "dispatchQueue").path("entity").asText(), "taskQueue")
+    assertEquals(named("actions", "enqueue").path("id").asText(), frozen + "enqueue")
+    for (c, queue, target) <- Seq(
+        ("jobOverQueue", "dispatchQueue", ""),
+        ("jobOverMatching", "matchingQueue", "dispatchQueue"),
+        ("jobOverForgetful", "forgetfulQueue", "dispatchQueue")
+      )
+    do
+      val members = named("compositions", c).path("members")
+      assertEquals(names(members, "machine"), List("job", queue), c)
+      assertEquals(members.get(1).path("replaces").asText(), target, c)
+    // Every name of the activity's package is one the shared queue froze, never the activity's own.
+    val queueTypes = Set(
+      "QueueView",
+      "Outstanding",
+      "QueueOutcome",
+      "QueueFact",
+      "QueueDetail",
+      "Custody",
+      "Delivered"
+    ).map("temporal.standaloneactivity." + _)
+    val fromActivity = model.toString.linesIterator
+      .flatMap(
+        """"(temporal\.standaloneactivity\.[^"]*)"""".r.findAllMatchIn(_).map(_.group(1))
+      )
+      .toSet
+    assert(
+      fromActivity.forall(n => n.startsWith(frozen) || queueTypes(n)),
+      fromActivity.mkString(", ")
+    )
+    assert(!all("machines").exists(_.path("entity").asText() == "activity"))
 
   // fn-112.4: claim patterns and shared claims (lifts/Patterns.scala).
   // Each claim pattern beside its lambda spelling, on the machine and on the composition, and each

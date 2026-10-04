@@ -94,11 +94,11 @@ private[lift] trait Declarations:
   def literalValue(t: Term): ir.Value = ir.Value(resolve(t) match
     case Literal(BooleanConstant(v))    => ir.Value.Kind.Bool(v)
     case Literal(IntConstant(v))        => ir.Value.Kind.Int(v)
-    case r: Ref if isEnumCase(r.symbol) => enumValue(enumOf(r.symbol).fullName, r.symbol.name)
+    case r: Ref if isEnumCase(r.symbol) => enumValue(irTypeName(enumOf(r.symbol)), r.symbol.name)
     case Apply(Select(companion, "apply"), args)
         if companion.tpe.typeSymbol.companionClass.flags.is(Flags.Enum) =>
       val cls = companion.tpe.typeSymbol.companionClass
-      ir.Value.Kind.Enum(ir.EnumValue(enumOf(cls).fullName, cls.name, args.map(literalValue)))
+      ir.Value.Kind.Enum(ir.EnumValue(irTypeName(enumOf(cls)), cls.name, args.map(literalValue)))
     case other => fail(other, s"an example is a constant value, not ${other.show}"))
 
   /**
@@ -223,7 +223,7 @@ private[lift] trait Declarations:
             )
           )
         )
-        checkChannels(m, s.dealias.typeSymbol.fullName, rhs)
+        checkChannels(m, irTypeName(s.dealias.typeSymbol), rhs)
         m
 
   // ### Derived machines: another machine's declaration with bindings, refinement or assumptions changed

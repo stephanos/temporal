@@ -3,5 +3,66 @@
     "temporal.server.api.umpire.v1.Query.total",
     "temporal.server.api.umpire.v1.Construct.choice"
   ],
-  "entity_attachments": []
+  "entity_attachments": [
+    {
+      "machine": "dispatchQueue",
+      "field": "entity",
+      "entity": "taskQueue"
+    },
+    {
+      "machine": "dispatchQueueUnderStorageLoss",
+      "field": "entity",
+      "entity": "taskQueue"
+    },
+    {
+      "machine": "matchingQueue",
+      "field": "entity",
+      "entity": "taskQueue"
+    },
+    {
+      "machine": "lossyMatchingQueue",
+      "field": "entity",
+      "entity": "taskQueue"
+    },
+    {
+      "machine": "forgetfulQueue",
+      "field": "entity",
+      "entity": "taskQueue"
+    },
+    {
+      "machine": "volatileQueue",
+      "field": "entity",
+      "entity": "taskQueue"
+    },
+    {
+      "action": "temporal.standaloneactivity.System$package$.enqueue",
+      "field": "on",
+      "entity": "taskQueue"
+    },
+    {
+      "action": "temporal.standaloneactivity.System$package$.deliver",
+      "field": "on",
+      "entity": "taskQueue"
+    },
+    {
+      "action": "temporal.standaloneactivity.System$package$.acknowledge",
+      "field": "on",
+      "entity": "taskQueue"
+    },
+    {
+      "action": "temporal.standaloneactivity.System$package$.addActivityTask",
+      "field": "on",
+      "entity": "taskQueue"
+    },
+    {
+      "action": "temporal.standaloneactivity.System$package$.persistTask",
+      "field": "on",
+      "entity": "taskQueue"
+    },
+    {
+      "action": "temporal.standaloneactivity.System$package$.syncMatch",
+      "field": "on",
+      "entity": "taskQueue"
+    }
+  ]
 }

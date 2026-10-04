@@ -13,6 +13,9 @@
     "model/scalav2/lifter/testdata/lifts/expected/presence.json",
     "model/scalav2/lifter/testdata/lifts/expected/realizations.json"
   ],
+  "later_inventory": [
+    "model/scalav2/lifter/testdata/lifts/expected/taskqueue.json"
+  ],
   "source_path_substitutions": [
     {
       "old": "model/scalav2/lifter/testdata/lifts/Admission.scala.fixture",
@@ -115,6 +118,42 @@
     {
       "old": "model/temporal/nexuscaller/kernel/Nexus.scala",
       "new": "model/temporal/nexuscaller/Nexus.scala"
+    }
+  ],
+  "source_path_splits": [
+    {
+      "old": "model/temporal/taskqueue/Model.scala",
+      "new": "model/temporal/standaloneactivity/System.scala"
+    },
+    {
+      "old": "model/temporal/taskqueue/Properties.scala",
+      "new": "model/temporal/standaloneactivity/System.scala"
+    },
+    {
+      "old": "model/temporal/taskqueue/Queries.scala",
+      "new": "model/temporal/standaloneactivity/System.scala"
+    }
+  ],
+  "source_root_moves": [
+    {
+      "old": "temporal.standaloneactivity.System$package$.matchingQueueQueries",
+      "new": "temporal.taskqueue.Queries$package$.matchingQueueQueries"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.forgetfulQueueQueries",
+      "new": "temporal.taskqueue.Queries$package$.forgetfulQueueQueries"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.volatileQueueQueries",
+      "new": "temporal.taskqueue.Queries$package$.volatileQueueQueries"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.lossyMatchingQueueQueries",
+      "new": "temporal.taskqueue.Queries$package$.lossyMatchingQueueQueries"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.storageLossQuery",
+      "new": "temporal.taskqueue.Queries$package$.storageLossQuery"
     }
   ],
   "source_label_substitutions": [

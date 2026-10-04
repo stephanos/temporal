@@ -73,7 +73,7 @@ private[lift] trait Types:
       else if sym.fullName == stepType then named(stepType)
       else
         declareType(sym, at)
-        named(sym.fullName)
+        named(irTypeName(sym))
 
   // The framework's bounded counter, `UpTo[N]`: the values `0..N` of its field.
   val upToType = "umpire.Domain$package$.UpTo"
@@ -94,8 +94,9 @@ private[lift] trait Types:
       case _ => fail(at, s"UpTo bounds a counter by a constant, such as UpTo[2], not ${tpe.show}")
 
   def declareType(sym: Symbol, at: Tree): Unit =
-    if !types.contains(sym.fullName) && sym != defn.NothingClass then
-      types(sym.fullName) = ir.Type.defaultInstance // placeholder against recursion
+    lazy val name = irTypeName(sym)
+    if sym != defn.NothingClass && !types.contains(name) then
+      types(name) = ir.Type.defaultInstance // placeholder against recursion
       val position = Some(scala.util.Try(pos(sym.tree)).getOrElse(pos(at)))
       def field(n: String, ft: TypeRepr): ir.Field =
         // A list has no bound, so no finite type has one as a field.
@@ -119,7 +120,7 @@ private[lift] trait Types:
             at,
             s"${sym.fullName} is neither an enum nor a case class, so it has no finite catalog"
           )
-      types(sym.fullName) = ir.Type(name = sym.fullName, position = position, shape = shape)
+      types(name) = ir.Type(name = name, position = position, shape = shape)
 
   /**
    * An optional value's type: an enum of `None` and `Some(value)`, one per type of value, named
