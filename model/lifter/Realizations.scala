@@ -874,7 +874,6 @@ private[lift] trait Realizations:
         val r =
           if emitted.name.nonEmpty then emitted
           else emitted.withName(capturedName(sym, d, "a realization"))
-        for other <- realizations.values if other.name == r.name do
-          fail(d, s"two realizations are named ${r.name}: ${other.id} and $id")
+        distinctName("realizations", realizations.values.map(r => r.name -> r.id), r.name, id, d)
         realizations(id) = r
         r

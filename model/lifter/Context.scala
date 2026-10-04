@@ -128,7 +128,7 @@ final private[lift] class Context(using val quotes: Quotes)(
     defs.values
       .collect { case v: ValDef if v.rhs.nonEmpty && isScope(v.tpt.tpe) => v }
       .toList
-      .sortBy(v => (where(v), v.name))
+      .sortBy(v => (pos(v).file, pos(v).line, v.name))
       .groupBy(_.symbol.owner)
   private def isScope(t: TypeRepr): Boolean =
     t.widen.dealias.typeSymbol.fullName == "umpire.DefinitionScope"

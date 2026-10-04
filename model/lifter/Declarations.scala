@@ -351,17 +351,37 @@ private[lift] trait Declarations:
              else s"evidence names no line for fact $c") +
               ", which has fields: its name alone does not say what confirms it, so write a line for all of it"
           )
-        val missing =
-          for (c, _) <- cases if !named(c) yield (index(c), defaultLine(fact, c, at))
+        // A fact no unguarded line covers gets the line of its name, after any guarded line for it.
+        val missing = cases.collect { case (c, _) if !whole(c) => c }
         if missing.isEmpty then fn
         else
-          // A line goes where the first case it covers is in the catalog; the defaults fill the rest.
-          val authored = m.cases
-            .zip(covered)
-            .map((line, c) => (c.keys.map(index).minOption.getOrElse(Int.MaxValue), line))
-          val lines = (authored ++ missing).sortBy(_._1).map(_._2)
-          fn.withBody(fn.getBody.withMatch(m.withCases(lines)))
+          // The author's lines keep their order, which decides between lines that overlap. Each
+          // default goes before the first line that names a later case in the catalog, and after
+          // every line that names its own case, so it changes no answer of the author's lines.
+          val first = covered.map(_.keys.map(index).minOption.getOrElse(Int.MaxValue))
+          val last = missing.map(c => c -> covered.lastIndexWhere(_.contains(c))).toMap
+          val (lines, left) = m.cases.indices.foldLeft((Vector.empty[ir.MatchCase], missing)) {
+            case ((lines, left), i) =>
+              val (before, after) = left.partition(c => index(c) < first(i) && last(c) < i)
+              (lines ++ before.map(defaultLine(fact, _, at)) :+ m.cases(i), after)
+          }
+          val all = lines ++ left.map(defaultLine(fact, _, at))
+          fn.withBody(fn.getBody.withMatch(m.withCases(all)))
       case _ => fn
+
+  /**
+   * Results, steps and claims name channels, assumptions, holes and realizations by name, so two
+   * declarations of one kind never share one.
+   */
+  def distinctName(
+      kind: String,
+      declared: Iterable[(String, String)],
+      name: String,
+      id: String,
+      at: Tree
+  ): Unit =
+    for (_, other) <- declared.find(_._1 == name) do
+      fail(at, s"two $kind are named $name: $other and $id, and the IR names them by name")
 
   /** A lifted machine, by the name the IR gives it. */
   def machineNamed(name: String): Option[ir.Machine] = machines.values.find(_.name == name)
@@ -414,11 +434,7 @@ private[lift] trait Declarations:
       if cap < 1 then
         fail(d, s"channel $n holds at most $cap messages; a channel holds at least one")
       if dup < 0 then fail(d, s"channel $n delivers a message $dup more times than once; no fewer")
-      for other <- channels.values if other.name == n do
-        fail(
-          d,
-          s"two channels are named $n: ${other.id} and $id, and their steps would share names"
-        )
+      distinctName("channels", channels.values.map(c => c.name -> c.id), n, id, d)
 
       /** The case of a framework enum a policy argument names; anything computed is refused. */
       def policy[V](arg: Term, enumName: String, cases: Map[String, V]): V = resolve(arg) match
@@ -586,11 +602,7 @@ private[lift] trait Declarations:
           walk(inner).addAllFair(varargs(as).map(action))
         case other => fail(other, s"not a part of an assumption declaration: ${other.show}")
       val a = walk(d.rhs.get)
-      for other <- assumptions.values if other.name == a.name do
-        fail(
-          d,
-          s"two assumptions are named ${a.name}: ${other.id} and $id, and every result names them by name"
-        )
+      distinctName("assumptions", assumptions.values.map(a => a.name -> a.id), a.name, id, d)
       assumptions(id) = a
     id
 
@@ -603,7 +615,6 @@ private[lift] trait Declarations:
         case Apply(Ident("hole"), List(name)) => constString(name)
         case Ident("hole")                    => capturedName(sym, d, "a hole")
         case other => fail(other, "a hole is declared by `hole` or `hole(name)`")
-      for other <- holes.values if other.name == name do
-        fail(d, s"two holes are named $name: ${other.id} and $id, and a result names one by name")
+      distinctName("holes", holes.values.map(h => h.name -> h.id), name, id, d)
       holes(id) = ir.Hole(id = id, name = name, position = Some(pos(d)))
     id
