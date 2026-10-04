@@ -49,7 +49,12 @@ func newRecorder(view ProgramView, runID, caseID string, monitor Monitor, now fu
 	bytes := (limits.MaxResponseBytes + 4096) * int64(len(view.observations)+1)
 	surface := ir.DefaultLimits()
 	surface.Bytes = min(surface.Bytes, bytes)
-	return &recorder{halted: make(chan struct{}), run: &testpilotspb.Run{RunId: runID, CaseId: caseID, ProgramId: view.programID}, monitor: monitor, now: now, started: now(), maxEvents: limits.MaxRunEvents, surface: surface, remainingWork: limits.MaxRunEvents * (surface.Work + surface.Bytes*8), sources: map[string]recordedSource{}, seal: seal, diagnose: diagnose, diagnosticLimit: int(min(limits.MaxRunEvents, 64))}, nil
+	run := &testpilotspb.Run{RunId: runID, CaseId: caseID, ProgramId: view.programID}
+	// An unscaled Run leaves the field unset, so its bytes stay what they were before scales existed.
+	if view.boundScale.Scaled() {
+		run.BoundScalePercent = view.boundScale.Percent()
+	}
+	return &recorder{halted: make(chan struct{}), run: run, monitor: monitor, now: now, started: now(), maxEvents: limits.MaxRunEvents, surface: surface, remainingWork: limits.MaxRunEvents * (surface.Work + surface.Bytes*8), sources: map[string]recordedSource{}, seal: seal, diagnose: diagnose, diagnosticLimit: int(min(limits.MaxRunEvents, 64))}, nil
 }
 
 // publish preflights the entire batch before the store commit. Callbacks cannot reenter the barrier.

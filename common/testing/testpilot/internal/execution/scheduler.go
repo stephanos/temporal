@@ -6,14 +6,17 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/contract"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type scheduler struct {
@@ -741,6 +744,9 @@ func (s *scheduler) startWaits(ctx, operationCtx context.Context, cancel context
 			result = contract.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT}}
 			err = nil
 		}
+		if err == nil {
+			result = s.reportExpiry(task, result)
+		}
 		s.deliverCompletion(schedulerCompletion{node: &task, result: result, err: err, cleanup: cleanup})
 	}()
 }
@@ -845,6 +851,7 @@ func (s *scheduler) acceptRPC(ctx context.Context, _ scheduledNode, c contract.C
 }
 func (s *scheduler) acceptReadEvidence(ctx context.Context, task scheduledNode, c contract.Coordinate, n *node, request proto.Message) (contract.EffectHandle, contract.HandleBridge, error) {
 	a := task.activation.values
+	// A read once was admitted with interval 0, which the Driver contract reads once.
 	effect, err := s.session.PollRPC(ctx, c, n.source.Instruction.GetReadEvidence().EndpointRoleId, n.method, request, time.Duration(n.pollIntervalMilliseconds)*time.Millisecond, func(ctx context.Context, response proto.Message) (bool, error) {
 		satisfied, _, err := a.readSatisfied(ctx, c, response, a.workLimit())
 		return satisfied, err
@@ -1020,4 +1027,230 @@ func (s *scheduler) deliverCompletion(completion schedulerCompletion) {
 	ctx, cancel := context.WithTimeout(context.Background(), s.lateTimeout)
 	defer cancel()
 	_ = s.publishSettledCompletion(ctx, completion)
+}
+
+// reportExpiry names, on a hinted or once read that timed out, the condition it waited for, the
+// bound it waited within and the declarations that bound comes from, whether the Driver timed it
+// out or the scheduler did when the instruction's context expired. Every other outcome keeps its
+// bytes, so a Case that declares neither records what it did before.
+func (s *scheduler) reportExpiry(task scheduledNode, result contract.EffectResult) contract.EffectResult {
+	n := task.activation.values.graph.nodes[task.index]
+	if n.opcode != contract.ReadEvidence || (len(n.source.GetWaitHints()) == 0 && !n.once) || result.Outcome.GetStatus() != testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT {
+		return result
+	}
+	outcome := proto.CloneOf(result.Outcome)
+	limits := s.values.program.limits
+	// The detail is an outcome field, so it must fit the outcome's byte bound with room to spare.
+	outcome.Detail = expiryDetail(n, s.values.program.boundScale, int(min(1024, max(limits.MaxRequestBytes, limits.MaxResponseBytes)/2)))
+	result.Outcome = outcome
+	return result
+}
+
+func expiryDetail(n *node, scale contract.BoundScale, limit int) string {
+	read := n.source.GetInstruction().GetReadEvidence()
+	var b strings.Builder
+	b.WriteString("evidence " + read.GetEvidenceId() + ": until " + renderCondition(read.GetUntil()))
+	if n.once {
+		// A read once waits for nothing; its timeout bounds only the one RPC.
+		b.WriteString(" did not hold when read once, within " + strconv.FormatInt(n.timeoutMilliseconds, 10) + " ms")
+	} else {
+		b.WriteString(" did not hold within " + strconv.FormatInt(n.timeoutMilliseconds, 10) + " ms")
+	}
+	hints := n.source.GetWaitHints()
+	if len(hints) > 0 && scale.Scaled() {
+		fmt.Fprintf(&b, " (declared %d ms, scaled by %d%%)", n.source.GetLimits().GetTimeoutMilliseconds(), scale.Percent())
+	}
+	for i, hint := range hints {
+		if b.Len() > limit {
+			break
+		}
+		separator := ", "
+		if i == 0 {
+			separator = "; hints: "
+		}
+		fmt.Fprintf(&b, "%s%s (%s:%d) %d ms", separator, hint.GetHintId(), hint.GetSource().GetPath(), hint.GetSource().GetLine(), hint.GetAtMostMilliseconds())
+	}
+	return truncateDetail(b.String(), limit)
+}
+
+// truncateDetail cuts text to at most limit bytes on a rune boundary, marking the cut.
+func truncateDetail(text string, limit int) string {
+	const marker = "..."
+	if len(text) <= limit {
+		return text
+	}
+	if limit < len(marker) {
+		return ""
+	}
+	cut := limit - len(marker)
+	for cut > 0 && !utf8.RuneStart(text[cut]) {
+		cut--
+	}
+	return strings.ToValidUTF8(text[:cut], "?") + marker
+}
+
+// A condition is rendered by hand rather than as protobuf text, whose output is deliberately
+// unstable, and only as deep and as long as naming it in a detail needs.
+const (
+	conditionRenderDepth = 8
+	conditionRenderBytes = 512
+)
+
+type conditionRenderer struct{ b strings.Builder }
+
+func renderCondition(e *testpilotspb.Expression) string {
+	var r conditionRenderer
+	r.expression(e, 0)
+	return truncateDetail(r.b.String(), conditionRenderBytes)
+}
+
+func (r *conditionRenderer) full() bool { return r.b.Len() > conditionRenderBytes }
+
+func (r *conditionRenderer) write(parts ...string) {
+	for _, part := range parts {
+		// One byte past the bound is enough for renderCondition to mark the cut.
+		room := conditionRenderBytes + 1 - r.b.Len()
+		if room <= 0 {
+			return
+		}
+		r.b.WriteString(part[:min(len(part), room)])
+	}
+}
+
+func (r *conditionRenderer) expression(e *testpilotspb.Expression, depth int) {
+	if r.full() {
+		return
+	}
+	if depth >= conditionRenderDepth {
+		r.write("...")
+		return
+	}
+	switch arm := e.GetExpression().(type) {
+	case *testpilotspb.Expression_Literal:
+		r.value(arm.Literal, depth)
+	case *testpilotspb.Expression_Reference:
+		r.reference(arm.Reference)
+	case *testpilotspb.Expression_Path:
+		r.expression(arm.Path.GetOperand(), depth+1)
+		if arm.Path.GetPath() != "" {
+			r.write(".", arm.Path.GetPath())
+		}
+	case *testpilotspb.Expression_Present:
+		r.call("present", depth, arm.Present.GetOperand())
+	case *testpilotspb.Expression_Compare:
+		r.operand(arm.Compare.GetLeft(), depth)
+		r.write(" ", comparisonSymbol(arm.Compare.GetOperator()), " ")
+		r.operand(arm.Compare.GetRight(), depth)
+	case *testpilotspb.Expression_Not:
+		r.call("not", depth, arm.Not.GetOperand())
+	case *testpilotspb.Expression_All:
+		r.call("all", depth, arm.All.GetOperands()...)
+	case *testpilotspb.Expression_Any:
+		r.call("any", depth, arm.Any.GetOperands()...)
+	default:
+		r.write("<absent>")
+	}
+}
+
+// operand renders one side of a comparison, parenthesized when it is a comparison itself.
+func (r *conditionRenderer) operand(e *testpilotspb.Expression, depth int) {
+	if e.GetCompare() == nil {
+		r.expression(e, depth+1)
+		return
+	}
+	r.write("(")
+	r.expression(e, depth+1)
+	r.write(")")
+}
+
+func (r *conditionRenderer) call(name string, depth int, operands ...*testpilotspb.Expression) {
+	r.write(name, "(")
+	for i, operand := range operands {
+		if r.full() {
+			return
+		}
+		if i > 0 {
+			r.write(", ")
+		}
+		r.expression(operand, depth+1)
+	}
+	r.write(")")
+}
+
+func (r *conditionRenderer) reference(reference *testpilotspb.Reference) {
+	message := reference.ProtoReflect()
+	field := message.WhichOneof(message.Descriptor().Oneofs().ByName("reference"))
+	switch {
+	case field == nil:
+		r.write("<absent>")
+	case reference.GetProjectedValue() != nil:
+		r.write("value")
+	case reference.GetOutcome() != nil:
+		instruction := reference.GetOutcome().GetInstruction()
+		r.write("outcome(", instruction.GetEntrypointId(), ".", instruction.GetInstructionId(), ").", reference.GetOutcome().GetField().String())
+	case field.Kind() == protoreflect.StringKind:
+		r.write(string(field.Name()), "(", message.Get(field).String(), ")")
+	default:
+		r.write(string(field.Name()))
+	}
+}
+
+func (r *conditionRenderer) value(value *testpilotspb.Value, depth int) {
+	switch arm := value.GetValue().(type) {
+	case *testpilotspb.Value_TextValue:
+		r.write(strconv.Quote(truncateDetail(arm.TextValue, conditionRenderBytes)))
+	case *testpilotspb.Value_BoolValue:
+		r.write(strconv.FormatBool(arm.BoolValue))
+	case *testpilotspb.Value_BytesValue:
+		r.write("bytes(", strconv.Itoa(len(arm.BytesValue)), ")")
+	case *testpilotspb.Value_SignedIntegerValue:
+		r.write(arm.SignedIntegerValue)
+	case *testpilotspb.Value_UnsignedIntegerValue:
+		r.write(arm.UnsignedIntegerValue)
+	case *testpilotspb.Value_FloatingPointValue:
+		r.write(strconv.FormatFloat(arm.FloatingPointValue, 'g', -1, 64))
+	case *testpilotspb.Value_EnumValue:
+		r.write(arm.EnumValue.GetName())
+	case *testpilotspb.Value_MessageValue:
+		r.write("message(", arm.MessageValue.GetTypeUrl(), ")")
+	case *testpilotspb.Value_ListValue:
+		if depth+1 >= conditionRenderDepth {
+			r.write("[...]")
+			return
+		}
+		r.write("[")
+		for i, element := range arm.ListValue.GetValues() {
+			if r.full() {
+				return
+			}
+			if i > 0 {
+				r.write(", ")
+			}
+			r.value(element, depth+1)
+		}
+		r.write("]")
+	case *testpilotspb.Value_MapValue:
+		r.write("map(", strconv.Itoa(len(arm.MapValue.GetEntries())), " entries)")
+	default:
+		r.write("<absent>")
+	}
+}
+
+func comparisonSymbol(operator testpilotspb.ComparisonOperator) string {
+	switch operator {
+	case testpilotspb.COMPARISON_OPERATOR_EQUAL:
+		return "=="
+	case testpilotspb.COMPARISON_OPERATOR_NOT_EQUAL:
+		return "!="
+	case testpilotspb.COMPARISON_OPERATOR_LESS_THAN:
+		return "<"
+	case testpilotspb.COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL:
+		return "<="
+	case testpilotspb.COMPARISON_OPERATOR_GREATER_THAN:
+		return ">"
+	case testpilotspb.COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL:
+		return ">="
+	default:
+		return "?"
+	}
 }

@@ -249,10 +249,10 @@ func (a *admission) bindDeclaredRule(g *graph, n *node, location string, source 
 }
 
 // bindReadEvidence admits a controller poll of a read declaration: the endpoint role authorizes the
-// declaration's method, the poll interval fits the instruction's timeout, and the instruction's one
-// response read lifts every value `until` selects into the Program's CorrelatedEvidence
-// Observation, under the declaration's coordinates. The values are the elements of the declared
-// repeated field, or the one message of a single read, which emits one event at most.
+// declaration's method, the poll interval fits the instruction's timeout, or a read once has none,
+// and the instruction's one response read lifts every value `until` selects into the Program's
+// CorrelatedEvidence Observation, under the declaration's coordinates. The values are the elements
+// of the declared repeated field, or the one message of a single read, which emits one event at most.
 func (a *admission) bindReadEvidence(g *graph, n *node) error {
 	read := n.source.Instruction.GetReadEvidence()
 	if read == nil {
@@ -274,11 +274,22 @@ func (a *admission) bindReadEvidence(g *graph, n *node) error {
 	if a.prepared.correlatedObservationID == "" {
 		return ir.Invalid(ir.TypeMismatch, nodePath(g, n), "ReadEvidence requires exactly one declared CorrelatedEvidence Observation")
 	}
-	if read.PollIntervalMilliseconds <= 0 {
-		return ir.Invalid(ir.Malformed, expressionPath(g, n, "instruction.read_evidence.poll_interval_milliseconds"), "ReadEvidence requires a positive poll interval")
+	intervalPath := expressionPath(g, n, "instruction.read_evidence.poll_interval_milliseconds")
+	// A hinted poll's interval is declared against its declared bound, not the scaled one it runs
+	// under, so a Case admits under every scale or none.
+	timeout := n.timeoutMilliseconds
+	if len(n.source.GetWaitHints()) > 0 {
+		timeout = n.source.GetLimits().GetTimeoutMilliseconds()
 	}
-	if read.PollIntervalMilliseconds > n.timeoutMilliseconds {
-		return ir.Invalid(ir.LimitExceeded, expressionPath(g, n, "instruction.read_evidence.poll_interval_milliseconds"), "poll interval exceeds the instruction timeout")
+	switch {
+	case read.Once && read.PollIntervalMilliseconds != 0:
+		return ir.Invalid(ir.Malformed, intervalPath, "a read once has no poll interval")
+	case read.Once:
+	case read.PollIntervalMilliseconds <= 0:
+		return ir.Invalid(ir.Malformed, intervalPath, "ReadEvidence requires a positive poll interval")
+	case read.PollIntervalMilliseconds > timeout:
+		return ir.Invalid(ir.LimitExceeded, intervalPath, "poll interval exceeds the instruction timeout")
+	default:
 	}
 	cardinality := testpilotspb.READ_CARDINALITY_EMIT_EACH
 	if declaration.single {
@@ -296,7 +307,7 @@ func (a *admission) bindReadEvidence(g *graph, n *node) error {
 	}
 	a.evidenceSources[declaration.source] = owner
 	lift := declaration.lift(a.prepared.correlatedObservationID, until)
-	n.method, n.until, n.pollIntervalMilliseconds = declaration.method, until, read.PollIntervalMilliseconds
+	n.method, n.until, n.pollIntervalMilliseconds, n.once = declaration.method, until, read.PollIntervalMilliseconds, read.Once
 	n.responseReads = []responseRead{{
 		path: declaration.readPath, cardinality: cardinality,
 		targets: []*testpilotspb.ReadTarget{{Target: &testpilotspb.ReadTarget_CorrelatedEvidence{CorrelatedEvidence: &testpilotspb.CorrelatedEvidenceProjection{ObservationId: lift.observationID}}}},

@@ -566,6 +566,9 @@ type Run struct {
 	//
 	//	*Run_EvaluationFailureSequence
 	EvaluationFailure isRun_EvaluationFailure `protobuf_oneof:"evaluation_failure"`
+	// The Profile's bound scale, in percent, when it is not 100: the Run applied every wait hint's
+	// bound and the Profile's duration ceilings scaled by it. Zero when it applied them as declared.
+	BoundScalePercent int64 `protobuf:"varint,10,opt,name=bound_scale_percent,json=boundScalePercent,proto3" json:"bound_scale_percent,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
@@ -668,6 +671,13 @@ func (x *Run) GetEvaluationFailureSequence() int64 {
 		if x, ok := x.EvaluationFailure.(*Run_EvaluationFailureSequence); ok {
 			return x.EvaluationFailureSequence
 		}
+	}
+	return 0
+}
+
+func (x *Run) GetBoundScalePercent() int64 {
+	if x != nil {
+		return x.BoundScalePercent
 	}
 	return 0
 }
@@ -1583,7 +1593,7 @@ var File_temporal_server_api_testpilot_v1_run_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\n" +
-	"*temporal/server/api/testpilot/v1/run.proto\x12 temporal.server.api.testpilot.v1\x1a,temporal/server/api/testpilot/v1/event.proto\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xa8\x04\n" +
+	"*temporal/server/api/testpilot/v1/run.proto\x12 temporal.server.api.testpilot.v1\x1a,temporal/server/api/testpilot/v1/event.proto\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xd8\x04\n" +
 	"\x03Run\x12\x15\n" +
 	"\x06run_id\x18\x01 \x01(\tR\x05runId\x12\x17\n" +
 	"\acase_id\x18\x02 \x01(\tR\x06caseId\x12\x1d\n" +
@@ -1594,7 +1604,9 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\acleanup\x18\x06 \x01(\v20.temporal.server.api.testpilot.v1.CleanupOutcomeR\acleanup\x12C\n" +
 	"\averdict\x18\a \x01(\v2).temporal.server.api.testpilot.v1.VerdictR\averdict\x12Q\n" +
 	"\vdiagnostics\x18\b \x03(\v2/.temporal.server.api.testpilot.v1.RunDiagnosticR\vdiagnostics\x12@\n" +
-	"\x1bevaluation_failure_sequence\x18\t \x01(\x03H\x00R\x19evaluationFailureSequenceB\x14\n" +
+	"\x1bevaluation_failure_sequence\x18\t \x01(\x03H\x00R\x19evaluationFailureSequence\x12.\n" +
+	"\x13bound_scale_percent\x18\n" +
+	" \x01(\x03R\x11boundScalePercentB\x14\n" +
 	"\x12evaluation_failure\"\x82\x05\n" +
 	"\bRunEvent\x12\x1a\n" +
 	"\bsequence\x18\x01 \x01(\x03R\bsequence\x121\n" +

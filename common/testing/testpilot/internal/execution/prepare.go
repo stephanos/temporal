@@ -38,6 +38,9 @@ type admission struct {
 	evidenceSources map[string]contract.Coordinate
 	graphIndex      map[string]*graph
 	work            int64
+	// declaredLimits are the Profile's ceilings before its bound scale. Every admission check but a
+	// hinted bound's reads them, so whether a Case admits never depends on the scale.
+	declaredLimits *testpilotspb.ProgramLimits
 }
 
 func (a *admission) charge(count int64) error {
@@ -133,8 +136,19 @@ func (a *admission) bindPolicy(policy Profile) error {
 	if !ir.ValidID(policy.Identity) || policy.CatalogIdentity != a.prepared.catalog.Identity() {
 		return ir.Invalid(ir.Malformed, "policy", "Driver or catalog identity mismatch")
 	}
+	if policy.BoundScale.Percent() < 100 {
+		return ir.Invalid(ir.Malformed, "policy.bound_scale", fmt.Sprintf("bound scale %d%% is below 100%%", int64(policy.BoundScale)))
+	}
 	if err := checkLimits(policy.Limits, ProgramCeiling()); err != nil {
 		return err
+	}
+	// The scaled duration ceilings must fit too, or a scaled Run could run past what any Driver allows.
+	if policy.BoundScale.Scaled() {
+		if err := ir.CheckCeilings(policy.BoundScale.Ceilings(policy.Limits), ProgramCeiling(), func(field string) error {
+			return ir.Invalid(ir.LimitExceeded, field, fmt.Sprintf("limit scaled by %d%% is outside the positive Driver ceiling", policy.BoundScale.Percent()))
+		}); err != nil {
+			return err
+		}
 	}
 	if policy.Limits.MaxInstructionEmittedEvents > policy.Limits.MaxRunEvents {
 		return ir.Invalid(ir.LimitExceeded, "max_instruction_emitted_events", "instruction ceiling exceeds the Program ceiling")
@@ -172,7 +186,11 @@ func (a *admission) bindPolicy(policy Profile) error {
 		}
 		a.commandTypes[commandType] = true
 	}
-	a.prepared.limits = policy.Limits
+	// The Run and the Driver read the ceilings scaled, so a hinted bound is never cut short of the
+	// scaled bound a failure reports.
+	a.declaredLimits = policy.Limits
+	a.prepared.limits = policy.BoundScale.Ceilings(policy.Limits)
+	a.prepared.boundScale = policy.BoundScale
 	a.prepared.instructionDefaults = policy.InstructionDefaults
 	return nil
 }
@@ -309,7 +327,7 @@ func (a *admission) bindSchemas() error {
 		}
 		a.prepared.slots[slot.SlotId] = typ
 	}
-	a.prepared.view = ProgramView{programID: p.ProgramId, catalogIdentity: a.prepared.catalog.Identity(), limits: a.prepared.limits}
+	a.prepared.view = ProgramView{programID: p.ProgramId, catalogIdentity: a.prepared.catalog.Identity(), limits: a.prepared.limits, boundScale: a.prepared.boundScale}
 	for _, observation := range p.Observations {
 		if !ir.ValidID(observation.GetObservationId()) {
 			return ir.Invalid(ir.Malformed, "observations", "invalid Observation identity")

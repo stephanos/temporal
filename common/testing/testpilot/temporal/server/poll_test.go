@@ -45,8 +45,9 @@ func pendingFile(t *testing.T) protoreflect.FileDescriptor {
 }
 
 // pollFixture is a Program whose one controller instruction polls an operation's attempt count
-// through the pending read, under a Profile that authorizes exactly that.
-func pollFixture(t *testing.T, address string) (*Driver, *testpilotspb.Case, protoreflect.MethodDescriptor) {
+// through the pending read, under a Profile that authorizes exactly that. Each adjust may change the
+// Profile and the poll before the Driver is built.
+func pollFixture(t *testing.T, address string, adjust ...func(*testpilot.ProfileSpec, *testpilotspb.InstructionNode)) (*Driver, *testpilotspb.Case, protoreflect.MethodDescriptor) {
 	t.Helper()
 	file := pendingFile(t)
 	catalog, err := testpilot.NewCatalog(testsupport.DescriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_run_proto, file))
@@ -56,9 +57,6 @@ func pollFixture(t *testing.T, address string) (*Driver, *testpilotspb.Case, pro
 	limits.MaxPathFanout = limits.MaxInstructionEmittedEvents
 	contractLimits := &testpilotspb.ContractLimits{MaxRules: 8, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
 	profile := testpilot.ProfileSpec{Identity: "poll-host", Catalog: catalog, ProgramLimits: limits, ContractLimits: contractLimits, Opcodes: []testpilot.Opcode{testpilot.ReadEvidence}, Roles: []testpilot.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{describeMethod}}}}
-	host, err := New(Options{Profile: profile, Endpoints: map[string]Endpoint{"endpoint": {Target: address, Credentials: insecure.NewCredentials(), Metadata: metadata.Pairs("authorization", "host-secret")}}})
-	require.NoError(t, err)
-	t.Cleanup(func() { require.NoError(t, host.Close(context.Background())) })
 	node := &testpilotspb.InstructionNode{InstructionId: "poll", Limits: &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 2000}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}, Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ReadEvidence{ReadEvidence: &testpilotspb.ReadEvidence{
 		EvidenceId: "pendingAttempts", EndpointRoleId: "endpoint", PollIntervalMilliseconds: 5,
 		Until: &testpilotspb.Expression{Expression: &testpilotspb.Expression_Compare{Compare: &testpilotspb.CompareExpression{
@@ -67,6 +65,12 @@ func pollFixture(t *testing.T, address string) (*Driver, *testpilotspb.Case, pro
 			Right:    &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_SignedIntegerValue{SignedIntegerValue: "1"}}}},
 		}}},
 	}}}}
+	for _, change := range adjust {
+		change(&profile, node)
+	}
+	host, err := New(Options{Profile: profile, Endpoints: map[string]Endpoint{"endpoint": {Target: address, Credentials: insecure.NewCredentials(), Metadata: metadata.Pairs("authorization", "host-secret")}}})
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, host.Close(context.Background())) })
 	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "poll", Program: &testpilotspb.Program{
 		ProgramId:    "program",
 		Roles:        []*testpilotspb.Role{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}},
@@ -146,6 +150,66 @@ func TestPollRPCRepeatsTheReadUntilSatisfied(t *testing.T) {
 	require.NoError(t, s.Close(t.Context()))
 }
 
+// A zero interval reads once: one call and one question to the predicate, whose answer ends the
+// effect, SUCCEEDED with the response when it accepts and TIMED_OUT with neither response nor
+// protocol code when it does not, as a poll whose timeout ran out.
+func TestPollRPCWithoutIntervalReadsOnce(t *testing.T) {
+	for name, test := range map[string]struct {
+		accepted bool
+		outcome  *testpilotspb.InstructionOutcome
+	}{
+		"accepted":     {true, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, ProtocolCode: "ok"}},
+		"not accepted": {false, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			var calls atomic.Int32
+			h, source, method := pollFixture(t, startDescribe(t, pendingFile(t), &calls))
+			s, err := h.OpenSession(t.Context(), "run", prepared(t, h, source))
+			require.NoError(t, err)
+			var asked atomic.Int32
+			handle, err := s.PollRPC(t.Context(), coordinate("run", "poll"), "endpoint", method, dynamicpb.NewMessage(method.Input()), 0, func(context.Context, proto.Message) (bool, error) {
+				asked.Add(1)
+				return test.accepted, nil
+			})
+			require.NoError(t, err)
+			result, err := handle.Wait(t.Context())
+			require.NoError(t, err)
+			require.True(t, proto.Equal(test.outcome, result.Outcome), "outcome %v", result.Outcome)
+			if test.accepted {
+				require.EqualValues(t, 1, attemptOf(t, result.Response))
+			} else {
+				require.Nil(t, result.Response)
+			}
+			require.EqualValues(t, 1, calls.Load())
+			require.EqualValues(t, 1, asked.Load())
+			require.NoError(t, s.Close(t.Context()))
+		})
+	}
+}
+
+// A Session caps each effect at the Profile's duration ceilings scaled as a hinted bound is, so a
+// scaled bound above the declared ceilings still runs for all of it.
+func TestPollRPCRunsForAScaledBoundAboveTheDeclaredCeilings(t *testing.T) {
+	var calls atomic.Int32
+	h, source, method := pollFixture(t, startDescribe(t, pendingFile(t), &calls), func(profile *testpilot.ProfileSpec, node *testpilotspb.InstructionNode) {
+		profile.ProgramLimits.MaxTotalDurationMilliseconds, profile.ProgramLimits.MaxCleanupDurationMilliseconds = 40, 40
+		profile.BoundScale = 200
+		node.Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 35}
+		node.WaitHints = []*testpilotspb.WaitHint{{HintId: "visibility.pending", Source: &testpilotspb.SourceLocation{Path: "model/Behavior.scala", Line: 3}, AtMostMilliseconds: 35}}
+	})
+	s, err := h.OpenSession(t.Context(), "run", prepared(t, h, source))
+	require.NoError(t, err)
+	started := time.Now()
+	handle, err := s.PollRPC(t.Context(), coordinate("run", "poll"), "endpoint", method, dynamicpb.NewMessage(method.Input()), 5*time.Millisecond, func(context.Context, proto.Message) (bool, error) { return false, nil })
+	require.NoError(t, err)
+	result, err := handle.Wait(t.Context())
+	require.NoError(t, err)
+	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT, result.Outcome.Status)
+	// A deadline never fires early, so the effect ran for the scaled 70 ms, not the declared 40 ms ceiling.
+	require.GreaterOrEqual(t, time.Since(started), 70*time.Millisecond)
+	require.NoError(t, s.Close(t.Context()))
+}
+
 // A poll the Case did not declare, or that names another role, method or interval than the
 // declaration admits, is refused before any call.
 func TestPollRPCRefusesWhatTheDeclarationDoesNotAdmit(t *testing.T) {
@@ -164,7 +228,7 @@ func TestPollRPCRefusesWhatTheDeclarationDoesNotAdmit(t *testing.T) {
 	}{
 		{"unknown instruction", coordinate("run", "missing"), "endpoint", time.Millisecond, accept},
 		{"wrong role", coordinate("run", "poll"), "missing", time.Millisecond, accept},
-		{"no interval", coordinate("run", "poll"), "endpoint", 0, accept},
+		{"negative interval", coordinate("run", "poll"), "endpoint", -time.Millisecond, accept},
 		{"no predicate", coordinate("run", "poll"), "endpoint", time.Millisecond, nil},
 	} {
 		t.Run(test.name, func(t *testing.T) {

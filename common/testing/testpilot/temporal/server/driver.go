@@ -91,10 +91,11 @@ func New(options Options) (*Driver, error) {
 
 func validProfile(p testpilot.ProfileSpec) bool {
 	l := p.ProgramLimits
-	if p.Identity == "" || len(p.Identity) > 256 || len(p.Opcodes) > int(testpilot.MaxOpcode) || p.Catalog.Identity() == "" || l == nil || len(p.Roles) > 10000 {
+	if p.Identity == "" || len(p.Identity) > 256 || len(p.Opcodes) > int(testpilot.MaxOpcode) || p.Catalog.Identity() == "" || l == nil || len(p.Roles) > 10000 || p.BoundScale.Percent() < 100 {
 		return false
 	}
-	if !testpilot.WithinProgramCeiling(l) {
+	// The scaled ceilings are the ones preparation admits a Program under and a Session caps at.
+	if !testpilot.WithinProgramCeiling(p.BoundScale.Ceilings(l)) {
 		return false
 	}
 	total := 0

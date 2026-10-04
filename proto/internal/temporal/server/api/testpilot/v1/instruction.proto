@@ -6,6 +6,7 @@ import "temporal/api/failure/v1/message.proto";
 import "temporal/api/nexus/v1/message.proto";
 import "temporal/server/api/testpilot/v1/correlated.proto";
 import "temporal/server/api/testpilot/v1/expression.proto";
+import "temporal/server/api/testpilot/v1/source.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 
 // InstructionNode is one node of an entrypoint's instruction graph: the instruction and when it runs.
@@ -22,8 +23,25 @@ message InstructionNode {
   // Evaluated once the instruction is ready; when false it is skipped and records no Run Event.
   // Absent, the instruction runs only when every instruction it runs after succeeded.
   Expression guard = 4;
-  // Absent, both limits are the Profile's instruction defaults.
+  // Absent, both limits are the Profile's instruction defaults. A node with wait hints writes its
+  // timeout.
   InstructionLimits limits = 5;
+  // The declared bounds a polling ReadEvidence waits within, each with the hint it comes from. Set,
+  // the node writes its own timeout, which must equal the sum of their bounds: no Profile default
+  // applies to it, and the Profile's bound scale scales it. An expired wait names them.
+  repeated WaitHint wait_hints = 6;
+}
+
+// WaitHint is one declared bound a wait's timeout is the sum of, and where it is declared.
+message WaitHint {
+  // The Producer's identity for the hint, such as the Umpire IR id of a visibility or cause bound.
+  string hint_id = 1;
+  // Where the hint is declared, with its line.
+  SourceLocation source = 2;
+  // The hint's share of the wait's timeout; positive.
+  // (-- api-linter: core::0140::prepositions=disabled
+  //     aip.dev/not-precedent: The name is the hint's own "at most" bound; it is internal to Testpilot. --)
+  int64 at_most_milliseconds = 3;
 }
 
 // After names the instructions of the same entrypoint an instruction runs after, possibly none. It is
@@ -199,14 +217,20 @@ message NexusOperationCompletion {
 // expires, and then lifts every value `until` selects into the declaration's evidence. The values
 // are the elements of the declared repeated field, or the one message of a single read. The request
 // is built from the assignments once, at dispatch, and sent again after each interval; a poll that
-// fails is the instruction's outcome.
+// fails is the instruction's outcome. A read once sends it one time and records like a poll: a
+// value that satisfies `until` lifts as a poll's would, and a response none satisfies ends the
+// instruction as a poll whose timeout ran out, TIMED_OUT and with no evidence.
 message ReadEvidence {
   string evidence_id = 1;
   string endpoint_role_id = 2;
   repeated RequestAssignment request_assignments = 3;
   // A boolean over the projected value, one value of the declared path.
   Expression until = 4;
+  // Positive for a poll, at most the instruction's timeout; zero for a read once.
   int64 poll_interval_milliseconds = 5;
+  // Reads once, for a read the effect it waits for is visible to at once: the condition is
+  // checked once, and no wait hint applies.
+  bool once = 6;
 }
 
 // InstructionLimits are the bounds that carry an instruction's behavior. Its resource ceilings are

@@ -121,12 +121,14 @@ func (s *Session) InvokeRPC(ctx context.Context, c testpilot.Coordinate, role st
 // PollRPC repeats the read declaration's RPC on the endpoint role until the runtime's predicate
 // accepts a response or the instruction's timeout ends it. One effect, one attempt: the polls are
 // the effect's own calls, so the Session's attempt and identity accounting sees the instruction once.
+// A zero interval reads once: a response the predicate does not accept ends the effect TIMED_OUT,
+// with no response and no protocol code, as a poll whose timeout ran out.
 func (s *Session) PollRPC(ctx context.Context, c testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message, interval time.Duration, satisfied testpilot.PollPredicate) (testpilot.EffectHandle, error) {
 	plan, endpoint, err := s.authorizeUnary(ctx, c, testpilot.ReadEvidence, role, method, request)
 	if err != nil {
 		return nil, err
 	}
-	if interval <= 0 || satisfied == nil {
+	if interval < 0 || satisfied == nil {
 		return nil, errUnauthorized
 	}
 	path := primitive.MethodPath(method)
@@ -144,6 +146,9 @@ func (s *Session) PollRPC(ctx context.Context, c testpilot.Coordinate, role stri
 			}
 			if accepted {
 				return testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, ProtocolCode: "ok"}, Response: response}
+			}
+			if interval == 0 {
+				return testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT}}
 			}
 			timer := time.NewTimer(interval)
 			select {
@@ -200,7 +205,8 @@ func (s *Session) startLocked(ctx context.Context, c testpilot.Coordinate, timeo
 	if _, duplicate := s.started[c]; duplicate {
 		return nil, errInvalid
 	}
-	limits := s.host.profile.ProgramLimits
+	// The duration ceilings scale as a hinted timeout does, so the cap never cuts a scaled bound.
+	limits := s.host.profile.BoundScale.Ceilings(s.host.profile.ProgramLimits)
 	if s.host.effects >= limits.MaxAttempts || s.attempts >= limits.MaxAttempts {
 		return nil, errCapacity
 	}

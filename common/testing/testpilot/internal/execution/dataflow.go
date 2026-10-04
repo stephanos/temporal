@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"maps"
+	"math"
 	"slices"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -239,20 +240,90 @@ func (a *admission) bindAwait(g *graph, n *node) error {
 }
 
 // bindNodeBounds resolves a node's limits: each one the Case writes, or the Profile's default where it
-// writes none, within the Profile's ceilings.
+// writes none, within the Profile's ceilings. A hinted wait's timeout is the sum of its hints,
+// scaled by the Profile's bound scale.
 func (a *admission) bindNodeBounds(g *graph, n *node) error {
 	bounds := n.source.GetLimits()
 	n.timeoutMilliseconds, n.maxAttempts = a.prepared.instructionDefaults.Resolve(bounds)
+	if len(n.source.GetWaitHints()) > 0 {
+		if err := a.bindWaitHints(g, n); err != nil {
+			return err
+		}
+	}
 	if (bounds.GetTimeout() == nil && n.timeoutMilliseconds == 0) || (bounds.GetAttempts() == nil && n.maxAttempts == 0) {
 		return ir.Invalid(ir.Malformed, nodePath(g, n), "instruction writes no limit the Profile has no default for")
 	}
-	limits := a.prepared.limits
-	duration := limits.MaxTotalDurationMilliseconds
-	if g.cleanup {
-		duration = limits.MaxCleanupDurationMilliseconds
+	// A hinted timeout is scaled, so it is checked against the scaled ceiling; every other one is
+	// unscaled and checked against the declared ceiling, so a scale admits no Case it would refuse.
+	ceiling := a.durationCeiling(g, a.declaredLimits)
+	if len(n.source.GetWaitHints()) > 0 {
+		ceiling = a.durationCeiling(g, a.prepared.limits)
 	}
-	if n.timeoutMilliseconds <= 0 || n.timeoutMilliseconds > duration || n.maxAttempts <= 0 || n.maxAttempts > limits.MaxAttempts {
+	if n.timeoutMilliseconds <= 0 || n.timeoutMilliseconds > ceiling || n.maxAttempts <= 0 || n.maxAttempts > a.prepared.limits.MaxAttempts {
 		return ir.Invalid(ir.LimitExceeded, nodePath(g, n), "instruction bounds exceed Profile ceilings")
+	}
+	return nil
+}
+
+// durationCeiling is the duration ceiling of limits for an instruction of g.
+func (a *admission) durationCeiling(g *graph, limits *testpilotspb.ProgramLimits) int64 {
+	if g.cleanup {
+		return limits.MaxCleanupDurationMilliseconds
+	}
+	return limits.MaxTotalDurationMilliseconds
+}
+
+// bindWaitHints admits the hints a polling ReadEvidence waits within. The node writes its own
+// timeout, the sum of their bounds, so a reported bound is the declared one and no Profile default
+// stands in for it; the timeout it runs under is that sum scaled, within the scaled ceiling.
+func (a *admission) bindWaitHints(g *graph, n *node) error {
+	hints := n.source.GetWaitHints()
+	if n.opcode != contract.ReadEvidence {
+		return ir.Invalid(ir.Unsupported, expressionPath(g, n, "wait_hints"), "only a polling ReadEvidence waits within wait hints")
+	}
+	if n.source.Instruction.GetReadEvidence().GetOnce() {
+		return ir.Invalid(ir.Malformed, expressionPath(g, n, "wait_hints"), "a read once does not wait, so no wait hint bounds it")
+	}
+	timeoutPath := expressionPath(g, n, "limits.timeout_milliseconds")
+	if n.source.GetLimits().GetTimeout() == nil {
+		return ir.Invalid(ir.Malformed, timeoutPath, "a hinted wait writes its own timeout; no Profile default applies to it")
+	}
+	if err := a.charge(int64(len(hints))); err != nil {
+		return err
+	}
+	var sum int64
+	for i, hint := range hints {
+		path := fmt.Sprintf("%s[%d]", expressionPath(g, n, "wait_hints"), i)
+		if !ir.ValidID(hint.GetHintId()) {
+			return ir.Invalid(ir.Malformed, path+".hint_id", "wait hint requires a valid identity")
+		}
+		if hint.GetSource().GetPath() == "" || hint.GetSource().GetLine() < 1 {
+			return ir.Invalid(ir.Malformed, path+".source", "wait hint requires the source path and line it is declared at")
+		}
+		bound := hint.GetAtMostMilliseconds()
+		if bound <= 0 {
+			return ir.Invalid(ir.Malformed, path+".at_most_milliseconds", "wait hint requires a positive bound")
+		}
+		if bound > math.MaxInt64-sum {
+			return ir.Invalid(ir.LimitExceeded, path+".at_most_milliseconds", "wait hint bounds overflow their sum")
+		}
+		sum += bound
+	}
+	declared := n.source.GetLimits().GetTimeoutMilliseconds()
+	if declared != sum {
+		return ir.Invalid(ir.Malformed, timeoutPath, fmt.Sprintf("hinted wait timeout %d ms is not %d ms, the sum of its wait hints' bounds", declared, sum))
+	}
+	scale := a.prepared.boundScale
+	n.timeoutMilliseconds = scale.Apply(declared)
+	ceilingKind := "total"
+	if g.cleanup {
+		ceilingKind = "cleanup"
+	}
+	if ceiling := a.durationCeiling(g, a.prepared.limits); n.timeoutMilliseconds > ceiling {
+		if scale.Scaled() {
+			return ir.Invalid(ir.LimitExceeded, timeoutPath, fmt.Sprintf("scaled wait bound %d ms (%d ms declared, scaled by %d%%) exceeds the scaled Profile %s duration ceiling %d ms", n.timeoutMilliseconds, declared, scale.Percent(), ceilingKind, ceiling))
+		}
+		return ir.Invalid(ir.LimitExceeded, timeoutPath, fmt.Sprintf("wait bound %d ms exceeds the Profile %s duration ceiling %d ms", declared, ceilingKind, ceiling))
 	}
 	return nil
 }

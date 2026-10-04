@@ -27,6 +27,8 @@ type Profile struct {
 	EnvironmentBindings []contract.EnvironmentBinding
 	Limits              *testpilotspb.ProgramLimits
 	InstructionDefaults contract.InstructionDefaults
+	// BoundScale scales the Program's wait-hint bounds and the duration ceilings of Limits.
+	BoundScale contract.BoundScale
 	// DeliveryControl says the Profile's environment can hold and release a delivery inside the
 	// server; without it a Program that does is refused at preparation.
 	DeliveryControl bool
@@ -66,6 +68,8 @@ type ProgramView struct {
 	observations               []Observation
 	evidence                   []EvidenceDeclaration
 	limits                     *testpilotspb.ProgramLimits
+	// boundScale is recorded in the Run; limits already applies it.
+	boundScale contract.BoundScale
 }
 
 func (v ProgramView) ProgramID() string           { return v.programID }
@@ -86,11 +90,14 @@ type PreparedProgram struct {
 	// limits is the Profile's Program ceiling snapshot; a Program declares no ceilings of its own.
 	limits              *testpilotspb.ProgramLimits
 	instructionDefaults contract.InstructionDefaults
-	view                ProgramView
-	graphs              []*graph
-	slots               map[string]ir.Type
-	carriers            map[carrierCoordinate]contract.ReservationCarrierPlan
-	roles               map[string]contract.PreparedRole
+	// boundScale is the Profile's bound scale, which limits' duration ceilings and every hinted
+	// node's timeout already apply.
+	boundScale contract.BoundScale
+	view       ProgramView
+	graphs     []*graph
+	slots      map[string]ir.Type
+	carriers   map[carrierCoordinate]contract.ReservationCarrierPlan
+	roles      map[string]contract.PreparedRole
 	// evidence holds every declaration by identity; runEventLifts the ones a recorded Run Event
 	// feeds, in declaration order; correlatedObservationID the one CorrelatedEvidence Observation
 	// those lifts, and a read's, emit into.
@@ -161,6 +168,9 @@ type node struct {
 	// the declared path satisfies until, which is also the guard of the lift it feeds.
 	until                    *ir.Expression
 	pollIntervalMilliseconds int64
+	// once reads a ReadEvidence one time, with no interval: a response no value of which satisfies
+	// until ends it as a poll whose timeout ran out.
+	once bool
 }
 type assignment struct {
 	target *ir.Path
