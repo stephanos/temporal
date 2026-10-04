@@ -288,7 +288,14 @@ entity's binding.
 #### What
 
 Developers choose how much detail each module needs for the question being checked. Unrelated modules
-stay simple. If a choice changes the search, record the exact model variants, interfaces, mappings
+stay simple. Start with a product/interface Model that knows the public RPCs and user-relevant
+commitments. Add checked refinements where a question needs distributed coordination, persistence,
+recovery or further detail. There is no fixed number of levels and no requirement that modules have
+equal depth. A separate public-protocol Model is optional when it adds behavior beyond the product
+Model's request shapes and runtime bindings. The [refinement design](MODEL_REFINEMENT.md) records
+this direction and the contracts still to settle.
+
+If a choice changes the search, record the exact model variants, interfaces, mappings
 between levels of detail, assumptions, and limits. Show why each reused claim still holds: matching
 states alone does not preserve every example path or progress bound. Simplifying only the display
 leaves the checked Model unchanged. Tools estimate the chosen Model's complexity and explain the
@@ -304,6 +311,9 @@ important interruption points visible without adding unrelated combinations of s
 Replace a simple queue model with a detailed provider to check whether an activity can start. Expose
 an important interruption without adding detail to unrelated features. Preserve the relevant product
 Property and reject a provider that loses committed work.
+Refine that provider again to expose a recovery cut while keeping unrelated modules unchanged.
+Show which required behavior and progress claims survive each mapping; state matching alone cannot
+count as preserving them.
 
 ### White-box and black-box environments (#PORTABILITY)
 
@@ -315,6 +325,11 @@ evidence; black-box environments expose only public interfaces. Each environment
 its permissions, controls, observations, isolation, and impact limits support. Reject tests with
 missing capabilities before contacting the target, and at compile time when the environment is known.
 A test that is allowed to run may still produce too little evidence for a conclusion.
+
+Model detail and environment access are independent choices. A detailed Model can support design
+checking without an environment capable of observing its internals. Runtime bindings state which
+actions and evidence an environment supports; they do not introduce another copy of the product
+behavior. Distinguish an unknown commitment from a commitment known not to have occurred.
 
 #### Why
 
@@ -418,6 +433,16 @@ works internally. Errors and failing examples point to the relevant declaration,
 expected and observed, and show the first difference. The API should make Models easy to read and
 results easy to explain.
 
+Technically comfortable product owners review the actual executable product/interface Model.
+It uses public RPCs directly and gives meaningful request shapes readable names, including required
+options and allowed values. Shorthands reuse the underlying declarations rather than duplicating
+lifecycles or Properties. Request constraints describe what the caller asks for; responses and
+evidence establish what happened. A call need not be one atomic transition.
+
+Include distinctions that change what users can rely on, such as an update received but not yet
+durable. State what survives which failures and for how long. Keep the storage mechanism and other
+internal explanations in refinements, and keep runtime bindings outside the main product narrative.
+
 #### Why
 
 The Model stays useful only if feature developers can maintain it as part of ordinary work. Clear
@@ -428,6 +453,10 @@ definitions and failure reports let people outside the Umpire team review Models
 A developer outside the Umpire team adds a variation, explains a deliberately introduced failure, and
 saves a regression without changing framework internals. Measure time from edit to result, review
 effort, and the extra work to map a second feature's observations to its Model.
+A product owner explains an update's receipt, durability and completion promises from the executable
+Model. A named request shape generates the declared options and recognizes matching recorded
+requests from one definition. Contradictory options are rejected, and requesting an acceptance stage
+cannot itself prove that acceptance occurred.
 
 ## Delivery and acceptance
 
