@@ -1,0 +1,39 @@
+{
+  "command": [
+    "go",
+    "-C",
+    "tools/gomad3",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-v",
+    "-run",
+    "^TestMakeTargetsMatchTheirOwnership$",
+    "."
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "start": "2026-10-04T12:17:38Z",
+  "end": "2026-10-04T12:17:40Z",
+  "elapsed_seconds": 2,
+  "exit_code": 0,
+  "source_stability_exit": 0,
+  "source_hashes": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/make-ownership-before.sha256",
+  "tool_hashes": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/make-ownership-tools.sha256",
+  "log": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/make-ownership.log",
+  "environment": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOFLAGS": "",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOMAXPROCS": "2",
+    "LINT_POLICY_GOLANGCI": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "unset": [
+      "GOMADSEED",
+      "GOMAD3_CHILD_SEED",
+      "GOMAD3_SEED",
+      "LINT_TEST_BASE_REV"
+    ]
+  }
+}

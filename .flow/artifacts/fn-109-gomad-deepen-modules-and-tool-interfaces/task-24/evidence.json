@@ -1,0 +1,56 @@
+{
+  "commits": [],
+  "base_commit": "ce80d2425cf34da103939b5aa23f90bde1c2092f",
+  "tests": [
+    "go test -count=1 -tags test_dep -v ./cmd/tools/lintcode",
+    "go test -count=1 -tags test_dep -v -run '^TestLintPolicy' ./cmd/tools/lintcode",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --verbose --build-tags=test_dep --timeout=10m --fix=false --config=.github/.golangci.yml ./cmd/tools/lintcode",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./cmd/tools/lintcode",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 config verify --config=.github/.golangci.yml",
+    "go -C tools/gomad3 test -count=1 -tags test_dep -v -run '^TestMakeTargetsMatchTheirOwnership$' .",
+    "make -C tools/gomad3 validate",
+    "make LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50 GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c lint-code-fast",
+    "make -C tools/gomad3 LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50 GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c lint-code",
+    "make LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50 GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c lint-code-mixedbrain",
+    "make LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50 GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c ALL_TEST_TAGS=disable_grpc_modules,,test_dep,,gomad3_integration LINT_CODE_TARGETS=./tools/gomad3integration lint-code",
+    "bash .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/collect-evidence.sh"
+  ],
+  "prs": [],
+  "status": "in_progress",
+  "review": "conductor-deferred; no worker verdict",
+  "baseline": "red qualification via unchanged retained task-23 root/Gomad failed receipts; no green handoff. Pre-edit helper contracts green. Final meaningful policy RED exit1 on original config.",
+  "receipts": [
+    "baseline-helper.receipt.json",
+    "policy-red-final.receipt.json",
+    "policy-green-final.receipt.json",
+    "helper-contracts-final.receipt.json",
+    "helper-lint-final.receipt.json",
+    "helper-vet-final.receipt.json",
+    "config-validation.receipt.json",
+    "make-ownership.receipt.json",
+    "validate.receipt.json",
+    "root-fast.receipt.json",
+    "gomad-lint.receipt.json",
+    "mixedbrain-lint.receipt.json",
+    "integration-lint.receipt.json"
+  ],
+  "source_progress": {
+    "config_change": "one added run.relative-path-mode: gitroot setting; zero regex or non-path policy edits",
+    "config_before_sha256": "86d71dda338f89c748a7ecae99e989d03b71b8693280adddae3970eba04c930a",
+    "config_after_sha256": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+    "test_sha256": "9e10bbd3003762ea168f89a8921d298bd5ccab3db5607703895a2fac1e5e5266",
+    "inventory": "policy-inventory.md",
+    "raw_bytes": "path-expression-bytes.log",
+    "preservation": "preservation.log",
+    "finding_inventory": "gomad-findings.json",
+    "source_owners": "gomad-finding-owners.json"
+  },
+  "qualification_gaps": [
+    "SCOPE_EXCEEDED: root fast exits Make2/golangci1 on tools/gomad3sim/controller.go:159:3 exhaustive finding; root vet and later scopes unreached",
+    "SCOPE_EXCEEDED: Gomad exits Make2/golangci1 on 419 findings across 31 source directories; nested vet unreached",
+    "REPORTING_LIMITATION: unchanged ^.git excludes .github findings after gitroot; root log records 27 exclusions",
+    "NATIVE_QUALIFICATION_OPEN: stock Linux aarch64 checks do not close darwin/arm64 or linux/amd64 gates, original R18/R19 or complete workload acceptance"
+  ],
+  "delegated_agents": 0,
+  "live_handles": []
+}

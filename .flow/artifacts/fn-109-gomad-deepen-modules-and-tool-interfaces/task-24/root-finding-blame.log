@@ -1,0 +1,18 @@
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 157) 			return FaultRealization{}, ErrFaultInapplicable
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 158) 		}
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 159) 		switch action.Kind {
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 160) 		case FaultGracefulStop, FaultHarshCrash:
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 161) 			if node.state != NodeStateRunning || node.operation != nil {
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 162) 				return FaultRealization{}, ErrFaultInapplicable
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 163) 			}
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 164) 			realization.Target = node.handle
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 165) 		case FaultRestart:
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 166) 			if node.operation != nil || node.state != NodeStateStopped && node.state != NodeStateCrashed && node.state != NodeStateExited && node.state != NodeStateFailed {
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 167) 				return FaultRealization{}, ErrFaultInapplicable
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 168) 			}
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 169) 			realization.Target = NodeHandle{Node: nodeID, Incarnation: node.handle.Incarnation + 1}
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 170) 		}
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 171) 		if action.Match.Incarnation != 0 && action.Match.Incarnation != realization.Target.Incarnation {
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 172) 			return FaultRealization{}, ErrFaultInapplicable
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 173) 		}
+94c8a0dcc1d tools/gomadv3sim/controller.go (stephanos 2026-08-20 10:05:16 -0700 174) 	case FaultDisconnect, FaultReconnect, FaultDelay:

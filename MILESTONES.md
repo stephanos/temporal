@@ -26,7 +26,7 @@ changes, change the spec and summarize the change here.
 | F10 | [fn-105](.flow/specs/fn-105-gomad-follow-ups-deferred-scope.md) | D12 native Linux replay fix; D26 combined runtime candidate and D27 host-clock candidate awaiting native qualification; D3–D5 architecture, downstream D8–D10, and deferred D6/D11/D15 |
 | Downstream cell | [fn-107](.flow/specs/fn-107-gomad-finish-downstream-cell.md) | Task 5: consumer and both-platform exact replay; blocked by the absent `../downstream` checkout and qualified hosts |
 | Code-size cleanup | [fn-108](.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md) | Task 8: native linux/amd64 qualification for R9 |
-| Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | Tasks 2–12 have merged candidates awaiting acceptance; tasks 13–18 have reviewed source candidates awaiting native gates; task 19's committed architecture candidate awaits formal review after a predispatch tool failure; task 20's earlier guidance has formal SHIP and its nine-flag CLI correction is source-reviewed and committed, while inherited D5 acceptance remains open; task 21 retains matched developmental 10/100 campaigns and finding/preservation evidence, with R18 reconciliation and both native gates incomplete; task 23's lint-routing correction is source-reviewed progress, with lint qualification still red and inherited path policy needing a separate owner |
+| Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | Tasks 2–12 have merged candidates awaiting acceptance; tasks 13–18 have reviewed source candidates awaiting native gates; task 19's committed architecture candidate awaits formal review after a predispatch tool failure; task 20's earlier guidance has formal SHIP and its nine-flag CLI correction is source-reviewed and committed, while inherited D5 acceptance remains open; task 21 retains matched developmental 10/100 campaigns and finding/preservation evidence, with R18 reconciliation and both native gates incomplete; tasks 23–24 retain source-reviewed lint-routing and path-base repairs, with root and Gomad source lint qualification still red |
 | Runtime patch minimization | [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | Tasks 2–4 have merged candidates awaiting native gates; the current final `-U3` exceeds the original baseline, leaving R8's extraction reduction unmet; task 5 retains final evidence and both-platform qualification |
 | Determinism assurance and test strategy | [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) | Tasks 5, 9, and 16 have merged candidates awaiting qualification; task 10's soak gate and contract documentation are delivered and await one retained scheduled or dispatched soak run per platform |
 | Version-pin maintenance | [fn-113](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md) | Tasks 1–4 have merged candidates; final native gates and both-host acceptance remain |
@@ -339,8 +339,12 @@ developmental 10/100 campaigns, a sixteen-finding matrix and preservation audit.
 R18 inventory/provenance reconciliation, final formal review and both native
 qualification gates remain incomplete ([qualification evidence](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/qualification-evidence.md)).
 Task 23's lint-routing correction and reproducible nested host gates are
-independently source-reviewed progress. Actual lint remains red; inherited
-path-policy defects need a separate bounded owner. Task 21 remains the final
+independently source-reviewed and committed as ce80d2425c. Actual lint remains
+red. Task 24's one-line path-base repair is independently source-reviewed,
+preserves working regexes and intended scopes without new suppressions, and
+refutes the historical literal-escape hypothesis. Root's exhaustive-switch
+finding and 419 Gomad findings retain bounded source owners
+([path-policy acceptance](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/acceptance-open.md)). Task 21 remains the final
 verifier, and original R18/R19 and native acceptance stay open
 ([routing acceptance](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-23/acceptance-open.md)).
 Task 19 includes repairs for the confirmed record and pack-governance

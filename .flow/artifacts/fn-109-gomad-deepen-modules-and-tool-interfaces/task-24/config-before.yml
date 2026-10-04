@@ -249,7 +249,6 @@ issues:
 run:
   timeout: 10m
   modules-download-mode: readonly
-  relative-path-mode: gitroot
 
 output:
   sort-order:

@@ -424,6 +424,20 @@ Evidence, compiler-negative fixtures and runtime overlays retain their explicit
 owners; ordinary nested source cannot be silently exempted. The original
 criteria, lint rules and native qualification requirements remain unchanged.
 
+Task 23's source-progress checkpoint is ce80d2425cf34da103939b5aa23f90bde1c2092f.
+Actual lint remains red. Task 24 separately owns the demonstrated inherited
+configuration path-base defect: restore the existing repository-relative
+exclusion intent with behavioral positive/negative tests, without adding
+suppressions or changing enabled rules, pins or comparisons. Task 24's pre-edit
+parsed-regex controls and byte inspection refute the earlier escaping
+hypothesis; the working expressions remain unchanged.
+Its reviewed one-line gitroot repair and actual-tool controls establish source
+progress only. Root fast still fails on the controller lifecycle switch and
+ordinary Gomad on 419 inventoried findings; neither receives a suppression or
+acceptance waiver. Task 21 remains the final verification consumer and original
+R18/R19, formal review and both native gates stay open. Task 24's handover and
+independent review remain source-bound pre-commit snapshots.
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.

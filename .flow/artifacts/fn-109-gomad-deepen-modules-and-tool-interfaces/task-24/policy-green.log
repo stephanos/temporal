@@ -1,0 +1,89 @@
+=== RUN   TestLintPolicyPathExpressions
+=== PAUSE TestLintPolicyPathExpressions
+=== RUN   TestLintPolicyRealGolangci
+=== RUN   TestLintPolicyRealGolangci/root_excluded
+    lint_policy_test.go:133: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/lint_policy_test.go:133
+        	Error:      	Received unexpected error:
+        	            	exit status 1
+        	Test:       	TestLintPolicyRealGolangci/root_excluded
+        	Messages:   	1 issues:
+        	            	* staticcheck: 1
+=== RUN   TestLintPolicyRealGolangci/root_ordinary
+    lint_policy_test.go:153: cwd=. argv=["run" "--config=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangci2885828298/001/.github/.golangci.yml" "--fix=false" "--build-tags=test_dep" "--output.json.path=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangciroot_ordinary2363484391/001/issues.json" "./ordinary"] findings=map[forbidigo:[ordinary/policy.go]]
+=== RUN   TestLintPolicyRealGolangci/nested_tools
+    lint_policy_test.go:152: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/lint_policy_test.go:152
+        	Error:      	Not equal: 
+        	            	expected: map[string][]string{"forbidigo":[]string{"tools/gomad3/policy.go"}}
+        	            	actual  : map[string][]string{"forbidigo":[]string{"tools/gomad3/policy.go"}, "staticcheck":[]string{"tools/gomad3/simplify.go"}}
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1,4 +1,7 @@
+        	            	-(map[string][]string) (len=1) {
+        	            	+(map[string][]string) (len=2) {
+        	            	  (string) (len=9) "forbidigo": ([]string) (len=1) {
+        	            	   (string) (len=22) "tools/gomad3/policy.go"
+        	            	+ },
+        	            	+ (string) (len=11) "staticcheck": ([]string) (len=1) {
+        	            	+  (string) (len=24) "tools/gomad3/simplify.go"
+        	            	  }
+        	Test:       	TestLintPolicyRealGolangci/nested_tools
+        	Messages:   	actual command: ["run" "--config=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangci2885828298/001/.github/.golangci.yml" "--fix=false" "--build-tags=test_dep" "--output.json.path=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangcinested_tools302145867/001/issues.json" "./..."]; output: 2 issues:
+        	            	* forbidigo: 1
+        	            	* staticcheck: 1
+=== RUN   TestLintPolicyRealGolangci/nested_tests
+    lint_policy_test.go:153: cwd=tests/mixedbrain argv=["run" "--config=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangci2885828298/001/.github/.golangci.yml" "--fix=false" "--build-tags=test_dep" "--output.json.path=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangcinested_tests2818234618/001/issues.json" "./..."] findings=map[]
+--- FAIL: TestLintPolicyRealGolangci (4.81s)
+    --- FAIL: TestLintPolicyRealGolangci/root_excluded (1.59s)
+    --- PASS: TestLintPolicyRealGolangci/root_ordinary (0.15s)
+    --- FAIL: TestLintPolicyRealGolangci/nested_tools (1.54s)
+    --- PASS: TestLintPolicyRealGolangci/nested_tests (1.47s)
+=== CONT  TestLintPolicyPathExpressions
+=== RUN   TestLintPolicyPathExpressions/sleep_tests
+    lint_policy_test.go:64: rule=0 path-except=true parsed-expression="_test\\.go|tests/.+\\.go"
+=== RUN   TestLintPolicyPathExpressions/chasm_clock
+    lint_policy_test.go:64: rule=1 path-except=true parsed-expression="chasm/lib/.*\\.go$"
+=== RUN   TestLintPolicyPathExpressions/chasm_clock_tests
+    lint_policy_test.go:64: rule=2 path-except=false parsed-expression="chasm/lib/.*_test\\.go$"
+=== RUN   TestLintPolicyPathExpressions/cassandra_timestamps
+    lint_policy_test.go:64: rule=3 path-except=true parsed-expression="common/persistence/cassandra/.*\\.go$"
+=== RUN   TestLintPolicyPathExpressions/timestamp_tests
+    lint_policy_test.go:64: rule=4 path-except=false parsed-expression="_test\\.go$"
+=== RUN   TestLintPolicyPathExpressions/test_and_testing_helpers
+    lint_policy_test.go:64: rule=5 path-except=false parsed-expression="_test\\.go|tests/.+\\.go|common/testing/"
+    lint_policy_test.go:64: rule=13 path-except=false parsed-expression="_test\\.go|tests/.+\\.go|common/testing/"
+    lint_policy_test.go:64: rule=14 path-except=false parsed-expression="_test\\.go|tests/.+\\.go|common/testing/"
+=== RUN   TestLintPolicyPathExpressions/activity_model
+    lint_policy_test.go:64: rule=6 path-except=false parsed-expression="chasm/lib/activity/model/.*\\.go$"
+=== RUN   TestLintPolicyPathExpressions/testcore
+    lint_policy_test.go:64: rule=7 path-except=false parsed-expression="tests/testcore/.*\\.go$"
+=== RUN   TestLintPolicyPathExpressions/namespace_definitions
+    lint_policy_test.go:64: rule=8 path-except=false parsed-expression="common/namespace/(namespace|replication_resolver)(_test)?\\.go$"
+=== RUN   TestLintPolicyPathExpressions/functional_test_context
+    lint_policy_test.go:64: rule=9 path-except=true parsed-expression="tests/.+_test\\.go"
+=== RUN   TestLintPolicyPathExpressions/legacy_eventually
+    lint_policy_test.go:64: rule=10 path-except=false parsed-expression="tests/(nexus_standalone|nexus_workflow|schedule|schedule_migration)_test\\.go$"
+=== RUN   TestLintPolicyPathExpressions/legacy_collect
+    lint_policy_test.go:64: rule=11 path-except=false parsed-expression="tests/(nexus_standalone|nexus_workflow)_test\\.go$"
+=== RUN   TestLintPolicyPathExpressions/tools_revive
+    lint_policy_test.go:64: rule=15 path-except=false parsed-expression="^tools\\/.+\\.go"
+--- PASS: TestLintPolicyPathExpressions (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/sleep_tests (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/chasm_clock (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/chasm_clock_tests (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/cassandra_timestamps (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/timestamp_tests (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/test_and_testing_helpers (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/activity_model (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/testcore (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/namespace_definitions (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/functional_test_context (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/legacy_eventually (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/legacy_collect (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/tools_revive (0.00s)
+FAIL
+FAIL	go.temporal.io/server/cmd/tools/lintcode	4.827s
+FAIL

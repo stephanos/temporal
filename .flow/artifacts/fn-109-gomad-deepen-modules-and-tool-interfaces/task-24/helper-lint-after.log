@@ -1,0 +1,12 @@
+.github/.golangci.yml: OK
+cmd/tools/lintcode/lint_policy_test.go: OK
+cmd/tools/lintcode/main.go: OK
+cmd/tools/lintcode/main_test.go: OK
+Makefile: OK
+tools/gomad3/Makefile: OK
+go.mod: OK
+go.sum: OK
+tools/gomad3/go.mod: OK
+tools/gomad3/go.sum: OK
+tests/mixedbrain/go.mod: OK
+tests/mixedbrain/go.sum: OK

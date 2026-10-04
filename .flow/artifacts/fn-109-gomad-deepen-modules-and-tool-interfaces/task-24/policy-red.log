@@ -1,0 +1,104 @@
+=== RUN   TestLintPolicyPathExpressions
+=== PAUSE TestLintPolicyPathExpressions
+=== RUN   TestLintPolicyRealGolangci
+=== RUN   TestLintPolicyRealGolangci/root_excluded
+    lint_policy_test.go:125: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/lint_policy_test.go:125
+        	Error:      	Received unexpected error:
+        	            	exit status 1
+        	Test:       	TestLintPolicyRealGolangci/root_excluded
+        	Messages:   	6 issues:
+        	            	* forbidigo: 3
+        	            	* gci: 1
+        	            	* revive: 2
+=== RUN   TestLintPolicyRealGolangci/root_ordinary
+    lint_policy_test.go:144: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/lint_policy_test.go:144
+        	Error:      	Not equal: 
+        	            	expected: map[string][]string{"forbidigo":[]string{"ordinary/policy.go"}}
+        	            	actual  : map[string][]string{"forbidigo":[]string{"../ordinary/policy.go"}, "revive":[]string{"../ordinary/policy.go"}}
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1,4 +1,7 @@
+        	            	-(map[string][]string) (len=1) {
+        	            	+(map[string][]string) (len=2) {
+        	            	  (string) (len=9) "forbidigo": ([]string) (len=1) {
+        	            	-  (string) (len=18) "ordinary/policy.go"
+        	            	+  (string) (len=21) "../ordinary/policy.go"
+        	            	+ },
+        	            	+ (string) (len=6) "revive": ([]string) (len=1) {
+        	            	+  (string) (len=21) "../ordinary/policy.go"
+        	            	  }
+        	Test:       	TestLintPolicyRealGolangci/root_ordinary
+        	Messages:   	actual command: ["run" "--config=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangci2463977671/001/.github/.golangci.yml" "--fix=false" "--build-tags=test_dep" "--output.json.path=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangciroot_ordinary790286712/001/issues.json" "--output.text.path=" "./ordinary"]; output: 2 issues:
+        	            	* forbidigo: 1
+        	            	* revive: 1
+=== RUN   TestLintPolicyRealGolangci/nested_tools
+    lint_policy_test.go:144: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/lint_policy_test.go:144
+        	Error:      	Not equal: 
+        	            	expected: map[string][]string{"forbidigo":[]string{"tools/gomad3/policy.go"}}
+        	            	actual  : map[string][]string{"forbidigo":[]string{"../tools/gomad3/policy.go"}, "gci":[]string{"../tools/gomad3/simplify.go"}}
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1,4 +1,7 @@
+        	            	-(map[string][]string) (len=1) {
+        	            	+(map[string][]string) (len=2) {
+        	            	  (string) (len=9) "forbidigo": ([]string) (len=1) {
+        	            	-  (string) (len=22) "tools/gomad3/policy.go"
+        	            	+  (string) (len=25) "../tools/gomad3/policy.go"
+        	            	+ },
+        	            	+ (string) (len=3) "gci": ([]string) (len=1) {
+        	            	+  (string) (len=27) "../tools/gomad3/simplify.go"
+        	            	  }
+        	Test:       	TestLintPolicyRealGolangci/nested_tools
+        	Messages:   	actual command: ["run" "--config=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangci2463977671/001/.github/.golangci.yml" "--fix=false" "--build-tags=test_dep" "--output.json.path=/home/agent/.cache/codex-build/tmp/TestLintPolicyRealGolangcinested_tools3811310991/001/issues.json" "--output.text.path=" "./..."]; output: 2 issues:
+        	            	* forbidigo: 1
+        	            	* gci: 1
+=== RUN   TestLintPolicyRealGolangci/nested_application
+    lint_policy_test.go:128: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/lint_policy_test.go:128
+        	Error:      	An error is expected but got nil.
+        	            	expected: *exec.ExitError
+        	Test:       	TestLintPolicyRealGolangci/nested_application
+        	Messages:   	0 issues.
+--- FAIL: TestLintPolicyRealGolangci (5.22s)
+    --- FAIL: TestLintPolicyRealGolangci/root_excluded (1.76s)
+    --- FAIL: TestLintPolicyRealGolangci/root_ordinary (0.14s)
+    --- FAIL: TestLintPolicyRealGolangci/nested_tools (1.64s)
+    --- FAIL: TestLintPolicyRealGolangci/nested_application (1.61s)
+=== CONT  TestLintPolicyPathExpressions
+=== RUN   TestLintPolicyPathExpressions/sleep_tests
+=== RUN   TestLintPolicyPathExpressions/chasm_clock
+=== RUN   TestLintPolicyPathExpressions/chasm_clock_tests
+=== RUN   TestLintPolicyPathExpressions/cassandra_timestamps
+=== RUN   TestLintPolicyPathExpressions/timestamp_tests
+=== RUN   TestLintPolicyPathExpressions/test_and_testing_helpers
+=== RUN   TestLintPolicyPathExpressions/activity_model
+=== RUN   TestLintPolicyPathExpressions/testcore
+=== RUN   TestLintPolicyPathExpressions/namespace_definitions
+=== RUN   TestLintPolicyPathExpressions/functional_test_context
+=== RUN   TestLintPolicyPathExpressions/legacy_eventually
+=== RUN   TestLintPolicyPathExpressions/legacy_collect
+=== RUN   TestLintPolicyPathExpressions/tools_revive
+--- PASS: TestLintPolicyPathExpressions (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/sleep_tests (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/chasm_clock (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/chasm_clock_tests (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/cassandra_timestamps (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/timestamp_tests (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/test_and_testing_helpers (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/activity_model (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/testcore (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/namespace_definitions (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/functional_test_context (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/legacy_eventually (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/legacy_collect (0.00s)
+    --- PASS: TestLintPolicyPathExpressions/tools_revive (0.00s)
+FAIL
+FAIL	go.temporal.io/server/cmd/tools/lintcode	5.224s
+FAIL

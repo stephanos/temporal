@@ -1,0 +1,586 @@
+[
+  {
+    "owner": "tools/gomad3/artifact",
+    "count": 28,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 24
+      },
+      {
+        "linter": "exhaustive",
+        "count": 2
+      },
+      {
+        "linter": "forbidigo",
+        "count": 1
+      },
+      {
+        "linter": "staticcheck",
+        "count": 1
+      }
+    ],
+    "files": [
+      "tools/gomad3/artifact/manifest_copy.go",
+      "tools/gomad3/artifact/open.go",
+      "tools/gomad3/artifact/opened_test.go",
+      "tools/gomad3/artifact/publication.go",
+      "tools/gomad3/artifact/publication_test.go",
+      "tools/gomad3/artifact/store.go",
+      "tools/gomad3/artifact/target_pool.go",
+      "tools/gomad3/artifact/target_pool_test.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/choice",
+    "count": 1,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 1
+      }
+    ],
+    "files": [
+      "tools/gomad3/choice/diagnostic_test.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/cmd/gomad/internal/cli",
+    "count": 54,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 53
+      },
+      {
+        "linter": "staticcheck",
+        "count": 1
+      }
+    ],
+    "files": [
+      "tools/gomad3/cmd/gomad/internal/cli/application.go",
+      "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+      "tools/gomad3/cmd/gomad/internal/cli/characterization_test.go",
+      "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+      "tools/gomad3/cmd/gomad/internal/cli/resume.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/cmd/gomadtool",
+    "count": 136,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 135
+      },
+      {
+        "linter": "exhaustive",
+        "count": 1
+      }
+    ],
+    "files": [
+      "tools/gomad3/cmd/gomadtool/adapter_regenerate.go",
+      "tools/gomad3/cmd/gomadtool/boundary.go",
+      "tools/gomad3/cmd/gomadtool/compatibility_pack.go",
+      "tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go",
+      "tools/gomad3/cmd/gomadtool/diagnostic.go",
+      "tools/gomad3/cmd/gomadtool/main.go",
+      "tools/gomad3/cmd/gomadtool/pin_impact.go",
+      "tools/gomad3/cmd/gomadtool/protocol.go",
+      "tools/gomad3/cmd/gomadtool/qualification_manifest.go",
+      "tools/gomad3/cmd/gomadtool/soak.go",
+      "tools/gomad3/cmd/gomadtool/upgrade.go",
+      "tools/gomad3/cmd/gomadtool/version.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/deterministicio",
+    "count": 4,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 3
+      },
+      {
+        "linter": "forbidigo",
+        "count": 1
+      }
+    ],
+    "files": [
+      "tools/gomad3/deterministicio/adapter_regenerate.go",
+      "tools/gomad3/deterministicio/adapter_registry.go",
+      "tools/gomad3/deterministicio/libc_regenerate.go",
+      "tools/gomad3/deterministicio/profile.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/internal/canonicaljson",
+    "count": 1,
+    "linters": [
+      {
+        "linter": "exhaustive",
+        "count": 1
+      }
+    ],
+    "files": [
+      "tools/gomad3/internal/canonicaljson/canonical.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/internal/compatibilitypack",
+    "count": 8,
+    "linters": [
+      {
+        "linter": "exhaustive",
+        "count": 1
+      },
+      {
+        "linter": "gci",
+        "count": 1
+      },
+      {
+        "linter": "staticcheck",
+        "count": 6
+      }
+    ],
+    "files": [
+      "tools/gomad3/internal/compatibilitypack/mutation_test.go",
+      "tools/gomad3/internal/compatibilitypack/policy.go",
+      "tools/gomad3/internal/compatibilitypack/schema.go",
+      "tools/gomad3/internal/compatibilitypack/schema_timezone_test.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/internal/compatibilitypack/authoring",
+    "count": 7,
+    "linters": [
+      {
+        "linter": "goimports",
+        "count": 7
+      }
+    ],
+    "files": [
+      "tools/gomad3/internal/compatibilitypack/authoring/discover.go",
+      "tools/gomad3/internal/compatibilitypack/authoring/discover_test.go",
+      "tools/gomad3/internal/compatibilitypack/authoring/qualify_test.go",
+      "tools/gomad3/internal/compatibilitypack/authoring/refresh.go",
+      "tools/gomad3/internal/compatibilitypack/authoring/refresh_test.go",
+      "tools/gomad3/internal/compatibilitypack/authoring/request.go",
+      "tools/gomad3/internal/compatibilitypack/authoring/request_test.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/internal/gomadtool/architecture",
+    "count": 4,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 2
+      },
+      {
+        "linter": "staticcheck",
+        "count": 2
+      }
+    ],
+    "files": [
+      "tools/gomad3/internal/gomadtool/architecture/initialization.go",
+      "tools/gomad3/internal/gomadtool/architecture/standard.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/internal/gomadtool/conformance",
+    "count": 3,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 1
+      },
+      {
+        "linter": "staticcheck",
+        "count": 2
+      }
+    ],
+    "files": [
+      "tools/gomad3/internal/gomadtool/conformance/driver.go",
+      "tools/gomad3/internal/gomadtool/conformance/runtime_choice.go",
+      "tools/gomad3/internal/gomadtool/conformance/runtime_repeatability.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/internal/hostexec",
+    "count": 5,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 4
+      },
+      {
+        "linter": "forbidigo",
+        "count": 1
+      }
+    ],
+    "files": [
+      "tools/gomad3/internal/hostexec/command_unix.go",
+      "tools/gomad3/internal/hostexec/command_unix_test.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/internal/hostfs",
+    "count": 1,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 1
+      }
+    ],
+    "files": [
+      "tools/gomad3/internal/hostfs/open_test.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/internal/sourceinventory",
+    "count": 1,
+    "linters": [
+      {
+        "linter": "staticcheck",
+        "count": 1
+      }
+    ],
+    "files": [
+      "tools/gomad3/internal/sourceinventory/inventory.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/qualification",
+    "count": 6,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 5
+      },
+      {
+        "linter": "gci",
+        "count": 1
+      }
+    ],
+    "files": [
+      "tools/gomad3/qualification/diagnostics_test.go",
+      "tools/gomad3/qualification/qualification.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/qualification/set/manifestgen",
+    "count": 1,
+    "linters": [
+      {
+        "linter": "staticcheck",
+        "count": 1
+      }
+    ],
+    "files": [
+      "tools/gomad3/qualification/set/manifestgen/manifestgen.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/runner",
+    "count": 17,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 9
+      },
+      {
+        "linter": "exhaustive",
+        "count": 2
+      },
+      {
+        "linter": "forbidigo",
+        "count": 3
+      },
+      {
+        "linter": "staticcheck",
+        "count": 3
+      }
+    ],
+    "files": [
+      "tools/gomad3/runner/campaign.go",
+      "tools/gomad3/runner/choice_exploration_divergence_test.go",
+      "tools/gomad3/runner/choice_exploration_divergence_unix_test.go",
+      "tools/gomad3/runner/completion.go",
+      "tools/gomad3/runner/completion_characterization_test.go",
+      "tools/gomad3/runner/diagnostics_test.go",
+      "tools/gomad3/runner/inspect.go",
+      "tools/gomad3/runner/inspect_test.go",
+      "tools/gomad3/runner/replay_operation.go",
+      "tools/gomad3/runner/retention_characterization_test.go",
+      "tools/gomad3/runner/runner.go",
+      "tools/gomad3/runner/runner_test.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/runner/internal/campaign",
+    "count": 17,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 13
+      },
+      {
+        "linter": "exhaustive",
+        "count": 2
+      },
+      {
+        "linter": "forbidigo",
+        "count": 2
+      }
+    ],
+    "files": [
+      "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+      "tools/gomad3/runner/internal/campaign/controller.go",
+      "tools/gomad3/runner/internal/campaign/merge_capacity_test.go",
+      "tools/gomad3/runner/internal/campaign/open_campaign.go",
+      "tools/gomad3/runner/internal/campaign/resume_plan.go",
+      "tools/gomad3/runner/internal/campaign/segmented_journal_test.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/runner/internal/corpus",
+    "count": 6,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 6
+      }
+    ],
+    "files": [
+      "tools/gomad3/runner/internal/corpus/corpus.go",
+      "tools/gomad3/runner/internal/corpus/corpus_test.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/runner/internal/execution",
+    "count": 25,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 12
+      },
+      {
+        "linter": "forbidigo",
+        "count": 1
+      },
+      {
+        "linter": "staticcheck",
+        "count": 12
+      }
+    ],
+    "files": [
+      "tools/gomad3/runner/internal/execution/descriptor_dup_linux_test.go",
+      "tools/gomad3/runner/internal/execution/launch_plan_unix.go",
+      "tools/gomad3/runner/internal/execution/process.go",
+      "tools/gomad3/runner/internal/execution/process_test.go",
+      "tools/gomad3/runner/internal/execution/process_unix.go",
+      "tools/gomad3/runner/internal/execution/process_unix_test.go",
+      "tools/gomad3/runner/internal/execution/watchdog_io_test.go",
+      "tools/gomad3/runner/internal/execution/worldrecord.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/runner/internal/exploration/choice",
+    "count": 1,
+    "linters": [
+      {
+        "linter": "exhaustive",
+        "count": 1
+      }
+    ],
+    "files": [
+      "tools/gomad3/runner/internal/exploration/choice/engine.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/runner/internal/minimizer",
+    "count": 1,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 1
+      }
+    ],
+    "files": [
+      "tools/gomad3/runner/internal/minimizer/workspace_unix_test.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/target",
+    "count": 17,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 12
+      },
+      {
+        "linter": "goimports",
+        "count": 5
+      }
+    ],
+    "files": [
+      "tools/gomad3/target/adapter_source_set.go",
+      "tools/gomad3/target/capability.go",
+      "tools/gomad3/target/capability_collection.go",
+      "tools/gomad3/target/capability_evaluation.go",
+      "tools/gomad3/target/capability_golden_test.go",
+      "tools/gomad3/target/capability_review_test.go",
+      "tools/gomad3/target/prepared_cache.go",
+      "tools/gomad3/target/target.go",
+      "tools/gomad3/target/target_test.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/target/internal/build",
+    "count": 2,
+    "linters": [
+      {
+        "linter": "staticcheck",
+        "count": 2
+      }
+    ],
+    "files": [
+      "tools/gomad3/target/internal/build/context.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/target/internal/capabilitypolicy",
+    "count": 2,
+    "linters": [
+      {
+        "linter": "goimports",
+        "count": 2
+      }
+    ],
+    "files": [
+      "tools/gomad3/target/internal/capabilitypolicy/policy.go",
+      "tools/gomad3/target/internal/capabilitypolicy/policy_test.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/toolchain",
+    "count": 35,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 33
+      },
+      {
+        "linter": "forbidigo",
+        "count": 1
+      },
+      {
+        "linter": "staticcheck",
+        "count": 1
+      }
+    ],
+    "files": [
+      "tools/gomad3/toolchain/build.go",
+      "tools/gomad3/toolchain/build_test.go",
+      "tools/gomad3/toolchain/patch_regenerate.go",
+      "tools/gomad3/toolchain/source.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/upgrade",
+    "count": 4,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 2
+      },
+      {
+        "linter": "exhaustive",
+        "count": 1
+      },
+      {
+        "linter": "staticcheck",
+        "count": 1
+      }
+    ],
+    "files": [
+      "tools/gomad3/upgrade/maintenance_compat.go",
+      "tools/gomad3/upgrade/upgrade.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/upgrade/adapterregen",
+    "count": 2,
+    "linters": [
+      {
+        "linter": "errcheck",
+        "count": 2
+      }
+    ],
+    "files": [
+      "tools/gomad3/upgrade/adapterregen/transaction.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/upgrade/pinimpact",
+    "count": 2,
+    "linters": [
+      {
+        "linter": "staticcheck",
+        "count": 2
+      }
+    ],
+    "files": [
+      "tools/gomad3/upgrade/pinimpact/pinimpact_test.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/world",
+    "count": 18,
+    "linters": [
+      {
+        "linter": "forbidigo",
+        "count": 2
+      },
+      {
+        "linter": "staticcheck",
+        "count": 16
+      }
+    ],
+    "files": [
+      "tools/gomad3/world/recording.go",
+      "tools/gomad3/world/replay.go",
+      "tools/gomad3/world/snapshot.go",
+      "tools/gomad3/world/world.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/world/mailbox",
+    "count": 2,
+    "linters": [
+      {
+        "linter": "staticcheck",
+        "count": 2
+      }
+    ],
+    "files": [
+      "tools/gomad3/world/mailbox/mailbox.go"
+    ]
+  },
+  {
+    "owner": "tools/gomad3/world/process",
+    "count": 8,
+    "linters": [
+      {
+        "linter": "staticcheck",
+        "count": 8
+      }
+    ],
+    "files": [
+      "tools/gomad3/world/process/config.go",
+      "tools/gomad3/world/process/session.go"
+    ]
+  }
+]

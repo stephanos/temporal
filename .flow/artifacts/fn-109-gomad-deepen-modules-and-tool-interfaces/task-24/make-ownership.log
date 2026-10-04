@@ -1,0 +1,4 @@
+=== RUN   TestMakeTargetsMatchTheirOwnership
+--- PASS: TestMakeTargetsMatchTheirOwnership (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3	0.004s
