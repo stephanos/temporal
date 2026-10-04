@@ -112,7 +112,10 @@ claims are written with named patterns (`once(...).keeps(...)`, `never(...).from
 
 Tasks 1 and 2 are done: the original-baseline archive and equivalence check, the DefinitionScope probe,
 the starting metrics (2,830 lines, 462 string literals), and captured declaration names, evidence defaults
-and refinement reads in the DSL and lifter (production Models not yet migrated). Task 3 is next. Task 6 also makes the 168
+and refinement reads in the DSL and lifter (production Models not yet migrated). Task 3 is done too: machine
+derivations (`rebind`, `extend`, `refining`, `assuming`, `unmonitored`; `restrict` chains with them), sugar in
+`umpire/Syntax.scala` lowered by `lifter/Syntax.scala` with a core/sugar lint rule, and an original-baseline
+check that compares derived outputs and Case bytes rather than IR function bodies. Task 4 is next. Task 6 also makes the 168
 state/action pairs disabled only by a default arm explicit; two Properties that are false on 120
 rows each and seven pause/unpause rows the server rejects are recorded follow-ups, because the
 behavior freeze forbids changing them here.
