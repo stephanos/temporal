@@ -13,7 +13,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -157,7 +156,7 @@ func TestFrameworkNamesNoTemporal(t *testing.T) {
 		mentions = append(mentions, found...)
 	}))
 	require.Greater(t, scanned, 10, "the walk reaches the framework's sources")
-	assert.Empty(t, mentions, "the framework names no Temporal concept: reword these with a neutral example, keeping the rule each explains")
+	require.Empty(t, mentions, "the framework names no Temporal concept: reword these with a neutral example, keeping the rule each explains")
 
 	var stale []string
 	for _, a := range frameworkAllowances {
@@ -165,7 +164,7 @@ func TestFrameworkNamesNoTemporal(t *testing.T) {
 			stale = append(stale, a.path)
 		}
 	}
-	assert.Empty(t, stale, "these allowances keep no mention any more: remove them")
+	require.Empty(t, stale, "these allowances keep no mention any more: remove them")
 }
 
 func TestTemporalTermsAreFound(t *testing.T) {
