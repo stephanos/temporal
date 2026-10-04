@@ -309,8 +309,12 @@ private[lift] trait Claims:
       Decl.Bundle(fields.zip(args.map(fold(_, env))).toMap)
     case Select(b, field) if bundle(b.tpe.widen.dealias.typeSymbol) =>
       fold(b, env) match
-        case Decl.Bundle(fields) => fields(field)
-        case other               =>
+        case Decl.Bundle(fields) =>
+          fields.getOrElse(
+            field,
+            fail(t, s"$field reads no claim of the bundle: its claims are its fields")
+          )
+        case other =>
           fail(t, s"$field reads a claim of a bundle its constructor built, not of $other")
 
     case Apply(
