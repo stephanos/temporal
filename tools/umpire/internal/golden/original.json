@@ -272,7 +272,17 @@
     {
       "model": "ir/activity.json",
       "query": "activityProtocol.terminateSettles"
+    },
+    {
+      "model": "ir/nexus-operation.json",
+      "query": "nexusOperation.cancelIsRequested"
+    },
+    {
+      "model": "ir/nexus-operation.json",
+      "query": "nexusOperation.terminateSettles"
     }
   ],
-  "new_ir_files": []
+  "new_ir_files": [
+    "ir/nexus-operation.json"
+  ]
 }

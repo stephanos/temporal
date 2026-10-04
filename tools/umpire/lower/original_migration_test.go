@@ -60,6 +60,12 @@ func readOriginalLowering(t *testing.T) originalLowering {
 		in.ungenerated[key], err = in.delta.Ungenerated(key, current[key])
 		require.NoError(t, err, key)
 	}
+	// A new IR file the delta lists has no baseline: its Cases are lowered with the rest, and the
+	// comparison with the archive leaves them out (ungeneratedCases).
+	for _, key := range in.delta.NewIRFiles {
+		require.Contains(t, current, key)
+		in.models[key] = current[key]
+	}
 	require.NoError(t, in.delta.Unapplied(applied))
 	return in
 }

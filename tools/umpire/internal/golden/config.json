@@ -15,7 +15,8 @@
   ],
   "later_inventory": [
     "model/scalav2/lifter/testdata/lifts/expected/taskqueue.json",
-    "model/scalav2/lifter/testdata/lifts/expected/capabilities.json"
+    "model/scalav2/lifter/testdata/lifts/expected/capabilities.json",
+    "model/scalav2/ir/nexus-operation.json"
   ],
   "source_path_substitutions": [
     {

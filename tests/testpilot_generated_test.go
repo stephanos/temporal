@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/chasm/lib/activity"
+	"go.temporal.io/server/chasm/lib/nexusoperation"
 	"go.temporal.io/server/common/dynamicconfig"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -147,6 +148,8 @@ func TestTestpilotGeneratedCases(t *testing.T) {
 			options := []testcore.TestOption{
 				testcore.WithDynamicConfig(activity.Enabled, true),
 				testcore.WithDynamicConfig(activity.EnableStandaloneActivityOperatorCommands, true),
+				// The standalone Nexus operation Model's Cases (fn-122.4).
+				testcore.WithDynamicConfig(nexusoperation.Enabled, true),
 			}
 			for _, setting := range value.Settings {
 				options = append(options, testcore.WithDynamicConfig(setting.Setting, setting.Value))

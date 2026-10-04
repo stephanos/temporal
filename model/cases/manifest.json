@@ -2659,6 +2659,64 @@
           }
         ]
       }
+    },
+    {
+      "model": "nexus-operation.json",
+      "query": {
+        "Family": "temporal.nexusoperation.standalone",
+        "Owner": "nexusOperation",
+        "Name": "nexusOperation.cancelIsRequested"
+      },
+      "standing": "lowered",
+      "file": "nexus-operation-nexusOperation.cancelIsRequested-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "nexusOperation.cancelIsRequested",
+            "status": "inconclusive",
+            "reason": "the executions that explain the evidence disagree"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-operation.json",
+      "query": {
+        "Family": "temporal.nexusoperation.standalone",
+        "Owner": "nexusOperation",
+        "Name": "nexusOperation.closedIsRejectedUniformly"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-operation.json",
+      "query": {
+        "Family": "temporal.nexusoperation.standalone",
+        "Owner": "nexusOperation",
+        "Name": "nexusOperation.terminalStatesAreFinal"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-operation.json",
+      "query": {
+        "Family": "temporal.nexusoperation.standalone",
+        "Owner": "nexusOperation",
+        "Name": "nexusOperation.terminateSettles"
+      },
+      "standing": "lowered",
+      "file": "nexus-operation-nexusOperation.terminateSettles-case.json",
+      "expected": {
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "nexusOperation.terminateSettles",
+            "status": "inconclusive",
+            "reason": "the executions that explain the evidence disagree"
+          }
+        ]
+      }
     }
   ]
 }

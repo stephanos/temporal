@@ -10,15 +10,15 @@ import umpire.laws.Capability.*
  * through its projection, and a machine derived from another, share a counted machine's state type
  * and so do not count again.
  *
- * The declarations counted are the activity's, which its Models declare (model/ir/<file>.laws.json lists
- * them as each law's instantiating machines), and the Nexus operation's that fn-122 task 4 declares:
- * until it does, Terminable and Cancelable have one checked-in machine, so the set stays written here.
+ * The declarations counted are the ones the activity and the Nexus operation Models declare, as
+ * model/ir/<file>.laws.json lists them for each law; they are written here because a Model test reads
+ * no lifted output.
  */
 class CatalogTest extends munit.FunSuite:
   /** A machine that declares capabilities: its name, the state type it owns, what it declares. */
   final case class Declaring(machine: String, state: String, capabilities: Set[Capability])
 
-  val planned: Seq[Declaring] = Seq(
+  val declared: Seq[Declaring] = Seq(
     Declaring("activityProduct", "ProductState", Set(Closable, Pausable, Pollable)),
     Declaring("currentAdmission", "AdmissionState", Set(Closable, Pausable, Pollable)),
     // Derived from currentAdmission by rebinding its dispatch: one entity with it.
@@ -26,7 +26,7 @@ class CatalogTest extends munit.FunSuite:
     // Reads the record through its `activity` member: the record's entity again.
     Declaring("currentOverQueue", "AdmissionState", Set(Closable, Pausable, Pollable)),
     Declaring("activityProtocol", "ProtocolState", Set(Terminable, Cancelable, Describable)),
-    // fn-122 task 4's Model, grounded in chasm/lib/nexusoperation.
+    // The standalone Nexus operation (model/temporal/nexusoperation).
     Declaring(
       "nexusOperation",
       "OperationState",
@@ -48,8 +48,8 @@ class CatalogTest extends munit.FunSuite:
       )
     }
 
-  test("every law of the Temporal catalog has two instantiating machines among the planned ones") {
-    assertEquals(underInstantiated(catalog, planned), Vector.empty)
+  test("every law of the Temporal catalog has two instantiating machines among the declared ones") {
+    assertEquals(underInstantiated(catalog, declared), Vector.empty)
   }
 
   test("a law with one instantiating machine fails by its name; derived machines count once") {
@@ -57,22 +57,22 @@ class CatalogTest extends munit.FunSuite:
     val lonely = describedWhilePaused
     val failing = Catalog.pair(Pausable, Describable)(lonely)
     assertEquals(
-      instantiating(Set(Closable), planned),
+      instantiating(Set(Closable), declared),
       Seq("ProductState", "AdmissionState", "OperationState")
     )
     assertEquals(
-      underInstantiated(failing, planned),
+      underInstantiated(failing, declared),
       Vector(
         "describedWhilePaused is instantiated by 0 machine(s) with their own state type (): a law " +
           "joins the catalog with two"
       )
     )
-    val record = planned.filter(_.state == "AdmissionState")
+    val record = declared.filter(_.state == "AdmissionState")
     assertEquals(underInstantiated(Catalog.single(Closable)(lonely), record).size, 1)
   }
 
   test("a machine receives the law of a pair it declares both of, without naming the pair") {
-    val product = planned.head.capabilities
+    val product = declared.head.capabilities
     assert(catalog.laws(product).map(_.name).contains("pausedIsNotDispatched"))
     assert(!catalog.laws(Set(Pausable)).map(_.name).contains("pausedIsNotDispatched"))
   }

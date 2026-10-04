@@ -264,3 +264,8 @@ def deliveryField(path: Field[InstructionOutcome, String]) =
 /** The activity run the attempt belongs to. */
 def activityRunField(path: Field[InstructionOutcome, String]) =
   EvidenceField.typed("activityRun", path)
+
+// ### The endpoint a standalone Nexus operation names
+
+/** The name of the Nexus endpoint the run creates for the Case, as a start request names it. */
+val nexusEndpointName: TypedOperand[String] = Operand.environment(nexusEndpointBinding)

@@ -288,6 +288,15 @@ with a reason: their queue member keeps stepping after the record closes.
 instantiating machines of each law the record brings. `terminated` and its find stay authored:
 `activityProtocol.terminateSettles` lowers to a Case of its own, not to theirs byte for byte.
 
+**Second entity (fn-122 task 4).** `model/temporal/nexusoperation` declares Closable, Terminable,
+Cancelable and Describable on `nexusOperation`. Its rejection is a parameter (`alreadyCompleted`,
+FailedPrecondition, where the activity answers NotFound), and it overrides
+`closedIsRejectedUniformly` with `closedRejectsOrRepeats`: a repeated request id is answered OK after
+close. Every law of the catalog now has two checked-in instantiating machines:
+`terminalStatesAreFinal` and `closedIsRejectedUniformly` (activityProduct, currentAdmission,
+nexusOperation), `pausedIsNotDispatched` (activityProduct, currentAdmission), `terminateSettles` and
+`cancelIsRequested` (activityProtocol, nexusOperation). Its generated finds run live.
+
 **For the owner.** No claim is unclassified. These are the borderline calls, each decided above:
 
 - `terminated` and `cancelRequestedWhileStarted` fix the phase as well as the recorded fact, so they
