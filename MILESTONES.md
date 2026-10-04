@@ -78,7 +78,8 @@ recommendation, and move to implementation. Revisit a decision only when new evi
    Keep generated binaries, bulk traces, and scratch snapshots local unless delivery requires
    them. Use one independent review for a completed batch; re-review actionable fixes.
 5. **Commit each task separately.** After its source checks and review pass, commit the task's
-   implementation, tests, documentation, and Flow records together. This supersedes older
+   implementation, tests, documentation, and Flow records together before starting the next
+   task. This supersedes older
    task instructions reserving commits for the user. If required native gates are unavailable,
    commit the verified progress with those gates recorded as incomplete and keep acceptance
    open. Complete the Flow task only when all its required gates pass. Preserve unrelated
