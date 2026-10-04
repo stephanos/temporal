@@ -325,7 +325,7 @@ private[lift] trait Capabilities:
    */
   private def catalogOf(t: Term): Vector[(Set[String], LawRef)] = arguments(plain(t)) match
     case Apply(Select(a, "++"), List(b)) => catalogOf(a) ++ catalogOf(b)
-    case c @ Apply(Apply(Select(_, op @ ("single" | "pair")), capabilities), laws)
+    case c @ Apply(Apply(Select(_, "single" | "pair"), capabilities), laws)
         if c.symbol.maybeOwner.fullName == "umpire.laws.Catalog$" =>
       val by = capabilities.map(kindOf).toSet
       laws.flatMap(varargs).map(l => by -> lawOf(l)).toVector

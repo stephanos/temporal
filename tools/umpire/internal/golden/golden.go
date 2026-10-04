@@ -199,6 +199,16 @@ func underBase(paths []string, base string) map[string]string {
 	return out
 }
 
+// irFiles lists a directory's IR files: its JSON files, apart from the law sidecars beside them,
+// which are no Model (tools/umpire/model.LawSidecarSuffix).
+func irFiles(dir string) ([]string, error) {
+	paths, err := filepath.Glob(filepath.Join(dir, "*.json"))
+	if err != nil {
+		return nil, err
+	}
+	return slices.DeleteFunc(paths, func(p string) bool { return strings.HasSuffix(p, ".laws.json") }), nil
+}
+
 func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
 	base := "model/scalav2"
 	if _, err := os.Stat(filepath.Join(root, base)); errors.Is(err, fs.ErrNotExist) {
@@ -209,15 +219,11 @@ func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
 	expected, later := underBase(c.Inventory, base), underBase(c.Later, base)
 	found := map[string]bool{}
 	for _, dir := range []string{"ir", "lifter/testdata/lifts/expected"} {
-		paths, err := filepath.Glob(filepath.Join(root, base, dir, "*.json"))
+		paths, err := irFiles(filepath.Join(root, base, dir))
 		if err != nil {
 			return nil, err
 		}
 		for _, path := range paths {
-			// A law sidecar beside an IR file is no Model (tools/umpire/model.LawSidecarSuffix).
-			if strings.HasSuffix(path, ".laws.json") {
-				continue
-			}
 			rel, err := filepath.Rel(root, path)
 			if err != nil {
 				return nil, err
