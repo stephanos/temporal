@@ -31,9 +31,57 @@ Create the shared Temporal-specific kit and rewrite activity scripts through val
 - [ ] The helper interface accommodates fn-118's inventoried typed API and read-condition use, while this task introduces no hint-driven wait or Case Program delta.
 - [ ] Focused lifter/model/Nexus tests and lint-model pass; no behavior hint or Go SDK work is introduced.
 ## Done summary
-TBD
+Extracted the shared Temporal realization kit and the script helpers, and rewrote the standalone
+activity realization with them. Commits 75022999cf, 35579c985d, bb039cfbc7. Lifted IR differs only in
+positions; Definition IDs, script order/modes, evidence catalogs, Query answers and Case bytes are
+unchanged (OriginalBaseline passes, original.json untouched).
 
+**Framework (core, model/umpire/realize/Scripts.scala)**: `script(id, activation)(items*)`,
+`perform(step -> command, …)`, `onPath(classes*)(command)`, `always(command)`,
+`command(instruction, after, timeoutMs, regardless, closes)`, request scopes `rpc(role, method) { … }`,
+`poll(evidence, role, until, intervalMs) { … }`, `call.setting { … }` (appends fields, keeps the
+command name), `statusTable(fact -> value, …)` (settled spelling of the sketch), `type Fact`.
+Declarations are referred to by value: role/script/actuator/command/evidence params widened to
+`String | X`. `umpire.realize.Control` is renamed `Actuator`, so a Model's own `Control` needs no
+`Control as _` (IR message unchanged).
+
+**Kit (model/temporal/realize/Kit.scala)**: roles `workflowService`, `caseWorker`, `taskQueue`,
+`handlerTaskQueue`, `nexusEndpoint`, bindings and operands, `correlation(entity)`, `correlated`,
+`temporalRealization(machine, operation, roles, scripts, evidence, …)(using Family)`, `controller`,
+`await(evidence, role)(until) { … }` with the one 250 ms interval, deadlines `deadlineSeconds`/
+`unreachedDeadlineSeconds`, `evidenceId`/`sourceId`/`runRecord`, `answered`/`answeredAs`/`delivered`.
+Sugar `field(_.name) := operand` in kit `Syntax.scala`: `RequestField` is an `umpire.Slot`, so `:=` is
+the same `@targetName("set")` definition; core form `Assignment.typed(Field[Req, V](_.name), operand)`.
+Activity and Nexus both build through `temporalRealization`; Nexus also polls through `await`.
+
+**Lifter**: commands named after their val in kebab case (`Command(id, …)` keeps its id); script
+helpers written by name; request scopes read with `Req` from the scope the call opened; facts by
+enum case or case companion; status table looked up at lift time; `requestAssignment` hook in
+lifter/Syntax.scala; a realization is placed at its val. Refusals: unnamed command, empty
+perform/onPath, unlisted or doubly listed status, non-field line in a scope; compiler refusal of a
+foreign selector (typedInvalid Invalid.scala:169:26).
+
+**Decisions**: `await` lives in the kit (its body carries the interval the lifter reads; framework
+bodies are not reducible), signature `await(evidence, role)(until) { assign }` instead of fn-118's
+`(assign, until)`; `temporalRealization` takes `roles` and the entity as `operation`. Positions stay
+where a record is written (kit helper bodies), Go tests accept the kit file; golden merges gained
+file entries (both Realization.scala files and realize/ compare as one name). The lost-response
+release keeps a written-out `Command("release-dispatch", …)` because two realizations share that id.
+
+**Metrics**: standaloneactivity 2449 lines / 181 literals -> 1994 / 98; Realization.scala 862 / 94 ->
+407 / 11; kit 288 / 26; standalone+taskqueue+kit 2700 / 149 (was standalone+taskqueue 2867 / 206).
+Task 10 still needs -394 lines and -38 literals (left: 25 computed names, 21 declared, 17 ids, 9
+prose, 8 repeated, 8 composition keys, 7 own, 3 evidence).
+
+**Review**: claude-opus-5-5 high via `--spec claude:claude-opus-5-5:high`; writer and reviewer are the
+same family (Opus). Round 1 SHIP with two P3s (written-out Command around rpc; Nexus 250s), both fixed
+in bb039cfbc7; round 2 SHIP. Deferred P3/FYI: kit-written evidence is placed at the kit body, not the
+call site; `Fact = AnyRef` is loose (lifter refuses non-facts only where it can tell);
+heldDelivery's await reads `status(ProtocolFact.statusPaused)` beside `status(AdmissionFact…)` (same
+id); `closes` names attemptAdmitted by its derived id (the evidence and release refer to each other).
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 75022999cf, 35579c985d, bb039cfbc7
+- Tests: make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks (exit 0), go test -tags test_dep -count=1 -p 2 -run 'OriginalBaseline|MigrationGoldens|MigrationProjection|IRInventory' ./tools/umpire/internal/golden ./tools/umpire/model ./tools/umpire/lower (exit 0), go test -tags test_dep -count=1 -p 2 -timeout 40m -json ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/... (exit 0, 232 s), go test -tags test_dep -count=1 -p 2 -timeout 40m ./tools/umpire/internal/golden ./tools/umpire/lower ./tools/umpire/model ./tools/umpire/export ./tools/umpire/conformance (exit 0, after review fixes), make lint-model (exit 0), GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main make lint-code-fast (exit 0)
 - PRs:
