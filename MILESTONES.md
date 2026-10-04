@@ -117,8 +117,8 @@ derivations (`rebind`, `extend`, `refining`, `assuming`, `unmonitored`; `restric
 `umpire/Syntax.scala` lowered by `lifter/Syntax.scala` with a core/sugar lint rule, and an original-baseline
 check that compares derived outputs and Case bytes rather than IR function bodies. Task 4 is done: typed
 composition selectors, `Declares[S]` and the claim patterns. Task 5 is done: input tokens, named inputs
-with `:=` and `UpTo` counters. Task 11 (Query totals) runs alongside fn-120.1 (named choices); both settle
-before task 6. Before tasks 6 and 7 change a
+with `:=` and `UpTo` counters. Task 11 is done: every Query carries an author-written total (largest 887,040)
+that Go recomputes and refuses when wrong. fn-120.1 (named choices) is merging onto it; task 6 follows. Before tasks 6 and 7 change a
 production function body, they extend or re-capture the fn-115 migration golden (`TestMigrationGoldens`), which
 still compares function bodies. Task 6 also makes the 168
 state/action pairs disabled only by a default arm explicit; two Properties that are false on 120
