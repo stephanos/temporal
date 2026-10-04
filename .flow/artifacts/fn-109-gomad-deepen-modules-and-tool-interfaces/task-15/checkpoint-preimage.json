@@ -1,0 +1,21 @@
+{
+  "task": 15,
+  "path": "tools/gomad3/runner/internal/execution/simulation_progress_fixture_test.go",
+  "current_sha256": "12cbd8911c03b5ed4e0717397fec2742508daab3e28b8e91a6ca376671db8add",
+  "recovered_sha256": "35ed448549b3aa5d6ce959d86a631b37979056642144e31274e18bcbfb0e8e5c",
+  "scratch": "/tmp/fn109-task15-preimage.B9MU5kXH",
+  "replacements": [
+    {
+      "before": "_ = coordinator.time.progress.apply(modelRequestDispatched{coordinator: coordinator.coordinator})",
+      "after": "coordinator.time.deliverExternal(coordinator.coordinator)"
+    },
+    {
+      "before": "coordinator.time.progress.apply(modelAbandonedResponseDiscarded{coordinator: coordinator.coordinator, arrivals: frame.Arrivals})",
+      "after": "coordinator.time.acknowledgeExternal(coordinator.coordinator, frame.Arrivals)"
+    }
+  ],
+  "provenance": "Reverse only two task-16 callback-wiring substitutions; complete task-15 evidence hash matches.",
+  "shared_source_writes": false,
+  "git_mutations": false,
+  "native_qualification": false
+}

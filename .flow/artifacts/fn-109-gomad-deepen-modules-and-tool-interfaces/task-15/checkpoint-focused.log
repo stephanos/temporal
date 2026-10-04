@@ -1,0 +1,146 @@
+=== RUN   TestSimulationTimeProgressArrivalAtInstalledQuiescence
+--- PASS: TestSimulationTimeProgressArrivalAtInstalledQuiescence (0.00s)
+=== RUN   TestSimulationModelProgressConcurrentOperationsOnOneParticipant
+=== RUN   TestSimulationModelProgressConcurrentOperationsOnOneParticipant/first-first
+=== RUN   TestSimulationModelProgressConcurrentOperationsOnOneParticipant/second-first
+--- PASS: TestSimulationModelProgressConcurrentOperationsOnOneParticipant (0.00s)
+    --- PASS: TestSimulationModelProgressConcurrentOperationsOnOneParticipant/first-first (0.00s)
+    --- PASS: TestSimulationModelProgressConcurrentOperationsOnOneParticipant/second-first (0.00s)
+=== RUN   TestSimulationTimeProgressUnknownAcknowledgementBeforeAdmission
+--- PASS: TestSimulationTimeProgressUnknownAcknowledgementBeforeAdmission (0.00s)
+=== RUN   TestSimulationTimeProgressPartialAcknowledgementKeepsOtherDeliveryRunnable
+--- PASS: TestSimulationTimeProgressPartialAcknowledgementKeepsOtherDeliveryRunnable (0.00s)
+=== RUN   TestSimulationTimeProgressUnknownAcknowledgementBeforeForwardAndTransfer
+--- PASS: TestSimulationTimeProgressUnknownAcknowledgementBeforeForwardAndTransfer (0.00s)
+=== RUN   TestSimulationTimeProgressPreexistingMalformedWaitWakesQuiescence
+--- PASS: TestSimulationTimeProgressPreexistingMalformedWaitWakesQuiescence (0.00s)
+=== RUN   TestSimulationTimeProgressPreexistingDuplicateAdmissionConsumesArrival
+--- PASS: TestSimulationTimeProgressPreexistingDuplicateAdmissionConsumesArrival (0.00s)
+=== RUN   TestSimulationTimeProgressDeathAndRestartRejectStaleIncarnation
+--- PASS: TestSimulationTimeProgressDeathAndRestartRejectStaleIncarnation (0.00s)
+=== RUN   TestSimulationModelProgressCancellationKeepsCommitAndDiscardsLateArrival
+--- PASS: TestSimulationModelProgressCancellationKeepsCommitAndDiscardsLateArrival (0.00s)
+=== RUN   TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks
+=== RUN   TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks/unknown
+=== RUN   TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks/duplicate
+=== RUN   TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks/abandoned_duplicate
+--- PASS: TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks (0.00s)
+    --- PASS: TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks/unknown (0.00s)
+    --- PASS: TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks/duplicate (0.00s)
+    --- PASS: TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks/abandoned_duplicate (0.00s)
+=== RUN   TestSimulationModelProgressUnknownDiscardAcknowledgementKeepsDeliveryRunnable
+--- PASS: TestSimulationModelProgressUnknownDiscardAcknowledgementKeepsDeliveryRunnable (0.00s)
+=== RUN   TestServeSimulationNotifiesAfterWritingResponse
+--- PASS: TestServeSimulationNotifiesAfterWritingResponse (0.00s)
+=== RUN   TestServeSimulationAcknowledgesWaitBeforeHandling
+--- PASS: TestServeSimulationAcknowledgesWaitBeforeHandling (0.00s)
+=== RUN   TestServeSimulationAcceptsArrivalAcknowledgement
+--- PASS: TestServeSimulationAcceptsArrivalAcknowledgement (0.00s)
+=== RUN   TestSimulationModelTransportCorrelatesConcurrentResponses
+--- PASS: TestSimulationModelTransportCorrelatesConcurrentResponses (0.00s)
+=== RUN   TestSimulationModelTransportCarriesLogicalTime
+--- PASS: TestSimulationModelTransportCarriesLogicalTime (0.00s)
+=== RUN   TestSimulationModelTransportCarriesRequestLogicalTime
+--- PASS: TestSimulationModelTransportCarriesRequestLogicalTime (0.00s)
+=== RUN   TestSimulationModelTransportDiscardsLateCancelledResponse
+--- PASS: TestSimulationModelTransportDiscardsLateCancelledResponse (0.00s)
+=== RUN   TestServeSimulationModelsAllowsConcurrentBlockingOperations
+--- PASS: TestServeSimulationModelsAllowsConcurrentBlockingOperations (0.00s)
+=== RUN   TestSimulationTimeWireRoundTripsFixedFrames
+--- PASS: TestSimulationTimeWireRoundTripsFixedFrames (0.00s)
+=== RUN   TestServeSimulationTimeExchangesBoundedFrames
+--- PASS: TestServeSimulationTimeExchangesBoundedFrames (0.00s)
+=== RUN   TestSimulationTimeArbiterAdvancesEveryParticipantToEarliestDeadline
+--- PASS: TestSimulationTimeArbiterAdvancesEveryParticipantToEarliestDeadline (0.00s)
+=== RUN   TestSimulationTimeArbiterAcceptsForwardTickEpoch
+--- PASS: TestSimulationTimeArbiterAcceptsForwardTickEpoch (0.00s)
+=== RUN   TestSimulationTimeArbiterForwardActivationAdoptsCurrent
+--- PASS: TestSimulationTimeArbiterForwardActivationAdoptsCurrent (0.00s)
+=== RUN   TestSimulationTimeArbiterStrictActivationRejectsFutureCurrent
+--- PASS: TestSimulationTimeArbiterStrictActivationRejectsFutureCurrent (0.00s)
+=== RUN   TestSimulationTimeArbiterForwardTickEpochIsOrderIndependent
+=== RUN   TestSimulationTimeArbiterForwardTickEpochIsOrderIndependent/lower-first
+=== RUN   TestSimulationTimeArbiterForwardTickEpochIsOrderIndependent/higher-first
+--- PASS: TestSimulationTimeArbiterForwardTickEpochIsOrderIndependent (0.00s)
+    --- PASS: TestSimulationTimeArbiterForwardTickEpochIsOrderIndependent/lower-first (0.00s)
+    --- PASS: TestSimulationTimeArbiterForwardTickEpochIsOrderIndependent/higher-first (0.00s)
+=== RUN   TestSimulationTimeArbiterRejectsForwardTickEpochPastItsDeadline
+--- PASS: TestSimulationTimeArbiterRejectsForwardTickEpochPastItsDeadline (0.00s)
+=== RUN   TestSimulationTimeArbiterCancelsAnEpochWhenExternalWorkArrives
+--- PASS: TestSimulationTimeArbiterCancelsAnEpochWhenExternalWorkArrives (0.00s)
+=== RUN   TestSimulationTimeArbiterDoesNotAdvancePastExternalWorkOrInactiveParticipants
+--- PASS: TestSimulationTimeArbiterDoesNotAdvancePastExternalWorkOrInactiveParticipants (0.00s)
+=== RUN   TestSimulationTimeArbiterExcludesAnExternallyBlockedParticipant
+--- PASS: TestSimulationTimeArbiterExcludesAnExternallyBlockedParticipant (0.00s)
+=== RUN   TestSimulationTimeArbiterSettlesWhenLastRunnableParticipantBlocksExternally
+--- PASS: TestSimulationTimeArbiterSettlesWhenLastRunnableParticipantBlocksExternally (0.00s)
+=== RUN   TestSimulationTimeArbiterDoesNotSettleWhileExternalRequestIsHandled
+--- PASS: TestSimulationTimeArbiterDoesNotSettleWhileExternalRequestIsHandled (0.00s)
+=== RUN   TestSimulationTimeArbiterAdvancesAfterForwardedRequestIsDelivered
+--- PASS: TestSimulationTimeArbiterAdvancesAfterForwardedRequestIsDelivered (0.00s)
+=== RUN   TestSimulationTimeArbiterForwardsExternalRequestAtomically
+--- PASS: TestSimulationTimeArbiterForwardsExternalRequestAtomically (0.00s)
+=== RUN   TestSimulationTimeArbiterTransfersExternalArrivalAtomically
+--- PASS: TestSimulationTimeArbiterTransfersExternalArrivalAtomically (0.00s)
+=== RUN   TestSimulationTimeArbiterWaitsForDeliveredExternalWorkToBeConsumed
+--- PASS: TestSimulationTimeArbiterWaitsForDeliveredExternalWorkToBeConsumed (0.00s)
+=== RUN   TestSimulationTimeArbiterRejoinsAfterExternalWorkArrives
+--- PASS: TestSimulationTimeArbiterRejoinsAfterExternalWorkArrives (0.00s)
+=== RUN   TestSimulationTimeArbiterActivatesRestartAtCurrentTime
+--- PASS: TestSimulationTimeArbiterActivatesRestartAtCurrentTime (0.00s)
+=== RUN   TestSimulationTimeArbiterRejectsForwardTickEpochInStrictMode
+--- PASS: TestSimulationTimeArbiterRejectsForwardTickEpochInStrictMode (0.00s)
+=== RUN   TestSimulationTimeArbiterForwardTickEarlyResponsesDoNotRewind
+=== RUN   TestSimulationTimeArbiterForwardTickEarlyResponsesDoNotRewind/inactive
+=== RUN   TestSimulationTimeArbiterForwardTickEarlyResponsesDoNotRewind/delivered
+=== RUN   TestSimulationTimeArbiterForwardTickEarlyResponsesDoNotRewind/external
+--- PASS: TestSimulationTimeArbiterForwardTickEarlyResponsesDoNotRewind (0.00s)
+    --- PASS: TestSimulationTimeArbiterForwardTickEarlyResponsesDoNotRewind/inactive (0.00s)
+    --- PASS: TestSimulationTimeArbiterForwardTickEarlyResponsesDoNotRewind/delivered (0.00s)
+    --- PASS: TestSimulationTimeArbiterForwardTickEarlyResponsesDoNotRewind/external (0.00s)
+=== RUN   TestSimulationTimeArbiterMalformedForwardTickRequestDoesNotAdvance
+--- PASS: TestSimulationTimeArbiterMalformedForwardTickRequestDoesNotAdvance (0.00s)
+=== RUN   TestSimulationTimeArbiterAdoptsForwardedModelCurrent
+--- PASS: TestSimulationTimeArbiterAdoptsForwardedModelCurrent (0.00s)
+=== RUN   TestSimulationTimeArbiterRejectsInvalidForwardedModelCurrentWithoutMutation
+=== RUN   TestSimulationTimeArbiterRejectsInvalidForwardedModelCurrentWithoutMutation/strict_future
+=== RUN   TestSimulationTimeArbiterRejectsInvalidForwardedModelCurrentWithoutMutation/unknown_arrival
+--- PASS: TestSimulationTimeArbiterRejectsInvalidForwardedModelCurrentWithoutMutation (0.00s)
+    --- PASS: TestSimulationTimeArbiterRejectsInvalidForwardedModelCurrentWithoutMutation/strict_future (0.00s)
+    --- PASS: TestSimulationTimeArbiterRejectsInvalidForwardedModelCurrentWithoutMutation/unknown_arrival (0.00s)
+=== RUN   TestSimulationTimeGeneratedVectors
+=== RUN   TestSimulationTimeGeneratedVectors/request/truncated
+=== RUN   TestSimulationTimeGeneratedVectors/request/magic
+=== RUN   TestSimulationTimeGeneratedVectors/request/reserved
+=== RUN   TestSimulationTimeGeneratedVectors/request/generation
+=== RUN   TestSimulationTimeGeneratedVectors/request/time_regression
+=== RUN   TestSimulationTimeGeneratedVectors/response/truncated
+=== RUN   TestSimulationTimeGeneratedVectors/response/magic
+=== RUN   TestSimulationTimeGeneratedVectors/response/kind
+=== RUN   TestSimulationTimeGeneratedVectors/response/reserved
+=== RUN   TestSimulationTimeGeneratedVectors/response/generation
+=== RUN   TestSimulationTimeGeneratedVectors/response/time_regression
+--- PASS: TestSimulationTimeGeneratedVectors (0.00s)
+    --- PASS: TestSimulationTimeGeneratedVectors/request/truncated (0.00s)
+    --- PASS: TestSimulationTimeGeneratedVectors/request/magic (0.00s)
+    --- PASS: TestSimulationTimeGeneratedVectors/request/reserved (0.00s)
+    --- PASS: TestSimulationTimeGeneratedVectors/request/generation (0.00s)
+    --- PASS: TestSimulationTimeGeneratedVectors/request/time_regression (0.00s)
+    --- PASS: TestSimulationTimeGeneratedVectors/response/truncated (0.00s)
+    --- PASS: TestSimulationTimeGeneratedVectors/response/magic (0.00s)
+    --- PASS: TestSimulationTimeGeneratedVectors/response/kind (0.00s)
+    --- PASS: TestSimulationTimeGeneratedVectors/response/reserved (0.00s)
+    --- PASS: TestSimulationTimeGeneratedVectors/response/generation (0.00s)
+    --- PASS: TestSimulationTimeGeneratedVectors/response/time_regression (0.00s)
+=== RUN   TestSimulationCoordinatorLimitsForwardEpochsToForwardClockExecutions
+=== RUN   TestSimulationCoordinatorLimitsForwardEpochsToForwardClockExecutions/strict
+=== RUN   TestSimulationCoordinatorLimitsForwardEpochsToForwardClockExecutions/forward
+--- PASS: TestSimulationCoordinatorLimitsForwardEpochsToForwardClockExecutions (0.00s)
+    --- PASS: TestSimulationCoordinatorLimitsForwardEpochsToForwardClockExecutions/strict (0.00s)
+    --- PASS: TestSimulationCoordinatorLimitsForwardEpochsToForwardClockExecutions/forward (0.00s)
+=== RUN   TestSimulationCoordinatorKeepsCompletedNodeResponseDeliverable
+--- PASS: TestSimulationCoordinatorKeepsCompletedNodeResponseDeliverable (0.00s)
+=== RUN   TestSimulationCoordinatorStaleRemovalPreservesReplacementNode
+--- PASS: TestSimulationCoordinatorStaleRemovalPreservesReplacementNode (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	0.004s

@@ -1,0 +1,8 @@
+{
+  "task_title": "Verify exact task 15 characterization and design checkpoint after committed task 14",
+  "task_body": "Archive current committed predecessor in isolated scratch and overlay only the retained task-15 characterization test, exact reconstructed fixture and unchanged design. Verify all full-file hashes and run the 11 original characterization tests against pre-task16 production. Review test-only ownership and design coverage without importing later lifecycle changes.",
+  "acceptance": "Both exact retained test hashes and design hash match; only two production-module test paths change. Characterization and focused architecture checks pass with explicit source identity. Preserve historical negative behaviors as characterization, not bug repairs, and keep required native acceptance open. No shared source, Git/index or Flow state writes.",
+  "touches_count": 3,
+  "has_quick_commands": true,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

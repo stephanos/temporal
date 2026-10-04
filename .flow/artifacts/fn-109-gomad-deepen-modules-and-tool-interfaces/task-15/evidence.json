@@ -1,0 +1,164 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.15",
+  "status": "blocked",
+  "commits": [],
+  "base_commit": "0dd05b313acd0986312da7fd3159520e6a21f1bf",
+  "head_commit": "0dd05b313acd0986312da7fd3159520e6a21f1bf",
+  "prs": [],
+  "host": {
+    "go": "go1.27.1",
+    "os": "linux",
+    "arch": "arm64",
+    "native_acceptance": false,
+    "pinned_go_available": false
+  },
+  "tier": "Tier: session(jev-unavailable(no_key)); explicit pin wins.",
+  "working_directory": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "baseline": "red broad Simulation (pre-edit process helpers exit 49); green focused state-machine/transport and race",
+  "tests": [
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'Simulation' (pre-edit exit 1)",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTime|SimulationModel|SimulationCoordinator|ServeSimulation' (baseline and final exit 0)",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep -race ./runner/internal/execution -run 'SimulationTime|SimulationModel' (baseline and final exit 0)",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'Simulation(Time|Model)Progress' (intermediate first and second exit 0)",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -tags test_dep ./runner/internal/execution -list 'Simulation(Time|Model)Progress' (exit 0, 11 tests selected)",
+    "gofmt -l tools/gomad3/runner/internal/execution/simulation_progress_test.go tools/gomad3/runner/internal/execution/simulation_progress_fixture_test.go (exit 0, empty output)",
+    "git diff --check (exit 0)",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTime|SimulationModel|SimulationCoordinator|ServeSimulation' (bounded-fixture final exit 0)",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep -race ./runner/internal/execution -run 'SimulationTime|SimulationModel' (bounded-fixture final exit 0)",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=100 -tags test_dep ./runner/internal/execution -run 'Simulation(Time|Model)Progress' (bounded-fixture final exit 0)",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go vet -tags test_dep ./runner/internal/execution (bounded-fixture final exit 0)"
+  ],
+  "observations": [
+    {
+      "phase": "baseline",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'Simulation'",
+      "exit_code": 1,
+      "log": "baseline-unit.log",
+      "suite_seconds": 0.03,
+      "failures": [
+        "TestRunSupervisesSimulationNodeProcess: child exit 49",
+        "TestRunHardCrashesAndReapsSimulationNodeProcess: child exit 49"
+      ]
+    },
+    {
+      "phase": "baseline",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTime|SimulationModel|SimulationCoordinator|ServeSimulation'",
+      "exit_code": 0,
+      "log": "baseline-focused.log",
+      "suite_seconds": 0.005
+    },
+    {
+      "phase": "baseline",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep -race ./runner/internal/execution -run 'SimulationTime|SimulationModel'",
+      "exit_code": 0,
+      "log": "baseline-race.log",
+      "suite_seconds": 1.021
+    },
+    {
+      "phase": "characterization-first",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'Simulation(Time|Model)Progress'",
+      "exit_code": 0,
+      "log": "characterization-first.log",
+      "suite_seconds": 0.002
+    },
+    {
+      "phase": "characterization-second",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'Simulation(Time|Model)Progress'",
+      "exit_code": 0,
+      "log": "characterization-second.log",
+      "suite_seconds": 0.002
+    },
+    {
+      "phase": "final",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTime|SimulationModel|SimulationCoordinator|ServeSimulation'",
+      "exit_code": 0,
+      "log": "final-focused.log",
+      "suite_seconds": 0.004
+    },
+    {
+      "phase": "final",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep -race ./runner/internal/execution -run 'SimulationTime|SimulationModel'",
+      "exit_code": 0,
+      "log": "final-race.log",
+      "suite_seconds": 1.018
+    },
+    {
+      "phase": "bounded-fixture-final",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTime|SimulationModel|SimulationCoordinator|ServeSimulation'",
+      "exit_code": 0,
+      "log": "bounded-focused.log",
+      "suite_seconds": 0.004
+    },
+    {
+      "phase": "bounded-fixture-final",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep -race ./runner/internal/execution -run 'SimulationTime|SimulationModel'",
+      "exit_code": 0,
+      "log": "bounded-race.log",
+      "suite_seconds": 1.027
+    },
+    {
+      "phase": "bounded-fixture-final",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=100 -tags test_dep ./runner/internal/execution -run 'Simulation(Time|Model)Progress'",
+      "exit_code": 0,
+      "log": "bounded-repeat.log",
+      "suite_seconds": 0.089
+    },
+    {
+      "phase": "bounded-fixture-final",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go vet -tags test_dep ./runner/internal/execution",
+      "exit_code": 0,
+      "log": "bounded-vet.log"
+    }
+  ],
+  "production_baseline_sha256": {
+    "simulation_time.go": "496b81c6cc33e7d63ae19c3c812de9f05028cb89765b38a911bb0956eb0cf622",
+    "simulation_unix.go": "64cced8a2d448316965f38cfdfe44a700dc005bdc71e0d50743e68483b8a7e3d",
+    "simulation_model.go": "2a88cbdde3fc952428cb2890efd1194423c52c104fc940368e752f7ee388b668",
+    "process_unix.go": "edd93e2d813c79831c93a0e3de23a73b9e7a5644afd0474b78041ca56e0d546a"
+  },
+  "production_final_sha256": {
+    "simulation_time.go": "496b81c6cc33e7d63ae19c3c812de9f05028cb89765b38a911bb0956eb0cf622",
+    "simulation_unix.go": "64cced8a2d448316965f38cfdfe44a700dc005bdc71e0d50743e68483b8a7e3d",
+    "simulation_model.go": "2a88cbdde3fc952428cb2890efd1194423c52c104fc940368e752f7ee388b668",
+    "process_unix.go": "edd93e2d813c79831c93a0e3de23a73b9e7a5644afd0474b78041ca56e0d546a"
+  },
+  "frozen_candidate_sha256": {
+    "tools/gomad3/runner/internal/execution/simulation_progress_test.go": "4d91f01eb5e378e5aa4824c2af655862d9fe0fe57772bd74f2dfa648418c0880",
+    "tools/gomad3/runner/internal/execution/simulation_progress_fixture_test.go": "35ed448549b3aa5d6ce959d86a631b37979056642144e31274e18bcbfb0e8e5c",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/simulation-progress-design.md": "1f2fc94d417ad3ffe2d64a2b255787d3ad74e13701bc85a7294522a0629a60c9"
+  },
+  "native_gaps": [
+    "All three canonical .toolchain/bin/go task-15 Quick commands are unrun because the executable is absent; stock host observations do not substitute for them.",
+    "Required darwin/arm64 and linux/amd64 process/native qualification is incomplete.",
+    "TestRootProcessSimulationUsesRunnerTransport remains unrun here; existing model-delay watchdog disposition is unchanged.",
+    "R11 remains open until task 16 implements the owner and passes required conformance."
+  ],
+  "migration_contract": {
+    "valid_test_bodies": "Preserve byte-identically; no removable accounting helper calls or response-map access.",
+    "fixture": "Task 16 may adapt only migration-sensitive wiring in simulation_progress_fixture_test.go.",
+    "negative_exceptions": [
+      "TestSimulationTimeProgressPreexistingMalformedWaitWakesQuiescence",
+      "TestSimulationTimeProgressPreexistingDuplicateAdmissionConsumesArrival"
+    ],
+    "negative_requirement": "Task 16 strengthens these two historical pins to require full validation before mutation, with a red observation on unchanged production.",
+    "acceptance_reconciled": "Conductor reconciled task 16 Approach and Acceptance through flowctl; native/process checks remain unchanged."
+  },
+  "review": "Two fresh same-family source audits and read-only delta rechecks found no remaining source defects; conductor-verification.md records fresh final checks. Source readiness only, not native/SHIP acceptance.",
+  "live_commands": [],
+  "prior_frozen_candidate_sha256": {
+    "tools/gomad3/runner/internal/execution/simulation_progress_test.go": "fed280df9c8af49a124c4808d6f80dd7c707a9e9d6073264c75811c020dedaff",
+    "tools/gomad3/runner/internal/execution/simulation_progress_fixture_test.go": "4c5e86da8581ffa4b3f8e3e3c9a57be6c5505f65b065e31229850af000f48924",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/simulation-progress-design.md": "1f2fc94d417ad3ffe2d64a2b255787d3ad74e13701bc85a7294522a0629a60c9"
+  },
+  "prior_source_audits": {
+    "record": "source-audit.md",
+    "result": "Two independent source audits found no Critical or Important defects in the prior frozen candidate; minor bounded-I/O follow-up was selected by conductor. No formal native or SHIP verdict.",
+    "identity": "prior_frozen_candidate_sha256",
+    "scope": "Initial audits do not automatically cover the bounded fixture delta."
+  },
+  "bounded_fixture": {
+    "changes": "Seven direct read/write calls replaced by buffered-result, five-second timeout helpers; timeout closes pipe endpoint and both success and timeout join I/O goroutine.",
+    "assertions": "Unchanged",
+    "checks": "Focused, race, 100-repeat, vet, gofmt and diff checks ran serially; no live commands remain."
+  }
+}

@@ -1,0 +1,34 @@
+=== RUN   TestSimulationTimeProgressArrivalAtInstalledQuiescence
+--- PASS: TestSimulationTimeProgressArrivalAtInstalledQuiescence (0.00s)
+=== RUN   TestSimulationModelProgressConcurrentOperationsOnOneParticipant
+=== RUN   TestSimulationModelProgressConcurrentOperationsOnOneParticipant/first-first
+=== RUN   TestSimulationModelProgressConcurrentOperationsOnOneParticipant/second-first
+--- PASS: TestSimulationModelProgressConcurrentOperationsOnOneParticipant (0.00s)
+    --- PASS: TestSimulationModelProgressConcurrentOperationsOnOneParticipant/first-first (0.00s)
+    --- PASS: TestSimulationModelProgressConcurrentOperationsOnOneParticipant/second-first (0.00s)
+=== RUN   TestSimulationTimeProgressUnknownAcknowledgementBeforeAdmission
+--- PASS: TestSimulationTimeProgressUnknownAcknowledgementBeforeAdmission (0.00s)
+=== RUN   TestSimulationTimeProgressPartialAcknowledgementKeepsOtherDeliveryRunnable
+--- PASS: TestSimulationTimeProgressPartialAcknowledgementKeepsOtherDeliveryRunnable (0.00s)
+=== RUN   TestSimulationTimeProgressUnknownAcknowledgementBeforeForwardAndTransfer
+--- PASS: TestSimulationTimeProgressUnknownAcknowledgementBeforeForwardAndTransfer (0.00s)
+=== RUN   TestSimulationTimeProgressPreexistingMalformedWaitWakesQuiescence
+--- PASS: TestSimulationTimeProgressPreexistingMalformedWaitWakesQuiescence (0.00s)
+=== RUN   TestSimulationTimeProgressPreexistingDuplicateAdmissionConsumesArrival
+--- PASS: TestSimulationTimeProgressPreexistingDuplicateAdmissionConsumesArrival (0.00s)
+=== RUN   TestSimulationTimeProgressDeathAndRestartRejectStaleIncarnation
+--- PASS: TestSimulationTimeProgressDeathAndRestartRejectStaleIncarnation (0.00s)
+=== RUN   TestSimulationModelProgressCancellationKeepsCommitAndDiscardsLateArrival
+--- PASS: TestSimulationModelProgressCancellationKeepsCommitAndDiscardsLateArrival (0.00s)
+=== RUN   TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks
+=== RUN   TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks/unknown
+=== RUN   TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks/duplicate
+=== RUN   TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks/abandoned_duplicate
+--- PASS: TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks (0.00s)
+    --- PASS: TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks/unknown (0.00s)
+    --- PASS: TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks/duplicate (0.00s)
+    --- PASS: TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks/abandoned_duplicate (0.00s)
+=== RUN   TestSimulationModelProgressUnknownDiscardAcknowledgementKeepsDeliveryRunnable
+--- PASS: TestSimulationModelProgressUnknownDiscardAcknowledgementKeepsDeliveryRunnable (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/execution	0.002s

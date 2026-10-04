@@ -1,0 +1,10 @@
+TestPackageArchitecture
+TestPublicPackagesDoNotExportTypeAliases
+TestRunnerExecutionInjectionIsPrivate
+TestRunnerRequestsCompileInExternalModule
+TestCurrentVocabularyHasNoLegacyCampaignBoundary
+TestMakeTargetsMatchTheirOwnership
+TestExactModuleEdges
+TestCapabilityEvaluationHasNoHostEffect
+TestDomainModulesDoNotExportWireFraming
+ok  	go.temporal.io/server/tools/gomad3	0.001s

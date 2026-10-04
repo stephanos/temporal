@@ -36,10 +36,10 @@ env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1
 ```
 
 ### Constraints
-- No `git add`, commit, stash or worktree: the user owns commits. Record `"commits": []` in the `flowctl done` evidence and say so in the summary.
+- The conductor commits each verified task separately under MILESTONES item 5, preserving unrelated changes. Older user-only commit instructions are superseded; unavailable native gates remain incomplete and Flow acceptance stays open. Push only when authorized.
 - No new third-party dependency. `tools/gomad3/go.mod` requires only `golang.org/x/mod`, so testify is unavailable inside `tools/gomad3`: follow the existing `t.Fatalf` style with whole-value comparisons there. In the root module (`tools/gomad3sim`, `tools/gomad3integration`) use `require` with `Equal`/`EqualValues`.
 - Preserve existing comments with their owning code, CLI grammar/defaults, canonical bytes for fixed supplied identities, and error precedence/classification.
-- This host is `darwin/arm64`. `linux/amd64` gates cannot run here: list them as incomplete in the done summary, never claim them.
+- Actual host is linux/arm64 with stock Go. Native darwin/arm64 and linux/amd64 qualification remain incomplete; source checks and framed-pipe fixtures do not qualify either platform.
 - fn-105 D12/D14 replay-divergence dispositions stay unchanged. Attribute a failure to those owners with retained evidence instead of relaxing an expectation.
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
@@ -49,8 +49,50 @@ env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1
 - [ ] No production code changes in this task; the summary states that R11 stays open until the implementation task is done.
 
 ## Done summary
-TBD
+Blocked:
+# Task 15 native gates remain open
 
+The final source candidate adds eleven behavior characterizations and the
+required concrete two-interface lifecycle design comparison without production
+changes. Fresh conductor focused/race/100-repeat/vet checks and two independent
+same-family source audits plus delta rechecks found no remaining source defects.
+Exact final identities are retained in evidence.json and source-audit.md.
+
+Acceptance remains incomplete. This host is linux/arm64 with stock Go 1.27.1;
+`.toolchain/bin/go` is absent. The prescribed patched-toolchain Simulation,
+SimulationTime/SimulationModel race and root process transport Quick commands
+remain unrun. The retained pre-edit broad stock Simulation baseline failed
+TestRunSupervisesSimulationNodeProcess and
+TestRunHardCrashesAndReapsSimulationNodeProcess with child exit 49. No expectation,
+selector, platform policy or D12/D14 disposition was weakened.
+
+Native darwin/arm64 and linux/amd64 process/runtime qualification remain open.
+Stock framed-pipe/World fixture checks do not prove native timing, process hard
+isolation, backend interception or exact replay. R11 also requires task 16's
+implementation and conformance; a design cannot close it.
+
+MILESTONES permits subsequent source work after the integrated predecessor
+candidate is reviewed while acceptance stays open. Task 16 may therefore start
+source implementation against this candidate without marking task 15 done.
+User owns commits; commits remain empty.
+
+Blocked:
+# Task 15 acceptance remains open after characterization checkpoint
+
+The exact two retained characterization test blobs and unchanged two-interface
+design are verified for a separate task progress commit. See conductor-checkpoint.md,
+checkpoint-report.md and the original source-audit.md. Production is unchanged.
+
+All 11 characterizations, the focused state-machine/transport selection and
+inherited architecture checks passed on stock linux/arm64. This does not supply
+the prescribed patched-toolchain Simulation, SimulationTime/SimulationModel race
+or root process transport Quick commands. Native darwin/arm64 and linux/amd64
+process/runtime gates remain incomplete; no assertion or disposition was relaxed.
+
+R11 also requires task 16's implementation and conformance. Keep task 15
+acceptance open until required gates pass. The conductor commits verified progress
+under MILESTONES item 5, superseding older user-only commit instructions, without
+overwriting successor working-tree source or pushing.
 ## Evidence
 - Commits:
 - Tests:
