@@ -28,10 +28,9 @@ def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector
       duplicateDelivery limits three total 108,
     query(s"${m.name}.startedAfterCompletion.monitored") verify claims.oneActive in
       startedAfterCompletion limits four total 144,
-    query(s"${m.name}.any.notAdmittedWhilePaused") verify claims.notPaused in
-      any limits five total 2340,
-    query(s"${m.name}.any.atMostOneActive") verify claims.oneActive in any limits five total 2340,
-    query(s"${m.name}.any.terminalStays") verify claims.terminal in any limits five total 2340,
+    query verify claims.notPaused in any limits five total 2340,
+    query verify claims.oneActive in any limits five total 2340,
+    query verify claims.terminal in any limits five total 2340,
     // Neither deadline is ordered before the other: each firing is a trace of its own.
     query(s"${m.name}.scheduleToStartFirst") find claims.startDeadline in
       scheduleToStartFirst limits three total 72,
@@ -57,11 +56,11 @@ val heldStaleDelivery =
       RunOutcome.satisfied,
       monitors = Vector(
         MonitorExpectation(
-          "atMostOneActiveAttempt",
+          atMostOneActiveAttempt,
           RunOutcome.inconclusive,
-          "an execution that explains the evidence never reaches the claim's evaluation point"
+          neverEvaluated
         ),
-        MonitorExpectation("terminalFinality", RunOutcome.satisfied)
+        MonitorExpectation(terminalFinality, RunOutcome.satisfied)
       )
     )
   )
@@ -70,4 +69,4 @@ val oneLostResponse = admissionResponseLoss.scenario.actions(dispatch, taskqueue
 val lostAdmissionResponseQuery =
   (query("admissionResponseLoss.committed") find committedDespiteLostResponse in
     oneLostResponse limits three total 144)
-    .expect(RunExpectation(Conformance.conformant, RunOutcome.satisfied))
+    .expect(satisfied)

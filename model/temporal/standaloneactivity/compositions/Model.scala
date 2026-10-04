@@ -37,7 +37,7 @@ object OverQueue:
 
 val currentOverQueue: Composition[OverQueue] =
   compose[OverQueue](_.activity -> currentRecord, _.queue -> dispatchQueue)
-    .sync("dispatch", _.activity -> dispatch, _.queue -> enqueue)
+    .sync(_.activity -> dispatch, _.queue -> enqueue)
     .sync("admit", _.activity -> attemptStart, _.queue -> deliver)
     .sync("settle", _.activity -> answerDelivery, _.queue -> acknowledge)
     .ends(s => Admission.ends(s.activity))
@@ -60,7 +60,7 @@ object OverMatching:
 
 val currentOverMatching: Composition[OverMatching] =
   compose[OverMatching](_.activity -> currentRecord, _.queue -> matchingQueue)
-    .sync("dispatch", _.activity -> dispatch, _.queue -> enqueue)
+    .sync(_.activity -> dispatch, _.queue -> enqueue)
     .sync("admit", _.activity -> attemptStart, _.queue -> deliver)
     .sync("settle", _.activity -> answerDelivery, _.queue -> acknowledge)
     .replaces(_.queue, dispatchQueue)

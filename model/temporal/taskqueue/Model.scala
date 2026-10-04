@@ -33,7 +33,7 @@ given DefinitionScope = DefinitionScope("temporal.standaloneactivity.System$pack
 val taskQueueEntity: Entity = Entity("taskQueue", key = "taskQueue")
 
 /** The party of the faults the queue's providers suffer. */
-val fault: Party = Party("fault")
+val fault: Party = Party()
 
 // ### The interface
 //

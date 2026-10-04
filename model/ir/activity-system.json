@@ -21555,12 +21555,12 @@
     "name": "admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 56
+      "line": 55
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 56
+        "line": 55
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -21654,12 +21654,12 @@
     "name": "any",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 83
+      "line": 82
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 83
+        "line": 82
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -21753,12 +21753,12 @@
     "name": "crashAfterAdmissionCommit",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 73
+      "line": 72
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 73
+        "line": 72
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -21852,12 +21852,12 @@
     "name": "deliveredAgainAfterLostAck",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 64
+      "line": 63
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 64
+        "line": 63
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -21951,12 +21951,12 @@
     "name": "staleDeliveryAfterPause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 49
+      "line": 48
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 49
+        "line": 48
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -22050,12 +22050,12 @@
     "name": "admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 56
+      "line": 55
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 56
+        "line": 55
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -22149,12 +22149,12 @@
     "name": "any",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 83
+      "line": 82
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 83
+        "line": 82
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -22248,12 +22248,12 @@
     "name": "crashAfterAdmissionCommit",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 73
+      "line": 72
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 73
+        "line": 72
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -22347,12 +22347,12 @@
     "name": "deliveredAgainAfterLostAck",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 64
+      "line": 63
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 64
+        "line": 63
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -22446,12 +22446,12 @@
     "name": "staleDeliveryAfterPause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 49
+      "line": 48
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 49
+        "line": 48
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -23561,7 +23561,7 @@
     "name": "persistedThenLost",
     "position": {
       "file": "model/temporal/taskqueue/Queries.scala",
-      "line": 64
+      "line": 63
     },
     "start": {
       "position": {
@@ -24374,12 +24374,12 @@
     "name": "admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 56
+      "line": 55
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 56
+        "line": 55
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -24473,12 +24473,12 @@
     "name": "any",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 83
+      "line": 82
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 83
+        "line": 82
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -24572,12 +24572,12 @@
     "name": "crashAfterAdmissionCommit",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 73
+      "line": 72
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 73
+        "line": 72
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -24671,12 +24671,12 @@
     "name": "deliveredAgainAfterLostAck",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 64
+      "line": 63
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 64
+        "line": 63
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -24770,12 +24770,12 @@
     "name": "staleDeliveryAfterPause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 49
+      "line": 48
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 49
+        "line": 48
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -25603,7 +25603,7 @@
     "name": "currentAdmission.any.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 33
+      "line": 32
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -25647,7 +25647,7 @@
     "name": "currentAdmission.any.terminalStays",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 34
+      "line": 33
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -25713,7 +25713,7 @@
     "name": "currentAdmission.product.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 41
+      "line": 40
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -25736,7 +25736,7 @@
     "name": "currentAdmission.scheduleToCloseFirst",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 38
+      "line": 37
     },
     "form": "FORM_FIND",
     "property": {
@@ -25758,7 +25758,7 @@
     "name": "currentAdmission.scheduleToStartFirst",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 36
+      "line": 35
     },
     "form": "FORM_FIND",
     "property": {
@@ -25824,7 +25824,7 @@
     "name": "currentOverLossyMatching.admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 87
+      "line": 86
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -25846,7 +25846,7 @@
     "name": "currentOverLossyMatching.any.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 95
+      "line": 93
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -25868,7 +25868,7 @@
     "name": "currentOverLossyMatching.any.notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 93
+      "line": 92
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -25890,7 +25890,7 @@
     "name": "currentOverLossyMatching.any.terminalStays",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 97
+      "line": 94
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -25912,7 +25912,7 @@
     "name": "currentOverLossyMatching.crashAfterAdmissionCommit",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 91
+      "line": 90
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -25934,7 +25934,7 @@
     "name": "currentOverLossyMatching.deliveredAgainAfterLostAck",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 89
+      "line": 88
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -25956,7 +25956,7 @@
     "name": "currentOverLossyMatching.staleDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 85
+      "line": 84
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -25978,7 +25978,7 @@
     "name": "currentOverMatching.admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 87
+      "line": 86
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26000,7 +26000,7 @@
     "name": "currentOverMatching.any.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 95
+      "line": 93
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26022,7 +26022,7 @@
     "name": "currentOverMatching.any.notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 93
+      "line": 92
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26044,7 +26044,7 @@
     "name": "currentOverMatching.any.terminalStays",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 97
+      "line": 94
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26066,7 +26066,7 @@
     "name": "currentOverMatching.crashAfterAdmissionCommit",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 91
+      "line": 90
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26088,7 +26088,7 @@
     "name": "currentOverMatching.deliveredAgainAfterLostAck",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 89
+      "line": 88
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26110,7 +26110,7 @@
     "name": "currentOverMatching.staleDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 85
+      "line": 84
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26154,7 +26154,7 @@
     "name": "currentOverQueue.any.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 39
+      "line": 38
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26198,7 +26198,7 @@
     "name": "currentOverQueue.any.terminalStays",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 40
+      "line": 39
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26550,7 +26550,7 @@
     "name": "lossyMatchingQueue.storageLoss",
     "position": {
       "file": "model/temporal/taskqueue/Queries.scala",
-      "line": 67
+      "line": 66
     },
     "form": "FORM_FIND",
     "property": {
@@ -26726,7 +26726,7 @@
     "name": "staleAdmission.any.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 33
+      "line": 32
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26770,7 +26770,7 @@
     "name": "staleAdmission.any.terminalStays",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 34
+      "line": 33
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26836,7 +26836,7 @@
     "name": "staleAdmission.product.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 41
+      "line": 40
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26859,7 +26859,7 @@
     "name": "staleAdmission.scheduleToCloseFirst",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 38
+      "line": 37
     },
     "form": "FORM_FIND",
     "property": {
@@ -26881,7 +26881,7 @@
     "name": "staleAdmission.scheduleToStartFirst",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 36
+      "line": 35
     },
     "form": "FORM_FIND",
     "property": {
@@ -26947,7 +26947,7 @@
     "name": "staleOverMatching.admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 87
+      "line": 86
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26969,7 +26969,7 @@
     "name": "staleOverMatching.any.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 95
+      "line": 93
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26991,7 +26991,7 @@
     "name": "staleOverMatching.any.notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 93
+      "line": 92
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27013,7 +27013,7 @@
     "name": "staleOverMatching.any.terminalStays",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 97
+      "line": 94
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27035,7 +27035,7 @@
     "name": "staleOverMatching.crashAfterAdmissionCommit",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 91
+      "line": 90
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27057,7 +27057,7 @@
     "name": "staleOverMatching.deliveredAgainAfterLostAck",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 89
+      "line": 88
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27079,7 +27079,7 @@
     "name": "staleOverMatching.staleDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 85
+      "line": 84
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27123,7 +27123,7 @@
     "name": "staleOverQueue.any.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 39
+      "line": 38
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27167,7 +27167,7 @@
     "name": "staleOverQueue.any.terminalStays",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 40
+      "line": 39
     },
     "form": "FORM_VERIFY",
     "property": {

@@ -24,10 +24,10 @@ object SystemFamily:
 
 // The caller starts and controls the activity. The worker's stop is the worker's own action,
 // `workerStop`: nothing it records names the activity, so the activity's machines keep their state.
-val caller: Party = Party("caller")
+val caller: Party = Party()
 
 /** Named by the id the caller chose: every read carries it, so no run id or event id is needed. */
-val activity: Entity = Entity("activity", key = "activityId")
+val activity: Entity = Entity(key = "activityId")
 
 /** Whether the start request sets a deadline. */
 enum Timeout derives Finite:
@@ -82,7 +82,7 @@ val control = action(caller)
 
 // A retry shows the caller only the attempt count DescribeActivityExecution reports. The statuses
 // observe one status field; whether a catalog tells them apart is left to the realization.
-val attemptCount: Observation = Observation("attemptCount", activity, "attempt")
+val attemptCount: Observation = Observation(on = activity, read = "attempt")
 
 /** A step's outcome, shared by both machines by name. */
 enum Outcome derives Finite:
@@ -393,6 +393,6 @@ final case class StandaloneActivityState(activity: ProtocolState, worker: Worker
 // start is the worker serving, so an attempt has a row only while the worker polls.
 val standaloneActivity =
   compose[StandaloneActivityState](_.activity -> activityProtocol, _.worker -> activityWorker)
-    .sync("workerStop", _.activity -> workerStop, _.worker -> workerStop)
-    .sync("attemptStart", _.activity -> attemptStart, _.worker -> serve)
+    .sync(_.activity -> workerStop, _.worker -> workerStop)
+    .sync(_.activity -> attemptStart, _.worker -> serve)
     .ends(s => Protocol.terminal(s.activity.phase))

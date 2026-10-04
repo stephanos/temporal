@@ -34,10 +34,9 @@ def overQueueQueries(c: Composition[OverQueue]): Vector[Query] =
       duplicateDelivery limits three total 432,
     query(s"${c.name}.failedCommit") verify claims.failedCommit in
       duplicateDelivery limits three total 432,
-    query(s"${c.name}.any.notAdmittedWhilePaused") verify claims.notPaused in
-      any limits five total 9360,
-    query(s"${c.name}.any.atMostOneActive") verify claims.oneActive in any limits five total 9360,
-    query(s"${c.name}.any.terminalStays") verify claims.terminal in any limits five total 9360
+    query verify claims.notPaused in any limits five total 9360,
+    query verify claims.oneActive in any limits five total 9360,
+    query verify claims.terminal in any limits five total 9360
   )
 
 val currentOverQueueQueries = overQueueQueries(currentOverQueue)
@@ -90,11 +89,9 @@ def overMatchingQueries(c: Composition[OverMatching], anyTotal: Int): Vector[Que
       deliveredAgainAfterLostAck limits seven total 6480,
     query(s"${c.name}.crashAfterAdmissionCommit") verify claims.oneActive in
       crashAfterAdmissionCommit limits eight total 8640,
-    query(s"${c.name}.any.notAdmittedWhilePaused") verify claims.notPaused in
-      any limits twelve total anyTotal,
-    query(s"${c.name}.any.atMostOneActive") verify claims.oneActive in
-      any limits twelve total anyTotal,
-    query(s"${c.name}.any.terminalStays") verify claims.terminal in any limits twelve total anyTotal
+    query verify claims.notPaused in any limits twelve total anyTotal,
+    query verify claims.oneActive in any limits twelve total anyTotal,
+    query verify claims.terminal in any limits twelve total anyTotal
   )
 
 val currentOverMatchingQueries = overMatchingQueries(currentOverMatching, anyTotal = 233280)

@@ -7,7 +7,7 @@ package standaloneactivity
 import umpire.*
 import umpire.realize.{Conformance, Outcome, RunExpectation}
 import worker.{workerStop, Phase as WorkerPhase, State as WorkerState}
-import Timeout.{expires, unset}
+import Timeout.expires
 
 // What a live Run is expected to show, shared with the system contract's Queries.
 val satisfied = RunExpectation(Conformance.conformant, Outcome.satisfied)
@@ -19,17 +19,17 @@ val neverEvaluated =
 
 /**
  * The paths, kept apart from the Properties and Queries named after the same outcomes. Each starts
- * before the activity exists; a start that sets no deadline has its three inputs at `unset`.
+ * before the activity exists; a start that sets no deadline is `start()`, each input at `unset`.
  */
 object Paths:
   val completed = activityProtocol.scenario
-    .actions(start(unset, unset, unset), attemptStart, attemptResult(AttemptResult.completed))
+    .actions(start(), attemptStart, attemptResult(AttemptResult.completed))
 
   val nonRetryable = activityProtocol.scenario
-    .actions(start(unset, unset, unset), attemptStart, attemptResult(AttemptResult.failed(false)))
+    .actions(start(), attemptStart, attemptResult(AttemptResult.failed(false)))
 
   val retriedThenCompleted = activityProtocol.scenario.actions(
-    start(unset, unset, unset),
+    start(),
     attemptStart,
     attemptResult(AttemptResult.failed(true)),
     backoff,
@@ -38,7 +38,7 @@ object Paths:
   )
 
   val cancelRequestedThenCanceled = activityProtocol.scenario.actions(
-    start(unset, unset, unset),
+    start(),
     attemptStart,
     control(Control.requestCancel),
     attemptResult(AttemptResult.canceled)
@@ -46,10 +46,10 @@ object Paths:
 
   /** The worker stops before the start, so no attempt is in flight when the caller terminates. */
   val terminatedWhileScheduled = activityProtocol.scenario
-    .actions(start(unset, unset, unset), workerStop, control(Control.terminate))
+    .actions(start(), workerStop, control(Control.terminate))
 
   val pausedThenCompleted = activityProtocol.scenario.actions(
-    start(unset, unset, unset),
+    start(),
     control(Control.pause),
     control(Control.unpause),
     attemptStart,

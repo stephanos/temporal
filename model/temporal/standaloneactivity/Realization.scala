@@ -25,7 +25,7 @@ import temporal.server.api.testpilot.v1.{DeliveryAdmissionDecision, InstructionO
 import temporal.server.api.testpilot.v1.DeliveryAdmissionDecision.*
 
 import ActivityFamily.given
-import Timeout.{expires, unset}
+import Timeout.expires
 import worker.workerStop
 import admission.{admissionResponseLoss, dispatch, heldAdmission, AdmissionFact}
 import admission.AdmissionResponseFact
@@ -119,7 +119,7 @@ object ActivityRealization:
     perform(workerStop -> stopWorker),
     onPath(control(Control.pause))(stopWorkerUntilReleased),
     perform(
-      start(unset, unset, unset) -> startUnreached,
+      start() -> startUnreached,
       start(Inputs.scheduleToStart := expires) -> startUnreached.setting {
         field(_.getScheduleToStartTimeout.seconds) := deadline
       },

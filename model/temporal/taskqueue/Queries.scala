@@ -48,8 +48,7 @@ def providerQueries(
       afterDelivery limits seven total 180,
     query(s"${m.name}.crashAfterAcknowledgment") verify laws.committedStays in
       afterAcknowledgment limits seven total 180,
-    query(s"${m.name}.any.committedStays") verify laws.committedStays in
-      any limits twelve total anyTotal
+    query verify laws.committedStays in any limits twelve total anyTotal
   )
 
 // Eight bound actions for every provider but the lossy one, which binds storage loss as a ninth.
