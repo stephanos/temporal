@@ -1,0 +1,34 @@
+{
+  "commits": [],
+  "base_commit": "5b8261599475f0cef21b6c7d23d272fc9439b26f",
+  "status": "in_progress",
+  "tests": [
+    "Baseline (cwd tools/gomad3): env GOWORK=off GOTOOLCHAIN=local GOENV=off GOFLAGS= /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep . -run 'TestCurrentVocabularyHasNoLegacyCampaignBoundary|TestMakeTargetsMatchTheirOwnership' (exit 0)",
+    "Baseline (cwd tools/gomad3): env PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin GOWORK=off GOTOOLCHAIN=local GOENV=off GOFLAGS= make validate (exit 0)",
+    "Baseline: rg -n 'darwin/arm64|linux/amd64' tools/gomad3/SPEC.md tools/gomad3/ARCHITECTURE.md tools/gomad3/README.md (exit 0)",
+    "/home/agent/.codex/scripts/flowctl show fn-105-gomad-follow-ups-deferred-scope.5 --json (exit 0; blocked)",
+    "/home/agent/.codex/scripts/flowctl tasks --spec fn-111-gomad-consolidate-vocabulary-and-update --json (exit 0)",
+    "Pre-edit: python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-20/cli-inventory-correction/check.py (exit 1; all nine missing flag descriptions reproduced; other checks pass)",
+    "Final (cwd tools/gomad3): env GOWORK=off GOTOOLCHAIN=local GOENV=off GOFLAGS= /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -v -count=1 -tags test_dep . -run 'TestCurrentVocabularyHasNoLegacyCampaignBoundary|TestMakeTargetsMatchTheirOwnership' (exit 0; two tests pass)",
+    "Final (cwd tools/gomad3): env PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin GOWORK=off GOTOOLCHAIN=local GOENV=off GOFLAGS= make validate (exit 0)",
+    "Final: python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-20/cli-inventory-correction/check.py (exit 0)",
+    "git diff --check (exit 0)"
+  ],
+  "prs": [],
+  "review": {"mode": "codex", "dispatch": "conductor-deferred by explicit root override", "verdict": null},
+  "native_gates": {"darwin/arm64": "incomplete", "linux/amd64": "incomplete"},
+  "baseline": "green for admitted Quick commands; red missing-nine-flag documentation reproduction",
+  "delegated": 2,
+  "requested_model": "gpt-6.1-sol at high",
+  "executed_model_metadata": "unavailable",
+  "quick_receipts": "final-quick-receipts.json",
+  "document_check": "final-doc-check.json",
+  "baseline_reproduction": "baseline-doc-check.json",
+  "inventory": {"source_entries": 978, "changed": ["CLI.md"], "unchanged": 977, "protected_historical_artifacts": 2396},
+  "source_hashes": {
+    "tools/gomad3/CLI.md": "8184291764fed265523cb9407a288987210a6270293265dce3a152899c81aa47",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/documentation-evidence.md": "cbba93e5b2386fab23e440fb62448f680b1b6032cabd60c1d2dda83d48d6dde8",
+    "source-admission.md": "d822e4dd0bb94ebcd8929a5ff7f0c745d7dba692c07e88c8086f8b4eadbdb3d7"
+  },
+  "running_commands": []
+}

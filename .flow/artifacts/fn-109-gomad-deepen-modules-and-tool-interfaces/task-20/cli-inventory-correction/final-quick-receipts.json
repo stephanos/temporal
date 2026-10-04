@@ -1,0 +1,55 @@
+[
+  {
+    "name": "final-focused",
+    "argv": [
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "test",
+      "-v",
+      "-count=1",
+      "-tags",
+      "test_dep",
+      ".",
+      "-run",
+      "TestCurrentVocabularyHasNoLegacyCampaignBoundary|TestMakeTargetsMatchTheirOwnership"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+    "environment_overrides": {
+      "GOWORK": "off",
+      "GOTOOLCHAIN": "local",
+      "GOENV": "off",
+      "GOFLAGS": "",
+      "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin"
+    },
+    "started_at": "2026-10-04T10:34:23.501327+00:00",
+    "finished_at": "2026-10-04T10:34:23.831821+00:00",
+    "elapsed_seconds": 0.33044108300236985,
+    "exit_code": 0,
+    "source_before": "8c39e4e71a8fbe168d0e73d6242c04f2667a38d2decb314e2a3f921d1128af24",
+    "source_after": "8c39e4e71a8fbe168d0e73d6242c04f2667a38d2decb314e2a3f921d1128af24",
+    "log": "final-focused.log",
+    "log_sha256": "5631d13ca2971bd577c450d7f7c41d49f5f100e0ef8fde120604ac21d094fdf6"
+  },
+  {
+    "name": "final-validate",
+    "argv": [
+      "make",
+      "validate"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+    "environment_overrides": {
+      "GOWORK": "off",
+      "GOTOOLCHAIN": "local",
+      "GOENV": "off",
+      "GOFLAGS": "",
+      "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin"
+    },
+    "started_at": "2026-10-04T10:34:23.914911+00:00",
+    "finished_at": "2026-10-04T10:34:26.336447+00:00",
+    "elapsed_seconds": 2.4215344179974636,
+    "exit_code": 0,
+    "source_before": "8c39e4e71a8fbe168d0e73d6242c04f2667a38d2decb314e2a3f921d1128af24",
+    "source_after": "8c39e4e71a8fbe168d0e73d6242c04f2667a38d2decb314e2a3f921d1128af24",
+    "log": "final-validate.log",
+    "log_sha256": "23526df5ff015aa7ea83d107d454d6e79f077c768dd884efbc2fb73e7903b679"
+  }
+]

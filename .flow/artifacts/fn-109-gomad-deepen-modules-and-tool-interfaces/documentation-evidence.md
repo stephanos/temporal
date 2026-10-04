@@ -1,14 +1,49 @@
 # Task 20 current guidance evidence
 
 Task 20 documents the integrated owners and their intentional Go caller migrations.
-The five guides and fn-109's two permitted milestone status locations describe
-prepared source progress. At the documentation source freeze on 2026-10-04,
-task 20 is `in_progress`, fn-105.5 is blocked, and document review, predecessor
-formal/native gates, and final acceptance remain
-open. The [source admission](task-20/source-admission.md) does not waive them or
-admit task 21. Root owns commits and Flow lifecycle writes.
-Subsequent formal-review and lifecycle updates belong in
-`task-20/source-checkpoint.md`, which root will write for the source checkpoint.
+Its original guide checkpoint and verification below are dated source evidence.
+The later [formal review and open acceptance](task-20/acceptance-open.md) retain
+three SHIP draws for the recorded source range ending at
+`7cf8855c5e12280b4ff132e96e43fca9ac6b58c7`, including guide commit
+`2e96c6e17927985f9f72e79c91014d0d32f48850`.
+Task 21's [committed preservation audit](task-21/preservation-audit/report.md)
+subsequently identified nine existing public flags absent from CLI.md. The
+[correction admission](task-20/cli-inventory-correction/source-admission.md)
+resumes task 20 for that bounded documentation change. At the correction source
+freeze on 2026-10-04, task 20 was `in_progress` and its changed CLI guide awaited
+fresh review. The earlier SHIP
+does not review this correction. Root owns commits, review and Flow lifecycle
+writes. Native gates, R18/R19 reconciliation, inherited D5 qualification and
+fn-105.5 closure remain open.
+
+## CLI inventory correction (2026-10-04)
+
+The current [CLI guide](../../../tools/gomad3/CLI.md) describes each missing flag
+at the operation that accepts it, with source-verified syntax, defaults, bounds
+and effects. The [correction handover](task-20/cli-inventory-correction/handover.md)
+and [evidence](task-20/cli-inventory-correction/evidence.json) retain the new
+document hashes and bounded checks. The original task-21 audit stays unchanged
+as the finding's committed source; its nine-gap statement describes the guide
+before this correction.
+
+| Flag and accepted commands | Current CLI line | Registration, validation and consumer sources below `tools/gomad3` |
+| --- | --- | --- |
+| `--toolchain-root`, doctor/analyze/explore/plan/qualify/replay/minimize/resume/execute-shard | `CLI.md:72` | `cmd/gomad/internal/cli/cli.go:359,552,991,1043`, `qualify.go:53`, `analyze.go:87`, `resume.go:28`, `campaign_shards.go:30`; `toolchain/installation.go:38,119` |
+| `--terminate-grace`, explore/plan/qualify | `CLI.md:126` | `cmd/gomad/internal/cli/cli.go:548`, `qualify.go:51`; `runner/runner.go:1286`; `runner/internal/execution/supervisor_unix.go:270,309,343` |
+| `--env`, explore/plan/qualify | `CLI.md:155` | `cmd/gomad/internal/cli/cli.go:582`, `qualify.go:74`; `runner/runner.go:1410,1615` |
+| `--io-ro-mount`, explore/plan/qualify | `CLI.md:157` | `cmd/gomad/internal/cli/cli.go:584`, `qualify.go:76`; `deterministicio/readonlymount/config.go:16`, `capture.go:34,139`; `runner/portable_plan_mounts.go:45` |
+| `--world-transition-limit`, explore/plan/qualify | `CLI.md:159` | `cmd/gomad/internal/cli/cli.go:565,571`, `qualify.go:61,65`; `world/recording.go:184`; `runner/internal/execution/worldrecord.go:142` |
+| `--observed`, replay | `CLI.md:264` | `cmd/gomad/internal/cli/cli.go:992`; `runner/replay_operation.go:113,239,721` |
+| `--max-bytes`, minimize | `CLI.md:278` | `cmd/gomad/internal/cli/cli.go:51,1046,1047`; `runner/minimize_operation.go:95,148,208,635`; `artifact/store.go:153,278` |
+| `--min-free-bytes`, qualify-set | `CLI.md:325` | `cmd/gomad/internal/cli/qualify_set.go:37,38,64`; `qualification/set/freespace.go:13,18`; `qualification/set/set.go:510,596` |
+| `--prune-qualified-artifacts`, qualify-set | `CLI.md:327` | `cmd/gomad/internal/cli/qualify_set.go:35`; `qualification/set/set.go:536,605`; `qualification/set/prune.go:15,29,51` |
+
+Only CLI.md changes within the committed audit's 978-file current source
+inventory. Its other 977 entries, the original audit/report, prior review
+metadata and source-admission remain unchanged. Existing CLI shell examples,
+command index and SPEC IDs are preserved. This corrects documentation coverage;
+it does not reconcile the audit's Go-interface or recorded-identity gaps or
+establish native qualification.
 
 ## Reused guidance and current citations
 
@@ -20,8 +55,9 @@ explicitly marks those snapshots historical. Flow reports all three fn-111 tasks
 done. Those receipts are reused rather than rewritten or duplicated; their
 historical document hashes do not certify today's tree.
 
-Current source/doc reads confirm the already-correct statements below. Line
-numbers refer to the task-20 document hashes in its handover evidence.
+The original guide-checkpoint reads confirm the already-correct statements below.
+Line numbers refer to its task-20 document hashes; those cited files are unchanged
+by the CLI inventory correction.
 
 | Existing claim | Current file and line |
 | --- | --- |
@@ -94,7 +130,7 @@ no native soak bound is available. The current forward-clock guidance already
 describes the shared clock; the retained scouts' separate-offset discrepancy was
 resolved before this task's baseline and requires no new runtime change.
 
-## Verification and freeze
+## Original verification and freeze (2026-10-04)
 
 The task's focused vocabulary/Make ownership tests and `make validate` passed
 before edits and after guide freeze with pinned stock Go 1.27.1 on linux/arm64.
@@ -118,4 +154,9 @@ remain immutable. New guide/milestone hashes, exact commands, terminal results,
 timestamps, and logs are retained in [task-20 handover](task-20/handover.md) and
 [task-20 evidence](task-20/evidence.json). Conductor commits during this task
 touch only Flow records/artifacts and do not invalidate the unchanged-source
-baseline. Independent document review and formal review are still owed.
+baseline. Independent document review and formal review were still owed at
+that freeze. The subsequent source checkpoint and formal SHIP are retained in
+[source-checkpoint.md](task-20/source-checkpoint.md) and
+[acceptance-open.md](task-20/acceptance-open.md); they certify their recorded
+source. At the CLI correction source freeze on 2026-10-04, this correction had
+its own hashes and awaited fresh review.

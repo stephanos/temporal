@@ -1,0 +1,128 @@
+{
+  "passed": false,
+  "checks": [
+    {
+      "check": "detail:env",
+      "passed": false,
+      "detail": {
+        "paragraphs": 0,
+        "words": []
+      }
+    },
+    {
+      "check": "detail:io-ro-mount",
+      "passed": false,
+      "detail": {
+        "paragraphs": 0,
+        "words": []
+      }
+    },
+    {
+      "check": "detail:max-bytes",
+      "passed": false,
+      "detail": {
+        "paragraphs": 0,
+        "words": []
+      }
+    },
+    {
+      "check": "detail:min-free-bytes",
+      "passed": false,
+      "detail": {
+        "paragraphs": 0,
+        "words": []
+      }
+    },
+    {
+      "check": "detail:observed",
+      "passed": false,
+      "detail": {
+        "paragraphs": 0,
+        "words": []
+      }
+    },
+    {
+      "check": "detail:prune-qualified-artifacts",
+      "passed": false,
+      "detail": {
+        "paragraphs": 0,
+        "words": []
+      }
+    },
+    {
+      "check": "detail:terminate-grace",
+      "passed": false,
+      "detail": {
+        "paragraphs": 0,
+        "words": []
+      }
+    },
+    {
+      "check": "detail:toolchain-root",
+      "passed": false,
+      "detail": {
+        "paragraphs": 0,
+        "words": []
+      }
+    },
+    {
+      "check": "detail:world-transition-limit",
+      "passed": false,
+      "detail": {
+        "paragraphs": 0,
+        "words": []
+      }
+    },
+    {
+      "check": "shell_fences",
+      "passed": true,
+      "detail": 53
+    },
+    {
+      "check": "command_index",
+      "passed": true,
+      "detail": "exact bytes"
+    },
+    {
+      "check": "spec_ids",
+      "passed": true,
+      "detail": "SPEC unchanged"
+    },
+    {
+      "check": "fence_balance",
+      "passed": true,
+      "detail": "balanced"
+    },
+    {
+      "check": "local_links",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "check": "978_source_inventory",
+      "passed": true,
+      "detail": {
+        "files": 978,
+        "changed": []
+      }
+    },
+    {
+      "check": "historical_artifacts",
+      "passed": true,
+      "detail": {
+        "files": 2396,
+        "changed": []
+      }
+    },
+    {
+      "check": "allowed_tracked_diff",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "check": "root_owned_commits",
+      "passed": true,
+      "detail": "5b8261599475f0cef21b6c7d23d272fc9439b26f"
+    }
+  ]
+}

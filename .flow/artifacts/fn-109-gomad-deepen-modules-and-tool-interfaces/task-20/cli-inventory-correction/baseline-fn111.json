@@ -1,0 +1,34 @@
+{
+  "success": true,
+  "tasks": [
+    {
+      "id": "fn-111-gomad-consolidate-vocabulary-and-update.1",
+      "spec": "fn-111-gomad-consolidate-vocabulary-and-update",
+      "title": "Verify canonical vocabulary and preserve semantic identifiers",
+      "status": "done",
+      "priority": null,
+      "depends_on": []
+    },
+    {
+      "id": "fn-111-gomad-consolidate-vocabulary-and-update.2",
+      "spec": "fn-111-gomad-consolidate-vocabulary-and-update",
+      "title": "Reconcile guides and retain documentation acceptance evidence",
+      "status": "done",
+      "priority": null,
+      "depends_on": [
+        "fn-111-gomad-consolidate-vocabulary-and-update.1"
+      ]
+    },
+    {
+      "id": "fn-111-gomad-consolidate-vocabulary-and-update.3",
+      "spec": "fn-111-gomad-consolidate-vocabulary-and-update",
+      "title": "Refresh documentation acceptance against current behavior",
+      "status": "done",
+      "priority": null,
+      "depends_on": [
+        "fn-111-gomad-consolidate-vocabulary-and-update.2"
+      ]
+    }
+  ],
+  "count": 3
+}

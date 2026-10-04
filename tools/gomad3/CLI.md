@@ -69,6 +69,8 @@ tools/gomad3/.bin/gomad doctor
 
 `doctor` checks the host platform, resolved toolchain, Runner and boundary identities, deterministic-interaction adapters, and access to the Artifact root. It also explains where the installation came from and prints a location-specific repair when the complete contract is unavailable.
 
+Select an installation with `--toolchain-root=/absolute/toolchain/root` on `doctor`, `analyze`, `explore`, `plan`, `qualify`, `replay`, `minimize`, `resume`, or `execute-shard`. The default is empty, which resolves `GOMAD3_TOOLCHAIN_DIR`, then `gomad3-install.json` beside the executable or in its parent, then an adjacent `.toolchain` directory. An explicit flag takes precedence over those sources. Flag and environment roots must be absolute, clean, non-root paths without NUL bytes. Relative manifest roots resolve against the manifest directory; a malformed manifest fails instead of falling back. Selecting a different location does not bypass recorded toolchain-identity checks.
+
 For automation, request stable JSON and check the Artifact directory you intend to use:
 
 ```sh
@@ -121,6 +123,8 @@ tools/gomad3/.bin/gomad explore \
 
 Without an explicit selection, `explore` uses seed 1. Default concurrency is the smaller of the host CPU count and 8; the wall limits are 30 seconds per execution and 10 minutes overall. The test binary's `-test.timeout` measures virtual time, so it does not replace the wall watchdog.
 
+`explore`, `plan`, and `qualify` accept `--terminate-grace=DURATION`, default `2s`, using Go duration syntax such as `500ms`. The grace must be nonnegative and fit inside both execution and overall deadlines; zero is allowed. The supervisor reserves this time inside those deadlines, sends the process group SIGTERM, then SIGKILL if it remains after the available grace. A deadline below two seconds also requires a smaller grace.
+
 The default failure policy stops after the first retained failure. Use `--on-failure=budget --failure-budget=N` to stop after N distinct failure signatures, or `--on-failure=all` to finish the complete selection.
 
 Human-readable progress goes to stderr. The final classification, Campaign path, retained Artifact paths, and copy-paste replay commands go to stdout. The final classification distinguishes a target failure, watchdog observation, replay divergence, mixed failure, and success.
@@ -147,6 +151,12 @@ Choice recording defaults to 8 MiB and accepts at most `--choice-bytes=64MiB`; o
 With the default `--clock-tick=strict` policy, virtual time stands still while work is runnable, so repeated `time.Now` reads can tie; the runtime jumps to the earliest native timer deadline only when no goroutine is runnable. A test that orders records by timestamp may fail on those ties. Add `--clock-tick=forward` to `explore` or `qualify` to advance the process virtual clock by 1 to 1024 nanoseconds per `time.Now` read, using a separate seed-derived stream that consumes no scheduling draws. `time.Now`, monotonic elapsed time, timers, sleeps, context deadlines, and simulation time observe that shared clock. A draw can make a timer due while work is runnable; delivery occurs at the runtime's next timer check without skipping runnable work. Runtime-internal clock reads do not tick. Explicit `testing/synctest` bubbles keep their private clocks and take precedence over the process clock, and timestamps truncated above nanosecond resolution can still tie. The recorded environment binds the policy into Campaign, Artifact, and plan identity, and replay restores it. These source semantics do not establish workload repeatability or exact replay; the remaining qualification is recorded in the [milestones](../../MILESTONES.md#open-findings).
 
 To run a module that lives elsewhere, such as one that depends on the server through a local `replace`, pass `--working-dir=/absolute/module/root` instead of changing directories.
+
+On `explore`, `plan`, and `qualify`, repeat `--env=NAME=VALUE` to supply target environment entries; none are supplied by default. Names use ASCII letters, digits, and underscores and must start with a letter or underscore. Empty values and additional `=` characters in values are allowed. Duplicate names, missing `=`, NUL-containing values, reserved runtime/build controls such as `GOMADSEED`, `TZ`, `GODEBUG`, and `GOMAXPROCS`, and every `LD_` or `DYLD_` name are rejected. Targets see the explicit entries plus `TZ=UTC` from package initialization onward, with runtime controls hidden. These entries are recorded inputs restored by replay, resume, and shards.
+
+The same three commands accept repeatable `--io-ro-mount=HOST_DIRECTORY=TARGET_DIRECTORY`, with no mounts by default. Relative sources resolve against the target working directory, including `--working-dir`; absolute sources are accepted. Sources must be directories and their final component must not be a symlink. Destinations normalize into the virtual absolute namespace, so `fixtures` and `/fixtures` both name `/fixtures`; empty, root, escaping relative, and overlapping destinations are rejected. Execution lazily captures first observations, serves later reads from memory, and retains captured inputs for replay. Writes return `EROFS`; symlinks, hard-linked files, special entries, unstable captures, and capacity overflow fail closed. Capture limits are 4,096 path bytes, 100,000 requests, 10,000 captured entries, 100,000 directory entries, 16 MiB per file, and 64 MiB total. `plan` instead captures the configured trees into its portable bundle before execution.
+
+`--world-transition-limit=SIZE` on `explore`, `plan`, and `qualify` bounds encoded World transition bytes, with a default of `64MiB`. It accepts a positive decimal byte count with optional case-sensitive `KiB`, `MiB`, or `GiB`; zero, leading zeros, fractions, unknown suffixes, and uint64 overflow are invalid. No smaller flag-specific upper cap applies. Overflow of the recorded transition bound fails visibly; this bound is separate from World snapshot/model and I/O transcript limits. Plans retain the bound, and replay, resume, and shards restore it.
 
 Successful executions are discarded by default. Retain only successes that add coverage:
 
@@ -251,6 +261,8 @@ tools/gomad3/.bin/gomad replay \
 
 Replay never rebuilds from today's source tree and never substitutes live input. Reproducing a retained failure returns status 1 because the target-level failure still occurred; a matching retained success returns 0. Status 2 means the input or compatibility contract was invalid, while status 3 means replay infrastructure failed.
 
+Use `replay --observed=DIR` to write the replayed target's captured output to `DIR/stdout` and `DIR/stderr`. The default empty directory disables this output copy. Replay creates the directory and replaces existing files of those names; observation-write failure returns status 3. `--verify-only` checks the Artifact without executing the target and writes no observed streams.
+
 Read `choice-replay` in the result to distinguish recorded runtime Choice replay from seed-based repetition. An Artifact without a supported recorded Choice Trace cannot claim exact runtime Choice replay. A watchdog observation uses diagnostic replay and returns status 1 even when the observation matches; matching a wall-time termination does not prove exact replay.
 
 If the failure came from combined simulation and exact runtime and simulation replay are available, reduce it:
@@ -262,6 +274,8 @@ tools/gomad3/.bin/gomad minimize \
 ```
 
 `minimize` tries bounded candidates in fresh processes. It accepts a reduction only when the normalized failure, outcome, runtime choices, and simulation replay remain exact. The original Artifact stays immutable; the result records its parent and every accepted reduction. This command is currently specific to supported combined-simulation target failures, not a general-purpose test reducer.
+
+`minimize --max-bytes=SIZE` bounds the stored bytes of a newly published final minimized Artifact, including its manifest, target, and other payloads. Omission uses the parent Artifact's stored bytes plus 1 MiB, saturating at uint64 maximum. An explicit value must be a positive decimal byte count, optionally suffixed by case-sensitive `KiB`, `MiB`, or `GiB`; zero, leading zeros, malformed values, and overflow are rejected. Exceeding the final publication bound returns status 3. Intermediate candidates use their own parent-derived capacity, so this flag does not cap the entire minimizer workspace. If no reduction is accepted, the result references the unchanged parent without publishing a new Artifact.
 
 To continue an interrupted minimization, repeat the command with `--resume`, the same parent Artifact, `--artifacts` root, and bounds. The parent has its own persisted checkpoint under that root, including attempt order, consumed budget, accepted reductions, and replay evidence. Missing or corrupt state, changed identities or bounds, and concurrent writers are refused; resume does not reset the attempt budget.
 
@@ -307,6 +321,10 @@ tools/gomad3/.bin/gomad qualify-set \
 ```
 
 `qualify-set` analyzes every workload before executing any supported Target, checkpoints completed phases, retains unsupported analyses, and compares results with declared expectations.
+
+Before each supported seed starts, `qualify-set --min-free-bytes=SIZE` checks free space available to the current user on the Artifact volume. The default is `2GiB`; equality passes, while less free space stops further supported workloads, records infrastructure failure, and returns status 3. Values must be positive decimal bytes with optional case-sensitive `KiB`, `MiB`, or `GiB`; zero, leading zeros, malformed values, and uint64 overflow are rejected. `--check` validates the manifest without this execution-time space check.
+
+`qualify-set --prune-qualified-artifacts` is a boolean, false by default. Once a seed qualifies with successful replay configured and every retained execution's replay matches, the set checkpoints its evidence, deletes that seed's retained Campaigns, and keeps its qualification report. Other outcomes and workloads without successful replay keep their Campaigns. The set report records `qualified_artifacts_pruned` for the run and `artifacts_pruned` for each pruned seed; those deleted Artifacts cannot be replayed later. Pruning failure returns status 3.
 
 Capability support is the analysis claim. Equal independent repetitions establish
 same-seed repeatability, and `choice-replay=exact` establishes verified runtime

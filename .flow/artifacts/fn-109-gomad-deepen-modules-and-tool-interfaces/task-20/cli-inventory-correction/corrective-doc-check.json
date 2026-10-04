@@ -1,0 +1,658 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "check": "detail:env",
+      "passed": true,
+      "detail": {
+        "paragraphs": 1,
+        "required": [
+          "explore",
+          "plan",
+          "qualify",
+          "NAME=VALUE",
+          "none",
+          "ASCII",
+          "Duplicate",
+          "TZ=UTC"
+        ],
+        "doc_lines": [
+          155
+        ],
+        "sources": [
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 582,
+            "text": "\tflags.Var(&environment, \"env\", \"target NAME=VALUE\")",
+            "sha256": "234c3d5ce203142d1976db95efaa7f667ab8143fbc2ea25ef6abfdf4be76cdcb"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/qualify.go",
+            "line": 74,
+            "text": "\tflags.Var(&environment, \"env\", \"target NAME=VALUE\")",
+            "sha256": "5341cd12a9d71003f7cf68a60dc66f3ac0b29285bf9638a47b430ca6ba974939"
+          },
+          {
+            "path": "runner/runner.go",
+            "line": 1410,
+            "text": "func parseEnvironment(entries []string) ([]record.Environment, error) {",
+            "sha256": "bdf6d21c8e09713446a803bc112b48db4eb50718827129bd53d4617ce4ff606b"
+          }
+        ],
+        "registered": [
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 582,
+            "function": "func parseCampaignRequest(operation campaignOperation, arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) (request campaignRequest, status int, ok bool) {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad explore\", flag.ContinueOnError)",
+            "source": "flags.Var(&environment, \"env\", \"target NAME=VALUE\")"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/qualify.go",
+            "line": 74,
+            "function": "func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies qualifyDependencies) int {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad qualify\", flag.ContinueOnError)",
+            "source": "flags.Var(&environment, \"env\", \"target NAME=VALUE\")"
+          }
+        ]
+      }
+    },
+    {
+      "check": "detail:io-ro-mount",
+      "passed": true,
+      "detail": {
+        "paragraphs": 1,
+        "required": [
+          "same three commands",
+          "HOST_DIRECTORY=TARGET_DIRECTORY",
+          "no mounts",
+          "working-dir",
+          "symlink",
+          "overlapping",
+          "EROFS",
+          "16 MiB",
+          "64 MiB",
+          "plan"
+        ],
+        "doc_lines": [
+          157
+        ],
+        "sources": [
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 584,
+            "text": "\tflags.Var(&ioROMounts, \"io-ro-mount\", \"read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping\")",
+            "sha256": "234c3d5ce203142d1976db95efaa7f667ab8143fbc2ea25ef6abfdf4be76cdcb"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/qualify.go",
+            "line": 76,
+            "text": "\tflags.Var(&ioROMounts, \"io-ro-mount\", \"read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping\")",
+            "sha256": "5341cd12a9d71003f7cf68a60dc66f3ac0b29285bf9638a47b430ca6ba974939"
+          },
+          {
+            "path": "deterministicio/readonlymount/config.go",
+            "line": 16,
+            "text": "func ParseMappings(values []string, workingDirectory string) ([]Mapping, error) {",
+            "sha256": "bb6c04a25b7c6c2ecb2519e55517d75b19596bd503a26d71ec4697eeb9c5e72d"
+          },
+          {
+            "path": "deterministicio/readonlymount/capture.go",
+            "line": 34,
+            "text": "func DefaultLimits() Limits {",
+            "sha256": "2c59456f395472f01c7b7bfaddeca2be50f82f7667b7e09d4d68fb9ecd744784"
+          },
+          {
+            "path": "runner/portable_plan_mounts.go",
+            "line": 45,
+            "text": "func captureCampaignPlanMounts(mappings []readonlymount.Mapping, limits readonlymount.Limits) (*campaignPlanMountIdentity, *readonlymount.CapturedInputs, error) {",
+            "sha256": "225b36fed673a8ce2a7ba3c09b8253c3bad26d2b59e09d9b2fe0614b05861cac"
+          }
+        ],
+        "registered": [
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 584,
+            "function": "func parseCampaignRequest(operation campaignOperation, arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) (request campaignRequest, status int, ok bool) {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad explore\", flag.ContinueOnError)",
+            "source": "flags.Var(&ioROMounts, \"io-ro-mount\", \"read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping\")"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/qualify.go",
+            "line": 76,
+            "function": "func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies qualifyDependencies) int {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad qualify\", flag.ContinueOnError)",
+            "source": "flags.Var(&ioROMounts, \"io-ro-mount\", \"read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping\")"
+          }
+        ]
+      }
+    },
+    {
+      "check": "detail:max-bytes",
+      "passed": true,
+      "detail": {
+        "paragraphs": 1,
+        "required": [
+          "minimize",
+          "SIZE",
+          "final",
+          "manifest",
+          "1 MiB",
+          "uint64",
+          "positive",
+          "GiB",
+          "status 3",
+          "Intermediate",
+          "unchanged parent"
+        ],
+        "doc_lines": [
+          278
+        ],
+        "sources": [
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 1047,
+            "text": "\tflags.Var(&maximumBytes, \"max-bytes\", \"maximum minimized artifact bytes\")",
+            "sha256": "234c3d5ce203142d1976db95efaa7f667ab8143fbc2ea25ef6abfdf4be76cdcb"
+          },
+          {
+            "path": "runner/minimize_operation.go",
+            "line": 208,
+            "text": "\tmaximumBytes := session.config.MaximumBytes",
+            "sha256": "758cc37786e21093a9e4c1833eab3feb10e571c2aa9bb029024d52b71359f346"
+          },
+          {
+            "path": "runner/minimize_operation.go",
+            "line": 635,
+            "text": "func defaultMinimizedArtifactBytes(parent uint64) uint64 {",
+            "sha256": "758cc37786e21093a9e4c1833eab3feb10e571c2aa9bb029024d52b71359f346"
+          }
+        ],
+        "registered": [
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 1047,
+            "function": "func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies minimizeDependencies) int {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad minimize\", flag.ContinueOnError)",
+            "source": "flags.Var(&maximumBytes, \"max-bytes\", \"maximum minimized artifact bytes\")"
+          }
+        ]
+      }
+    },
+    {
+      "check": "detail:min-free-bytes",
+      "passed": true,
+      "detail": {
+        "paragraphs": 1,
+        "required": [
+          "qualify-set",
+          "SIZE",
+          "current user",
+          "2GiB",
+          "equality",
+          "status 3",
+          "positive",
+          "GiB",
+          "--check"
+        ],
+        "doc_lines": [
+          325
+        ],
+        "sources": [
+          {
+            "path": "cmd/gomad/internal/cli/qualify_set.go",
+            "line": 38,
+            "text": "\tflags.Var(&minimumFree, \"min-free-bytes\", \"stop before a seed starts on an artifact volume with less free space\")",
+            "sha256": "669212c8024869190962c249aefd61fbe82170d8d57ce334aed8c4896762317c"
+          },
+          {
+            "path": "qualification/set/freespace.go",
+            "line": 13,
+            "text": "const DefaultMinimumFreeBytes = 2 << 30",
+            "sha256": "8ae74a4ff02de1e1c5d82908025d87c2e9fc99ace13ccd714025fefea3e41eac"
+          },
+          {
+            "path": "qualification/set/set.go",
+            "line": 596,
+            "text": "\tif free < config.MinimumFreeBytes {",
+            "sha256": "d265371add654eb4ba89e40da106e1ab7a8aa62a0c6b8fbed143fbc00e75654f"
+          }
+        ],
+        "registered": [
+          {
+            "path": "cmd/gomad/internal/cli/qualify_set.go",
+            "line": 38,
+            "function": "func runQualifySetWith(arguments []string, stdout, stderr io.Writer, dependencies qualifySetDependencies) int {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad qualify-set\", flag.ContinueOnError)",
+            "source": "flags.Var(&minimumFree, \"min-free-bytes\", \"stop before a seed starts on an artifact volume with less free space\")"
+          }
+        ]
+      }
+    },
+    {
+      "check": "detail:observed",
+      "passed": true,
+      "detail": {
+        "paragraphs": 1,
+        "required": [
+          "replay",
+          "DIR",
+          "stdout",
+          "stderr",
+          "default empty",
+          "replaces",
+          "status 3",
+          "--verify-only"
+        ],
+        "doc_lines": [
+          264
+        ],
+        "sources": [
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 992,
+            "text": "\tobservedDir := flags.String(\"observed\", \"\", \"directory that receives the replayed target's stdout and stderr\")",
+            "sha256": "234c3d5ce203142d1976db95efaa7f667ab8143fbc2ea25ef6abfdf4be76cdcb"
+          },
+          {
+            "path": "runner/replay_operation.go",
+            "line": 113,
+            "text": "\tif config.VerifyOnly {",
+            "sha256": "24dbae80d5175671d6b89c163e35df3ab459c17afc5662ef2ad73110538bdb49"
+          },
+          {
+            "path": "runner/replay_operation.go",
+            "line": 721,
+            "text": "func dumpObservedStreams(directory string, observed execution.Result) error {",
+            "sha256": "24dbae80d5175671d6b89c163e35df3ab459c17afc5662ef2ad73110538bdb49"
+          }
+        ],
+        "registered": [
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 992,
+            "function": "func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies replayDependencies) int {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad replay\", flag.ContinueOnError)",
+            "source": "observedDir := flags.String(\"observed\", \"\", \"directory that receives the replayed target's stdout and stderr\")"
+          }
+        ]
+      }
+    },
+    {
+      "check": "detail:prune-qualified-artifacts",
+      "passed": true,
+      "detail": {
+        "paragraphs": 1,
+        "required": [
+          "qualify-set",
+          "boolean",
+          "false",
+          "replay matches",
+          "checkpoints",
+          "deletes",
+          "keeps",
+          "artifacts_pruned",
+          "status 3"
+        ],
+        "doc_lines": [
+          327
+        ],
+        "sources": [
+          {
+            "path": "cmd/gomad/internal/cli/qualify_set.go",
+            "line": 35,
+            "text": "\tpruneQualified := flags.Bool(\"prune-qualified-artifacts\", false, \"delete each qualified seed's retained Campaigns once its evidence is final\")",
+            "sha256": "669212c8024869190962c249aefd61fbe82170d8d57ce334aed8c4896762317c"
+          },
+          {
+            "path": "qualification/set/set.go",
+            "line": 536,
+            "text": "\t\t\t\tseedReport.ArtifactsPruned = evidenceErr == nil && config.PruneQualifiedArtifacts && workload.ReplaySuccesses && classification == \"qualified\"",
+            "sha256": "d265371add654eb4ba89e40da106e1ab7a8aa62a0c6b8fbed143fbc00e75654f"
+          },
+          {
+            "path": "qualification/set/set.go",
+            "line": 605,
+            "text": "func recordSeed(ctx context.Context, config Spec, report *Report, index int, seedReport SeedReport, opened qualification.QualificationReport) error {",
+            "sha256": "d265371add654eb4ba89e40da106e1ab7a8aa62a0c6b8fbed143fbc00e75654f"
+          },
+          {
+            "path": "qualification/set/prune.go",
+            "line": 29,
+            "text": "\t\tif run.ArtifactPath == \"\" || run.Replay == nil || !run.Replay.Attempted || !run.Replay.Match {",
+            "sha256": "781d1295f2ef67eaaf6e381299ab1c3fa0da58b350bc99e9483d645f49c66e99"
+          }
+        ],
+        "registered": [
+          {
+            "path": "cmd/gomad/internal/cli/qualify_set.go",
+            "line": 35,
+            "function": "func runQualifySetWith(arguments []string, stdout, stderr io.Writer, dependencies qualifySetDependencies) int {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad qualify-set\", flag.ContinueOnError)",
+            "source": "pruneQualified := flags.Bool(\"prune-qualified-artifacts\", false, \"delete each qualified seed's retained Campaigns once its evidence is final\")"
+          }
+        ]
+      }
+    },
+    {
+      "check": "detail:terminate-grace",
+      "passed": true,
+      "detail": {
+        "paragraphs": 1,
+        "required": [
+          "explore",
+          "plan",
+          "qualify",
+          "DURATION",
+          "2s",
+          "nonnegative",
+          "both",
+          "zero",
+          "SIGTERM",
+          "SIGKILL"
+        ],
+        "doc_lines": [
+          126
+        ],
+        "sources": [
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 548,
+            "text": "\tterminateGrace := flags.Duration(\"terminate-grace\", 2*time.Second, \"termination grace inside deadlines\")",
+            "sha256": "234c3d5ce203142d1976db95efaa7f667ab8143fbc2ea25ef6abfdf4be76cdcb"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/qualify.go",
+            "line": 51,
+            "text": "\tterminateGrace := flags.Duration(\"terminate-grace\", 2*time.Second, \"termination grace inside deadlines\")",
+            "sha256": "5341cd12a9d71003f7cf68a60dc66f3ac0b29285bf9638a47b430ca6ba974939"
+          },
+          {
+            "path": "runner/runner.go",
+            "line": 1286,
+            "text": "\tif config.ExecutionTimeout <= 0 || config.OverallTimeout <= 0 {",
+            "sha256": "bdf6d21c8e09713446a803bc112b48db4eb50718827129bd53d4617ce4ff606b"
+          },
+          {
+            "path": "runner/internal/execution/supervisor_unix.go",
+            "line": 309,
+            "text": "\t\tsignal := syscall.SIGTERM",
+            "sha256": "7f7155151a4fedb732891bb458f15bab9bd27b5857d5ad0f0aafd03825ebac70"
+          }
+        ],
+        "registered": [
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 548,
+            "function": "func parseCampaignRequest(operation campaignOperation, arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) (request campaignRequest, status int, ok bool) {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad explore\", flag.ContinueOnError)",
+            "source": "terminateGrace := flags.Duration(\"terminate-grace\", 2*time.Second, \"termination grace inside deadlines\")"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/qualify.go",
+            "line": 51,
+            "function": "func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies qualifyDependencies) int {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad qualify\", flag.ContinueOnError)",
+            "source": "terminateGrace := flags.Duration(\"terminate-grace\", 2*time.Second, \"termination grace inside deadlines\")"
+          }
+        ]
+      }
+    },
+    {
+      "check": "detail:toolchain-root",
+      "passed": true,
+      "detail": {
+        "paragraphs": 1,
+        "required": [
+          "doctor",
+          "analyze",
+          "explore",
+          "plan",
+          "qualify",
+          "replay",
+          "minimize",
+          "resume",
+          "execute-shard",
+          "default is empty",
+          "GOMAD3_TOOLCHAIN_DIR",
+          "gomad3-install.json",
+          "precedence",
+          "absolute",
+          "clean",
+          "non-root"
+        ],
+        "doc_lines": [
+          72
+        ],
+        "sources": [
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 359,
+            "text": "\ttoolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")",
+            "sha256": "234c3d5ce203142d1976db95efaa7f667ab8143fbc2ea25ef6abfdf4be76cdcb"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/analyze.go",
+            "line": 87,
+            "text": "\ttoolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")",
+            "sha256": "7e713f02bfe6ca883180453b0def87c82c8911b77c548db1d517ad230acbac97"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/qualify.go",
+            "line": 53,
+            "text": "\ttoolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")",
+            "sha256": "5341cd12a9d71003f7cf68a60dc66f3ac0b29285bf9638a47b430ca6ba974939"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/resume.go",
+            "line": 28,
+            "text": "\ttoolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")",
+            "sha256": "a436920f858980998e273d7f01df5759857ddf7cef1e01062e31d3801299d031"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/campaign_shards.go",
+            "line": 30,
+            "text": "\ttoolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")",
+            "sha256": "e66953cabcb828e9c6f813705754ba09775d8edb33b8e1fae32aa0f45f84e8c6"
+          },
+          {
+            "path": "toolchain/installation.go",
+            "line": 38,
+            "text": "func ResolveInstallation(config InstallationSpec) (Installation, error) {",
+            "sha256": "dd96f7bcdbf5d0aa3c616af2d6fc87a9482d3eb6beed789c8ebab52eddfe88f1"
+          },
+          {
+            "path": "toolchain/installation.go",
+            "line": 119,
+            "text": "\t\treturn manifest{}, false, nil",
+            "sha256": "dd96f7bcdbf5d0aa3c616af2d6fc87a9482d3eb6beed789c8ebab52eddfe88f1"
+          }
+        ],
+        "registered": [
+          {
+            "path": "cmd/gomad/internal/cli/analyze.go",
+            "line": 87,
+            "function": "func parseAnalyzeArguments(arguments []string, stderr io.Writer) (analyzeArguments, int) {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad analyze\", flag.ContinueOnError)",
+            "source": "toolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/campaign_shards.go",
+            "line": 30,
+            "function": "func runCampaignShardWith(arguments []string, stdout, stderr io.Writer, dependencies campaignShardDependencies) int {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad execute-shard\", flag.ContinueOnError)",
+            "source": "toolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 359,
+            "function": "func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) int {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad doctor\", flag.ContinueOnError)",
+            "source": "toolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 552,
+            "function": "func parseCampaignRequest(operation campaignOperation, arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) (request campaignRequest, status int, ok bool) {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad explore\", flag.ContinueOnError)",
+            "source": "toolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 991,
+            "function": "func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies replayDependencies) int {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad replay\", flag.ContinueOnError)",
+            "source": "toolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 1043,
+            "function": "func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies minimizeDependencies) int {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad minimize\", flag.ContinueOnError)",
+            "source": "toolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/qualify.go",
+            "line": 53,
+            "function": "func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies qualifyDependencies) int {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad qualify\", flag.ContinueOnError)",
+            "source": "toolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/resume.go",
+            "line": 28,
+            "function": "func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies resumeDependencies) int {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad resume\", flag.ContinueOnError)",
+            "source": "toolchainRoot := flags.String(\"toolchain-root\", \"\", \"absolute pinned toolchain root\")"
+          }
+        ]
+      }
+    },
+    {
+      "check": "detail:world-transition-limit",
+      "passed": true,
+      "detail": {
+        "paragraphs": 1,
+        "required": [
+          "explore",
+          "plan",
+          "qualify",
+          "SIZE",
+          "encoded",
+          "bytes",
+          "64MiB",
+          "positive",
+          "GiB",
+          "overflow",
+          "snapshot/model"
+        ],
+        "doc_lines": [
+          159
+        ],
+        "sources": [
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 571,
+            "text": "\tflags.Var(&worldLimit, \"world-transition-limit\", \"World transition capacity\")",
+            "sha256": "234c3d5ce203142d1976db95efaa7f667ab8143fbc2ea25ef6abfdf4be76cdcb"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/qualify.go",
+            "line": 65,
+            "text": "\tflags.Var(&worldLimit, \"world-transition-limit\", \"World transition capacity\")",
+            "sha256": "5341cd12a9d71003f7cf68a60dc66f3ac0b29285bf9638a47b430ca6ba974939"
+          },
+          {
+            "path": "world/recording.go",
+            "line": 184,
+            "text": "func (w *Model) checkRecordingTransition(transition Transition) error {",
+            "sha256": "fc00c9af42ebb2cb74fa593b9c026205a2df19bf4634e99a532f697c7fb4fc27"
+          },
+          {
+            "path": "runner/internal/execution/worldrecord.go",
+            "line": 142,
+            "text": "\ttransitionBytes, err := world.EncodeTransitions(delta)",
+            "sha256": "45f18b3c145cb0ce36dd837c3f837b6d3bec26f4c44eb427b5749232538eb882"
+          }
+        ],
+        "registered": [
+          {
+            "path": "cmd/gomad/internal/cli/cli.go",
+            "line": 571,
+            "function": "func parseCampaignRequest(operation campaignOperation, arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) (request campaignRequest, status int, ok bool) {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad explore\", flag.ContinueOnError)",
+            "source": "flags.Var(&worldLimit, \"world-transition-limit\", \"World transition capacity\")"
+          },
+          {
+            "path": "cmd/gomad/internal/cli/qualify.go",
+            "line": 65,
+            "function": "func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies qualifyDependencies) int {",
+            "flagset": "flags := flag.NewFlagSet(\"gomad qualify\", flag.ContinueOnError)",
+            "source": "flags.Var(&worldLimit, \"world-transition-limit\", \"World transition capacity\")"
+          }
+        ]
+      }
+    },
+    {
+      "check": "shell_fences",
+      "passed": true,
+      "detail": 53
+    },
+    {
+      "check": "command_index",
+      "passed": true,
+      "detail": "exact bytes"
+    },
+    {
+      "check": "spec_ids",
+      "passed": true,
+      "detail": "SPEC unchanged"
+    },
+    {
+      "check": "fence_balance",
+      "passed": true,
+      "detail": "balanced"
+    },
+    {
+      "check": "local_links",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "check": "978_source_inventory",
+      "passed": true,
+      "detail": {
+        "files": 978,
+        "changed": [
+          "CLI.md"
+        ]
+      }
+    },
+    {
+      "check": "historical_artifacts",
+      "passed": true,
+      "detail": {
+        "files": 2396,
+        "changed": []
+      }
+    },
+    {
+      "check": "admission_identity",
+      "passed": true,
+      "detail": "root-owned source-admission.md"
+    },
+    {
+      "check": "allowed_tracked_diff",
+      "passed": true,
+      "detail": [
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/documentation-evidence.md",
+        "tools/gomad3/CLI.md"
+      ]
+    },
+    {
+      "check": "root_owned_commits",
+      "passed": true,
+      "detail": "5b8261599475f0cef21b6c7d23d272fc9439b26f"
+    }
+  ]
+}

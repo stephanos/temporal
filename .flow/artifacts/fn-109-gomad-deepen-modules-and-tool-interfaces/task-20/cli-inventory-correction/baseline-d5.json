@@ -1,0 +1,20 @@
+{
+  "success": true,
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-30T03:01:43.910114Z",
+  "depends_on": [],
+  "id": "fn-105-gomad-follow-ups-deferred-scope.5",
+  "impl": null,
+  "priority": null,
+  "review": null,
+  "spec": "fn-105-gomad-follow-ups-deferred-scope",
+  "spec_path": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.5.md",
+  "status": "blocked",
+  "sync": null,
+  "title": "D5: reconcile architecture, platform, and determinism documentation",
+  "updated_at": "2026-10-04T09:15:38.359139Z",
+  "blocked_reason": "# D5 qualification remains open after documentation review\n\nTask 20's current guidance and migrations passed formal implementation review.\nAll three Codex draws returned SHIP without findings, and flowctl finalized the\nmerged receipt `task-20/formal-review-receipt.json` on 2026-10-04 at 09:11:21 UTC.\nThe retained draw metadata confirms gpt-6.1-sol at high effort. This is a\nsame-family review. R9 documentation is met in each draw's coverage table.\n\nThe reviewed range is `c656d9c61c269cc62684c39031732c029d45fbf7` through\n`7cf8855c5e12280b4ff132e96e43fca9ac6b58c7`, including source checkpoint\n`2e96c6e17927985f9f72e79c91014d0d32f48850`. The conductor read every draw,\nkept no findings because none were returned, and finalized the empty merge plan.\nThe first round had no failed draw, retry, optional pass or receipt override.\nFlow reports no pending round or reservation; its zero round counter follows\nthe finalizer's normal SHIP reset, not a conductor-authored reset.\n\nTask 20 also requires closure of fn-105.5 by reference. Fn-105.5 explicitly\ninherits original fn-102 R6, whose task 6 requires both-platform integrated\nvalidation and 10/100-job bound evidence. The current linux/arm64 host has no\npatched toolchain and qualifies neither darwin/arm64 nor linux/amd64. The\nmatched current-tree bounded measurements and integrated native results remain\nmissing. Task 21 owns final verification and returns any production gap to its\nimplementation owner. Task 19's formal verdict also remains absent.\n\nKeep task 20 and fn-105.5 acceptance blocked on those remaining obligations.\nDo not close the transferred D5 task merely because its documentation review\npassed. Both tasks retain their original criteria and single ownership. Task\n21 remains todo and unadmitted at this checkpoint; MILESTONES item 4 permits\nits later evidence/source work after this integrated and reviewed checkpoint,\nwhile required qualification stays open.\n\nThe full reviewer messages and metadata are retained beside this report. Their\nraw CLI output remains local under `.flow/review-fanout/22e75a53e12345df9db888ccc682aa1f/`;\n`formal-review-raw-output.sha256` retains its identities. These 1.55 MB of raw\noutput are omitted from the commit. Extracted reviews and parsed receipt fields\nare retained without changing their contents.\n\nstage: impl-review - ran [2026-10-04T09:06:48.573245Z..2026-10-04T09:11:21.504983Z] (model: gpt-6.1-sol)\n\nNo native gate, soak bound, task completion or merged PR follows from SHIP.\nTask 19's original publication failure remains intact. Task 20's successful\ndispatch proves its own review worked and does not diagnose that earlier failure.",
+  "status_source": "flow-state"
+}
