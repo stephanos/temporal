@@ -1,0 +1,4 @@
+COMMAND: env GOROOT=/tmp/gomad-task17.WFwzYI/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task17.WFwzYI/go/bin/go test -race -count=1 -tags test_dep internal/gomadio -run NetworkHandle\(Local\|Deadline\)\|ProcessNetwork
+ok  	internal/gomadio	1.010s
+ELAPSED_SECONDS=5.320
+EXIT_CODE=0

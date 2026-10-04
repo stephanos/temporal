@@ -1,0 +1,450 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.17",
+  "recorded_at_utc": "2026-10-04T02:48:51Z",
+  "base_head": "0dd05b313acd0986312da7fd3159520e6a21f1bf",
+  "branch": "gomad",
+  "status": "in_progress",
+  "commits": [],
+  "source_frozen": true,
+  "live_commands": [],
+  "native_acceptance": false,
+  "source_review": "parent fresh frozen-source and correction delta audits pending; final Makefile gate-selection finding reconciled with RED/GREEN",
+  "handover": "handover.md",
+  "changed_files": [
+    {
+      "path": "tools/gomad3/network_handles_ownership_test.go",
+      "sha256": "819c8ee11a5425f5cf483f3a3ca0b3230ff60ba52aae9db929edc3ec75309b35"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_root_integration_test.go",
+      "sha256": "bc4c86b6210232026f0eb94edbee209fa9817a62b66d58a2da7b627e9bbbf833"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go",
+      "sha256": "57b98bb88190fac515b758d07be31e8c9d428a16159a07d4f754ef2dd39b9356"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go",
+      "sha256": "cfead548fb2ecf987d4314d34fa2be1161bb1941786e2ba08dc7bfcdb0b59fba"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_network.go",
+      "sha256": "584ac64bf45d35e0f89453f732acc22448d244be2984e284743b23c6c142acf1"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_commands_export_test.go",
+      "sha256": "37a1aa079922906b97f94e178fe65b82da6225eb7cbd4f172bf89ebe03eeec97"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go",
+      "sha256": "a8dd8cf68d3d50679e2a0ca839e602bb1bf7f20a9e8eabc8e9427bd35c92624d"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go",
+      "sha256": "b38594b3713a73f7c0bc1e2b06890ab4c27f9ee60efd6bf7ae23504e88c3a1e7"
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/version.json",
+      "sha256": "75d2429a49e42df374e2fc2b77710d1694322c5198a4b54f6c9bfb95ab88c8de"
+    },
+    {
+      "path": "tools/gomad3/choice/internal/wire/wire_generated.go",
+      "sha256": "d4e6f2bd689bda6730106968635b40d26edb4e8d460429c8336614d933369fbc"
+    },
+    {
+      "path": "tools/gomad3/target/internal/livecap/protocol_generated.go",
+      "sha256": "6dcb24fab85bbf42d195f6db023ac2cbd280ba85712b9f764903c96bcf2140af"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+      "sha256": "204e501a19e6229aa285cbf5b12fc478b270fc7a8d0f401a655e311622cdbddd"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go",
+      "sha256": "a4ea7fd30686e2369f3adf48366a0c704a9920ad88e1ffa2b18247e8e2b4d56a"
+    },
+    {
+      "path": "tools/gomad3sim/network_handles_toolchain_test.go",
+      "sha256": "dce395ca9c04360dbea1d0963697b9a2be5b69edeefe2d2d90d67b57106f096d"
+    },
+    {
+      "path": "tools/gomad3sim/network_process_handles_toolchain_test.go",
+      "sha256": "61908294fa667549a3c3fd310f5358ce4d50c3ed552ce7860bb117cd014200de"
+    },
+    {
+      "path": "tools/gomad3/Makefile",
+      "sha256": "28318e32d3360cfcd644298944e864e704670ac80f55c550d32461a55afc8497"
+    },
+    {
+      "path": "tools/gomad3/simulation_gate_selection_test.go",
+      "sha256": "57febc14101facc1b4db77ba3f8dba55669e51036e23790eb1372c27dec38bbb"
+    }
+  ],
+  "final_source_manifest": {
+    "path": "final-source-post-correction.sha256",
+    "sha256": "1692362f697d85d42aeabf6b96e878e77245c03848280e0ac7b72cf6bd487095",
+    "verification": "original 15 hashes all OK after correction; complete final 17 checked at handoff"
+  },
+  "baseline": {
+    "record": "baseline-quick.md",
+    "manifest": "baseline-source.sha256",
+    "sha256": "b598ff327e7a4b675aa1922f0f187743c27cc99e6d020ff798431cc8492fac13",
+    "snapshot": "/tmp/gomad-task17.WFwzYI/baseline-overlay",
+    "descriptor_snapshot": "/tmp/gomad-task17.WFwzYI/baseline-version",
+    "scope": "actual dirty/new task-14 candidate; not HEAD-only"
+  },
+  "test_first": {
+    "initial_ast_red": {
+      "log": "ownership-red.log",
+      "exit_code": 1,
+      "meaning": "old optional-state source rejected by AST ownership assertions"
+    },
+    "final_guard_on_old_source": {
+      "log": "ownership-old-finalguard.log",
+      "exit_code": 1,
+      "elapsed_seconds": 0.624,
+      "meaning": "final guard rejected old optional-state source without compilation failure"
+    },
+    "initial_behavior_on_old_source": {
+      "log": "behavior-baseline.log",
+      "exit_code": 0,
+      "scope": "DEVELOPMENTAL"
+    },
+    "final_behavior_on_old_source": {
+      "log": "behavior-old-finalcases.log",
+      "exit_code": 0,
+      "elapsed_seconds": 0.405,
+      "scope": "DEVELOPMENTAL final direct behavior characterization"
+    },
+    "final_green": "architecture.log, developmental-overlay.log"
+  },
+  "commands": [
+    {
+      "name": "architecture",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep . -run 'NetworkHandles|ProcessCommands|PackageArchitecture'",
+      "log": "architecture.log",
+      "exit_code": 0,
+      "elapsed_seconds": 2.802,
+      "scope": "stock architectural/codec source tests"
+    },
+    {
+      "name": "generation-tests",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep ./internal/gomadtool/generation/... ./toolchain/version",
+      "log": "generation-tests.log",
+      "exit_code": 0,
+      "elapsed_seconds": 1.183,
+      "scope": "stock generation/version unit tests"
+    },
+    {
+      "name": "developmental-overlay",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "command": "env GOROOT=/tmp/gomad-task17.WFwzYI/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task17.WFwzYI/go/bin/go test -count=1 -tags test_dep internal/gomadio internal/gomadfs internal/gomadmodelwire",
+      "log": "developmental-overlay.log",
+      "exit_code": 0,
+      "elapsed_seconds": 0.651,
+      "scope": "DEVELOPMENTAL adapter/model tests; runtime stand-ins"
+    },
+    {
+      "name": "developmental-repeat",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "command": "env GOROOT=/tmp/gomad-task17.WFwzYI/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task17.WFwzYI/go/bin/go test -count=20 -tags test_dep internal/gomadio -run 'NetworkHandle|ProcessNetwork'",
+      "log": "developmental-repeat.log",
+      "exit_code": 0,
+      "elapsed_seconds": 0.122,
+      "scope": "DEVELOPMENTAL adapter/model repeats"
+    },
+    {
+      "name": "developmental-race",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "command": "env GOROOT=/tmp/gomad-task17.WFwzYI/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task17.WFwzYI/go/bin/go test -race -count=1 -tags test_dep internal/gomadio -run 'NetworkHandle(Local|Deadline)|ProcessNetwork'",
+      "log": "developmental-race.log",
+      "exit_code": 0,
+      "elapsed_seconds": 5.32,
+      "scope": "DEVELOPMENTAL scoped local/host race tests, not simulated scheduler qualification"
+    },
+    {
+      "name": "root-developmental-link",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "command": "env GOROOT=/tmp/gomad-task17.WFwzYI/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task17.WFwzYI/go/bin/go test -c -tags test_dep,gomad3_toolchain -o /tmp/gomad-task17.WFwzYI/root-developmental.test ./tools/gomad3sim",
+      "log": "root-developmental-link.log",
+      "exit_code": 0,
+      "elapsed_seconds": 0.792,
+      "scope": "compile/link only; no test execution"
+    },
+    {
+      "name": "root-vet",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go vet -tags test_dep,gomad3_toolchain ./tools/gomad3sim",
+      "log": "root-vet.log",
+      "exit_code": 0,
+      "elapsed_seconds": 1.003,
+      "scope": "static vet only"
+    },
+    {
+      "name": "runner-integration-compile",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -c -tags test_dep,integration -o /tmp/gomad-task17.WFwzYI/runner-integration.test ./runner/internal/execution",
+      "log": "runner-integration-compile.log",
+      "exit_code": 0,
+      "elapsed_seconds": 0.614,
+      "scope": "compile only; no integration/process execution"
+    },
+    {
+      "name": "native-toolchain",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "env PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH bash -c 'make toolchain && make overlay-test'",
+      "log": "native-toolchain.log",
+      "exit_code": 2,
+      "elapsed_seconds": 1.331,
+      "scope": "actual native builder rejects linux/arm64; literal expanded PATH retained in log"
+    },
+    {
+      "name": "diff-check",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "command": "git diff --check",
+      "log": "diff-check.log",
+      "exit_code": 0,
+      "elapsed_seconds": 0.03,
+      "scope": "whitespace check"
+    },
+    {
+      "name": "generate-validate",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "make generate && make validate",
+      "log": "generate-validate.log",
+      "exit_code": 0,
+      "elapsed_seconds": 17.741,
+      "scope": "descriptor/mirror generation and validation; actual nested module Go1.27.1"
+    },
+    {
+      "name": "developmental-overlay-vet",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "command": "env GOROOT=/tmp/gomad-task17.WFwzYI/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task17.WFwzYI/go/bin/go vet -tags test_dep internal/gomadio",
+      "log": "developmental-overlay-vet.log",
+      "exit_code": 0,
+      "elapsed_seconds": 0.458,
+      "scope": "DEVELOPMENTAL overlay vet"
+    },
+    {
+      "name": "gate-selection-red",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep . -run '^TestSimulationGateSelectsProcessNetworkHandles$'",
+      "log": "gate-selection-red.log",
+      "exit_code": 1,
+      "elapsed_seconds": 0.41,
+      "scope": "expected RED against old filter"
+    },
+    {
+      "name": "gate-selection-green",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep . -run 'SimulationGateSelects|NetworkHandles|ProcessCommands|PackageArchitecture'",
+      "log": "gate-selection-green.log",
+      "exit_code": 0,
+      "elapsed_seconds": 1.733,
+      "scope": "actual expanded gate selection and architecture/codec tests"
+    },
+    {
+      "name": "gate-correction-validate",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "env PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH make validate",
+      "log": "gate-correction-validate.log",
+      "exit_code": 0,
+      "elapsed_seconds": 2.257,
+      "scope": "unchanged descriptor/mirrors validated after gate configuration correction"
+    },
+    {
+      "name": "gate-correction-vet",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go vet -tags test_dep .",
+      "log": "gate-correction-vet.log",
+      "exit_code": 0,
+      "elapsed_seconds": 0.048,
+      "scope": "stock package including new regression"
+    },
+    {
+      "name": "post-correction-diff-check",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "scope": "read-only whitespace check after correction; no retained timing"
+    }
+  ],
+  "serial_commands_script": "verify.sh",
+  "developmental_environment": {
+    "host": "linux/arm64",
+    "nested_stock_go": "go1.27.1",
+    "scratch_goroot": "/tmp/gomad-task17.WFwzYI/go",
+    "provenance": "copied external retained task-14 stock scratch GOROOT; no shim or stand-in edits in production",
+    "runtime_shim": "/tmp/gomad-task17.WFwzYI/go/src/runtime/gomad_task14_development.go",
+    "runtime_shim_sha256": "8630de3ebb792517ccd2051a16bf1daab70aaf44e204326c6e04fc0cda404af6",
+    "shim_semantics": [
+      "profile and control environment disabled",
+      "one global domain token, not goroutine domain isolation",
+      "stock nanotime, not virtual time",
+      "inert external begin/end/arrival hooks",
+      "unavailable blocking and trace transport"
+    ],
+    "tested_copy": "frozen gomadio source byte-identical to scratch copy",
+    "not_qualified": [
+      "native interception",
+      "virtual scheduler/timers",
+      "IPC",
+      "actual process test execution",
+      "native replay execution",
+      "process isolation",
+      "supported-platform qualification"
+    ]
+  },
+  "coverage": {
+    "shared_case_table": "tools/gomad3sim/network_handles_toolchain_test.go",
+    "backends": [
+      "standalone",
+      "in-process simulation",
+      "real process source"
+    ],
+    "cases": [
+      "queued accept closed/deadline distinctions",
+      "addresses/duplicate bind/rebind/repeated close",
+      "short reads across 64KiB/half-close/last bytes before EOF",
+      "empty I/O before and after close",
+      "expired/change/clear read deadline wakeups",
+      "partial writes/deadline/peer read closure"
+    ],
+    "process_specific": [
+      "listener/connection/delivery/byte capacity and identity nonconsumption",
+      "graceful EOF and crash reset",
+      "delayed-data cleanup/revocation/restart",
+      "write replay divergence before mutation"
+    ],
+    "runner_selectors": [
+      "TestProcessNetworkHandleOperationParity",
+      "TestProcessNetworkHandleQueuedAccept",
+      "TestProcessNetworkHandleShortReadsAndHalfClose",
+      "TestProcessNetworkHandleEmptyIO",
+      "TestProcessNetworkHandleDeadlines",
+      "TestProcessNetworkHandlePartialWrite",
+      "TestProcessNetworkHandleCapacityPreservesIdentities",
+      "TestProcessNetworkHandleConnectionCapacity",
+      "TestProcessNetworkHandleDeliveryCapacity",
+      "TestProcessNetworkHandleByteCapacity",
+      "TestProcessNetworkHandleRevocationDropsDelayedData",
+      "TestProcessNetworkHandleCrashDropsDelayedData",
+      "TestProcessNetworkHandleReplayRejectsWriteBeforeMutation"
+    ],
+    "process_execution": "NOT RUN: qualified native host/toolchain unavailable"
+  },
+  "preservation": {
+    "overlay_inventory": {
+      "baseline": 73,
+      "final": 75,
+      "new_files": [
+        "src/internal/gomadio/network_handles_test.go",
+        "src/internal/gomadio/simulation_handles.go"
+      ]
+    },
+    "unaffected_overlay": {
+      "count": 67,
+      "log": "overlay-preservation.log",
+      "outcome": "byte-identical"
+    },
+    "task16_lifecycle": {
+      "count": 10,
+      "log": "lifecycle-preservation.log",
+      "outcome": "all hashes OK"
+    },
+    "typed_commands": "existing codec/test source unchanged; test-only zero-length export bridge updated for concrete owners",
+    "modelwire": "unchanged",
+    "captured_literal_vectors": {
+      "count": 41,
+      "path": "../task-14/baseline-vectors.json",
+      "sha256": "adf815e906f66690a448d329f266099973f5c2df1c27ee47cedc2682ba258545"
+    },
+    "mapping": [
+      "whole-operation Read/Write direction locks preserved",
+      "model->listener/shared; direction->model ordering and release before waits",
+      "Accept pending before closed/deadline",
+      "Read reset/closed then buffered/chunks before EOF/deadline",
+      "Write closed/reset and capacity before deadline",
+      "transition/capacity/incarnation/replay validation before mutation",
+      "graceful EOF/crash reset and delayed cleanup",
+      "process empty I/O no exchange, local empty Read record-before-validation, simulation empty Write validation-before-record",
+      "process resource removal/repeat ESTALE versus local ErrClosed/queued accept drain",
+      "process 64KiB chunks, partial counts/EIO/short-write/transcript granularity",
+      "unchanged D12/resolved D14/model-delay watchdog dispositions",
+      "unchanged filesystem/net callers/runtime collector/upstream patches/dependencies"
+    ],
+    "existing_unrelated_dirty_changes": "preserved"
+  },
+  "native_gaps": [
+    {
+      "command": ".toolchain/bin/go test -count=1 -tags test_dep internal/gomadio",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "baseline_exit": 127,
+      "reason": "pinned executable absent"
+    },
+    {
+      "command": "make toolchain && make overlay-test",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "final_exit": 2,
+      "log": "native-toolchain.log",
+      "reason": "supported host darwin/arm64 or linux/amd64 required; actual linux/arm64"
+    },
+    {
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./runner/internal/execution -run 'Network|NetBind'",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "baseline_exit": 127,
+      "reason": "pinned executable absent"
+    },
+    {
+      "command": "tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim -run 'Network|Process|Backend'",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "baseline_exit": 127,
+      "reason": "pinned executable absent"
+    },
+    {
+      "scope": "actual Runner root integration execution of all 13 new process tests, existing isolation cases, full host/test-host and both supported platforms",
+      "reason": "native toolchain/host unavailable; compile/link does not satisfy gate"
+    },
+    {
+      "scope": "scoped linter",
+      "reason": "unchanged existing Mach-O arm64 executable on linux/arm64",
+      "retained_exit": 2,
+      "metadata": "../task-16/linter-platform.json",
+      "sha256": "61f380f1d4c0c57b6cc0a4df3b72183f067c860818943a258aa76171456761e8",
+      "action": "measured task-16 evidence reused; no replacement/retry"
+    }
+  ],
+  "pre_correction": {
+    "evidence": "pre-correction-evidence.json",
+    "handover": "pre-correction-handover.md",
+    "manifest": {
+      "path": "final-source.sha256",
+      "sha256": "9e502d7e803328f65b16c594a690f4eb0b9e6bdb6b936be939606fe103986fbd",
+      "verification": "all 15 entries OK after all commands"
+    },
+    "scope": "all original 15 hashes unchanged after scoped Makefile correction; original records retained but gate-selection finding superseded"
+  },
+  "gate_correction": {
+    "finding": "Makefile canonical test-simulation Runner -run filter omitted all 13 ProcessNetworkHandle cases, even though Runner selector included them",
+    "old_makefile": {
+      "path": "pre-correction-Makefile",
+      "sha256": "e5802cb89258e7b28abf4aa368af5bb3e8eb2c1508741bc4e78a752ff32b9fff"
+    },
+    "fix": "add ProcessNetworkHandle to main integration filter; separate forward-delay invocation and strict-delay watchdog exclusion unchanged",
+    "regression": "test runs actual make -n -o toolchain test-simulation, parses expanded Go filters, discovers actual 13 process case declarations via AST, evaluates each name against command regexes and checks forward-only delay selection",
+    "red": {
+      "log": "gate-selection-red.log",
+      "exit_code": 1,
+      "elapsed_seconds": 0.41,
+      "meaning": "all 13 actual process cases excluded by old canonical filter"
+    },
+    "green": {
+      "log": "gate-selection-green.log",
+      "exit_code": 0,
+      "elapsed_seconds": 1.733
+    },
+    "scope": "Makefile plus stock regression only; no further overlay/runtime edits or reruns"
+  }
+}

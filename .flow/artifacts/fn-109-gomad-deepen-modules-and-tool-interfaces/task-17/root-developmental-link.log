@@ -1,0 +1,3 @@
+COMMAND: env GOROOT=/tmp/gomad-task17.WFwzYI/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task17.WFwzYI/go/bin/go test -c -tags test_dep\,gomad3_toolchain -o /tmp/gomad-task17.WFwzYI/root-developmental.test ./tools/gomad3sim
+ELAPSED_SECONDS=0.792
+EXIT_CODE=0

@@ -1,0 +1,11 @@
+# Task 17 source-only admission
+
+MILESTONES immediate-delivery-order item 4 allows source implementation after a predecessor candidate is integrated and reviewed, with acceptance left open for native gates. Task 16's full source is frozen in the shared checkout and two fresh read-only audits report no defects. The conductor independently reran focused/race/repeat/vet/architecture/preservation and make validate checks. See task-16/source-audit.md and conductor-verification.md. Task 16 remains blocked on native/process/lint acceptance; no predecessor task was completed or waived.
+
+Task 17 was claimed through flowctl with a force note explaining this source-only admission. The user owns commits; branch gomad and HEAD `0dd05b313acd0986312da7fd3159520e6a21f1bf` remain unchanged. No GREEN BASELINE_HANDOFF, task completion, R12 closure or formal SHIP is claimed.
+
+Scheduling is one source writer because tasks 16–21 form a dependency chain and overlays/descriptors/generation share inputs. Read-only investigations and source audits may run in parallel. The selected design and preservation traps are retained in design-decision.md and source-scout.md. User autonomy overrides design-question/commit defaults; existing Flow task 17 supplies the implementation plan.
+
+Before the worker spawn, flowctl judge was called once with preset tier, task17, explicit-model gpt-6.1-sol, fast-model gpt-6-luna and verified native spawn reach. Result: available false, reason no_key, spawn_model null, implementer gpt-6.1-sol; `Tier: session (jev-unavailable(no_key))`. The explicit routing pin wins and is supplied to the actual spawn parameters as gpt-6.1-sol/high with fresh context; requested model is not represented as verified actual execution metadata. Review backend resolves to codex and is deferred until required gates are available and green. No existing review receipt is reset or overwritten.
+
+The worker owns complete source implementation and tests, generator/descriptor serialization and freeze evidence; conductor owns reviews, task state and acceptance. No Flow/history mutation, native waiver or CLI bridge is delegated. All unrelated user edits and the task13–16 candidates are preserved.

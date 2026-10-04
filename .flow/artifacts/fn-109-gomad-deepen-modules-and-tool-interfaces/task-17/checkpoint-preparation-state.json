@@ -1,0 +1,8 @@
+{
+  "task_title": "Prepare exact corrected task 17 source checkpoint after committed task 16",
+  "task_body": "Archive stable committed HEAD tools/gomad3 plus selected root metadata, then overlay the 17 exact post-correction task-17 source identities from four retained preimages and thirteen verified working-tree entries. Verify only thirteen actual source paths differ, retain root simulation source/link-only evidence, and run bounded stock ownership, canonical gate selection, inherited architecture and generation/protocol/version checks.",
+  "acceptance": "All seventeen historical hashes match; complete archived module inventory and before/after source delta are retained; focused stock checks pass where viable; any root qualification validation boundary is recorded against baseline rather than silently omitted; native acceptance remains open. No shared source/docs, Git/index or Flow mutation and no new agents or bridges.",
+  "touches_count": 17,
+  "has_quick_commands": true,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

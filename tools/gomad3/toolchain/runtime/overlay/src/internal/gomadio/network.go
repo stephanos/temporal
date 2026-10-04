@@ -38,35 +38,80 @@ type Address struct {
 	Port int
 }
 
-type Listener struct {
-	address       Address
-	processHandle uint64
-	owner         simulationEndpoint
-	network       *simulationNetwork
-	once          sync.Once
-	mu            sync.Mutex
-	pending       []*Conn
-	closed        bool
-	deadline      time.Time
-	changed       chan struct{}
+type listenerImplementation interface {
+	Accept() (*Conn, error)
+	Close() error
+	Address() Address
+	SetDeadline(time.Time) error
 }
-
+type connImplementation interface {
+	Read([]byte) (int, error)
+	Write([]byte) (int, error)
+	Close() error
+	CloseRead() error
+	CloseWrite() error
+	LocalAddress() Address
+	RemoteAddress() Address
+	SetDeadline(time.Time) error
+	SetReadDeadline(time.Time) error
+	SetWriteDeadline(time.Time) error
+}
+type Listener struct{ implementation listenerImplementation }
 type Conn struct {
-	local         Address
-	remote        Address
-	processHandle uint64
-	owner         simulationEndpoint
-	target        simulationEndpoint
-	network       *simulationNetwork
-	identity      uint64
-	state         *connState
-	peer          *connState
-	readMu        sync.Mutex
-	writeMu       sync.Mutex
-	pending       []byte
-	close         sync.Once
+	implementation connImplementation
+	readMu         sync.Mutex
+	writeMu        sync.Mutex
 }
 
+func (listener *Listener) Accept() (*Conn, error) { return listener.implementation.Accept() }
+func (listener *Listener) Close() error           { return listener.implementation.Close() }
+func (listener *Listener) Address() Address       { return listener.implementation.Address() }
+func (listener *Listener) SetDeadline(deadline time.Time) error {
+	return listener.implementation.SetDeadline(deadline)
+}
+func (connection *Conn) Read(destination []byte) (int, error) {
+	connection.readMu.Lock()
+	defer connection.readMu.Unlock()
+	return connection.implementation.Read(destination)
+}
+func (connection *Conn) Write(source []byte) (int, error) {
+	connection.writeMu.Lock()
+	defer connection.writeMu.Unlock()
+	return connection.implementation.Write(source)
+}
+func (connection *Conn) Close() error           { return connection.implementation.Close() }
+func (connection *Conn) CloseRead() error       { return connection.implementation.CloseRead() }
+func (connection *Conn) CloseWrite() error      { return connection.implementation.CloseWrite() }
+func (connection *Conn) LocalAddress() Address  { return connection.implementation.LocalAddress() }
+func (connection *Conn) RemoteAddress() Address { return connection.implementation.RemoteAddress() }
+func (connection *Conn) SetDeadline(deadline time.Time) error {
+	return connection.implementation.SetDeadline(deadline)
+}
+func (connection *Conn) SetReadDeadline(deadline time.Time) error {
+	return connection.implementation.SetReadDeadline(deadline)
+}
+func (connection *Conn) SetWriteDeadline(deadline time.Time) error {
+	return connection.implementation.SetWriteDeadline(deadline)
+}
+
+type pairedConn struct {
+	local   Address
+	remote  Address
+	state   *connState
+	peer    *connState
+	pending []byte
+	close   sync.Once
+}
+type standaloneConn struct{ pairedConn }
+type standaloneListener struct {
+	address  Address
+	once     sync.Once
+	mu       sync.Mutex
+	pending  []*Conn
+	closed   bool
+	deadline time.Time
+	changed  chan struct{}
+}
 type connState struct {
 	shared        *connShared
 	incoming      []networkChunk
@@ -94,10 +139,10 @@ type networkChunk struct {
 
 var networkState = struct {
 	sync.Mutex
-	listeners        map[int]*Listener
+	listeners        map[int]*standaloneListener
 	nextListenerPort int
 	nextClientPort   int
-}{listeners: make(map[int]*Listener), nextListenerPort: firstListenerPort, nextClientPort: firstClientPort}
+}{listeners: make(map[int]*standaloneListener), nextListenerPort: firstListenerPort, nextClientPort: firstClientPort}
 
 func ListenTCP(network, host string, port int) (*Listener, error) {
 	requestedPort := port
@@ -136,10 +181,10 @@ func ListenTCP(network, host string, port int) (*Listener, error) {
 		record("net.listen", networkArguments(network, requestedPort, port), nil, 0, resultClass(ErrAddressInUse), 0, 0)
 		return nil, ErrAddressInUse
 	}
-	listener := &Listener{address: Address{IP: "127.0.0.1", Port: port}, changed: make(chan struct{})}
+	listener := &standaloneListener{address: Address{IP: "127.0.0.1", Port: port}, changed: make(chan struct{})}
 	networkState.listeners[port] = listener
 	record("net.listen", networkArguments(network, requestedPort, port), nil, 0, 0, 0, 0)
-	return listener, nil
+	return &Listener{implementation: listener}, nil
 }
 
 func DialTCP(ctx context.Context, network, host string, port int) (*Conn, error) {
@@ -192,8 +237,8 @@ func DialTCP(ctx context.Context, network, host string, port int) (*Conn, error)
 		}
 		if len(listener.pending) < maximumPendingConns {
 			clientState, serverState := newConnStates()
-			client := &Conn{local: clientAddress, remote: listener.address, state: clientState, peer: serverState}
-			server := &Conn{local: listener.address, remote: clientAddress, state: serverState, peer: clientState}
+			client := &Conn{implementation: &standaloneConn{pairedConn{local: clientAddress, remote: listener.address, state: clientState, peer: serverState}}}
+			server := &Conn{implementation: &standaloneConn{pairedConn{local: listener.address, remote: clientAddress, state: serverState, peer: clientState}}}
 			listener.pending = append(listener.pending, server)
 			listener.signal()
 			listener.mu.Unlock()
@@ -210,19 +255,7 @@ func DialTCP(ctx context.Context, network, host string, port int) (*Conn, error)
 	}
 }
 
-func (listener *Listener) Accept() (*Conn, error) {
-	if listener.processHandle != 0 {
-		return processNetworkAccept(listener)
-	}
-	if listener.network != nil {
-		connection, err := listener.network.accept(listener)
-		if err != nil {
-			record("net.accept", networkArguments("tcp", listener.address.Port), nil, 0, resultClass(err), 0, 0)
-			return nil, err
-		}
-		record("net.accept", networkArguments("tcp", listener.address.Port, connection.remote.Port), nil, 0, 0, 0, 0)
-		return connection, nil
-	}
+func (listener *standaloneListener) Accept() (*Conn, error) {
 	for {
 		listener.mu.Lock()
 		if len(listener.pending) != 0 {
@@ -230,7 +263,7 @@ func (listener *Listener) Accept() (*Conn, error) {
 			listener.pending = listener.pending[1:]
 			listener.signal()
 			listener.mu.Unlock()
-			record("net.accept", networkArguments("tcp", listener.address.Port, connection.remote.Port), nil, 0, 0, 0, 0)
+			record("net.accept", networkArguments("tcp", listener.address.Port, connection.RemoteAddress().Port), nil, 0, 0, 0, 0)
 			return connection, nil
 		}
 		if listener.closed {
@@ -250,15 +283,7 @@ func (listener *Listener) Accept() (*Conn, error) {
 	}
 }
 
-func (listener *Listener) Close() error {
-	if listener.processHandle != 0 {
-		return processNetworkListenerClose(listener)
-	}
-	if listener.network != nil {
-		err := listener.network.closeListener(listener)
-		record("net.listener.close", networkArguments("tcp", listener.address.Port), nil, 0, resultClass(err), 0, 0)
-		return err
-	}
+func (listener *standaloneListener) Close() error {
 	closed := false
 	listener.once.Do(func() {
 		closed = true
@@ -280,19 +305,11 @@ func (listener *Listener) Close() error {
 	return nil
 }
 
-func (listener *Listener) Address() Address {
+func (listener *standaloneListener) Address() Address {
 	return listener.address
 }
 
-func (listener *Listener) SetDeadline(deadline time.Time) error {
-	if listener.processHandle != 0 {
-		return processNetworkListenerSetDeadline(listener, deadline)
-	}
-	if listener.network != nil {
-		if err := validateSimulationEndpoint(listener.network, listener.owner); err != nil {
-			return err
-		}
-	}
+func (listener *standaloneListener) SetDeadline(deadline time.Time) error {
 	listener.mu.Lock()
 	listener.deadline = deadline
 	listener.signal()
@@ -300,45 +317,25 @@ func (listener *Listener) SetDeadline(deadline time.Time) error {
 	return nil
 }
 
-func (listener *Listener) signal() {
+func (listener *standaloneListener) signal() {
 	close(listener.changed)
 	listener.changed = make(chan struct{})
 }
 
-func newConnStates() (*connState, *connState) {
-	shared := &connShared{changed: make(chan struct{})}
-	return &connState{shared: shared}, &connState{shared: shared}
-}
-
-func (connection *Conn) lockState() {
-	if connection.network != nil {
-		connection.network.Lock()
-	}
+func (connection *standaloneConn) lockState() {
 	connection.state.shared.Lock()
 }
 
-func (connection *Conn) unlockState() {
+func (connection *standaloneConn) unlockState() {
 	connection.state.shared.Unlock()
-	if connection.network != nil {
-		connection.network.Unlock()
-	}
 }
 
-func (connection *Conn) Read(destination []byte) (int, error) {
-	connection.readMu.Lock()
-	defer connection.readMu.Unlock()
-	if connection.processHandle != 0 {
-		return processNetworkConnRead(connection, destination)
-	}
+func (connection *standaloneConn) Read(destination []byte) (int, error) {
 	if len(destination) == 0 {
 		record("net.read", networkArguments("tcp", connection.local.Port, connection.remote.Port, 0), nil, 0, 0, 0, 0)
 		return 0, nil
 	}
-	if connection.network != nil {
-		if err := validateSimulationEndpoint(connection.network, connection.owner); err != nil {
-			return 0, err
-		}
-	}
+
 	for {
 		connection.lockState()
 		if connection.state.reset {
@@ -367,19 +364,7 @@ func (connection *Conn) Read(destination []byte) (int, error) {
 				waitForChange(changed, earliestDeadline(deadline, chunk.ready))
 				continue
 			}
-			if connection.network != nil {
-				transition := simulationTransition{
-					Kind: "deliver", Source: chunk.source, Destination: chunk.destination,
-					Connection: chunk.connection, Delivery: chunk.identity, Bytes: uint64(len(chunk.bytes)),
-					DelayNanos: chunk.delayNanos, Outcome: "ok", PayloadSHA256: simulationPayloadSHA256(chunk.bytes),
-				}
-				if err := connection.network.commitTransitionLocked(transition); err != nil {
-					connection.unlockState()
-					return 0, err
-				}
-				delete(connection.network.deliveries, chunk.identity)
-				connection.network.pendingBytes -= uint64(len(chunk.bytes))
-			}
+
 			connection.pending = chunk.bytes
 			connection.state.incoming = connection.state.incoming[1:]
 			connection.state.shared.signal()
@@ -403,17 +388,7 @@ func (connection *Conn) Read(destination []byte) (int, error) {
 	}
 }
 
-func (connection *Conn) Write(source []byte) (int, error) {
-	connection.writeMu.Lock()
-	defer connection.writeMu.Unlock()
-	if connection.processHandle != 0 {
-		return processNetworkConnWrite(connection, source)
-	}
-	if connection.network != nil {
-		if err := validateSimulationEndpoint(connection.network, connection.owner); err != nil {
-			return 0, err
-		}
-	}
+func (connection *standaloneConn) Write(source []byte) (int, error) {
 	written := 0
 	input := source
 	for len(source) != 0 {
@@ -425,42 +400,7 @@ func (connection *Conn) Write(source []byte) (int, error) {
 			return written, ErrClosed
 		}
 		if len(connection.peer.incoming) < maximumPendingChunks {
-			if connection.network == nil {
-				connection.peer.incoming = append(connection.peer.incoming, networkChunk{bytes: append([]byte(nil), source[:length]...)})
-				connection.state.shared.signal()
-				connection.unlockState()
-				written += length
-				source = source[length:]
-				continue
-			}
-			link, ok := connection.network.links[simulationLinkKey(connection.owner.Node, connection.target.Node)]
-			outcome := "ok"
-			if !ok || !link.Enabled {
-				outcome = "partition_drop"
-			}
-			if outcome == "ok" && (uint64(len(connection.network.deliveries)) >= connection.network.limits.Deliveries || uint64(length) > connection.network.limits.Bytes-connection.network.pendingBytes) {
-				transition := simulationTransition{Kind: "write", Source: connection.owner, Destination: connection.target, Connection: connection.identity, Bytes: uint64(length), DelayNanos: link.DelayNanos, Outcome: "capacity", PayloadSHA256: simulationPayloadSHA256(source[:length])}
-				err := connection.network.commitTransitionLocked(transition)
-				connection.unlockState()
-				if err != nil {
-					return written, err
-				}
-				return written, ErrResourceExhausted
-			}
-			delivery := connection.network.nextDelivery + 1
-			transition := simulationTransition{Kind: "write", Source: connection.owner, Destination: connection.target, Connection: connection.identity, Delivery: delivery, Bytes: uint64(length), DelayNanos: link.DelayNanos, Outcome: outcome, PayloadSHA256: simulationPayloadSHA256(source[:length])}
-			if err := connection.network.commitTransitionLocked(transition); err != nil {
-				connection.unlockState()
-				return written, err
-			}
-			connection.network.nextDelivery = delivery
-			if outcome == "ok" {
-				ready := time.Now().Add(time.Duration(link.DelayNanos))
-				chunk := networkChunk{identity: delivery, connection: connection.identity, source: connection.owner, destination: connection.target, bytes: append([]byte(nil), source[:length]...), ready: ready, delayNanos: link.DelayNanos}
-				connection.peer.incoming = append(connection.peer.incoming, chunk)
-				connection.network.deliveries[delivery] = simulationDelivery{identity: delivery, connection: connection.identity, source: connection.owner, destination: connection.target, bytes: uint64(length), delayNanos: link.DelayNanos}
-				connection.network.pendingBytes += uint64(length)
-			}
+			connection.peer.incoming = append(connection.peer.incoming, networkChunk{bytes: append([]byte(nil), source[:length]...)})
 			connection.state.shared.signal()
 			connection.unlockState()
 			written += length
@@ -481,36 +421,17 @@ func (connection *Conn) Write(source []byte) (int, error) {
 	return written, nil
 }
 
-func (connection *Conn) Close() error {
-	if connection.processHandle != 0 {
-		return processNetworkConnOperation(connection, processNetworkConnCloseOp, time.Time{})
-	}
-	if connection.network != nil {
-		if err := validateSimulationEndpoint(connection.network, connection.owner); err != nil {
-			return err
-		}
-	}
+func (connection *standaloneConn) Close() error {
 	closed := false
-	var closeErr error
 	connection.close.Do(func() {
 		closed = true
 		connection.lockState()
-		if connection.network != nil {
-			if err := connection.network.commitTransitionLocked(simulationTransition{Kind: "close", Source: connection.owner, Destination: connection.target, Connection: connection.identity, Outcome: "ok"}); err != nil {
-				connection.unlockState()
-				closed = false
-				closeErr = err
-				return
-			}
-		}
+
 		connection.state.readClosed = true
 		connection.state.writeClosed = true
 		connection.state.shared.signal()
 		connection.unlockState()
 	})
-	if closeErr != nil {
-		return closeErr
-	}
 	if !closed {
 		record("net.close", networkArguments("tcp", connection.local.Port, connection.remote.Port), nil, 0, resultClass(ErrClosed), 0, 0)
 		return ErrClosed
@@ -519,15 +440,7 @@ func (connection *Conn) Close() error {
 	return nil
 }
 
-func (connection *Conn) CloseRead() error {
-	if connection.processHandle != 0 {
-		return processNetworkConnOperation(connection, processNetworkConnCloseReadOp, time.Time{})
-	}
-	if connection.network != nil {
-		if err := validateSimulationEndpoint(connection.network, connection.owner); err != nil {
-			return err
-		}
-	}
+func (connection *standaloneConn) CloseRead() error {
 	connection.lockState()
 	defer connection.unlockState()
 	if connection.state.readClosed {
@@ -538,15 +451,7 @@ func (connection *Conn) CloseRead() error {
 	return nil
 }
 
-func (connection *Conn) CloseWrite() error {
-	if connection.processHandle != 0 {
-		return processNetworkConnOperation(connection, processNetworkConnCloseWriteOp, time.Time{})
-	}
-	if connection.network != nil {
-		if err := validateSimulationEndpoint(connection.network, connection.owner); err != nil {
-			return err
-		}
-	}
+func (connection *standaloneConn) CloseWrite() error {
 	connection.lockState()
 	defer connection.unlockState()
 	if connection.state.writeClosed {
@@ -557,23 +462,15 @@ func (connection *Conn) CloseWrite() error {
 	return nil
 }
 
-func (connection *Conn) LocalAddress() Address {
+func (connection *standaloneConn) LocalAddress() Address {
 	return connection.local
 }
 
-func (connection *Conn) RemoteAddress() Address {
+func (connection *standaloneConn) RemoteAddress() Address {
 	return connection.remote
 }
 
-func (connection *Conn) SetDeadline(deadline time.Time) error {
-	if connection.processHandle != 0 {
-		return processNetworkConnOperation(connection, processNetworkConnSetDeadlineOp, deadline)
-	}
-	if connection.network != nil {
-		if err := validateSimulationEndpoint(connection.network, connection.owner); err != nil {
-			return err
-		}
-	}
+func (connection *standaloneConn) SetDeadline(deadline time.Time) error {
 	connection.lockState()
 	connection.state.readDeadline = deadline
 	connection.state.writeDeadline = deadline
@@ -582,15 +479,7 @@ func (connection *Conn) SetDeadline(deadline time.Time) error {
 	return nil
 }
 
-func (connection *Conn) SetReadDeadline(deadline time.Time) error {
-	if connection.processHandle != 0 {
-		return processNetworkConnOperation(connection, processNetworkConnSetReadDeadlineOp, deadline)
-	}
-	if connection.network != nil {
-		if err := validateSimulationEndpoint(connection.network, connection.owner); err != nil {
-			return err
-		}
-	}
+func (connection *standaloneConn) SetReadDeadline(deadline time.Time) error {
 	connection.lockState()
 	connection.state.readDeadline = deadline
 	connection.state.shared.signal()
@@ -598,20 +487,17 @@ func (connection *Conn) SetReadDeadline(deadline time.Time) error {
 	return nil
 }
 
-func (connection *Conn) SetWriteDeadline(deadline time.Time) error {
-	if connection.processHandle != 0 {
-		return processNetworkConnOperation(connection, processNetworkConnSetWriteDeadlineOp, deadline)
-	}
-	if connection.network != nil {
-		if err := validateSimulationEndpoint(connection.network, connection.owner); err != nil {
-			return err
-		}
-	}
+func (connection *standaloneConn) SetWriteDeadline(deadline time.Time) error {
 	connection.lockState()
 	connection.state.writeDeadline = deadline
 	connection.state.shared.signal()
 	connection.unlockState()
 	return nil
+}
+
+func newConnStates() (*connState, *connState) {
+	shared := &connShared{changed: make(chan struct{})}
+	return &connState{shared: shared}, &connState{shared: shared}
 }
 
 func earliestDeadline(left, right time.Time) time.Time {

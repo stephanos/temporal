@@ -1,0 +1,16 @@
+GOCACHE=/home/agent/.cache/codex-build/tmp/fn109-task17-checkpoint.0nly2wj9/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=/home/agent/.cache/codex-build/tmp/fn109-task17-checkpoint.0nly2wj9/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+GOCACHE=/home/agent/.cache/codex-build/tmp/fn109-task17-checkpoint.0nly2wj9/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+GOCACHE=/home/agent/.cache/codex-build/tmp/fn109-task17-checkpoint.0nly2wj9/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=/home/agent/.cache/codex-build/tmp/fn109-task17-checkpoint.0nly2wj9/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/home/agent/.cache/codex-build/tmp/fn109-task17-checkpoint.0nly2wj9/tools/gomad3
+gomad3 patch and overlay inputs are valid
+GOCACHE=/home/agent/.cache/codex-build/tmp/fn109-task17-checkpoint.0nly2wj9/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/home/agent/.cache/codex-build/tmp/fn109-task17-checkpoint.0nly2wj9/tools/gomad3
+gomad3 script ownership is valid
+GOCACHE=/home/agent/.cache/codex-build/tmp/fn109-task17-checkpoint.0nly2wj9/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool compatibility-pack check --root=/home/agent/.cache/codex-build/tmp/fn109-task17-checkpoint.0nly2wj9/tools/gomad3
+compatibility packs are current
+GOCACHE=/home/agent/.cache/codex-build/tmp/fn109-task17-checkpoint.0nly2wj9/tools/gomad3/.toolchain/generator-cache go test -count=1 -tags test_dep -run '^TestHostPacksBindCurrentProfile$' ./internal/compatibilitypack
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	0.001s
+GOCACHE=/home/agent/.cache/codex-build/tmp/fn109-task17-checkpoint.0nly2wj9/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool qualification-manifest-generate --root=/home/agent/.cache/codex-build/tmp/fn109-task17-checkpoint.0nly2wj9/tools/gomad3/../.. --spec=tools/gomad3integration/qualification/tests.generator.json --output=tools/gomad3integration/qualification/tests.json -check
+read test package: open /home/agent/.cache/codex-build/tmp/fn109-task17-checkpoint.0nly2wj9/tests: no such file or directory
+exit status 1
+make: *** [Makefile:169: validate-qualification] Error 1

@@ -1,0 +1,17 @@
+{
+  "task": 17,
+  "path": "tools/gomad3/runner/internal/execution/simulation_root_integration_test.go",
+  "current_sha256": "02544185057eff83b65b288b6062c374376b3a10137dc526405c222e052ec682",
+  "recovered_sha256": "bc4c86b6210232026f0eb94edbee209fa9817a62b66d58a2da7b627e9bbbf833",
+  "scratch": "/tmp/fn109-task17-preimage.yZkyiGoM",
+  "removed_task18_selectors": [
+    "TestProcessFilesystemHandlePartialIOAndLifetime",
+    "TestProcessFilesystemHandleDirectoryAndChdir",
+    "TestProcessFilesystemHandleAccessAndBounds",
+    "TestProcessFilesystemHandleReplayRejectsWriteBeforeMutation"
+  ],
+  "provenance": "Reverse only four task-18 selector additions; complete corrected task-17 evidence hash matches.",
+  "shared_source_writes": false,
+  "git_mutations": false,
+  "native_qualification": false
+}

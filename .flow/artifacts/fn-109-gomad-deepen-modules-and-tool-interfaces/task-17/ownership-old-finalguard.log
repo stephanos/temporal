@@ -1,0 +1,95 @@
+--- FAIL: TestNetworkHandlesOwnOneImplementation (0.00s)
+    network_handles_ownership_test.go:34: Listener.Accept redispatches after construction
+    network_handles_ownership_test.go:34: Listener.Accept redispatches after construction
+    network_handles_ownership_test.go:34: Listener.Accept redispatches after construction
+    network_handles_ownership_test.go:34: Listener.Accept redispatches after construction
+    network_handles_ownership_test.go:34: Listener.Accept redispatches after construction
+    network_handles_ownership_test.go:34: Listener.Accept redispatches after construction
+    network_handles_ownership_test.go:34: Listener.Close redispatches after construction
+    network_handles_ownership_test.go:34: Listener.Close redispatches after construction
+    network_handles_ownership_test.go:34: Listener.Close redispatches after construction
+    network_handles_ownership_test.go:34: Listener.Close redispatches after construction
+    network_handles_ownership_test.go:34: Listener.SetDeadline redispatches after construction
+    network_handles_ownership_test.go:34: Listener.SetDeadline redispatches after construction
+    network_handles_ownership_test.go:34: Listener.SetDeadline redispatches after construction
+    network_handles_ownership_test.go:34: Conn.lockState redispatches after construction
+    network_handles_ownership_test.go:34: Conn.unlockState redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Read redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Read redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Read redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Read redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Read redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Read redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Read redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Read redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Read redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Read redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Read redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Read redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Read redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Write redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Write redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Write redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Write redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Write redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Write redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Write redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Write redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Write redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Write redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Write redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Write redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Close redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Close redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Close redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Close redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Close redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Close redispatches after construction
+    network_handles_ownership_test.go:34: Conn.Close redispatches after construction
+    network_handles_ownership_test.go:34: Conn.CloseRead redispatches after construction
+    network_handles_ownership_test.go:34: Conn.CloseRead redispatches after construction
+    network_handles_ownership_test.go:34: Conn.CloseRead redispatches after construction
+    network_handles_ownership_test.go:34: Conn.CloseRead redispatches after construction
+    network_handles_ownership_test.go:34: Conn.CloseWrite redispatches after construction
+    network_handles_ownership_test.go:34: Conn.CloseWrite redispatches after construction
+    network_handles_ownership_test.go:34: Conn.CloseWrite redispatches after construction
+    network_handles_ownership_test.go:34: Conn.CloseWrite redispatches after construction
+    network_handles_ownership_test.go:34: Conn.SetDeadline redispatches after construction
+    network_handles_ownership_test.go:34: Conn.SetDeadline redispatches after construction
+    network_handles_ownership_test.go:34: Conn.SetDeadline redispatches after construction
+    network_handles_ownership_test.go:34: Conn.SetReadDeadline redispatches after construction
+    network_handles_ownership_test.go:34: Conn.SetReadDeadline redispatches after construction
+    network_handles_ownership_test.go:34: Conn.SetReadDeadline redispatches after construction
+    network_handles_ownership_test.go:34: Conn.SetWriteDeadline redispatches after construction
+    network_handles_ownership_test.go:34: Conn.SetWriteDeadline redispatches after construction
+    network_handles_ownership_test.go:34: Conn.SetWriteDeadline redispatches after construction
+    network_handles_ownership_test.go:72: Conn combines remote and local modeled state
+    network_handles_ownership_test.go:72: Listener combines remote and local modeled state
+    network_handles_ownership_test.go:100: Listener owns backend state instead of one implementation: [address]
+    network_handles_ownership_test.go:100: Listener owns backend state instead of one implementation: [processHandle]
+    network_handles_ownership_test.go:100: Listener owns backend state instead of one implementation: [owner]
+    network_handles_ownership_test.go:100: Listener owns backend state instead of one implementation: [network]
+    network_handles_ownership_test.go:100: Listener owns backend state instead of one implementation: [once]
+    network_handles_ownership_test.go:100: Listener owns backend state instead of one implementation: [mu]
+    network_handles_ownership_test.go:100: Listener owns backend state instead of one implementation: [pending]
+    network_handles_ownership_test.go:100: Listener owns backend state instead of one implementation: [closed]
+    network_handles_ownership_test.go:100: Listener owns backend state instead of one implementation: [deadline]
+    network_handles_ownership_test.go:100: Listener owns backend state instead of one implementation: [changed]
+    network_handles_ownership_test.go:103: Listener has 0 implementation contracts, want one
+    network_handles_ownership_test.go:100: Conn owns backend state instead of one implementation: [local]
+    network_handles_ownership_test.go:100: Conn owns backend state instead of one implementation: [remote]
+    network_handles_ownership_test.go:100: Conn owns backend state instead of one implementation: [processHandle]
+    network_handles_ownership_test.go:100: Conn owns backend state instead of one implementation: [owner]
+    network_handles_ownership_test.go:100: Conn owns backend state instead of one implementation: [target]
+    network_handles_ownership_test.go:100: Conn owns backend state instead of one implementation: [network]
+    network_handles_ownership_test.go:100: Conn owns backend state instead of one implementation: [identity]
+    network_handles_ownership_test.go:100: Conn owns backend state instead of one implementation: [state]
+    network_handles_ownership_test.go:100: Conn owns backend state instead of one implementation: [peer]
+    network_handles_ownership_test.go:100: Conn owns backend state instead of one implementation: [pending]
+    network_handles_ownership_test.go:100: Conn owns backend state instead of one implementation: [close]
+    network_handles_ownership_test.go:103: Conn has 0 implementation contracts, want one
+FAIL
+FAIL	_/tmp/gomad-task17.WFwzYI/ownership-baseline	0.005s
+FAIL
+ELAPSED_SECONDS=0.624
+EXIT_CODE=1

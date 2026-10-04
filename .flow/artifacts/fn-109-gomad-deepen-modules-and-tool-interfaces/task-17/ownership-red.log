@@ -1,0 +1,27 @@
+--- FAIL: TestNetworkHandlesOwnOneImplementation (0.00s)
+    network_handles_ownership_test.go:46: Listener owns backend state instead of one implementation: [address]
+    network_handles_ownership_test.go:46: Listener owns backend state instead of one implementation: [processHandle]
+    network_handles_ownership_test.go:46: Listener owns backend state instead of one implementation: [owner]
+    network_handles_ownership_test.go:46: Listener owns backend state instead of one implementation: [network]
+    network_handles_ownership_test.go:46: Listener owns backend state instead of one implementation: [once]
+    network_handles_ownership_test.go:46: Listener owns backend state instead of one implementation: [mu]
+    network_handles_ownership_test.go:46: Listener owns backend state instead of one implementation: [pending]
+    network_handles_ownership_test.go:46: Listener owns backend state instead of one implementation: [closed]
+    network_handles_ownership_test.go:46: Listener owns backend state instead of one implementation: [deadline]
+    network_handles_ownership_test.go:46: Listener owns backend state instead of one implementation: [changed]
+    network_handles_ownership_test.go:48: Listener has 0 implementation contracts, want one
+    network_handles_ownership_test.go:46: Conn owns backend state instead of one implementation: [local]
+    network_handles_ownership_test.go:46: Conn owns backend state instead of one implementation: [remote]
+    network_handles_ownership_test.go:46: Conn owns backend state instead of one implementation: [processHandle]
+    network_handles_ownership_test.go:46: Conn owns backend state instead of one implementation: [owner]
+    network_handles_ownership_test.go:46: Conn owns backend state instead of one implementation: [target]
+    network_handles_ownership_test.go:46: Conn owns backend state instead of one implementation: [network]
+    network_handles_ownership_test.go:46: Conn owns backend state instead of one implementation: [identity]
+    network_handles_ownership_test.go:46: Conn owns backend state instead of one implementation: [state]
+    network_handles_ownership_test.go:46: Conn owns backend state instead of one implementation: [peer]
+    network_handles_ownership_test.go:46: Conn owns backend state instead of one implementation: [pending]
+    network_handles_ownership_test.go:46: Conn owns backend state instead of one implementation: [close]
+    network_handles_ownership_test.go:48: Conn has 0 implementation contracts, want one
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3	0.004s
+FAIL

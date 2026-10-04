@@ -34,8 +34,8 @@ func RegisterProcessNetworkResourceForTest(domain uint64, listener bool) uint64 
 
 var RemoveProcessNetworkResourceForTest = removeProcessNetworkResource
 
-func ZeroLengthProcessNetworkReadForTest() (int, error) { return processNetworkConnRead(&Conn{}, nil) }
+func ZeroLengthProcessNetworkReadForTest() (int, error) { return (&processConn{}).Read(nil) }
 
 func ZeroLengthProcessNetworkWriteForTest() (int, error) {
-	return processNetworkConnWrite(&Conn{}, nil)
+	return (&processConn{}).Write(nil)
 }

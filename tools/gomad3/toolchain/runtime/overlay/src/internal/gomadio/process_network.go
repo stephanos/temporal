@@ -18,6 +18,38 @@ import (
 
 const maximumProcessNetworkHandles = 1 << 20
 
+type processListener struct {
+	processHandle uint64
+	address       Address
+}
+type processConn struct {
+	processHandle uint64
+	local         Address
+	remote        Address
+}
+
+func (listener *processListener) Address() Address     { return listener.address }
+func (connection *processConn) LocalAddress() Address  { return connection.local }
+func (connection *processConn) RemoteAddress() Address { return connection.remote }
+func (connection *processConn) Close() error {
+	return processNetworkConnOperation(connection, processNetworkConnCloseOp, time.Time{})
+}
+func (connection *processConn) CloseRead() error {
+	return processNetworkConnOperation(connection, processNetworkConnCloseReadOp, time.Time{})
+}
+func (connection *processConn) CloseWrite() error {
+	return processNetworkConnOperation(connection, processNetworkConnCloseWriteOp, time.Time{})
+}
+func (connection *processConn) SetDeadline(deadline time.Time) error {
+	return processNetworkConnOperation(connection, processNetworkConnSetDeadlineOp, deadline)
+}
+func (connection *processConn) SetReadDeadline(deadline time.Time) error {
+	return processNetworkConnOperation(connection, processNetworkConnSetReadDeadlineOp, deadline)
+}
+func (connection *processConn) SetWriteDeadline(deadline time.Time) error {
+	return processNetworkConnOperation(connection, processNetworkConnSetWriteDeadlineOp, deadline)
+}
+
 type processNetworkResource struct {
 	domain   uint64
 	listener *Listener
@@ -35,7 +67,7 @@ func processNetworkListen(network, host string, port int) (*Listener, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Listener{processHandle: response.Handle, address: response.Local}, nil
+	return &Listener{implementation: &processListener{processHandle: response.Handle, address: response.Local}}, nil
 }
 
 func processNetworkDial(ctx context.Context, network, host string, port int) (*Conn, error) {
@@ -50,7 +82,7 @@ func processNetworkDial(ctx context.Context, network, host string, port int) (*C
 	return processNetworkConn(response), nil
 }
 
-func processNetworkAccept(listener *Listener) (*Conn, error) {
+func (listener *processListener) Accept() (*Conn, error) {
 	response, err := exchangeProcessNetwork(processNetworkCommand{Operation: processNetworkAcceptOp, Handle: listener.processHandle})
 	if err != nil {
 		return nil, err
@@ -58,17 +90,17 @@ func processNetworkAccept(listener *Listener) (*Conn, error) {
 	return processNetworkConn(response), nil
 }
 
-func processNetworkListenerClose(listener *Listener) error {
+func (listener *processListener) Close() error {
 	_, err := exchangeProcessNetwork(processNetworkCommand{Operation: processNetworkListenerCloseOp, Handle: listener.processHandle})
 	return err
 }
 
-func processNetworkListenerSetDeadline(listener *Listener, deadline time.Time) error {
+func (listener *processListener) SetDeadline(deadline time.Time) error {
 	_, err := exchangeProcessNetwork(processNetworkCommand{Operation: processNetworkListenerSetDeadlineOp, Handle: listener.processHandle, DeadlineNanos: processNetworkDeadline(deadline)})
 	return err
 }
 
-func processNetworkConnRead(connection *Conn, destination []byte) (int, error) {
+func (connection *processConn) Read(destination []byte) (int, error) {
 	if len(destination) == 0 {
 		return 0, nil
 	}
@@ -80,7 +112,7 @@ func processNetworkConnRead(connection *Conn, destination []byte) (int, error) {
 	return read, err
 }
 
-func processNetworkConnWrite(connection *Conn, source []byte) (int, error) {
+func (connection *processConn) Write(source []byte) (int, error) {
 	written := 0
 	for len(source) != 0 {
 		length := min(len(source), maximumChunkBytes)
@@ -100,17 +132,17 @@ func processNetworkConnWrite(connection *Conn, source []byte) (int, error) {
 	return written, nil
 }
 
-func processNetworkConnOperation(connection *Conn, operation processNetworkOperation, deadline time.Time) error {
+func processNetworkConnOperation(connection *processConn, operation processNetworkOperation, deadline time.Time) error {
 	_, err := exchangeProcessNetwork(processNetworkCommand{Operation: operation, Handle: connection.processHandle, DeadlineNanos: processNetworkDeadline(deadline)})
 	return err
 }
 
 func processNetworkConn(response processNetworkResult) *Conn {
-	return &Conn{
+	return &Conn{implementation: &processConn{
 		processHandle: response.Handle,
 		local:         response.Local,
 		remote:        response.Remote,
-	}
+	}}
 }
 
 func processNetworkDeadline(deadline time.Time) int64 {
@@ -171,7 +203,7 @@ func applyProcessNetworkOperation(domain gomadsim.NetworkDomain, request process
 		if err != nil {
 			return processNetworkResult{Err: errors.Join(err, listener.Close())}
 		}
-		return processNetworkResult{Handle: handle, Local: listener.address}
+		return processNetworkResult{Handle: handle, Local: listener.Address()}
 	case processNetworkDialOp:
 		ctx := context.Background()
 		cancel := func() {}
@@ -260,7 +292,7 @@ func registerProcessNetworkConn(domain uint64, connection *Conn) processNetworkR
 		return processNetworkResult{Err: errors.Join(err, connection.Close())}
 	}
 	return processNetworkResult{
-		Handle: handle, Local: connection.local, Remote: connection.remote,
+		Handle: handle, Local: connection.LocalAddress(), Remote: connection.RemoteAddress(),
 	}
 }
 

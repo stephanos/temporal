@@ -1,9 +1,3 @@
----
-satisfies: [R12]
----
-# fn-109-gomad-deepen-modules-and-tool-interfaces.17 Select backend-specific network listener and connection implementations at creation
-
-## Description
 Stage 5, first half of R12 (F11): the network handle family. `Listener` and `Conn` each hold fields for three backends (process handle, in-process simulation endpoint, standalone state) and every method branches on which is set. Choose the implementation once at creation and let each implementation own its valid state. Filesystem handles follow in the next task; do one family at a time.
 
 **External coordination:** overlay edit; same fn-110 and toolchain-rebuild rules as the simulation-time task.
@@ -41,65 +35,10 @@ cd ../.. && tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_t
 ```
 
 ### Constraints
-- Commit each verified task separately under MILESTONES item 5, including its implementation, tests, documentation and Flow records. Preserve unrelated changes; keep unavailable native gates and acceptance open. Do not push without authorization.
+- No `git add`, commit, stash or worktree: the user owns commits. Record `"commits": []` in the `flowctl done` evidence and say so in the summary.
 - No new third-party dependency. `tools/gomad3/go.mod` requires only `golang.org/x/mod`, so testify is unavailable inside `tools/gomad3`: follow the existing `t.Fatalf` style with whole-value comparisons there. In the root module (`tools/gomad3sim`, `tools/gomad3integration`) use `require` with `Equal`/`EqualValues`.
 - Preserve existing comments with their owning code, CLI grammar/defaults, canonical bytes for fixed supplied identities, and error precedence/classification.
-- Actual development host is `linux/arm64`, not the inherited `darwin/arm64` assumption. Native `darwin/arm64` and `linux/amd64` runtime/process gates remain incomplete; stock source checks do not qualify them.
+- This host is `darwin/arm64`. `linux/amd64` gates cannot run here: list them as incomplete in the done summary, never claim them.
 - fn-105 D12/D14 replay-divergence dispositions stay unchanged. Attribute a failure to those owners with retained evidence instead of relaxing an expectation.
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
-## Acceptance
-- [ ] Network listener and connection creation selects one private backend implementation; exported handle methods no longer branch on `processHandle` or backend fields.
-- [ ] Each implementation owns only its valid state; the simulation network model is shared, not duplicated, and no generic backend registry exists.
-- [ ] Shared operation tests pass for standalone, in-process and process backends; backend-specific tests retain hard-isolation distinctions.
-- [ ] Duplicate bind, deadline, close/reset, partial I/O, capacity, stale incarnation and replay divergence behave as before, with validation before mutation.
-- [ ] Overlay inventories validate, the toolchain rebuilds, and gomad3sim network/process tests pass on darwin/arm64; linux/amd64 is recorded as incomplete.
-
-## Done summary
-Blocked:
-# Task 17 acceptance awaits qualified native gates
-
-The network-owner source candidate and canonical simulation-gate correction
-are frozen, independently reviewed and pass feasible conductor checks; see
-handover.md, evidence.json, source-audit.md and conductor-verification.md.
-This is not task completion or R12 acceptance.
-
-Actual host is linux/arm64. The pinned patched executable is absent. With
-stock Go 1.27.1 on PATH, the native builder exits 2 because complete mode
-requires darwin/arm64 or linux/amd64 (native-toolchain.log). The unchanged
-Mach-O linter cannot execute on this host; task-16 metadata remains applicable.
-
-Required patched rebuild, native overlay/network/process tests, real Runner
-transport, full host/test-host and supported-platform qualification remain
-open. Scratch adapters and link-only/compile-only checks are developmental,
-not IPC, timers, replay or isolation proof. Preserve D12, resolved D14 and
-the existing strict-delay watchdog disposition. The scoped filter fix selects
-new process cases without relaxing those expectations.
-
-Keep Flow acceptance blocked until its actual native commands qualify the
-integrated source. MILESTONES item 4 permits downstream source advancement
-after review; it does not permit completion. User owns commits; commits [].
-
-Blocked:
-# Task 17 native acceptance remains open after network checkpoint
-
-The exact corrected network-owner candidate is committed separately as verified
-progress under MILESTONES item 5. All 17 historical source identities match;
-the thirteen actual deltas retain the original independently reviewed behavior
-and canonical process selection. See conductor-checkpoint.md, checkpoint-report.md,
-checkpoint-qualification-inputs-report.md and source-audit.md.
-
-The focused ownership/selection/architecture, generation/version/protocol, vet
-and full validation checks passed on stock linux/arm64. Required patched rebuild,
-native overlay/network/process tests, real Runner transport, whole host and
-native darwin/arm64 plus linux/amd64 qualification remain incomplete. The
-unchanged incompatible linter and native-builder limitation remain recorded.
-
-Developmental adapters and prior compile/link evidence do not prove native
-IPC, timers, hard isolation or exact replay. Preserve D12, resolved D14 and the
-strict-delay watchdog disposition. Keep task 17 and R12 open; no Flow completion
-or push is included.
-## Evidence
-- Commits:
-- Tests:
-- PRs:

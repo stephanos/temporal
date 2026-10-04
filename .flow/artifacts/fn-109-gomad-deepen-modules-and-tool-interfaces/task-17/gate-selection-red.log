@@ -1,0 +1,19 @@
+--- FAIL: TestSimulationGateSelectsProcessNetworkHandles (0.01s)
+    simulation_gate_selection_test.go:57: canonical main simulation gate excludes TestProcessNetworkHandleOperationParity
+    simulation_gate_selection_test.go:57: canonical main simulation gate excludes TestProcessNetworkHandleQueuedAccept
+    simulation_gate_selection_test.go:57: canonical main simulation gate excludes TestProcessNetworkHandleShortReadsAndHalfClose
+    simulation_gate_selection_test.go:57: canonical main simulation gate excludes TestProcessNetworkHandleEmptyIO
+    simulation_gate_selection_test.go:57: canonical main simulation gate excludes TestProcessNetworkHandleDeadlines
+    simulation_gate_selection_test.go:57: canonical main simulation gate excludes TestProcessNetworkHandlePartialWrite
+    simulation_gate_selection_test.go:57: canonical main simulation gate excludes TestProcessNetworkHandleCapacityPreservesIdentities
+    simulation_gate_selection_test.go:57: canonical main simulation gate excludes TestProcessNetworkHandleConnectionCapacity
+    simulation_gate_selection_test.go:57: canonical main simulation gate excludes TestProcessNetworkHandleDeliveryCapacity
+    simulation_gate_selection_test.go:57: canonical main simulation gate excludes TestProcessNetworkHandleByteCapacity
+    simulation_gate_selection_test.go:57: canonical main simulation gate excludes TestProcessNetworkHandleRevocationDropsDelayedData
+    simulation_gate_selection_test.go:57: canonical main simulation gate excludes TestProcessNetworkHandleCrashDropsDelayedData
+    simulation_gate_selection_test.go:57: canonical main simulation gate excludes TestProcessNetworkHandleReplayRejectsWriteBeforeMutation
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3	0.010s
+FAIL
+ELAPSED_SECONDS=0.410
+EXIT_CODE=1

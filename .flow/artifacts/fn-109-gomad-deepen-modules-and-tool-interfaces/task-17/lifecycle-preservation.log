@@ -1,0 +1,10 @@
+tools/gomad3/runner/internal/execution/process_unix.go: OK
+tools/gomad3/runner/internal/execution/simulation_progress.go: OK
+tools/gomad3/runner/internal/execution/simulation_progress_fixture_test.go: OK
+tools/gomad3/runner/internal/execution/simulation_progress_lifecycle_test.go: OK
+tools/gomad3/runner/internal/execution/simulation_progress_test.go: OK
+tools/gomad3/runner/internal/execution/simulation_time.go: OK
+tools/gomad3/runner/internal/execution/simulation_time_test.go: OK
+tools/gomad3/runner/internal/execution/simulation_time_wire_generated.go: OK
+tools/gomad3/runner/internal/execution/simulation_time_wire_generated_test.go: OK
+tools/gomad3/runner/internal/execution/simulation_unix.go: OK

@@ -162,8 +162,8 @@ type simulationNetwork struct {
 	nodes           map[string]*simulationNode
 	addresses       map[string]*simulationNode
 	links           map[string]simulationLink
-	listeners       map[Address]*Listener
-	listenerHistory []*Listener
+	listeners       map[Address]*simulationListener
+	listenerHistory []*simulationListener
 	connections     map[uint64]*simulationConnection
 	deliveries      map[uint64]simulationDelivery
 	nextConnection  uint64
@@ -290,7 +290,7 @@ func newSimulationNetwork(run uint64, config simulationNetworkConfig) (*simulati
 		nodes:       make(map[string]*simulationNode, len(config.Nodes)),
 		addresses:   make(map[string]*simulationNode, len(config.Nodes)),
 		links:       make(map[string]simulationLink, len(config.Links)),
-		listeners:   make(map[Address]*Listener),
+		listeners:   make(map[Address]*simulationListener),
 		connections: make(map[uint64]*simulationConnection),
 		deliveries:  make(map[uint64]simulationDelivery),
 		changed:     make(chan struct{}),
@@ -388,11 +388,11 @@ func (network *simulationNetwork) listen(networkName, host string, requestedPort
 	if requestedPort == 0 {
 		node.nextListenerPort = port + 1
 	}
-	listener := &Listener{address: address, owner: owner, network: network, changed: make(chan struct{})}
+	listener := &simulationListener{address: address, owner: owner, network: network, changed: make(chan struct{})}
 	network.listeners[address] = listener
 	network.listenerHistory = append(network.listenerHistory, listener)
 	network.signalLocked()
-	return listener, nil
+	return &Listener{implementation: listener}, nil
 }
 
 func (network *simulationNetwork) dial(ctx context.Context, networkName, host string, port int, domain gomadsim.NetworkDomain) (*Conn, error) {
@@ -489,19 +489,19 @@ func (network *simulationNetwork) dial(ctx context.Context, networkName, host st
 		clientState, serverState := newConnStates()
 		clientAddress := Address{IP: domain.Address, Port: clientPort}
 		serverAddress := listener.address
-		client := &Conn{local: clientAddress, remote: serverAddress, owner: clientEndpoint, target: serverEndpoint, network: network, identity: identity, state: clientState, peer: serverState}
-		server := &Conn{local: serverAddress, remote: clientAddress, owner: serverEndpoint, target: clientEndpoint, network: network, identity: identity, state: serverState, peer: clientState}
+		client := &simulationConn{pairedConn: pairedConn{local: clientAddress, remote: serverAddress, state: clientState, peer: serverState}, owner: clientEndpoint, target: serverEndpoint, network: network, identity: identity}
+		server := &simulationConn{pairedConn: pairedConn{local: serverAddress, remote: clientAddress, state: serverState, peer: clientState}, owner: serverEndpoint, target: clientEndpoint, network: network, identity: identity}
 		network.connections[identity] = &simulationConnection{identity: identity, client: clientEndpoint, server: serverEndpoint, clientState: clientState, serverState: serverState}
 		listener.pending = append(listener.pending, server)
 		listener.signal()
 		listener.mu.Unlock()
 		network.signalLocked()
 		network.Unlock()
-		return client, nil
+		return &Conn{implementation: client}, nil
 	}
 }
 
-func (network *simulationNetwork) accept(listener *Listener) (*Conn, error) {
+func (network *simulationNetwork) accept(listener *simulationListener) (*simulationConn, error) {
 	for {
 		if err := validateSimulationEndpoint(network, listener.owner); err != nil {
 			return nil, err
@@ -545,7 +545,7 @@ func (network *simulationNetwork) accept(listener *Listener) (*Conn, error) {
 	}
 }
 
-func (network *simulationNetwork) closeListener(listener *Listener) error {
+func (network *simulationNetwork) closeListener(listener *simulationListener) error {
 	if err := validateSimulationEndpoint(network, listener.owner); err != nil {
 		return err
 	}
