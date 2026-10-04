@@ -65,6 +65,6 @@ Blocked: original qualification and genuine fault/timing proof remain open. See
 [acceptance limits](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-31/acceptance-open.md).
 
 ## Evidence
-- Commits: pending root source-progress checkpoint
+- Commits: c0e21c9cbb54a9d2909d0d47da081fdd44c94d6c
 - Tests: task-31/evidence.json and independent-source-review-checks.json retain exact commands, exits and source-bound logs
 - PRs: none
