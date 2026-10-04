@@ -34,9 +34,39 @@ Implement the framework/lifter surface for behavior-preserving machine derivatio
 - [ ] Positive and refusal fixtures cover every new form, refinement replacement, assumption append and invalid binding case; a wildcard step-function arm lifts unchanged.
 - [ ] Full tables, IDs, fingerprints and Query answers equal the original baseline under the R1 projection.
 ## Done summary
-TBD
+Added machine derivations, the six step/claim sugar forms with their core/sugar split and lint rule, and the R1 function projection of the original-baseline harness. No production Model changed; model/ir and model/cases are byte-identical.
 
+**What changed**
+- Harness (`tools/umpire/internal/golden/original.go`): the IR check drops `Model.functions` and reads each set function reference (`Call.function`, `StepBinding.function`, `Machine.evidence`, `Refinement.map/visible/visible_outcomes`, `Monitor.next/violated/after`, `Property.holds`, `Progress.from/to`) as one token; empty stays empty, so presence and the monitor evaluation oneof are still compared. Meaning is held by the existing derived outputs and Case bytes. `TestOriginalBaselineRejectsAFlippedGuard` is the mutation control: a flipped guard passes the IR check and fails the semantics digest; a renamed, double-negated function passes both. `lower.json` was re-derived from the unchanged archive (exploration candidate digests use the projection); model.json, owners.json and archive/*.gz are untouched.
+- `model/umpire/Machine.scala` (core): `rebind`, `extend`, `refining(product)(map)`, `assuming`, `unmonitored`, plus `steps.because("…")`. `restrict` now lifts through the same chain.
+- `model/umpire/Syntax.scala` (sugar, each doc says `Core form:`): `Accepted[O]`, `accept`, `stay`, `disabled`, `x.in(first, rest*)`, `a implies b` (infix, by-name), `step.records(fact)`. Lifted in `model/lifter/Syntax.scala` through one hook in `Expressions.lift` (plus a guard in `stepFunction`).
+- Lifter refusals: rebind of an unbound action, extend by a bound one, a doubled binding, a repeated assumption, `refining` with no refinement or with a product of other types, a machine derived from or aliased to itself (both used to recurse forever), `in` over a splatted list, `because` on steps not written out, an `Accepted` given that is computed. Compiler refusals: `x.in()` and a cross-typed `refining` map (crossed fixture).
+- Fixtures: `lifts/Derived.scala` and `lifts/Sugar.scala` pair each form with its spelled-out core, and new tests in `Fixtures.test.scala` require equal IR after dereferencing function names. This covers the `implies` short-circuit over a hole and a wildcard arm.
+- Lint (`model/gate/SyntaxRule.scala`, `gate --check-syntax`, `lint-model-syntax` in `make lint-model`). It refuses three things:
+  - an undocumented definition in a Syntax.scala;
+  - a sugar-named top-level, object or extension definition outside one;
+  - a core file that imports Syntax names, or, in umpire, refers to them.
+
+  `model/metrics/Metrics.scala` lists the new gate file.
+
+**Decisions (autonomous)**
+- **`accept`/`stay` read the accepted outcome from `given Accepted[O] = Accepted(Outcome.accepted)`.** This is typed and explicit, with no case-name convention and no inline derivation. It costs one line per outcome type in task 6.
+- **`refining` requires the source to declare a refinement, and the replacement to have the same state, outcome and fact types.** The preserved visibility projections name those types.
+- **`because` is core,** as the spec classifies it: an extension on `List[Step]` in Machine.scala.
+- **`Delta.Functions` (function-name substitutions) is removed.** The projection subsumes it.
+- **No Declarations sugar hook.** No task-3 sugar form is a declaration; task 4's patterns add it.
+- **No new expected JSON.** The fn-115 inventory is closed, so the pairs are assertion tests, as in fn-112.2.
+- **Outside Touches:** `model/lifter/Context.scala` (alias-cycle guard), `Lifting.scala`, `Makefile`, `model/metrics/Metrics.scala`, `model/README.md`, `tools/umpire/model/original_migration_test.go` and the crossed fixture.
+- **Parallel work:** two opus subagents built the Go harness and the lint rule.
+
+**Review:** claude-opus-5-5 high via `--spec claude:claude-opus-5-5:high`; the writer and reviewer are the same family (Opus).
+- Round 1: SHIP with 2 P3s, both fixed in 808e2e3499: the step-binding parsing is shared, and `restrict` chains with the other derivations.
+- Round 2: SHIP.
+
+**Deferred P3/FYI:** an IOException inside `--check-syntax` prints a stack trace instead of a GateError (reviewer confidence 50).
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d9d0609caf, cda3b19165, 808e2e3499
+- Tests: make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks (exit 0), scala-cli test model/lifter (exit 0), scala-cli test model/gate (exit 0), go test -tags test_dep -count=1 -p 2 -run OriginalBaseline ./tools/umpire/internal/golden ./tools/umpire/model ./tools/umpire/lower (exit 0), make lint-model (exit 0), go test -tags test_dep -count=1 -p 2 -timeout 40m -json ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/... (exit 0, 193 s), GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main make lint-code-fast (exit 0)
 - PRs:
