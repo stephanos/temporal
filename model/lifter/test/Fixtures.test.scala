@@ -596,7 +596,8 @@ class Fixtures extends munit.FunSuite:
       "stiffLamp" -> "stiffLampSpelled",
       "faultyLamp" -> "faultyLampSpelled",
       "plainLamp" -> "plainLampSpelled",
-      "plainStiffLamp" -> "plainStiffLampSpelled"
+      "plainStiffLamp" -> "plainStiffLampSpelled",
+      "stiffPressOnly" -> "stiffPressOnlySpelled"
     )
     val (model, machine, _) = declarations("derived", pairs.flatMap((a, b) => Seq(a, b)))
     for (derived, spelled) <- pairs do assertEquals(machine(derived), machine(spelled), derived)

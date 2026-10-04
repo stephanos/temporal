@@ -1,6 +1,6 @@
-// Machines derived by `rebind`, `extend`, `refining`, `assuming` and `unmonitored`, each beside the
-// machine it stands for spelled out. The lifter's tests lift both and require one IR of each pair,
-// but for names, positions and the names of the functions the declarations refer to.
+// Machines derived by `rebind`, `extend`, `refining`, `assuming`, `unmonitored` and `restrict`, each
+// beside the machine it stands for spelled out. The lifter's tests lift both and require one IR of
+// each pair, but for names, positions and the names of the functions the declarations refer to.
 package fixture.derived
 
 import umpire.*
@@ -152,4 +152,16 @@ val plainStiffLampSpelled = machine[Lamp, Outcome, Fact] {
   evidence { case Fact.burnedOut => "lampBurnedOut" }
   unobservable(wear)
   steps(press ~> pressStiff, wear ~> (l => if l.light == Light.broken then Nil else wearLamp(l)))
+}
+
+/** A restriction chained after a derivation: it keeps the monitors and assumptions, not the rest. */
+val stiffPressOnly = lamp.rebind(press ~> pressStiff).restrict(press)
+
+val stiffPressOnlySpelled = machine[Lamp, Outcome, Fact] {
+  monitors(litAgain)
+  assumes(lampOpaque)
+  starts(Lamp(Light.off))
+  ends(l => l.light != Light.broken)
+  evidence { case Fact.burnedOut => "lampBurnedOut" }
+  steps(press ~> pressStiff)
 }

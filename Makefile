@@ -709,16 +709,17 @@ fmt-model:
 	@printf $(COLOR) "Formatting model files..."
 	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate $(MODEL_ROOT)/metrics
 
-# The five scalafix runs build separate projects, so they run side by side, and beside them the gate
-# holds the sugar to the Syntax.scala files (model/gate/SyntaxRule.scala); output-sync prints each
-# run's output whole, after its title.
-MODEL_LINTS := lint-model-models lint-model-lifter lint-model-lifts lint-model-gate lint-model-metrics lint-model-syntax
-.PHONY: $(MODEL_LINTS)
+# The five scalafix runs build separate projects, so they run side by side; output-sync prints each
+# run's output whole, after its title. The sugar check builds the gate, which lint-model-gate builds
+# with other options, so it runs after them.
+MODEL_LINTS := lint-model-models lint-model-lifter lint-model-lifts lint-model-gate lint-model-metrics
+.PHONY: $(MODEL_LINTS) lint-model-syntax
 
 lint-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@printf $(COLOR) "Checking model formatting..."
 	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf --check $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate $(MODEL_ROOT)/metrics
-	@$(MAKE) --no-print-directory -j6 --output-sync=target $(MODEL_LINTS)
+	@$(MAKE) --no-print-directory -j5 --output-sync=target $(MODEL_LINTS)
+	@$(MAKE) --no-print-directory lint-model-syntax
 
 lint-model-models:
 	@printf $(COLOR) "Linting model files..."
