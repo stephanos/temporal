@@ -163,3 +163,7 @@ and their bindings; each capability brings laws, and pairs bring interaction law
 listed. The pilots lift `terminalIsFinal` into `terminalStatesAreFinal` and `pausedIsNotDispatched`
 into a `Pausable × Pollable` law, on standalone activity and a minimal Nexus operation Model. A law
 joins only once two entities adopt it; an entity that differs overrides it with a recorded reason.
+
+Task 1 is done (branch `umpire-fn122`, merging): law bodies and the catalog as plain defs with server
+citations; the inventory classifies 76 claims as 8 law instances and 68 feature-specific. Three bodies wait for
+task 2's binding of plain value arguments.
