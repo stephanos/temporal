@@ -461,8 +461,8 @@ func clearPositionFields(m protoreflect.Message) {
 // TestMigrationProjectionKeepsLoweredCases checks that the current IR of every Model, which Match
 // admits, lowers to the mapped goldens' Cases: every Query Case byte for byte, every exploration Case
 // except its IDs, which carry the digest of the whole candidate Model. It checks it again for the
-// Nexus caller changed the way the IR-changing tasks change it. A changed step stays outside the
-// projection.
+// Nexus caller changed the way the IR-changing tasks change it. A changed step passes the IR
+// comparison, which reads no Function, and fails on its Cases.
 func TestMigrationProjectionKeepsLoweredCases(t *testing.T) {
 	const path, key = "model/scalav2/ir/nexus-caller.json", "mapped/ir/nexus-caller.json"
 	const kernel = "temporal.nexuscaller.kernel.Protocol$.completeStep"
@@ -522,15 +522,21 @@ func TestMigrationProjectionKeepsLoweredCases(t *testing.T) {
 		changedIDs[key+"/queries/retry"] = "retryAgain"
 		require.Error(t, compareLoweredCases(cfg, expected, changed, changedIDs, key))
 	})
+	// The IR comparison reads no Function, so a flipped guard passes it; the Queries whose Cases it
+	// changes no longer lower to the goldens' Cases.
 	t.Run("changed step", func(t *testing.T) {
 		changed := proto.CloneOf(admitted)
 		for _, f := range changed.GetFunctions() {
 			if f.GetName() == moved {
-				f.Body = &umpirespb.Expr{Position: f.GetBody().GetPosition(), Kind: &umpirespb.Expr_List{List: &umpirespb.ListOf{}}}
+				guard := f.GetBody().GetIf()
+				require.NotNil(t, guard)
+				guard.Then, guard.Else = guard.Else, guard.Then
 			}
 		}
 		_, err := cfg.Match(original, changed)
-		require.Error(t, err)
+		require.NoError(t, err)
+		lowered, loweredIDs := lowerMigrationCases(t, key, changed)
+		require.Error(t, compareLoweredCases(cfg, expected, lowered, loweredIDs, key))
 	})
 }
 

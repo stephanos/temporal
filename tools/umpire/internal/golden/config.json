@@ -170,6 +170,7 @@
   "projection": {
     "positions_by_file": true,
     "alpha_normalized_parameters": true,
+    "functions_by_reference": true,
     "function_name_substitutions": [
       {
         "old": "temporal.nexuscaller.kernel.Product$.completeStep",

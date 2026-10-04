@@ -547,26 +547,54 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 	require.Equal(t, string(want), string(projectedMeaning(t, migrationBinding(t, admitted), project)),
 		"what the projection admits reads as the frozen original does")
 
-	t.Run("changed table row", func(t *testing.T) {
+	// The IR comparison reads no Function, so a flipped guard passes it; the reading refuses it. A
+	// renamed step whose guard is negated twice means the same and reads the same.
+	t.Run("flipped guard", func(t *testing.T) {
 		changed := proto.CloneOf(admitted)
 		step := functionNamed(changed, changed.GetMachines()[0].GetSteps()[0].GetFunction())
 		branch := firstIf(step.ProtoReflect())
 		require.NotNil(t, branch)
 		branch.Then, branch.Else = branch.Else, branch.Then
 		_, err := cfg.Match(original, changed)
-		require.Error(t, err)
+		require.NoError(t, err)
 		require.NotEqual(t, string(want), string(projectedMeaning(t, migrationBinding(t, changed), project)))
+	})
+	t.Run("renamed step with a guard negated twice", func(t *testing.T) {
+		changed := proto.CloneOf(admitted)
+		step := functionNamed(changed, changed.GetMachines()[0].GetSteps()[0].GetFunction())
+		branch := firstIf(step.ProtoReflect())
+		require.NotNil(t, branch)
+		not := func(e *umpirespb.Expr) *umpirespb.Expr {
+			return &umpirespb.Expr{Position: e.GetPosition(), Kind: &umpirespb.Expr_Unary{Unary: &umpirespb.Unary{Op: umpirespb.Unary_OP_NOT, Operand: e}}}
+		}
+		branch.Condition = not(not(branch.GetCondition()))
+		changed = migrationRewrite(t, changed, rename(step.GetName(), step.GetName()+"Restructured"))
+		_, err := cfg.Match(original, changed)
+		require.NoError(t, err)
+		require.Equal(t, string(want), string(projectedMeaning(t, migrationBinding(t, changed), project)))
 	})
 	for name, rewrite := range map[string]func(string) string{
 		"unlisted function rename":      rename(moved, moved+"Unlisted"),
 		"listed function rename unmade": rename(moved, kernel),
-		"position in an unlisted file":  rename("model/temporal/nexuscaller/Claims.scala", "model/temporal/nexuscaller/Claim.scala"),
 	} {
 		t.Run(name, func(t *testing.T) {
 			_, err := cfg.Match(original, migrationRewrite(t, admitted, rewrite))
-			require.Error(t, err)
+			require.NoError(t, err, "the IR comparison reads every Function reference as one token")
 		})
 	}
+	t.Run("position in an unlisted file", func(t *testing.T) {
+		changed := migrationRewrite(t, admitted, rename("model/temporal/nexuscaller/Claims.scala", "model/temporal/nexuscaller/Claim.scala"))
+		_, err := cfg.Match(original, changed)
+		require.Error(t, err)
+	})
+	t.Run("Function reference removed", func(t *testing.T) {
+		changed := proto.CloneOf(admitted)
+		i := slices.IndexFunc(changed.GetMachines(), func(m *umpirespb.Machine) bool { return m.GetEvidence() != "" })
+		require.GreaterOrEqual(t, i, 0)
+		changed.GetMachines()[i].Evidence = ""
+		_, err := cfg.Match(original, changed)
+		require.Error(t, err, "an empty reference stays empty")
+	})
 	t.Run("parameters swapped over an unchanged body", func(t *testing.T) {
 		changed := proto.CloneOf(admitted)
 		var swapped *umpirespb.Function
@@ -589,7 +617,8 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 		params := swapped.GetParams()
 		params[0].Name, params[1].Name = params[1].GetName(), params[0].GetName()
 		_, err := cfg.Match(original, changed)
-		require.Error(t, err, swapped.GetName())
+		require.NoError(t, err, swapped.GetName())
+		require.NotEqual(t, string(want), string(projectedMeaning(t, migrationBinding(t, changed), project)), swapped.GetName())
 	})
 }
 

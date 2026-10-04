@@ -52,6 +52,16 @@ type Projection struct {
 	// Functions are the Functions renamed after the goldens were captured, from the frozen name. Each
 	// renames the Function, and every string of the Model equal to its name, exactly.
 	Functions []Substitution `json:"function_name_substitutions"`
+	// FunctionsByReference compares a Model without its Functions, and reads each Function reference
+	// that is set as one token, as the original baseline does (functionless): fn-112 rewrites Function
+	// bodies, retires and adds helpers and renames what steps, Properties, monitors, evidence and
+	// refinements call. The IR comparison then holds no step's meaning. What the current IR means is
+	// compared with the frozen original's on its readings (TestMigrationProjectionPreservesSemantics:
+	// tables, Property answers, receipts, Definition IDs, fingerprints and refined Properties) and on
+	// its lowered Cases (TestMigrationProjectionKeepsLoweredCases); each refuses a flipped guard this
+	// comparison admits (TestMigrationGoldensAdmitOnlyTheProjection and the lowered Cases' changed
+	// step). The original-baseline harness holds the same meaning in the same gate.
+	FunctionsByReference bool `json:"functions_by_reference"`
 	// Types are exact names of finite declarations moved after the goldens were captured.
 	Types []Substitution `json:"type_name_substitutions"`
 	// InertFields are IR fields, by full protobuf name, added after the goldens were captured and read
@@ -364,6 +374,11 @@ func (p Projection) project(m *umpirespb.Model, original bool) (*umpirespb.Model
 			child.Clear(field)
 			return true, nil
 		}); err != nil {
+			return nil, err
+		}
+	}
+	if p.FunctionsByReference {
+		if err := functionless(m); err != nil {
 			return nil, err
 		}
 	}

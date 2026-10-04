@@ -252,6 +252,69 @@ func TestProjectionIsClosed(t *testing.T) {
 	}
 }
 
+// TestFunctionProjectionReadsNoFunction compares Models without their Functions and with each set
+// Function reference as one token, so a function-body-only change passes the IR comparison; what a
+// body means is compared on what the current IR reads and lowers to (see FunctionsByReference).
+// Everything else is still compared exactly.
+func TestFunctionProjectionReadsNoFunction(t *testing.T) {
+	cfg, original, current := projectedJob(t)
+	cfg.Projection.FunctionsByReference = true
+	not := func(e *umpirespb.Expr) *umpirespb.Expr {
+		return &umpirespb.Expr{Position: e.GetPosition(), Kind: &umpirespb.Expr_Unary{Unary: &umpirespb.Unary{Op: umpirespb.Unary_OP_NOT, Operand: e}}}
+	}
+	admitted := map[string]func(*umpirespb.Model){
+		"renamed step with a guard negated twice": func(m *umpirespb.Model) {
+			guard := functionNamed(m, "job.take.step").Body.GetIf()
+			guard.Condition = not(not(guard.Condition))
+			functionNamed(m, "job.take.step").Name = "job.Take$.step"
+			m.Machines[0].Steps[1].Function = "job.Take$.step"
+		},
+		"unlisted function rename": func(m *umpirespb.Model) { renameFunction(m, "job.evidence", "job.evidenceOf") },
+		"flipped guard": func(m *umpirespb.Model) {
+			guard := functionNamed(m, "job.take.step").Body.GetIf()
+			guard.Then, guard.Else = guard.Else, guard.Then
+		},
+		"inventory": func(m *umpirespb.Model) {
+			m.Functions = append(m.Functions[1:], &umpirespb.Function{Name: "job.helper", Body: m.Functions[0].Body})
+		},
+		"renamed parameter with a different body": func(m *umpirespb.Model) {
+			functionNamed(m, "job.evidence").Params[0].Name = "it"
+		},
+	}
+	for name, change := range admitted {
+		t.Run(name, func(t *testing.T) {
+			changed := proto.CloneOf(current)
+			change(changed)
+			moved, err := cfg.Match(original, changed)
+			require.NoError(t, err)
+			require.True(t, moved)
+			unprojected := cfg
+			unprojected.Projection.FunctionsByReference = false
+			_, err = unprojected.Match(original, changed)
+			require.Error(t, err, "a projection the configuration does not declare is not applied")
+		})
+	}
+	rejected := map[string]func(*umpirespb.Model){
+		"state key":       func(m *umpirespb.Model) { m.Types[0].GetEnum().Cases[1].Name = "pending" },
+		"definition ID":   func(m *umpirespb.Model) { m.Actions[0].Id = "job.Moved$.submit" },
+		"step removed":    func(m *umpirespb.Model) { m.Machines[0].Steps = m.Machines[0].Steps[1:] },
+		"step's action":   func(m *umpirespb.Model) { m.Machines[0].Steps[1].Action = "job.drop" },
+		"no evidence":     func(m *umpirespb.Model) { m.Machines[0].Evidence = "" },
+		"query limits":    func(m *umpirespb.Model) { m.Queries[0].Limits.Steps++ },
+		"ends operator":   func(m *umpirespb.Model) { m.Machines[0].Ends.GetLambda().Body.GetBinary().Op = umpirespb.Binary_OP_AND },
+		"position's file": func(m *umpirespb.Model) { m.Machines[0].Position.File = "other.go" },
+		"source":          func(m *umpirespb.Model) { m.Source += " unexpected" },
+	}
+	for name, change := range rejected {
+		t.Run(name, func(t *testing.T) {
+			changed := proto.CloneOf(current)
+			change(changed)
+			_, err := cfg.Match(original, changed)
+			require.Error(t, err)
+		})
+	}
+}
+
 func TestTypeNameProjectionIsClosed(t *testing.T) {
 	original := &umpirespb.Model{
 		Source: "old source",

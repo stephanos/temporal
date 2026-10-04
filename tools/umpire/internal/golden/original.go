@@ -219,21 +219,34 @@ var functionReferences = map[protoreflect.FullName]bool{
 	"temporal.server.api.umpire.v1.Progress.to":                 true,
 }
 
-// sourceless removes where m was lifted from and every position, every Function, and the name of
-// each Function a declaration refers to. fn-112 gives constructs other bodies and retires or adds
-// helper Functions without changing what they mean, and what they mean is compared on the tables,
-// answers, receipts, fingerprints and Cases derived from the Model. An empty reference stays empty,
-// so whether a declaration names a Function, such as a refinement's visibility projection or the
-// point a monitor evaluates at, is still compared here.
+// sourceless removes where m was lifted from and every position, and what functionless removes.
 func sourceless(m *umpirespb.Model) error {
 	m.Source = ""
-	m.Functions = nil
+	if err := functionless(m); err != nil {
+		return err
+	}
 	position := (&umpirespb.Position{}).ProtoReflect().Descriptor()
 	return messages(m.ProtoReflect(), func(child protoreflect.Message) (bool, error) {
-		child.Range(func(f protoreflect.FieldDescriptor, v protoreflect.Value) bool {
+		child.Range(func(f protoreflect.FieldDescriptor, _ protoreflect.Value) bool {
 			if f.Message() == position {
 				child.Clear(f)
-			} else if functionReferences[f.FullName()] && v.String() != "" {
+			}
+			return true
+		})
+		return true, nil
+	})
+}
+
+// functionless removes every Function and the name of each Function a declaration refers to. fn-112
+// gives constructs other bodies and retires or adds helper Functions without changing what they mean,
+// and what they mean is compared on the tables, answers, receipts, fingerprints and Cases derived from
+// the Model. An empty reference stays empty, so whether a declaration names a Function, such as a
+// refinement's visibility projection or the point a monitor evaluates at, is still compared.
+func functionless(m *umpirespb.Model) error {
+	m.Functions = nil
+	return messages(m.ProtoReflect(), func(child protoreflect.Message) (bool, error) {
+		child.Range(func(f protoreflect.FieldDescriptor, v protoreflect.Value) bool {
+			if functionReferences[f.FullName()] && v.String() != "" {
 				child.Set(f, protoreflect.ValueOfString(functionReference))
 			}
 			return true
