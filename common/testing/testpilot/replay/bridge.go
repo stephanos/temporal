@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 
 	"go.temporal.io/server/common/testing/testpilot/campaign"
 )
@@ -169,11 +168,6 @@ func StartBridge(ctx context.Context, options campaign.Options) (*Bridge, error)
 		return nil, err
 	}
 	return &Bridge{conn: conn}, nil
-}
-
-// NewBridge is a replay bridge client over already-open streams.
-func NewBridge(stdin io.Writer, stdout io.Reader, maxFrameBytes int) *Bridge {
-	return &Bridge{conn: campaign.NewConn(stdin, stdout, maxFrameBytes)}
 }
 
 // Close ends the bridge process.

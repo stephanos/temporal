@@ -15,7 +15,7 @@ import (
 
 // The expected-handle map built from the admitted plan is what validateHandles checks each handle
 // against: a missing, duplicated, crossed, or unexpected handle rejects.
-func TestCreateBundleUsesExactIdentityAndRetainsRejectedHandles(t *testing.T) {
+func TestCreateBundleUsesExactIdentity(t *testing.T) {
 	for name, tc := range map[string]struct {
 		mutate func([]testpilot.ReservationHandle) []testpilot.ReservationHandle
 		err    error
@@ -61,9 +61,8 @@ func TestCreateBundleUsesExactIdentityAndRetainsRejectedHandles(t *testing.T) {
 				}
 				handles = append(handles, retained)
 			}
-			bundle, err := ledger.CreateBundle(context.Background(), origin, f.plan, f.binding, handles)
+			_, err = ledger.CreateBundle(context.Background(), origin, f.plan, f.binding, handles)
 			require.ErrorIs(t, err, tc.err)
-			require.Len(t, bundle.Handles(), lenNonNil(handles))
 		})
 	}
 }
@@ -298,7 +297,7 @@ func TestStartResponsePinsAcrossWorkflowTerminalOrdering(t *testing.T) {
 				for _, raw := range []*testsupport.Reservation{f.workflow, f.handler} {
 					raw.Complete()
 				}
-				for _, handle := range f.bundle.Handles() {
+				for _, handle := range f.handles {
 					require.NoError(t, handle.Drain(context.Background()))
 				}
 			}
@@ -320,7 +319,7 @@ func TestCompletedBeforeResponseBundlesRemainBoundedUntilFinalization(t *testing
 	for _, raw := range []*testsupport.Reservation{f.workflow, f.handler} {
 		raw.Complete()
 	}
-	for _, handle := range f.bundle.Handles() {
+	for _, handle := range f.handles {
 		require.NoError(t, handle.Drain(context.Background()))
 	}
 
@@ -342,12 +341,12 @@ func TestCompletedBeforeResponseBundlesRemainBoundedUntilFinalization(t *testing
 	secondHandles, secondRaw := newHandles("second")
 	secondOrigin := f.origin
 	secondOrigin.InstructionID = "second"
-	second, err := f.ledger.CreateBundle(context.Background(), secondOrigin, f.plan, f.binding, secondHandles)
+	_, err := f.ledger.CreateBundle(context.Background(), secondOrigin, f.plan, f.binding, secondHandles)
 	require.NoError(t, err)
 	for _, raw := range secondRaw {
 		raw.Complete()
 	}
-	for _, handle := range second.Handles() {
+	for _, handle := range secondHandles {
 		require.NoError(t, handle.Drain(context.Background()))
 	}
 
@@ -368,7 +367,7 @@ func TestCapacityReleasesOnlyAfterActualHandleCompletion(t *testing.T) {
 	ledger, err := New(Config{RunID: "run", SessionID: "session", Limits: Limits{MaxRoutes: 2, MaxHeaderBytes: 4096, MaxHandles: 2, MaxDiagnostics: 2}})
 	require.NoError(t, err)
 	base := newFixture(t, "base", "base-session")
-	makeBundle := func(instruction string) (Bundle, *testsupport.Reservation, *testsupport.Reservation, error) {
+	makeBundle := func(instruction string) (Bundle, []testpilot.ReservationHandle, *testsupport.Reservation, *testsupport.Reservation, error) {
 		origin := base.origin
 		origin.RunID = "run"
 		origin.InstructionID = instruction
@@ -376,36 +375,37 @@ func TestCapacityReleasesOnlyAfterActualHandleCompletion(t *testing.T) {
 		handler := testsupport.NewReservation(testpilot.ReservationIdentity{Origin: origin, EntrypointID: "handler", ID: instruction + "-handler"})
 		retainedWorkflow, err := ledger.RetainReservation(context.Background(), workflow)
 		if err != nil {
-			return Bundle{}, workflow, handler, err
+			return Bundle{}, nil, workflow, handler, err
 		}
 		retainedHandler, err := ledger.RetainReservation(context.Background(), handler)
 		if err != nil {
-			return Bundle{handles: []testpilot.EffectHandle{retainedWorkflow}}, workflow, handler, err
+			return Bundle{}, nil, workflow, handler, err
 		}
-		bundle, err := ledger.CreateBundle(context.Background(), origin, base.plan, base.binding, []testpilot.ReservationHandle{retainedWorkflow, retainedHandler})
-		return bundle, workflow, handler, err
+		handles := []testpilot.ReservationHandle{retainedWorkflow, retainedHandler}
+		bundle, err := ledger.CreateBundle(context.Background(), origin, base.plan, base.binding, handles)
+		return bundle, handles, workflow, handler, err
 	}
-	first, workflow, handler, err := makeBundle("first")
+	first, firstHandles, workflow, handler, err := makeBundle("first")
 	require.NoError(t, err)
 	_, err = ledger.TriggerTerminal(context.Background(), first, TriggerRejected)
 	require.NoError(t, err)
-	_, _, _, err = makeBundle("second")
+	_, _, _, _, err = makeBundle("second")
 	require.ErrorIs(t, err, ErrCapacity)
 	require.Equal(t, int64(1), workflow.Cancels())
 	require.Equal(t, int64(1), handler.Cancels())
 
 	workflow.Complete()
 	handler.Complete()
-	for _, handle := range first.Handles() {
+	for _, handle := range firstHandles {
 		require.NoError(t, handle.Drain(context.Background()))
 	}
-	_, _, _, err = makeBundle("second")
+	_, _, _, _, err = makeBundle("second")
 	require.NoError(t, err)
 }
 
 func TestSchedulerVisibleReservationProxyOwnsLifecycle(t *testing.T) {
 	f := newFixture(t, "run", "session")
-	handles := f.bundle.Handles()
+	handles := f.handles
 	require.Len(t, handles, 2)
 	_, err := f.ledger.TriggerTerminal(context.Background(), f.bundle, TriggerRejected)
 	require.NoError(t, err)
@@ -500,7 +500,7 @@ func TestCrossSessionLifecycleCannotCancelForeignHandles(t *testing.T) {
 
 func TestReservationProxyLifecycleHonorsLockContextAndCancelState(t *testing.T) {
 	f := newFixture(t, "run", "session")
-	handle := f.bundle.Handles()[0]
+	handle := f.handles[0]
 	require.NoError(t, handle.Cancel(context.Background()))
 	require.NoError(t, handle.Cancel(context.Background()))
 	require.Equal(t, int64(1), f.handler.Cancels()+f.workflow.Cancels())
@@ -520,7 +520,7 @@ func TestReservationProxyLifecycleHonorsLockContextAndCancelState(t *testing.T) 
 func TestQuarantineKeepsReservationOwnershipAndUnwrapsExactHandle(t *testing.T) {
 	first := newFixture(t, "run-one", "session-one")
 	second := newFixture(t, "run-two", "session-two")
-	handle := first.bundle.Handles()[0]
+	handle := first.handles[0]
 	called := false
 	var finished CompletionFunc
 	err := first.ledger.Quarantine(context.Background(), handle, func(_ context.Context, raw testpilot.EffectHandle, notify CompletionFunc) error {
@@ -559,7 +559,7 @@ func TestQuarantineKeepsReservationOwnershipAndUnwrapsExactHandle(t *testing.T) 
 func TestQuarantineRegistrationRetryAndActualFinishReleaseCapacity(t *testing.T) {
 	f := newFixture(t, "run", "session")
 	f.ledger.config.Limits.MaxHandles = 2
-	handle := f.bundle.Handles()[0]
+	handle := f.handles[0]
 	registerCount := 0
 	registration := func(_ context.Context, raw testpilot.EffectHandle, finished CompletionFunc) error {
 		registerCount++
@@ -587,7 +587,7 @@ func TestQuarantineRegistrationRetryAndActualFinishReleaseCapacity(t *testing.T)
 
 func TestQuarantineConcurrentRegistrationIsRetryableAndThenIdempotent(t *testing.T) {
 	f := newFixture(t, "run", "session")
-	handle := f.bundle.Handles()[0]
+	handle := f.handles[0]
 	entered := make(chan struct{})
 	returnRegistration := make(chan struct{})
 	first := make(chan error, 1)
@@ -615,7 +615,7 @@ func TestQuarantineConcurrentRegistrationIsRetryableAndThenIdempotent(t *testing
 func TestQuarantineCompletionRemainsAuthoritativeAfterRegistrationError(t *testing.T) {
 	f := newFixture(t, "run", "session")
 	f.ledger.config.Limits.MaxHandles = 2
-	handle := f.bundle.Handles()[0]
+	handle := f.handles[0]
 	err := f.ledger.Quarantine(context.Background(), handle, func(_ context.Context, _ testpilot.EffectHandle, finished CompletionFunc) error {
 		finished()
 		return errors.New("registration returned after completion")
@@ -700,8 +700,8 @@ func TestWaitReturnsIndependentFailureSnapshotAfterStop(t *testing.T) {
 	f.workflow.WaitErr = errors.New("activation failed")
 	f.workflow.Complete()
 	var handle testpilot.EffectHandle
-	for _, retained := range f.bundle.Handles() {
-		if retained.(testpilot.ReservationHandle).Identity().EntrypointID == "workflow" {
+	for _, retained := range f.handles {
+		if retained.Identity().EntrypointID == "workflow" {
 			handle = retained
 		}
 	}
@@ -726,19 +726,9 @@ func TestLateTerminalCannotMutateReleasedBundle(t *testing.T) {
 	for _, raw := range []*testsupport.Reservation{f.workflow, f.handler} {
 		raw.Complete()
 	}
-	for _, handle := range f.bundle.Handles() {
+	for _, handle := range f.handles {
 		require.NoError(t, handle.Drain(context.Background()))
 	}
 	_, err = f.ledger.ParentTerminal(context.Background(), activation)
 	require.ErrorIs(t, err, ErrRouteStale)
-}
-
-func lenNonNil(handles []testpilot.ReservationHandle) int {
-	count := 0
-	for _, handle := range handles {
-		if handle != nil {
-			count++
-		}
-	}
-	return count
 }

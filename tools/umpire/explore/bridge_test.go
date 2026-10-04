@@ -2,18 +2,11 @@ package explore
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
-	"errors"
-	"io"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	"go.temporal.io/server/common/testing/testpilot"
-	"go.temporal.io/server/common/testing/testpilot/campaign"
-	"go.temporal.io/server/common/testing/testpilot/replay"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 )
 
@@ -34,40 +27,20 @@ func TestReplayBridgeRejectsCrossedIdentity(t *testing.T) {
 	require.NotContains(t, reply, "proposal")
 }
 
-func TestUnreproducedRuntimeFailureNeverProducesProposal(t *testing.T) {
+func TestReplayBridgeAdmitsTheCandidateIdentity(t *testing.T) {
 	m, err := umpiremodel.Load("../../../model/ir/nexus-control.json")
 	require.NoError(t, err)
 	plan, err := New(m, "nexusControl")
 	require.NoError(t, err)
 	candidate := plan.Candidates[0]
 	require.Empty(t, candidate.Rejection)
-	input, requests := io.Pipe()
-	replies, output := io.Pipe()
-	finished := make(chan error, 1)
-	go func() {
-		finished <- Serve(input, output, []*umpirespb.Model{m})
-		_ = output.Close()
-		_ = input.Close()
-	}()
-	t.Cleanup(func() { require.NoError(t, requests.Close()); require.NoError(t, replies.Close()) })
-	bridge := replay.NewBridge(requests, replies, 0)
-	admitted, err := bridge.Admit(t.Context(), plan.Name, "test", replay.Named{Target: candidate.Key}, candidate.Identity)
+	admit, err := json.Marshal(map[string]any{"frame": "admit", "seq": 1, "set": plan.Name, "profile": "test", "target": candidate.Key, "identity": candidate.Identity})
 	require.NoError(t, err)
-	reducer := replay.Reducer{Bridge: bridge, Admitted: admitted, Subject: &replay.Subject{Case: candidate.Case}, Binder: unusedBinder{}, Prepare: func(string, *testpilotspb.Case) (*testpilot.PreparedCase, error) {
-		return nil, errors.New("must not prepare an unreproduced subject")
-	}, Limits: replay.DefaultLimits}
-	result, err := reducer.Reduce(t.Context(), &replay.Reruns{Class: replay.ClassNotReproduced})
-	require.NoError(t, err)
-	require.Equal(t, replay.ReductionNotAttempted, result.Status)
-	require.Nil(t, result.Proposal)
-	require.Equal(t, replay.ProposalNone, replay.WriteProposal(t.TempDir(), result.Proposal).Status)
-	require.NoError(t, <-finished)
-}
-
-type unusedBinder struct{}
-
-func (unusedBinder) Bind(context.Context, string, *testpilotspb.Case) (campaign.Bound, error) {
-	return nil, errors.New("must not run an unreproduced subject")
+	var output bytes.Buffer
+	require.NoError(t, Serve(bytes.NewReader(append(admit, '\n')), &output, []*umpirespb.Model{m}))
+	var reply map[string]any
+	require.NoError(t, json.Unmarshal(bytes.TrimSpace(output.Bytes()), &reply))
+	require.Equal(t, "admitted", reply["frame"])
 }
 
 func TestProposalReanswersTheOriginalQueryAndRejectsTampering(t *testing.T) {

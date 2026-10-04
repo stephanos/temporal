@@ -21,10 +21,6 @@ func readTestProfile(t *testing.T, name string) []byte {
 }
 
 func TestLoadProfileSelectsAnEmbeddedProfileByItsExactName(t *testing.T) {
-	names, err := ProfileNames()
-	require.NoError(t, err)
-	require.Equal(t, []string{"local-ephemeral"}, names)
-
 	profile, err := LoadProfile("local-ephemeral")
 	require.NoError(t, err)
 	require.Equal(t, localEphemeralIdentity, profile.Identity)
@@ -43,6 +39,7 @@ func TestLoadProfileSelectsAnEmbeddedProfileByItsExactName(t *testing.T) {
 	for _, name := range []string{"", "local", "Local-Ephemeral", "local-ephemeral.json", "profiles/local-ephemeral", "../evaluation/profiles/local-ephemeral", "local-strict"} {
 		_, err := LoadProfile(name)
 		require.ErrorIs(t, err, ErrUnknownProfile, "a Profile is a name from the embedded set, never a path: %q", name)
+		require.True(t, strings.HasSuffix(err.Error(), "; the Profiles are local-ephemeral"), "the embedded set is the one Profile: %v", err)
 	}
 }
 

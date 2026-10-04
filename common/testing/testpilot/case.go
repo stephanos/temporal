@@ -5,7 +5,6 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
 )
 
 func DecodeCaseProtoJSON(encoded []byte) (*testpilotspb.Case, error) {
@@ -17,12 +16,4 @@ func DecodeCaseProtoJSON(encoded []byte) (*testpilotspb.Case, error) {
 		return nil, err
 	}
 	return decoded, nil
-}
-
-func PackCaseProtoJSON(encoded []byte) ([]byte, error) {
-	decoded, err := DecodeCaseProtoJSON(encoded)
-	if err != nil {
-		return nil, err
-	}
-	return (proto.MarshalOptions{Deterministic: true}).Marshal(decoded)
 }

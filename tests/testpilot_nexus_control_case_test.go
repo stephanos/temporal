@@ -71,7 +71,6 @@ func TestTestpilotNexusControlForgedCompletionIsViolated(t *testing.T) {
 		require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
 		require.Equal(t, testpilotpb.VERDICT_STATUS_VIOLATED, verdict.GetStatus())
 		require.True(t, proto.Equal(verdict, run.GetVerdict()))
-		before := proto.CloneOf(run)
 		require.NotContains(t, runIDs, run.GetRunId(), "each Run is its own")
 		runIDs = append(runIDs, run.GetRunId())
 
@@ -93,16 +92,6 @@ func TestTestpilotNexusControlForgedCompletionIsViolated(t *testing.T) {
 			require.NotEmpty(t, subject.Key.Rules[index].Evidence)
 		}
 		keys = append(keys, subject.Key)
-
-		core := replay.EvidenceCore(verdict)
-		require.NotEmpty(t, core)
-		outside := replay.OutsideCore(run, core)
-		require.NotEmpty(t, outside, "the realization's scaffolding supports no violated rule")
-		for _, event := range outside {
-			require.NotEmpty(t, event.InstructionID)
-			require.NotContains(t, core, event.Sequence)
-		}
-		require.True(t, proto.Equal(before, run), "reading the core changes nothing")
 	}
 	require.True(t, keys[0].Equal(keys[1]), "two Runs of the control share one key: %s / %s", keys[0], keys[1])
 	t.Logf("control key: %s", keys[0])

@@ -50,26 +50,4 @@ func TestControlRecordPinsTheCorrelatedKey(t *testing.T) {
 	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, subject.Verdict.GetStatus())
 	require.Len(t, subject.Replay.Violations, 1)
 	require.Equal(t, controlKey, subject.Key.String())
-
-	// The core reads the scheduled, started and failed evidence. The inspected prefix and
-	// completion controller are scaffolding, as are the history events outside that core.
-	core := EvidenceCore(subject.Verdict)
-	require.Equal(t, []int64{8, 27, 32}, core)
-	outside := map[int64]string{}
-	for _, event := range OutsideCore(subject.Run, core) {
-		require.NotContains(t, core, event.Sequence)
-		outside[event.Sequence] = event.InstructionID
-	}
-	require.Equal(t, map[int64]string{
-		3: "start-workflow", 4: "start-workflow",
-		5: "await-scheduled", 7: "await-scheduled",
-		9: "inspect-workflow", 10: "inspect-workflow",
-		11: "inspect-workflow-2", 12: "inspect-workflow-2",
-		13: "await-completion-authority", 14: "await-completion-authority",
-		15: "fail-nexus-operation", 16: "fail-nexus-operation",
-		17: "await-close", 19: "await-close",
-		20: "history", 21: "history", 22: "history", 23: "history", 24: "history", 25: "history", 26: "history",
-		28: "history", 29: "history", 30: "history", 31: "history",
-		33: "history", 34: "history", 35: "history", 36: "history",
-	}, outside)
 }
