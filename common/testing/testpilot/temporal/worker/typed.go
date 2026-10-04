@@ -25,9 +25,9 @@ import (
 
 // The typed worker instructions carry Temporal API messages, and this Driver realizes each through
 // the SDK call that produces it: a ScheduleNexusOperationCommandAttributes becomes
-// workflow.ExecuteNexusOperation with the command's input and timeouts; a
-// ScheduleActivityTaskCommandAttributes becomes workflow.ExecuteActivity with the command's
-// activity, task queue, input, timeouts and retry policy; a StartOperationResponse
+// workflow.ExecuteNexusOperation with the command's input and exactly its timeouts, an unset one
+// left unset; a ScheduleActivityTaskCommandAttributes becomes workflow.ExecuteActivity with the
+// command's activity, task queue, input, timeouts and retry policy; a StartOperationResponse
 // becomes the handler's return, synchronous with its payload or asynchronous through the completion
 // authority the Driver publishes; a HandlerError becomes the error the handler returns with its type
 // and retry behavior; and a completion Payload or Failure becomes the completion callback's body.
@@ -63,8 +63,10 @@ func startsNexusOperation(instruction testpilot.InstructionPlan) bool {
 type caseNexusHeaderKey struct{}
 
 // scheduleNexus issues the schedule command: the operation's input is the carried payload, passed
-// through the data converter unconverted, and its timeouts are the carried durations, the
-// schedule-to-close one defaulting to the instruction's own timeout.
+// through the data converter unconverted, and its schedule-to-close, schedule-to-start and
+// start-to-close timeouts are exactly the carried durations, each left unset when the command
+// leaves it unset. None derives from the instruction's own timeout: that is a Profile value, and a
+// Profile value must not change what the server is asked to do (QLF-01).
 func (i *workflowInterpreter) scheduleNexus(index int, instruction testpilot.InstructionPlan) error {
 	source := instruction.Source()
 	attributes := scheduleNexusOperation(source.GetInstruction())
@@ -74,10 +76,7 @@ func (i *workflowInterpreter) scheduleNexus(index int, instruction testpilot.Ins
 	}
 	operationCtx := workflow.WithValue(i.ctx, workflowSourceKey{}, source.GetInstructionId())
 	operationCtx = workflow.WithValue(operationCtx, caseNexusHeaderKey{}, nexus.Header(maps.Clone(attributes.GetNexusHeader())))
-	options := workflow.NexusOperationOptions{
-		ScheduleToCloseTimeout: time.Duration(instruction.TimeoutMilliseconds()) * time.Millisecond,
-		CancellationType:       workflow.NexusOperationCancellationTypeWaitRequested,
-	}
+	options := workflow.NexusOperationOptions{CancellationType: workflow.NexusOperationCancellationTypeWaitRequested}
 	if attributes.GetScheduleToCloseTimeout() != nil {
 		options.ScheduleToCloseTimeout = attributes.GetScheduleToCloseTimeout().AsDuration()
 	}

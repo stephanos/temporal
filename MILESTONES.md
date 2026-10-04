@@ -94,7 +94,9 @@ test-shape changes. `ShutdownWorker` returns early when the task queue's root pa
 (`service/matching/matching_engine.go`, upstream #9424), never records the worker as shut down, and later polls
 hang until `stop-worker` runs out its 10 s limit. With `frontend.enableMatchingFanOutForPollCancellation=false`
 the same Cases are satisfied in 20 of 20 Runs. The choice is a server fix or that setting in the generated
-test's Profile; fn-121.3's sharded CI run stays red on these Cases until then.
+test's Profile; fn-121.3's sharded CI run stays red on these Cases until then. `terminateSettles` and both
+scheduleToStartTimeout Cases are affected too, under both Nexus implementations; with the setting off they pass
+10 of 10 Runs. fn-125.6 declares that setting as a `workerStop` precondition and drafts the upstream report.
 
 Open for the owner (deferred by fn-112's behavior freeze): the witness-only Properties `terminated` and
 `cancelRequestedWhileStarted` (false on 120 rows each) and seven pause/unpause rows the server rejects (pause in
@@ -238,5 +240,9 @@ the live harness builds each cluster from exactly those, and the hard-coded HSM/
 fixes two verified switch defects: the CHASM value never set the workflow-operations rollout percent, and
 the HSM value ran with CHASM on. Evidence: `.plans/DYNAMIC_CONFIG.md`. Decided 2026-10-04: the
 ShutdownWorker race is reported upstream and meanwhile declared as a `workerStop` precondition; remote
-Profiles fail closed; one Case per valuation. Open: whether HSM and CHASM may count Nexus attempts
-differently, once task 1 shows the evidence.
+Profiles fail closed; one Case per valuation. Task 1 is done: the switch really
+runs each implementation (confirmed from server task types), applies only to workflow-scheduled Nexus Cases, and
+refuses a key two sources set differently; the Driver no longer derives schedule-to-close from the Profile.
+No Case differs between HSM and CHASM: HSM raises `attempt` when an attempt completes and CHASM when it is
+scheduled, but every current Query reads it during the first backoff, where both show 1. Whether the two may
+differ stays open until a Query reads `attempt` elsewhere.

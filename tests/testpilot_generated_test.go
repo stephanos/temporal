@@ -7,8 +7,6 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
-	"slices"
-	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -17,7 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/chasm/lib/activity"
-	"go.temporal.io/server/chasm/lib/nexusoperation"
 	"go.temporal.io/server/common/dynamicconfig"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -144,9 +141,10 @@ func runGeneratedCases(t *testing.T, env *testcore.TestEnv, fixture *testpilotco
 }
 
 // TestTestpilotGeneratedCases runs every lowered Case as its own depth-2 subtest, the unit the
-// functional job shards and the salt optimizer times, each against a dedicated cluster. A Case that
-// binds a Nexus endpoint runs once per value of the Nexus implementation switch, a cluster each, and
-// the two Verdicts must agree; any other Case runs once with no switch below it.
+// functional job shards and the salt optimizer times, each against a dedicated cluster. A Case whose
+// Program schedules a workflow Nexus operation runs once per value of the Nexus implementation
+// switch, a cluster each, and the two Verdicts must agree; any other Case, a standalone Nexus
+// operation's included, runs once with no switch below it.
 func TestTestpilotGeneratedCases(t *testing.T) {
 	entries, err := testpilotcore.GeneratedCases(generatedCaseDirectory)
 	require.NoError(t, err)
@@ -162,14 +160,12 @@ func TestTestpilotGeneratedCases(t *testing.T) {
 			fixture, err := testpilotcore.LoadGeneratedCase(generatedCaseDirectory, entry)
 			require.NoError(t, err)
 			// The cluster runs under every setting the Case's Program requires, and the Profile records
-			// each, so preparation checks the Case against what the server actually runs with.
-			required := requiredSettings(t, fixture.Source)
-			if !bindsNexusEndpoint(fixture.Source) {
-				runGeneratedCaseOnCluster(t, entry, fixture, "", append([]testpilotcore.SwitchSetting{
-					{Setting: activity.Enabled, Value: true},
-					{Setting: activity.EnableStandaloneActivityOperatorCommands, Value: true},
-					{Setting: dynamicconfig.EnableChasm, Value: true},
-				}, required...))
+			// each, so preparation checks the Case against what the server actually runs with. A key
+			// two sources set differently refuses the Case instead of letting one value win.
+			if !testpilotcore.SchedulesWorkflowNexusOperation(fixture.Source) {
+				settings, err := testpilotcore.CaseSettings(fixture.Source, testpilotcore.StandaloneSettings())
+				require.NoError(t, err)
+				runGeneratedCaseOnCluster(t, entry, fixture, "", settings)
 				return
 			}
 			// Each value appends only the Verdict it produced, and nothing here counts them: the test
@@ -178,9 +174,8 @@ func TestTestpilotGeneratedCases(t *testing.T) {
 			var results []testpilotcore.SwitchVerdict
 			for _, value := range testpilotcore.NexusImplementationSwitch() {
 				t.Run(value.Name, func(t *testing.T) {
-					// Standalone activity needs CHASM independently of the Nexus implementation switch.
-					settings := append(slices.Clone(value.Settings), testpilotcore.SwitchSetting{Setting: dynamicconfig.EnableChasm, Value: true})
-					settings = append(settings, required...)
+					settings, err := testpilotcore.CaseSettings(fixture.Source, value.Settings)
+					require.NoError(t, err)
 					verdict := runGeneratedCaseOnCluster(t, entry, fixture, value.Name, settings)
 					results = append(results, testpilotcore.SwitchVerdict{Value: value.Name, Verdict: verdict})
 				})
@@ -188,36 +183,6 @@ func TestTestpilotGeneratedCases(t *testing.T) {
 			require.NoError(t, testpilotcore.CheckSwitchAgreement(testpilotcore.NexusImplementationSwitchName, results))
 		})
 	}
-}
-
-// requiredSettingKinds turns the value of each dynamic-configuration key a generated Case may require
-// into its typed setting, by its lower-case key. dynamicconfig has no public lookup from a key to its
-// setting, so a Case that requires a key missing here fails rather than running against a server that
-// does not set it.
-var requiredSettingKinds = map[string]func(value string) (testpilotcore.SwitchSetting, error){
-	strings.ToLower(nexusoperation.Enabled.Key().String()): boolSetting(nexusoperation.Enabled),
-}
-
-func boolSetting(setting dynamicconfig.GenericSetting) func(string) (testpilotcore.SwitchSetting, error) {
-	return func(value string) (testpilotcore.SwitchSetting, error) {
-		parsed, err := strconv.ParseBool(value)
-		return testpilotcore.SwitchSetting{Setting: setting, Value: parsed}, err
-	}
-}
-
-// requiredSettings is the dynamic configuration a Case's Program requires, as the settings its
-// cluster is constructed with.
-func requiredSettings(t *testing.T, source *testpilotspb.Case) []testpilotcore.SwitchSetting {
-	t.Helper()
-	var settings []testpilotcore.SwitchSetting
-	for _, required := range source.GetProgram().GetRequiredSettings() {
-		kind, ok := requiredSettingKinds[strings.ToLower(required.GetKey())]
-		require.True(t, ok, "the Case requires %s, which the suite cannot set", required.GetKey())
-		setting, err := kind(required.GetValue())
-		require.NoError(t, err, "the Case requires %s=%s", required.GetKey(), required.GetValue())
-		settings = append(settings, setting)
-	}
-	return settings
 }
 
 // runGeneratedCaseOnCluster constructs one dedicated cluster under settings, binds the Case to two
@@ -233,8 +198,8 @@ func runGeneratedCaseOnCluster(t *testing.T, entry lower.GeneratedCase, fixture 
 		options = append(options, testcore.WithDynamicConfig(setting.Setting, setting.Value))
 	}
 	env := newTestpilotTestEnvironment(t, options...)
-	// The Profile records the settings this cluster was constructed with, and only those; a setting
-	// repeated in the list takes its last value, as at construction.
+	// The Profile records the settings this cluster was constructed with, and only those; each key
+	// is in the list once.
 	configuration := testpilotcore.SwitchValue{Settings: settings}.Configuration()
 	needsHold := false
 	for _, script := range fixture.Source.GetProgram().GetEntrypoints() {

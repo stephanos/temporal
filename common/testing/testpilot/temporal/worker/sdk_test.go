@@ -28,6 +28,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/activation"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/durationpb"
 )
 
 func TestSDKWorkflowInterpretsStartAwaitAndFinishWithArbitraryArguments(t *testing.T) {
@@ -328,19 +329,25 @@ func (*registeredNexusPayloadSerializer) Serialize(any) (*nexus.Content, error) 
 	return nil, ErrInvalid
 }
 
+// The Await is bounded by its own timeout and by the carried schedule-to-close timeout, never by
+// the schedule instruction's timeout, which the server is not told (QLF-01).
 func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
 	for _, tc := range []struct {
-		name                     string
-		start, await, completion time.Duration
-		status                   testpilotspb.InstructionOutcomeStatus
+		name                                      string
+		start, scheduleToClose, await, completion time.Duration
+		status                                    testpilotspb.InstructionOutcomeStatus
 	}{
-		{"await expires first", 10 * time.Second, time.Second, 5 * time.Second, testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT},
-		{"start expires first", time.Second, 10 * time.Second, 5 * time.Second, testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT},
-		{"completion before await", 10 * time.Second, 5 * time.Second, time.Second, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED},
+		{"await expires first", 10 * time.Second, 0, time.Second, 5 * time.Second, testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT},
+		{"carried schedule-to-close expires first", 10 * time.Second, time.Second, 10 * time.Second, 5 * time.Second, testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT},
+		{"start timeout does not bound the operation", time.Second, 0, 10 * time.Second, 5 * time.Second, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED},
+		{"completion before await", 10 * time.Second, 0, 5 * time.Second, time.Second, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			prepared := preparedRuntimeFixture(t, replySynchronous, func(program *testpilotspb.Program) {
 				program.Entrypoints[1].Instructions[0].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: tc.start.Milliseconds()}
+				if tc.scheduleToClose > 0 {
+					program.Entrypoints[1].Instructions[0].Instruction.GetWorkflowCommand().GetCommand().GetScheduleNexusOperationCommandAttributes().ScheduleToCloseTimeout = durationpb.New(tc.scheduleToClose)
+				}
 				program.Entrypoints[1].Instructions[1].Limits.Timeout = &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: tc.await.Milliseconds()}
 				finish := program.Entrypoints[1].Instructions[2]
 				finish.Guard = &testpilotspb.Expression{Expression: &testpilotspb.Expression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
@@ -375,7 +382,10 @@ func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
 				if err := i.await(1, instructions[1]); err != nil {
 					return "", err
 				}
-				expected := min(tc.start, tc.await, tc.completion)
+				expected := min(tc.await, tc.completion)
+				if tc.scheduleToClose > 0 {
+					expected = min(expected, tc.scheduleToClose)
+				}
 				if elapsed := workflow.Now(ctx).Sub(before); elapsed != expected {
 					return "", fmt.Errorf("await elapsed %s, want %s", elapsed, expected)
 				}

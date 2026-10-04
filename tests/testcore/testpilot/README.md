@@ -14,7 +14,12 @@ synthetic payload fixture.
 salt optimizer times; `GeneratedCaseName` derives it as the Case file's stem. `generated_names_test.go`
 holds the name contract: every name is unique and free of `/` and whitespace, and the sorted set
 equals `testdata/generated-case-names.txt`, which a lowered Query added, renamed or removed rewrites
-in the same change with `UMPIRE_CASE_NAME_GOLDENS=write`.
+in the same change with `UMPIRE_CASE_NAME_GOLDENS=write`. A Case whose Program schedules a
+workflow Nexus operation runs once per value of the Nexus implementation switch (`switch.go`): `hsm`
+and `chasm` each set the six keys the upstream Nexus workflow suite sets, the CHASM rollout percent
+(0 or 100) included. Every other Case, a standalone Nexus operation's included, runs once. A
+cluster's settings name each key once: a key two sources give different values refuses the Case,
+naming both.
 
 Cluster provisioning, namespace and Nexus endpoint creation, SDK client ownership, environment
 configuration, assertions, and cleanup registration remain under `tests/`. The reusable composite
