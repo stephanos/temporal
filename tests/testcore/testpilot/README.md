@@ -9,6 +9,13 @@ beside that tree are retained as they were rendered, indented for review, becaus
 declares their Query yet: the Nexus pair, System Info, workflow start, the worker outage and the
 synthetic payload fixture.
 
+`TestTestpilotGeneratedCases` runs every lowered Case under `model/cases` as
+`TestTestpilotGeneratedCases/<model>-<query>`, the depth-2 name the functional job shards and the
+salt optimizer times; `GeneratedCaseName` derives it as the Case file's stem. `generated_names_test.go`
+holds the name contract: every name is unique and free of `/` and whitespace, and the sorted set
+equals `testdata/generated-case-names.txt`, which a lowered Query added, renamed or removed rewrites
+in the same change with `UMPIRE_CASE_NAME_GOLDENS=write`.
+
 Cluster provisioning, namespace and Nexus endpoint creation, SDK client ownership, environment
 configuration, assertions, and cleanup registration remain under `tests/`. The reusable composite
 Driver and its implementation-focused tests live in `common/testing/testpilot/temporal`.
