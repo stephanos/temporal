@@ -467,6 +467,18 @@ original task 5/predecessors, R6/R18/R19, full/native/formal and fixed-identity
 requirements remain unchanged and open. Its handover and review are immutable
 pre-commit source snapshots. Commit verified progress before another source task.
 
+Task 27 retains independently source-reviewed documentary progress for Choice
+Trace v2 refusal, controller-v2 journal refusal and retirement of the previously
+selected v041 fixture. Current derived guidance and rootfast wording reflect the
+source-bound migrations, repaired routing and red419 qualification. All 25 authored
+links, five fragments, 49 protected files and three protected sections pass fresh
+checks against the worker freeze and BASE. Historical reports, first-task
+baseline inputs and original API/acceptance/boundaries remain unchanged.
+Disclosure does not restore format/workload availability, prove fixed-identity
+equivalence or close original R18/R19/task21/full/native/formal qualification.
+Task 27 stays blocked on qualification; task 21 consumes the reviewed supplement.
+Root commits verified progress before the next writer.
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.

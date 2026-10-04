@@ -262,8 +262,12 @@ is open: run the outstanding linux/amd64 gates for R9. The darwin evidence and e
 repeat are retained in
 [final.md](.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final.md).
 Do not widen qualification based on Darwin evidence. Root `make lint-code-fast`
-retains the nested-module discovery limitation; use the scoped nested-module
-linter for code changed there.
+now routes nested modules through task 23's module-aware selector. Task 25's
+controller repair lets ordinary root and tagged integration lint/vet complete;
+the automatic nested Gomad scope still fails on 419 findings across 31 owners
+([current routing and qualification](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-25/acceptance-open.md)).
+Nested vet and later scopes remain unreached. The historical fn-108 report
+retains its original discovery failure; current full/native qualification stays open.
 
 ## Deep modules and tool interfaces (fn-109)
 
@@ -338,6 +342,10 @@ required. Task 21 is admitted for source/evidence verification and retains match
 developmental 10/100 campaigns, a sixteen-finding matrix and preservation audit.
 R18 inventory/provenance reconciliation, final formal review and both native
 qualification gates remain incomplete ([qualification evidence](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/qualification-evidence.md)).
+The [2026-10-04 R18 disclosure supplement](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-disclosure-2026-10-04.md)
+records Choice Trace v2 refusal, controller-v2 journal refusal and retirement
+of a previously selected v041 fixture. Original R18/R19 availability,
+workload/default, fixed-identity and both native qualification requirements remain open.
 Task 23's lint-routing correction and reproducible nested host gates are
 independently source-reviewed and committed as ce80d2425c. Actual lint remains
 red. Task 24's one-line path-base repair is independently source-reviewed,
@@ -486,7 +494,7 @@ re-measure them after pin or adapter changes.
 | Interception fingerprints and boundary manifest | 131 intercepts, 132 fingerprinted entries | Generated; a diff needs an approved SHA |
 | Toolchain inventories | 25 host-clock references, 10 goroutine creation sites | Hand edits after `make test-toolchain` on each platform |
 | Dependency adapters | 15 adapters, 135 SHA-256 literals (125 distinct; 30 are per-platform prepared source sets); 6 target modules absent from the root `go.mod` (downstream cell, fn-107) | `gomadtool adapter-regenerate` dry run, then apply with the approval digest for any registered adapter, including `modernc.org/libc`; a changed or ambiguous rewrite still needs a person |
-| Compatibility packs | 11 packs, 49 rules, 18 module-version pins (the unselected `modernc-libc-xsys-v041` was removed) | `gomadtool compatibility-pack refresh` per platform, then one `generate --approve-review` per request |
+| Compatibility packs | 11 packs, 49 rules, 18 module-version pins (the previously selected `modernc-libc-xsys-v041` fixture and pack were retired after fixture coverage moved to v047) | `gomadtool compatibility-pack refresh` per platform, then one `generate --approve-review` per request |
 
 The fn-113 pin-maintenance candidate is merged and exposes impact, adapter regeneration, and
 compatibility-pack refresh operations, but none of its four tasks is complete until R6 passes on

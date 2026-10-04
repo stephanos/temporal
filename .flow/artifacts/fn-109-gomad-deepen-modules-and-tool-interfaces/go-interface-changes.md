@@ -3,6 +3,13 @@
 The pre-edit inventory and implementation record below describe their own
 source snapshots. Their compile and test evidence does not qualify the
 combined integration candidate on either native platform.
+These records do not establish aggregate preservation against fn-109's
+first-task baseline. The [2026-10-04 R18 disclosure supplement](task-21/preservation-disclosure-2026-10-04.md)
+records independently owned Choice Trace v2 refusal, controller-v2 journal
+refusal and retirement of the previously selected v041 fixture. R18 still
+requires every shipped capability, recorded format, ordinary CLI behavior and
+qualified workload to remain available. Those requirements and the fixed-identity,
+workload/default and native qualification gates remain open.
 
 ## R5 Go interface migration inventory (pre-edit, 2026-10-03)
 

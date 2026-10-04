@@ -1,0 +1,36 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.27",
+  "base_commit": "fec3ce56e7ea2f1498617148cb2c6d47f1297bc0",
+  "scope": "Documentary SOURCE_PROGRESS_ONLY; original R18/R19 qualification remains open",
+  "scheduling": "wave (task-ID run); one checkout doc writer; parallel read-only compatibility scout",
+  "requested_worker": {
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "tier": "session (jev-unavailable(no_key))",
+    "actual_model_evidenced": false
+  },
+  "protected_before": {
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/report.md": "0fc86685ce46a6a2f4b1f1d4550f93e307ca6086216bc1b8d8e881d57d3bfd33",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-reconstruction/source.sha256": "d78601b3176195f8cc06860f5499e757a2d04333b9211f0ed13a92976b017845",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-00633b2b558beb1c762decffe9d55b14631200c1.log": "0dc09dd37341cc63ebd3a33eb267020258e7a06cb6e35cb30c6c7d2312eab7f6",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-b666b41c09ed152417e44b6c9738e16a58b8b43a.log": "c79c294a0d1a0a1efd3b9e2f67e6450701d2d7ab65ed9d889a68300c31db0a9e",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-7fd67d5aaeca5d658ca45d571b7671a67ddbfc31.log": "c30382ba3cd40e5f15844ae1887304067bd5c228994fcca397321fe595a393b3",
+    ".flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final.md": "cfa526100361d94ce29687059159d7821ad52c558b45bbf3c486394db8e5b9ff",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.md": "57aca0c561ca88152859242f53748dd97ae6c31ec223797dd964f7de0b45a61f"
+  },
+  "review_backend": "codex; formal green-tree review deferred",
+  "tracker_bridge_active": false,
+  "plan_sync_enabled": false,
+  "root_owned": [
+    "Git/index/commit",
+    "Flow lifecycle",
+    "parent spec and task21 dependency",
+    "independent review"
+  ],
+  "forbidden": [
+    "production/test/config/pin changes",
+    "historical report/baseline/commit-capture rewriting",
+    "compatibility waiver or restored availability claim",
+    "push/history/worktree/stash/bridge/download/native/broad rerun"
+  ]
+}

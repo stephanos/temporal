@@ -1,0 +1,169 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.27",
+  "status": "SOURCE_PROGRESS_ONLY",
+  "base_commit": "fec3ce56e7ea2f1498617148cb2c6d47f1297bc0",
+  "commits": [],
+  "baseline": "documentation source hashes captured before edits; no green qualification handoff; broad/native/formal gates remain open",
+  "before": {
+    "MILESTONES.md": "9869600b0db2e2d4a3e0bfd86c34e87d0c2ff9717c430eb315af6fed21f9e803",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md": "4a2c0e301c0b96a7fd9b04492fdfa8787f70d86dd1e9b07ac50bd91e43251145",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/report.md": "0fc86685ce46a6a2f4b1f1d4550f93e307ca6086216bc1b8d8e881d57d3bfd33",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-reconstruction/source.sha256": "d78601b3176195f8cc06860f5499e757a2d04333b9211f0ed13a92976b017845",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-reconstruction/input.sha256": "5b1904a15a5e11dd93926465d97c5467ab2a008f48b20610d9b0ffcfa4e8d0e6",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-reconstruction/reconstruction.md": "a81841baa733d66f828a4de63d43cb0782b23f8b39d59659fd1a4764833dca49",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-reconstruction/evidence.json": "c90932824dfcd7664953e5f41c2af155815546d71892e8fa50de335fc5835aa2",
+    ".flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final.md": "cfa526100361d94ce29687059159d7821ad52c558b45bbf3c486394db8e5b9ff",
+    ".flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final-working-tree.diff": "47afb28785b4680a405c198bb07a334307ebbb4c11e3e5fbef9ae3a114513855",
+    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-11/gates.md": "4712d061e9a46bf82cfa35e3cf42f48bde8887f78b85d3d5beb2984d6c11473e",
+    ".flow/artifacts/fn-114-gomad-correct-search-path-defects-and/select-reduction/README.md": "280b4f88e251c9676bb8719825dbf73e1c898cd4730468a54db1321604aef002",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/final-completion-summary.md": "558d636444f7753015d45f1701ee55888c5708191adf5a4938ddeb9048ee9d7d",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/source-binding.json": "1d86add382ea7bed422516e8925db4f01c789f0858cb8cbf893ba9c46d18ae5a",
+    ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/selector-audit.json": "89b060f54a32f665242ea8b5137b1d74b64cab87f31a2c6e49b2ebe305a87b1c",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-23/handover.md": "b827374ec1eb1b51800cf9f61e158780f8e34734a2afc1745db5f4d1cf20c3b4",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-25/acceptance-open.md": "f764a524c06c09d479eb13f11f24f5ec9e2d39219cba1fb51337c86a3a31205c",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-25/root-fast.receipt.json": "a09b00bfc143419e34468d232708c0c029f09714617c70453c50b272dae8d625",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-25/findings-comparison.json": "35389d94a60dc2495244c5735d2c71dfa94e96bca73fc2b51ea86b32873b29d6",
+    "tools/gomad3/choice/trace.go": "be764b5f667258179864c81bad5e0bd547bed5822a59da0356494fe3fda51dba",
+    "tools/gomad3/choice/internal/wire/wire_generated.go": "d4e6f2bd689bda6730106968635b40d26edb4e8d460429c8336614d933369fbc",
+    "tools/gomad3/runner/internal/exploration/choice/engine.go": "922ff1f2963bfd9371ff7008e04602c92ff7b93c25ad7c131bbcefb4da9c34a5",
+    "tools/gomad3/runner/internal/campaign/resume_plan.go": "874ab3e39c4fec0499ac3dea5ba2ff93ae9f440f03a47421444077ee4aa8be54",
+    "tools/gomad3/runner/internal/campaign/choice_exploration_journal.go": "f13b01b463d359c08be7fa16f36d6759cac74921a02e6c2c41a46cbe8511c3c1",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-00633b2b558beb1c762decffe9d55b14631200c1.log": "0dc09dd37341cc63ebd3a33eb267020258e7a06cb6e35cb30c6c7d2312eab7f6",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-076cdcc344ced6e1f6e195df84540c8ca74ca2f1.log": "b5b2028e3d5ae1af4d822c84ef3cd11119b3bbe5e79f233d9cfcddb3001253cf",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-1b970bc1444f4da6428c843a91d3d0fa998dbde3.log": "27f826ef159f82d4efd30390cb1ef34402d6e774c1a47e1117927eebdb270791",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-2c3de4c98256eed39e7a8421669f753400c6dd7a.log": "f3c8e6a12da494287ebbbde4925859bea5ea10f9f3b56bb4c421ff57cbd4e54d",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-2f0cd2754bc0ac4ddcd6c9305c2a05d57cfe9301.log": "d87164edaaef2e10babbd481879eccb099a1ef7cbfdac39294957cec9dd23b48",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-3a3c31b0a7b22ab2c669735743d3f1e2d2985bab.log": "dee6affa0c3a8cfd6fd5af24f64adc351836ef03c7e174f06998c88d260d65d0",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-3fb5cb4210940e6c73c28f2d5389bd95ae49970d.log": "07f7d7395f8b85d7be72d4aa55c353f274870ced4a191cec6746243bec36a5f9",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-406a354f20546d4cdbada1cafdddd8d5d2b5374d.log": "b9d7e26479373f13b6daa113ea7ec24ede184214a744af0a91d2648a98f5d656",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-4a646710d15148f1a3cf75bdeba7bdfd2fd2edf7.log": "3932ee2103084886f056d52afbd813bf8625aa6ca309231f7d236c4ebafe8528",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-58095d83a96b68e3eee6400b9f75ac66c5c5ad0e.log": "eccbcc8e3040512323acd56e6327c6a537969060df94e38aef72cd30f95880c2",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-6be0755fef727146f86bac6658436f6874680cc8.log": "1e985b45f1e6e99b0885aad896ccaf9d28631852f8b99ca33bcb0fb25459fc13",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-6f66f744ddafb65412ee94c818c5fed4aa9b1ee3.log": "33e00500be6ea7170b62278d1572eb1908047a8cf0a3f467652a9124251f1f1b",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-74a53f05b952ad95ceb522e9d8137e1314aa6ee0.log": "7de76f02e79d22009377bd8fdd6f62be4de0434bf8073889938e54c050216b42",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-7fd67d5aaeca5d658ca45d571b7671a67ddbfc31.log": "c30382ba3cd40e5f15844ae1887304067bd5c228994fcca397321fe595a393b3",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-80fcf2cb449e326d983d404dcf31286c0b8b905f.log": "f5fdf2f6e252e47dde816f8662b8bdf1f33abc5b8537ecbee43e98d88004e4a6",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-8b5ac0f3b463ec3129764962d8a97871bad14d1e.log": "838a571fdcda1ae31b00e81f975eb7115bc6f71c6b385a1e612b2389ea6b57d0",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-94c8a0dcc1da75b204ba825eab2751364b921a0f.log": "8f4e9ee26e6be8f5a724c4196808905219ffe183b810ca54137f33aa55aa59a7",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-9f7efba019b33b9e08b7f907a37d6203858c5e2d.log": "dbeca652b2cd783801327cbb9279eaf21ab7b78d0af9ed53af79526d7bbe3ae0",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-a3b9f80efab9356c0be2080779133337e2471ac0.log": "714d55a9c1d155ae66f2c14045c79c41dc547fed8e7b0a394fdc1cb164b5395b",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-b666b41c09ed152417e44b6c9738e16a58b8b43a.log": "c79c294a0d1a0a1efd3b9e2f67e6450701d2d7ab65ed9d889a68300c31db0a9e",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-bae373d14736d1e4437f840bbb66a173ab960052.log": "9aa4801408c759a3c11b642b75226626930acc8186bbe2f90f2764be68fc5a97",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-bc2e970b5306aa09f594657a8d42c159cf4a1270.log": "3cf6a405a0bd97a21c292c4ef1cd9c5f9dc166cba0f8061197ddaeff8b26b1c0",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-ca3345469a2541b7686606268b0f19cde030a8fe.log": "b62d02e2a127f8f83e8eac56bb9ad5a0a430c7582008e7e149932ebbb198e4c6",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-df2642da2681b8f677797ec34a8b888530cb2421.log": "f5eb0753ed7b4de343eeb7b895969606081ebc95abb5207b015f01891c4a1425",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-e153d05a76083b797525eca6bb685c78f5b623be.log": "3c070353c2fc3fd7a3f76733fe823e6d42614fd52de18dbc52866f6a95ecfc22",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-f608449c016b751a8fd4e19561518e979ebfc31e.log": "552172d97d654ed521fea37d2f165a8c4d5292d6213a09ec895a936232b67815",
+    ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.11.md": "3c6d2240c69775ed8ce71c5abfbe3cbefbacccd9b389f00959b794403fa80c11",
+    ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.12.md": "bed42c6cd767051157bad926aa4ea16e191af39a93cbf12c24512c0a73da0552"
+  },
+  "protected_sections_before": [
+    "695f9c0221b9d56586b96c0d4f02e4bb3005a397e8d9c5c948a0a3bb29884768",
+    "4c2cc101cf97d878070e7ae8acb2a7e10da1e7cf9d76d0771fbc69f087c41d20",
+    "8b635f21ce3e2f43afb7d9552683555dc13b01e651079c4483dce1b3436a147d"
+  ],
+  "receipts": [
+    {
+      "command": "sha256sum MILESTONES.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/report.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-reconstruction/source.sha256 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-reconstruction/input.sha256 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-reconstruction/reconstruction.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-reconstruction/evidence.json .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final.md .flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final-working-tree.diff .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/task-11/gates.md .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/select-reduction/README.md .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/final-completion-summary.md .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/source-binding.json .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/selector-audit.json .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-23/handover.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-25/acceptance-open.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-25/root-fast.receipt.json .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-25/findings-comparison.json tools/gomad3/choice/trace.go tools/gomad3/choice/internal/wire/wire_generated.go tools/gomad3/runner/internal/exploration/choice/engine.go tools/gomad3/runner/internal/campaign/resume_plan.go tools/gomad3/runner/internal/campaign/choice_exploration_journal.go .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/commit-*.log",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "start": "2026-10-04T14:07:21.018Z",
+      "end": "2026-10-04T14:07:21.076Z",
+      "elapsed_seconds": 0.000008333,
+      "exit_code": 0
+    },
+    {
+      "command": "sed -n '/## Task 19 corrective migration inventory/,/## fn-109.2 campaign options owner/p' .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md | sha256sum\nsed -n '/## API Contracts/,/## Edge Cases & Constraints/p' .flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md | sha256sum\nsed -n '/## Acceptance Criteria/,/## Decision Context/p' .flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md | sha256sum\nsha256sum .flow/tasks/fn-114-gomad-correct-search-path-defects-and.11.md .flow/tasks/fn-114-gomad-correct-search-path-defects-and.12.md\nsed -n '430,445p' tools/gomad3/runner/internal/campaign/choice_exploration_journal.go\nsed -n '233,245p' tools/gomad3/runner/internal/campaign/resume_plan.go\nsed -n '30,56p' .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/pre-edit-source.json",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "start": "2026-10-04T14:07:56.540Z",
+      "end": "2026-10-04T14:07:56.590Z",
+      "elapsed_seconds": 0.000014375,
+      "exit_code": 0
+    },
+    {
+      "command": "python3 - <<'PY'\nfrom pathlib import Path\nimport json, re, hashlib\nroot=Path.cwd()\np=Path('.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces')\nq=Path('.flow/artifacts/fn-114-gomad-correct-search-path-defects-and')\nr=Path('.flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3')\nread=lambda f: Path(f).read_text()\nassert 'case SupersededProfile:' in read('tools/gomad3/choice/trace.go')\nassert 'superseded choice trace profile' in read('tools/gomad3/choice/trace.go')\nassert 'gomad3-choice-trace/v3' in read('tools/gomad3/choice/internal/wire/wire_generated.go')\nassert 'wireVersion            = 3' in read('tools/gomad3/choice/internal/wire/wire_generated.go')\nassert 'deterministic-rounds/breadth-first-rank-prefix/v3' in read('tools/gomad3/runner/internal/exploration/choice/engine.go')\nassert 'plan.ChoiceExplorationImplementationSHA256 != choiceengine.ImplementationSHA256()' in read('tools/gomad3/runner/internal/campaign/resume_plan.go')\nassert 'expectedImplementation != choiceengine.ImplementationSHA256()' in read('tools/gomad3/runner/internal/campaign/choice_exploration_journal.go')\nfor sha, phrase in [('00633b2b558beb1c762decffe9d55b14631200c1','Readers refuse v2'), ('b666b41c09ed152417e44b6c9738e16a58b8b43a','refused on resume'), ('7fd67d5aaeca5d658ca45d571b7671a67ddbfc31','selected only by its own fixture')]:\n    body=read(p/'task-21/preservation-audit'/('commit-'+sha+'.log'))\n    assert body.splitlines()[0]==sha and phrase in body\ngates=read(q/'task-11/gates.md')\nassert 'v2 trace is refused by profile name' in gates\nassert 'The `plain` golden is unchanged.' in gates\nselect=read(q/'select-reduction/README.md')\nassert 'unchanged by this task' in select and '| trace bytes | 8,262,720 | 8,262,720 |' in select\nassert 'genuinely selected `golang.org/x/sys@v0.41.0`' in read(r/'final-completion-summary.md')\nbinding=json.loads(read(r/'source-binding.json'))['files']\nfor path in ['packs/modernc-libc-xsys-v041.json','requests/modernc-libc-xsys-v041.json','reports/modernc-libc-xsys-v041.md','testdata/v041/go.mod','testdata/v041/go.sum','testdata/v041/libc_test.go']:\n    item=binding['tools/gomad3/internal/compatibilitypack/'+path]\n    assert re.fullmatch('[a-f0-9]{64}',item['before']['sha256']) and item['after'] is None\naudit=json.loads(read(r/'selector-audit.json'))\nassert audit['v041_selectors']==[] and len(audit['modules'])==16\ncomparison=json.loads(read(p/'task-25/findings-comparison.json'))\nassert comparison['observed_count']==comparison['retained_count']==419 and comparison['owner_count']==31 and comparison['exact_entries_match'] is True\nreceipt=json.loads(read(p/'task-25/root-fast.receipt.json'))\nassert receipt['exit_code']==2 and receipt['stability_before_exit']==receipt['stability_after_exit']==0\nassert 'ordinary root and tagged' in read(p/'task-25/acceptance-open.md')\nassert 'integration lint/vet' in read(p/'task-25/acceptance-open.md')\nmanifest=p/'task-21/baseline-reconstruction/source.sha256'\nassert hashlib.sha256(manifest.read_bytes()).hexdigest()=='d78601b3176195f8cc06860f5499e757a2d04333b9211f0ed13a92976b017845'\nsupplement=read(p/'task-21/preservation-disclosure-2026-10-04.md')\nassert len([line for line in supplement.splitlines() if line.startswith('| ')])==5\nassert 'R18 preservation and R19 qualification remain incomplete.' in supplement\nassert 'unselected `modernc-libc-xsys-v041`' not in read('MILESTONES.md')\nassert 'retains the nested-module discovery limitation' not in read('MILESTONES.md')\nprint('CLAIMS_PASS: three separately owned migrations; preserved baseline identity; routing repaired with retained red419; availability/native/full/formal open.')\nPY",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "start": "2026-10-04T14:11:12.662Z",
+      "end": "2026-10-04T14:11:12.724Z",
+      "elapsed_seconds": 0.000015625,
+      "exit_code": 0,
+      "observation": "CLAIMS_PASS: three separately owned migrations; preserved baseline identity; routing repaired with retained red419; availability/native/full/formal open."
+    },
+    {
+      "command": "python3 - <<'PY'\nfrom pathlib import Path\nimport re\nbase=Path('.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces')\nsections=[\n(Path('MILESTONES.md'), ['.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-25/acceptance-open.md', '.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-disclosure-2026-10-04.md']),\n(base/'go-interface-changes.md', ['task-21/preservation-disclosure-2026-10-04.md']),\n(base/'task-21/preservation-disclosure-2026-10-04.md', None),\n(base/'task-27/handover.md', None)]\ncount=0\nfragments=0\nfor source, explicit in sections:\n    text=source.read_text()\n    targets=explicit if explicit is not None else re.findall(r'\\[[^\\]]+\\]\\(([^)]+)\\)',text)\n    for target in targets:\n        assert ']('+target+')' in text, (source,target,'missing authored link')\n        path,sep,fragment=target.partition('#')\n        resolved=(source.parent/path).resolve()\n        assert resolved.is_file(), (source,target,'missing target')\n        assert resolved.is_relative_to(Path.cwd()), (source,target,'outside repo')\n        if sep:\n            headings=re.findall(r'^#+\\s+(.+?)\\s*#*$',resolved.read_text(),re.M)\n            slugs=[re.sub(r'[^\\w\\- ]','',h.lower()).replace(' ','-') for h in headings]\n            assert fragment in slugs, (source,target,'missing fragment')\n            fragments+=1\n        count+=1\nassert count>20 and fragments==5, (count,fragments)\nprint(f'LINKS_PASS: {count} authored local links including {fragments} fragments; four documentary surfaces checked.')\nPY\ngit diff --check -- MILESTONES.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-disclosure-2026-10-04.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "start": "2026-10-04T14:11:42.881Z",
+      "end": "2026-10-04T14:11:42.938Z",
+      "elapsed_seconds": 0.000008417,
+      "exit_code": 0,
+      "observation": "LINKS_PASS: 25 authored local links including 5 fragments; four documentary surfaces checked."
+    },
+    {
+      "command": "set -e\npython3 - <<'PY'\nfrom pathlib import Path\nimport json, hashlib, re\nbase=Path('.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces')\ne=json.loads((base/'task-27/evidence.json').read_text())\nowned={'MILESTONES.md',str(base/'go-interface-changes.md')}\nafter={path:hashlib.sha256(Path(path).read_bytes()).hexdigest() for path in e['before']}\nprotected={path:sha for path,sha in e['before'].items() if path not in owned}\nassert all(after[path]==sha for path,sha in protected.items())\nchecks=[\n(base/'go-interface-changes.md','## Task 19 corrective migration inventory','## fn-109.2 campaign options owner'),\n(Path('.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md'),'## API Contracts','## Edge Cases & Constraints'),\n(Path('.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md'),'## Acceptance Criteria','## Decision Context')]\nfor (path,start,end),expected in zip(checks,e['protected_sections_before']):\n    lines=path.read_text().splitlines(keepends=True)\n    first=next(i for i,line in enumerate(lines) if line.startswith(start))\n    last=next(i for i,line in enumerate(lines[first+1:],first+1) if line.startswith(end))\n    assert hashlib.sha256(''.join(lines[first:last+1]).encode()).hexdigest()==expected, (path,start)\nnew=[base/'task-21/preservation-disclosure-2026-10-04.md',base/'task-27/handover.md']\nfor path in new:\n    data=path.read_text()\n    assert data.endswith('\\n') and all(line==line.rstrip() for line in data.splitlines()), path\n    after[str(path)]=hashlib.sha256(path.read_bytes()).hexdigest()\nprint(json.dumps({'owned_after':{p:after[p] for p in sorted(owned | {str(p) for p in new})},'protected_files_checked':len(protected),'protected_files_stable':True,'protected_sections_stable':True,'new_document_whitespace':'pass'},sort_keys=True))\nPY\ngit diff --check -- MILESTONES.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "start": "2026-10-04T14:12:43.487Z",
+      "end": "2026-10-04T14:12:43.546Z",
+      "elapsed_seconds": 0.000008791,
+      "exit_code": 0,
+      "observation": "{\"new_document_whitespace\": \"pass\", \"owned_after\": {\".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md\": \"f311c315800857f814dcbf1f1e7445f19df9ae4e5b4da6f8c7da1065399f324c\", \".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-disclosure-2026-10-04.md\": \"17c83139473206b92cd037ec8c93aef823146e77d607aca9312557e4b1769123\", \".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27/handover.md\": \"c36f6f68f354f5ba87b94384fa12aeb9eedd7f7b5cc44a3b6546437bff76e7da\", \"MILESTONES.md\": \"081bf7987f29242ed1c03fd12b9f7a2b3db94ae5997c1ec8b758af1f5dc2ab4f\"}, \"protected_files_checked\": 49, \"protected_files_stable\": true, \"protected_sections_stable\": true}"
+    },
+    {
+      "command": "set -e\npython3 - <<'PY'\nfrom pathlib import Path\nimport hashlib, json\np=Path('.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27/evidence.json')\ne=json.loads(p.read_text())\nassert e['status']=='SOURCE_PROGRESS_ONLY' and e['task_status']=='in_progress' and e['commits']==[]\nfor path,expected in e['verification']['owned_after'].items():\n    assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==expected, path\nowned={'MILESTONES.md','.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md'}\nfor path,expected in e['before'].items():\n    if path not in owned:\n        assert hashlib.sha256(Path(path).read_bytes()).hexdigest()==expected, path\nassert all(r['exit_code']==0 for r in e['receipts'])\nassert e['live_command_handles']==e['live_owned_agent_handles']==e['delegated_agents']==0\nprint('HANDOVER_VALID: assigned summary/evidence; owned and protected hashes stable; documentation receipts terminal; no worker commit or verdict.')\nPY\ngit diff --check -- MILESTONES.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "start": "2026-10-04T14:15:02.958Z",
+      "end": "2026-10-04T14:15:03.020Z",
+      "elapsed_seconds": 0.000012959,
+      "exit_code": 0,
+      "observation": "HANDOVER_VALID: assigned summary/evidence; owned and protected hashes stable; documentation receipts terminal; no worker commit or verdict."
+    }
+  ],
+  "tests": [
+    "git diff --check -- MILESTONES.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27"
+  ],
+  "prs": [],
+  "task_status": "in_progress",
+  "tier": "session (jev-unavailable(no_key))",
+  "review": "deferred to conductor; no formal verdict",
+  "source_progress": "Three-row dated preservation disclosure, two current pointers, v041 historical-selection correction and current rootfast routing/red419 wording.",
+  "before_new_documents": {
+    "task-21/preservation-disclosure-2026-10-04.md": null,
+    "task-27/handover.md": null
+  },
+  "verification": {
+    "new_document_whitespace": "pass",
+    "owned_after": {
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md": "f311c315800857f814dcbf1f1e7445f19df9ae4e5b4da6f8c7da1065399f324c",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-disclosure-2026-10-04.md": "17c83139473206b92cd037ec8c93aef823146e77d607aca9312557e4b1769123",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27/handover.md": "c36f6f68f354f5ba87b94384fa12aeb9eedd7f7b5cc44a3b6546437bff76e7da",
+      "MILESTONES.md": "081bf7987f29242ed1c03fd12b9f7a2b3db94ae5997c1ec8b758af1f5dc2ab4f"
+    },
+    "protected_files_checked": 49,
+    "protected_files_stable": true,
+    "protected_sections_stable": true,
+    "authored_local_links": 25,
+    "authored_fragments": 5
+  },
+  "protected_sections": [
+    "go-interface-changes.md task19 through next heading",
+    "fn109 API Contracts through next heading",
+    "fn109 Acceptance Criteria and Boundaries through Decision Context heading"
+  ],
+  "claim_sources": [
+    "task-21/preservation-audit/report.md; baseline-reconstruction/reconstruction.md and source.sha256",
+    "fn114 task11/task12 owner contracts, retained semantic commit captures, task11 gates.md and select-reduction/README.md",
+    "fn113 task3 owner contract, final-completion-summary.md, source-binding.json and selector-audit.json",
+    "current choice v3/refusal source, controller v3 and campaign plan/journal identity admission",
+    "task23 handover.md; task25 acceptance-open.md, root-fast.receipt.json and findings-comparison.json"
+  ],
+  "open_gates": [
+    "original R18 format/capability/workload/ordinary CLI availability",
+    "matched first-baseline fixed-identity preservation",
+    "original R19, task21 full and native darwin/arm64 + linux/amd64 qualification",
+    "formal green-tree review; fresh independent source review and progress commit remain conductor-owned",
+    "fn113/fn114 independent owner acceptance criteria unchanged"
+  ],
+  "timing_basis": "start/end are host dispatch UTC; elapsed_seconds is the execution tool's reported wall duration.",
+  "command_probe_note": "One exploratory read guessed a nonexistent choice_exploration_resume.go path and rg emitted an IO error. Not used as verification; subsequent exact resume_plan.go/choice_exploration_journal.go source reads and assertions supply the claim.",
+  "delegated_agents": 0,
+  "live_command_handles": 0,
+  "live_owned_agent_handles": 0
+}

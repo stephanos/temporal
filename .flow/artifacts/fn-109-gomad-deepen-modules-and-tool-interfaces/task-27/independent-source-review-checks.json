@@ -1,0 +1,112 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.27",
+  "review_kind": "independent SOURCE PROGRESS documentation review",
+  "base_sha": "fec3ce56e7ea2f1498617148cb2c6d47f1297bc0",
+  "head_sha": "fec3ce56e7ea2f1498617148cb2c6d47f1297bc0",
+  "branch": "gomad",
+  "committed_range_empty": true,
+  "tier": "session (jev-unavailable(no_key))",
+  "requested_reviewer": "gpt-6.1-sol/high",
+  "configured_writer_family": "gpt-6.1-sol",
+  "same_requested_family": true,
+  "actual_execution_model": "unknown without host execution metadata",
+  "assessment": "Ready for documentary SOURCE PROGRESS COMMIT; original acceptance remains open",
+  "findings": {
+    "Critical": [],
+    "Important": [],
+    "Minor": []
+  },
+  "worker_evidence": {
+    "path": "evidence.json",
+    "sha256": "9a97eeb4d6d7b444834cd105902387c5140f089ade7467f32b96ea51e2cb70ba",
+    "protected_manifest": "evidence.json#/before",
+    "owned_freeze": "evidence.json#/verification/owned_after"
+  },
+  "fresh_checks": {
+    "owned_hashes": {
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md": "f311c315800857f814dcbf1f1e7445f19df9ae4e5b4da6f8c7da1065399f324c",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-disclosure-2026-10-04.md": "17c83139473206b92cd037ec8c93aef823146e77d607aca9312557e4b1769123",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27/handover.md": "c36f6f68f354f5ba87b94384fa12aeb9eedd7f7b5cc44a3b6546437bff76e7da",
+      "MILESTONES.md": "081bf7987f29242ed1c03fd12b9f7a2b3db94ae5997c1ec8b758af1f5dc2ab4f"
+    },
+    "protected_files_matching_worker_and_BASE": 49,
+    "protected_sections_matching_worker_and_BASE": 3,
+    "authored_local_links": 25,
+    "authored_fragments": 5,
+    "new_document_whitespace": "pass",
+    "source_claim_rows": 3,
+    "immutable_commit_captures_matching_git": 3,
+    "removed_v041_before_hashes_matching_git_parent": 6,
+    "post_retirement_selector_audit_modules": 16,
+    "rootfast_exact_retained_findings": 419,
+    "rootfast_owner_count": 31,
+    "rootfast_make_exit": 2,
+    "worker_terminal_receipts_validated": 6,
+    "index_sha256": "907ad864b6607a64e8921fad8f2d259a15600a4a3e608c2d98ea51cf40f04b19"
+  },
+  "check_receipt": {
+    "check": "Fresh inline Node scoped document/source/owner/Git assertions",
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "dispatch_start_utc": "2026-10-04T14:21:10.803Z",
+    "dispatch_end_utc": "2026-10-04T14:21:11.402Z",
+    "tool_wall_time_seconds": 0.437724417,
+    "exit_code": 0,
+    "tool_chunk_id": "d2b5e8"
+  },
+  "diff_receipt": {
+    "command": "git diff --check -- MILESTONES.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-disclosure-2026-10-04.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27",
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "dispatch_start_utc": "2026-10-04T14:21:55.390Z",
+    "dispatch_end_utc": "2026-10-04T14:21:55.441Z",
+    "tool_wall_time_seconds": 0.000016167,
+    "exit_code": 0
+  },
+  "worker_timing": {
+    "basis": "start/end are host dispatch UTC; elapsed_seconds is the execution tool's reported wall duration.",
+    "dispatch_intervals_seconds": [
+      0.058,
+      0.05,
+      0.062,
+      0.057,
+      0.059,
+      0.062
+    ],
+    "tool_elapsed_seconds": [
+      0.000008333,
+      0.000014375,
+      0.000015625,
+      0.000008417,
+      0.000008791,
+      0.000012959
+    ],
+    "normalization": "none; distinct measurements retained as reported"
+  },
+  "check_development": {
+    "failed_attempts": 2,
+    "details": [
+      "Commit-capture assertion initially assumed %B subject/body separator; exact retained %H/%aI/%s/%b format corrected.",
+      "Broad index listing exceeded Node default output buffer; final check hashes index file directly."
+    ],
+    "failed_attempts_terminal": true,
+    "exploratory_probe": "Missing choice/wire_test.go read exited 2; generated-wire source subsequently read and asserted; no qualification reliance."
+  },
+  "open_gates": [
+    "R18 recorded-format, controller journal, exact v041 workload/capability and ordinary CLI/default availability",
+    "Matched original first-task baseline canonical projections and payload bytes for fixed supplied identities",
+    "R19/task21 complete source-bound darwin/arm64 and linux/amd64 runtime/process/full, integration, functional smoke, core and affected qualification",
+    "Required lint remains red419; nested vet and later scopes unreached; hidden tooling reporting limitation remains",
+    "Formal green-tree review and independent fn113/fn114 owner criteria"
+  ],
+  "no_source_git_index_flow_mutation": true,
+  "delegated_agents": 0,
+  "live_command_handles": 0,
+  "live_owned_agent_handles": 0,
+  "final_stability_receipt": {
+    "command": "node <<'NODE'\nconst fs=require('fs'),crypto=require('crypto'),cp=require('child_process'),assert=require('assert');\nconst t='.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27',read=p=>fs.readFileSync(p,'utf8'),h=p=>crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex'),e=JSON.parse(read(t+'/evidence.json')),r=JSON.parse(read(t+'/independent-source-review-checks.json'));\nfor(const [p,v] of Object.entries(r.fresh_checks.owned_hashes))assert.equal(h(p),v,p);\nassert.equal(h(t+'/evidence.json'),r.worker_evidence.sha256);\nfor(const [p,v] of Object.entries(e.before))if(!(p in r.fresh_checks.owned_hashes))assert.equal(h(p),v,p);\nfor(const p of [t+'/independent-source-review.md',t+'/independent-source-review-checks.json']){assert(read(p).endsWith('\\n'));assert(!/[ \\t]+$/m.test(read(p)),p);}\nassert.equal(cp.execFileSync('git',['rev-parse','HEAD']).toString().trim(),r.head_sha);\nassert.equal(cp.execFileSync('git',['branch','--show-current']).toString().trim(),r.branch);\nassert.equal(h(cp.execFileSync('git',['rev-parse','--git-path','index']).toString().trim()),r.fresh_checks.index_sha256);\nassert.equal(r.live_command_handles+r.live_owned_agent_handles+r.delegated_agents,0);\nconsole.log('FINAL_STABILITY_PASS: four owned paths, worker evidence, protected inputs, HEAD/branch/index; two review artifacts parse/whitespace clean.');\nNODE\ngit diff --check -- MILESTONES.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-disclosure-2026-10-04.md .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27",
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "dispatch_start_utc": "2026-10-04T14:23:45.021Z",
+    "dispatch_end_utc": "2026-10-04T14:23:45.172Z",
+    "tool_wall_time_seconds": 0.000023125,
+    "exit_code": 0
+  }
+}
