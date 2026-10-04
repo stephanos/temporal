@@ -778,6 +778,8 @@ private[lift] trait Realizations:
   def valueOf(f: FieldDescriptor, b0: Bound): PValue =
     f.scalaType match
       case ScalaType.Message(d) if d.name == "Command" => commandValue(b0, d)
+      // A hint is written where it is called, never where the kit's helper builds it.
+      case ScalaType.Message(d) if hintMessages(d.fullName) => hintValue(b0, d)
       // The term as written, not reduced: a command is named after the val that declares it, and a
       // fact by its case.
       case ScalaType.String if !isNamed(follow(b0).term.tpe, "umpire.realize.Field") =>
@@ -962,6 +964,89 @@ private[lift] trait Realizations:
       member(name) match
         case Some(f) => write(f, args, b.term)
         case None    => fields(into, args, b.term)
+
+  // ### API behavior hints (model/temporal/realize/Realize.scala, Behavior.scala)
+
+  private val hintMessages =
+    Set(ir.Visibility.scalaDescriptor.fullName, ir.CauseBound.scalaDescriptor.fullName)
+
+  /** The kit's file whose top-level extensions declare a hint, `visibleTo` and `boundedBy`. */
+  private val hintHelpers = "temporal.realize.Realize$package$"
+
+  /** A declaration a val names, as the val declares it: the call itself, not a helper's body. */
+  private def declared(b0: Bound): Bound =
+    val b = follow(b0)
+    b.term match
+      case r: Ref if r.symbol.isValDef && defs.contains(resolveSymbol(r)) =>
+        defs(resolveSymbol(r)) match
+          case ValDef(_, _, Some(rhs)) => declared(Bound(rhs, Map.empty))
+          case _                       => b
+      case _ => b
+
+  /** "/package.Service/PauseActivityExecution" as a hint's id names it: pauseActivityExecution. */
+  private def idPart(method: String): String =
+    val bare = method.substring(method.lastIndexOf('/') + 1)
+    bare.head.toLower +: bare.tail
+
+  /**
+   * A hint, `write.visibleTo(read, when)` or `cause.boundedBy(bound)`, at the line it is called on,
+   * with the id it is named by: `visibility.<write>.<read>` or `cause.<kind>`, where a method is
+   * named by its name and a cause by its kind. A method the descriptors do not have, or whose request
+   * or response is not the one they name, is refused here, at its line.
+   */
+  private def hintValue(b0: Bound, d: Descriptor): PMessage =
+    val call = declared(b0)
+    val t = call.term
+    val expected =
+      if d.name == "Visibility" then "write.visibleTo(read, when)" else "cause.boundedBy(bound)"
+    val (fn, args) = applied(t)
+      .filter((fn, _) => fn.symbol.maybeOwner.fullName == hintHelpers)
+      .getOrElse(fail(t, s"a ${d.name} hint is declared `$expected`, not ${t.show}"))
+    def argument(i: Int): Bound = Bound(args(i), call.env)
+    val m = Message(d)
+    m.set(irField(d, "position", t), pos(t).toPMessage)
+    // A method that is no generated constant is refused at the hint, naming which side it is.
+    def hintMethod(b: Bound, side: String): String = reduce(b).term match
+      case r: Ref if r.symbol.name.startsWith("METHOD_") => methodName(b)
+      case other                                         =>
+        fail(t, s"the $side of a visibility is a generated gRPC method constant, not ${other.show}")
+    def cause(b: Bound, field: String): String =
+      reduce(b).term match
+        case r: Ref if isEnumCase(r.symbol) =>
+          m.set(irField(d, field, t), valueOf(irField(d, field, t), b))
+          r.symbol.name
+        case other => fail(other, s"expected a CauseKind, got ${other.show}")
+    (d.name, fn.symbol.name) match
+      case ("Visibility", "visibleTo") =>
+        val write = argument(0)
+        val written =
+          if isNamed(reduce(write).term.tpe, "io.grpc.MethodDescriptor") then
+            val method = hintMethod(write, "write")
+            m.set(irField(d, "method", t), PString(method))
+            idPart(method)
+          else cause(write, "cause")
+        val read = hintMethod(argument(1), "read")
+        m.set(irField(d, "read", t), PString(read))
+        m.set(irField(d, "id", t), PString(s"visibility.$written.${idPart(read)}"))
+        val when = reduce(argument(2))
+        when.term match
+          case r: Ref if isEnumCase(r.symbol) && r.symbol.name == "atOnce" => ()
+          case w if declares(w.tpe, "temporal.realize.Visible")            =>
+            applied(w) match
+              case Some((_, List(bound))) =>
+                val f = irField(d, "eventually_within", t)
+                m.set(f, valueOf(f, Bound(bound, when.env)))
+              case _ =>
+                fail(w, s"expected Visible.atOnce or Visible.eventually(bound), got ${w.show}")
+          case other =>
+            fail(other, s"expected Visible.atOnce or Visible.eventually(bound), got ${other.show}")
+      case ("CauseBound", "boundedBy") =>
+        val kind = cause(argument(0), "kind")
+        m.set(irField(d, "id", t), PString(s"cause.$kind"))
+        val f = irField(d, "bound", t)
+        m.set(f, valueOf(f, argument(1)))
+      case (_, other) => fail(t, s"a ${d.name} hint is declared `$expected`, not with $other")
+    m.written
 
   /** A realization, named after its val unless it names itself. */
   def realizationOf(sym: Symbol, at: Tree): ir.Realization =

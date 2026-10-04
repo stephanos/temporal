@@ -2972,7 +2972,7 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 105
+        "line": 108
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
@@ -2980,7 +2980,7 @@
       "id": "temporal.nexusoperation.standalone.evidence.statusScheduled",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 187
+        "line": 196
       },
       "records": "statusScheduled",
       "source": "temporal.nexusoperation.standalone.source.record",
@@ -2991,26 +2991,26 @@
         "key": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 195
+            "line": 204
           },
           "run": { }
         },
         "guard": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 175
+            "line": 184
           },
           "equal": {
             "left": {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 175
+                "line": 184
               },
               "path": {
                 "of": {
                   "position": {
                     "file": "model/temporal/realize/Kit.scala",
-                    "line": 175
+                    "line": 184
                   },
                   "projected": { }
                 },
@@ -3020,7 +3020,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 177
+                "line": 186
               },
               "literal": {
                 "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
@@ -3034,7 +3034,7 @@
       "id": "temporal.nexusoperation.standalone.evidence.statusCancelRequested",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 187
+        "line": 196
       },
       "records": "statusCancelRequested",
       "source": "temporal.nexusoperation.standalone.source.record",
@@ -3045,26 +3045,26 @@
         "key": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 195
+            "line": 204
           },
           "run": { }
         },
         "guard": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 175
+            "line": 184
           },
           "equal": {
             "left": {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 175
+                "line": 184
               },
               "path": {
                 "of": {
                   "position": {
                     "file": "model/temporal/realize/Kit.scala",
-                    "line": 175
+                    "line": 184
                   },
                   "projected": { }
                 },
@@ -3074,7 +3074,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 177
+                "line": 186
               },
               "literal": {
                 "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
@@ -3102,7 +3102,7 @@
     "correlation": {
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 112
+        "line": 115
       },
       "projection": "temporal.nexusoperation.standalone.projection",
       "run": "temporal.nexusoperation.standalone.scope.run",
@@ -3119,7 +3119,7 @@
       "id": "controller",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 160
+        "line": 169
       },
       "controller": { },
       "items": [ {
@@ -3167,7 +3167,7 @@
                 "value": {
                   "position": {
                     "file": "model/temporal/realize/Kit.scala",
-                    "line": 271
+                    "line": 280
                   },
                   "environment": "temporal.nexus-endpoint.resource"
                 }
@@ -3321,7 +3321,7 @@
           "id": "await-terminated",
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 172
+            "line": 181
           },
           "poll": {
             "evidence": "temporal.nexusoperation.standalone.evidence.statusTerminated",
@@ -3390,6 +3390,173 @@
     "requiredSettings": [ {
       "key": "nexusoperation.enableStandalone",
       "value": "true"
-    } ]
+    } ],
+    "behavior": {
+      "visibility": [ {
+        "id": "visibility.startActivityExecution.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 19
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.pauseActivityExecution.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 23
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/PauseActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.unpauseActivityExecution.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 27
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/UnpauseActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.terminateActivityExecution.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 30
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/TerminateActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.activityAnswer.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 37
+        },
+        "cause": "CAUSE_KIND_ACTIVITY_ANSWER",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.startNexusOperationExecution.describeNexusOperationExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 41
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/StartNexusOperationExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeNexusOperationExecution"
+      }, {
+        "id": "visibility.terminateNexusOperationExecution.describeNexusOperationExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 48
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/TerminateNexusOperationExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeNexusOperationExecution"
+      }, {
+        "id": "visibility.startWorkflowExecution.getWorkflowExecutionHistory",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 54
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
+      }, {
+        "id": "visibility.workflowTask.getWorkflowExecutionHistory",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 61
+        },
+        "cause": "CAUSE_KIND_WORKFLOW_TASK",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
+      }, {
+        "id": "visibility.handlerReply.describeWorkflowExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 67
+        },
+        "cause": "CAUSE_KIND_HANDLER_REPLY",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution",
+        "eventuallyWithin": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 69
+          },
+          "intervalMs": "250",
+          "atMostMs": "2000"
+        }
+      } ],
+      "causes": [ {
+        "id": "cause.delivery",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 77
+        },
+        "kind": "CAUSE_KIND_DELIVERY",
+        "bound": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 77
+          },
+          "intervalMs": "250",
+          "atMostMs": "3000"
+        }
+      }, {
+        "id": "cause.activityAnswer",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 81
+        },
+        "kind": "CAUSE_KIND_ACTIVITY_ANSWER",
+        "bound": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 81
+          },
+          "intervalMs": "250",
+          "atMostMs": "2000"
+        }
+      }, {
+        "id": "cause.workflowTask",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 84
+        },
+        "kind": "CAUSE_KIND_WORKFLOW_TASK",
+        "bound": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 84
+          },
+          "intervalMs": "250",
+          "atMostMs": "5000"
+        }
+      }, {
+        "id": "cause.handlerReply",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 89
+        },
+        "kind": "CAUSE_KIND_HANDLER_REPLY",
+        "bound": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 89
+          },
+          "intervalMs": "250",
+          "atMostMs": "5000"
+        }
+      }, {
+        "id": "cause.timer",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 94
+        },
+        "kind": "CAUSE_KIND_TIMER",
+        "bound": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 94
+          },
+          "intervalMs": "250",
+          "atMostMs": "3000"
+        }
+      } ]
+    }
   } ]
 }

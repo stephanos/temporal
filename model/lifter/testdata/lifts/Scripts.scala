@@ -303,7 +303,8 @@ val records: Realization = Realization(
       role = "temporal.task-queue"
     )
   ),
-  cleanup = "cleanup"
+  cleanup = "cleanup",
+  behavior = Some(temporalBehavior)
 )
 
 // ### One request field, both ways

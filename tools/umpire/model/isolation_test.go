@@ -17,6 +17,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -128,6 +129,9 @@ func positions(m proto.Message) []*umpirespb.Position {
 	return out
 }
 
+// refusedFixture is the lifter fixture whose realizations the reader refuses, each at its line.
+const refusedFixture = "hintsRefused.json"
+
 func TestIRSourcePositionsResolveInsideModel(t *testing.T) {
 	models, err := IRPaths(filepath.Join("..", "..", "..", "model", "ir"))
 	require.NoError(t, err)
@@ -138,6 +142,14 @@ func TestIRSourcePositionsResolveInsideModel(t *testing.T) {
 	for _, path := range models {
 		t.Run(filepath.Base(path), func(t *testing.T) {
 			m, err := Load(path)
+			if filepath.Base(path) == refusedFixture {
+				// The reader refuses it by design (hints_fixture_test.go); its positions resolve all the same.
+				require.Error(t, err)
+				encoded, readErr := os.ReadFile(path)
+				require.NoError(t, readErr)
+				m = &umpirespb.Model{}
+				err = protojson.Unmarshal(encoded, m)
+			}
 			require.NoError(t, err)
 			ps := positions(m)
 			require.NotEmpty(t, ps)

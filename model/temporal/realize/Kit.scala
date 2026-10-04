@@ -81,6 +81,9 @@ val unreachedDeadlineSeconds: Long = 300
 /** `deadlineSeconds` as a request field's value. */
 val deadline = Operand.number(deadlineSeconds)
 
+/** `deadlineSeconds` in milliseconds, as a timer step's deadline names it. */
+val deadlineMs: Long = deadlineSeconds * 1000
+
 /** `unreachedDeadlineSeconds` as a request field's value. */
 val unreachedDeadline = Operand.number(unreachedDeadlineSeconds)
 
@@ -124,7 +127,9 @@ def correlation(operation: Entity)(using family: Family) = Correlation(
 
 /**
  * How `machine`'s find Queries run on Temporal: `roles`, `evidence` keyed by `operation`, the
- * `requiredSettings`, the kit's correlation and cleanup; its val's name, `<family>.testpilot`'s.
+ * `requiredSettings`, the `serverSteps` no command performs, the kit's correlation and cleanup, and
+ * the API `behavior` Behavior.scala declares, which only a lifter fixture replaces; its val's name,
+ * `<family>.testpilot`'s.
  */
 def temporalRealization(
     machine: Machine[?, ?, ?],
@@ -135,7 +140,9 @@ def temporalRealization(
     learned: Vector[Learned] = Vector.empty,
     observations: Vector[Observed] = Vector(correlated),
     controls: Vector[Actuator] = Vector.empty,
-    requiredSettings: Vector[RequiredSetting] = Vector.empty
+    requiredSettings: Vector[RequiredSetting] = Vector.empty,
+    serverSteps: Vector[ServerStep] = Vector.empty,
+    behavior: ApiBehavior = temporalBehavior
 )(using family: Family) = Realization(
   machine = machine,
   producer = family.root + ".testpilot",
@@ -148,7 +155,9 @@ def temporalRealization(
   evidence = evidence,
   controls = controls,
   cleanup = "cleanup",
-  requiredSettings = requiredSettings
+  requiredSettings = requiredSettings,
+  behavior = Some(behavior),
+  serverSteps = serverSteps
 )
 
 // ### The controller and its reads

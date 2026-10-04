@@ -9,9 +9,10 @@
  *
  * Nothing here is particular to one system. What a system has of its own (the roles it addresses
  * and their kinds, who runs a script beside the controller, the instructions only it carries out,
- * the records only it keeps, the settings it runs under) its realization kit declares, by extending
- * the open traits `Addressee`, `Activation`, `Instruction`, `Recorded` and `Setting`. The lifter
- * reads a kit's classes by name, as it reads these.
+ * the records only it keeps, the settings it runs under, how its calls behave between each other and
+ * which steps it takes on its own) its realization kit declares, by extending the open traits
+ * `Addressee`, `Activation`, `Instruction`, `Recorded`, `Setting`, `Behavior` and `SystemStep`. The
+ * lifter reads a kit's classes by name, as it reads these.
  */
 package umpire.realize
 
@@ -39,7 +40,9 @@ final case class Realization(
     evidence: Vector[Evidence | EvidenceRef[?, ?] | TypedEvidence[?]] = Vector.empty,
     controls: Vector[Actuator] = Vector.empty,
     cleanup: String = "",
-    requiredSettings: Vector[Setting] = Vector.empty
+    requiredSettings: Vector[Setting] = Vector.empty,
+    behavior: Option[Behavior] = None,
+    serverSteps: Vector[SystemStep] = Vector.empty
 )
 
 /**
@@ -48,6 +51,20 @@ final case class Realization(
  * refuses an environment that sets it otherwise.
  */
 trait Setting
+
+/**
+ * How the realized system's calls behave between each other, as the system's kit declares it once
+ * for every realization of the system: when a call's effect is visible to a later read, and how long
+ * what a read waits for may take. It shapes how long and how often a Case waits, and never what a
+ * Model says, what a Property checks or what a Contract asserts.
+ */
+trait Behavior
+
+/**
+ * A step of the machine the realized system takes on its own: no command of a script performs it,
+ * and the declaration says what kind of cause it is, so a read that waits for it has a bound.
+ */
+trait SystemStep
 
 /**
  * A symbolic participant commands, activations and controls address, named by its `id`. The

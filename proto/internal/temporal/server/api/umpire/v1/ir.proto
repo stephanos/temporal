@@ -673,6 +673,14 @@ message Realization {
   // The dynamic-configuration settings the realized system must run under. A Case lowered through
   // the realization carries them, and preparation refuses an environment that sets one otherwise.
   repeated RequiredSetting required_settings = 15;
+  // How the APIs a run calls behave between its calls, as the system's kit declares it once: when a
+  // write's effect is visible to a read, and how long each kind of asynchronous cause may take. It
+  // shapes only how a lowered Case waits; no table, ID, fingerprint, Query answer or Contract reads
+  // it. Unset in a realization no kit declares behavior for.
+  ApiBehavior behavior = 16;
+  // The kind of cause each step class no command performs is, such as an activity's delivery or a
+  // server timer at a deadline the realization set.
+  repeated ServerStep server_steps = 17;
 }
 
 // A dynamic-configuration setting a realization requires: its key and its value, each spelled as
@@ -680,6 +688,77 @@ message Realization {
 message RequiredSetting {
   string key = 1;
   string value = 2;
+}
+
+// How the APIs a realization calls behave between calls (.plans/API_BEHAVIOR_HINTS.md). Each
+// declaration carries an id, which a lowered wait names the hint by, and the position it is
+// declared at, which a wait that runs out reports.
+message ApiBehavior {
+  repeated Visibility visibility = 1;
+  repeated CauseBound causes = 2;
+}
+
+// When the effect of a write is visible to a read: at once, or eventually within a bound.
+message Visibility {
+  // Stable and derived from the pair, e.g. "visibility.pauseActivityExecution.describeActivityExecution".
+  string id = 1;
+  Position position = 2;
+  oneof write {
+    // A method, "/package.Service/Method", that the API binds to HTTP POST.
+    string method = 3;
+    // A performed command that is no call, by the kind of cause it is.
+    CauseKind cause = 4;
+  }
+  // The reading method, "/package.Service/Method", that the API binds to HTTP GET.
+  string read = 5;
+  // Unset: visible at once, so a read after the write reads once. Set: visible eventually, within
+  // this bound.
+  WaitBound eventually_within = 6;
+}
+
+// How long a condition may take to hold, and how often a wait looks, in milliseconds; both positive,
+// and the interval no greater than the bound.
+message WaitBound {
+  Position position = 1;
+  int64 interval_ms = 2;
+  // (-- api-linter: core::0140::prepositions=disabled
+  //     aip.dev/not-precedent: The name is the bound's own "at most"; the IR is internal to Umpire. --)
+  int64 at_most_ms = 3;
+}
+
+// How long one kind of asynchronous cause may take, once, from the step before it.
+message CauseBound {
+  // Stable and derived from the kind, e.g. "cause.delivery".
+  string id = 1;
+  Position position = 2;
+  CauseKind kind = 3;
+  WaitBound bound = 4;
+}
+
+// A kind of asynchronous cause a read can wait for: something no command of the read's own script
+// does.
+enum CauseKind {
+  CAUSE_KIND_UNSPECIFIED = 0;
+  // An activity script's answer: RespondActivityTaskCompleted, Failed or Canceled.
+  CAUSE_KIND_ACTIVITY_ANSWER = 1;
+  // A workflow script's commands: RespondWorkflowTaskCompleted.
+  CAUSE_KIND_WORKFLOW_TASK = 2;
+  // A Nexus handler script's reply: RespondNexusTaskCompleted or Failed.
+  CAUSE_KIND_HANDLER_REPLY = 3;
+  // The server's dispatch of a task to a worker.
+  CAUSE_KIND_DELIVERY = 4;
+  // A server timer at a deadline the realization set.
+  CAUSE_KIND_TIMER = 5;
+}
+
+// A step class no command performs, and the kind of cause it is.
+message ServerStep {
+  Position position = 1;
+  ActionClass step = 2;
+  CauseKind kind = 3;
+  // For a timer: the deadline the realization set for this class, written from the same kit value
+  // its request carries. A wait for it is this deadline plus the timer's CauseBound, the slack.
+  int64 deadline_ms = 4;
 }
 
 // A symbolic participant commands and activations address. Its bindings name the environment

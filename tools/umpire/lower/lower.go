@@ -61,6 +61,9 @@ const (
 	OffPath Disposition = "off-path"
 	// Names is what identifies the realization in the IR, which no part of a Case repeats.
 	Names Disposition = "names"
+	// Unread is a hint of the API behavior, or a server step, which shapes only how a Case waits: no
+	// part of a Case reads one until waits are derived from them (fn-118.4).
+	Unread Disposition = "unread"
 )
 
 // Entry is one declaration of a realization and what became of it. Kind is the field of the
@@ -863,6 +866,8 @@ var realizationFields = map[protoreflect.Name]func(*accounting) error{
 		return a.field("realization", "cleanup", a.l.a.r.GetCleanup(), a.c.GetProgram().GetCleanup().GetEntrypointId(), "program.cleanup")
 	},
 	"required_settings": (*accounting).requiredSettings,
+	"behavior":          (*accounting).behavior,
+	"server_steps":      (*accounting).serverSteps,
 }
 
 var correlationFields = map[protoreflect.Name]func(a *accounting, c *umpirespb.Correlation, contract *testpilotspb.CorrelatedContract) error{
@@ -1034,6 +1039,29 @@ func (a *accounting) requiredSettings() error {
 		a.own("required_settings", s.GetKey(), a.l.a.r.GetPosition(), part)
 	}
 	return nil
+}
+
+// behavior records each hint of the API behavior by its id, and serverSteps each server step by its
+// class: no part of a Case reads them yet.
+func (a *accounting) behavior() error {
+	for _, v := range a.l.a.r.GetBehavior().GetVisibility() {
+		a.unread("behavior", v.GetId(), v.GetPosition())
+	}
+	for _, c := range a.l.a.r.GetBehavior().GetCauses() {
+		a.unread("behavior", c.GetId(), c.GetPosition())
+	}
+	return nil
+}
+
+func (a *accounting) serverSteps() error {
+	for _, s := range a.l.a.r.GetServerSteps() {
+		a.unread("server_steps", a.l.adapter.classKey(s.GetStep()), s.GetPosition())
+	}
+	return nil
+}
+
+func (a *accounting) unread(kind, id string, at *umpirespb.Position) {
+	a.entries = append(a.entries, Entry{Kind: kind, ID: id, Position: locate(at), Disposition: Unread})
 }
 
 func (a *accounting) learned() error {

@@ -28,7 +28,10 @@ const (
 	// The fields no frozen migration input sets.
 	schemaSupplement = `{"version":1,"functions":[{"name":"f","params":[{"name":"p","type":{"intRange":{"low":"-3","high":"4"}}}],"body":{"match":{"scrutinee":{"literal":{"record":{"type":"r","fields":[{"list":{"items":[{"int":"-1"},{"bool":true}]}}]}}},"cases":[{"pattern":{"wildcard":{}},"guard":{"literal":{"bool":true}},"body":{"literal":{"text":"x"}}}]}}}]}`
 	// The fields schemaAdded lists, each set. It is current, not captured: no historical bytes have them.
-	schemaAddedSupplement = `{"queries":[{"name":"q","total":"48"}],"functions":[{"name":"g","body":{"construct":{"type":"umpire.Step","choice":"committed"}}}],"realizations":[{"requiredSettings":[{"key":"k","value":"v"}]}]}`
+	schemaAddedSupplement = `{"queries":[{"name":"q","total":"48"}],"functions":[{"name":"g","body":{"construct":{"type":"umpire.Step","choice":"committed"}}}],"realizations":[{"requiredSettings":[{"key":"k","value":"v"}],` +
+		`"behavior":{"visibility":[{"id":"v","position":{"file":"f"},"method":"/s/W","read":"/s/R","eventuallyWithin":{"position":{"file":"f"},"intervalMs":"1","atMostMs":"2"}},{"cause":"CAUSE_KIND_TIMER"}],` +
+		`"causes":[{"id":"c","position":{"file":"f"},"kind":"CAUSE_KIND_TIMER","bound":{"intervalMs":"1"}}]},` +
+		`"serverSteps":[{"position":{"file":"f"},"step":{"action":"a"},"kind":"CAUSE_KIND_TIMER","deadlineMs":"2"}]}]}`
 )
 
 // schemaAddedField is a field the schema gained after the capture: the message it was added to, by its
@@ -45,9 +48,40 @@ type schemaAddedMessage struct {
 	message *descriptorpb.DescriptorProto
 }
 
+// schemaAddedEnum is a top-level enum the schema gained after the capture, declared in the file right
+// after the enum named after, or first where after is empty.
+type schemaAddedEnum struct {
+	after string
+	enum  *descriptorpb.EnumDescriptorProto
+}
+
+// schemaFieldOf is the descriptor protoc gives a field added since the capture. A message's or an
+// enum's type is named within the package; a field of a oneof names the oneof's index.
+func schemaFieldOf(name string, number int32, label descriptorpb.FieldDescriptorProto_Label, typ descriptorpb.FieldDescriptorProto_Type,
+	typeName, jsonName string, oneof ...int32) *descriptorpb.FieldDescriptorProto {
+	field := &descriptorpb.FieldDescriptorProto{Name: proto.String(name), Number: proto.Int32(number), Label: label.Enum(), Type: typ.Enum(),
+		JsonName: proto.String(jsonName)}
+	if typeName != "" {
+		field.TypeName = proto.String("." + schemaPackage + "." + typeName)
+	}
+	for _, index := range oneof {
+		field.OneofIndex = proto.Int32(index)
+	}
+	return field
+}
+
+const (
+	schemaOptional = descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL
+	schemaRepeated = descriptorpb.FieldDescriptorProto_LABEL_REPEATED
+	schemaString   = descriptorpb.FieldDescriptorProto_TYPE_STRING
+	schemaInt64    = descriptorpb.FieldDescriptorProto_TYPE_INT64
+	schemaEnum     = descriptorpb.FieldDescriptorProto_TYPE_ENUM
+	schemaMessage  = descriptorpb.FieldDescriptorProto_TYPE_MESSAGE
+)
+
 // What the schema gained after the capture, in the order it was added: the files it imports, the
-// messages and the fields. The lists are closed: a field added to the schema, or a message, fails
-// these tests until it is listed here and schemaAddedSupplement sets each of its fields.
+// messages, the enums and the fields. The lists are closed: a field added to the schema, a message
+// or an enum, fails these tests until it is listed here and schemaAddedSupplement sets each field.
 var (
 	schemaAddedDependencies = []string{
 		// Query.total's wrapper.
@@ -66,6 +100,9 @@ var (
 		{message: "Realization", field: &descriptorpb.FieldDescriptorProto{Name: proto.String("required_settings"), Number: proto.Int32(15),
 			Label: descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
 			TypeName: proto.String("." + schemaPackage + ".RequiredSetting"), JsonName: proto.String("requiredSettings")}},
+		// How the APIs a realization calls behave between calls, and its server steps (fn-118.2).
+		{message: "Realization", field: schemaFieldOf("behavior", 16, schemaOptional, schemaMessage, "ApiBehavior", "behavior")},
+		{message: "Realization", field: schemaFieldOf("server_steps", 17, schemaRepeated, schemaMessage, "ServerStep", "serverSteps")},
 	}
 	schemaAddedMessages = []schemaAddedMessage{
 		// Realization.required_settings' entry.
@@ -74,6 +111,47 @@ var (
 				Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), JsonName: proto.String("key")},
 			{Name: proto.String("value"), Number: proto.Int32(2), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
 				Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), JsonName: proto.String("value")},
+		}}},
+		// Realization.behavior and Realization.server_steps' messages.
+		{after: "RequiredSetting", message: &descriptorpb.DescriptorProto{Name: proto.String("ApiBehavior"), Field: []*descriptorpb.FieldDescriptorProto{
+			schemaFieldOf("visibility", 1, schemaRepeated, schemaMessage, "Visibility", "visibility"),
+			schemaFieldOf("causes", 2, schemaRepeated, schemaMessage, "CauseBound", "causes"),
+		}}},
+		{after: "ApiBehavior", message: &descriptorpb.DescriptorProto{Name: proto.String("Visibility"), Field: []*descriptorpb.FieldDescriptorProto{
+			schemaFieldOf("id", 1, schemaOptional, schemaString, "", "id"),
+			schemaFieldOf("position", 2, schemaOptional, schemaMessage, "Position", "position"),
+			schemaFieldOf("method", 3, schemaOptional, schemaString, "", "method", 0),
+			schemaFieldOf("cause", 4, schemaOptional, schemaEnum, "CauseKind", "cause", 0),
+			schemaFieldOf("read", 5, schemaOptional, schemaString, "", "read"),
+			schemaFieldOf("eventually_within", 6, schemaOptional, schemaMessage, "WaitBound", "eventuallyWithin"),
+		}, OneofDecl: []*descriptorpb.OneofDescriptorProto{{Name: proto.String("write")}}}},
+		{after: "Visibility", message: &descriptorpb.DescriptorProto{Name: proto.String("WaitBound"), Field: []*descriptorpb.FieldDescriptorProto{
+			schemaFieldOf("position", 1, schemaOptional, schemaMessage, "Position", "position"),
+			schemaFieldOf("interval_ms", 2, schemaOptional, schemaInt64, "", "intervalMs"),
+			schemaFieldOf("at_most_ms", 3, schemaOptional, schemaInt64, "", "atMostMs"),
+		}}},
+		{after: "WaitBound", message: &descriptorpb.DescriptorProto{Name: proto.String("CauseBound"), Field: []*descriptorpb.FieldDescriptorProto{
+			schemaFieldOf("id", 1, schemaOptional, schemaString, "", "id"),
+			schemaFieldOf("position", 2, schemaOptional, schemaMessage, "Position", "position"),
+			schemaFieldOf("kind", 3, schemaOptional, schemaEnum, "CauseKind", "kind"),
+			schemaFieldOf("bound", 4, schemaOptional, schemaMessage, "WaitBound", "bound"),
+		}}},
+		{after: "CauseBound", message: &descriptorpb.DescriptorProto{Name: proto.String("ServerStep"), Field: []*descriptorpb.FieldDescriptorProto{
+			schemaFieldOf("position", 1, schemaOptional, schemaMessage, "Position", "position"),
+			schemaFieldOf("step", 2, schemaOptional, schemaMessage, "ActionClass", "step"),
+			schemaFieldOf("kind", 3, schemaOptional, schemaEnum, "CauseKind", "kind"),
+			schemaFieldOf("deadline_ms", 4, schemaOptional, schemaInt64, "", "deadlineMs"),
+		}}},
+	}
+	schemaAddedEnums = []schemaAddedEnum{
+		// The kinds of asynchronous cause a CauseBound, a Visibility and a ServerStep name (fn-118.2).
+		{enum: &descriptorpb.EnumDescriptorProto{Name: proto.String("CauseKind"), Value: []*descriptorpb.EnumValueDescriptorProto{
+			{Name: proto.String("CAUSE_KIND_UNSPECIFIED"), Number: proto.Int32(0)},
+			{Name: proto.String("CAUSE_KIND_ACTIVITY_ANSWER"), Number: proto.Int32(1)},
+			{Name: proto.String("CAUSE_KIND_WORKFLOW_TASK"), Number: proto.Int32(2)},
+			{Name: proto.String("CAUSE_KIND_HANDLER_REPLY"), Number: proto.Int32(3)},
+			{Name: proto.String("CAUSE_KIND_DELIVERY"), Number: proto.Int32(4)},
+			{Name: proto.String("CAUSE_KIND_TIMER"), Number: proto.Int32(5)},
 		}}},
 	}
 )
@@ -137,6 +215,17 @@ func addedSinceTheCapture(t *testing.T, file *descriptorpb.FileDescriptorProto) 
 		i := slices.IndexFunc(messages, func(m *descriptorpb.DescriptorProto) bool { return m.GetName() == added.after })
 		require.NotEqual(t, -1, i, "no message %s", added.after)
 		file.MessageType = slices.Insert(messages, i+1, proto.CloneOf(added.message))
+	}
+	for _, added := range schemaAddedEnums {
+		enums := file.GetEnumType()
+		require.False(t, slices.ContainsFunc(enums, func(e *descriptorpb.EnumDescriptorProto) bool { return e.GetName() == added.enum.GetName() }),
+			"%s was captured", added.enum.GetName())
+		i := -1
+		if added.after != "" {
+			i = slices.IndexFunc(enums, func(e *descriptorpb.EnumDescriptorProto) bool { return e.GetName() == added.after })
+			require.NotEqual(t, -1, i, "no enum %s", added.after)
+		}
+		file.EnumType = slices.Insert(enums, i+1, proto.CloneOf(added.enum))
 	}
 	for _, added := range schemaAddedFields {
 		messages := file.GetMessageType()

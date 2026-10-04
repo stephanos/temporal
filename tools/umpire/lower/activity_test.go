@@ -33,12 +33,15 @@ const activityRealizationAt = "model/temporal/standaloneactivity/Realization.sca
 // reads they poll.
 const kitAt = "model/temporal/realize/Kit.scala"
 
+// behaviorAt is where the kit declares the API behavior every Temporal realization carries.
+const behaviorAt = "model/temporal/realize/Behavior.scala"
+
 // requireDeclaredIn requires a position in the feature's realization or in the kit that wrote part
 // of it.
 func requireDeclaredIn(t *testing.T, position, realization string) {
 	t.Helper()
-	require.True(t, strings.Contains(position, realization) || strings.Contains(position, kitAt),
-		"%q is in neither %s nor %s", position, realization, kitAt)
+	require.True(t, strings.Contains(position, realization) || strings.Contains(position, kitAt) || strings.Contains(position, behaviorAt),
+		"%q is in neither %s nor %s nor %s", position, realization, kitAt, behaviorAt)
 }
 
 var errandIdentity = cp.IdentityFor("temporal.case", "fixture", "errand")

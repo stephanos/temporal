@@ -2,6 +2,8 @@
 package umpire
 
 import (
+	"fmt"
+
 	"google.golang.org/protobuf/proto"
 )
 
@@ -2299,6 +2301,191 @@ func (this *RequiredSetting) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type ApiBehavior to the protobuf v3 wire format
+func (val *ApiBehavior) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ApiBehavior from the protobuf v3 wire format
+func (val *ApiBehavior) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ApiBehavior) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ApiBehavior values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ApiBehavior) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ApiBehavior
+	switch t := that.(type) {
+	case *ApiBehavior:
+		that1 = t
+	case ApiBehavior:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type Visibility to the protobuf v3 wire format
+func (val *Visibility) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type Visibility from the protobuf v3 wire format
+func (val *Visibility) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *Visibility) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two Visibility values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *Visibility) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *Visibility
+	switch t := that.(type) {
+	case *Visibility:
+		that1 = t
+	case Visibility:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type WaitBound to the protobuf v3 wire format
+func (val *WaitBound) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type WaitBound from the protobuf v3 wire format
+func (val *WaitBound) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *WaitBound) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two WaitBound values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *WaitBound) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *WaitBound
+	switch t := that.(type) {
+	case *WaitBound:
+		that1 = t
+	case WaitBound:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type CauseBound to the protobuf v3 wire format
+func (val *CauseBound) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type CauseBound from the protobuf v3 wire format
+func (val *CauseBound) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *CauseBound) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two CauseBound values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *CauseBound) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *CauseBound
+	switch t := that.(type) {
+	case *CauseBound:
+		that1 = t
+	case CauseBound:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ServerStep to the protobuf v3 wire format
+func (val *ServerStep) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ServerStep from the protobuf v3 wire format
+func (val *ServerStep) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ServerStep) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ServerStep values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ServerStep) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ServerStep
+	switch t := that.(type) {
+	case *ServerStep:
+		that1 = t
+	case ServerStep:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type Role to the protobuf v3 wire format
 func (val *Role) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -3925,4 +4112,26 @@ func (this *ProtoEntry) Equal(that interface{}) bool {
 	}
 
 	return proto.Equal(this, that1)
+}
+
+var (
+	CauseKind_shorthandValue = map[string]int32{
+		"Unspecified":    0,
+		"ActivityAnswer": 1,
+		"WorkflowTask":   2,
+		"HandlerReply":   3,
+		"Delivery":       4,
+		"Timer":          5,
+	}
+)
+
+// CauseKindFromString parses a CauseKind value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to CauseKind
+func CauseKindFromString(s string) (CauseKind, error) {
+	if v, ok := CauseKind_value[s]; ok {
+		return CauseKind(v), nil
+	} else if v, ok := CauseKind_shorthandValue[s]; ok {
+		return CauseKind(v), nil
+	}
+	return CauseKind(0), fmt.Errorf("%s is not a valid CauseKind", s)
 }

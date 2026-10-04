@@ -1,0 +1,96 @@
+/* How Temporal's APIs behave between calls, declared once for every Temporal realization
+ * (.plans/API_BEHAVIOR_HINTS.md): when a write's effect is visible to a read, and how long each
+ * kind of asynchronous cause may take. Each hint is a claim about the server and cites the code it
+ * rests on; a wrong one hides a bug or wastes time, so a change to one changes its citation too.
+ *
+ * Only the pairs and causes an existing Case needs are declared. The lowering ignores them until
+ * fn-118.4, so they change no Case yet.
+ */
+package temporal.realize
+
+import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
+
+/** The API behavior `temporalRealization` attaches to every Temporal realization. */
+val temporalBehavior: ApiBehavior = ApiBehavior(
+  visibility = Vector(
+    // A start persists the new activity, scheduled, before it returns, and a describe reads that
+    // component under the execution's lease: chasm/lib/activity/handler.go:79-112, :200-203,
+    // service/history/chasm_engine.go:221-233, :675-701.
+    METHOD_START_ACTIVITY_EXECUTION.visibleTo(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Visible.atOnce),
+    // A pause of a scheduled activity applies PAUSED in its own transaction (of a started one it is
+    // PAUSE_REQUESTED, which the path avoids): chasm/lib/activity/operator_commands.go:288-322,
+    // statemachine.go:221-243.
+    METHOD_PAUSE_ACTIVITY_EXECUTION.visibleTo(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Visible.atOnce),
+    // An unpause applies SCHEDULED in its own transaction and dispatches through the timer queue,
+    // which the delivery bound covers: chasm/lib/activity/operator_commands.go:324-361,
+    // statemachine.go:247-258, :659-680.
+    METHOD_UNPAUSE_ACTIVITY_EXECUTION.visibleTo(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Visible.atOnce),
+    // A terminate applies TERMINATED in its own transaction, without waiting for a worker:
+    // chasm/lib/activity/handler.go:333-342, activity.go:551-569, statemachine.go:161-175.
+    METHOD_TERMINATE_ACTIVITY_EXECUTION.visibleTo(
+      METHOD_DESCRIBE_ACTIVITY_EXECUTION,
+      Visible.atOnce
+    ),
+    // A worker's answer applies the attempt's outcome, or a retry's reschedule and count, in the
+    // respond's transaction: service/history/handler.go:425-429, :476-480, :527-531,
+    // chasm/lib/activity/activity.go:463, :513, :539, attempt.go:204-240.
+    CauseKind.activityAnswer.visibleTo(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Visible.atOnce),
+    // A start of a standalone Nexus operation persists it, scheduled, before it returns, and a
+    // describe reads that component: chasm/lib/nexusoperation/frontend.go:65-95, handler.go:45-60,
+    // :152-155, operation.go:702-736.
+    METHOD_START_NEXUS_OPERATION_EXECUTION.visibleTo(
+      METHOD_DESCRIBE_NEXUS_OPERATION_EXECUTION,
+      Visible.atOnce
+    ),
+    // A terminate applies TERMINATED in its own transaction:
+    // chasm/lib/nexusoperation/handler.go:293-307, operation.go:671-690,
+    // operation_statemachine.go:277-299.
+    METHOD_TERMINATE_NEXUS_OPERATION_EXECUTION.visibleTo(
+      METHOD_DESCRIBE_NEXUS_OPERATION_EXECUTION,
+      Visible.atOnce
+    ),
+    // A start persists the workflow's first events before it returns:
+    // service/history/api/startworkflow/api.go:326-332.
+    METHOD_START_WORKFLOW_EXECUTION.visibleTo(
+      METHOD_GET_WORKFLOW_EXECUTION_HISTORY,
+      Visible.atOnce
+    ),
+    // A workflow task's scheduled Nexus operation is never buffered and is persisted before the
+    // respond returns: service/history/historybuilder/event_store.go:297-338,
+    // service/history/api/respondworkflowtaskcompleted/api.go:694-700.
+    CauseKind.workflowTask.visibleTo(METHOD_GET_WORKFLOW_EXECUTION_HISTORY, Visible.atOnce),
+    // Matching hands a handler's reply to the waiting dispatch and returns; history's invocation
+    // task records the attempt only afterwards: service/matching/matching_engine.go:2884-2909,
+    // service/history/hsm/nexusoperations/executors.go:339, :528-575, statemachine.go:276-288.
+    // The retry then waits 0.8-1 s (config.go:122-131, common/backoff/retrypolicy.go:181-193), so
+    // the interval stays well below that.
+    CauseKind.handlerReply.visibleTo(
+      METHOD_DESCRIBE_WORKFLOW_EXECUTION,
+      Visible.eventually(WaitBound(intervalMs = 250, atMostMs = 2000))
+    )
+  ),
+  causes = Vector(
+    // Matching hands the task to a waiting poll; after an unpause the timer queue dispatches it, and
+    // a retried attempt waits the 1 s first backoff, without jitter:
+    // chasm/lib/activity/tasks.go:67-102, attempt.go:75-82, common/backoff/retry.go:198-209,
+    // common/retrypolicy/retry_policy.go:76-81.
+    CauseKind.delivery.boundedBy(WaitBound(intervalMs = 250, atMostMs = 3000)),
+    // The Case's own worker answers an attempt as soon as it is delivered, with nothing to wait for
+    // (common/testing/testpilot/temporal/worker/interpreter.go:240-300), and the respond applies the
+    // answer in its transaction (service/history/handler.go:425-429): the bound is the round trip.
+    CauseKind.activityAnswer.boundedBy(WaitBound(intervalMs = 250, atMostMs = 2000)),
+    // A workflow task is dispatched to the Case's worker and completed by it:
+    // service/matching/matching_engine.go:586, :717.
+    CauseKind.workflowTask.boundedBy(WaitBound(intervalMs = 250, atMostMs = 5000)),
+    // Matching dispatches a Nexus task to the handler worker's poll, the Case's handler answers it
+    // at once, and matching hands the reply to the waiting dispatch:
+    // service/matching/matching_engine.go:2721-2802, :2884-2909,
+    // common/testing/testpilot/temporal/worker/interpreter.go:326-430.
+    CauseKind.handlerReply.boundedBy(WaitBound(intervalMs = 250, atMostMs = 5000)),
+    // A timer fires at or after its deadline from the timer queue, and one closer than the queue's
+    // maximum time shift (1 s) is pushed out to it: chasm/lib/activity/tasks.go:154-168,
+    // service/history/timer_queue_active_task_executor.go:1134-1160,
+    // service/history/shard/task_key_manager.go:96-101. The bound is the slack after the deadline.
+    CauseKind.timer.boundedBy(WaitBound(intervalMs = 250, atMostMs = 3000))
+  )
+)
