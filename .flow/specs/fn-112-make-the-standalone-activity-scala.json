@@ -13,6 +13,7 @@
   "id": "fn-112-make-the-standalone-activity-scala",
   "impl_review_rounds": {
     "fn-112-make-the-standalone-activity-scala.1": 0,
+    "fn-112-make-the-standalone-activity-scala.10": 0,
     "fn-112-make-the-standalone-activity-scala.11": 0,
     "fn-112-make-the-standalone-activity-scala.12": 0,
     "fn-112-make-the-standalone-activity-scala.2": 0,
@@ -1089,10 +1090,123 @@
       "task": "fn-112-make-the-standalone-activity-scala.9",
       "timestamp": "2026-10-04T10:06:49.588494Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2220b2f2b602fdd71c3a160bfdd12b6d6544f2a4006336a950b4ca3e824af9df",
+      "backend": "claude",
+      "base_sha": "9e64f90727377188dc7f205c3408a0d3d6a4a507",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-71c6f12f7222c47df03f1b375b56e38f",
+            "classification": "introduced",
+            "findingId": "finding-71c6f12f7222c47df03f1b375b56e38f",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d46976c5607abc36f4c52d525fb73531",
+            "classification": "introduced",
+            "findingId": "finding-d46976c5607abc36f4c52d525fb73531",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8e48499fd54deb15ea48c374b6fd509a9a5dca4c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 5725,
+      "output_sha256": "9954c9082e8630ab790a2f5f05bc720158d624ebc3cee216166582f0d6ce4ba8",
+      "reservation_id": "2cfd7aa9a6ad43518550c7de40b5a140",
+      "round_consumed": true,
+      "scope": "impl:fn-112-make-the-standalone-activity-scala.10",
+      "superseded_by": null,
+      "task": "fn-112-make-the-standalone-activity-scala.10",
+      "timestamp": "2026-10-04T11:33:39.145340Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "9a663599babfc791159b1c4dd7c288b151e138a58d9af5d886edf54971017ac9",
+      "backend": "claude",
+      "base_sha": "9e64f90727377188dc7f205c3408a0d3d6a4a507",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-71c6f12f7222c47df03f1b375b56e38f",
+            "classification": "introduced",
+            "findingId": "finding-71c6f12f7222c47df03f1b375b56e38f",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d46976c5607abc36f4c52d525fb73531",
+            "classification": "introduced",
+            "findingId": "finding-d46976c5607abc36f4c52d525fb73531",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-b6901fd3be0128f3043b06b1d1d7163c",
+            "classification": "introduced",
+            "findingId": "finding-b6901fd3be0128f3043b06b1d1d7163c",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "5e8a02ee49de8adae19962b71803549c872dedf5",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 3080,
+      "output_sha256": "75471dae6e7176717b86b4a872084d933dd6bba99375ed688e6a331736efe27a",
+      "reservation_id": "16add39d27e84d778536e0bc75166540",
+      "round_consumed": true,
+      "scope": "impl:fn-112-make-the-standalone-activity-scala.10",
+      "superseded_by": null,
+      "task": "fn-112-make-the-standalone-activity-scala.10",
+      "timestamp": "2026-10-04T11:46:55.201929Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-112-make-the-standalone-activity-scala.1": 1,
+    "impl:fn-112-make-the-standalone-activity-scala.10": 2,
     "impl:fn-112-make-the-standalone-activity-scala.11": 1,
     "impl:fn-112-make-the-standalone-activity-scala.12": 1,
     "impl:fn-112-make-the-standalone-activity-scala.2": 1,
@@ -1110,6 +1224,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-112-make-the-standalone-activity-scala.1": 0,
+    "impl:fn-112-make-the-standalone-activity-scala.10": 0,
     "impl:fn-112-make-the-standalone-activity-scala.11": 0,
     "impl:fn-112-make-the-standalone-activity-scala.12": 0,
     "impl:fn-112-make-the-standalone-activity-scala.2": 0,
@@ -1123,7 +1238,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-112-make-the-standalone-activity-scala.md",
-  "status": "open",
+  "status": "done",
   "title": "Make the standalone activity Scala Model a DSL showcase",
   "tracker": {
     "baseHashFlow": null,
@@ -1136,5 +1251,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T10:06:49.595152Z"
+  "updated_at": "2026-10-04T11:48:03.249260Z"
 }

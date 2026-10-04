@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-112-make-the-standalone-activity-scala",
   "spec_path": ".flow/tasks/fn-112-make-the-standalone-activity-scala.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Freeze the original Scala Model outputs and current source metrics",
   "updated_at": "2026-10-03T17:19:06.631186Z"
 }

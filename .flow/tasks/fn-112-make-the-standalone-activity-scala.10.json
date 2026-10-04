@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-112-make-the-standalone-activity-scala",
   "spec_path": ".flow/tasks/fn-112-make-the-standalone-activity-scala.10.md",
-  "status": "todo",
+  "status": "done",
   "title": "Close fn112 with refusal coverage, source metrics and full frozen-output gates",
   "updated_at": "2026-10-03T21:34:47.649941Z"
 }

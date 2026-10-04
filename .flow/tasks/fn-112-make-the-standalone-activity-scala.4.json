@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-112-make-the-standalone-activity-scala",
   "spec_path": ".flow/tasks/fn-112-make-the-standalone-activity-scala.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Add typed composition members, sync references and reusable claims",
   "updated_at": "2026-10-03T22:12:11.147273Z"
 }

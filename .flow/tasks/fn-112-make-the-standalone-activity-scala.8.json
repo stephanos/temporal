@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-112-make-the-standalone-activity-scala",
   "spec_path": ".flow/tasks/fn-112-make-the-standalone-activity-scala.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Reorganize the standalone activity feature by subject and declaration kind",
   "updated_at": "2026-10-03T21:34:47.024975Z"
 }

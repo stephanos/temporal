@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-112-make-the-standalone-activity-scala",
   "spec_path": ".flow/tasks/fn-112-make-the-standalone-activity-scala.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Add captured declaration names, evidence defaults and refinement reads",
   "updated_at": "2026-10-03T22:12:13.384520Z"
 }
