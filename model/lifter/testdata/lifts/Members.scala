@@ -41,13 +41,11 @@ import temporal.standaloneactivity.{
   Control,
   OverMatching,
   OverQueue,
-  StandaloneActivityState,
-  SystemFamily
+  StandaloneActivityState
 }
+import temporal.standaloneactivity.SystemFamily.given
 import temporal.worker.Phase as WorkerPhase
 import umpire.*
-
-given Family = SystemFamily
 
 // ### The design over the opaque queue, and the stale record over it
 

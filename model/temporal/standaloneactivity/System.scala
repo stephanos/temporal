@@ -14,8 +14,14 @@ package temporal
 package standaloneactivity
 
 import umpire.*
+import SystemFamily.given
 
-val SystemFamily: umpire.Family = umpire.Family("temporal.activity.standalone.system")
+/**
+ * The family of the system contract's declarations. The activity's machines in Model.scala have a
+ * family of their own in the same package, so each file imports the one its declarations take.
+ */
+object SystemFamily:
+  given family: Family = Family("temporal.activity.standalone.system")
 
 // ### The record: history's authoritative account of one activity
 //
@@ -58,33 +64,33 @@ enum AdmissionFact derives Finite:
 type AdmissionStep = Step[AdmissionState, Outcome, AdmissionFact]
 
 /** History's dispatch task validates the activity and sends the message. */
-val dispatch = internal("dispatch")
+val dispatch = internal
 
 /** Admission's answer reaches matching, which may then complete the task. */
-val answerDelivery = internal("answerDelivery")
+val answerDelivery = internal
 
 val scheduledIdle: AdmissionState =
   AdmissionState(AdmissionPhase.scheduled, Active.none, Answer.settled)
 
 def admissionOver(p: AdmissionPhase): Boolean =
-  p == AdmissionPhase.completed || p == AdmissionPhase.timedOut
+  p.in(AdmissionPhase.completed, AdmissionPhase.timedOut)
 
 /** The dispatch task's Validate: it is sent only while the activity can start. */
 def dispatchStep(s: AdmissionState): List[AdmissionStep] =
-  if s.phase != AdmissionPhase.scheduled then Nil
-  else List(Step(Outcome.accepted, s, List(AdmissionFact.dispatchSent)))
-
-private def pauses(s: AdmissionState, phase: AdmissionPhase): List[AdmissionStep] =
-  List(Step(Outcome.accepted, s.copy(phase = phase), List(AdmissionFact.statusPaused)))
+  if s.phase != AdmissionPhase.scheduled then disabled
+  else accept(s, AdmissionFact.dispatchSent)
 
 /** A pause keeps whatever message is in flight: nothing recalls it. */
 def pauseStep(s: AdmissionState, c: Control): List[AdmissionStep] = c match
   case Control.pause =>
     s.phase match
-      case AdmissionPhase.scheduled => pauses(s, AdmissionPhase.paused)
-      case AdmissionPhase.started   => pauses(s, AdmissionPhase.pausedWhileHeld)
-      case _                        => Nil
-  case Control.unpause | Control.requestCancel | Control.terminate => Nil
+      case AdmissionPhase.scheduled =>
+        accept(s.copy(phase = AdmissionPhase.paused), AdmissionFact.statusPaused)
+      case AdmissionPhase.started =>
+        accept(s.copy(phase = AdmissionPhase.pausedWhileHeld), AdmissionFact.statusPaused)
+      case AdmissionPhase.paused | AdmissionPhase.pausedWhileHeld => disabled // already paused
+      case AdmissionPhase.completed | AdmissionPhase.timedOut     => disabled // over
+  case Control.unpause | Control.requestCancel | Control.terminate => disabled // out of scope
 
 def oneMore(a: Active): Active = a match
   case Active.none => Active.one
@@ -94,22 +100,21 @@ def oneLess(a: Active): Active = a match
   case Active.two => Active.one
   case _          => Active.none
 
+val admissionCommits = choice
+val admissionCommitFails = choice
+
 /**
  * An admission, which either commits or fails its durable update. A failed commit records no
  * attempt and owes no answer, so the delivery it came by stays outstanding.
  */
-def admitted(s: AdmissionState): List[AdmissionStep] = List(
-  Step(
-    Outcome.accepted,
+def admitted(s: AdmissionState): List[AdmissionStep] = choose(
+  admissionCommits -> accept(
     s.copy(phase = AdmissionPhase.started, active = oneMore(s.active), answer = Answer.owed),
-    List(AdmissionFact.statusStarted, AdmissionFact.attemptAdmitted)
+    AdmissionFact.statusStarted,
+    AdmissionFact.attemptAdmitted
   ),
-  Step(
-    Outcome.accepted,
-    s,
-    List(AdmissionFact.admissionCommitFailed),
-    "the durable update fails: nothing is admitted and the message stays deliverable"
-  )
+  admissionCommitFails -> accept(s, AdmissionFact.admissionCommitFailed)
+    .because("the durable update fails: nothing is admitted and the message stays deliverable")
 )
 
 /**
@@ -119,49 +124,42 @@ def admitted(s: AdmissionState): List[AdmissionStep] = List(
  */
 def admitCurrent(s: AdmissionState): List[AdmissionStep] =
   if s.phase == AdmissionPhase.scheduled then admitted(s)
-  else
-    List(
-      Step(Outcome.accepted, s.copy(answer = Answer.owed), List(AdmissionFact.admissionRejected))
-    )
+  else accept(s.copy(answer = Answer.owed), AdmissionFact.admissionRejected)
 
 /** The deliberately faulty design: admission trusts the eligibility the message was sent with. */
 def admitStale(s: AdmissionState): List[AdmissionStep] = admitted(s)
 
 def answerStep(s: AdmissionState): List[AdmissionStep] =
-  if s.answer != Answer.owed then Nil
-  else
-    List(
-      Step(Outcome.accepted, s.copy(answer = Answer.settled), List(AdmissionFact.deliveryAnswered))
-    )
+  if s.answer != Answer.owed then disabled
+  else accept(s.copy(answer = Answer.settled), AdmissionFact.deliveryAnswered)
 
 def resultStep(s: AdmissionState, r: AttemptResult): List[AdmissionStep] = r match
   case AttemptResult.completed =>
-    if s.phase != AdmissionPhase.started then Nil
+    if s.phase != AdmissionPhase.started then disabled
     else
-      List(
-        Step(
-          Outcome.accepted,
-          s.copy(phase = AdmissionPhase.completed, active = oneLess(s.active)),
-          List(AdmissionFact.statusCompleted)
-        )
+      accept(
+        s.copy(phase = AdmissionPhase.completed, active = oneLess(s.active)),
+        AdmissionFact.statusCompleted
       )
-  case AttemptResult.failed(_) | AttemptResult.canceled => Nil
-
-private def timesOut(s: AdmissionState, deadline: TimeoutType): List[AdmissionStep] = List(
-  Step(
-    Outcome.accepted,
-    s.copy(phase = AdmissionPhase.timedOut, active = Active.none),
-    List(AdmissionFact.statusTimedOut(deadline))
-  )
-)
+  case AttemptResult.failed(_) | AttemptResult.canceled => disabled
 
 /** Covers the wait for a worker, so it fires only before an attempt is admitted. */
 def admissionScheduleToStart(s: AdmissionState): List[AdmissionStep] =
-  if s.phase == AdmissionPhase.scheduled then timesOut(s, TimeoutType.scheduleToStart) else Nil
+  if s.phase == AdmissionPhase.scheduled then
+    accept(
+      s.copy(phase = AdmissionPhase.timedOut, active = Active.none),
+      AdmissionFact.statusTimedOut(TimeoutType.scheduleToStart)
+    )
+  else disabled
 
 /** Covers the whole activity, so it competes with the other deadline while none has fired. */
 def admissionScheduleToClose(s: AdmissionState): List[AdmissionStep] =
-  if admissionOver(s.phase) then Nil else timesOut(s, TimeoutType.scheduleToClose)
+  if admissionOver(s.phase) then disabled
+  else
+    accept(
+      s.copy(phase = AdmissionPhase.timedOut, active = Active.none),
+      AdmissionFact.statusTimedOut(TimeoutType.scheduleToClose)
+    )
 
 def productOfAdmission(s: AdmissionState): ProductState = s.phase match
   case AdmissionPhase.scheduled => ProductState(ProductPhase.scheduled)
@@ -180,35 +178,24 @@ def productSees(f: AdmissionFact): Boolean = f match
       AdmissionFact.deliveryAnswered =>
     false
 
-def admissionEvidence(f: AdmissionFact): String = f match
-  case AdmissionFact.statusStarted         => "statusStarted"
-  case AdmissionFact.statusPaused          => "statusPaused"
-  case AdmissionFact.statusCompleted       => "statusCompleted"
-  case AdmissionFact.statusTimedOut(_)     => "statusTimedOut"
-  case AdmissionFact.dispatchSent          => "dispatchSent"
-  case AdmissionFact.attemptAdmitted       => "attemptAdmitted"
-  case AdmissionFact.admissionRejected     => "admissionRejected"
-  case AdmissionFact.admissionCommitFailed => "admissionCommitFailed"
-  case AdmissionFact.deliveryAnswered      => "deliveryAnswered"
-
 /** No unpause is in scope, so a pause is where a path may end, as a completion is. */
 def admissionEnds(s: AdmissionState): Boolean =
-  s.phase != AdmissionPhase.scheduled && s.phase != AdmissionPhase.started
+  !s.phase.in(AdmissionPhase.scheduled, AdmissionPhase.started)
 
 // ### Monitors: at most one admitted active attempt, and terminal finality
 //
 // They count from what a step records, so they hold a design to the promise whatever its state says.
 
 def countActive(active: Active, after: AdmissionStep): Active =
-  if after.facts.contains(AdmissionFact.attemptAdmitted) then oneMore(active)
-  else if after.facts.contains(AdmissionFact.statusCompleted) then oneLess(active)
+  if after.records(AdmissionFact.attemptAdmitted) then oneMore(active)
+  else if after.records(AdmissionFact.statusCompleted) then oneLess(active)
   else if after.state.phase == AdmissionPhase.timedOut then Active.none
   else active
 
-val atMostOneActiveAttempt: Monitor[AdmissionState, Outcome, AdmissionFact, Active] =
-  monitor[AdmissionState, Outcome, AdmissionFact, Active]("atMostOneActiveAttempt", Active.none)(
-    (active, _, after) => countActive(active, after)
-  )(_ == Active.two).readAfter(after => after.facts.contains(AdmissionFact.attemptAdmitted))
+val atMostOneActiveAttempt =
+  monitor[AdmissionState, Outcome, AdmissionFact, Active](Active.none)((active, _, after) =>
+    countActive(active, after)
+  )(_ == Active.two).readAfter(after => after.records(AdmissionFact.attemptAdmitted))
 
 /** Whether the activity is over, and whether a step after that left where it ended. */
 enum Finality derives Finite:
@@ -221,9 +208,9 @@ def finality(f: Finality, after: AdmissionStep): Finality = f match
     else if f == Finality.closed then Finality.reopened
     else Finality.open
 
-val terminalFinality: Monitor[AdmissionState, Outcome, AdmissionFact, Finality] =
-  monitor[AdmissionState, Outcome, AdmissionFact, Finality]("terminalFinality", Finality.open)(
-    (f, _, after) => finality(f, after)
+val terminalFinality =
+  monitor[AdmissionState, Outcome, AdmissionFact, Finality](Finality.open)((f, _, after) =>
+    finality(f, after)
   )(_ == Finality.reopened)
 
 // ### The two designs, under any delivery
@@ -231,45 +218,26 @@ val terminalFinality: Monitor[AdmissionState, Outcome, AdmissionFact, Finality] 
 // A design alone takes a delivery whenever one could arrive, whatever queue brings it: what holds of
 // it holds over every queue, and what fails of it is confirmed over a queue below.
 
-val currentAdmission: Machine[AdmissionState, Outcome, AdmissionFact] =
-  machine[AdmissionState, Outcome, AdmissionFact](SystemFamily, "currentAdmission") {
-    forEntity(activity)
-    monitors(atMostOneActiveAttempt, terminalFinality)
-    refines(activityProduct)(productOfAdmission)
-    visible(productSees)
-    starts(scheduledIdle)
-    ends(admissionEnds)
-    evidence(admissionEvidence)
-    steps(
-      dispatch ~> dispatchStep,
-      control ~> pauseStep,
-      attemptStart ~> admitCurrent,
-      answerDelivery ~> answerStep,
-      attemptResult ~> resultStep,
-      scheduleToStart ~> admissionScheduleToStart,
-      scheduleToClose ~> admissionScheduleToClose
-    )
-  }
+val currentAdmission = machine[AdmissionState, Outcome, AdmissionFact] {
+  forEntity(activity)
+  monitors(atMostOneActiveAttempt, terminalFinality)
+  refines(activityProduct)(productOfAdmission)
+  visible(productSees)
+  starts(scheduledIdle)
+  ends(admissionEnds)
+  evidence { case AdmissionFact.statusTimedOut(_) => "statusTimedOut" }
+  steps(
+    dispatch ~> dispatchStep,
+    control ~> pauseStep,
+    attemptStart ~> admitCurrent,
+    answerDelivery ~> answerStep,
+    attemptResult ~> resultStep,
+    scheduleToStart ~> admissionScheduleToStart,
+    scheduleToClose ~> admissionScheduleToClose
+  )
+}
 
-val staleAdmission: Machine[AdmissionState, Outcome, AdmissionFact] =
-  machine[AdmissionState, Outcome, AdmissionFact](SystemFamily, "staleAdmission") {
-    forEntity(activity)
-    monitors(atMostOneActiveAttempt, terminalFinality)
-    refines(activityProduct)(productOfAdmission)
-    visible(productSees)
-    starts(scheduledIdle)
-    ends(admissionEnds)
-    evidence(admissionEvidence)
-    steps(
-      dispatch ~> dispatchStep,
-      control ~> pauseStep,
-      attemptStart ~> admitStale,
-      answerDelivery ~> answerStep,
-      attemptResult ~> resultStep,
-      scheduleToStart ~> admissionScheduleToStart,
-      scheduleToClose ~> admissionScheduleToClose
-    )
-  }
+val staleAdmission = currentAdmission.rebind(attemptStart ~> admitStale)
 
 // ### Promises, written once and declared on each design
 
@@ -287,12 +255,12 @@ def atMostOneActive(after: AdmissionStep): Boolean = after.state.active != Activ
 def terminalStays(before: AdmissionState, after: AdmissionStep): Boolean =
   !leavesTheEnd(before.phase, after.state.phase)
 
-val five: Limits = Limits("five", steps = 5, actions = 5, search = 65536)
-val seven: Limits = Limits("seven", steps = 7, actions = 7, search = 262144)
-val eight: Limits = Limits("eight", steps = 8, actions = 8, search = 262144)
+val five = Limits(steps = 5, actions = 5, search = 65536)
+val seven = Limits(steps = 7, actions = 7, search = 262144)
+val eight = Limits(steps = 8, actions = 8, search = 262144)
 
 /** Past the depth of the detailed queue's table and of a design composed with it, which is ten. */
-val twelve: Limits = Limits("twelve", steps = 12, actions = 12, search = 262144)
+val twelve = Limits(steps = 12, actions = 12, search = 262144)
 
 /** Every claim and path, declared on one design: a Property or Scenario belongs to one machine. */
 def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector[Query] =
@@ -300,32 +268,22 @@ def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector
   val oneActive = m.property("atMostOneActive") holds atMostOneActive
   val terminal = m.property("terminalStays") holdsAcross terminalStays
   val startDeadline = m.property("scheduleToStartTimesOut") when scheduleToStart holds (after =>
-    after.facts.contains(AdmissionFact.statusTimedOut(TimeoutType.scheduleToStart))
+    after.records(AdmissionFact.statusTimedOut(TimeoutType.scheduleToStart))
   )
   val closeDeadline = m.property("scheduleToCloseTimesOut") when scheduleToClose holds (after =>
-    after.facts.contains(AdmissionFact.statusTimedOut(TimeoutType.scheduleToClose))
+    after.records(AdmissionFact.statusTimedOut(TimeoutType.scheduleToClose))
   )
-  val stale = m
-    .scenario("staleDeliveryAfterPause")
-    .starts(scheduledIdle)
-    .actions(dispatch, control(Control.pause), attemptStart)
-  val prePause = m
-    .scenario("admittedBeforePause")
-    .starts(scheduledIdle)
-    .actions(dispatch, attemptStart, control(Control.pause))
-  val duplicate = m
-    .scenario("duplicateDelivery")
-    .starts(scheduledIdle)
-    .actions(dispatch, attemptStart, attemptStart)
+  val stale =
+    m.scenario("staleDeliveryAfterPause").actions(dispatch, control(Control.pause), attemptStart)
+  val prePause =
+    m.scenario("admittedBeforePause").actions(dispatch, attemptStart, control(Control.pause))
+  val duplicate = m.scenario("duplicateDelivery").actions(dispatch, attemptStart, attemptStart)
   val reopened = m
     .scenario("startedAfterCompletion")
-    .starts(scheduledIdle)
     .actions(dispatch, attemptStart, attemptResult(AttemptResult.completed), attemptStart)
-  val startFirst =
-    m.scenario("scheduleToStartFirst").starts(scheduledIdle).actions(dispatch, scheduleToStart)
-  val closeFirst =
-    m.scenario("scheduleToCloseFirst").starts(scheduledIdle).actions(dispatch, scheduleToClose)
-  val any = m.scenario("any").starts(scheduledIdle).free
+  val startFirst = m.scenario("scheduleToStartFirst").actions(dispatch, scheduleToStart)
+  val closeFirst = m.scenario("scheduleToCloseFirst").actions(dispatch, scheduleToClose)
+  val any = m.scenario("any").free
   Vector(
     query(s"${m.name}.staleDelivery") verify notPaused in stale limits three total 108,
     query(s"${m.name}.admittedBeforePause") verify notPaused in prePause limits three total 108,
@@ -356,24 +314,23 @@ val staleQueries: Vector[Query] = admissionQueries(staleAdmission)
 // status records.
 
 /** The schedule-to-close deadline times the activity out and the status records which it was. */
-val scheduleToCloseFires: Property[ProtocolState] =
-  activityProtocol.property("scheduleToCloseFires") when scheduleToClose holds { s =>
-    s.state.phase == Phase.timedOut && s.facts.contains(
-      ProtocolFact.statusTimedOut(TimeoutType.scheduleToClose)
-    )
+val scheduleToCloseFires =
+  activityProtocol.property when scheduleToClose holds { s =>
+    s.state.phase == Phase.timedOut &&
+    s.records(ProtocolFact.statusTimedOut(TimeoutType.scheduleToClose))
   }
 
-val bothDeadlinesStartFirst: Scenario[ProtocolState] =
-  activityProtocol
-    .scenario("bothDeadlinesStartFirst")
-    .starts(unstarted)
-    .actions(start(Timeout.expires, Timeout.expires, Timeout.unset), scheduleToStart)
+val bothDeadlinesStartFirst =
+  activityProtocol.scenario.actions(
+    start(Inputs.scheduleToClose := Timeout.expires, Inputs.scheduleToStart := Timeout.expires),
+    scheduleToStart
+  )
 
-val bothDeadlinesCloseFirst: Scenario[ProtocolState] =
-  activityProtocol
-    .scenario("bothDeadlinesCloseFirst")
-    .starts(unstarted)
-    .actions(start(Timeout.expires, Timeout.expires, Timeout.unset), scheduleToClose)
+val bothDeadlinesCloseFirst =
+  activityProtocol.scenario.actions(
+    start(Inputs.scheduleToClose := Timeout.expires, Inputs.scheduleToStart := Timeout.expires),
+    scheduleToClose
+  )
 
 val competingTimers: Vector[Query] = Vector(
   query("competingTimers.scheduleToStartFirst")
@@ -392,9 +349,9 @@ val competingTimers: Vector[Query] = Vector(
 
 val fault: Party = Party("fault")
 
-val enqueue = internal("enqueue")
-val deliver = internal("deliver")
-val acknowledge = internal("acknowledge")
+val enqueue = internal
+val deliver = internal
+val acknowledge = internal
 
 /** The one message the queue may hold, by how far its delivery got. */
 enum Outstanding derives Finite:
@@ -406,6 +363,12 @@ final case class QueueView(outstanding: Outstanding) derives Finite
 enum QueueOutcome derives Finite:
   case committed, failed, delivered, acknowledged, lost, internal
 
+object QueueOutcome:
+  // A provider's step behind the interface is the one that answers `internal`. Kept in the
+  // companion, where only a step known to answer a QueueOutcome finds it, so a `choose` of the
+  // activity's steps still finds the package's `Accepted[Outcome]` alone.
+  given Accepted[QueueOutcome] = Accepted(QueueOutcome.internal)
+
 /** The interface's events, and what a provider records of the steps behind them. */
 enum QueueFact derives Finite:
   case enqueueCommitted, enqueueFailed, delivered, acknowledged, storageLost
@@ -413,60 +376,45 @@ enum QueueFact derives Finite:
 
 type QueueViewStep = Step[QueueView, QueueOutcome, QueueFact]
 
-private def views(o: QueueOutcome, to: Outstanding, recorded: QueueFact): List[QueueViewStep] =
-  List(Step(o, QueueView(to), List(recorded)))
+val enqueueCommits = choice
+val enqueueFails = choice
 
 def enqueueView(q: QueueView): List[QueueViewStep] =
-  if q.outstanding != Outstanding.empty then Nil
+  if q.outstanding != Outstanding.empty then disabled
   else
-    List(
-      Step(
-        QueueOutcome.committed,
-        QueueView(Outstanding.committed),
-        List(QueueFact.enqueueCommitted)
+    choose(
+      enqueueCommits -> List(
+        Step(
+          QueueOutcome.committed,
+          QueueView(Outstanding.committed),
+          List(QueueFact.enqueueCommitted)
+        )
       ),
-      Step(
-        QueueOutcome.failed,
-        q,
-        List(QueueFact.enqueueFailed),
-        "the durable write fails and no message is outstanding"
-      )
+      enqueueFails -> List(Step(QueueOutcome.failed, q, List(QueueFact.enqueueFailed)))
+        .because("the durable write fails and no message is outstanding")
     )
 
 def deliverView(q: QueueView): List[QueueViewStep] = q.outstanding match
   case Outstanding.committed =>
-    views(QueueOutcome.delivered, Outstanding.deliveredOnce, QueueFact.delivered)
+    List(
+      Step(QueueOutcome.delivered, QueueView(Outstanding.deliveredOnce), List(QueueFact.delivered))
+    )
   case Outstanding.deliveredOnce =>
     List(
-      Step(
-        QueueOutcome.delivered,
-        QueueView(Outstanding.deliveredTwice),
-        List(QueueFact.delivered),
-        "a message not yet acknowledged may be delivered again"
-      )
-    )
-  case Outstanding.empty | Outstanding.deliveredTwice => Nil
+      Step(QueueOutcome.delivered, QueueView(Outstanding.deliveredTwice), List(QueueFact.delivered))
+    ).because("a message not yet acknowledged may be delivered again")
+  case Outstanding.empty | Outstanding.deliveredTwice => disabled
 
 def acknowledgeView(q: QueueView): List[QueueViewStep] = q.outstanding match
   case Outstanding.deliveredOnce | Outstanding.deliveredTwice =>
-    views(QueueOutcome.acknowledged, Outstanding.empty, QueueFact.acknowledged)
-  case Outstanding.empty | Outstanding.committed => Nil
+    List(
+      Step(QueueOutcome.acknowledged, QueueView(Outstanding.empty), List(QueueFact.acknowledged))
+    )
+  case Outstanding.empty | Outstanding.committed => disabled
 
 def storageLossView(q: QueueView): List[QueueViewStep] =
-  if q.outstanding == Outstanding.empty then Nil
-  else views(QueueOutcome.lost, Outstanding.empty, QueueFact.storageLost)
-
-def queueEvidence(f: QueueFact): String = f match
-  case QueueFact.enqueueCommitted => "enqueueCommitted"
-  case QueueFact.enqueueFailed    => "enqueueFailed"
-  case QueueFact.delivered        => "delivered"
-  case QueueFact.acknowledged     => "acknowledged"
-  case QueueFact.storageLost      => "storageLost"
-  case QueueFact.addInvoked       => "addInvoked"
-  case QueueFact.taskPersisted    => "taskPersisted"
-  case QueueFact.matchReserved    => "matchReserved"
-  case QueueFact.crashed          => "crashed"
-  case QueueFact.ackLost          => "ackLost"
+  if q.outstanding == Outstanding.empty then disabled
+  else List(Step(QueueOutcome.lost, QueueView(Outstanding.empty), List(QueueFact.storageLost)))
 
 /** A check over the opaque queue rests on the interface alone. */
 val queueOpaque: Assumption = assume("dispatchQueue.opaque")
@@ -476,34 +424,30 @@ val queueOpaque: Assumption = assume("dispatchQueue.opaque")
  * that assumes it has the step.
  */
 val storageLossAssumed: Assumption = assume("storageLoss")
-val storageLoss = action("storageLoss", fault)
+val storageLoss = action(fault)
 
 val emptyQueue: QueueView = QueueView(Outstanding.empty)
 
 /** The opaque provider. */
-val dispatchQueue: Machine[QueueView, QueueOutcome, QueueFact] =
-  machine[QueueView, QueueOutcome, QueueFact](SystemFamily, "dispatchQueue") {
-    assumes(queueOpaque)
-    starts(emptyQueue)
-    ends(q => q.outstanding == Outstanding.empty)
-    evidence(queueEvidence)
-    steps(enqueue ~> enqueueView, deliver ~> deliverView, acknowledge ~> acknowledgeView)
-  }
+val dispatchQueue = machine[QueueView, QueueOutcome, QueueFact] {
+  assumes(queueOpaque)
+  starts(emptyQueue)
+  ends(q => q.outstanding == Outstanding.empty)
+  steps(enqueue ~> enqueueView, deliver ~> deliverView, acknowledge ~> acknowledgeView)
+}
 
 /** The interface under the storage-loss assumption: a committed message may also vanish. */
-val dispatchQueueUnderStorageLoss: Machine[QueueView, QueueOutcome, QueueFact] =
-  machine[QueueView, QueueOutcome, QueueFact](SystemFamily, "dispatchQueueUnderStorageLoss") {
-    assumes(queueOpaque, storageLossAssumed)
-    starts(emptyQueue)
-    ends(q => q.outstanding == Outstanding.empty)
-    evidence(queueEvidence)
-    steps(
-      enqueue ~> enqueueView,
-      deliver ~> deliverView,
-      acknowledge ~> acknowledgeView,
-      storageLoss ~> storageLossView
-    )
-  }
+val dispatchQueueUnderStorageLoss = machine[QueueView, QueueOutcome, QueueFact] {
+  assumes(queueOpaque, storageLossAssumed)
+  starts(emptyQueue)
+  ends(q => q.outstanding == Outstanding.empty)
+  steps(
+    enqueue ~> enqueueView,
+    deliver ~> deliverView,
+    acknowledge ~> acknowledgeView,
+    storageLoss ~> storageLossView
+  )
+}
 
 // ### The detailed queue: history's dispatch task and matching's custody
 //
@@ -512,11 +456,11 @@ val dispatchQueueUnderStorageLoss: Machine[QueueView, QueueOutcome, QueueFact] =
 // hands it out; and once admission has answered, matching completes it. Each step is its own
 // transition, so a crash can fall between any two.
 
-val addActivityTask = internal("addActivityTask")
-val persistTask = internal("persistTask")
-val syncMatch = internal("syncMatch")
-val crash = action("crash", fault)
-val ackLoss = action("ackLoss", fault)
+val addActivityTask = internal
+val persistTask = internal
+val syncMatch = internal
+val crash = action(fault)
+val ackLoss = action(fault)
 
 /**
  * Who holds the message. `history` is the dispatch task alone; `invoked` an AddActivityTask in
@@ -545,48 +489,43 @@ def viewOf(d: QueueDetail): QueueView =
       case Delivered.once  => QueueView(Outstanding.deliveredOnce)
       case Delivered.twice => QueueView(Outstanding.deliveredTwice)
 
-/** A step of a provider that its interface does not show. */
-private def behind(to: QueueDetail, recorded: QueueFact): List[QueueDetailStep] =
-  List(Step(QueueOutcome.internal, to, List(recorded)))
-
 def enqueueDetail(d: QueueDetail): List[QueueDetailStep] =
-  if d.custody != Custody.nowhere then Nil
+  if d.custody != Custody.nowhere then disabled
   else
-    List(
-      Step(
-        QueueOutcome.committed,
-        QueueDetail(Custody.history, false, Delivered.never),
-        List(QueueFact.enqueueCommitted)
+    choose(
+      enqueueCommits -> List(
+        Step(
+          QueueOutcome.committed,
+          QueueDetail(Custody.history, false, Delivered.never),
+          List(QueueFact.enqueueCommitted)
+        )
       ),
-      Step(
-        QueueOutcome.failed,
-        d,
-        List(QueueFact.enqueueFailed),
-        "the durable write fails and no message is outstanding"
-      )
+      enqueueFails -> List(Step(QueueOutcome.failed, d, List(QueueFact.enqueueFailed)))
+        .because("the durable write fails and no message is outstanding")
     )
 
 /** An invocation implies no receiver effect: nothing durable changes until matching persists. */
 def invokeDetail(d: QueueDetail): List[QueueDetailStep] =
-  if d.custody != Custody.history then Nil
-  else behind(d.copy(custody = Custody.invoked), QueueFact.addInvoked)
+  if d.custody != Custody.history then disabled
+  else accept(d.copy(custody = Custody.invoked), QueueFact.addInvoked)
 
 def persistDetail(d: QueueDetail): List[QueueDetailStep] =
-  if d.custody != Custody.invoked then Nil
-  else behind(d.copy(custody = Custody.persisted), QueueFact.taskPersisted)
+  if d.custody != Custody.invoked then disabled
+  else accept(d.copy(custody = Custody.persisted), QueueFact.taskPersisted)
 
 def reserveDetail(d: QueueDetail): List[QueueDetailStep] =
-  if d.custody != Custody.invoked then Nil
-  else behind(d.copy(custody = Custody.reserved), QueueFact.matchReserved)
+  if d.custody != Custody.invoked then disabled
+  else accept(d.copy(custody = Custody.reserved), QueueFact.matchReserved)
 
 def oneMoreDelivery(d: Delivered): Delivered = d match
   case Delivered.never => Delivered.once
   case _               => Delivered.twice
 
+/** Matching holds a task a poll can take: reserved for a waiting poller, or persisted. */
+def matchable(c: Custody): Boolean = c.in(Custody.reserved, Custody.persisted)
+
 def deliverDetail(d: QueueDetail): List[QueueDetailStep] =
-  if (d.custody == Custody.reserved || d.custody == Custody.persisted) && !d.polled &&
-    d.delivered != Delivered.twice
-  then
+  if matchable(d.custody) && !d.polled && d.delivered != Delivered.twice then
     List(
       Step(
         QueueOutcome.delivered,
@@ -594,23 +533,23 @@ def deliverDetail(d: QueueDetail): List[QueueDetailStep] =
         List(QueueFact.delivered)
       )
     )
-  else Nil
+  else disabled
 
 /** Matching completes the task, which discharges every custodian's obligation. */
 def acknowledgeDetail(d: QueueDetail): List[QueueDetailStep] =
   if d.polled && d.custody != Custody.nowhere && d.delivered != Delivered.never then
     List(Step(QueueOutcome.acknowledged, idleQueue, List(QueueFact.acknowledged)))
-  else Nil
+  else disabled
 
 /**
  * The answer to the poller is lost. A persisted task stays queued; a sync match fails back to the
  * invocation, which history retries.
  */
 def ackLossDetail(d: QueueDetail): List[QueueDetailStep] =
-  if !d.polled then Nil
+  if !d.polled then disabled
   else if d.custody == Custody.reserved then
-    behind(d.copy(custody = Custody.invoked, polled = false), QueueFact.ackLost)
-  else behind(d.copy(polled = false), QueueFact.ackLost)
+    accept(d.copy(custody = Custody.invoked, polled = false), QueueFact.ackLost)
+  else accept(d.copy(polled = false), QueueFact.ackLost)
 
 /**
  * An ordinary crash loses what is only in memory, the poll, the invocation and a sync match, and
@@ -619,12 +558,12 @@ def ackLossDetail(d: QueueDetail): List[QueueDetailStep] =
  */
 def crashDetail(d: QueueDetail): List[QueueDetailStep] = d.custody match
   case Custody.invoked | Custody.reserved =>
-    behind(d.copy(custody = Custody.history, polled = false), QueueFact.crashed)
+    accept(d.copy(custody = Custody.history, polled = false), QueueFact.crashed)
   case Custody.nowhere | Custody.history | Custody.persisted =>
-    behind(d.copy(polled = false), QueueFact.crashed)
+    accept(d.copy(polled = false), QueueFact.crashed)
 
 def storageLossDetail(d: QueueDetail): List[QueueDetailStep] =
-  if d.custody == Custody.nowhere then Nil
+  if d.custody == Custody.nowhere then disabled
   else List(Step(QueueOutcome.lost, idleQueue, List(QueueFact.storageLost)))
 
 def interfaceSees(f: QueueFact): Boolean = f match
@@ -640,48 +579,44 @@ def interfaceAnswers(o: QueueOutcome): Boolean = o != QueueOutcome.internal
 def queueEnds(d: QueueDetail): Boolean = d.custody == Custody.nowhere
 
 /** The detailed provider. */
-val matchingQueue: Machine[QueueDetail, QueueOutcome, QueueFact] =
-  machine[QueueDetail, QueueOutcome, QueueFact](SystemFamily, "matchingQueue") {
-    refines(dispatchQueue)(viewOf)
-    visible(interfaceSees)
-    visibleOutcomes(interfaceAnswers)
-    starts(idleQueue)
-    ends(queueEnds)
-    evidence(queueEvidence)
-    steps(
-      enqueue ~> enqueueDetail,
-      addActivityTask ~> invokeDetail,
-      persistTask ~> persistDetail,
-      syncMatch ~> reserveDetail,
-      deliver ~> deliverDetail,
-      acknowledge ~> acknowledgeDetail,
-      ackLoss ~> ackLossDetail,
-      crash ~> crashDetail
-    )
-  }
+val matchingQueue = machine[QueueDetail, QueueOutcome, QueueFact] {
+  refines(dispatchQueue)(viewOf)
+  visible(interfaceSees)
+  visibleOutcomes(interfaceAnswers)
+  starts(idleQueue)
+  ends(queueEnds)
+  steps(
+    enqueue ~> enqueueDetail,
+    addActivityTask ~> invokeDetail,
+    persistTask ~> persistDetail,
+    syncMatch ~> reserveDetail,
+    deliver ~> deliverDetail,
+    acknowledge ~> acknowledgeDetail,
+    ackLoss ~> ackLossDetail,
+    crash ~> crashDetail
+  )
+}
 
 /** The detailed provider with the storage-loss fault, which only its assumption allows. */
-val lossyMatchingQueue: Machine[QueueDetail, QueueOutcome, QueueFact] =
-  machine[QueueDetail, QueueOutcome, QueueFact](SystemFamily, "lossyMatchingQueue") {
-    assumes(storageLossAssumed)
-    refines(dispatchQueueUnderStorageLoss)(viewOf)
-    visible(interfaceSees)
-    visibleOutcomes(interfaceAnswers)
-    starts(idleQueue)
-    ends(queueEnds)
-    evidence(queueEvidence)
-    steps(
-      enqueue ~> enqueueDetail,
-      addActivityTask ~> invokeDetail,
-      persistTask ~> persistDetail,
-      syncMatch ~> reserveDetail,
-      deliver ~> deliverDetail,
-      acknowledge ~> acknowledgeDetail,
-      ackLoss ~> ackLossDetail,
-      crash ~> crashDetail,
-      storageLoss ~> storageLossDetail
-    )
-  }
+val lossyMatchingQueue = machine[QueueDetail, QueueOutcome, QueueFact] {
+  assumes(storageLossAssumed)
+  refines(dispatchQueueUnderStorageLoss)(viewOf)
+  visible(interfaceSees)
+  visibleOutcomes(interfaceAnswers)
+  starts(idleQueue)
+  ends(queueEnds)
+  steps(
+    enqueue ~> enqueueDetail,
+    addActivityTask ~> invokeDetail,
+    persistTask ~> persistDetail,
+    syncMatch ~> reserveDetail,
+    deliver ~> deliverDetail,
+    acknowledge ~> acknowledgeDetail,
+    ackLoss ~> ackLossDetail,
+    crash ~> crashDetail,
+    storageLoss ~> storageLossDetail
+  )
+}
 
 // ### The violating providers
 //
@@ -693,63 +628,59 @@ val lossyMatchingQueue: Machine[QueueDetail, QueueOutcome, QueueFact] =
  * anything, so a crash there leaves no custodian for a message the interface still calls committed.
  */
 def forgetfulCrash(d: QueueDetail): List[QueueDetailStep] = d.custody match
-  case Custody.invoked | Custody.reserved                    => behind(idleQueue, QueueFact.crashed)
+  case Custody.invoked | Custody.reserved                    => accept(idleQueue, QueueFact.crashed)
   case Custody.nowhere | Custody.history | Custody.persisted =>
-    behind(d.copy(polled = false), QueueFact.crashed)
+    accept(d.copy(polled = false), QueueFact.crashed)
 
-val forgetfulQueue: Machine[QueueDetail, QueueOutcome, QueueFact] =
-  machine[QueueDetail, QueueOutcome, QueueFact](SystemFamily, "forgetfulQueue") {
-    refines(dispatchQueue)(viewOf)
-    visible(interfaceSees)
-    visibleOutcomes(interfaceAnswers)
-    starts(idleQueue)
-    ends(queueEnds)
-    evidence(queueEvidence)
-    steps(
-      enqueue ~> enqueueDetail,
-      addActivityTask ~> invokeDetail,
-      persistTask ~> persistDetail,
-      syncMatch ~> reserveDetail,
-      deliver ~> deliverDetail,
-      acknowledge ~> acknowledgeDetail,
-      ackLoss ~> ackLossDetail,
-      crash ~> forgetfulCrash
-    )
-  }
+val forgetfulQueue = machine[QueueDetail, QueueOutcome, QueueFact] {
+  refines(dispatchQueue)(viewOf)
+  visible(interfaceSees)
+  visibleOutcomes(interfaceAnswers)
+  starts(idleQueue)
+  ends(queueEnds)
+  steps(
+    enqueue ~> enqueueDetail,
+    addActivityTask ~> invokeDetail,
+    persistTask ~> persistDetail,
+    syncMatch ~> reserveDetail,
+    deliver ~> deliverDetail,
+    acknowledge ~> acknowledgeDetail,
+    ackLoss ~> ackLossDetail,
+    crash ~> forgetfulCrash
+  )
+}
 
 /** A crash wipes the tasks matching persisted, which history no longer backs. */
 def volatileCrash(d: QueueDetail): List[QueueDetailStep] = d.custody match
-  case Custody.persisted                  => behind(idleQueue, QueueFact.crashed)
+  case Custody.persisted                  => accept(idleQueue, QueueFact.crashed)
   case Custody.invoked | Custody.reserved =>
-    behind(d.copy(custody = Custody.history, polled = false), QueueFact.crashed)
-  case Custody.nowhere | Custody.history => behind(d.copy(polled = false), QueueFact.crashed)
+    accept(d.copy(custody = Custody.history, polled = false), QueueFact.crashed)
+  case Custody.nowhere | Custody.history => accept(d.copy(polled = false), QueueFact.crashed)
 
-val volatileQueue: Machine[QueueDetail, QueueOutcome, QueueFact] =
-  machine[QueueDetail, QueueOutcome, QueueFact](SystemFamily, "volatileQueue") {
-    refines(dispatchQueue)(viewOf)
-    visible(interfaceSees)
-    visibleOutcomes(interfaceAnswers)
-    starts(idleQueue)
-    ends(queueEnds)
-    evidence(queueEvidence)
-    steps(
-      enqueue ~> enqueueDetail,
-      addActivityTask ~> invokeDetail,
-      persistTask ~> persistDetail,
-      syncMatch ~> reserveDetail,
-      deliver ~> deliverDetail,
-      acknowledge ~> acknowledgeDetail,
-      ackLoss ~> ackLossDetail,
-      crash ~> volatileCrash
-    )
-  }
+val volatileQueue = machine[QueueDetail, QueueOutcome, QueueFact] {
+  refines(dispatchQueue)(viewOf)
+  visible(interfaceSees)
+  visibleOutcomes(interfaceAnswers)
+  starts(idleQueue)
+  ends(queueEnds)
+  steps(
+    enqueue ~> enqueueDetail,
+    addActivityTask ~> invokeDetail,
+    persistTask ~> persistDetail,
+    syncMatch ~> reserveDetail,
+    deliver ~> deliverDetail,
+    acknowledge ~> acknowledgeDetail,
+    ackLoss ~> ackLossDetail,
+    crash ~> volatileCrash
+  )
+}
 
 // ### What a provider promises, and the crash cuts
 
 /** A message a custodian holds stays held until it is acknowledged. */
 def committedStays(before: QueueDetail, after: QueueDetailStep): Boolean =
-  before.custody == Custody.nowhere || after.state.custody != Custody.nowhere ||
-    after.facts.contains(QueueFact.acknowledged)
+  before.custody != Custody.nowhere implies
+    (after.state.custody != Custody.nowhere || after.records(QueueFact.acknowledged))
 
 /**
  * One crash at each point of the route, and the delivery that must still follow it: after the
@@ -763,28 +694,23 @@ def providerQueries(
 ): Vector[Query] =
   val stays = m.property("committedStays") holdsAcross committedStays
   val delivers =
-    m.property("delivers") when deliver holds (after => after.facts.contains(QueueFact.delivered))
+    m.property("delivers") when deliver holds (after => after.records(QueueFact.delivered))
   val afterInvocation = m
     .scenario("crashAfterInvocation")
-    .starts(idleQueue)
     .actions(enqueue, addActivityTask, crash, addActivityTask, persistTask, deliver)
   val afterSyncMatch = m
     .scenario("crashAfterSyncMatch")
-    .starts(idleQueue)
     .actions(enqueue, addActivityTask, syncMatch, crash, addActivityTask, syncMatch, deliver)
   val afterPersistence = m
     .scenario("crashAfterPersistence")
-    .starts(idleQueue)
     .actions(enqueue, addActivityTask, persistTask, crash, deliver)
   val afterDelivery = m
     .scenario("crashAfterDelivery")
-    .starts(idleQueue)
     .actions(enqueue, addActivityTask, persistTask, deliver, crash, deliver)
   val afterAcknowledgment = m
     .scenario("crashAfterAcknowledgment")
-    .starts(idleQueue)
     .actions(enqueue, addActivityTask, persistTask, deliver, acknowledge, crash)
-  val any = m.scenario("any").starts(idleQueue).free
+  val any = m.scenario("any").free
   Vector(
     query(s"${m.name}.crashAfterInvocation") find delivers in
       afterInvocation limits seven total 180,
@@ -803,18 +729,15 @@ val volatileQueueQueries: Vector[Query] = providerQueries(volatileQueue, anyTota
 val lossyMatchingQueueQueries: Vector[Query] = providerQueries(lossyMatchingQueue, anyTotal = 3240)
 
 /** Storage loss drops a committed message, and the queue records that it did. */
-val storageLossDrops: Property[QueueDetail] =
-  lossyMatchingQueue.property("storageLossDrops") when storageLoss holds { after =>
-    after.state.custody == Custody.nowhere && after.facts.contains(QueueFact.storageLost)
+val storageLossDrops =
+  lossyMatchingQueue.property when storageLoss holds { after =>
+    after.state.custody == Custody.nowhere && after.records(QueueFact.storageLost)
   }
 
-val persistedThenLost: Scenario[QueueDetail] =
-  lossyMatchingQueue
-    .scenario("persistedThenLost")
-    .starts(idleQueue)
-    .actions(enqueue, addActivityTask, persistTask, storageLoss)
+val persistedThenLost =
+  lossyMatchingQueue.scenario.actions(enqueue, addActivityTask, persistTask, storageLoss)
 
-val storageLossQuery: Query =
+val storageLossQuery =
   query("lossyMatchingQueue.storageLoss") find storageLossDrops in
     persistedThenLost limits seven total 120
 
@@ -824,39 +747,8 @@ val storageLossQuery: Query =
 // two designs again without them. They declare no refinement: the designs above are what refine the
 // product.
 
-val currentRecord: Machine[AdmissionState, Outcome, AdmissionFact] =
-  machine[AdmissionState, Outcome, AdmissionFact](SystemFamily, "currentRecord") {
-    forEntity(activity)
-    starts(scheduledIdle)
-    ends(admissionEnds)
-    evidence(admissionEvidence)
-    steps(
-      dispatch ~> dispatchStep,
-      control ~> pauseStep,
-      attemptStart ~> admitCurrent,
-      answerDelivery ~> answerStep,
-      attemptResult ~> resultStep,
-      scheduleToStart ~> admissionScheduleToStart,
-      scheduleToClose ~> admissionScheduleToClose
-    )
-  }
-
-val staleRecord: Machine[AdmissionState, Outcome, AdmissionFact] =
-  machine[AdmissionState, Outcome, AdmissionFact](SystemFamily, "staleRecord") {
-    forEntity(activity)
-    starts(scheduledIdle)
-    ends(admissionEnds)
-    evidence(admissionEvidence)
-    steps(
-      dispatch ~> dispatchStep,
-      control ~> pauseStep,
-      attemptStart ~> admitStale,
-      answerDelivery ~> answerStep,
-      attemptResult ~> resultStep,
-      scheduleToStart ~> admissionScheduleToStart,
-      scheduleToClose ~> admissionScheduleToClose
-    )
-  }
+val currentRecord = currentAdmission.unmonitored
+val staleRecord = staleAdmission.unmonitored
 
 // ### A design over the opaque queue
 //
@@ -869,20 +761,14 @@ final case class OverQueue(activity: AdmissionState, queue: QueueView)
 val idleOverQueue: OverQueue = OverQueue(scheduledIdle, emptyQueue)
 
 val currentOverQueue: Composition[OverQueue] =
-  compose[OverQueue](SystemFamily, "currentOverQueue")(
-    "activity" -> currentRecord,
-    "queue" -> dispatchQueue
-  )
+  compose[OverQueue]("activity" -> currentRecord, "queue" -> dispatchQueue)
     .sync("dispatch", "activity" -> dispatch, "queue" -> enqueue)
     .sync("admit", "activity" -> attemptStart, "queue" -> deliver)
     .sync("settle", "activity" -> answerDelivery, "queue" -> acknowledge)
     .ends(s => admissionEnds(s.activity))
 
 val staleOverQueue: Composition[OverQueue] =
-  compose[OverQueue](SystemFamily, "staleOverQueue")(
-    "activity" -> staleRecord,
-    "queue" -> dispatchQueue
-  )
+  compose[OverQueue]("activity" -> staleRecord, "queue" -> dispatchQueue)
     .sync("dispatch", "activity" -> dispatch, "queue" -> enqueue)
     .sync("admit", "activity" -> attemptStart, "queue" -> deliver)
     .sync("settle", "activity" -> answerDelivery, "queue" -> acknowledge)
@@ -905,15 +791,12 @@ def overQueueQueries(c: Composition[OverQueue]): Vector[Query] =
   )
   val stale = c
     .scenario("staleDeliveryAfterPause")
-    .starts(idleOverQueue)
     .actionKeys("dispatch", "activity_control-pause", "admit")
   val prePause = c
     .scenario("admittedBeforePause")
-    .starts(idleOverQueue)
     .actionKeys("dispatch", "admit", "activity_control-pause")
-  val duplicate =
-    c.scenario("duplicateDelivery").starts(idleOverQueue).actionKeys("dispatch", "admit", "admit")
-  val any = c.scenario("any").starts(idleOverQueue).free
+  val duplicate = c.scenario("duplicateDelivery").actionKeys("dispatch", "admit", "admit")
+  val any = c.scenario("any").free
   Vector(
     query(s"${c.name}.staleDelivery") verify notPaused in stale limits three total 432,
     query(s"${c.name}.admittedBeforePause") verify notPaused in prePause limits three total 432,
@@ -937,10 +820,7 @@ final case class OverMatching(activity: AdmissionState, queue: QueueDetail)
 val idleOverMatching: OverMatching = OverMatching(scheduledIdle, idleQueue)
 
 val currentOverMatching: Composition[OverMatching] =
-  compose[OverMatching](SystemFamily, "currentOverMatching")(
-    "activity" -> currentRecord,
-    "queue" -> matchingQueue
-  )
+  compose[OverMatching]("activity" -> currentRecord, "queue" -> matchingQueue)
     .sync("dispatch", "activity" -> dispatch, "queue" -> enqueue)
     .sync("admit", "activity" -> attemptStart, "queue" -> deliver)
     .sync("settle", "activity" -> answerDelivery, "queue" -> acknowledge)
@@ -948,10 +828,7 @@ val currentOverMatching: Composition[OverMatching] =
     .ends(s => admissionEnds(s.activity))
 
 val staleOverMatching: Composition[OverMatching] =
-  compose[OverMatching](SystemFamily, "staleOverMatching")(
-    "activity" -> staleRecord,
-    "queue" -> matchingQueue
-  )
+  compose[OverMatching]("activity" -> staleRecord, "queue" -> matchingQueue)
     .sync("dispatch", "activity" -> dispatch, "queue" -> enqueue)
     .sync("admit", "activity" -> attemptStart, "queue" -> deliver)
     .sync("settle", "activity" -> answerDelivery, "queue" -> acknowledge)
@@ -960,10 +837,7 @@ val staleOverMatching: Composition[OverMatching] =
 
 /** The corrected design over each violating provider: the replacement is what must fail. */
 val currentOverForgetful: Composition[OverMatching] =
-  compose[OverMatching](SystemFamily, "currentOverForgetful")(
-    "activity" -> currentRecord,
-    "queue" -> forgetfulQueue
-  )
+  compose[OverMatching]("activity" -> currentRecord, "queue" -> forgetfulQueue)
     .sync("dispatch", "activity" -> dispatch, "queue" -> enqueue)
     .sync("admit", "activity" -> attemptStart, "queue" -> deliver)
     .sync("settle", "activity" -> answerDelivery, "queue" -> acknowledge)
@@ -971,10 +845,7 @@ val currentOverForgetful: Composition[OverMatching] =
     .ends(s => admissionEnds(s.activity))
 
 val currentOverVolatile: Composition[OverMatching] =
-  compose[OverMatching](SystemFamily, "currentOverVolatile")(
-    "activity" -> currentRecord,
-    "queue" -> volatileQueue
-  )
+  compose[OverMatching]("activity" -> currentRecord, "queue" -> volatileQueue)
     .sync("dispatch", "activity" -> dispatch, "queue" -> enqueue)
     .sync("admit", "activity" -> attemptStart, "queue" -> deliver)
     .sync("settle", "activity" -> answerDelivery, "queue" -> acknowledge)
@@ -983,10 +854,7 @@ val currentOverVolatile: Composition[OverMatching] =
 
 /** The corrected design where storage loss is assumed, over the interface that allows it. */
 val currentOverLossyMatching: Composition[OverMatching] =
-  compose[OverMatching](SystemFamily, "currentOverLossyMatching")(
-    "activity" -> currentRecord,
-    "queue" -> lossyMatchingQueue
-  )
+  compose[OverMatching]("activity" -> currentRecord, "queue" -> lossyMatchingQueue)
     .sync("dispatch", "activity" -> dispatch, "queue" -> enqueue)
     .sync("admit", "activity" -> attemptStart, "queue" -> deliver)
     .sync("settle", "activity" -> answerDelivery, "queue" -> acknowledge)
@@ -1005,7 +873,6 @@ def overMatchingQueries(c: Composition[OverMatching], anyTotal: Int): Vector[Que
   )
   val stale = c
     .scenario("staleDeliveryAfterPause")
-    .starts(idleOverMatching)
     .actionKeys(
       "dispatch",
       "queue_addActivityTask",
@@ -1015,7 +882,6 @@ def overMatchingQueries(c: Composition[OverMatching], anyTotal: Int): Vector[Que
     )
   val prePause = c
     .scenario("admittedBeforePause")
-    .starts(idleOverMatching)
     .actionKeys(
       "dispatch",
       "queue_addActivityTask",
@@ -1026,7 +892,6 @@ def overMatchingQueries(c: Composition[OverMatching], anyTotal: Int): Vector[Que
   // The answer to the poller is lost after the commit, so the persisted task is handed out again.
   val lostAck = c
     .scenario("deliveredAgainAfterLostAck")
-    .starts(idleOverMatching)
     .actionKeys(
       "dispatch",
       "queue_addActivityTask",
@@ -1038,7 +903,6 @@ def overMatchingQueries(c: Composition[OverMatching], anyTotal: Int): Vector[Que
   // A crash after the admission commit and before the acknowledgment: history retries the sync match.
   val crashAfterCommit = c
     .scenario("crashAfterAdmissionCommit")
-    .starts(idleOverMatching)
     .actionKeys(
       "dispatch",
       "queue_addActivityTask",
@@ -1049,7 +913,7 @@ def overMatchingQueries(c: Composition[OverMatching], anyTotal: Int): Vector[Que
       "queue_syncMatch",
       "admit"
     )
-  val any = c.scenario("any").starts(idleOverMatching).free
+  val any = c.scenario("any").free
   Vector(
     query(s"${c.name}.staleDelivery") verify notPaused in stale limits five total 5400,
     query(s"${c.name}.admittedBeforePause") verify notPaused in prePause limits five total 5400,
@@ -1083,45 +947,38 @@ val currentOverLossyMatchingQueries: Vector[Query] =
 /** Admission as the corrected design decides it, with no failure of its durable update. */
 def admitHeld(s: AdmissionState): List[AdmissionStep] =
   if s.phase == AdmissionPhase.scheduled then
-    List(
-      Step(
-        Outcome.accepted,
-        s.copy(phase = AdmissionPhase.started, active = oneMore(s.active), answer = Answer.owed),
-        List(AdmissionFact.statusStarted, AdmissionFact.attemptAdmitted)
-      )
+    accept(
+      s.copy(phase = AdmissionPhase.started, active = oneMore(s.active), answer = Answer.owed),
+      AdmissionFact.statusStarted,
+      AdmissionFact.attemptAdmitted
     )
-  else
-    List(
-      Step(Outcome.accepted, s.copy(answer = Answer.owed), List(AdmissionFact.admissionRejected))
-    )
+  else accept(s.copy(answer = Answer.owed), AdmissionFact.admissionRejected)
 
-val heldAdmission: Machine[AdmissionState, Outcome, AdmissionFact] =
-  machine[AdmissionState, Outcome, AdmissionFact](SystemFamily, "heldAdmission") {
-    forEntity(activity)
-    monitors(atMostOneActiveAttempt, terminalFinality)
-    refines(activityProduct)(productOfAdmission)
-    visible(productSees)
-    starts(scheduledIdle)
-    ends(admissionEnds)
-    evidence(admissionEvidence)
-    steps(
-      dispatch ~> dispatchStep,
-      control ~> pauseStep,
-      attemptStart ~> admitHeld,
-      answerDelivery ~> answerStep
-    )
-  }
+val heldAdmission = machine[AdmissionState, Outcome, AdmissionFact] {
+  forEntity(activity)
+  monitors(atMostOneActiveAttempt, terminalFinality)
+  refines(activityProduct)(productOfAdmission)
+  visible(productSees)
+  starts(scheduledIdle)
+  ends(admissionEnds)
+  evidence { case AdmissionFact.statusTimedOut(_) => "statusTimedOut" }
+  steps(
+    dispatch ~> dispatchStep,
+    control ~> pauseStep,
+    attemptStart ~> admitHeld,
+    answerDelivery ~> answerStep
+  )
+}
 
 /** Admission met the stale message and rejected it. */
-val staleDeliveryRejected: Property[AdmissionState] =
-  heldAdmission.property("staleDeliveryRejected") when attemptStart holds (after =>
-    after.facts.contains(AdmissionFact.admissionRejected)
+val staleDeliveryRejected =
+  heldAdmission.property when attemptStart holds (after =>
+    after.records(AdmissionFact.admissionRejected)
   )
 
-val heldStaleDelivery: Query =
+val heldStaleDelivery =
   (query("heldAdmission.staleDelivery") find staleDeliveryRejected in heldAdmission
     .scenario("heldStaleDelivery")
-    .starts(scheduledIdle)
     .actions(dispatch, control(Control.pause), attemptStart) limits three total 108).expect(
     umpire.realize.RunExpectation(
       umpire.realize.Conformance.conformant,
@@ -1149,24 +1006,22 @@ enum AdmissionResponseFact derives Finite:
 
 val responseLossInitial: AdmissionResponseState = AdmissionResponseState(scheduledIdle, true)
 
-def responseLossEvidence(f: AdmissionResponseFact): String = f match
-  case AdmissionResponseFact.dispatchSent    => "dispatchSent"
-  case AdmissionResponseFact.attemptAdmitted => "attemptAdmitted"
-
 def responseLossDispatch(
     s: AdmissionResponseState
 ): List[Step[AdmissionResponseState, Outcome, AdmissionResponseFact]] =
-  if !s.lossAvailable then Nil
-  else List(Step(Outcome.accepted, s, List(AdmissionResponseFact.dispatchSent)))
+  if !s.lossAvailable then disabled
+  else accept(s, AdmissionResponseFact.dispatchSent)
+
+val committedThenLost = choice
+val failedThenLost = choice
 
 def loseAdmissionAnswer(
     s: AdmissionResponseState
 ): List[Step[AdmissionResponseState, Outcome, AdmissionResponseFact]] =
-  if !s.lossAvailable then Nil
+  if !s.lossAvailable then disabled
   else
-    List(
-      Step(
-        Outcome.accepted,
+    choose(
+      committedThenLost -> accept(
         AdmissionResponseState(
           s.record.copy(
             phase = AdmissionPhase.started,
@@ -1175,40 +1030,29 @@ def loseAdmissionAnswer(
           ),
           false
         ),
-        List(AdmissionResponseFact.attemptAdmitted)
+        AdmissionResponseFact.attemptAdmitted
       ),
-      Step(
-        Outcome.accepted,
-        s.copy(lossAvailable = false),
-        Nil,
-        "the durable update failed before its answer was lost"
-      )
+      failedThenLost -> accept(s.copy(lossAvailable = false))
+        .because("the durable update failed before its answer was lost")
     )
 
-val admissionResponseLoss: Machine[AdmissionResponseState, Outcome, AdmissionResponseFact] =
-  machine[AdmissionResponseState, Outcome, AdmissionResponseFact](
-    SystemFamily,
-    "admissionResponseLoss"
-  ) {
-    forEntity(activity)
-    starts(responseLossInitial)
-    ends(s => !s.lossAvailable)
-    evidence(responseLossEvidence)
-    steps(dispatch ~> responseLossDispatch, ackLoss ~> loseAdmissionAnswer)
-  }
+val admissionResponseLoss = machine[AdmissionResponseState, Outcome, AdmissionResponseFact] {
+  forEntity(activity)
+  starts(responseLossInitial)
+  ends(s => !s.lossAvailable)
+  steps(dispatch ~> responseLossDispatch, ackLoss ~> loseAdmissionAnswer)
+}
 
-val committedDespiteLostResponse: Property[AdmissionResponseState] =
-  admissionResponseLoss.property("committedDespiteLostResponse") when ackLoss holds (after =>
-    after.facts.contains(AdmissionResponseFact.attemptAdmitted)
+val committedDespiteLostResponse =
+  admissionResponseLoss.property when ackLoss holds (after =>
+    after.records(AdmissionResponseFact.attemptAdmitted)
   )
 
-val lostAdmissionResponseQuery: Query =
-  (query(
-    "admissionResponseLoss.committed"
-  ) find committedDespiteLostResponse in admissionResponseLoss
-    .scenario("oneLostResponse")
-    .starts(responseLossInitial)
-    .actions(dispatch, ackLoss) limits three total 144).expect(
+val lostAdmissionResponseQuery =
+  (query("admissionResponseLoss.committed") find committedDespiteLostResponse in
+    admissionResponseLoss
+      .scenario("oneLostResponse")
+      .actions(dispatch, ackLoss) limits three total 144).expect(
     umpire.realize
       .RunExpectation(umpire.realize.Conformance.conformant, umpire.realize.Outcome.satisfied)
   )

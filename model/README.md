@@ -388,6 +388,11 @@ that would share a name: two machines or compositions, two Properties or two Sce
 machine, two Queries, monitors, assumptions, holes, channels or realizations, Limits of one name
 with different bounds, and two actions one machine binds.
 
+Two families in one package cannot both be package-level givens, since each file would see both.
+Each then lives in an object of its own, `object SystemFamily: given family: Family = …`, and each
+file imports the one its declarations take (`import SystemFamily.given`), as the standalone
+activity's Model.scala and System.scala do.
+
 An action, monitor, assumption, hole, channel with the actions it derives, or realization takes its
 Definition ID from its `val`'s owner and name. Declarations moved to a new owner keep their IDs
 through one `given DefinitionScope = DefinitionScope("pkg.Former$package$")` there, the compiler's

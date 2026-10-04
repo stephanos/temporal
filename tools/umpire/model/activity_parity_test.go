@@ -42,6 +42,10 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 	for _, match := range regexp.MustCompile(`(?:\.|\b)(property|scenario|query)\(\s*"([^"\n]+)"`).FindAllStringSubmatch(string(source), -1) {
 		declared = append(declared, match[1]+" "+match[2])
 	}
+	// A declaration that states no name is named after its val.
+	for _, match := range regexp.MustCompile(`(?m)^val (\w+)\s*=\s*\(?\s*(?:(query)\b|\w+\.(property|scenario)\b)`).FindAllStringSubmatch(string(source), -1) {
+		declared = append(declared, match[2]+match[3]+" "+match[1])
+	}
 	m := activityModel(t)
 	var lifted []string
 	for _, p := range m.GetProperties() {

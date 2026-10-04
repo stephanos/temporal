@@ -7,12 +7,14 @@ import (
 	"path/filepath"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -853,7 +855,8 @@ func TestQuintKeepsEveryNamedAlternative(t *testing.T) {
 					choices = append(choices, r.Choice)
 				}
 			}
-			if len(choices) > 0 {
+			// The queue's enqueue names its own alternatives in the Model.
+			if len(choices) > 0 && !slices.Equal(choices, []string{"enqueueCommits", "enqueueFails"}) {
 				require.Equal(t, []string{"accepts", "rejects"}, choices, name)
 				named[name] = true
 			}
@@ -946,12 +949,13 @@ func TestQuintRefusesANameItCannotWrite(t *testing.T) {
 			m := proto.Clone(loadModel(t, "activity-system")).(*umpirespb.Model)
 			steps := admittedSteps(m)
 			steps[0].Choice, steps[1].Choice = "accepts", name
+			at := function(m, "temporal.standaloneactivity.System$package$.admitted").GetBody().GetList().GetItems()[1].GetPosition()
 			s, err := Open(m)
 			require.NoError(t, err)
 			_, err = s.Quint()
 			var unsupported *UnsupportedError
 			require.ErrorAs(t, err, &unsupported)
-			require.Equal(t, "model/temporal/standaloneactivity/System.scala:107", unsupported.Position)
+			require.Equal(t, fmt.Sprintf("%s:%d", at.GetFile(), at.GetLine()), unsupported.Position)
 			require.Contains(t, unsupported.Construct, fmt.Sprintf("the choice %q", name))
 		})
 	}
@@ -960,14 +964,20 @@ func TestQuintRefusesANameItCannotWrite(t *testing.T) {
 	require.Contains(t, x.Text, `f_choice: "it's-a $name_1 (ok)"}]`)
 }
 
-// An unnamed Model's step records carry the empty name, and the step type its field.
+// A step record carries the empty name unless the Model names it, and the step type its field.
 func TestUnnamedStepRecordsCarryNoName(t *testing.T) {
 	for _, name := range irFiles {
+		allowed := []string{`""`, "str"}
+		source, err := protojson.Marshal(loadModel(t, name))
+		require.NoError(t, err)
+		for _, named := range regexp.MustCompile(`"choice":\s*"([^"]+)"`).FindAllStringSubmatch(string(source), -1) {
+			allowed = append(allowed, strconv.Quote(named[1]))
+		}
 		x := exported(t, openNamed(t, name))
 		written := regexp.MustCompile(`f_choice: ([^,}]*)`).FindAllStringSubmatch(x.Text, -1)
 		require.NotEmpty(t, written, name)
 		for _, w := range written {
-			require.Contains(t, []string{`""`, "str"}, w[1], name)
+			require.Contains(t, allowed, w[1], name)
 		}
 	}
 }

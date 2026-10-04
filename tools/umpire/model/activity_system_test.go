@@ -279,8 +279,8 @@ func TestActivityDuplicateDelivery(t *testing.T) {
 	// The stale design's second admission reads as a stutter of the product that records a status the
 	// product sees, so the visible projection refuses it too.
 	require.Equal(t, []Result{
-		{Outcome: "accepted", State: "started-two-owed", Facts: []string{"statusStarted", "attemptAdmitted"}},
-		{Outcome: "accepted", State: "started-one-owed", Facts: []string{"admissionCommitFailed"}, Because: commitFails},
+		{Outcome: "accepted", State: "started-two-owed", Facts: []string{"statusStarted", "attemptAdmitted"}, Choice: "admissionCommits"},
+		{Outcome: "accepted", State: "started-one-owed", Facts: []string{"admissionCommitFailed"}, Because: commitFails, Choice: "admissionCommitFails"},
 	}, plainResults(t, c.built["staleAdmission"].Table, "started-one-owed-attemptStart"))
 	require.Equal(t, []Result{{Outcome: "accepted", State: "started-one-owed", Facts: []string{"admissionRejected"}}},
 		plainResults(t, c.built["currentAdmission"].Table, "started-one-owed-attemptStart"))
