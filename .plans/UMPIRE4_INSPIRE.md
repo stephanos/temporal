@@ -1,7 +1,9 @@
 # Umpire 4: what we can learn from distributed-system verification
 
-Research date: 2026-09-30. This is an analysis and recommendation document. It does not amend the
-[Umpire specification](UMPIRE4_SPEC.md) or approve its pending changes.
+Research date: 2026-09-30, extended 2026-10-03 with a second survey of specification languages and
+model checkers ([below](#specification-languages-and-model-checkers)). This is an analysis and
+recommendation document. It does not amend the [Umpire specification](UMPIRE4_SPEC.md) or approve
+its pending changes.
 
 ## Recommendation
 
@@ -19,6 +21,13 @@ those patterns to Temporal's admission, queue, retention, and ownership boundari
 Welder adds a condition for scaling this work across components. Each component needs explicit
 limits on interference and named progress dependencies. Checking the components separately becomes
 useful for composition when their guarantees satisfy one another's assumptions.
+
+The second survey, of specification languages and model checkers, mostly confirms decisions already
+taken. Umpire's semantics are already lifted data, and fn-120 adopts the explorer, the lint, and
+named semantic levels. Two ideas add something. Faults should be environment actions with budgets
+and derived crash effects, which is now a drafted spec. Lint should report coverage of declared
+obligations with explicit denominators, which is now an amendment to fn-120. Symmetry, search
+strategies, and quantitative properties wait until a Query needs them.
 
 These techniques address different failure modes. Adding a stronger model checker cannot reveal a
 race omitted by an atomic model step. Running more Cases cannot expose an input relation the
@@ -46,6 +55,11 @@ repositories. Umpire descriptions come from the current working tree, including 
 Existing result reports are identified as reports; their experiments were not rerun for this
 document. Recommendations below are our synthesis, rather than capabilities claimed by the cited
 systems.
+
+The second survey cites tool documentation and, where the documentation and the code disagree,
+source at a pinned revision. Two such disagreements matter here. Quint's documentation predates its
+TLC backend and its Rust default simulator. Stateright's documentation does not say that its BFS
+and on-demand checkers ignore symmetry.
 
 ## Six patterns to incorporate
 
@@ -214,19 +228,20 @@ control independently. See the [module map](UMPIRE_MODULES.md) and
 | Finite models and model-to-model refinement | [Scala results](../model0/scala/RESULTS.md), [Go results](../model0/go/RESULTS.md) | Existing reports show Nexus table, Query, refinement, and Case parity. This establishes agreement between representations over their shared domain. |
 | Proofs over model behavior | [Scala results, Stainless lemmas](../model0/scala/RESULTS.md#what-stainless-proves) | Reported lemmas concern the model kernel, including bounded attempts and refinement. They do not prove the Temporal server implementation. |
 | Scala authoring, serializable IR, Go interpretation | [IR README](../model/README.md), [IR semantics](../model/SEMANTICS.md) | The interpreter builds the lifted Nexus tables. The full authored semantic surface exceeds the implemented interpreter surface. |
-| Channels, monitors, assumptions, holes, scoped replacement, progress | [IR semantics, implementation status](../model/SEMANTICS.md#what-the-reader-implements) | These have declarations and written semantics in ongoing work. The documented interpreter still omits several of their meanings; declaration support is not checking support. |
+| Channels, monitors, assumptions, holes, scoped replacement, progress | [IR semantics, implementation status](../model/SEMANTICS.md#what-the-reader-implements) | As of 2026-10-03 the reader implements all of them. It reports three cases as `unsupported`: a Query over a composition whose member names monitors, a `find` with `through`, and a transition Property with `when`. |
 | Executable Cases and live/offline Contract evaluation | [Testpilot](../common/testing/testpilot/README.md), [Evaluator](../common/testing/testpilot/internal/verification/README.md) | The runtime implements bounded execution, immutable records, correlated evaluation, and semantic replay. |
-| Runtime faults | [Instruction schema](../proto/internal/temporal/server/api/testpilot/v1/instruction.proto), [worker fault tests](../common/testing/testpilot/temporal/worker/fault_test.go) | The current fault enum supplies worker stop/resume. It does not supply arbitrary network delivery, server crash, or storage-commit scheduling. |
+| Runtime faults | [Instruction schema](../proto/internal/temporal/server/api/testpilot/v1/instruction.proto), [worker fault tests](../common/testing/testpilot/temporal/worker/fault_test.go) | The fault enum supplies worker stop/resume, a hold and release of a validated activity dispatch, and loss of one committed admission response. It does not supply arbitrary network delivery, server crash, or storage-commit scheduling. |
 | Replay, reduction, promotion | [Specification](UMPIRE4_SPEC.md#exploration-replay-and-promotion) | The design separates offline Verdict replay, fresh reruns, and diagnostic SDK history replay. Fresh reruns are required for promotion. |
 | General model conformance from partial observations | [fn-107 prototype specification](../.flow/specs/fn-107-scala-umpire-prototype-for-standalone.md) | The prototype calls for retaining compatible model executions and separating conformance from Property results. This is a planned extension beyond the existing Contract path. |
 
-One immediate concern precedes all external inspiration. The IR semantics explicitly records that
-the reader (`tools/umpire/model`) still reads some declared constructs without applying their semantics, although conforming
-readers must implement or refuse them. A successful load therefore cannot stand in for a successful
-check of every declared obligation. Close that admission gap before treating a new backend as an
-independent verifier. This is already identified by the ongoing prototype, not a new feature request
-from this research. See [implementation status](../model/SEMANTICS.md#what-the-reader-implements) and
-the [current validator](../tools/umpire/model/validate.go).
+One concern preceded all external inspiration when this document was first written. At that time
+the IR semantics recorded that the reader (`tools/umpire/model`) read some declared constructs
+without applying their semantics. The 2026-10-03 status says the reader implements them and reports
+the three remaining gaps as `unsupported`. The principle remains: a successful load cannot stand in
+for a successful check of every declared obligation, and a backend counts only where it checks the
+same declared meaning. See [implementation status](../model/SEMANTICS.md#what-the-reader-implements),
+the [current validator](../tools/umpire/model/validate.go), and the
+[backend agreement receipts](../tools/umpire/export/README.md).
 
 ### Four meanings of determinism
 
@@ -650,6 +665,12 @@ results separate. Give each backend an explicit support declaration and reject u
 constructs. A second backend becomes valuable when it checks the same declared meaning and can
 disagree usefully; translating a narrower subset without accounting for the loss is weaker evidence.
 
+PObserve's direction now exists in Umpire through compatible executions rather than raw events. The
+conformance assessment advances the same IR monitors that Search uses over every model execution
+consistent with a Run's partial evidence ([conformance](../tools/umpire/conformance/conformance.go)).
+Monitors over compositions remain `unsupported`. Keep predicates and observers both first-class: a
+Property reads one step, and a monitor remembers a history.
+
 Use P's modularity as inspiration for the opaque-queue replacement experiment already proposed in
 fn-107. Machine substitution needs an interface obligation and a checked correspondence; the act of
 selecting a replacement is not itself a proof that the replacement is safe.
@@ -824,6 +845,316 @@ Umpire's current weak-fair action declarations do not by themselves express Weld
 termination assumption. Keep conflict and retry detail visible until a justified abstraction and its
 progress conditions are supported. Preserve SEM-09's bounded meaning for finite checks and Runs.
 
+## Specification languages and model checkers
+
+The first survey asked how other systems connect a model to a real implementation. This second
+survey, from 2026-10-03, asks what specification languages and checkers do well inside the model:
+Quint and TLA+, FizzBee, Ivy, Stateright, Alloy, SPIN, PRISM, and PLT Redex. P is covered
+[above](#p-give-obligations-explicit-state-and-checking-scope).
+
+It began from an outside review that described Umpire's semantics as Scala functions executed for
+their meaning. That premise is out of date. The lifter reads typed Scala trees and writes step
+functions, Properties, and monitors into the IR as expression trees with a source position on every
+node. Go evaluates those trees and never runs Scala. See the [IR README](../model/README.md) and
+[expression semantics](../model/SEMANTICS.md). The exporter translates the same IR to Quint and P, and
+a backend counts only where its run agrees with Go's reading
+([backend agreement](../tools/umpire/export/README.md)). The ideas below are read against that IR.
+None is a reason to build one.
+
+Part of this survey is already decided.
+[fn-120](../.flow/specs/fn-120-adopt-what-quint-does-well-named.md) adopts named choices, model lint,
+an IR explorer, and named semantic levels. ITF trace interchange was considered and withdrawn on 2026-10-04. It also records which Quint
+suggestions wait for their own spec. Sources below cite pinned revisions where the documentation
+and the code disagree.
+
+### Quint and TLA+: the IR is the product, and fairness is a premise
+
+Quint's manual defines six modes: stateless, state, nondeterminism, action, run, and temporal. It
+calls them "similar in spirit to TLA+ levels, but more refined." A read/update/temporal effect
+system enforces them and checks that a step updates each variable at most once. A missing update
+is reported at run time rather than statically.
+[Quint modes](https://github.com/informalsystems/quint/blob/23a4b811ff2ac040057e9213d6a249d64a08d9be/docs/content/docs/lang.md),
+[ADR004 effect system](https://github.com/informalsystems/quint/blob/23a4b811ff2ac040057e9213d6a249d64a08d9be/docs/content/docs/development-docs/architecture-decision-records/adr004-effect-system.md).
+
+The tooling sends one flattened JSON IR to its simulator and to Apalache. Since v0.31.0,
+`quint verify --backend tlc` runs TLC on TLA+ produced through Apalache. The IR "almost mirrors
+the IR of Apalache"; we found no stability guarantee for it. The simulator checks invariants only.
+Apalache's temporal checking is marked experimental and leaves fairness to be written by hand. For
+TLC, Quint's generated configuration has no `SPECIFICATION`, so fairness has to appear as a
+hypothesis inside the property.
+[Quint changelog](https://github.com/informalsystems/quint/blob/23a4b811ff2ac040057e9213d6a249d64a08d9be/CHANGELOG.md),
+[TLC configuration](https://github.com/informalsystems/quint/blob/23a4b811ff2ac040057e9213d6a249d64a08d9be/quint/src/tlc.ts),
+[Apalache temporal ADR](https://apalache-mc.org/docs/adr/017pdr-temporal.html).
+
+TLA+ supplies the meanings Quint borrows. Weak and strong fairness are defined over `ENABLED` and
+the action's occurrence. TLA admits only formulas invariant under stuttering. "Implementation is
+implication" under a refinement mapping. TLC warns that liveness checking combined with symmetry or
+with state constraints can miss violations or report false ones.
+[Specifying Systems §§5.8, 8.1, 8.4, 8.6, 14.3.4–14.3.5](https://lamport.azurewebsites.net/tla/book-21-07-04.pdf).
+
+**For Umpire.** fn-120 Part E names the semantic levels and has the lifter refuse an expression at
+the wrong level. It does this without effect types, because Umpire's signatures already separate a
+step function from a Property. The same spec records that any temporal operator Umpire adds takes its
+meaning from TLA. Two further cautions apply when progress claims are exported, which they are not
+today:
+
+- The fairness premise must travel with the claim. Umpire's `Assumption.fair` names weakly fair action
+  classes. An export to TLC must state them inside the property, and an Apalache liveness result
+  remains experimental evidence.
+- Umpire's bounded `leadsTo` is not unbounded `~>`. An export may check the bounded form or qualify
+  the difference, but it must not silently replace one with the other.
+
+Any future symmetry or state-space constraint in Umpire should be refused for progress claims until
+its soundness is argued, for the reason TLC gives.
+
+### FizzBee: faults belong to the environment, and survival is declared
+
+FizzBee injects message loss, thread crash, and process crash without the author writing those
+transitions. Disk failure is listed as work in progress, and duplication and Byzantine behavior are
+modeled by hand. Role state is durable by default. An author may declare ephemeral fields with
+`@state(ephemeral=[...])`. A crash resets those fields to their values at the end of the role's
+`Init` and drops the role's in-flight threads. A role without that declaration gets no role crash in
+the current source. Crash points sit at the yield points between steps of serial and parallel
+blocks, and the `crash_on_yield` option disables them.
+[Fault injection](https://fizzbee.io/design/tutorials/fault-injection/),
+[state-space options](https://github.com/fizzbee-io/fizzbee/blob/main/proto/statespace_options.proto).
+
+FizzBee also treats its specification as a design document. It writes a Graphviz state graph,
+a communication diagram, and an interactive explorer that builds sequence diagrams. Its stated aim
+is visualizations "that can be shared with your team."
+[Visualizations](https://fizzbee.io/design/tutorials/visualizations/). Its model-based testing
+maps actions to code through an adapter and can compare state at each step
+([MBT](https://fizzbee.io/testing/tutorials/getting-started/)).
+
+**For Umpire.** Today `crash`, `ackLoss`, and `storageLoss` are ordinary actions whose party is the
+string `"fault"`
+([System.scala:391, 477, 516–517](../model/temporal/standaloneactivity/System.scala)).
+The tooling distinguishes only `system` from every other party. One fault budget is a hand-written
+`lossAvailable` field ([System.scala:1127, 1142](../model/temporal/standaloneactivity/System.scala)).
+Each crash function decides by hand what survives. fn-107 asked for a finite fault budget and for
+crash to lose ephemeral state
+([fn-107](../.flow/specs/fn-107-scala-umpire-prototype-for-standalone.md)). Channels already show
+the better pattern: Go derives loss, duplication, and redelivery from a channel declaration
+([Channels](../model/SEMANTICS.md#channels)).
+
+Three things are worth adopting:
+
+- **Declared faults.** Declare faults as environment actions. Each budget is a state field the
+  author writes and the fault names, so it stays in search identity and remains readable from Scala.
+  Go checks that the field never increases and that the fault is disabled when the field is
+  exhausted. Unlike FizzBee's and Stateright's framework counters, this leaves existing Cases
+  byte-identical.
+- **Realizability.** Map each fault to a runtime `FaultKind` or mark it model-only, so a result can
+  say which of its faults a Case could realize.
+- **Durability.** Classify state so that a crash's effect is derived rather than written per machine.
+
+Do not copy durable-by-default. An unclassified field that silently survives a crash is the
+forgetful-provider mistake the Model is meant to expose.
+
+The tree also shows where per-field reset is too simple. `crashDetail` resets `polled`, but it moves
+`custody` from `invoked` or `reserved` back to `history`, the last durable holder
+([System.scala:613–622](../model/temporal/standaloneactivity/System.scala)). One field holds both
+durable and in-memory values. The fault spec drafted from this survey must settle that case without
+changing existing tables. It is [fn-123](../.flow/specs/fn-123-declare-faults-as-the-environments.md), which starts after fn-112 and fn-120.1.
+
+Umpire generates no diagrams from its IR. The only generated view is an HTML trace per exploration
+candidate ([trace.go](../tools/umpire/explore/trace.go)). A generated machine diagram, with Property
+status, lint findings, and realization status as overlays, would read the outputs of fn-120's lint
+and explorer. It needs no new semantics and should follow them.
+
+### Ivy: coverage of obligations, and contracts at interfaces
+
+An Ivy isolate is a unit of verification. A `require` is a guarantee for the caller and an
+assumption for the callee; an `ensure` is the reverse. The apparent circularity is resolved by
+assuming only that the other side's assertions held in the past.
+[Ivy language](https://microsoft.github.io/ivy/language.html).
+
+Ivy then checks coverage: "every assertion in the program is verified in some isolate. Ivy checks
+this for us." An uncovered assertion is reported as `assertion is not checked`.
+[Coverage](https://microsoft.github.io/ivy/examples/specification.html),
+[source](https://github.com/kenmcmil/ivy/blob/8858a02/ivy/ivy_isolate.py#L2010-L2023).
+This is a structural check of the decomposition. It does not say any proof succeeded, and it can be
+switched off. Ivy also compiles randomized testers that generate inputs satisfying a component's
+assumptions and check its guarantees. The QUIC work found real bugs that way. It also reports about
+10 events per second and poor coverage without hand-written constraints.
+[McMillan and Zuck, SIGCOMM 2019](https://par.nsf.gov/servlets/purl/10213951).
+
+**For Umpire.** Coverage of declared obligations is the most directly useful idea here. Umpire has
+the pieces but no aggregate:
+
+- an `Exercised` flag on Query results ([claims.go](../tools/umpire/model/internal/checker/claims.go));
+- Case manifest standing ([model README](../model/README.md));
+- the exploration ledger ([bridge.go](../tools/umpire/explore/bridge.go));
+- Known Gaps.
+
+fn-120's lint was amended on 2026-10-03 to print counts with denominators beside its findings, for
+example Properties declared, asked, and fired, or facts with and without evidence. The gate still
+fails on findings and never on a count. Such counts expose structural omissions. They cannot
+establish that the requirements are complete.
+
+The require/ensure split is a precise form of the Welder discussion above. When a detailed queue
+provider's guarantee discharges an activity assumption, the result could name which guarantee and
+which assumption supported each Property. Umpire's replacement checks refinement and keeps
+assumptions by name, but the IR has no per-component guarantee declaration. That belongs in the
+retention/reset experiment and needs a specification decision under GOV-02.
+
+### Stateright: symmetry, and an explorer engineers can step through
+
+Stateright's `symmetry()` asks the model for a representative of each state's equivalence class.
+The representative is a user-written function. In the current source only the DFS and simulation
+checkers apply it; the BFS and on-demand checkers ignore the option, which the documentation does
+not say. DFS continues the path from the original state, so counterexamples keep real identities.
+The web Explorer shows the state, enabled actions with their outcomes, properties with discovery
+paths, and the path taken. It replays action indices through the model. An `eventually` property
+ignores paths that end in a cycle, which the documentation calls a false negative.
+[CheckerBuilder](https://docs.rs/stateright/latest/stateright/struct.CheckerBuilder.html),
+[Property](https://docs.rs/stateright/latest/stateright/struct.Property.html),
+[checker source](https://github.com/stateright/stateright/tree/ab8c8be/src/checker).
+Its actor networks offer ordered, unordered-duplicating, and unordered-nonduplicating delivery,
+optional loss, and a crash budget. The same actors can run over UDP outside the checker.
+[Network](https://docs.rs/stateright/latest/stateright/actor/enum.Network.html),
+[ActorModel](https://docs.rs/stateright/latest/stateright/actor/struct.ActorModel.html).
+
+**For Umpire.** Symmetry is not needed yet. The last backend run reached 2,552 states across all
+slices ([export README](../tools/umpire/export/README.md)). When a Query reaches its search Limit
+because of interchangeable identities, the reduction should meet the conditions below:
+
+- It is declared in the Model, so that it is checked rather than supplied as a hint.
+- It preserves every equality the runtime Property and evidence correlation read (see the MongoDB
+  section).
+- It keeps monitor state in explored identity.
+- It reports witnesses with their original identities.
+- It is refused for progress claims until justified.
+
+The explorer is fn-120 Part C. Its "why is this class disabled" answer gives branch decisions at
+Scala positions, which is more than Stateright's Explorer shows. A web front end would be a thin
+shell over the same commands.
+
+Stateright's documentation also notes that message loss is indistinguishable from unbounded delay
+unless an invariant inspects the network. Umpire's lossy channels have the same property. A lossy
+channel checked only by Properties that never read delivery says nothing about loss.
+
+### Alloy: look for legal behavior nobody intended
+
+Alloy searches for instances within bounded scopes, on the small-scope hypothesis that most bugs
+have small counterexamples. Its analyzer hedges its answers in the user interface: "No counterexample
+found. Assertion may be valid" and "No instance found. Predicate may be inconsistent." Alloy 6 adds
+mutable state, LTL with lasso traces, and a visualizer that can ask for a new trace, initial state, or
+fork. Authors are encouraged to run predicates and inspect instances to discover missing constraints.
+We found no dedicated vacuity check.
+[Jackson, CACM 2019](https://groups.csail.mit.edu/sdg/pubs/2019/alloy-cacm-18-feb-22-2019.pdf),
+[Alloy 6](https://alloytools.org/alloy6.html),
+[analyzer messages](https://github.com/AlloyTools/org.alloytools.alloy/blob/ed89fdb/org.alloytools.alloy.application/src/main/java/edu/mit/csail/sdg/alloy4whole/SimpleReporter.java).
+
+**For Umpire.** Umpire's `find` Queries already ask for an example instead of a violation, and the
+Go search is exhaustive within its Limits, so no solver is needed. The habit worth adopting is asking
+for behavior the author did not intend:
+
+- a verify Query whose Property never fires (vacuity);
+- a reachable hole;
+- two results from one state, differing in outcome, that no Property distinguishes.
+
+fn-120 lint covers the first. For the second, a check that explores a hole row already reports its
+result as incomplete and names the hole ([Holes](../model/SEMANTICS.md#holes)). The third needs a
+search per finding, which fn-120 deliberately excludes. It is a candidate for a later `find` mode. Alloy's
+wording is also a model for result language. A verdict reached within Limits should read as
+bounded, as Umpire's semantics already require ("a reached limit proves nothing").
+
+### SPIN: search strategies change what a verdict means
+
+SPIN applies static partial-order reduction by default. That reduction is valid only for
+stutter-invariant properties: the next operator can void it. Bitstate hashing is a high-coverage
+approximation rather than exhaustive search. Its compression options are COLLAPSE, hash-compact,
+and a minimized-automaton encoding. SPIN offers BFS and DFS, bounded context switching (not with
+BFS), and multicore search. Swarm verification is a separate generator that runs many diversified
+jobs.
+[Pan options](https://spinroot.com/spin/Man/Pan.html),
+[Holzmann 1997](https://spinroot.com/spin/Doc/ieee97.pdf),
+[V5 updates](https://spinroot.com/spin/Doc/V5.Updates),
+[Swarm](https://spinroot.com/swarm/).
+Dynamic partial-order reduction is the variant used by stateless checkers
+([Flanagan and Godefroid, POPL 2005](https://www.nokia.com/bell-labs/publications-and-media/publications/dynamic-partial-order-reduction-for-model-checking-software)).
+
+**For Umpire.** The Go search is breadth-first, with a visited set over state, schedule position,
+Property monitor, and monitor states ([search.go](../tools/umpire/model/internal/checker/search.go)).
+It returns shortest witnesses. Those are the cheapest witnesses to realize as Cases, so BFS is the
+right default for Umpire's main use.
+
+fn-120 records "a Query states the question, a backend answers it" as a later spec. SPIN supplies
+that spec's central rule: a strategy is part of the result.
+
+- An approximate search must not be cited as an exhaustive "no violation".
+- A reduction must name the property class it preserves.
+- Partial-order reduction also needs the implementation commutation the Mocket section warns about.
+
+The canonical Query currently fixes `"strategy":"shortest"`
+([canonical.go:337](../tools/umpire/model/internal/checker/canonical.go)). That field is where the
+receipt would record the strategy.
+
+### PRISM and FizzBee's performance model: leave room for quantities
+
+PRISM checks probabilistic models (DTMC, CTMC, MDP, PTA, and partially observable variants). Its
+properties include probability bounds, expected rewards such as expected time or expected lost
+messages, and steady-state probabilities.
+[PRISM properties](https://www.prismmodelchecker.org/manual/PropertySpecification/ThePOperator),
+[rewards](https://www.prismmodelchecker.org/manual/PropertySpecification/Reward-basedProperties).
+FizzBee's separate performance tool attaches probabilities to labeled branches and counters or
+distributions to transitions. It reports means, percentile histograms, and terminal-state
+probabilities from a Markov chain solved by iteration. It marks latency distributions as work in
+progress.
+[Performance modeling](https://fizzbee.io/design/tutorials/performance-modeling/).
+
+**For Umpire.** Steps carry no probability, cost, or duration today. Temporal's quantitative
+questions, such as update latency percentiles or expected redeliveries, depend on distributions that
+a Model of protocol decisions does not know; they would come from measurement. No work is
+recommended now. Named choices are the natural place to attach a probability later, and fault
+declarations the place to attach a rate. A quantitative result would be a separate claim class.
+It must never replace a safety verdict.
+
+### PLT Redex: generate the reader's view from the semantics
+
+Redex defines languages, reduction relations, judgment forms, and metafunctions. `redex-check`
+searches for counterexamples with inputs generated from grammars or judgments. `relation-coverage`
+counts which rules the tests exercised. `traces` shows the reduction graph, and `render-*`
+functions typeset the same definitions; unrendered escapes are highlighted until the author
+supplies rewriters.
+[Redex reference](https://docs.racket-lang.org/redex/). Modeling nine ICFP papers found mistakes in
+all nine. The same study reports that 10,000 random tests left 20 of 30 reduction rules unexercised.
+[Klein et al., POPL 2012](https://users.cs.northwestern.edu/~robby/lightweight-metatheory/popl2012-kcdeffmrtf.pdf).
+
+**For Umpire.** The IR records a source position on every expression node, and fn-120's explorer
+prints branch decisions at Scala positions. A generated page per action would come from the same
+IR the checker reads:
+
+- guard and effect;
+- recorded facts;
+- refinement target;
+- realization and evidence.
+
+Its meaning could then not drift from the checked Model. The guarantee extends only to what the IR
+records; `because` text remains authored prose. Redex's coverage result also supports Umpire's
+choice of exhaustive bounded search over random generation for the Model, and fn-120's lint kind
+for a named choice that no reachable state takes. Rendering should follow fn-120 Parts C and E,
+because it reads the same data.
+
+### Where the second survey lands
+
+| Source | Idea | Umpire today | Decision |
+| --- | --- | --- | --- |
+| Quint | Semantics as data, not executed code | Lifted expression IR; Quint and P agreement | Done |
+| Quint | Modes | Signatures and lifter subset | fn-120 Part E names the levels |
+| Quint, TLA+ | Temporal meaning and fairness | Bounded `leadsTo` under weak fairness | Take meaning from TLA (fn-120); exports carry the fairness premise |
+| FizzBee | Faults as environment actions, budgets, durability | Party string, hand-written budget and crash | [fn-123](../.flow/specs/fn-123-declare-faults-as-the-environments.md), after fn-112 and fn-120.1 |
+| FizzBee, Stateright | State-space explorer | HTML trace per candidate | fn-120 Part C (command line) |
+| FizzBee, Redex | Diagrams and docs generated from the model | None | Later; reads lint and explorer output |
+| Ivy | Coverage of declared obligations | Exercised flag, manifest, ledger, Known Gaps | fn-120 Part B counts (amended 2026-10-03) |
+| Ivy | Assume/guarantee provenance | Replacement and named assumptions | Retention/reset experiment; GOV-02 |
+| P | One monitor for model traces and evidence | Conformance advances IR monitors over compatible executions | Done for compatible executions |
+| Stateright | Symmetry canonicalization | None | When a Query hits its Limit; declared in the Model |
+| SPIN | Strategies, reduction, approximation | BFS, fixed `shortest` | fn-120's later Query/backend spec; receipts carry the strategy |
+| Alloy | Find unintended legal behavior | `find` Queries, Exercised, holes | fn-120 lint subset; search-per-finding kinds later |
+| PRISM | Quantitative properties | None | Not now; keep room in choices and faults |
+
 ## Comparison across the complete workflow
 
 This table compares mechanisms described above with Umpire's current or proposed counterpart.
@@ -843,6 +1174,9 @@ An external mechanism is an existence example, not a requirement to import that 
 | When do local results compose? | Welder's compatible rely-guarantee conditions and discharged liveness dependencies | Capability laws, assumptions, Composition, scoped replacement | Check preservation and dependency obligations before reusing a local result. |
 | Did a conditional promise apply? | CORE's unconditional guarantee and conditional ESR | Property activation, assumption evidence, qualified progress results | Expose a failed or unobserved premise while continuing to check safety. |
 | What repeats a failure? | Versioned seeds or retained controlled schedules | Case identity, Profile identity, Run, semantic replay, fresh reruns | Retain the implementation version and scheduling basis as well as the artifact. |
+| Who may fail, and how often? | FizzBee implicit faults and durable state; Stateright crash budgets | Fault-party actions, hand-written budgets and crash functions | Declare faults and budgets once and derive crash effects ([fn-123](../.flow/specs/fn-123-declare-faults-as-the-environments.md)). |
+| Was every declared obligation checked? | Ivy's coverage check | Lint findings and coverage counts (fn-120) | Report denominators; fail on findings, not counts. |
+| Which search produced the verdict? | SPIN reductions, bitstate, swarm | BFS with a fixed `shortest` strategy | Record the strategy and its exhaustiveness in the result. |
 | What covers omitted dependencies? | Live API/integration testing and Vortex | Functional tests, SDK workers, black-box canary, specialized tests | Keep tests that challenge the modeled dependency contracts. |
 | What has actually been established? | Distinct model, test, monitoring, and proof workflows | Independent stage statuses, Known Gaps, Claim Assessment | A satisfied Contract and a conforming execution are different claims. |
 
@@ -879,6 +1213,9 @@ the other.
 
 Use the existing Inventory and exploration ledger where possible. This recommendation is about
 making their denominators explicit, rather than introducing another independent reporting system.
+For the Model itself, fn-120's lint gives structural denominators of this kind: Properties, actions,
+facts, refinements, and choices declared versus asked, performed, evidenced, checked, and taken.
+This follows Ivy's [coverage check](#ivy-coverage-of-obligations-and-contracts-at-interfaces).
 
 ## Recommended priorities
 
@@ -940,6 +1277,10 @@ Add model-owned variations that create stale messages, acknowledgment loss, conc
 and owner changes. Vary fault subsets and configuration dimensions within declared bounds. Credit
 the observed condition, rather than merely recording that a Case was submitted.
 
+Declare faults once ([fn-123](../.flow/specs/fn-123-declare-faults-as-the-environments.md)). With budgets in search identity and each fault
+marked realizable or model-only, a fault subset becomes a declared dimension rather than a
+hand-encoded field, and a result can say which of its faults a Case could produce.
+
 Consider P, Quint, or another backend after the same bounded slice has complete semantics and
 negative controls. Consider broader deterministic implementation simulation only after a narrow
 component shows that its controlled dependency boundary catches failures other tests miss.
@@ -960,6 +1301,8 @@ These are proposed evaluations, not task tracking or claims that the experiments
 | White-box and canary evidence | Shared Model with different controls and observations | Full commit evidence; only public history/RPC evidence; skewed source timestamps | Unsupported controls reject before I/O; incomplete evidence returns inconclusive; unrelated timestamp changes do not change a causally identical result. |
 | Backend agreement | One finite slice evaluated by two independent algorithms | Correct model; output-producing stutter; monitor-history merge; reachable hole | Results agree on complete supported inputs and reject or qualify unsupported ones; negative controls demonstrate that agreement is substantive. |
 | Independent implementation simulation | Actual admission or retention code with controlled dependencies | Correct code; stale-state admission; acknowledgment before retention commit | Simulator exploration finds and repeats a code failure independently of model-selected paths; mapped evidence identifies the violated Property and the controlled scheduling scope. |
+| Derived crash | FizzBee-style durability classes and fault budgets | Derived crash equal to today's `crashDetail`; forgetful and volatile providers kept as violations; a budget of zero | Existing tables, Query answers, and Cases are unchanged after migration; the faulty providers still fail; a model-only fault is refused at lowering with its location. |
+| Obligation coverage | Ivy-style structural coverage in lint | A Property never asked; a fact without evidence; a fully covered fixture | Counts are deterministic, each corresponds to a finding kind, and the gate fails on the finding rather than the count. |
 
 Record author edit-to-answer time, explored states, concrete reproduction rate, missing-control
 diagnostics, evidence volume, and effort to add the second feature. Record the Model scope and target
