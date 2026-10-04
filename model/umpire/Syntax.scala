@@ -188,3 +188,24 @@ extension [I <: NonEmptyTuple](a: Action[I])
       .map: (token, domain) =>
         supplied.find(s => token.contains(s.slot)).fold(domain.values.head)(_.value)
     Class(a.decl, values)
+
+/**
+ * `val retainedOutcome = sticky(outcomePreserved)`: a monitor of a promise about every step that,
+ * once a step breaks it, stays broken, named after its `val`. Its verdict is read after every step.
+ * Core form:
+ * `monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !promise(after))(broken => broken)`.
+ */
+def sticky[S, O, F](promise: Step[S, O, F] => Boolean): Monitor[S, O, F, Boolean] =
+  monitor[S, O, F, Boolean](false)((broken, _, after) => broken || !promise(after))(broken =>
+    broken
+  )
+
+/**
+ * `val ownerAcknowledgment = stickyAcross(ackOnlyWhenKept)`: `sticky` of a promise about the state
+ * before a step and the step. Core form:
+ * `monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !promise(before, after))(broken => broken)`.
+ */
+def stickyAcross[S, O, F](promise: (S, Step[S, O, F]) => Boolean): Monitor[S, O, F, Boolean] =
+  monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !promise(before, after))(
+    broken => broken
+  )

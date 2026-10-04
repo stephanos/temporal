@@ -735,7 +735,11 @@ private[lift] trait Declarations:
               _
             ) =>
           declared(capturedName(sym, d, "a monitor"), m, initial, next, violated, t)
-        case other => fail(other, s"not a part of a monitor declaration: ${other.show}")
+        // `sticky(p)` and `stickyAcross(p)`, named after their val.
+        case other =>
+          stickyMonitor(other, id)
+            .getOrElse(fail(other, s"not a part of a monitor declaration: ${other.show}"))
+            .copy(id = id, position = Some(pos(d)), name = capturedName(sym, d, "a monitor"))
       val m = walk(d.rhs.get)
       if m.getState.ref.isList || m.getState.ref.isInt then
         fail(d, s"monitor ${m.name}'s state has no finite catalog")

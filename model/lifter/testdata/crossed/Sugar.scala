@@ -17,3 +17,7 @@ def acceptForeign(h: Here): List[Step[Here, Outcome, Note]] = accept(h, Signal.u
 
 // `stay` in a state of another type than the step function's.
 def stayElsewhere(h: Here): List[Step[Here, Outcome, Note]] = stay(There(h.on))
+
+// `sticky` of a promise about the steps of another state type than the monitor's.
+def thereOn(after: Step[There, Outcome, Note]): Boolean = after.state.on
+val stickyElsewhere: Monitor[Here, Outcome, Note, Boolean] = sticky(thereOn)

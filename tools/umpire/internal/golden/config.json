@@ -242,6 +242,82 @@
     {
       "old": "temporal.nexuscaller.Control$.forgedCompletion",
       "new": "temporal.nexuscaller.Queries$package$.forgedCompletion"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseQueries",
+      "new": "temporal.nexuscaller.closepolicy.Queries$package$.rejectAfterCloseQueries"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalQueries",
+      "new": "temporal.nexuscaller.closepolicy.Queries$package$.ackByOriginalQueries"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteQueries",
+      "new": "temporal.nexuscaller.closepolicy.Queries$package$.retainAndRouteQueries"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.forgetsCancelOnResetQueries",
+      "new": "temporal.nexuscaller.closepolicy.Queries$package$.forgetsCancelOnResetQueries"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.truncatesOnResetQueries",
+      "new": "temporal.nexuscaller.closepolicy.Queries$package$.truncatesOnResetQueries"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteBoundedRetryQueries",
+      "new": "temporal.nexuscaller.closepolicy.Queries$package$.retainAndRouteBoundedRetryQueries"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseWithDeadlineQueries",
+      "new": "temporal.nexuscaller.closepolicy.Queries$package$.rejectAfterCloseWithDeadlineQueries"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalWithDeadlineQueries",
+      "new": "temporal.nexuscaller.closepolicy.Queries$package$.ackByOriginalWithDeadlineQueries"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteWithDeadlineQueries",
+      "new": "temporal.nexuscaller.closepolicy.Queries$package$.retainAndRouteWithDeadlineQueries"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseProgress",
+      "new": "temporal.nexuscaller.closepolicy.Properties$package$.rejectAfterCloseProgress"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalProgress",
+      "new": "temporal.nexuscaller.closepolicy.Properties$package$.ackByOriginalProgress"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteProgress",
+      "new": "temporal.nexuscaller.closepolicy.Properties$package$.retainAndRouteProgress"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteBoundedRetryProgress",
+      "new": "temporal.nexuscaller.closepolicy.Properties$package$.retainAndRouteBoundedRetryProgress"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.rejectAfterCloseWithDeadlineProgress",
+      "new": "temporal.nexuscaller.closepolicy.Properties$package$.rejectAfterCloseWithDeadlineProgress"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.ackByOriginalWithDeadlineProgress",
+      "new": "temporal.nexuscaller.closepolicy.Properties$package$.ackByOriginalWithDeadlineProgress"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainAndRouteWithDeadlineProgress",
+      "new": "temporal.nexuscaller.closepolicy.Properties$package$.retainAndRouteWithDeadlineProgress"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainedReachesOwner",
+      "new": "temporal.nexuscaller.closepolicy.Properties$package$.retainedReachesOwner"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainedWaitsWithoutRecovery",
+      "new": "temporal.nexuscaller.closepolicy.Properties$package$.retainedWaitsWithoutRecovery"
+    },
+    {
+      "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainedReachesOwnerBoundedRetry",
+      "new": "temporal.nexuscaller.closepolicy.Properties$package$.retainedReachesOwnerBoundedRetry"
     }
   ],
   "source_path_merges": [
@@ -284,6 +360,10 @@
     {
       "old": "model/temporal/nexuscaller/Queries.scala",
       "new": "model/temporal/nexuscaller"
+    },
+    {
+      "old": "model/temporal/nexuscaller/closepolicy/",
+      "new": "model/temporal/nexuscaller/closepolicy"
     }
   ],
   "source_label_substitutions": [
@@ -428,6 +508,38 @@
       {
         "old": "temporal.nexuscaller.kernel.Protocol$.workerStopStep",
         "new": "temporal.nexuscaller.Protocol$.workerStopStep"
+      },
+      {
+        "old": "temporal.nexuscaller.closepolicy.Claims$package$.closedHistoryIsFrozen",
+        "new": "temporal.nexuscaller.closepolicy.Properties$package$.closedHistoryIsFrozen"
+      },
+      {
+        "old": "temporal.nexuscaller.closepolicy.Claims$package$.knownIsTheHandlersOutcome",
+        "new": "temporal.nexuscaller.closepolicy.Properties$package$.knownIsTheHandlersOutcome"
+      },
+      {
+        "old": "temporal.nexuscaller.closepolicy.Claims$package$.knows",
+        "new": "temporal.nexuscaller.closepolicy.Properties$package$.knows"
+      },
+      {
+        "old": "temporal.nexuscaller.closepolicy.Claims$package$.knowledgeIsFinal",
+        "new": "temporal.nexuscaller.closepolicy.Properties$package$.knowledgeIsFinal"
+      },
+      {
+        "old": "temporal.nexuscaller.closepolicy.Claims$package$.nothingOwed",
+        "new": "temporal.nexuscaller.closepolicy.Properties$package$.nothingOwed"
+      },
+      {
+        "old": "temporal.nexuscaller.closepolicy.Claims$package$.noUnnecessaryWait",
+        "new": "temporal.nexuscaller.closepolicy.Properties$package$.noUnnecessaryWait"
+      },
+      {
+        "old": "temporal.nexuscaller.closepolicy.Claims$package$.awaitingOwner",
+        "new": "temporal.nexuscaller.closepolicy.Properties$package$.awaitingOwner"
+      },
+      {
+        "old": "temporal.nexuscaller.closepolicy.Claims$package$.ownerKnowsOutcome",
+        "new": "temporal.nexuscaller.closepolicy.Properties$package$.ownerKnowsOutcome"
       }
     ],
     "inert_fields": [
