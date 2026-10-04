@@ -245,9 +245,9 @@ func TestAlternativesAreNoClassesOfTheirOwn(t *testing.T) {
 	require.Positive(t, fewer)
 	require.NotEmpty(t, two.GetQueries())
 	for i, q := range two.GetQueries() {
-		named, err := QueryTotal(two, q)
+		named, err := queryTotal(two, q)
 		require.NoError(t, err, q.GetName())
-		single, err := QueryTotal(one, one.GetQueries()[i])
+		single, err := queryTotal(one, one.GetQueries()[i])
 		require.NoError(t, err, q.GetName())
 		require.Equal(t, single, named, q.GetName())
 		n, ok := named.N()

@@ -231,10 +231,6 @@
       "new": "temporal.nexuscaller.Queries$package$.stoppedWorkerRepliesNothing"
     },
     {
-      "old": "temporal.nexuscaller.Claims$package$.syncCompletion",
-      "new": "temporal.nexuscaller.Queries$package$.syncCompletion"
-    },
-    {
       "old": "temporal.nexuscaller.Control$.forgedCompletion",
       "new": "temporal.nexuscaller.Queries$package$.forgedCompletion"
     },
@@ -324,8 +320,8 @@
     "temporal.standaloneactivity.Claims$package$.terminalHolds"
   ],
   "source_root_additions": [
-    "temporal.standaloneactivity.Properties$package$.productCapabilities",
-    "temporal.standaloneactivity.Properties$package$.protocolCapabilities"
+    "temporal.standaloneactivity.Capabilities$package$.productCapabilities",
+    "temporal.standaloneactivity.Capabilities$package$.protocolCapabilities"
   ],
   "source_path_merges": [
     {
@@ -345,11 +341,7 @@
       "new": "model/temporal/standaloneactivity"
     },
     {
-      "old": "model/temporal/laws/",
-      "new": "model/temporal/standaloneactivity"
-    },
-    {
-      "old": "model/umpire/laws/",
+      "old": "model/temporal/capabilities/",
       "new": "model/temporal/standaloneactivity"
     },
     {

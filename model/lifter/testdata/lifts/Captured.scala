@@ -8,7 +8,7 @@
 package fixture.captured
 
 import umpire.*
-import umpire.realize.*
+import umpire.realize.*, temporal.realize.{Role, RoleKind}
 import temporal.server.api.testpilot.v1.CorrelatedEvidence
 
 given DefinitionScope = DefinitionScope("fixture.spelled.Spelled$package$")

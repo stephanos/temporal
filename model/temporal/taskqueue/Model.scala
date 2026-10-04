@@ -30,10 +30,10 @@ given DefinitionScope = DefinitionScope("temporal.standaloneactivity.System$pack
  * Named by the task queue's name, as the worker that polls it is. Messages and their deliveries are
  * the queue's state, not entities of their own.
  */
-val taskQueueEntity: Entity = Entity("taskQueue", key = "taskQueue")
+val taskQueueEntity = Entity("taskQueue", key = "taskQueue")
 
 /** The party of the faults the queue's providers suffer. */
-val fault: Party = Party()
+val fault = Party()
 
 // ### The interface
 //
@@ -71,7 +71,7 @@ type QueueViewStep = Step[QueueView, QueueOutcome, QueueFact]
 val enqueueCommits = choice
 val enqueueFails = choice
 
-def enqueueView(q: QueueView): List[QueueViewStep] =
+def enqueueView(q: QueueView) =
   if q.outstanding != Outstanding.empty then disabled
   else
     choose(
@@ -86,7 +86,7 @@ def enqueueView(q: QueueView): List[QueueViewStep] =
         .because("the durable write fails and no message is outstanding")
     )
 
-def deliverView(q: QueueView): List[QueueViewStep] = q.outstanding match
+def deliverView(q: QueueView) = q.outstanding match
   case Outstanding.committed =>
     List(
       Step(QueueOutcome.delivered, QueueView(Outstanding.deliveredOnce), List(QueueFact.delivered))
@@ -97,28 +97,28 @@ def deliverView(q: QueueView): List[QueueViewStep] = q.outstanding match
     ).because("a message not yet acknowledged may be delivered again")
   case Outstanding.empty | Outstanding.deliveredTwice => disabled
 
-def acknowledgeView(q: QueueView): List[QueueViewStep] = q.outstanding match
+def acknowledgeView(q: QueueView) = q.outstanding match
   case Outstanding.deliveredOnce | Outstanding.deliveredTwice =>
     List(
       Step(QueueOutcome.acknowledged, QueueView(Outstanding.empty), List(QueueFact.acknowledged))
     )
   case Outstanding.empty | Outstanding.committed => disabled
 
-def storageLossView(q: QueueView): List[QueueViewStep] =
+def storageLossView(q: QueueView) =
   if q.outstanding == Outstanding.empty then disabled
   else List(Step(QueueOutcome.lost, QueueView(Outstanding.empty), List(QueueFact.storageLost)))
 
 /** A check over the opaque queue rests on the interface alone. */
-val queueOpaque: Assumption = assume("dispatchQueue.opaque")
+val queueOpaque = assume("dispatchQueue.opaque")
 
 /**
  * Committed storage may be lost. It is a fault of its own, apart from a crash, and only a machine
  * that assumes it has the step.
  */
-val storageLossAssumed: Assumption = assume("storageLoss")
+val storageLossAssumed = assume("storageLoss")
 val storageLoss = action(fault)
 
-val emptyQueue: QueueView = QueueView(Outstanding.empty)
+val emptyQueue = QueueView(Outstanding.empty)
 
 /** The opaque provider. */
 val dispatchQueue = machine[QueueView, QueueOutcome, QueueFact] {
@@ -164,10 +164,10 @@ final case class QueueDetail(custody: Custody, polled: Boolean, delivered: Deliv
 
 type QueueDetailStep = Step[QueueDetail, QueueOutcome, QueueFact]
 
-val idleQueue: QueueDetail = QueueDetail(Custody.nowhere, false, Delivered.never)
+val idleQueue = QueueDetail(Custody.nowhere, false, Delivered.never)
 
 /** The interface state a detailed state stands for: a message is outstanding while anyone holds it. */
-def viewOf(d: QueueDetail): QueueView =
+def viewOf(d: QueueDetail) =
   if d.custody == Custody.nowhere then QueueView(Outstanding.empty)
   else
     d.delivered match
@@ -175,7 +175,7 @@ def viewOf(d: QueueDetail): QueueView =
       case Delivered.once  => QueueView(Outstanding.deliveredOnce)
       case Delivered.twice => QueueView(Outstanding.deliveredTwice)
 
-def enqueueDetail(d: QueueDetail): List[QueueDetailStep] =
+def enqueueDetail(d: QueueDetail) =
   if d.custody != Custody.nowhere then disabled
   else
     choose(
@@ -203,14 +203,14 @@ def reserveDetail(d: QueueDetail): List[QueueDetailStep] =
   if d.custody != Custody.invoked then disabled
   else accept(d.copy(custody = Custody.reserved), QueueFact.matchReserved)
 
-def oneMoreDelivery(d: Delivered): Delivered = d match
+def oneMoreDelivery(d: Delivered) = d match
   case Delivered.never => Delivered.once
   case _               => Delivered.twice
 
 /** Matching holds a task a poll can take: reserved for a waiting poller, or persisted. */
-def matchable(c: Custody): Boolean = c.in(Custody.reserved, Custody.persisted)
+def matchable(c: Custody) = c.in(Custody.reserved, Custody.persisted)
 
-def deliverDetail(d: QueueDetail): List[QueueDetailStep] =
+def deliverDetail(d: QueueDetail) =
   if matchable(d.custody) && !d.polled && d.delivered != Delivered.twice then
     List(
       Step(
@@ -222,7 +222,7 @@ def deliverDetail(d: QueueDetail): List[QueueDetailStep] =
   else disabled
 
 /** Matching completes the task, which discharges every custodian's obligation. */
-def acknowledgeDetail(d: QueueDetail): List[QueueDetailStep] =
+def acknowledgeDetail(d: QueueDetail) =
   if d.polled && d.custody != Custody.nowhere && d.delivered != Delivered.never then
     List(Step(QueueOutcome.acknowledged, idleQueue, List(QueueFact.acknowledged)))
   else disabled
@@ -248,11 +248,11 @@ def crashDetail(d: QueueDetail): List[QueueDetailStep] = d.custody match
   case Custody.nowhere | Custody.history | Custody.persisted =>
     accept(d.copy(polled = false), QueueFact.crashed)
 
-def storageLossDetail(d: QueueDetail): List[QueueDetailStep] =
+def storageLossDetail(d: QueueDetail) =
   if d.custody == Custody.nowhere then disabled
   else List(Step(QueueOutcome.lost, idleQueue, List(QueueFact.storageLost)))
 
-def interfaceSees(f: QueueFact): Boolean = f match
+def interfaceSees(f: QueueFact) = f match
   case QueueFact.enqueueCommitted | QueueFact.enqueueFailed | QueueFact.delivered |
       QueueFact.acknowledged | QueueFact.storageLost =>
     true
@@ -260,9 +260,9 @@ def interfaceSees(f: QueueFact): Boolean = f match
       QueueFact.crashed | QueueFact.ackLost =>
     false
 
-def interfaceAnswers(o: QueueOutcome): Boolean = o != QueueOutcome.internal
+def interfaceAnswers(o: QueueOutcome) = o != QueueOutcome.internal
 
-def queueEnds(d: QueueDetail): Boolean = d.custody == Custody.nowhere
+def queueEnds(d: QueueDetail) = d.custody == Custody.nowhere
 
 /** The detailed provider. */
 val matchingQueue = machine[QueueDetail, QueueOutcome, QueueFact] {

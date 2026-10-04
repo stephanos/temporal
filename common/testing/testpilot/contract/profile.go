@@ -1,6 +1,11 @@
 package contract
 
-import testpilotspb "go.temporal.io/server/api/testpilot/v1"
+import (
+	"math"
+
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"google.golang.org/protobuf/proto"
+)
 
 type Opcode uint8
 
@@ -92,6 +97,49 @@ func (d InstructionDefaults) Resolve(limits *testpilotspb.InstructionLimits) (ti
 		maxAttempts = limits.GetMaxAttempts()
 	}
 	return timeoutMilliseconds, maxAttempts
+}
+
+// BoundScale is how much more time than declared an environment needs, in percent. It scales every
+// wait hint's bound and the Profile's duration ceilings together, so a scaled bound fits its scaled
+// ceiling exactly when the declared bound fits the declared one. Zero applies them as declared, as
+// 100 does. Preparation refuses a scale below 100: a bound is an at-most, and shrinking it only
+// makes a wait fail sooner.
+type BoundScale int64
+
+// Percent is the scale in percent, 100 when unset.
+func (s BoundScale) Percent() int64 {
+	if s == 0 {
+		return 100
+	}
+	return int64(s)
+}
+
+// Scaled reports whether the scale changes a bound.
+func (s BoundScale) Scaled() bool { return s.Percent() != 100 }
+
+// Apply scales a bound in milliseconds, rounding up and saturating, so a scaled bound is never
+// shorter than the declared one asks for.
+func (s BoundScale) Apply(milliseconds int64) int64 {
+	percent := s.Percent()
+	if percent == 100 || milliseconds <= 0 {
+		return milliseconds
+	}
+	if milliseconds > (math.MaxInt64-99)/percent {
+		return math.MaxInt64
+	}
+	return (milliseconds*percent + 99) / 100
+}
+
+// Ceilings returns limits with its total and cleanup duration ceilings scaled: limits itself when
+// the scale changes nothing, and a copy otherwise.
+func (s BoundScale) Ceilings(limits *testpilotspb.ProgramLimits) *testpilotspb.ProgramLimits {
+	if !s.Scaled() || limits == nil {
+		return limits
+	}
+	scaled := proto.CloneOf(limits)
+	scaled.MaxTotalDurationMilliseconds = s.Apply(limits.MaxTotalDurationMilliseconds)
+	scaled.MaxCleanupDurationMilliseconds = s.Apply(limits.MaxCleanupDurationMilliseconds)
+	return scaled
 }
 
 type EnvironmentBinding struct {

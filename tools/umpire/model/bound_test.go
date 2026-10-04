@@ -86,7 +86,7 @@ func walkWitness(t *testing.T, b *Bound, w *Trace) walked {
 // verdict, the receipt reports. A Query Check does not answer on one machine is refused.
 func TestABoundQueryReadsStepsAsCheckDoes(t *testing.T) {
 	witnesses, refused, atEnds := 0, 0, 0
-	for _, name := range []string{"admission", "closereset", "declarations", "realizations"} {
+	for _, name := range []string{"admission", "declarations", "realizations"} {
 		m := lifted(t, name)
 		realizer, err := NewRealizer(m, DefaultScope)
 		require.NoError(t, err)
@@ -150,9 +150,9 @@ func TestABoundQueryReadsStepsAsCheckDoes(t *testing.T) {
 			}
 		}
 	}
-	// admission: the stale design's five counterexamples; closereset: five and three; declarations: one
-	// found; realizations: six found.
-	require.Equal(t, 20, witnesses)
+	// admission: the stale design's five counterexamples; declarations: one found; realizations: six
+	// found.
+	require.Equal(t, 12, witnesses)
 	require.Positive(t, refused)
 	require.Positive(t, atEnds)
 }

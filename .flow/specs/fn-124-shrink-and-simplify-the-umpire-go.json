@@ -1,0 +1,208 @@
+{
+  "branch_name": "fn-124-shrink-and-simplify-the-umpire-go",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-04T20:02:28.102041Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-124-shrink-and-simplify-the-umpire-go",
+  "impl_review_rounds": {
+    "fn-124-shrink-and-simplify-the-umpire-go.1": 0,
+    "fn-124-shrink-and-simplify-the-umpire-go.2": 0
+  },
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "f6536fd39a3bf0899e4491bdef4b05434e9b0db0c0c8e27a33a1767c6b60be1b",
+      "backend": "claude",
+      "base_sha": "bc6da50312fbde1f0b86de818883adcfa04cdf8c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "df257ab569dcebf5e3390193abcb5f6b79f04da2",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 4179,
+      "output_sha256": "355742418c69980ef33aac037f4a555f78d48ae33c7bd6cd1f2342fcf4b1d5d6",
+      "reservation_id": "10b277efec594075848f0c46818146d5",
+      "round_consumed": true,
+      "scope": "impl:fn-124-shrink-and-simplify-the-umpire-go.1",
+      "superseded_by": null,
+      "task": "fn-124-shrink-and-simplify-the-umpire-go.1",
+      "timestamp": "2026-10-04T21:20:01.028903Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "1279ebfc3f97fdaf8278cc918f4fa6c3ffd981e853bb9912929631d069cae7b2",
+      "backend": "claude",
+      "base_sha": "bc6da50312fbde1f0b86de818883adcfa04cdf8c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "53a93346fd79dd8b96c94baf1521447d9f94c69f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 1713,
+      "output_sha256": "95aadb29f5cdc0704008cb874cc1bba557c9d2f978fef0b564177b28e71e96ae",
+      "reservation_id": "c8ec7650b48749faa3b911e152ff2a0d",
+      "round_consumed": true,
+      "scope": "impl:fn-124-shrink-and-simplify-the-umpire-go.1",
+      "superseded_by": null,
+      "task": "fn-124-shrink-and-simplify-the-umpire-go.1",
+      "timestamp": "2026-10-04T21:21:29.951382Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "0f7ff580d046033ca972cb3c3f7f53e5eb55929d6b8cb21ac5c8a270734cac9f",
+      "backend": "claude",
+      "base_sha": "bc6da50312fbde1f0b86de818883adcfa04cdf8c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f2004e069f4ce3ab7d802841cff7f354",
+            "classification": "introduced",
+            "findingId": "finding-f2004e069f4ce3ab7d802841cff7f354",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-dca1721899d5ad2be5822c2d4c8a9353",
+            "classification": "introduced",
+            "findingId": "finding-dca1721899d5ad2be5822c2d4c8a9353",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1d63723464b4275e898ba0700ffce7012cdb3fa6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 5079,
+      "output_sha256": "7527b833a780eddf0de3e74ab552ae09fff9c179c41650b8f32a15636521c339",
+      "reservation_id": "d59bf648121f4831bf88511d6b99c4bb",
+      "round_consumed": true,
+      "scope": "impl:fn-124-shrink-and-simplify-the-umpire-go.2",
+      "superseded_by": null,
+      "task": "fn-124-shrink-and-simplify-the-umpire-go.2",
+      "timestamp": "2026-10-04T21:24:51.006849Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "7860067edfbda7ec3550717200b414adda2f9bb6dc70460514351684b114739e",
+      "backend": "claude",
+      "base_sha": "bc6da50312fbde1f0b86de818883adcfa04cdf8c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f2004e069f4ce3ab7d802841cff7f354",
+            "classification": "introduced",
+            "findingId": "finding-f2004e069f4ce3ab7d802841cff7f354",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-dca1721899d5ad2be5822c2d4c8a9353",
+            "classification": "introduced",
+            "findingId": "finding-dca1721899d5ad2be5822c2d4c8a9353",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4fc2c3c4eb6f7abfed21914dae532f4011d53bff",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 1866,
+      "output_sha256": "046aa9aad26af8fc94b1297670592a75d40152ea098592f750b15dde477f2ef9",
+      "reservation_id": "7cd8a2fa050d440f8c9aeb4ce2df91c5",
+      "round_consumed": true,
+      "scope": "impl:fn-124-shrink-and-simplify-the-umpire-go.2",
+      "superseded_by": null,
+      "task": "fn-124-shrink-and-simplify-the-umpire-go.2",
+      "timestamp": "2026-10-04T21:26:19.315211Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-124-shrink-and-simplify-the-umpire-go.1": 2,
+    "impl:fn-124-shrink-and-simplify-the-umpire-go.2": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-124-shrink-and-simplify-the-umpire-go.1": 0,
+    "impl:fn-124-shrink-and-simplify-the-umpire-go.2": 0
+  },
+  "spec_path": ".flow/specs/fn-124-shrink-and-simplify-the-umpire-go.md",
+  "status": "open",
+  "title": "Shrink and simplify the Umpire Go tooling",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-04T21:26:19.323734Z"
+}

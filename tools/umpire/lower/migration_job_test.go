@@ -147,13 +147,13 @@ func projectJobIdentity(expected map[string][]byte, key, name string, table *ump
 	query := &umpiremodel.Query{Name: name, Form: umpiremodel.FindForm, Property: &umpiremodel.PropertyDecl{Name: property.Name},
 		Scenario: &umpiremodel.ScenarioDecl{Name: scenario.Name, Start: scenario.Start, Actions: scenario.Actions}, Limits: scenario.Limits}
 	propertyFingerprint := umpiremodel.Fingerprint(original.PropertySemantic(query.Property.PropertyID(&original), property.Groups))
-	beforeFingerprint := umpiremodel.Fingerprint(query.QueryCanonical(&original, propertyFingerprint))
+	beforeFingerprint := umpiremodel.Fingerprint(query.QueryCanonicalOf(&original, propertyFingerprint, original.TargetFingerprint()))
 	targetFingerprint := original.TargetFingerprint()
 	original.Actions = slices.Clone(readerJobActions)
 	if original.TargetFingerprint() != targetFingerprint {
 		return errors.New("job target fingerprint changed")
 	}
-	afterFingerprint := umpiremodel.Fingerprint(query.QueryCanonical(&original, propertyFingerprint))
+	afterFingerprint := umpiremodel.Fingerprint(query.QueryCanonicalOf(&original, propertyFingerprint, original.TargetFingerprint()))
 	c := new(testpilotspb.Case)
 	if err := protojson.Unmarshal(expected[key+"/case.json"], c); err != nil {
 		return err

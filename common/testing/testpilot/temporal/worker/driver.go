@@ -64,7 +64,8 @@ func New(options Options) (*Driver, error) {
 	if _, err := options.Profile.BindingFingerprint(); err != nil {
 		return nil, ErrInvalid
 	}
-	limits := options.Profile.ProgramLimits
+	// The callback deadline is a duration ceiling, so it takes the scale preparation applied.
+	limits := options.Profile.BoundScale.Ceilings(options.Profile.ProgramLimits)
 	completion, err := newCompletionTransport(options.HTTPClient, options.SystemCallbackBaseURL, limits)
 	if err != nil {
 		return nil, err
@@ -98,7 +99,7 @@ func validWorkerProfile(profile testpilot.ProfileSpec) bool {
 	if profile.Identity == "" || len(profile.Identity) > 256 || profile.Catalog == nil || profile.Catalog.Identity() == "" || limits == nil || len(profile.Opcodes) > int(testpilot.MaxOpcode) || len(profile.Roles) > 10000 {
 		return false
 	}
-	if !testpilot.WithinProgramCeiling(limits) {
+	if !testpilot.WithinProgramCeiling(profile.BoundScale.Ceilings(limits)) {
 		return false
 	}
 	methods, carriers, shapes := 0, 0, 0

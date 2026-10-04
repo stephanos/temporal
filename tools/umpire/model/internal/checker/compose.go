@@ -191,7 +191,6 @@ type partialStep struct {
 	parts   []string
 	outcome string
 	facts   []string
-	moves   []MemberMove
 }
 
 // memberUnknown is the member's unknown pair that leaves a composed pair unknown.
@@ -214,9 +213,8 @@ func (b *composing) stepFrom(parts []string, a composedAction) []Result {
 		field := b.members[mv.member].field
 		var next []partialStep
 		for _, p := range partial {
-			for j, res := range row.Results {
-				n := partialStep{parts: slices.Clone(p.parts), outcome: p.outcome, facts: slices.Clone(p.facts),
-					moves: append(slices.Clone(p.moves), MemberMove{Member: mv.member, Row: row.Key, Result: j})}
+			for _, res := range row.Results {
+				n := partialStep{parts: slices.Clone(p.parts), outcome: p.outcome, facts: slices.Clone(p.facts)}
 				n.parts[mv.member] = res.State
 				if k == 0 {
 					n.outcome = field + "_" + res.Outcome
@@ -233,7 +231,7 @@ func (b *composing) stepFrom(parts []string, a composedAction) []Result {
 	for i, p := range partial {
 		key := strings.Join(p.parts, "_")
 		b.remember(key, p.parts)
-		out[i] = Result{Outcome: p.outcome, State: key, Facts: p.facts, Step: ComposedStep{Parts: p.parts, Moves: p.moves}}
+		out[i] = Result{Outcome: p.outcome, State: key, Facts: p.facts, Step: ComposedStep{Parts: p.parts}}
 	}
 	return out
 }

@@ -1,31 +1,90 @@
-// The activity specimen's reviewed supported block (model/specimens/activity.md), lifted as
-// written, with the passive monitors its proposed E1 block states in the framework's `monitor`
-// declaration. Only the package, this header, the Monitors section, each design's `monitors` line,
-// the names taken from vals, the named choices and the product Property declared below differ from
-// the reviewed text. The lifter's tests lift both designs' Queries and compare the IR with
-// expected/admission.json.
+// A frozen sketch of activity admission: two designs of one activity's history record, a corrected
+// one that re-reads eligibility at admission and a deliberately faulty one that trusts a stale
+// dispatch message, with passive monitors in the framework's `monitor` declaration. It refines a
+// small product of its own, only the statuses its refinement reads, so a change to the live activity
+// Model (model/temporal/standaloneactivity, lifted to model/ir/activity.json) rewrites none of it.
+// The lifter's tests lift both designs' Queries and compare the IR with expected/admission.json; the
+// Go tests read that IR as a small fixed system.
 package fixture.specimens.admission
 
-import temporal.standaloneactivity.{
-  activity,
-  activityProduct,
-  attemptResult,
-  attemptStart,
-  control,
-  AttemptResult,
-  Control,
-  Outcome,
-  Product,
-  ProductPhase,
-  ProductState
-}
 import umpire.*
 
-// The product's Property this specimen reads through its refinement. The activity Model now
-// generates it from its capabilities as `activityProduct.pausedIsNotDispatched`; the specimen keeps
-// the reviewed name by declaring the law's instance itself.
-val pausedIsNotDispatched =
-  temporal.laws.pausedIsNotDispatched(activityProduct)(Product.paused, Product.running)
+// ### The product: what a caller reads of the activity, as far as the designs' refinement reads it
+
+/** The product's own family, so its claims stay apart from the designs'. */
+val productFamily: Family = Family("fixture.specimens.admission.product")
+
+val caller = Party()
+val worker = Party()
+val activity = Entity(key = "activityId")
+
+enum Outcome derives Finite:
+  case accepted, notFound
+
+given Accepted[Outcome] = Accepted(Outcome.accepted)
+
+// Only a pause and a completion are in scope. The other controls and answers are classes no step
+// takes, kept because a free Scenario's total counts every class.
+enum Control derives Finite:
+  case pause, unpause, requestCancel, terminate
+
+enum AttemptResult derives Finite:
+  case completed
+  case failed(retries: Boolean)
+  case canceled
+
+// Apart, because the control action takes its input's name.
+object Inputs:
+  val result = input[AttemptResult]
+  val control = input[Control]
+
+val attemptStart = action(worker).on(activity)
+val attemptResult = action(worker).on(activity).input(Inputs.result)
+val control = action(caller).on(activity).input(Inputs.control)
+
+enum ProductPhase derives Finite:
+  case scheduled, started, paused, completed
+
+final case class ProductState(phase: ProductPhase) derives Finite
+
+enum ProductFact derives Finite:
+  case statusStarted, statusPaused, statusCompleted
+
+object Product:
+  import ProductPhase.*
+  import ProductFact.*
+
+  def attemptStart(s: ProductState) =
+    if s.phase == scheduled then accept(ProductState(started), statusStarted) else disabled
+
+  def attemptResult(s: ProductState, r: AttemptResult) =
+    if s.phase == started && r == AttemptResult.completed then
+      accept(ProductState(completed), statusCompleted)
+    else disabled
+
+  /** A pause holds before an attempt starts or while one runs; a completed activity is not found. */
+  def control(s: ProductState, c: Control) =
+    if s.phase == completed then List(Step(Outcome.notFound, s))
+    else if c == Control.pause && s.phase != paused then accept(ProductState(paused), statusPaused)
+    else disabled
+
+/** No unpause is in scope, so a path may end paused, as the designs' paths may. */
+val activityProduct =
+  machine[ProductState, Outcome, ProductFact](productFamily, "activityProduct") {
+    forEntity(activity)
+    starts(ProductState(ProductPhase.scheduled))
+    ends(s => s.phase == ProductPhase.completed || s.phase == ProductPhase.paused)
+    steps(
+      attemptStart ~> Product.attemptStart,
+      attemptResult ~> Product.attemptResult,
+      control ~> Product.control
+    )
+  }
+
+/** The product's promise the designs are read against: no step from paused lands in started. */
+val pausedIsNotDispatched = activityProduct.property
+  .never(_.state.phase == ProductPhase.started)
+  .from(_.phase == ProductPhase.paused)
 
 given Family = Family("temporal.activity.standalone.admission")
 
@@ -179,11 +238,14 @@ def resultStep(s: AdmissionState, r: AttemptResult): List[AdmissionStep] = r mat
       )
   case AttemptResult.failed(_) | AttemptResult.canceled => Nil
 
-def productOfAdmission(s: AdmissionState): ProductState = s.phase match
-  case AdmissionPhase.scheduled => ProductState(ProductPhase.scheduled)
-  case AdmissionPhase.paused | AdmissionPhase.pausedWhileHeld => ProductState(ProductPhase.paused)
-  case AdmissionPhase.started                                 => ProductState(ProductPhase.started)
-  case AdmissionPhase.completed => ProductState(ProductPhase.completed)
+/** Both pauses read as the product's one paused status; every other phase as its namesake. */
+def productOfAdmission(s: AdmissionState): ProductState =
+  val read = s.phase match
+    case AdmissionPhase.scheduled                               => ProductPhase.scheduled
+    case AdmissionPhase.paused | AdmissionPhase.pausedWhileHeld => ProductPhase.paused
+    case AdmissionPhase.started                                 => ProductPhase.started
+    case AdmissionPhase.completed                               => ProductPhase.completed
+  ProductState(read)
 
 def admissionEvidence(f: AdmissionFact): String = f match
   case AdmissionFact.statusStarted     => "statusStarted"

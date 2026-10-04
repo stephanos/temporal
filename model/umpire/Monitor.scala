@@ -3,7 +3,7 @@ package umpire
 /**
  * A passive monitor over the steps of machines whose steps are `Step[S, O, F]`: a finite state `M`
  * of its own that every step advances, and a verdict read at its evaluation point. It reads steps
- * and never disables one, and its state is part of the state a check explores, so two histories
+ * and never disables one, and its state is part of the state a check explores, so two runs
  * that owe different obligations stay apart. Declared once over the state type, it watches every
  * machine that names it under `monitors`.
  *

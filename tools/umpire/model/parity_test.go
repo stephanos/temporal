@@ -24,7 +24,7 @@ func machines(t *testing.T) map[string]*Machine {
 func TestStuckStatesAndEvidence(t *testing.T) {
 	built := machines(t)
 	for _, name := range []string{"nexusProduct", "nexusProtocol", "polling", "handlerWorker"} {
-		require.Empty(t, built[name].Table.Stuck, name)
+		require.Empty(t, stuck(built[name].Table), name)
 	}
 	require.Equal(t, [][2]string{{"nexusOperationScheduled", "nexusOperationScheduled"}, {"nexusOperationStarted", "nexusOperationStarted"},
 		{"nexusOperationCompleted", "nexusOperationCompleted"}, {"nexusOperationFailed", "nexusOperationFailed"},

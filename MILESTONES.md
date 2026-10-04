@@ -73,8 +73,10 @@ production dispatch fails closed.
 | 1 | fn-114 | Roll the fn-112 showcase constructs, including choices, out to every other Model; then shrink copied fixture text and rename the model/ tool folders | — (in progress) |
 | alongside 1 | fn-122 | Capabilities and their laws: shared Temporal promises stated once, adopted per entity | — (in progress) |
 | alongside 1 | fn-121 | Shard generated Cases per Case in CI, with HSM/CHASM per Nexus Case | tasks 1-2 done and merged (each Case is its own shard unit, names pinned by a golden); task 3 needs GitHub CI |
-| after 1 | fn-120 rollout and tools | Refuse unnamed branches; add model lint (specification holes, coverage summary) and the IR explorer | fn-114 |
-| after 1 | fn-118 behavior | Derive generated-test waits from API hints, as a separate behavioral change | fn-114 |
+| alongside 1 | fn-120 rollout and tools | fn-120.2 done (unnamed branching refused; `choose` accepts helper calls); fn-120.3 model lint in progress; then the IR explorer | started early: fn-114's remaining tasks are cleanup |
+| alongside 1 | fn-118 behavior | fn-118.3 done (Testpilot waits by condition within declared bounds, read-once evidence, scale factor); fn-118.2 hints in the kit in progress; then derived waits | started early, as above |
+| alongside | fn-124 | Cleanup: delete archives, trim the checker, make the Run judge declare-only, retire the migration harness, split the model package | tasks 1-2 done (archives deleted, checker trimmed); 3 after fn-118; 7 after fn-114/120/122 close; 8 last |
+| alongside | fn-125 | Dynamic configuration in the Models: settings as finite Model inputs bound per Query, API preconditions, bound assumptions, derived required settings | task 1 (switch defects) now; framework after fn-114; preconditions after fn-118.2 |
 | last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
 
 fn-112 (the standalone activity DSL showcase) is closed: the feature is 1,567 lines and 54 string literals
@@ -116,7 +118,9 @@ with one lifter run writing all of them. Every Model folder gets the same file n
 activity, and no `Claims.scala` remains. The Temporal realization vocabulary leaves the framework for `model/temporal/realize` behind a guard test
 (fn-114.12), type annotations the compiler and lifter do not need are dropped from the Models (fn-114.11), lifter fixtures that copy live Model text shrink to minimal fixture-local Models (fn-114.10), and a final rename (fn-114.9, owner request 2026-10-04) gives the tool folders
 names that say what they hold: `model/lifter` becomes `model/irgen`, `model/gate` becomes `model/check`
-(absorbing `model/metrics`), and the `model/gen` build cache becomes `model/build`.
+(absorbing `model/metrics`), and the `model/gen` build cache becomes `model/build`. The same pass groups `model/temporal` into `features/`
+(standalone activity, Nexus caller, Nexus operation) and `shared/` (task queue, worker) beside `capabilities/` and
+`realize/`.
 
 
 Task 1 is done: each Model folder declares its IR files in Scala (`val x = irFile("name")(roots...)` in
@@ -130,7 +134,11 @@ are done: the close policy uses the final DSL with a new `sticky` monitor form a
 literals, from 148). Task 6 is done: the worker Model is `Model.scala`
 with captured names and pinned IDs, and the lifter fixtures use captured names and named choices. Task 7 is done:
 the string-named and string-keyed declaration forms are gone from the DSL and the lifter, each refused at
-compile time. Tasks 11 and 12 come next, then 10, 9 and 8. `leadsTo` has no captured-name form yet,
+compile time. Tasks 10, 11 and 12 are done: lifter fixtures no longer copy live Model text
+(CloseReset retired, Realizations' expected IR from 14,255 to 3,932 lines), type annotations dropped where
+inference agrees (269 to 25), and `model/umpire` names no Temporal concept behind a guard test. Task 9 (folder
+rename and the `features/`/`shared/` grouping) runs once fn-118.2 and fn-120.3 have merged, then task 8 closes the
+spec. `leadsTo` has no captured-name form yet,
 which leaves two literals in the close policy.
 
 ### fn-118: Declare how Temporal APIs behave once, and let the generated tests use it
@@ -207,3 +215,28 @@ capability or law; the six kinds, every law with its citations and the catalog l
 (law lint kinds) waits for fn-120.3's model lint and accepted-findings file, so tasks 6 and 7 wait too.
 The Testpilot Driver can reserve a Nexus handler only through a workflow or activity start, so the handler paths
 are modeled and verified but have no live Case.
+
+### fn-124: Shrink and simplify the Umpire Go tooling
+
+A cleanup spec from the 2026-10-04 audit. The bespoke Go checker stays: off-the-shelf checkers would need a larger
+exporter than the ~3,000 lines of exploration they could replace, and the interpreter, admission and claim binding
+serve lowering and judging anyway. The spec deletes the `tools/umpire0` and `model0` archives (~33k Go lines, 13 MB),
+removes the duplicate refinement implementation and test-only APIs, moves the Temporal knowledge the Run judge
+hard-codes (attempt rules, start carriers, lost admissions, causal parents, default timeouts, history event names) into
+realization declarations, defines verdict aggregation once, compares expected outcomes by declared ids, makes Model
+assessment the command-line judge, retires the migration harness once fn-114, fn-120 and fn-122 close (~8k lines,
+~26 MB), and splits `tools/umpire/model` into `ir/`, `interp/`, `check/` and `realization/`.
+
+### fn-125: Represent dynamic configuration in the Models
+
+Dynamic configuration decides both whether behavior exists (feature switches) and how it is timed. A
+setting is one of four kinds: a Model setting (`setting[T]`, a finite input steps read, bound per Query
+with `under` and multiplying its total), an API precondition declared next to fn-118's behavior hints, a
+bound assumption under a declared wait bound checked at preparation, or a behavior-neutral Profile value.
+A Case's required settings are derived from its Query's valuation, its preconditions and its bounds;
+the live harness builds each cluster from exactly those, and the hard-coded HSM/CHASM switch goes. Task 1
+fixes two verified switch defects: the CHASM value never set the workflow-operations rollout percent, and
+the HSM value ran with CHASM on. Evidence: `.plans/DYNAMIC_CONFIG.md`. Decided 2026-10-04: the
+ShutdownWorker race is reported upstream and meanwhile declared as a `workerStop` precondition; remote
+Profiles fail closed; one Case per valuation. Open: whether HSM and CHASM may count Nexus attempts
+differently, once task 1 shows the evidence.

@@ -308,8 +308,8 @@ requires exactly that of a live Run and of its replay.
 
 | Path | What it holds |
 | --- | --- |
-| `model/umpire` | The DSL: what an author writes a Model with. Realization declarations and their script helpers are in `umpire/realize` |
-| `model/temporal` | The Models, one folder per feature: `nexuscaller`, `standaloneactivity`, `worker`; `taskqueue`, the shared task-queue entity features compose; and `realize`, the shared Temporal realization kit |
+| `model/umpire` | The DSL: what an author writes a Model with. It names no Temporal concept. Realization declarations any system needs, the open traits a system's kit extends and the script helpers are in `umpire/realize` |
+| `model/temporal` | The Models, one folder per feature: `nexuscaller`, `standaloneactivity`, `worker`; `taskqueue`, the shared task-queue entity features compose; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and the shared Temporal realization kit (`Kit.scala`) |
 | `model/lifter` | The lifter. `testdata` holds Models it must lift and Models it must refuse |
 | `model/ir` | The checked-in Umpire IR, one file per `irFile` the Models declare |
 | `model/cases` | The checked-in Cases and `manifest.json` |
@@ -318,6 +318,21 @@ requires exactly that of a live Run and of its replay.
 | [SEMANTICS.md](SEMANTICS.md) | The evaluation rules of the Umpire IR: what every construct means |
 | [Known bugs](../.plans/UMPIRE4_VISION.md#known-bugs-knownbugs) | Vision for acknowledging a known bug; not implemented |
 | `model/gen` | Build output of the gate; ignored by git |
+
+The framework, `model/umpire`, names no Temporal concept, in its prose or its identifiers, so a
+Model of another system could be written in it. What a system has of its own its realization kit
+declares, by extending the framework's open traits `Addressee`, `Activation`, `Instruction`,
+`Recorded` and `Setting`. Temporal's are in `temporal.realize`: `Role` and `RoleKind`, the worker
+activations `WorkerActivation.{Workflow, NexusHandler, Activity}`, the instructions
+`WorkerInstruction.{AttemptFailure, AttemptCanceled, Fault, WorkflowCommand, NexusReply,
+NexusCompletion}` with `FaultKind`, the history read `WorkflowHistory.event`, and the
+dynamic-configuration `RequiredSetting`. `TestFrameworkNamesNoTemporal` in `tools/umpire/model`
+fails when a file under `model/umpire` names a Temporal term; a mention stays only under an
+allowance that states its reason, and today only `model/umpire/Capabilities.scala` and
+`model/umpire/laws/` have one, until the capabilities and their laws move to `model/temporal`. The
+tooling downstream of the DSL is Temporal's driver tooling by design: the lifter matches the kit's
+vocabulary by fully qualified name and writes it into the IR's realization messages, whose names are
+Temporal's, and lowering turns a Query into a Testpilot Case the Temporal Driver runs.
 
 The module map, [.plans/UMPIRE_MODULES.md](../.plans/UMPIRE_MODULES.md), states each module's job,
 its public interface and what it may import. Each module outside this directory has its own README:
@@ -336,6 +351,11 @@ its public interface and what it may import. Each module outside this directory 
 gate; `make fmt-model` formats them and `make fix-model` applies the lint rewrites. A construct a
 lint rule forbids where no rewrite keeps the behavior carries a line-scoped
 `// scalafix:ok <rule>`.
+
+A Model writes a declaration's type only where inference would give a different one, such as a
+step function whose body is `disabled` or `stay(s)` (inferred with no facts), a `Long` written as
+an `Int` literal, or a call whose type argument or `given` the expected type decides, or where the
+lifter needs it; the lifter reads an inferred type as it reads a written one.
 
 The lifter reads what an author wrote, as written:
 
@@ -360,8 +380,7 @@ The lifter reads what an author wrote, as written:
   reads as the type the call applies it to. A case class whose every field is a Property, Scenario
   or Query bundles claims: built by its constructor in such a function, it lifts as its claims, and
   `x.field` reads one back. The laws such functions state once for every entity are lifted sources
-  too: `model/temporal/laws`, and of the framework `model/umpire/laws` alone, whose TASTy the lifter
-  reads beside the Models'.
+  too, in `model/temporal/capabilities`; the framework holds none.
 - **Types:** enums with and without case fields, case classes, and bounded counters `UpTo[N]`: a
   field `attempts: UpTo[2]` has the values 0, 1 and 2, lifted as the IR int range 0..2, and a step
   writes one with `UpTo(n)`. It replaces integer fields bounded by the per-record
@@ -554,7 +573,7 @@ contract, through the pin and the type-name rule above.
 
 A claim over several designs is one function over `Declares[S]` whose state-dependent parts are
 parameters, and each call passes defs of the lifted sources. A law is such a function, written once
-for every entity in `model/temporal/laws` or `model/umpire/laws`, and each instance is named by the
+for every entity in `model/temporal/capabilities`, and each instance is named by the
 `val` that declares its call:
 
 ```scala
@@ -574,10 +593,14 @@ expression, a class or `when` reads `rejected` as `Outcome.notFound`.
 
 A machine declares its capabilities, each binding a protocol's parameters to its own vocabulary,
 and receives the laws the given `Catalog` brings for each capability and for each pair it declares
-both of, without listing them (model/umpire/Capabilities.scala, model/umpire/laws):
+both of, without listing them. The framework keeps the mechanism (model/umpire/Capabilities.scala,
+model/umpire/Catalog.scala: `CapabilityOf`, `CapabilityKind`, `Law`, `Catalog`, `capabilities`,
+`except`, `overriding`) and names no capability; Temporal's kinds, their bindings, every law with its
+server citations and the one `given Catalog` live in `model/temporal/capabilities`. Each Model folder
+that adopts capabilities declares them in its own `Capabilities.scala`:
 
 ```scala
-import temporal.laws.given
+import temporal.capabilities.{given, *}
 
 val jobCapabilities = capabilities(job, limits = three)(
   Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone),
@@ -590,10 +613,13 @@ val jobCapabilities = capabilities(job, limits = three)(
 Each law is lifted as a Property, a Scenario and a Query, all named `<machine>.<law>`: the law's
 `apply` (or the def an `overriding(law -> def, because = …)` names, which takes the law's
 parameters) folded with the model and the fields of the capabilities that bring it, bound by
-parameter name. A law of one action class (`when`) is asked by a `find` from the start through
-`reach` and that class; any other is verified over the free Scenario from the start under `limits`.
-The Query's total is computed as below; a find expects of a server the Run its capability's
-`expect` names (Terminable and Cancelable carry one). `except` lifts nothing for its law. A Query of
+parameter name. A law of one action class (`when`) is asked by a `find` from the start through the
+capability's path to a live state (its field that lists action classes, Terminable's `reach`) and
+that class; any other is verified over the free Scenario from the start under `limits`. The Query's
+total is computed as below; a find expects of a server the Run its capability's `RunExpectation`
+field names (Terminable and Cancelable carry one). A field of an action class names an action the
+machine must bind. A capability is a case class extending `CapabilityOf` whose companion extends
+`CapabilityKind`, which the catalog keys its laws by; the lifter refuses any other. `except` lifts nothing for its law. A Query of
 the entity's own reads a generated Property by its law, `declared.claim(pausedIsNotDispatched)`, as
 the activity's pinned paths do; a law the declaration waives has none. The lifter writes what
 it expanded beside the IR file, as `<file>.laws.json`: each generated claim with its law and
@@ -755,24 +781,26 @@ get. A missing or malformed expectation fails generation. What a realization may
 each declaration lowers, is in [SEMANTICS.md](SEMANTICS.md) under Realizations and Generated Case
 expectations.
 
-What every Temporal realization says alike is declared once, in the kit `model/temporal/realize`:
-the roles (`workflowService`, `caseWorker`, `taskQueue`, `handlerTaskQueue`, `nexusEndpoint`) and
-the environment bindings a run supplies for them, the correlation window, the controller script,
-the one interval a read polls at (`await`), the helpers that declare evidence from the Run's own
-record (`answered`, `answeredAs`, `delivered`), the deadlines a request sets, and
-`temporalRealization`, which takes what a feature says differently. The standalone activity and
-the Nexus caller realizations both use it. A feature that reads a status back declares what each
-fact reads as once, `statusTable(fact -> value, …)` beside its realization, and its `awaitStatus`
-reads the status it polls for from that table. The table is the realization-side form of the
-`Describable` status map of [.plans/SEMANTIC_PROTOCOLS.md](../.plans/SEMANTIC_PROTOCOLS.md); the
-lifter reads it when it lifts, and it adds nothing to the IR.
+What every Temporal realization says alike is declared once, in the kit `model/temporal/realize`
+(`Kit.scala`, over the vocabulary of its `Realize.scala`): the roles (`workflowService`,
+`caseWorker`, `taskQueue`, `handlerTaskQueue`, `nexusEndpoint`) and the environment bindings a run
+supplies for them, the correlation window, the controller script, the one interval a read polls at
+(`await`), the helpers that declare evidence from the Run's own record (`answered`, `answeredAs`,
+`delivered`), the deadlines a request sets, and `temporalRealization`, which takes what a feature
+says differently. The standalone activity and the Nexus caller realizations both use it. A feature
+that reads a status back declares what each fact reads as once, `statusTable(fact -> value, …)`
+beside its realization, and its `awaitStatus` reads the status it polls for from that table. The
+table is the realization-side form of the `Describable` status map of
+[.plans/SEMANTIC_PROTOCOLS.md](../.plans/SEMANTIC_PROTOCOLS.md); the lifter reads it when it lifts,
+and it adds nothing to the IR.
 
 A realization whose system serves the feature only behind a flag says so,
-`requiredSettings = Vector(RequiredSetting(key, value))`, the key and value as the server's dynamic
-configuration spells them (the standalone Nexus operation's `nexusoperation.enableStandalone`). A
-Case lowered through it carries them, Testpilot's preparation refuses a Profile whose dynamic
-configuration lacks one or sets it otherwise, naming the setting, and the live suite applies each
-Case's settings to the server it starts.
+`requiredSettings = Vector(RequiredSetting(key, value))`, with the kit's `RequiredSetting`, the
+key and value as the server's dynamic configuration spells them (the standalone Nexus
+operation's `nexusoperation.enableStandalone`). A Case lowered through it carries them,
+Testpilot's preparation refuses a Profile whose dynamic configuration lacks one or sets it
+otherwise, naming the setting, and the live suite applies each Case's settings to the server it
+starts.
 
 ### Naming protobuf data in a Model
 

@@ -59,12 +59,6 @@ func TestSyntheticCaseStrictDecodeAndNoIOAdmission(t *testing.T) {
 	require.Equal(t, []byte{8, 1, 16, 2}, message.GetValue())
 	require.True(t, proto.Equal(&testpilotspb.CaseProvenance{ProducerId: "standalone.lean.testpilot", ProducerVersion: "1"}, source.GetProvenance()))
 
-	wire, err := testpilot.PackCaseProtoJSON(encoded)
-	require.NoError(t, err)
-	roundTrip := new(testpilotspb.Case)
-	require.NoError(t, proto.Unmarshal(wire, roundTrip))
-	require.True(t, proto.Equal(source, roundTrip))
-
 	location := &testpilotspb.SourceLocation{Path: "A.lean", Line: 2147483647, Provenance: "authored"}
 	typed := proto.CloneOf(source)
 	typed.Provenance.Definitions = []*testpilotspb.DefinitionBinding{{DefinitionId: "p", BehaviorFingerprint: "f", Kind: testpilotspb.DEFINITION_KIND_PROPERTY}}
@@ -679,7 +673,7 @@ func decodeArtifactRequest(source, target proto.Message) error {
 // PollRPC answers the scheduled-event poll once, from the history as it stands when the poll is
 // issued: one round satisfies the predicate or the poll is rejected.
 func (s *scriptedSession) PollRPC(ctx context.Context, coordinate testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message, interval time.Duration, satisfied testpilot.PollPredicate) (testpilot.EffectHandle, error) {
-	if coordinate.InstructionID != "await-scheduled" || interval <= 0 || satisfied == nil {
+	if coordinate.InstructionID != "await-scheduled" || interval < 0 || satisfied == nil {
 		return nil, temporal.ErrInvalid
 	}
 	handle, err := s.InvokeRPC(ctx, coordinate, role, method, request)

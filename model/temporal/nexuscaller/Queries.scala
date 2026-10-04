@@ -13,7 +13,7 @@ import Timeout.expires
 
 // What a live Run is expected to show.
 val satisfied = RunExpectation(Conformance.conformant, Outcome.satisfied)
-def inconclusive(reason: String): RunExpectation =
+def inconclusive(reason: String) =
   RunExpectation(Conformance.conformant, Outcome.inconclusive, reason)
 val explanationsDisagree = "the executions that explain the evidence disagree"
 val neverEvaluated =
@@ -147,7 +147,7 @@ val startToCloseTimeout =
 val terminalHolds = query verify terminalIsFinal in asyncThenSucceeded limits three total 576
 
 /** The functional Queries in declaration order. */
-val functionalQueries: Vector[Query] = Vector(
+val functionalQueries = Vector(
   syncCompletion,
   asyncCompletion,
   asyncFailure,

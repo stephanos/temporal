@@ -17,6 +17,90 @@ A **Model** describes allowed behavior. A **Property** states a promise that beh
 A **Query** asks a question about the Model. A **Case** is a generated test, and a **Run** records
 one execution of that test.
 
+
+## High-level Architecture
+
+Umpire splits into components that either **know** something about behavior or only **carry** what
+others declared. All knowledge of what Temporal does lives in the Models; every other component is
+mechanical, and most of them know nothing about Temporal.
+
+```
+  Models ──► Lifter ──► Umpire IR ──┬──► Checker ─────► answers and witnesses
+ (Scala)                            ├──► Test generator ──► Case ──► Testpilot ──► Run
+                                    └──► Judge ◄─────────────────────────────────────┘
+```
+
+### Components
+
+#### Models
+
+The Scala description of Temporal's behavior: a Temporal-agnostic DSL framework, a Temporal kit of
+shared capabilities, laws and realization vocabulary, and one folder per feature.
+
+- Knows behavior: Yes, it is the only component that does.
+- Knows Temporal: Yes, except the DSL framework.
+
+#### Lifter
+
+Translates the compiled Models into the Umpire IR, and refuses what it cannot translate.
+
+- Knows behavior: No.
+- Knows Temporal: Only the kit's vocabulary, so the IR can carry it.
+
+#### Umpire IR
+
+The versioned artifact that connects the Scala Models to the Go tooling.
+
+- Knows behavior: It carries it.
+- Knows Temporal: Only as declared names and payload types.
+
+#### Checker
+
+Interprets the IR, answers Queries by bounded exhaustive exploration, and finds witnesses.
+
+- Knows behavior: No.
+- Knows Temporal: No.
+
+#### Test generator
+
+Turns a Query's witness and its realization into an executable Testpilot Case.
+
+- Knows behavior: No.
+- Knows Temporal: No, only through the realization.
+
+#### Testpilot
+
+Runs a Case against a real server and records the Run. A Temporal Driver performs the Temporal side
+effects and reports exactly what happened.
+
+- Knows behavior: No.
+- Knows Temporal: Only the Driver.
+
+#### Judge
+
+Decides whether a recorded Run satisfies its Case's Contract and is explained by the Model.
+
+- Knows behavior: No.
+- Knows Temporal: No.
+
+### Rules
+
+- **The Models are the only smart component.** What a feature promises, what counts as evidence, how
+  long things may take and what an outcome means are declared in the Models and nowhere else.
+- **Everything else is mechanical.** Other components translate, evaluate or execute what was
+  declared. A rule of their own is generic, written down once and tested; anything else is a defect
+  to move into the Models.
+- **Temporal stays at the edges.** Only the Models and Testpilot's Temporal Driver know Temporal.
+  The DSL framework, IR, checker, test generator, Testpilot runtime and judge stay
+  Temporal-agnostic.
+- **One meaning, one source.** The IR has one interpretation that every Go component shares, and
+  every fact has one declaration. Other checkers may give a second opinion but never decide.
+- **Declared, deterministic, fail closed.** Nothing is defaulted silently; what is not declared is
+  refused. The same inputs give the same IR, answers and Cases, and a verdict depends only on the
+  Run and its declarations.
+- **Artifacts are the interfaces.** Components meet through versioned artifacts (IR, Case, Run) and
+  depend inward: features on the kit, the kit on the framework, the Go tools on the IR.
+
 ## Requirements
 
 ### Remote control via Testpilot (#DRIVE)

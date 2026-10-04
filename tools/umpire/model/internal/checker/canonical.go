@@ -10,10 +10,9 @@ import (
 	"strings"
 )
 
-// Canonical encodings and Behavior Fingerprints, byte-compatible with the Lean ones in
-// model0/lean/Umpire/Model/Canonical.lean, Scenario/Check.lean, Property/Check.lean and Query/Check.lean.
-// A fingerprint is "sha256:" and the hex SHA-256 of a domain line and the canonical content
-// (`Umpire.Fingerprint.derive`).
+// Canonical encodings and Behavior Fingerprints. The encodings are frozen: checked-in Cases carry
+// fingerprints computed from them, so a byte change is a fingerprint change. A fingerprint is
+// "sha256:" and the hex SHA-256 of a domain line and the canonical content.
 
 // Fingerprint is the Behavior Fingerprint of already-canonical content.
 func Fingerprint(canonical string) string {
@@ -303,14 +302,8 @@ func (t *Table) propertyHeader(propertyID string) string {
 		`,"meanings":` + meaningsJSON(t.meanings())
 }
 
-// QueryCanonical is the Query's canonical form (`Umpire.Query.Check`), which its fingerprint hashes
-// whole.
-func (q *Query) QueryCanonical(t *Table, propertyFingerprint string) string {
-	return q.QueryCanonicalOf(t, propertyFingerprint, t.TargetFingerprint())
-}
-
-// QueryCanonicalOf is QueryCanonical for a caller that holds the table's Behavior Fingerprint
-// already: computing it is most of the work.
+// QueryCanonicalOf is the Query's canonical form (`Umpire.Query.Check`), which its fingerprint hashes
+// whole, over the table's Behavior Fingerprint the caller holds: computing it is most of the work.
 func (q *Query) QueryCanonicalOf(t *Table, propertyFingerprint, targetFingerprint string) string {
 	form := "find"
 	if q.Form == VerifyForm {

@@ -138,12 +138,9 @@ type activationData struct {
 }
 
 type Bundle struct {
-	ledger  *Ledger
-	id      uint64
-	handles []testpilot.EffectHandle
+	ledger *Ledger
+	id     uint64
 }
-
-func (b Bundle) Handles() []testpilot.EffectHandle { return slices.Clone(b.handles) }
 
 type Activation struct {
 	ledger *Ledger
@@ -290,35 +287,34 @@ func (l *Ledger) CreateActivityBundle(ctx context.Context, origin testpilot.Coor
 }
 
 func (l *Ledger) createBundle(ctx context.Context, origin testpilot.Coordinate, plan testpilot.ReservationCarrierPlan, start startBinding, handles []testpilot.ReservationHandle) (Bundle, error) {
-	cleanup := cleanupBundle(handles)
 	if err := primitive.ContextError(ctx, ErrInvalid); err != nil {
-		return cleanup, err
+		return Bundle{}, err
 	}
 	validated, ordered, err := validateBundle(l.config.RunID, origin, plan, start, handles, l.config.Limits)
 	if err != nil {
-		return cleanup, err
+		return Bundle{}, err
 	}
 	if err := l.mu.LockContext(ctx, ErrInvalid); err != nil {
-		return cleanup, err
+		return Bundle{}, err
 	}
 	defer l.mu.Unlock()
 	if l.stopped {
-		return cleanup, ErrRouteStale
+		return Bundle{}, ErrRouteStale
 	}
 	if l.activeRoutes > l.config.Limits.MaxRoutes-len(ordered) {
-		return cleanup, ErrCapacity
+		return Bundle{}, ErrCapacity
 	}
 	if len(l.bundles) >= l.config.Limits.MaxRoutes {
-		return cleanup, ErrCapacity
+		return Bundle{}, ErrCapacity
 	}
 	proxies := make([]*reservationProxy, 0, len(ordered))
 	for _, handle := range ordered {
 		proxy, ok := handle.(*reservationProxy)
 		if !ok || proxy == nil || proxy.retained == nil || proxy.retained.ledger != l || proxy.retained.completed || proxy.retained.route != nil || l.retained[handle.Identity().ID] != proxy.retained {
-			return cleanup, ErrRouteConflict
+			return Bundle{}, ErrRouteConflict
 		}
 		if _, exists := l.routes[handle.Identity().ID]; exists {
-			return cleanup, ErrRouteConflict
+			return Bundle{}, ErrRouteConflict
 		}
 		proxies = append(proxies, proxy)
 	}
@@ -371,11 +367,7 @@ func (l *Ledger) createBundle(ctx context.Context, origin testpilot.Coordinate, 
 	}
 	l.bundles[state.id] = state
 	l.activeRoutes += len(ordered)
-	bundle := Bundle{ledger: l, id: state.id, handles: make([]testpilot.EffectHandle, len(state.routes))}
-	for i, route := range state.routes {
-		bundle.handles[i] = route.retained.proxy
-	}
-	return bundle, nil
+	return Bundle{ledger: l, id: state.id}, nil
 }
 
 type reservationKey struct {
@@ -446,16 +438,6 @@ func clonePlan(plan testpilot.ReservationCarrierPlan) testpilot.ReservationCarri
 	plan.Reservations = slices.Clone(plan.Reservations)
 	plan.Routes = slices.Clone(plan.Routes)
 	return plan
-}
-
-func cleanupBundle(handles []testpilot.ReservationHandle) Bundle {
-	result := Bundle{}
-	for _, handle := range handles {
-		if !primitive.NilValue(handle) {
-			result.handles = append(result.handles, handle)
-		}
-	}
-	return result
 }
 
 // StartResponse is what a carried start answers with: the run it started, of a workflow or of a

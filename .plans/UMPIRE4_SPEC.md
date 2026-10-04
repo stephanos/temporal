@@ -111,8 +111,6 @@ a declared Nexus history Observation reaches a correlated completion within a bo
 - **`tools/umpire/`.** The Go tooling that reads the Model IR: the reader that interprets and checks
   it, lowering to Cases, conformance, export and exploration. `.plans/UMPIRE_MODULES.md` is the
   module map.
-- **`model0/`, `tools/umpire0/`.** Frozen archives of the earlier front ends and their tooling.
-  Nothing builds them.
 - **Testpilot.** The canonical name for running behavior through Temporal and Workers. The Testpilot
   protobuf closure rooted at `proto/internal/temporal/server/api/testpilot/v1/case.proto` is the
   wire authority. The shared Go runtime under `common/testing/testpilot` admits and executes Cases

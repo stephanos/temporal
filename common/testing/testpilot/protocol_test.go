@@ -25,6 +25,7 @@ var protocolFiles = []string{
 	"temporal/server/api/testpilot/v1/correlated.proto",
 	"temporal/server/api/testpilot/v1/event.proto",
 	"temporal/server/api/testpilot/v1/run.proto",
+	"temporal/server/api/testpilot/v1/source.proto",
 }
 
 // runOnlyMessages are declared for a Run and must stay outside the Case import closure.
@@ -73,6 +74,17 @@ func TestProtocolEncodesExpressionAndStateScopes(t *testing.T) {
 	require.True(t, diagnostic.Fields().ByName("supporting_event_sequence").HasPresence())
 	run := messageDescriptor(t, "Run")
 	require.True(t, run.Fields().ByName("evaluation_failure_sequence").HasPresence())
+	// Zero is an unscaled Run, so the scale needs no presence.
+	require.False(t, run.Fields().ByName("bound_scale_percent").HasPresence())
+	// A hinted wait carries each bound with the source position it is declared at, in the one
+	// SourceLocation a Case's provenance uses; a read once is a flag of the read, not an instruction.
+	sourceLocation := messageDescriptor(t, "SourceLocation")
+	require.Equal(t, "temporal/server/api/testpilot/v1/source.proto", sourceLocation.ParentFile().Path())
+	waitHint := messageDescriptor(t, "WaitHint")
+	require.Equal(t, []protoreflect.Name{"hint_id", "source", "at_most_milliseconds"}, fieldNames(waitHint))
+	require.Equal(t, sourceLocation.FullName(), waitHint.Fields().ByName("source").Message().FullName())
+	require.True(t, messageDescriptor(t, "InstructionNode").Fields().ByName("wait_hints").IsList())
+	require.Equal(t, protoreflect.BoolKind, messageDescriptor(t, "ReadEvidence").Fields().ByName("once").Kind())
 	// Kind-specific Run Event data is one payload oneof, read through a path from the payload
 	// reference, so the coordinate enum names only what every event has.
 	event := messageDescriptor(t, "RunEvent")

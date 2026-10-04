@@ -111,6 +111,34 @@ func TestDeriveProfileAdmitsOnlyRealizableCommandTypes(t *testing.T) {
 	}
 }
 
+// DeriveProfile carries the environment's bound scale into the Profile, where it becomes part of
+// the binding identity; an environment with none derives an unscaled Profile.
+func TestDeriveProfileCarriesTheEnvironmentsBoundScale(t *testing.T) {
+	catalog, err := temporal.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	source := commandCase(&commandpb.Command{
+		CommandType: enumspb.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION,
+		Attributes: &commandpb.Command_ScheduleNexusOperationCommandAttributes{ScheduleNexusOperationCommandAttributes: &commandpb.ScheduleNexusOperationCommandAttributes{
+			Endpoint: "nexus-endpoint", Service: "service", Operation: "operation", ScheduleToCloseTimeout: durationpb.New(2000000000),
+		}},
+	})
+	environment := temporal.Environment{Identity: "scaled", Namespace: "namespace", TaskQueue: "task-queue", NexusEndpoint: "endpoint"}
+	plain, err := temporal.DeriveProfile(source, catalog, environment)
+	require.NoError(t, err)
+	require.False(t, plain.BoundScale.Scaled())
+
+	environment.BoundScale = 300
+	scaled, err := temporal.DeriveProfile(source, catalog, environment)
+	require.NoError(t, err)
+	require.Equal(t, testpilot.BoundScale(300), scaled.BoundScale)
+	require.Equal(t, plain.ProgramLimits.GetMaxTotalDurationMilliseconds(), scaled.ProgramLimits.GetMaxTotalDurationMilliseconds(), "preparation scales the ceilings, not derivation")
+	prepared, err := testpilot.Prepare(source, scaled)
+	require.NoError(t, err)
+	plainPrepared, err := testpilot.Prepare(source, plain)
+	require.NoError(t, err)
+	require.NotEqual(t, plainPrepared.Identity(), prepared.Identity())
+}
+
 // DeriveProfile authorizes a read declaration's method on the role its poll names, and the
 // ReadEvidence Opcode, so a Case that polls a read observation prepares under its derived Profile.
 func TestDeriveProfileAuthorizesTheMethodAReadDeclarationPolls(t *testing.T) {

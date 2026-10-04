@@ -2,6 +2,7 @@ syntax = "proto3";
 package temporal.server.api.testpilot.v1;
 import "temporal/server/api/testpilot/v1/contract.proto";
 import "temporal/server/api/testpilot/v1/program.proto";
+import "temporal/server/api/testpilot/v1/source.proto";
 option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
 
 // Case is the versioned standalone pairing of exactly one bounded Program and one Contract.
@@ -51,18 +52,6 @@ message DefinitionBinding {
   string definition_id = 1;
   string behavior_fingerprint = 2;
   DefinitionKind kind = 3;
-}
-
-// SourceLocation is a position in the Producer's source.
-message SourceLocation {
-  // Relative to the Producer's source root.
-  string path = 1;
-  // One-based; zero when the Producer knows no position.
-  int32 line = 2;
-  // One-based; zero when the Producer knows no position.
-  int32 column = 3;
-  // How the source was obtained, such as authored or checked-model.
-  string provenance = 4;
 }
 
 // KnownGap is one missing or unsupported capability, input, interpretation or claim that limits what

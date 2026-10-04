@@ -62,7 +62,7 @@ trait Declares[S] extends Model:
 
   /**
    * A Property or a Scenario is named after the `val` that declares it (`val completes =
-   * activityProduct.property holds ...`), or by the name it is given where it is declared without
+   * orderProduct.property holds ...`), or by the name it is given where it is declared without
    * one, such as in a list or inside a function over a machine. A Scenario that names no start starts
    * in its machine's one declared start, or for a composition in its members' starts.
    */

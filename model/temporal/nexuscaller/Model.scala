@@ -23,17 +23,17 @@ object CallerFamily:
 // Parties are names the feature declares by using them. The reserved party system is the server.
 // A fault is an ordinary action of a declared party, and a timer is system behavior the machine
 // owns, so neither is a separate kind.
-val caller: Party = Party()
-val handler: Party = Party()
-val network: Party = Party()
+val caller = Party()
+val handler = Party()
+val network = Party()
 
 // ### Entities
 //
 // An operation is scheduled by a caller workflow, and recorded data names one by its scheduled
 // event: every history event of the operation carries that event's id.
 
-val workflow: Entity = Entity()
-val operation: Entity = Entity(key = "scheduledEvent", refer = Map("caller" -> workflow))
+val workflow = Entity()
+val operation = Entity(key = "scheduledEvent", refer = Map("caller" -> workflow))
 
 // ### The input domains
 //
@@ -98,7 +98,7 @@ val transportFault = action(network) on operation
 // DescribeWorkflowExecution. Every other evidence name resolves against the realization's catalog,
 // which is why only a derived observation is declared.
 
-val pendingAttempts: Observation = Observation(on = operation, read = "attempts")
+val pendingAttempts = Observation(on = operation, read = "attempts")
 
 /**
  * A step's outcome. The product and protocol machines share the two members, and an outcome reads
@@ -131,13 +131,13 @@ object Product:
   import ProductFact.*
 
   /** The four phases the product machine ends on. */
-  def productTerminal(s: ProductState): Boolean = s.phase.in(succeeded, failed, canceled, timedOut)
+  def productTerminal(s: ProductState) = s.phase.in(succeeded, failed, canceled, timedOut)
 
   /**
    * The handler's reply to the server's start request. An operation that has not started yet is
    * the only one a reply can move.
    */
-  def handlerReplyStep(s: ProductState, reply: Reply): List[ProductStep] =
+  def handlerReplyStep(s: ProductState, reply: Reply) =
     if s.phase != scheduled then disabled
     else
       reply match
@@ -154,7 +154,7 @@ object Product:
    * An asynchronous completion. A completion that arrives after the operation is over is not
    * found, and changes nothing.
    */
-  def completeStep(s: ProductState, resolution: Resolution): List[ProductStep] =
+  def completeStep(s: ProductState, resolution: Resolution) =
     if productTerminal(s) then List(Step(Outcome.notFound, s))
     else
       resolution match
@@ -180,7 +180,7 @@ object Product:
    * One of the operation's deadlines firing. Which deadline is the protocol's account of how, so the
    * product machine has one timer, and it fires while the operation runs.
    */
-  def timeoutStep(s: ProductState): List[ProductStep] =
+  def timeoutStep(s: ProductState) =
     if s.phase.in(scheduled, started) then accept(ProductState(timedOut), nexusOperationTimedOut)
     else disabled
 
@@ -256,20 +256,20 @@ object Protocol:
    * Bounds the attempt count. Nothing wires the Limits into a machine's state, so the bound is
    * written here; the Go model evaluator checks each require precondition against it.
    */
-  val attemptBound: Int = 2
+  val attemptBound = 2
 
-  def validAttempts(a: Int): Boolean = 0 <= a && a <= attemptBound
+  def validAttempts(a: Int) = 0 <= a && a <= attemptBound
 
   /** A retry past the bound stays at it, rather than wrapping as `Fin` arithmetic would. */
-  def saturatingSucc(a: Int): Int =
+  def saturatingSucc(a: Int) =
     require(validAttempts(a))
     if a < attemptBound then a + 1 else a
 
   /** The four phases the design ends on. A completion that arrives after one of them is not found. */
-  def terminalPhase(p: Phase): Boolean = p.in(succeeded, failed, canceled, timedOut)
+  def terminalPhase(p: Phase) = p.in(succeeded, failed, canceled, timedOut)
 
   /** Scheduled and not yet over: the phases a completion resolves and a timer can fire in. */
-  def running(p: Phase): Boolean = p.in(scheduled, backingOff, started)
+  def running(p: Phase) = p.in(scheduled, backingOff, started)
 
   /**
    * The caller's schedule command. It names the operation's three deadlines, and every one of them
@@ -281,7 +281,7 @@ object Protocol:
       scheduleToClose: Timeout,
       scheduleToStart: Timeout,
       startToClose: Timeout
-  ): List[ProtocolStep] =
+  ) =
     if s.phase != Phase.unscheduled then disabled
     else
       accept(
@@ -294,7 +294,7 @@ object Protocol:
    * last arm: a retryable failure backs the operation off and raises its attempt count, and the
    * count is read back through the pendingAttempts observation because no history event records it.
    */
-  def handlerReplyStep(s: ProtocolState, reply: Reply): List[ProtocolStep] =
+  def handlerReplyStep(s: ProtocolState, reply: Reply) =
     require(validAttempts(s.attempts))
     if s.phase != scheduled then disabled
     else
@@ -312,7 +312,7 @@ object Protocol:
             )
 
   /** A transport fault is the same failure arriving as a dropped delivery rather than as a reply. */
-  def transportFaultStep(s: ProtocolState): List[ProtocolStep] =
+  def transportFaultStep(s: ProtocolState) =
     require(validAttempts(s.attempts))
     if s.phase != scheduled then disabled
     else
@@ -333,11 +333,11 @@ object Protocol:
    * why the evidence is two facts and not one -- and why the product machine, which has no
    * backingOff phase to have skipped, could write the completion alone.
    */
-  def completeStep(s: ProtocolState, resolution: Resolution): List[ProtocolStep] =
+  def completeStep(s: ProtocolState, resolution: Resolution) =
     if terminalPhase(s.phase) then List(Step(Outcome.notFound, s))
     else if s.phase == Phase.unscheduled then disabled
     else
-      val startedFirst: List[ProtocolFact] =
+      val startedFirst =
         if s.phase != started then List(nexusOperationStarted) else Nil
       resolution match
         case Resolution.succeeded =>
@@ -358,7 +358,7 @@ object Protocol:
    * The schedule-to-close deadline covers the whole operation, so it fires in every running phase
    * -- and only when the schedule command set it.
    */
-  def scheduleToCloseStep(s: ProtocolState): List[ProtocolStep] =
+  def scheduleToCloseStep(s: ProtocolState) =
     if running(s.phase) && s.scheduleToClose == Timeout.expires then
       accept(s.copy(phase = timedOut), nexusOperationTimedOut(TimeoutType.scheduleToClose))
     else disabled
@@ -367,13 +367,13 @@ object Protocol:
    * The schedule-to-start deadline covers the wait for the handler to accept, so it stops at the
    * start.
    */
-  def scheduleToStartStep(s: ProtocolState): List[ProtocolStep] =
+  def scheduleToStartStep(s: ProtocolState) =
     if s.phase.in(scheduled, backingOff) && s.scheduleToStart == Timeout.expires then
       accept(s.copy(phase = timedOut), nexusOperationTimedOut(TimeoutType.scheduleToStart))
     else disabled
 
   /** The start-to-close deadline covers the handler's own work, so it begins at the start. */
-  def startToCloseStep(s: ProtocolState): List[ProtocolStep] =
+  def startToCloseStep(s: ProtocolState) =
     if s.phase == started && s.startToClose == Timeout.expires then
       accept(s.copy(phase = timedOut), nexusOperationTimedOut(TimeoutType.startToClose))
     else disabled
@@ -384,7 +384,7 @@ object Protocol:
    * yet scheduled reads as scheduled, because the product machine begins there. Every other field
    * is hidden, which is what a map that does not read it says.
    */
-  def productOf(s: ProtocolState): ProductState = s.phase match
+  def productOf(s: ProtocolState) = s.phase match
     case Phase.unscheduled | Phase.scheduled | Phase.backingOff =>
       ProductState(ProductPhase.scheduled)
     case Phase.started   => ProductState(ProductPhase.started)
@@ -399,7 +399,7 @@ val scheduleToStart = timer
 val startToClose = timer
 
 /** Where every path begins: before the operation exists, with every deadline at its first value. */
-val unscheduled: ProtocolState =
+val unscheduled =
   ProtocolState(Phase.unscheduled, 0, Timeout.unset, Timeout.unset, Timeout.unset)
 
 /**
@@ -452,7 +452,7 @@ val nexusCaller =
     .sync(_.operation -> handlerReply, _.worker -> serve)
     .ends(s => Protocol.terminalPhase(s.operation.phase))
 
-val pollingWorker: WorkerState = WorkerState(WorkerPhase.polling)
+val pollingWorker = WorkerState(WorkerPhase.polling)
 
 // ### The control
 //
@@ -472,7 +472,7 @@ object Control:
   val sent = choice
 
   // The control deliberately predicts success for a failed callback. The runtime still sends failure.
-  def forgedComplete(s: ProtocolState, resolution: Resolution): List[ProtocolStep] =
+  def forgedComplete(s: ProtocolState, resolution: Resolution) =
     if resolution == Resolution.failed then
       choose(
         forged -> Protocol.completeStep(s, Resolution.succeeded),

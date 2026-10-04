@@ -30,6 +30,7 @@ type (
 	ReservationCarrierShape  = contract.ReservationCarrierShape
 	EnvironmentBinding       = contract.EnvironmentBinding
 	InstructionDefaults      = contract.InstructionDefaults
+	BoundScale               = contract.BoundScale
 	EntrypointKind           = contract.EntrypointKind
 )
 

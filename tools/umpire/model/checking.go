@@ -564,44 +564,19 @@ func unknownBecause(holes []HoleReach) string {
 	return "the result is incomplete: the check read " + strings.Join(parts, ", and ")
 }
 
-// refinement is the receipt of a refining machine's declared refinement, checked by RefineTables. It
-// must agree with the refinement Build derived, by its own reading of the same rule.
+// refinement is the receipt of a refining machine's declared refinement, checked by RefineTables.
 func (c *checker) refinement(decl *umpirespb.Machine) Receipt {
 	s := c.first.subject(decl.GetName())
 	r := receipt(RefinementSubject, ClaimKey{Family: s.family, Owner: s.name, Name: decl.GetRefines().GetProduct()}, s.at)
 	if s.err != nil {
 		return c.failed(r, s.err)
 	}
-	mm := s.machine
 	r = c.reads(r, s.table)
-	checked := c.first.refinement(s)
-	if checked.err == nil {
-		r.Kind, r.Explored = Verified, len(s.table.Rows)
-	} else {
-		r = c.failed(r, checked.err)
+	if checked := c.first.refinement(s); checked.err != nil {
+		return c.failed(r, checked.err)
 	}
-	// Build has no refinement to compare with where it could not evaluate one, and neither has the
-	// generic check where it met something other than a refinement that does not hold.
-	var generic *unrefined
-	if c.first.unevaluated[s.name] != nil || checked.err != nil && !errors.As(checked.err, &generic) {
-		return r
-	}
-	accepted := checked.ref != nil
-	switch {
-	case accepted != (mm.Rejected == nil):
-		return c.replayed(r, fmt.Errorf("RefineTables and Build disagree on whether %s refines %s", s.name, r.Key.Name))
-	case accepted && !slices.EqualFunc(checked.ref.Rows, mm.Refinement, sameRow):
-		return c.replayed(r, fmt.Errorf("RefineTables and Build disagree on the steps of %s that carry the rows of %s", r.Key.Name, s.name))
-	default:
-		return r
-	}
-}
-
-func sameRow(x, y RefinementRow) bool {
-	if x.Key != y.Key || (x.Product == nil) != (y.Product == nil) {
-		return false
-	}
-	return x.Product == nil || *x.Product == *y.Product
+	r.Kind, r.Explored = Verified, len(s.table.Rows)
+	return r
 }
 
 // composition is the receipt of a composition: why it could not be built, or, for one a member of

@@ -7,8 +7,8 @@ import umpire.realize.Realization
  * value beside the Models it holds:
  *
  * {{{
- * val nexusControlFile =
- *   irFile("nexus-control")(forgedCompletion, NexusRealization.forgedCompletion)
+ * val ordersControlFile =
+ *   irFile("orders-control")(forgedCompletion, OrdersRealization.forgedCompletion)
  * }}}
  *
  * The lifter (model/lifter) reads every such val and writes each file, in one run, from its roots and

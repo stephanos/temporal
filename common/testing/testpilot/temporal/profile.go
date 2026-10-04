@@ -30,6 +30,9 @@ type Environment struct {
 	DynamicConfig    map[string]string
 	// DeliveryControl says the environment runs the server and can hold a delivery inside it.
 	DeliveryControl bool
+	// BoundScale is how much slower this environment is than the one the Case's wait bounds were
+	// declared for; zero runs them as declared.
+	BoundScale testpilot.BoundScale
 }
 
 // HandlerTaskQueueBindingID names the resource binding of the task-queue role a Nexus handler
@@ -111,9 +114,9 @@ func DefaultCeilings() (*testpilotspb.ProgramLimits, *testpilotspb.ContractLimit
 // to reserve and for each StartActivityExecution it invokes when the Program has other activity
 // entrypoints to reserve, the
 // opcodes its instructions require, the environment values its referenced bindings resolve to, and
-// the dynamic configuration the environment runs under. Nothing is widened beyond what the Case
-// references, and anything the Case names that the catalog does not know is an error rather than a
-// silently authorized surface. Its resource ceilings are DefaultCeilings and its instruction
+// the dynamic configuration and bound scale the environment runs under. Nothing is widened beyond
+// what the Case references, and anything the Case names that the catalog does not know is an error
+// rather than a silently authorized surface. Its resource ceilings are DefaultCeilings and its instruction
 // defaults DefaultInstructionLimits.
 //
 // The Profile stays an authorization snapshot, so the derived value is returned for the caller to
@@ -156,6 +159,7 @@ func DeriveProfile(source *testpilotspb.Case, catalog *testpilot.Catalog, enviro
 		ContractLimits:      contractLimits,
 		CorrelatedLimits:    correlatedLimits,
 		InstructionDefaults: DefaultInstructionLimits(),
+		BoundScale:          environment.BoundScale,
 		DeliveryControl:     environment.DeliveryControl,
 	}, nil
 }

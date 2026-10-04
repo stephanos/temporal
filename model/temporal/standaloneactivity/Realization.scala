@@ -16,8 +16,9 @@ package standaloneactivity
 
 import umpire.*
 import umpire.realize.*
-import umpire.realize.Instruction.{AttemptCanceled, AttemptFailure, Fault, Finish, Hold, Release}
+import umpire.realize.Instruction.{Finish, Hold, Release}
 import temporal.realize.*
+import temporal.realize.WorkerInstruction.{AttemptCanceled, AttemptFailure, Fault}
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus.*
 import io.temporal.api.failure.v1.{ApplicationFailureInfo, Failure}
@@ -166,7 +167,7 @@ object ActivityRealization:
   /** The activity's attempts: each delivery to the worker is an attempt start, answered in order. */
   private val attempts = script(
     "activity",
-    Activation.Activity(activityType, caseWorker, taskQueue, starts = Vector(attemptStart))
+    WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(attemptStart))
   )(
     perform(
       attemptResult(AttemptResult.completed) -> completeAttempt,
@@ -182,7 +183,7 @@ object ActivityRealization:
   // worker took it again, confirming the three at once.
 
   /** One standalone activity a controller starts and the Case's own worker runs. */
-  val standalone: Realization = temporalRealization(
+  val standalone = temporalRealization(
     machine = activityProtocol,
     operation = activity,
     roles = Vector(workflowService, caseWorker, taskQueue),
@@ -272,7 +273,7 @@ object ActivityRealization:
   // no Case lives to see, competes with no delivery.
 
   /** The stale dispatch of one paused activity, held, then delivered to admission. */
-  val heldDelivery: Realization = temporalRealization(
+  val heldDelivery = temporalRealization(
     machine = heldAdmission,
     operation = activity,
     roles = Vector(workflowService, taskQueue),
@@ -295,7 +296,7 @@ object ActivityRealization:
   )
 
   /** One lost admission answer, with its durable decision observed before the response is replaced. */
-  val lostAdmissionResponse: Realization = temporalRealization(
+  val lostAdmissionResponse = temporalRealization(
     machine = admissionResponseLoss,
     operation = activity,
     roles = Vector(workflowService, taskQueue),

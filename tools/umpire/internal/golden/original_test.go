@@ -53,11 +53,11 @@ func TestOriginalBaselineInputs(t *testing.T) {
 	current, err := OriginalCurrent(root)
 	require.NoError(t, err)
 	require.NoError(t, delta.Inventory(archived, current))
-	baselines, err := OriginalModels(archived)
+	baselines, err := OriginalModels(delta.Compared(archived))
 	require.NoError(t, err)
 	models, err := OriginalModels(current)
 	require.NoError(t, err)
-	require.Len(t, baselines, 12, "six IR Models and six positive lifter fixtures")
+	require.Len(t, baselines, 12-len(delta.Reduced), "six IR Models and six positive lifter fixtures, less the reduced ones")
 	applied := Applied{}
 	for _, key := range slices.Sorted(maps.Keys(baselines)) {
 		expected, err := delta.Expected(key, baselines[key], applied)
@@ -339,11 +339,11 @@ func TestOriginalBaselineAdmitsChoiceNamesOnEveryModel(t *testing.T) {
 	require.NoError(t, err)
 	current, err := OriginalCurrent(root)
 	require.NoError(t, err)
-	baselines, err := OriginalModels(archived)
+	baselines, err := OriginalModels(delta.Compared(archived))
 	require.NoError(t, err)
 	models, err := OriginalModels(current)
 	require.NoError(t, err)
-	require.Len(t, baselines, 12)
+	require.Len(t, baselines, 12-len(delta.Reduced))
 	applied := Applied{}
 	for _, key := range slices.Sorted(maps.Keys(baselines)) {
 		expected, err := delta.Expected(key, baselines[key], applied)
@@ -714,4 +714,71 @@ func TestOriginalInventoryAdmitsOnlyTheListedGeneratedFiles(t *testing.T) {
 	archivedNew := maps.Clone(archived)
 	archivedNew["ir/new.json"] = nil
 	require.ErrorContains(t, delta.Inventory(archivedNew, current), "listed as new and archived")
+}
+
+// TestOriginalReducedFixturesAreClosed reduces a lifter fixture as fn-114.10 does: a change of it, or
+// its retirement, passes the inventory, the Model comparison and the derived outputs, while the same
+// change of a fixture the delta does not list fails. Only an archived positive lifter fixture, listed
+// once, is reduced.
+func TestOriginalReducedFixturesAreClosed(t *testing.T) {
+	baseline, _ := originalJob(t)
+	frozen, err := Proto(baseline)
+	require.NoError(t, err)
+	changed := proto.CloneOf(baseline)
+	changed.Queries[0].Limits.Steps++
+	reduced, err := Proto(changed)
+	require.NoError(t, err)
+	archived := map[string][]byte{"ir/a.json": frozen, "lifts/b.json": frozen, "lifts/c.json": frozen, OriginalRejects: nil}
+	// digests stand for the outputs the harnesses derive from each Model, keyed as theirs are.
+	digests := func(d Delta, models map[string]*umpirespb.Model) Derived {
+		out := Derived{}
+		for key, m := range models {
+			projected, err := d.ProjectCurrent(m)
+			require.NoError(t, err)
+			out["semantics/"+key], err = ProjectedDigest(projected)
+			require.NoError(t, err)
+		}
+		return out
+	}
+	// compare reads the archive and the current files as the harnesses do.
+	compare := func(d Delta, current map[string][]byte) error {
+		if err := errors.Join(d.check(), d.Inventory(archived, current)); err != nil {
+			return err
+		}
+		all, err := OriginalModels(archived)
+		require.NoError(t, err)
+		baselines, err := OriginalModels(d.Compared(archived))
+		require.NoError(t, err)
+		models, err := OriginalModels(current)
+		require.NoError(t, err)
+		compared := map[string]*umpirespb.Model{}
+		var errs []error
+		for key, b := range baselines {
+			compared[key] = models[key]
+			errs = append(errs, d.MatchOriginal(b, models[key]))
+		}
+		return errors.Join(append(errs, CompareDerived(d.ComparedOutputs(digests(d, all)), digests(d, compared), nil))...)
+	}
+	current := maps.Clone(archived)
+	current["lifts/b.json"] = reduced
+	require.NoError(t, compare(Delta{Reduced: []string{"lifts/b.json"}}, current), "a listed fixture is a new Model")
+	require.Error(t, compare(Delta{}, current), "an unlisted fixture is compared")
+	require.Error(t, compare(Delta{Reduced: []string{"lifts/c.json"}}, current), "another listed fixture leaves this one compared")
+	gone := maps.Clone(archived)
+	delete(gone, "lifts/b.json")
+	require.NoError(t, compare(Delta{Reduced: []string{"lifts/b.json"}}, gone), "a listed fixture may be retired")
+	require.ErrorContains(t, compare(Delta{Reduced: []string{"lifts/c.json"}}, gone), "lifts/b.json is archived and no longer produced")
+	require.ErrorContains(t, compare(Delta{Reduced: []string{"lifts/unknown.json"}}, archived), "reduced fixture lifts/unknown.json is not archived")
+	for name, keys := range map[string][]string{
+		"an IR file":       {"ir/a.json"},
+		"a Case":           {"cases/a.json"},
+		"the refusals":     {OriginalRejects},
+		"no file":          {OriginalLifts},
+		"nested":           {"lifts/b/c.json"},
+		"not a fixture":    {"lifts/b.txt"},
+		"listed twice":     {"lifts/b.json", "lifts/b.json"},
+		"spelled as input": {"model/lifter/testdata/lifts/expected/b.json"},
+	} {
+		require.Error(t, Delta{Reduced: keys}.check(), name)
+	}
 }

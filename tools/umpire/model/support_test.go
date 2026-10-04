@@ -4,6 +4,7 @@ package model
 
 import (
 	"slices"
+	"testing"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 )
@@ -40,6 +41,23 @@ func (r *Report) Unsupported() []Receipt {
 		}
 	}
 	return out
+}
+
+// refinementOf is a refining machine's refinement as Check reads it: the rows RefineTables pairs
+// with the product's steps, and why the refinement is not established.
+func refinementOf(t *testing.T, m *umpirespb.Model, machine string) ([]RefinementRow, error) {
+	t.Helper()
+	b := bind(m, DefaultScope)
+	r := b.refinement(b.subject(machine))
+	if r.ref == nil {
+		return nil, r.err
+	}
+	return r.ref.Rows, r.err
+}
+
+// queryTotal is the static combination count of one Query of a Model Validate admits.
+func queryTotal(m *umpirespb.Model, q *umpirespb.Query) (Total, error) {
+	return newValidator(m).total(m, q)
 }
 
 // BuildWithin is Build within explicit ceilings.

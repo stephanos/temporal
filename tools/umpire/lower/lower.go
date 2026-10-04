@@ -1,4 +1,4 @@
-// Package testpilot lowers a find Query of an admitted IR Model into a Testpilot Case, through the
+// Package lower lowers a find Query of an admitted IR Model into a Testpilot Case, through the
 // realization the Model declares for the Query's machine.
 //
 // A Case is built here and nowhere else for a Model the IR carries: the front end declares the

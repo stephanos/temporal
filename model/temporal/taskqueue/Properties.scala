@@ -13,7 +13,7 @@ final case class QueueLaws(delivers: Property[QueueDetail], committedStays: Prop
  * stays held until it is acknowledged. Each takes its name explicitly, so every provider's instance
  * keeps the name its checks read.
  */
-def queueLaws(m: Machine[QueueDetail, QueueOutcome, QueueFact]): QueueLaws = QueueLaws(
+def queueLaws(m: Machine[QueueDetail, QueueOutcome, QueueFact]) = QueueLaws(
   m.property("delivers") when deliver holds (after => after.records(QueueFact.delivered)),
   m.property("committedStays")
     .stays(_.custody != Custody.nowhere)

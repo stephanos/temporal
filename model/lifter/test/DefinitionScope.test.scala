@@ -47,6 +47,7 @@ class DefinitionScope extends munit.FunSuite:
       "fixture.realizations",
       Seq(
         "learnedRun",
+        "runOpens",
         "pauseRace",
         "pauseRaceQuery",
         "doorRealization",
@@ -58,10 +59,6 @@ class DefinitionScope extends munit.FunSuite:
         "tallyOpens"
       )
     )
-  )
-  // A realization fixture root that is not moved.
-  private val unmoved = Map(
-    "realizations" -> Seq("temporal.nexuscaller.Queries$package$.syncCompletion")
   )
   private val kinds = Seq("actions", "monitors", "assumptions", "holes", "channels", "realizations")
 
@@ -147,7 +144,7 @@ class DefinitionScope extends munit.FunSuite:
         modelClasspath.toString,
         out.toString
       )
-        ++ roots.map(s"$owner." + _) ++ unmoved.getOrElse(fixture, Nil)
+        ++ roots.map(s"$owner." + _)
       (fixture, stem, pkg, owner, out, Future(blocking(lift(arguments*))))
     runs.map: (fixture, stem, pkg, owner, out, run) =>
       val ran = Await.result(run, munitTimeout)

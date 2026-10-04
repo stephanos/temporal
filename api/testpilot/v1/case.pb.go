@@ -603,79 +603,6 @@ func (x *DefinitionBinding) GetKind() DefinitionKind {
 	return DEFINITION_KIND_UNSPECIFIED
 }
 
-// SourceLocation is a position in the Producer's source.
-type SourceLocation struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Relative to the Producer's source root.
-	Path string `protobuf:"bytes,1,opt,name=path,proto3" json:"path,omitempty"`
-	// One-based; zero when the Producer knows no position.
-	Line int32 `protobuf:"varint,2,opt,name=line,proto3" json:"line,omitempty"`
-	// One-based; zero when the Producer knows no position.
-	Column int32 `protobuf:"varint,3,opt,name=column,proto3" json:"column,omitempty"`
-	// How the source was obtained, such as authored or checked-model.
-	Provenance    string `protobuf:"bytes,4,opt,name=provenance,proto3" json:"provenance,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *SourceLocation) Reset() {
-	*x = SourceLocation{}
-	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[5]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *SourceLocation) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*SourceLocation) ProtoMessage() {}
-
-func (x *SourceLocation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[5]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use SourceLocation.ProtoReflect.Descriptor instead.
-func (*SourceLocation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *SourceLocation) GetPath() string {
-	if x != nil {
-		return x.Path
-	}
-	return ""
-}
-
-func (x *SourceLocation) GetLine() int32 {
-	if x != nil {
-		return x.Line
-	}
-	return 0
-}
-
-func (x *SourceLocation) GetColumn() int32 {
-	if x != nil {
-		return x.Column
-	}
-	return 0
-}
-
-func (x *SourceLocation) GetProvenance() string {
-	if x != nil {
-		return x.Provenance
-	}
-	return ""
-}
-
 // KnownGap is one missing or unsupported capability, input, interpretation or claim that limits what
 // the Case can prove.
 type KnownGap struct {
@@ -697,7 +624,7 @@ type KnownGap struct {
 
 func (x *KnownGap) Reset() {
 	*x = KnownGap{}
-	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -709,7 +636,7 @@ func (x *KnownGap) String() string {
 func (*KnownGap) ProtoMessage() {}
 
 func (x *KnownGap) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -722,7 +649,7 @@ func (x *KnownGap) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KnownGap.ProtoReflect.Descriptor instead.
 func (*KnownGap) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{6}
+	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *KnownGap) GetKind() KnownGapKind {
@@ -808,7 +735,7 @@ type CorrelatedRuleBinding struct {
 
 func (x *CorrelatedRuleBinding) Reset() {
 	*x = CorrelatedRuleBinding{}
-	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -820,7 +747,7 @@ func (x *CorrelatedRuleBinding) String() string {
 func (*CorrelatedRuleBinding) ProtoMessage() {}
 
 func (x *CorrelatedRuleBinding) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -833,7 +760,7 @@ func (x *CorrelatedRuleBinding) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CorrelatedRuleBinding.ProtoReflect.Descriptor instead.
 func (*CorrelatedRuleBinding) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{7}
+	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CorrelatedRuleBinding) GetRuleId() string {
@@ -894,7 +821,7 @@ type LocalName struct {
 
 func (x *LocalName) Reset() {
 	*x = LocalName{}
-	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -906,7 +833,7 @@ func (x *LocalName) String() string {
 func (*LocalName) ProtoMessage() {}
 
 func (x *LocalName) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -919,7 +846,7 @@ func (x *LocalName) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LocalName.ProtoReflect.Descriptor instead.
 func (*LocalName) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{8}
+	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *LocalName) GetLocalName() string {
@@ -955,7 +882,7 @@ type ModelValueFingerprint struct {
 
 func (x *ModelValueFingerprint) Reset() {
 	*x = ModelValueFingerprint{}
-	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[9]
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -967,7 +894,7 @@ func (x *ModelValueFingerprint) String() string {
 func (*ModelValueFingerprint) ProtoMessage() {}
 
 func (x *ModelValueFingerprint) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[9]
+	mi := &file_temporal_server_api_testpilot_v1_case_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -980,7 +907,7 @@ func (x *ModelValueFingerprint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ModelValueFingerprint.ProtoReflect.Descriptor instead.
 func (*ModelValueFingerprint) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{9}
+	return file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ModelValueFingerprint) GetLocalName() string {
@@ -1008,7 +935,7 @@ var File_temporal_server_api_testpilot_v1_case_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_case_proto_rawDesc = "" +
 	"\n" +
-	"+temporal/server/api/testpilot/v1/case.proto\x12 temporal.server.api.testpilot.v1\x1a/temporal/server/api/testpilot/v1/contract.proto\x1a.temporal/server/api/testpilot/v1/program.proto\"\xc9\x02\n" +
+	"+temporal/server/api/testpilot/v1/case.proto\x12 temporal.server.api.testpilot.v1\x1a/temporal/server/api/testpilot/v1/contract.proto\x1a.temporal/server/api/testpilot/v1/program.proto\x1a-temporal/server/api/testpilot/v1/source.proto\"\xc9\x02\n" +
 	"\x04Case\x12\x17\n" +
 	"\acase_id\x18\x01 \x01(\tR\x06caseId\x12I\n" +
 	"\aversion\x18\x02 \x01(\v2/.temporal.server.api.testpilot.v1.FormatVersionR\aversion\x12P\n" +
@@ -1042,14 +969,7 @@ const file_temporal_server_api_testpilot_v1_case_proto_rawDesc = "" +
 	"\x11DefinitionBinding\x12#\n" +
 	"\rdefinition_id\x18\x01 \x01(\tR\fdefinitionId\x121\n" +
 	"\x14behavior_fingerprint\x18\x02 \x01(\tR\x13behaviorFingerprint\x12D\n" +
-	"\x04kind\x18\x03 \x01(\x0e20.temporal.server.api.testpilot.v1.DefinitionKindR\x04kind\"p\n" +
-	"\x0eSourceLocation\x12\x12\n" +
-	"\x04path\x18\x01 \x01(\tR\x04path\x12\x12\n" +
-	"\x04line\x18\x02 \x01(\x05R\x04line\x12\x16\n" +
-	"\x06column\x18\x03 \x01(\x05R\x06column\x12\x1e\n" +
-	"\n" +
-	"provenance\x18\x04 \x01(\tR\n" +
-	"provenance\"\xbf\x01\n" +
+	"\x04kind\x18\x03 \x01(\x0e20.temporal.server.api.testpilot.v1.DefinitionKindR\x04kind\"\xbf\x01\n" +
 	"\bKnownGap\x12B\n" +
 	"\x04kind\x18\x01 \x01(\x0e2..temporal.server.api.testpilot.v1.KnownGapKindR\x04kind\x12\x12\n" +
 	"\x04code\x18\x02 \x01(\tR\x04code\x12\x1a\n" +
@@ -1113,7 +1033,7 @@ func file_temporal_server_api_testpilot_v1_case_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_testpilot_v1_case_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_temporal_server_api_testpilot_v1_case_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_temporal_server_api_testpilot_v1_case_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_temporal_server_api_testpilot_v1_case_proto_goTypes = []any{
 	(DefinitionKind)(0),           // 0: temporal.server.api.testpilot.v1.DefinitionKind
 	(KnownGapKind)(0),             // 1: temporal.server.api.testpilot.v1.KnownGapKind
@@ -1122,29 +1042,29 @@ var file_temporal_server_api_testpilot_v1_case_proto_goTypes = []any{
 	(*CaseProvenance)(nil),        // 4: temporal.server.api.testpilot.v1.CaseProvenance
 	(*AbstractionClaim)(nil),      // 5: temporal.server.api.testpilot.v1.AbstractionClaim
 	(*DefinitionBinding)(nil),     // 6: temporal.server.api.testpilot.v1.DefinitionBinding
-	(*SourceLocation)(nil),        // 7: temporal.server.api.testpilot.v1.SourceLocation
-	(*KnownGap)(nil),              // 8: temporal.server.api.testpilot.v1.KnownGap
-	(*CorrelatedRuleBinding)(nil), // 9: temporal.server.api.testpilot.v1.CorrelatedRuleBinding
-	(*LocalName)(nil),             // 10: temporal.server.api.testpilot.v1.LocalName
-	(*ModelValueFingerprint)(nil), // 11: temporal.server.api.testpilot.v1.ModelValueFingerprint
-	(*Program)(nil),               // 12: temporal.server.api.testpilot.v1.Program
-	(*Contract)(nil),              // 13: temporal.server.api.testpilot.v1.Contract
+	(*KnownGap)(nil),              // 7: temporal.server.api.testpilot.v1.KnownGap
+	(*CorrelatedRuleBinding)(nil), // 8: temporal.server.api.testpilot.v1.CorrelatedRuleBinding
+	(*LocalName)(nil),             // 9: temporal.server.api.testpilot.v1.LocalName
+	(*ModelValueFingerprint)(nil), // 10: temporal.server.api.testpilot.v1.ModelValueFingerprint
+	(*Program)(nil),               // 11: temporal.server.api.testpilot.v1.Program
+	(*Contract)(nil),              // 12: temporal.server.api.testpilot.v1.Contract
+	(*SourceLocation)(nil),        // 13: temporal.server.api.testpilot.v1.SourceLocation
 }
 var file_temporal_server_api_testpilot_v1_case_proto_depIdxs = []int32{
 	3,  // 0: temporal.server.api.testpilot.v1.Case.version:type_name -> temporal.server.api.testpilot.v1.FormatVersion
 	4,  // 1: temporal.server.api.testpilot.v1.Case.provenance:type_name -> temporal.server.api.testpilot.v1.CaseProvenance
-	12, // 2: temporal.server.api.testpilot.v1.Case.program:type_name -> temporal.server.api.testpilot.v1.Program
-	13, // 3: temporal.server.api.testpilot.v1.Case.contract:type_name -> temporal.server.api.testpilot.v1.Contract
+	11, // 2: temporal.server.api.testpilot.v1.Case.program:type_name -> temporal.server.api.testpilot.v1.Program
+	12, // 3: temporal.server.api.testpilot.v1.Case.contract:type_name -> temporal.server.api.testpilot.v1.Contract
 	6,  // 4: temporal.server.api.testpilot.v1.CaseProvenance.definitions:type_name -> temporal.server.api.testpilot.v1.DefinitionBinding
-	7,  // 5: temporal.server.api.testpilot.v1.CaseProvenance.sources:type_name -> temporal.server.api.testpilot.v1.SourceLocation
-	8,  // 6: temporal.server.api.testpilot.v1.CaseProvenance.known_gaps:type_name -> temporal.server.api.testpilot.v1.KnownGap
-	9,  // 7: temporal.server.api.testpilot.v1.CaseProvenance.correlated_rules:type_name -> temporal.server.api.testpilot.v1.CorrelatedRuleBinding
-	10, // 8: temporal.server.api.testpilot.v1.CaseProvenance.local_names:type_name -> temporal.server.api.testpilot.v1.LocalName
-	11, // 9: temporal.server.api.testpilot.v1.CaseProvenance.model_value_fingerprints:type_name -> temporal.server.api.testpilot.v1.ModelValueFingerprint
+	13, // 5: temporal.server.api.testpilot.v1.CaseProvenance.sources:type_name -> temporal.server.api.testpilot.v1.SourceLocation
+	7,  // 6: temporal.server.api.testpilot.v1.CaseProvenance.known_gaps:type_name -> temporal.server.api.testpilot.v1.KnownGap
+	8,  // 7: temporal.server.api.testpilot.v1.CaseProvenance.correlated_rules:type_name -> temporal.server.api.testpilot.v1.CorrelatedRuleBinding
+	9,  // 8: temporal.server.api.testpilot.v1.CaseProvenance.local_names:type_name -> temporal.server.api.testpilot.v1.LocalName
+	10, // 9: temporal.server.api.testpilot.v1.CaseProvenance.model_value_fingerprints:type_name -> temporal.server.api.testpilot.v1.ModelValueFingerprint
 	5,  // 10: temporal.server.api.testpilot.v1.CaseProvenance.abstraction_claims:type_name -> temporal.server.api.testpilot.v1.AbstractionClaim
 	0,  // 11: temporal.server.api.testpilot.v1.DefinitionBinding.kind:type_name -> temporal.server.api.testpilot.v1.DefinitionKind
 	1,  // 12: temporal.server.api.testpilot.v1.KnownGap.kind:type_name -> temporal.server.api.testpilot.v1.KnownGapKind
-	7,  // 13: temporal.server.api.testpilot.v1.CorrelatedRuleBinding.source:type_name -> temporal.server.api.testpilot.v1.SourceLocation
+	13, // 13: temporal.server.api.testpilot.v1.CorrelatedRuleBinding.source:type_name -> temporal.server.api.testpilot.v1.SourceLocation
 	14, // [14:14] is the sub-list for method output_type
 	14, // [14:14] is the sub-list for method input_type
 	14, // [14:14] is the sub-list for extension type_name
@@ -1159,7 +1079,8 @@ func file_temporal_server_api_testpilot_v1_case_proto_init() {
 	}
 	file_temporal_server_api_testpilot_v1_contract_proto_init()
 	file_temporal_server_api_testpilot_v1_program_proto_init()
-	file_temporal_server_api_testpilot_v1_case_proto_msgTypes[6].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_source_proto_init()
+	file_temporal_server_api_testpilot_v1_case_proto_msgTypes[5].OneofWrappers = []any{
 		(*KnownGap_Subject)(nil),
 		(*KnownGap_Detail)(nil),
 	}
@@ -1169,7 +1090,7 @@ func file_temporal_server_api_testpilot_v1_case_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_case_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_case_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   10,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

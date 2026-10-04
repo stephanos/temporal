@@ -1,8 +1,8 @@
 package lower
 
 // The realizations of model/lifter/testdata/lifts/Realizations.scala, lifted into
-// expected/realizations.json: a run id one command binds and two branches read, and the activity
-// specimen's held race, which declares what Testpilot cannot run yet.
+// expected/realizations.json: a run id one command binds and two branches read, and a held race,
+// which declares what Testpilot cannot run yet.
 
 import (
 	"os"
@@ -64,7 +64,7 @@ func after(n *testpilotspb.InstructionNode) []string {
 func TestALearnedTextIsBoundOnceAndReadByIndependentBranches(t *testing.T) {
 	p, err := NewProducer(liftedRealizations(t))
 	require.NoError(t, err)
-	l, err := p.Lower("syncCompletion", cp.IdentityFor("temporal.case", "fixture", "learnedRun"))
+	l, err := p.Lower("run.opens", cp.IdentityFor("temporal.case", "fixture", "learnedRun"))
 	require.NoError(t, err)
 	require.Equal(t, Lowered, l.Standing)
 	c := l.Case
@@ -83,16 +83,16 @@ func TestALearnedTextIsBoundOnceAndReadByIndependentBranches(t *testing.T) {
 	require.Len(t, reads[0].GetTargets(), 1)
 	require.Equal(t, "workflow-run", reads[0].GetTargets()[0].GetSlotId())
 
-	scheduled := instruction(t, c, "controller", "await-scheduled")
+	started := instruction(t, c, "controller", "await-started")
 	closed := instruction(t, c, "controller", "await-close")
-	require.Equal(t, []string{"controller/start-workflow"}, after(scheduled))
+	require.Equal(t, []string{"controller/start-workflow"}, after(started))
 	require.Equal(t, []string{"controller/start-workflow"}, after(closed))
-	require.Equal(t, "workflow-run", slotOf(assigned(t, scheduled.GetInstruction().GetReadEvidence().GetRequestAssignments(), "execution.run_id")))
+	require.Equal(t, "workflow-run", slotOf(assigned(t, started.GetInstruction().GetReadEvidence().GetRequestAssignments(), "execution.run_id")))
 	require.Equal(t, "workflow-run", slotOf(assigned(t, closed.GetInstruction().GetInvokeRpc().GetRequestAssignments(), "execution.run_id")))
 	bound := cp.Present(slot("workflow-run"))
-	require.True(t, proto.Equal(bound, scheduled.GetGuard()), "a command reads the learned text only where it is bound")
+	require.True(t, proto.Equal(bound, started.GetGuard()), "a command reads the learned text only where it is bound")
 	require.True(t, proto.Equal(bound, closed.GetGuard()))
-	require.Equal(t, []string{"controller/await-scheduled", "controller/await-close"}, after(instruction(t, c, "controller", "history")))
+	require.Equal(t, []string{"controller/await-started", "controller/await-close"}, after(instruction(t, c, "controller", "history")))
 
 	encoded, err := protojson.Marshal(c)
 	require.NoError(t, err)
@@ -124,14 +124,14 @@ func lineOf(t *testing.T, position string) string {
 // The held race of the fixture declares what no Driver realizes: a durable commit read back through a
 // public listing, and a control that holds the deliveries of a channel, with the commands that use it.
 // Lowering names each where it was written, as a limit no task owns, and builds no Case around them.
-// Its activity script is no gap: Testpilot runs an activity's attempts. Neither are its machine's
-// authored monitors: a Case carries none, and the prepared assessment reads each beside the Contract.
-// The race a Driver does realize holds what a step dispatched to a task queue, and reads the commit
-// from the release that observed it (ir/activity-race.json; TestTheHeldRaceLowers).
+// The race a Driver does realize holds what a step dispatched to a task queue, reads the commit from
+// the release that observed it, and runs on a machine whose authored monitors are no gap
+// (ir/activity-race.json; TestTheHeldRaceLowers). Nor is an activity script: Testpilot runs an
+// activity's attempts (the errand; TestAnActivityScriptLowersToItsAttemptsInOrder).
 func TestWhatTestpilotCannotRunIsNamedWithItsOwner(t *testing.T) {
 	p, err := NewProducer(liftedRealizations(t))
 	require.NoError(t, err)
-	l, err := p.Lower("staleAdmission.pauseRace", cp.IdentityFor("temporal.case", "fixture", "pauseRace"))
+	l, err := p.Lower("race.paused", cp.IdentityFor("temporal.case", "fixture", "pauseRace"))
 	require.NoError(t, err)
 	require.Equal(t, NotSupported, l.Standing)
 	require.Nil(t, l.Case)
@@ -140,7 +140,6 @@ func TestWhatTestpilotCannotRunIsNamedWithItsOwner(t *testing.T) {
 	type gap struct{ construct, id, owner, file, written string }
 	want := []gap{
 		{"durable-commit observation", "fixture.realizations.race.evidence.dispatchEnqueued", ownerNone, realizationsAt, "Evidence.read("},
-		{"durable-commit observation", "fixture.realizations.race.evidence.attemptAdmitted", ownerNone, realizationsAt, "Evidence.read("},
 		{"hold-delivery control", "hold-dispatch", ownerNone, realizationsAt, "Actuator(holdDispatch"},
 		{"hold-delivery command", "controller/hold-dispatch-before-start", ownerNone, realizationsAt, "hold-dispatch-before-start"},
 		{"hold-delivery command", "controller/release-dispatch", ownerNone, realizationsAt, "release-dispatch"},
@@ -217,7 +216,7 @@ func TestAGapHidesNoError(t *testing.T) {
 		s.Items = append(s.GetItems()[:2], s.GetItems()[3:]...)
 	}
 	const noMethod = "temporal.api.workflowservice.v1.WorkflowService has no method BeginActivityExecution"
-	const noPerformer = "scenario heldRace takes control-pause, a step of caller, and no script of realization pauseRace performs it"
+	const noPerformer = "scenario heldRace takes push, a step of doorkeeper, and no script of realization pauseRace performs it"
 	for _, c := range []struct {
 		name   string
 		mutate []func(*testing.T, *umpirespb.Model)
@@ -232,14 +231,14 @@ func TestAGapHidesNoError(t *testing.T) {
 					r.GetEvidence()[0].GetRead().Path = "next_page_token"
 				}
 			}
-		}}, []string{"evidence fixture.realizations.race.evidence.statusPaused is read from next_page_token, which is no repeated message"}},
+		}}, []string{"evidence fixture.realizations.race.evidence.doorOpened is read from next_page_token, which is no repeated message"}},
 		{"a fact of the path no kind of evidence records", []func(*testing.T, *umpirespb.Model){func(_ *testing.T, m *umpirespb.Model) {
 			for _, r := range m.GetRealizations() {
 				if r.GetName() == "pauseRace" {
 					r.GetEvidence()[0].Records = "pausedElsewhere"
 				}
 			}
-		}}, []string{"query staleAdmission.pauseRace: statusPaused: evidence.kind-unknown"}},
+		}}, []string{"query race.paused: doorOpened: evidence.kind-unknown"}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			m := liftedRealizations(t)
@@ -248,7 +247,7 @@ func TestAGapHidesNoError(t *testing.T) {
 			}
 			p, err := NewProducer(m)
 			require.NoError(t, err)
-			l, err := p.Lower("staleAdmission.pauseRace", cp.IdentityFor("temporal.case", "fixture", "pauseRace"))
+			l, err := p.Lower("race.paused", cp.IdentityFor("temporal.case", "fixture", "pauseRace"))
 			require.Nil(t, l)
 			for _, want := range c.want {
 				require.ErrorContains(t, err, want)

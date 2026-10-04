@@ -64,6 +64,12 @@ type Config struct {
 	// entry that names a position applies.
 	Merges     []Substitution `json:"source_path_merges"`
 	Projection Projection     `json:"projection"`
+	// Reduced are the IR inventory paths of the original baseline's reduced fixtures, which
+	// Configuration reads from original.json (Delta.Reduced) rather than a list of its own: one decision
+	// about one file, at the original-baseline key MatchAt already reads the delta at. Its inventory
+	// entry stays, naming what the goldens froze; Inputs leaves it out, present or retired, so none of
+	// its goldens is compared (Unreduced).
+	Reduced []string `json:"-"`
 }
 
 // Projection is what Match ignores when the current IR is compared with the mapped original, beyond
@@ -118,7 +124,43 @@ func Configuration() (Config, error) {
 	if err := decoder.Decode(&c); err != nil {
 		return c, err
 	}
+	delta, err := OriginalDelta()
+	if err != nil {
+		return c, err
+	}
+	if c.Reduced, err = c.reduced(delta.Reduced); err != nil {
+		return c, err
+	}
 	return c, c.Projection.caseKinds()
+}
+
+// reduced gives the IR inventory path of each reduced fixture's archive key: a lifter fixture of the
+// inventory, never a later one, listed once.
+func (c Config) reduced(keys []string) ([]string, error) {
+	var out []string
+	for _, key := range keys {
+		i := slices.IndexFunc(c.Inventory, func(path string) bool { return OriginalKey(path) == key })
+		if !strings.HasPrefix(key, OriginalLifts) || i < 0 || slices.Contains(out, c.Inventory[i]) {
+			return nil, fmt.Errorf("reduced fixture %q is not one lifter fixture of the IR inventory", key)
+		}
+		out = append(out, c.Inventory[i])
+	}
+	return out, nil
+}
+
+// Unreduced gives the migration goldens without every entry of a reduced fixture: its frozen input,
+// its readings and what it lowers to, under whichever directory they are filed.
+func (c Config) Unreduced(goldens map[string][]byte) map[string][]byte {
+	out := maps.Clone(goldens)
+	for _, path := range c.Reduced {
+		file := "/" + strings.TrimPrefix(path, "model/scalav2/")
+		for key := range goldens {
+			if strings.HasSuffix(key, file) || strings.Contains(key, file+"/") {
+				delete(out, key)
+			}
+		}
+	}
+	return out
 }
 
 func (p Projection) caseKinds() error {
@@ -232,7 +274,20 @@ func IRFiles(dir string) ([]string, error) {
 	return slices.DeleteFunc(paths, func(p string) bool { return IsLawSidecar(p) || IsAccepted(p) }), nil
 }
 
+// inventoried checks that each reduced fixture is an entry of the IR inventory.
+func (c Config) inventoried() error {
+	for _, path := range c.Reduced {
+		if !slices.Contains(c.Inventory, path) {
+			return fmt.Errorf("reduced IR inventory entry %s is not inventoried", path)
+		}
+	}
+	return nil
+}
+
 func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
+	if err := c.inventoried(); err != nil {
+		return nil, err
+	}
 	base := "model/scalav2"
 	if _, err := os.Stat(filepath.Join(root, base)); errors.Is(err, fs.ErrNotExist) {
 		base = "model"
@@ -263,6 +318,8 @@ func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
 			return nil, fmt.Errorf("missing later IR inventory entry %s", path)
 		}
 	}
+	// A reduced fixture is a new Model, or retired: it is compared with no frozen input.
+	maps.DeleteFunc(expected, func(_, entry string) bool { return slices.Contains(c.Reduced, entry) })
 	out := map[string]*umpirespb.Model{}
 	for _, path := range slices.Sorted(maps.Keys(expected)) {
 		if !found[path] {

@@ -194,7 +194,8 @@ not exported to P and no P module refinement is checked.
 | .NET SDK | 8.0.425 | `curl -sSL https://dot.net/v1/dotnet-install.sh | bash -s -- --channel 8.0 --install-dir .build/umpire-backend-tools/dotnet` |
 | P | 3.1.0 | `dotnet tool install P --version 3.1.0 --tool-path .build/umpire-backend-tools/p` |
 
-.NET and P are installed once, by the two commands of the table, run from the repository's root.
+.NET and P are installed once, by the two commands of the table, run from the repository's root;
+`make umpire-install-backends` runs both and skips a tool that is already there.
 `UMPIRE_BACKEND_TOOLS` moves the tool directory. Nothing is added to `mise.toml` and no binary is
 checked in. `quint verify` starts an Apalache server and leaves it running; the checks use port
 38822 and stop the server on that port when they end.

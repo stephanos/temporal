@@ -19,15 +19,13 @@ type binding struct {
 	in       *Interpreter
 	machines map[string]*Machine
 	// failed is why a machine has no table, which stays with that machine and what depends on it.
-	// unevaluated is why Build has no refinement of a machine to compare a checked one with.
-	failed      map[string]error
-	unevaluated map[string]error
-	actions     map[string]*umpirespb.Action
-	catalogs    map[string]map[string]Value
-	subjects    map[string]*subject
-	refined     map[string]*refined
-	properties  map[claim]*PropertyDecl
-	scenarios   map[scheduled]*ScenarioDecl
+	failed     map[string]error
+	actions    map[string]*umpirespb.Action
+	catalogs   map[string]map[string]Value
+	subjects   map[string]*subject
+	refined    map[string]*refined
+	properties map[claim]*PropertyDecl
+	scenarios  map[scheduled]*ScenarioDecl
 	// realizing is whether a machine's table also carries what a producer of Cases reads beside its
 	// rows: each state's fields and the machine's Abstraction Claims.
 	realizing bool
@@ -45,7 +43,7 @@ func bind(m *umpirespb.Model, scope Scope) *binding {
 	in := NewInterpreter(m)
 	in.ceilings = scope.Ceilings
 	built := in.interpret(m)
-	b := &binding{model: m, scope: scope, in: in, machines: built.machines, failed: built.failed, unevaluated: built.unrefined,
+	b := &binding{model: m, scope: scope, in: in, machines: built.machines, failed: built.failed,
 		actions: map[string]*umpirespb.Action{}, catalogs: map[string]map[string]Value{}, subjects: map[string]*subject{},
 		refined: map[string]*refined{}, properties: map[claim]*PropertyDecl{}, scenarios: map[scheduled]*ScenarioDecl{}}
 	for _, a := range m.GetActions() {

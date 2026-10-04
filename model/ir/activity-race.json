@@ -546,7 +546,7 @@
     "name": "admissionResponseLoss.property.committedDespiteLostResponse",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 69
+      "line": 43
     },
     "params": [ {
       "name": "after",
@@ -557,14 +557,14 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-        "line": 70
+        "line": 44
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 70
+            "line": 44
           },
           "literal": {
             "enum": {
@@ -576,13 +576,13 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 70
+            "line": 44
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-                "line": 70
+                "line": 44
               },
               "var": "after"
             },
@@ -786,7 +786,7 @@
     "name": "heldAdmission.property.staleDeliveryRejected",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 65
+      "line": 39
     },
     "params": [ {
       "name": "step",
@@ -797,14 +797,14 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-        "line": 65
+        "line": 39
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 65
+            "line": 39
           },
           "literal": {
             "enum": {
@@ -816,13 +816,13 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 65
+            "line": 39
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-                "line": 65
+                "line": 39
               },
               "var": "step"
             },
@@ -5527,7 +5527,7 @@
     "name": "committedDespiteLostResponse",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 69
+      "line": 43
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.System$package$.ackLoss"
@@ -5538,7 +5538,7 @@
     "name": "staleDeliveryRejected",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 65
+      "line": 39
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart"
@@ -5747,7 +5747,7 @@
     "name": "heldDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/Realization.scala",
-      "line": 275
+      "line": 276
     },
     "machine": "heldAdmission",
     "producer": "temporal.activity.standalone.testpilot",
@@ -5835,7 +5835,7 @@
       "id": "temporal.activity.standalone.evidence.statusPaused",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
-        "line": 35
+        "line": 36
       },
       "records": "statusPaused",
       "source": "temporal.activity.standalone.source.statusPaused",
@@ -5849,7 +5849,7 @@
       "id": "temporal.activity.standalone.evidence.admissionRejected",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
-        "line": 251
+        "line": 252
       },
       "records": "admissionRejected",
       "source": "temporal.activity.standalone.source.record",
@@ -5860,13 +5860,13 @@
         "key": {
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
-            "line": 259
+            "line": 260
           },
           "path": {
             "of": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Realization.scala",
-                "line": 259
+                "line": 260
               },
               "projected": { }
             },
@@ -5876,7 +5876,7 @@
         "guard": {
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
-            "line": 263
+            "line": 264
           },
           "all": {
             "operands": [ {
@@ -5914,19 +5914,19 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/Realization.scala",
-                "line": 238
+                "line": 239
               },
               "equal": {
                 "left": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Realization.scala",
-                    "line": 238
+                    "line": 239
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Realization.scala",
-                        "line": 238
+                        "line": 239
                       },
                       "projected": { }
                     },
@@ -5936,7 +5936,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Realization.scala",
-                    "line": 238
+                    "line": 239
                   },
                   "literal": {
                     "enumName": "DELIVERY_ADMISSION_DECISION_REJECTED"
@@ -5968,7 +5968,7 @@
       "id": "temporal.activity.standalone.evidence.attemptAdmitted",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
-        "line": 251
+        "line": 252
       },
       "records": "attemptAdmitted",
       "source": "temporal.activity.standalone.source.record",
@@ -5979,13 +5979,13 @@
         "key": {
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
-            "line": 259
+            "line": 260
           },
           "path": {
             "of": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Realization.scala",
-                "line": 259
+                "line": 260
               },
               "projected": { }
             },
@@ -5995,7 +5995,7 @@
         "guard": {
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
-            "line": 263
+            "line": 264
           },
           "all": {
             "operands": [ {
@@ -6033,19 +6033,19 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/Realization.scala",
-                "line": 238
+                "line": 239
               },
               "equal": {
                 "left": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Realization.scala",
-                    "line": 238
+                    "line": 239
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Realization.scala",
-                        "line": 238
+                        "line": 239
                       },
                       "projected": { }
                     },
@@ -6055,7 +6055,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Realization.scala",
-                    "line": 238
+                    "line": 239
                   },
                   "literal": {
                     "enumName": "DELIVERY_ADMISSION_DECISION_ADMITTED"
@@ -6105,7 +6105,7 @@
       "id": "hold-dispatch",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
-        "line": 224
+        "line": 225
       },
       "holdDispatched": {
         "step": {
@@ -6124,13 +6124,13 @@
       "items": [ {
         "position": {
           "file": "model/temporal/standaloneactivity/Realization.scala",
-          "line": 281
+          "line": 282
         },
         "command": {
           "id": "start-activity",
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
-            "line": 84
+            "line": 85
           },
           "rpc": {
             "role": "temporal.workflow-service",
@@ -6158,7 +6158,7 @@
               "value": {
                 "position": {
                   "file": "model/temporal/standaloneactivity/Realization.scala",
-                  "line": 80
+                  "line": 81
                 },
                 "literal": {
                   "named": {
@@ -6203,12 +6203,12 @@
       }, {
         "position": {
           "file": "model/temporal/standaloneactivity/Realization.scala",
-          "line": 282
+          "line": 283
         },
         "performs": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
-            "line": 282
+            "line": 283
           },
           "step": {
             "action": "temporal.standaloneactivity.System$package$.dispatch"
@@ -6217,7 +6217,7 @@
             "id": "hold-dispatch",
             "position": {
               "file": "model/temporal/standaloneactivity/Realization.scala",
-              "line": 225
+              "line": 226
             },
             "hold": "hold-dispatch"
           }
@@ -6225,12 +6225,12 @@
       }, {
         "position": {
           "file": "model/temporal/standaloneactivity/Realization.scala",
-          "line": 283
+          "line": 284
         },
         "performs": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
-            "line": 283
+            "line": 284
           },
           "step": {
             "action": "temporal.standaloneactivity.Model$package$.control",
@@ -6245,7 +6245,7 @@
             "id": "pause-activity",
             "position": {
               "file": "model/temporal/standaloneactivity/Realization.scala",
-              "line": 88
+              "line": 89
             },
             "rpc": {
               "role": "temporal.workflow-service",
@@ -6275,7 +6275,7 @@
       }, {
         "position": {
           "file": "model/temporal/standaloneactivity/Realization.scala",
-          "line": 284
+          "line": 285
         },
         "command": {
           "id": "await-paused",
@@ -6308,19 +6308,19 @@
             "until": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Realization.scala",
-                "line": 57
+                "line": 58
               },
               "equal": {
                 "left": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Realization.scala",
-                    "line": 57
+                    "line": 58
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Realization.scala",
-                        "line": 57
+                        "line": 58
                       },
                       "projected": { }
                     },
@@ -6330,7 +6330,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Realization.scala",
-                    "line": 57
+                    "line": 58
                   },
                   "literal": {
                     "enumName": "ACTIVITY_EXECUTION_STATUS_PAUSED"
@@ -6353,12 +6353,12 @@
       }, {
         "position": {
           "file": "model/temporal/standaloneactivity/Realization.scala",
-          "line": 285
+          "line": 286
         },
         "performs": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
-            "line": 285
+            "line": 286
           },
           "step": {
             "action": "temporal.standaloneactivity.Model$package$.attemptStart"
@@ -6367,7 +6367,7 @@
             "id": "release-dispatch",
             "position": {
               "file": "model/temporal/standaloneactivity/Realization.scala",
-              "line": 230
+              "line": 231
             },
             "release": "hold-dispatch",
             "closes": [ "temporal.activity.standalone.evidence.attemptAdmitted" ]
@@ -6381,7 +6381,7 @@
     "name": "lostAdmissionResponse",
     "position": {
       "file": "model/temporal/standaloneactivity/Realization.scala",
-      "line": 298
+      "line": 299
     },
     "machine": "admissionResponseLoss",
     "producer": "temporal.activity.standalone.testpilot",
@@ -6469,7 +6469,7 @@
       "id": "temporal.activity.standalone.evidence.attemptAdmitted",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
-        "line": 251
+        "line": 252
       },
       "records": "attemptAdmitted",
       "source": "temporal.activity.standalone.source.record",
@@ -6480,13 +6480,13 @@
         "key": {
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
-            "line": 259
+            "line": 260
           },
           "path": {
             "of": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Realization.scala",
-                "line": 259
+                "line": 260
               },
               "projected": { }
             },
@@ -6496,7 +6496,7 @@
         "guard": {
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
-            "line": 263
+            "line": 264
           },
           "all": {
             "operands": [ {
@@ -6534,19 +6534,19 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/Realization.scala",
-                "line": 238
+                "line": 239
               },
               "equal": {
                 "left": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Realization.scala",
-                    "line": 238
+                    "line": 239
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Realization.scala",
-                        "line": 238
+                        "line": 239
                       },
                       "projected": { }
                     },
@@ -6556,7 +6556,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Realization.scala",
-                    "line": 238
+                    "line": 239
                   },
                   "literal": {
                     "enumName": "DELIVERY_ADMISSION_DECISION_ADMITTED"
@@ -6566,19 +6566,19 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/Realization.scala",
-                "line": 316
+                "line": 317
               },
               "greater": {
                 "left": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Realization.scala",
-                    "line": 316
+                    "line": 317
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Realization.scala",
-                        "line": 316
+                        "line": 317
                       },
                       "projected": { }
                     },
@@ -6588,7 +6588,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Realization.scala",
-                    "line": 316
+                    "line": 317
                   },
                   "literal": {
                     "number": "0"
@@ -6645,7 +6645,7 @@
       "id": "hold-dispatch",
       "position": {
         "file": "model/temporal/standaloneactivity/Realization.scala",
-        "line": 224
+        "line": 225
       },
       "holdDispatched": {
         "step": {
@@ -6664,13 +6664,13 @@
       "items": [ {
         "position": {
           "file": "model/temporal/standaloneactivity/Realization.scala",
-          "line": 304
+          "line": 305
         },
         "command": {
           "id": "start-activity",
           "position": {
             "file": "model/temporal/standaloneactivity/Realization.scala",
-            "line": 84
+            "line": 85
           },
           "rpc": {
             "role": "temporal.workflow-service",
@@ -6698,7 +6698,7 @@
               "value": {
                 "position": {
                   "file": "model/temporal/standaloneactivity/Realization.scala",
-                  "line": 80
+                  "line": 81
                 },
                 "literal": {
                   "named": {
@@ -6743,28 +6743,6 @@
       }, {
         "position": {
           "file": "model/temporal/standaloneactivity/Realization.scala",
-          "line": 305
-        },
-        "performs": [ {
-          "position": {
-            "file": "model/temporal/standaloneactivity/Realization.scala",
-            "line": 305
-          },
-          "step": {
-            "action": "temporal.standaloneactivity.System$package$.dispatch"
-          },
-          "command": {
-            "id": "hold-dispatch",
-            "position": {
-              "file": "model/temporal/standaloneactivity/Realization.scala",
-              "line": 225
-            },
-            "hold": "hold-dispatch"
-          }
-        } ]
-      }, {
-        "position": {
-          "file": "model/temporal/standaloneactivity/Realization.scala",
           "line": 306
         },
         "performs": [ {
@@ -6773,13 +6751,35 @@
             "line": 306
           },
           "step": {
+            "action": "temporal.standaloneactivity.System$package$.dispatch"
+          },
+          "command": {
+            "id": "hold-dispatch",
+            "position": {
+              "file": "model/temporal/standaloneactivity/Realization.scala",
+              "line": 226
+            },
+            "hold": "hold-dispatch"
+          }
+        } ]
+      }, {
+        "position": {
+          "file": "model/temporal/standaloneactivity/Realization.scala",
+          "line": 307
+        },
+        "performs": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/Realization.scala",
+            "line": 307
+          },
+          "step": {
             "action": "temporal.standaloneactivity.System$package$.ackLoss"
           },
           "command": {
             "id": "release-dispatch",
             "position": {
               "file": "model/temporal/standaloneactivity/Realization.scala",
-              "line": 234
+              "line": 235
             },
             "fault": {
               "role": "temporal.task-queue",
