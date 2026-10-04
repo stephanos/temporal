@@ -559,7 +559,7 @@ func (v *validator) construct(c *umpirespb.Construct, scope map[string]bool, at 
 	}
 	// A name is the alternative of a named choice a step record is, so only a step record has one.
 	if c.GetChoice() != "" && c.GetType() != StepType {
-		v.report(at, "%s %s names the choice %s, which only a step record can", c.GetType(), c.GetCase(), c.GetChoice())
+		v.report(at, "%s names the choice %s, which only a step record can", strings.TrimSpace(c.GetType()+" "+c.GetCase()), c.GetChoice())
 	}
 	for _, a := range c.GetArgs() {
 		v.expr(a, scope)

@@ -127,7 +127,7 @@ func TestAChoiceNamesOnlyAStep(t *testing.T) {
 	require.Equal(t, "fixture.specimens.admission.AdmissionState", c.GetType())
 	c.Choice = "initial"
 	require.EqualError(t, Validate(named), where(start.GetPosition())+
-		": fixture.specimens.admission.AdmissionState  names the choice initial, which only a step record can")
+		": fixture.specimens.admission.AdmissionState names the choice initial, which only a step record can")
 }
 
 // TestTwoResultsOfARowCannotShareAName refuses a row two of whose results have the same name, at the
