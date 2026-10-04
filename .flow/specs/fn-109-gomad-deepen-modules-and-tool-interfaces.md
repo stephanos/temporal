@@ -559,6 +559,24 @@ task 19/fn-105 D4, predecessors, matched first-baseline identities and complete/
 full/formal/both-native/affected-consumer qualification remain open. Root commits
 reviewed progress before another source writer.
 
+Task 33's independently reviewed reflection-helper repair explicitly handles
+all 27 Kind values in both test helpers while preserving their existing branches,
+initialized values and every original assertion. Arrays recurse through indexed
+elements; invalid/unsupported shapes reject without skipping typed nils. Three
+controls characterize supported array/reference isolation, scalar and nil/empty
+preservation, and eight unchanged production-guard cases. The controls passed
+before helper changes; the meaningful RED is the actual exhaustive analyzer.
+Developmental artifact 49/49, focused 23/23, five actual boundaries, errortype,
+source/static and generator checks pass. Actual unfiltered artifact lint drops
+from four to two byte-identical invariant-panic/uppercase-World findings, with
+two resolved and none introduced. Helper Fatalf and deliberately shared-array
+rejection remain unexecuted, with source inspection supplying only bounded
+coverage. Production and 1,044 protected inputs remain unchanged. Source review
+permits only SOURCE_PROGRESS_COMMIT_ONLY. Task 21 consumes this evidence; original
+R13/R18/R19, task 12/predecessors, matched first-baseline identities and complete/
+full/formal/both-native/affected-consumer qualification stay required and open.
+Root commits reviewed progress before another source writer.
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.

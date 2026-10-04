@@ -1,0 +1,24 @@
+{
+  "base": "1ee85b004cfaac41e178784701decbf0dd277968",
+  "head": "1ee85b004cfaac41e178784701decbf0dd277968",
+  "source_sha256": "016bb31d600047178bc355784dd2635ef44dbbb6d2b351a8687913a8623b76b4",
+  "protected": {
+    "files": 1044,
+    "aggregate_sha256": "85e16ddc79b4dd7ca144c82e81baefa5c84aa9a62026c21dcf14ff190c2922d7"
+  },
+  "changed": [
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.json",
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.json",
+    "tools/gomad3/artifact/opened_test.go"
+  ],
+  "staged": [],
+  "proof_files": 72,
+  "task_status": "in_progress",
+  "spec_status": "open",
+  "completed_tasks": 2,
+  "total_tasks": 33,
+  "formal_review": false,
+  "qualified_native": false,
+  "writes": 0
+}

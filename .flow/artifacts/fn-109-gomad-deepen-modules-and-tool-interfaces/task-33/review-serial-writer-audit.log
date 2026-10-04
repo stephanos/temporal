@@ -1,0 +1,101 @@
+{
+  "base_commit": "1ee85b004cfaac41e178784701decbf0dd277968",
+  "source_sha256": "016bb31d600047178bc355784dd2635ef44dbbb6d2b351a8687913a8623b76b4",
+  "original_source_restored_exactly": true,
+  "explicit_kinds_per_helper": 27,
+  "baseline_lint": 4,
+  "final_lint": 2,
+  "resolved": 2,
+  "introduced": 0,
+  "receipts": {
+    "baseline-package": {
+      "receipt_sha256": "591b3bbaeeb46d95e698d281fb041b4d98e6c9b30aaf55848691b1060c5145d2",
+      "log_sha256": "de9d3b857fb7e043ebca711a73834337601dab92ad415bc546ce9b57bea560cd",
+      "exit_code": 0,
+      "top_level_run": 46,
+      "top_level_pass": 46
+    },
+    "baseline-lint": {
+      "receipt_sha256": "181b140ff8c4dd4ca99419ebd10e7e2245eede9773d8e9b19fb5558b6edbc55f",
+      "log_sha256": "029d6a8963c9a61ea5b13368a7c96a9f1073a94d5f46daab3fec04105d85d1d5",
+      "exit_code": 1,
+      "top_level_run": 0,
+      "top_level_pass": 0
+    },
+    "baseline-errortype": {
+      "receipt_sha256": "b9f24cbcf8fa419b298b18e192089cfaaecb0a65ca175303a38d387220a160ed",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "top_level_run": 0,
+      "top_level_pass": 0
+    },
+    "characterization": {
+      "receipt_sha256": "e0ecfcf03e5505c1ff2c5510444a6568366ac4bacb697d67d79b1d19d1467b45",
+      "log_sha256": "a76420367987029a2c4c4169e3f26dcc950fe7c101785b69c84aa076031b1fd4",
+      "exit_code": 0,
+      "top_level_run": 3,
+      "top_level_pass": 3
+    },
+    "final-package": {
+      "receipt_sha256": "79acebf9986e3f47b8c0c600c16375181011884e1dc9ef769f0bb4f049ac4e7f",
+      "log_sha256": "589ecf0f1f6b5f11c97681dfc5c2aa204d1f283c5e09d5d3733dc1c2295c2159",
+      "exit_code": 0,
+      "top_level_run": 49,
+      "top_level_pass": 49
+    },
+    "final-focused": {
+      "receipt_sha256": "5aa42dd9879f01c67805d964ead277ed74f2e6642337d2861f1658c9efd6e974",
+      "log_sha256": "7ab997faac2e41dca0601f1f6b1bcc473a2e16f1c4e0c429631318acc09f28a6",
+      "exit_code": 0,
+      "top_level_run": 23,
+      "top_level_pass": 23
+    },
+    "final-boundaries": {
+      "receipt_sha256": "efa17d9b8456c8984156382edc6fae3b6b3ae3e73c9e2c8bc47834ffb9de815c",
+      "log_sha256": "c37df2e9d8363052251f41f3c13e6129ddffd19947d8d6a9c0fa7d271616a69c",
+      "exit_code": 0,
+      "top_level_run": 5,
+      "top_level_pass": 5
+    },
+    "final-errortype": {
+      "receipt_sha256": "c8437bdcc4509bc9e2e2511d500a21fdd9684c10f852991d00487480c1e79fbe",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "top_level_run": 0,
+      "top_level_pass": 0
+    },
+    "final-lint": {
+      "receipt_sha256": "8acfd3657f1c06ba45374a16a5935beb15350a1f4444c6fd40404c9ef1af2c71",
+      "log_sha256": "e266dead318f714e81917ec4fb667f083acb1dbfc21235097ac4af8b424db262",
+      "exit_code": 1,
+      "top_level_run": 0,
+      "top_level_pass": 0
+    },
+    "final-gofmt": {
+      "receipt_sha256": "4e36f28ab7aa5c304f54aea9d189025b06726c32afd9547baa8be0eb8748fb9a",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "top_level_run": 0,
+      "top_level_pass": 0
+    },
+    "final-diff-check": {
+      "receipt_sha256": "8e1f69b9dc8d3c88b64ed9846667433f224b4f9681beabe2581eebc10c965e1e",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit_code": 0,
+      "top_level_run": 0,
+      "top_level_pass": 0
+    },
+    "final-validation": {
+      "receipt_sha256": "a1455374427de8a96ddf0cfcad81f0cca6e50682bfc2e611bcce313eb2cc7838",
+      "log_sha256": "23526df5ff015aa7ea83d107d454d6e79f077c768dd884efbc2fb73e7903b679",
+      "exit_code": 0,
+      "top_level_run": 0,
+      "top_level_pass": 0
+    }
+  },
+  "proof_limits": [
+    "helper Fatalf branches not executed",
+    "rejection of deliberately shared array not executed",
+    "developmental stock linux/arm64 only; original qualification remains open"
+  ]
+}

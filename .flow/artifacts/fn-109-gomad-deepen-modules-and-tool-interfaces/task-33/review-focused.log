@@ -1,0 +1,108 @@
+=== RUN   TestArtifactReferenceHoldsNoOpenResource
+--- PASS: TestArtifactReferenceHoldsNoOpenResource (0.00s)
+=== RUN   TestPublishedReferenceMatchesOpenedHandle
+--- PASS: TestPublishedReferenceMatchesOpenedHandle (0.04s)
+=== RUN   TestOpenedArtifactPayloadAccess
+--- PASS: TestOpenedArtifactPayloadAccess (0.03s)
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle/collision
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle/missing_parent
+--- PASS: TestOpenedArtifactCopyDestinationErrorsPreserveHandle (0.03s)
+    --- PASS: TestOpenedArtifactCopyDestinationErrorsPreserveHandle/collision (0.00s)
+    --- PASS: TestOpenedArtifactCopyDestinationErrorsPreserveHandle/missing_parent (0.00s)
+=== RUN   TestClosedArtifactRejectsPayloadAccess
+--- PASS: TestClosedArtifactRejectsPayloadAccess (0.05s)
+=== RUN   TestManifestCopiesCannotChangeOpenedHandle
+--- PASS: TestManifestCopiesCannotChangeOpenedHandle (0.06s)
+=== RUN   TestCloneManifestSharesNoMemory
+--- PASS: TestCloneManifestSharesNoMemory (0.00s)
+=== RUN   TestDeepCopyArrayReferences
+--- PASS: TestDeepCopyArrayReferences (0.00s)
+=== RUN   TestDeepCopyContainerAndScalarValues
+--- PASS: TestDeepCopyContainerAndScalarValues (0.00s)
+=== RUN   TestDeepCopyRejectsUnsupportedKinds
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/interface/nonnil
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/interface/nil
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/func/nonnil
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/func/nil
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/chan/nonnil
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/chan/nil
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/unsafe.Pointer/nonnil
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/unsafe.Pointer/nil
+--- PASS: TestDeepCopyRejectsUnsupportedKinds (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/interface/nonnil (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/interface/nil (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/func/nonnil (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/func/nil (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/chan/nonnil (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/chan/nil (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/unsafe.Pointer/nonnil (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/unsafe.Pointer/nil (0.00s)
+=== RUN   TestOpenedArtifactReadsPinnedDirectoryAfterReplacement
+--- PASS: TestOpenedArtifactReadsPinnedDirectoryAfterReplacement (0.09s)
+=== RUN   TestOpenedArtifactRejectsChangedPayloads
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/unlisted
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/over_bound
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/mode
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/size
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/hash
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/symbolic_link
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/escaping_directory
+--- PASS: TestOpenedArtifactRejectsChangedPayloads (0.40s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/unlisted (0.04s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/over_bound (0.03s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/mode (0.07s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/size (0.09s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/hash (0.12s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/symbolic_link (0.03s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/escaping_directory (0.03s)
+=== RUN   TestSyncDirectoryContextPreservesPrimaryResults
+--- PASS: TestSyncDirectoryContextPreservesPrimaryResults (0.00s)
+=== RUN   TestPrivatePayloadWritesLiteralMetadataAndBytes
+=== RUN   TestPrivatePayloadWritesLiteralMetadataAndBytes/target
+=== RUN   TestPrivatePayloadWritesLiteralMetadataAndBytes/stdout
+--- PASS: TestPrivatePayloadWritesLiteralMetadataAndBytes (0.02s)
+    --- PASS: TestPrivatePayloadWritesLiteralMetadataAndBytes/target (0.00s)
+    --- PASS: TestPrivatePayloadWritesLiteralMetadataAndBytes/stdout (0.01s)
+=== RUN   TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination
+=== RUN   TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/target
+=== RUN   TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/stdout
+--- PASS: TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination (0.00s)
+    --- PASS: TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/target (0.00s)
+    --- PASS: TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/stdout (0.00s)
+=== RUN   TestPrivatePayloadCollisionPreservesDestinationAndPathError
+=== RUN   TestPrivatePayloadCollisionPreservesDestinationAndPathError/target
+=== RUN   TestPrivatePayloadCollisionPreservesDestinationAndPathError/stdout
+--- PASS: TestPrivatePayloadCollisionPreservesDestinationAndPathError (0.00s)
+    --- PASS: TestPrivatePayloadCollisionPreservesDestinationAndPathError/target (0.00s)
+    --- PASS: TestPrivatePayloadCollisionPreservesDestinationAndPathError/stdout (0.00s)
+=== RUN   TestPrivatePayloadRejectsNonregularSourceBeforeCreatingDestination
+--- PASS: TestPrivatePayloadRejectsNonregularSourceBeforeCreatingDestination (0.00s)
+=== RUN   TestPublishRemovesStagingAfterNonregularSourceFailure
+--- PASS: TestPublishRemovesStagingAfterNonregularSourceFailure (0.00s)
+=== RUN   TestOpenedArtifactRemainsPinnedAcrossPathReplacement
+--- PASS: TestOpenedArtifactRemainsPinnedAcrossPathReplacement (0.04s)
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget/live
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget/cancelled
+--- PASS: TestVerifySharedPayloadPreservesLiteralTarget (0.00s)
+    --- PASS: TestVerifySharedPayloadPreservesLiteralTarget/live (0.00s)
+    --- PASS: TestVerifySharedPayloadPreservesLiteralTarget/cancelled (0.00s)
+=== RUN   TestVerifySharedPayloadPreservesMissingTargetError
+--- PASS: TestVerifySharedPayloadPreservesMissingTargetError (0.00s)
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication/altered
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication/truncated
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication/mode_changed
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication/missing
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication/symbolic_link
+--- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication (0.28s)
+    --- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication/altered (0.02s)
+    --- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication/truncated (0.04s)
+    --- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication/mode_changed (0.07s)
+    --- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication/missing (0.06s)
+    --- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication/symbolic_link (0.09s)
+=== RUN   TestCopiedArtifactOpensWithoutItsStore
+--- PASS: TestCopiedArtifactOpensWithoutItsStore (0.03s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/artifact	1.114s

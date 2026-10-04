@@ -1,0 +1,80 @@
+{
+  "command": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-v",
+    ".",
+    "-run",
+    "^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started_at": "2026-10-04T20:47:08.634323+00:00",
+  "elapsed_seconds": 23.502,
+  "exit_code": 0,
+  "environment": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOFLAGS": "",
+    "GOMADSEED": null,
+    "GOMAD3_CHILD_SEED": null
+  },
+  "input_before": {
+    "source_sha256": "016bb31d600047178bc355784dd2635ef44dbbb6d2b351a8687913a8623b76b4",
+    "protected": {
+      "files": 1044,
+      "aggregate_sha256": "85e16ddc79b4dd7ca144c82e81baefa5c84aa9a62026c21dcf14ff190c2922d7"
+    },
+    "older_evidence_and_tasks": {
+      "files": 26467,
+      "aggregate_sha256": "7da337d26223670993b3a06339de79786e49fae23948110a98e4ef3977bf3ffa"
+    },
+    "original_documents": {
+      "AGENTS.md": "3ce85bf0fd1be8f06398b71eeae1959f0ee7081c885a431bb7764c79c39d602f",
+      "tools/gomad3/README.md": "8b95e9d3ae6103f120f6cadacbeffcc17f27bac6636b923279461fe13ec6e61a",
+      ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md": "ed73b16b6bf0581cdfb0a93d6483daf3b550018e0c70839c2214165a46772230"
+    },
+    "source_plan_sha256": "911049ae81ae792740d70b67d7ad93e8cea586525249f4b161b5de09406efbe9",
+    "writer_handover_sha256": "a1db456583d95ffc19c294f1c313c25748b8d63c49acb80e2090e15c6cfd37dc",
+    "writer_evidence_sha256": "b4d0e52df9e8a28677c321d0f865a17d07356e06ef920d9f4ce9a4eac2d94dce",
+    "tools_sha256": {
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+      "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    },
+    "config_sha256": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43"
+  },
+  "input_after": {
+    "source_sha256": "016bb31d600047178bc355784dd2635ef44dbbb6d2b351a8687913a8623b76b4",
+    "protected": {
+      "files": 1044,
+      "aggregate_sha256": "85e16ddc79b4dd7ca144c82e81baefa5c84aa9a62026c21dcf14ff190c2922d7"
+    },
+    "older_evidence_and_tasks": {
+      "files": 26467,
+      "aggregate_sha256": "7da337d26223670993b3a06339de79786e49fae23948110a98e4ef3977bf3ffa"
+    },
+    "original_documents": {
+      "AGENTS.md": "3ce85bf0fd1be8f06398b71eeae1959f0ee7081c885a431bb7764c79c39d602f",
+      "tools/gomad3/README.md": "8b95e9d3ae6103f120f6cadacbeffcc17f27bac6636b923279461fe13ec6e61a",
+      ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md": "ed73b16b6bf0581cdfb0a93d6483daf3b550018e0c70839c2214165a46772230"
+    },
+    "source_plan_sha256": "911049ae81ae792740d70b67d7ad93e8cea586525249f4b161b5de09406efbe9",
+    "writer_handover_sha256": "a1db456583d95ffc19c294f1c313c25748b8d63c49acb80e2090e15c6cfd37dc",
+    "writer_evidence_sha256": "b4d0e52df9e8a28677c321d0f865a17d07356e06ef920d9f4ce9a4eac2d94dce",
+    "tools_sha256": {
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+      "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    },
+    "config_sha256": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43"
+  },
+  "stable": true,
+  "log_sha256": "bbef96cdab84f38a524c469117bdf4d414f72704ba17b8ac33b3018728ca817b",
+  "top_level_run": 5,
+  "top_level_pass": 5
+}

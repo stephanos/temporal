@@ -1,0 +1,223 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.33",
+  "assessment": "SOURCE_PROGRESS_COMMIT_ONLY",
+  "base_commit": "1ee85b004cfaac41e178784701decbf0dd277968",
+  "head_commit": "1ee85b004cfaac41e178784701decbf0dd277968",
+  "branch": "gomad",
+  "requested_model": "gpt-6.1-sol",
+  "requested_effort": "high",
+  "actual_model": null,
+  "same_family_as_writer": true,
+  "formal_review": false,
+  "qualified_native": false,
+  "findings": {
+    "critical": [],
+    "important": [],
+    "minor": []
+  },
+  "lint": {
+    "baseline": 4,
+    "final": 2,
+    "resolved": 2,
+    "introduced": 0,
+    "residuals": [
+      "manifest_copy.go:59 forbidigo invariant panic",
+      "publication.go:39 ST1005 direct World error"
+    ]
+  },
+  "proof_limits": [
+    "Helper Fatalf branches and intentionally shared-array rejection reviewed in source only",
+    "Three characterization controls passed before helper repair; no failed TDD regression",
+    "Fixture-specific same-shape/equality precondition retained",
+    "Developmental stock linux/arm64 only",
+    "Original R13/R18/R19, task12/predecessors/task21, fixed identities, full/completion/formal/affected-consumer and both native qualification remain open"
+  ],
+  "prior_run": "Initial concurrent standard-cache checks retained; final serialized receipts are authoritative",
+  "review_audit": {
+    "source_before": {
+      "source_sha256": "016bb31d600047178bc355784dd2635ef44dbbb6d2b351a8687913a8623b76b4",
+      "protected": {
+        "files": 1044,
+        "aggregate_sha256": "85e16ddc79b4dd7ca144c82e81baefa5c84aa9a62026c21dcf14ff190c2922d7"
+      }
+    },
+    "source_after": {
+      "source_sha256": "016bb31d600047178bc355784dd2635ef44dbbb6d2b351a8687913a8623b76b4",
+      "protected": {
+        "files": 1044,
+        "aggregate_sha256": "85e16ddc79b4dd7ca144c82e81baefa5c84aa9a62026c21dcf14ff190c2922d7"
+      }
+    },
+    "original_source_restored_exactly": true,
+    "reconstructed_characterization_sha256": "1f761207c6aad63ac0a9e7051808cd1501acc5aad04df4d6b48e81a3bd50aa5f",
+    "explicit_kinds_per_helper": 27,
+    "review_commands_serialized": true,
+    "receipts": {
+      "package": {
+        "receipt": "review-serial-package.json",
+        "receipt_sha256": "0049e8eca71679e70c8a719b07bd636f84fac4ce62023f83c275c2bd9cc9fd41",
+        "log_sha256": "056b66d6243982d7e551417642cb5ba69a850a1265e86fa7e9d14097cf09c82d",
+        "exit_code": 0,
+        "elapsed_seconds": 4.776,
+        "top_level_run": 49,
+        "top_level_pass": 49
+      },
+      "focused": {
+        "receipt": "review-serial-focused.json",
+        "receipt_sha256": "e8cc1e035f751b946b082da25350ec97a6a9ca85c2fd705aafb4dc43dc83b726",
+        "log_sha256": "835d423979ef9474a27adf03ec87ace53b069b4ee965541910e83a566aa4e888",
+        "exit_code": 0,
+        "elapsed_seconds": 3.961,
+        "top_level_run": 23,
+        "top_level_pass": 23
+      },
+      "boundaries": {
+        "receipt": "review-serial-boundaries.json",
+        "receipt_sha256": "23bddfe047a30b2be7690327439935382fde4e2736a8a32c03f292c44abfb27a",
+        "log_sha256": "7573a29c4f014a36df10129fa31cf1c7fd6e1c40193883fdd25081c91fe31eb1",
+        "exit_code": 0,
+        "elapsed_seconds": 8.834,
+        "top_level_run": 5,
+        "top_level_pass": 5
+      },
+      "lint": {
+        "receipt": "review-serial-lint.json",
+        "receipt_sha256": "3483246a7016c192bb045d109d4fb5a06d25b03ffc8fc1437467c7375babed39",
+        "log_sha256": "e266dead318f714e81917ec4fb667f083acb1dbfc21235097ac4af8b424db262",
+        "exit_code": 1,
+        "elapsed_seconds": 3.776,
+        "top_level_run": 0,
+        "top_level_pass": 0
+      },
+      "errortype": {
+        "receipt": "review-serial-errortype.json",
+        "receipt_sha256": "aa6da75c5f305b6dcdaaa81cded3968692688702afebd073ae0255d23b9aa711",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exit_code": 0,
+        "elapsed_seconds": 4.543,
+        "top_level_run": 0,
+        "top_level_pass": 0
+      },
+      "gofmt": {
+        "receipt": "review-serial-gofmt.json",
+        "receipt_sha256": "6cb65365d3f6b9fff1c9b219093b93ac0e6527d494f30a160a2a06fc9fb1d793",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exit_code": 0,
+        "elapsed_seconds": 7.852,
+        "top_level_run": 0,
+        "top_level_pass": 0
+      },
+      "diff-check": {
+        "receipt": "review-serial-diff-check.json",
+        "receipt_sha256": "7063566aca4938ea834465c10d34db270fe9f7202ee992b38bdc2d456aa1e53e",
+        "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exit_code": 0,
+        "elapsed_seconds": 5.727,
+        "top_level_run": 0,
+        "top_level_pass": 0
+      },
+      "writer-audit": {
+        "receipt": "review-serial-writer-audit.json",
+        "receipt_sha256": "6eb1b66b0806bea9902dfdb4c0cfb28c6375ed4813d83be522597e7328abbd2f",
+        "log_sha256": "d67bc6c3b6f1c8617c1fe2b4788b590c34de0309e39d14ad62ee24e408f1775c",
+        "exit_code": 0,
+        "elapsed_seconds": 4.114,
+        "top_level_run": 0,
+        "top_level_pass": 0
+      },
+      "scope": {
+        "receipt": "review-serial-scope.json",
+        "receipt_sha256": "2069627df8d47948dc60edef9dcda143c721dea1c5dd256bf48197f732624e44",
+        "log_sha256": "40a028e77991b11e08e39e704756fdac86fdc98db4a70ce191238889f33a0974",
+        "exit_code": 0,
+        "elapsed_seconds": 4.426,
+        "top_level_run": 0,
+        "top_level_pass": 0
+      },
+      "validation": {
+        "receipt": "review-serial-validation.json",
+        "receipt_sha256": "bb2045502586a8d4df4b15fd616c46574adbe3b2c1f26bdec691eeddd00b59a7",
+        "log_sha256": "d7c52a5ccd90aeac74e0a50e7b8ef1efc63a7d4b99643c205f00700389188364",
+        "exit_code": 0,
+        "elapsed_seconds": 6.641,
+        "top_level_run": 0,
+        "top_level_pass": 0
+      }
+    },
+    "input_bindings": {
+      "source_sha256": "016bb31d600047178bc355784dd2635ef44dbbb6d2b351a8687913a8623b76b4",
+      "protected": {
+        "files": 1044,
+        "aggregate_sha256": "85e16ddc79b4dd7ca144c82e81baefa5c84aa9a62026c21dcf14ff190c2922d7"
+      },
+      "older_evidence_and_tasks": {
+        "files": 26467,
+        "aggregate_sha256": "7da337d26223670993b3a06339de79786e49fae23948110a98e4ef3977bf3ffa"
+      },
+      "original_documents": {
+        "AGENTS.md": "3ce85bf0fd1be8f06398b71eeae1959f0ee7081c885a431bb7764c79c39d602f",
+        "tools/gomad3/README.md": "8b95e9d3ae6103f120f6cadacbeffcc17f27bac6636b923279461fe13ec6e61a",
+        ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md": "ed73b16b6bf0581cdfb0a93d6483daf3b550018e0c70839c2214165a46772230"
+      },
+      "source_plan_sha256": "911049ae81ae792740d70b67d7ad93e8cea586525249f4b161b5de09406efbe9",
+      "writer_handover_sha256": "a1db456583d95ffc19c294f1c313c25748b8d63c49acb80e2090e15c6cfd37dc",
+      "writer_evidence_sha256": "b4d0e52df9e8a28677c321d0f865a17d07356e06ef920d9f4ce9a4eac2d94dce",
+      "tools_sha256": {
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+        "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+      },
+      "config_sha256": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+      "review_runner_sha256": "9b23b56f3611e1a984d61096b2745badf7b8053e126a40bd515ba7941808d591"
+    },
+    "owned_files": {
+      "review-boundaries.json": "c8e0a4e78e1ad6d56532fccd981721fe14c532ac4c0a1a9ca017f75c5fdd7101",
+      "review-boundaries.log": "bbef96cdab84f38a524c469117bdf4d414f72704ba17b8ac33b3018728ca817b",
+      "review-diff-check.json": "fe14a8957f9b1456a7a0694f09aa2aaf4ce2a21c38266586cb0c7bcfd7e612e4",
+      "review-diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "review-errortype.json": "063eee5ccfc59a0503788e66afa2ba703dc27c5ea3025f8984bca6444a158a78",
+      "review-errortype.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "review-focused.json": "f5a1c8dc2e4144265c980a53773c9ba5bf0c4a86b81b5c0b94ede1ef2e0aef9c",
+      "review-focused.log": "04f137570f438f66a7eb81a8e599407d32ec4e95b43a661a3f3603c05853de2e",
+      "review-gofmt.json": "356abe9c243f4221ab144a2127ae34fab48025a35e848b85c3b699512dbb3ace",
+      "review-gofmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "review-lint.json": "86bfdb77bd5ef3d4c125f7e28154085bc9778b6ec37687c6d34b6f00523cba1a",
+      "review-lint.log": "e266dead318f714e81917ec4fb667f083acb1dbfc21235097ac4af8b424db262",
+      "review-package.json": "8dfc5b0089d5fa004528f37e53bf27f21b0364bf890576fa7ed9ad90aa7ec66f",
+      "review-package.log": "ff824203ddec44e57a936e5184d61461d15350363a1b9f919e8edc713010f70e",
+      "review-preflight.md": "bc0af46acca913bf46385e841e0258bdf868011b54cb83b3d11d76a19228dc83",
+      "review-run.py": "9b23b56f3611e1a984d61096b2745badf7b8053e126a40bd515ba7941808d591",
+      "review-scope.json": "ab4095c647da91ac03615621f5709884f1046814b1449c308d8116a389c97435",
+      "review-scope.log": "d7504601ed6521841937e06a57b5a3cae971846fe8d4a46d361c2fbcccdf1c2e",
+      "review-serial-boundaries.json": "23bddfe047a30b2be7690327439935382fde4e2736a8a32c03f292c44abfb27a",
+      "review-serial-boundaries.log": "7573a29c4f014a36df10129fa31cf1c7fd6e1c40193883fdd25081c91fe31eb1",
+      "review-serial-diff-check.json": "7063566aca4938ea834465c10d34db270fe9f7202ee992b38bdc2d456aa1e53e",
+      "review-serial-diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "review-serial-errortype.json": "aa6da75c5f305b6dcdaaa81cded3968692688702afebd073ae0255d23b9aa711",
+      "review-serial-errortype.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "review-serial-focused.json": "e8cc1e035f751b946b082da25350ec97a6a9ca85c2fd705aafb4dc43dc83b726",
+      "review-serial-focused.log": "835d423979ef9474a27adf03ec87ace53b069b4ee965541910e83a566aa4e888",
+      "review-serial-gofmt.json": "6cb65365d3f6b9fff1c9b219093b93ac0e6527d494f30a160a2a06fc9fb1d793",
+      "review-serial-gofmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "review-serial-lint.json": "3483246a7016c192bb045d109d4fb5a06d25b03ffc8fc1437467c7375babed39",
+      "review-serial-lint.log": "e266dead318f714e81917ec4fb667f083acb1dbfc21235097ac4af8b424db262",
+      "review-serial-package.json": "0049e8eca71679e70c8a719b07bd636f84fac4ce62023f83c275c2bd9cc9fd41",
+      "review-serial-package.log": "056b66d6243982d7e551417642cb5ba69a850a1265e86fa7e9d14097cf09c82d",
+      "review-serial-scope.json": "2069627df8d47948dc60edef9dcda143c721dea1c5dd256bf48197f732624e44",
+      "review-serial-scope.log": "40a028e77991b11e08e39e704756fdac86fdc98db4a70ce191238889f33a0974",
+      "review-serial-validation.json": "bb2045502586a8d4df4b15fd616c46574adbe3b2c1f26bdec691eeddd00b59a7",
+      "review-serial-validation.log": "d7c52a5ccd90aeac74e0a50e7b8ef1efc63a7d4b99643c205f00700389188364",
+      "review-serial-writer-audit.json": "6eb1b66b0806bea9902dfdb4c0cfb28c6375ed4813d83be522597e7328abbd2f",
+      "review-serial-writer-audit.log": "d67bc6c3b6f1c8617c1fe2b4788b590c34de0309e39d14ad62ee24e408f1775c",
+      "review-validation.json": "fdc834567400652cd91a559508b959ba1c04005aba985999fcf39b7918e76ab6",
+      "review-validation.log": "888442532140be6da141d57546b2c78b8581504114a44619d5ea967764af3e06",
+      "review-verify.py": "1db3d76358eebe631fe72cdc0198e55a4df70e85bed1208ea6bad97f2d29222d",
+      "review-writer-audit.json": "c341c73253a5e6686485396ab95f35dab34212ccd3d4457cd6aa0dbbaf310718",
+      "review-writer-audit.log": "d67bc6c3b6f1c8617c1fe2b4788b590c34de0309e39d14ad62ee24e408f1775c"
+    },
+    "all_commands_terminal": true
+  },
+  "active_commands": [],
+  "delegates": [],
+  "commits": []
+}

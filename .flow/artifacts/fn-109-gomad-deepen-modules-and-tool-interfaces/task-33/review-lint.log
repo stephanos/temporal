@@ -1,0 +1,9 @@
+tools/gomad3/artifact/manifest_copy.go:59:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic(fmt.Sprintf("artifact manifest cannot copy a %s field", source.Kind()))
+		^
+tools/gomad3/artifact/publication.go:39:22: ST1005: error strings should not be capitalized (staticcheck)
+		return Artifact{}, errors.New("World payload paths must use the canonical artifact layout")
+		                   ^
+2 issues:
+* forbidigo: 1
+* staticcheck: 1

@@ -1,0 +1,24 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.33",
+  "base_commit": "1ee85b004cfaac41e178784701decbf0dd277968",
+  "branch": "gomad",
+  "source_exclusions": [
+    "tools/gomad3/artifact/opened_test.go"
+  ],
+  "protected": {
+    "files": 1044,
+    "aggregate_sha256": "85e16ddc79b4dd7ca144c82e81baefa5c84aa9a62026c21dcf14ff190c2922d7"
+  },
+  "original_documents": {
+    "AGENTS.md": "3ce85bf0fd1be8f06398b71eeae1959f0ee7081c885a431bb7764c79c39d602f",
+    "tools/gomad3/README.md": "8b95e9d3ae6103f120f6cadacbeffcc17f27bac6636b923279461fe13ec6e61a",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md": "ed73b16b6bf0581cdfb0a93d6483daf3b550018e0c70839c2214165a46772230"
+  },
+  "source_plan_sha256": "911049ae81ae792740d70b67d7ad93e8cea586525249f4b161b5de09406efbe9",
+  "requested_model": "gpt-6.1-sol",
+  "requested_effort": "high",
+  "actual_model": null,
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "formal_review": false,
+  "qualified_native": false
+}

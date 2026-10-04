@@ -26,7 +26,7 @@ changes, change the spec and summarize the change here.
 | F10 | [fn-105](.flow/specs/fn-105-gomad-follow-ups-deferred-scope.md) | D12 native Linux replay fix; D26 combined runtime candidate and D27 host-clock candidate awaiting native qualification; D3–D5 architecture, downstream D8–D10, and deferred D6/D11/D15 |
 | Downstream cell | [fn-107](.flow/specs/fn-107-gomad-finish-downstream-cell.md) | Task 5: consumer and both-platform exact replay; blocked by the absent `../downstream` checkout and qualified hosts |
 | Code-size cleanup | [fn-108](.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md) | Task 8: native linux/amd64 qualification for R9 |
-| Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | Tasks 2–12 have merged candidates awaiting acceptance; tasks 13–18 have reviewed source candidates awaiting native gates; task 19's committed architecture candidate awaits formal review after a predispatch tool failure; task 20's earlier guidance has formal SHIP and its nine-flag CLI correction is source-reviewed and committed, while inherited D5 acceptance remains open; task 21 retains matched developmental 10/100 campaigns and finding/preservation evidence, with R18 reconciliation and both native gates incomplete; tasks 23–32 retain reviewed source and disclosure progress; campaign lint drops from 17 to 2 unchanged invariant findings and private-payload cleanup lowers artifact lint from 28 to 21 and public-copy cleanup further lowers it to 10 and directory/verifier cleanup to 4, and architecture provenance passes 67 fixtures with four inherited lint findings, while the historical 419-finding nested receipt and 54 inherited CLI findings leave full/native qualification open |
+| Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | Tasks 2–12 have merged candidates awaiting acceptance; tasks 13–18 have reviewed source candidates awaiting native gates; task 19's committed architecture candidate awaits formal review after a predispatch tool failure; task 20's earlier guidance has formal SHIP and its nine-flag CLI correction is source-reviewed and committed, while inherited D5 acceptance remains open; task 21 retains matched developmental 10/100 campaigns and finding/preservation evidence, with R18 reconciliation and both native gates incomplete; tasks 23–33 retain reviewed source and disclosure progress; campaign lint drops from 17 to 2 unchanged invariant findings and private-payload cleanup lowers artifact lint from 28 to 21 and public-copy cleanup further lowers it to 10 and directory/verifier cleanup to 4 and reflection-helper cleanup to 2, and architecture provenance passes 67 fixtures with four inherited lint findings, while the historical 419-finding nested receipt and 54 inherited CLI findings leave full/native qualification open |
 | Runtime patch minimization | [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | Tasks 2–4 have merged candidates awaiting native gates; the current final `-U3` exceeds the original baseline, leaving R8's extraction reduction unmet; task 5 retains final evidence and both-platform qualification |
 | Determinism assurance and test strategy | [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) | Tasks 5, 9, and 16 have merged candidates awaiting qualification; task 10's soak gate and contract documentation are delivered and await one retained scheduled or dispatched soak run per platform |
 | Version-pin maintenance | [fn-113](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md) | Tasks 1–4 have merged candidates; final native gates and both-host acceptance remain |
@@ -431,6 +431,22 @@ Task 32 stays blocked on original R8/R18/R19, task 19/fn-105 D4,
 predecessors/task 21, matched first-baseline identities and complete/full/
 formal/both-native/affected-consumer qualification
 ([error-provenance acceptance](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/acceptance-open.md)).
+
+Task 33's independently reviewed reflection-helper repair explicitly covers
+all 27 Kind values in both helpers and retains existing branch operations,
+initialization and assertions. Arrays recursively inspect each element; invalid
+or unsupported shapes reject without skipping typed nils. Three characterization
+controls cover array/reference copy isolation, scalar and nil/empty preservation,
+and eight unchanged production-guard cases. Developmental artifact 49/49,
+focused 23/23, five actual boundaries, errortype, source/static and generator
+checks pass. Actual unfiltered artifact lint falls from four to two unchanged
+invariant-panic/uppercase-World findings, with none introduced. Helper Fatalf and
+intentionally shared-array rejection execution remain unproved. Production and
+1,044 protected inputs are unchanged; review permits a source-progress checkpoint
+only. Task 33 stays blocked on original R13/R18/R19, task 12/predecessors/task 21,
+matched first-baseline identities and complete/full/formal/both-native/
+affected-consumer qualification
+([reflection-helper acceptance](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-33/acceptance-open.md)).
 
 The remaining nested findings retain bounded source owners
 ([path-policy acceptance](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/acceptance-open.md)). Task 21 remains the final

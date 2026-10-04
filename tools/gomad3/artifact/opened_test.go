@@ -2,11 +2,13 @@ package artifact
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+	"unsafe"
 
 	"go.temporal.io/server/tools/gomad3/record"
 )
@@ -241,7 +243,7 @@ func TestManifestCopiesCannotChangeOpenedHandle(t *testing.T) {
 
 func TestCloneManifestSharesNoMemory(t *testing.T) {
 	var manifest record.ExecutionRecord
-	populate(reflect.ValueOf(&manifest).Elem())
+	populate(t, reflect.ValueOf(&manifest).Elem())
 	clone := cloneManifest(manifest)
 	if !reflect.DeepEqual(clone, manifest) {
 		t.Fatalf("cloneManifest() = %#v, want %#v", clone, manifest)
@@ -252,29 +254,132 @@ func TestCloneManifestSharesNoMemory(t *testing.T) {
 	}
 }
 
+func TestDeepCopyArrayReferences(t *testing.T) {
+	type element struct {
+		Pointer *int
+		Nested  []map[string][]int
+	}
+	var original, clone [2]element
+	populate(t, reflect.ValueOf(&original).Elem())
+	deepCopy(reflect.ValueOf(&clone).Elem(), reflect.ValueOf(original))
+	if !reflect.DeepEqual(clone, original) {
+		t.Fatalf("deepCopy(array) = %#v, want %#v", clone, original)
+	}
+	assertNoSharedMemory(t, "array", reflect.ValueOf(clone), reflect.ValueOf(original))
+	for index := range clone {
+		*clone[index].Pointer = 7
+		clone[index].Nested[0]["x"][0] = 9
+		clone[index].Nested[0]["added"] = []int{11}
+	}
+	first, second := 1, 1
+	want := [2]element{
+		{Pointer: &first, Nested: []map[string][]int{{"x": {1}}}},
+		{Pointer: &second, Nested: []map[string][]int{{"x": {1}}}},
+	}
+	if !reflect.DeepEqual(original, want) {
+		t.Fatalf("changing the copied array changed the original: %#v, want %#v", original, want)
+	}
+}
+
+func TestDeepCopyContainerAndScalarValues(t *testing.T) {
+	type fixture struct {
+		NilSlice   []int
+		EmptySlice []int
+		NilMap     map[string]int
+		EmptyMap   map[string]int
+		Scalars    struct {
+			Uintptr    uintptr
+			Float32    float32
+			Float64    float64
+			Complex64  complex64
+			Complex128 complex128
+		}
+	}
+	original := fixture{EmptySlice: []int{}, EmptyMap: map[string]int{}}
+	original.Scalars.Uintptr = 17
+	original.Scalars.Float32 = 1.5
+	original.Scalars.Float64 = -2.25
+	original.Scalars.Complex64 = 3 + 4i
+	original.Scalars.Complex128 = -5 + 6i
+	populate(t, reflect.ValueOf(&original.Scalars).Elem())
+	var clone fixture
+	deepCopy(reflect.ValueOf(&clone).Elem(), reflect.ValueOf(original))
+	want := fixture{EmptySlice: []int{}, EmptyMap: map[string]int{}}
+	want.Scalars.Uintptr = 17
+	want.Scalars.Float32 = 1.5
+	want.Scalars.Float64 = -2.25
+	want.Scalars.Complex64 = 3 + 4i
+	want.Scalars.Complex128 = -5 + 6i
+	if !reflect.DeepEqual(clone, want) || !reflect.DeepEqual(original, want) {
+		t.Fatalf("deepCopy(containers and scalars) = %#v, original %#v, want %#v", clone, original, want)
+	}
+	assertNoSharedMemory(t, "containers and scalars", reflect.ValueOf(clone), reflect.ValueOf(original))
+	if clone.NilSlice != nil || clone.EmptySlice == nil || clone.NilMap != nil || clone.EmptyMap == nil {
+		t.Fatalf("deepCopy changed nil/empty container distinctions: %#v", clone)
+	}
+	clone.EmptySlice = append(clone.EmptySlice, 7)
+	clone.EmptyMap["added"] = 9
+	if !reflect.DeepEqual(original, want) {
+		t.Fatalf("changing copied empty containers changed the original: %#v, want %#v", original, want)
+	}
+}
+
+func TestDeepCopyRejectsUnsupportedKinds(t *testing.T) {
+	var nilInterface any
+	var nonnilInterface any = 1
+	pointed := 1
+	tests := []struct {
+		name   string
+		values []reflect.Value
+		want   string
+	}{
+		{name: "interface", values: []reflect.Value{reflect.ValueOf(&nonnilInterface).Elem(), reflect.ValueOf(&nilInterface).Elem()}, want: "artifact manifest cannot copy a interface field"},
+		{name: "func", values: []reflect.Value{reflect.ValueOf(func() {}), reflect.ValueOf((func())(nil))}, want: "artifact manifest cannot copy a func field"},
+		{name: "chan", values: []reflect.Value{reflect.ValueOf(make(chan int)), reflect.ValueOf((chan int)(nil))}, want: "artifact manifest cannot copy a chan field"},
+		{name: "unsafe.Pointer", values: []reflect.Value{reflect.ValueOf(unsafe.Pointer(&pointed)), reflect.ValueOf(unsafe.Pointer(nil))}, want: "artifact manifest cannot copy a unsafe.Pointer field"},
+	}
+	for _, test := range tests {
+		for index, value := range test.values {
+			name := "nonnil"
+			if index == 1 {
+				name = "nil"
+			}
+			t.Run(test.name+"/"+name, func(t *testing.T) {
+				defer func() {
+					if got := recover(); got != test.want {
+						t.Fatalf("deepCopy panic = %v, want %q", got, test.want)
+					}
+				}()
+				deepCopy(reflect.New(value.Type()).Elem(), value)
+			})
+		}
+	}
+}
+
 // populate fills every pointer, slice and map so a clone has something to share.
-func populate(value reflect.Value) {
+func populate(t *testing.T, value reflect.Value) {
+	t.Helper()
 	switch value.Kind() {
 	case reflect.Pointer:
 		value.Set(reflect.New(value.Type().Elem()))
-		populate(value.Elem())
+		populate(t, value.Elem())
 	case reflect.Slice:
 		value.Set(reflect.MakeSlice(value.Type(), 1, 1))
-		populate(value.Index(0))
+		populate(t, value.Index(0))
 	case reflect.Array:
 		for index := range value.Len() {
-			populate(value.Index(index))
+			populate(t, value.Index(index))
 		}
 	case reflect.Map:
 		value.Set(reflect.MakeMap(value.Type()))
 		key := reflect.New(value.Type().Key()).Elem()
-		populate(key)
+		populate(t, key)
 		element := reflect.New(value.Type().Elem()).Elem()
-		populate(element)
+		populate(t, element)
 		value.SetMapIndex(key, element)
 	case reflect.Struct:
 		for index := range value.NumField() {
-			populate(value.Field(index))
+			populate(t, value.Field(index))
 		}
 	case reflect.String:
 		value.SetString("x")
@@ -284,6 +389,9 @@ func populate(value reflect.Value) {
 		value.SetInt(1)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		value.SetUint(1)
+	case reflect.Uintptr, reflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128:
+	case reflect.Invalid, reflect.Interface, reflect.Func, reflect.Chan, reflect.UnsafePointer:
+		t.Fatalf("cannot populate a %s field", value.Kind())
 	}
 }
 
@@ -304,6 +412,10 @@ func assertNoSharedMemory(t *testing.T, path string, clone, original reflect.Val
 		for index := range original.Len() {
 			assertNoSharedMemory(t, path+"[]", clone.Index(index), original.Index(index))
 		}
+	case reflect.Array:
+		for index := range original.Len() {
+			assertNoSharedMemory(t, fmt.Sprintf("%s[%d]", path, index), clone.Index(index), original.Index(index))
+		}
 	case reflect.Map:
 		if !original.IsNil() && clone.Pointer() == original.Pointer() {
 			t.Fatalf("%s is shared", path)
@@ -316,6 +428,12 @@ func assertNoSharedMemory(t *testing.T, path string, clone, original reflect.Val
 		for index := range original.NumField() {
 			assertNoSharedMemory(t, path+"."+original.Type().Field(index).Name, clone.Field(index), original.Field(index))
 		}
+	case reflect.Bool, reflect.String,
+		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
+		reflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128:
+	case reflect.Invalid, reflect.Interface, reflect.Func, reflect.Chan, reflect.UnsafePointer:
+		t.Fatalf("%s has unsupported kind %s", path, original.Kind())
 	}
 }
 

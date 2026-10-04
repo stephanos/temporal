@@ -1,0 +1,43 @@
+{
+  "command": [
+    "python3",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-33/writer-audit.py"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOFLAGS": "",
+    "GOMADSEED": null,
+    "GOMAD3_CHILD_SEED": null
+  },
+  "go_path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+  "started_at": "2026-10-04T20:42:22.054165+00:00",
+  "elapsed_seconds": 0.696,
+  "exit_code": 0,
+  "source_before": {
+    "source_sha256": "016bb31d600047178bc355784dd2635ef44dbbb6d2b351a8687913a8623b76b4",
+    "protected": {
+      "files": 1044,
+      "aggregate_sha256": "85e16ddc79b4dd7ca144c82e81baefa5c84aa9a62026c21dcf14ff190c2922d7"
+    }
+  },
+  "source_after": {
+    "source_sha256": "016bb31d600047178bc355784dd2635ef44dbbb6d2b351a8687913a8623b76b4",
+    "protected": {
+      "files": 1044,
+      "aggregate_sha256": "85e16ddc79b4dd7ca144c82e81baefa5c84aa9a62026c21dcf14ff190c2922d7"
+    }
+  },
+  "stable": true,
+  "tools_sha256": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "config_sha256": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+  "log_sha256": "d67bc6c3b6f1c8617c1fe2b4788b590c34de0309e39d14ad62ee24e408f1775c",
+  "top_level_run": 0,
+  "top_level_pass": 0
+}

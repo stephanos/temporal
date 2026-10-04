@@ -1,0 +1,29 @@
+{
+  "exit_code": 0,
+  "source_before": {
+    "source_sha256": "016bb31d600047178bc355784dd2635ef44dbbb6d2b351a8687913a8623b76b4",
+    "protected": {
+      "files": 1044,
+      "aggregate_sha256": "85e16ddc79b4dd7ca144c82e81baefa5c84aa9a62026c21dcf14ff190c2922d7"
+    }
+  },
+  "source_after": {
+    "source_sha256": "016bb31d600047178bc355784dd2635ef44dbbb6d2b351a8687913a8623b76b4",
+    "protected": {
+      "files": 1044,
+      "aggregate_sha256": "85e16ddc79b4dd7ca144c82e81baefa5c84aa9a62026c21dcf14ff190c2922d7"
+    }
+  },
+  "serial_receipts": 10,
+  "earlier_receipts": 10,
+  "all_owned_hashes_verified": true,
+  "exact_old_source_restore": true,
+  "characterization_source_reconstructed": true,
+  "review_runner_sha256": "9b23b56f3611e1a984d61096b2745badf7b8053e126a40bd515ba7941808d591",
+  "review_verify_sha256": "1db3d76358eebe631fe72cdc0198e55a4df70e85bed1208ea6bad97f2d29222d",
+  "reports_sha256": {
+    "independent-source-review.md": "f76237aaa74276c43ca003851e21909ab1a71359edee37cf5d8b2187ee7003e4",
+    "independent-source-review.json": "75537682aaee18d2b3869ecc8ff202c052304f6c6e5cd50265c912e0d23cf172"
+  },
+  "all_commands_terminal": true
+}

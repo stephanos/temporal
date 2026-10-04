@@ -1,0 +1,178 @@
+=== RUN   TestArtifactReferenceHoldsNoOpenResource
+--- PASS: TestArtifactReferenceHoldsNoOpenResource (0.00s)
+=== RUN   TestPublishedReferenceMatchesOpenedHandle
+--- PASS: TestPublishedReferenceMatchesOpenedHandle (0.03s)
+=== RUN   TestOpenedArtifactPayloadAccess
+--- PASS: TestOpenedArtifactPayloadAccess (0.04s)
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle/collision
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle/missing_parent
+--- PASS: TestOpenedArtifactCopyDestinationErrorsPreserveHandle (0.04s)
+    --- PASS: TestOpenedArtifactCopyDestinationErrorsPreserveHandle/collision (0.00s)
+    --- PASS: TestOpenedArtifactCopyDestinationErrorsPreserveHandle/missing_parent (0.00s)
+=== RUN   TestClosedArtifactRejectsPayloadAccess
+--- PASS: TestClosedArtifactRejectsPayloadAccess (0.03s)
+=== RUN   TestManifestCopiesCannotChangeOpenedHandle
+--- PASS: TestManifestCopiesCannotChangeOpenedHandle (0.04s)
+=== RUN   TestCloneManifestSharesNoMemory
+--- PASS: TestCloneManifestSharesNoMemory (0.00s)
+=== RUN   TestDeepCopyArrayReferences
+--- PASS: TestDeepCopyArrayReferences (0.00s)
+=== RUN   TestDeepCopyContainerAndScalarValues
+--- PASS: TestDeepCopyContainerAndScalarValues (0.00s)
+=== RUN   TestDeepCopyRejectsUnsupportedKinds
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/interface/nonnil
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/interface/nil
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/func/nonnil
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/func/nil
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/chan/nonnil
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/chan/nil
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/unsafe.Pointer/nonnil
+=== RUN   TestDeepCopyRejectsUnsupportedKinds/unsafe.Pointer/nil
+--- PASS: TestDeepCopyRejectsUnsupportedKinds (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/interface/nonnil (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/interface/nil (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/func/nonnil (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/func/nil (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/chan/nonnil (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/chan/nil (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/unsafe.Pointer/nonnil (0.00s)
+    --- PASS: TestDeepCopyRejectsUnsupportedKinds/unsafe.Pointer/nil (0.00s)
+=== RUN   TestOpenedArtifactReadsPinnedDirectoryAfterReplacement
+--- PASS: TestOpenedArtifactReadsPinnedDirectoryAfterReplacement (0.10s)
+=== RUN   TestOpenedArtifactRejectsChangedPayloads
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/unlisted
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/over_bound
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/mode
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/size
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/hash
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/symbolic_link
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/escaping_directory
+--- PASS: TestOpenedArtifactRejectsChangedPayloads (0.35s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/unlisted (0.03s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/over_bound (0.02s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/mode (0.04s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/size (0.03s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/hash (0.03s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/symbolic_link (0.17s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/escaping_directory (0.03s)
+=== RUN   TestPublishArtifactWritesAndValidatesChoiceTrace
+--- PASS: TestPublishArtifactWritesAndValidatesChoiceTrace (0.03s)
+=== RUN   TestPublishArtifactRejectsMalformedChoiceTraceWithMatchingIdentity
+--- PASS: TestPublishArtifactRejectsMalformedChoiceTraceWithMatchingIdentity (0.00s)
+=== RUN   TestPublishArtifactRejectsChangedChoiceTraceIdentity
+--- PASS: TestPublishArtifactRejectsChangedChoiceTraceIdentity (0.00s)
+=== RUN   TestPublishArtifactRejectsChangedChoiceTapeIdentity
+--- PASS: TestPublishArtifactRejectsChangedChoiceTapeIdentity (0.00s)
+=== RUN   TestPublishArtifactWritesSimulationExplorationEvidence
+--- PASS: TestPublishArtifactWritesSimulationExplorationEvidence (0.05s)
+=== RUN   TestPublishArtifactRejectsChangedSimulationExplorationEvidence
+--- PASS: TestPublishArtifactRejectsChangedSimulationExplorationEvidence (0.00s)
+=== RUN   TestRetainedBytesCountsASharedTargetOnce
+--- PASS: TestRetainedBytesCountsASharedTargetOnce (0.00s)
+=== RUN   TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact
+=== RUN   TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/target_without_an_identity
+=== RUN   TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/sum_past_uint64
+=== RUN   TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/target_as_large_as_the_artifact
+=== RUN   TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/target_without_bytes
+--- PASS: TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact (0.01s)
+    --- PASS: TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/target_without_an_identity (0.00s)
+    --- PASS: TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/sum_past_uint64 (0.00s)
+    --- PASS: TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/target_as_large_as_the_artifact (0.00s)
+    --- PASS: TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/target_without_bytes (0.00s)
+=== RUN   TestPoolTargetIsTheTargetOnlyOfAnArtifactLinkedToThePool
+--- PASS: TestPoolTargetIsTheTargetOnlyOfAnArtifactLinkedToThePool (0.04s)
+=== RUN   TestPublishEnforcesModesIndependentOfUmask
+--- PASS: TestPublishEnforcesModesIndependentOfUmask (0.02s)
+=== RUN   TestSyncDirectoryContextPreservesPrimaryResults
+--- PASS: TestSyncDirectoryContextPreservesPrimaryResults (0.00s)
+=== RUN   TestPrivatePayloadWritesLiteralMetadataAndBytes
+=== RUN   TestPrivatePayloadWritesLiteralMetadataAndBytes/target
+=== RUN   TestPrivatePayloadWritesLiteralMetadataAndBytes/stdout
+--- PASS: TestPrivatePayloadWritesLiteralMetadataAndBytes (0.01s)
+    --- PASS: TestPrivatePayloadWritesLiteralMetadataAndBytes/target (0.00s)
+    --- PASS: TestPrivatePayloadWritesLiteralMetadataAndBytes/stdout (0.00s)
+=== RUN   TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination
+=== RUN   TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/target
+=== RUN   TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/stdout
+--- PASS: TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination (0.00s)
+    --- PASS: TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/target (0.00s)
+    --- PASS: TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/stdout (0.00s)
+=== RUN   TestPrivatePayloadCollisionPreservesDestinationAndPathError
+=== RUN   TestPrivatePayloadCollisionPreservesDestinationAndPathError/target
+=== RUN   TestPrivatePayloadCollisionPreservesDestinationAndPathError/stdout
+--- PASS: TestPrivatePayloadCollisionPreservesDestinationAndPathError (0.00s)
+    --- PASS: TestPrivatePayloadCollisionPreservesDestinationAndPathError/target (0.00s)
+    --- PASS: TestPrivatePayloadCollisionPreservesDestinationAndPathError/stdout (0.00s)
+=== RUN   TestPrivatePayloadRejectsNonregularSourceBeforeCreatingDestination
+--- PASS: TestPrivatePayloadRejectsNonregularSourceBeforeCreatingDestination (0.00s)
+=== RUN   TestPublishRemovesStagingAfterNonregularSourceFailure
+--- PASS: TestPublishRemovesStagingAfterNonregularSourceFailure (0.00s)
+=== RUN   TestPublishFailsBeforePublicationWhenByteCapacityIsExceeded
+--- PASS: TestPublishFailsBeforePublicationWhenByteCapacityIsExceeded (0.02s)
+=== RUN   TestPublishWritesPrivateAtomicArtifactAndOpenValidatesIt
+--- PASS: TestPublishWritesPrivateAtomicArtifactAndOpenValidatesIt (0.07s)
+=== RUN   TestPublishReusesOnlyCompletelyMatchingArtifact
+--- PASS: TestPublishReusesOnlyCompletelyMatchingArtifact (0.12s)
+=== RUN   TestPublishCanKeyCorpusCasesByRecordIdentity
+--- PASS: TestPublishCanKeyCorpusCasesByRecordIdentity (0.04s)
+=== RUN   TestPublishKeepsSuccessesWithOneSignatureAsDistinctReplayArtifacts
+--- PASS: TestPublishKeepsSuccessesWithOneSignatureAsDistinctReplayArtifacts (0.18s)
+=== RUN   TestPublishKeepsEachExecutionOfOneOutcomeSignature
+--- PASS: TestPublishKeepsEachExecutionOfOneOutcomeSignature (0.17s)
+=== RUN   TestPublishConcurrentlyNeverReplacesACompleteArtifact
+--- PASS: TestPublishConcurrentlyNeverReplacesACompleteArtifact (0.06s)
+=== RUN   TestOpenRejectsSymlinksAndUnlistedFiles
+--- PASS: TestOpenRejectsSymlinksAndUnlistedFiles (0.02s)
+=== RUN   TestOpenedArtifactRemainsPinnedAcrossPathReplacement
+--- PASS: TestOpenedArtifactRemainsPinnedAcrossPathReplacement (0.03s)
+=== RUN   TestPublishRejectsPayloadPathEscapeBeforeWriting
+--- PASS: TestPublishRejectsPayloadPathEscapeBeforeWriting (0.00s)
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget/live
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget/cancelled
+--- PASS: TestVerifySharedPayloadPreservesLiteralTarget (0.00s)
+    --- PASS: TestVerifySharedPayloadPreservesLiteralTarget/live (0.00s)
+    --- PASS: TestVerifySharedPayloadPreservesLiteralTarget/cancelled (0.00s)
+=== RUN   TestVerifySharedPayloadPreservesMissingTargetError
+--- PASS: TestVerifySharedPayloadPreservesMissingTargetError (0.00s)
+=== RUN   TestPublishSharesOneTargetAcrossTheStoresOfOnePool
+--- PASS: TestPublishSharesOneTargetAcrossTheStoresOfOnePool (0.79s)
+=== RUN   TestPublishConcurrentlyIntoOnePoolLeavesOneEntry
+--- PASS: TestPublishConcurrentlyIntoOnePoolLeavesOneEntry (0.07s)
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication/altered
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication/truncated
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication/mode_changed
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication/missing
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication/symbolic_link
+--- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication (0.35s)
+    --- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication/altered (0.09s)
+    --- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication/truncated (0.05s)
+    --- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication/mode_changed (0.08s)
+    --- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication/missing (0.08s)
+    --- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication/symbolic_link (0.06s)
+=== RUN   TestCopiedArtifactOpensWithoutItsStore
+--- PASS: TestCopiedArtifactOpensWithoutItsStore (0.05s)
+=== RUN   TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo
+=== RUN   TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo/invalid_cross-device_link
+=== RUN   TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo/operation_not_supported
+=== RUN   TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo/operation_not_permitted
+=== RUN   TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo/too_many_links
+=== RUN   TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo/another_link_failure_fails_publication
+--- PASS: TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo (0.38s)
+    --- PASS: TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo/invalid_cross-device_link (0.12s)
+    --- PASS: TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo/operation_not_supported (0.09s)
+    --- PASS: TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo/operation_not_permitted (0.07s)
+    --- PASS: TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo/too_many_links (0.10s)
+    --- PASS: TestPublishWithoutHardLinksKeepsPrivateCopiesAndSaysSo/another_link_failure_fails_publication (0.00s)
+=== RUN   TestOpenRejectsAnotherLinkToAPayloadThatIsNotTheTarget
+--- PASS: TestOpenRejectsAnotherLinkToAPayloadThatIsNotTheTarget (0.02s)
+=== RUN   TestPruneTargetPoolRemovesOnlyEntriesNothingShares
+--- PASS: TestPruneTargetPoolRemovesOnlyEntriesNothingShares (0.08s)
+=== RUN   TestPruneTargetPoolRefusesAPoolThatIsNotADirectoryOfItsOwner
+--- PASS: TestPruneTargetPoolRefusesAPoolThatIsNotADirectoryOfItsOwner (0.00s)
+=== RUN   TestPublishCreatesAgainAPoolEntryPrunedBeforeItsLink
+--- PASS: TestPublishCreatesAgainAPoolEntryPrunedBeforeItsLink (0.04s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/artifact	3.304s
