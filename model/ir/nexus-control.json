@@ -3620,7 +3620,8 @@
       "runs": 1,
       "edits": 8,
       "dropPrefix": true
-    }
+    },
+    "total": "960"
   } ],
   "realizations": [ {
     "id": "temporal.nexuscaller.NexusRealization$.forgedCompletion",

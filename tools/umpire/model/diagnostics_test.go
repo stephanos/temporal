@@ -112,7 +112,7 @@ func TestValidateReportsUnrelatedSameStateMachinesAtQueryPosition(t *testing.T) 
 	require.NotNil(t, q)
 	require.NotNil(t, other)
 	q.Scenario = proto.Clone(other.GetScenario()).(*umpirespb.ClaimRef)
-	require.EqualError(t, Validate(m), "model/temporal/nexuscaller/closepolicy/Claims.scala:228: query ackByOriginal.ackedThenReset pairs a Property of ackByOriginal with a Scenario of rejectAfterClose")
+	require.EqualError(t, Validate(m), "model/temporal/nexuscaller/closepolicy/Claims.scala:230: query ackByOriginal.ackedThenReset pairs a Property of ackByOriginal with a Scenario of rejectAfterClose")
 }
 
 // The saturating successor, rewritten as a plain increment: the IR stays well formed, and the

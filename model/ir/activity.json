@@ -1815,7 +1815,7 @@
     "name": "standaloneActivity.property.startedByPollingWorker",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 236
+      "line": 243
     },
     "params": [ {
       "name": "step",
@@ -1826,32 +1826,32 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Claims.scala",
-        "line": 236
+        "line": 243
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Claims.scala",
-            "line": 236
+            "line": 243
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Claims.scala",
-                "line": 236
+                "line": 243
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Claims.scala",
-                    "line": 236
+                    "line": 243
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Claims.scala",
-                        "line": 236
+                        "line": 243
                       },
                       "var": "step"
                     },
@@ -1867,7 +1867,7 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Claims.scala",
-            "line": 236
+            "line": 243
           },
           "literal": {
             "enum": {
@@ -7999,7 +7999,7 @@
     "name": "startedByPollingWorker",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 235
+      "line": 242
     },
     "whenAction": "attemptStart",
     "holds": "standaloneActivity.property.startedByPollingWorker"
@@ -8823,12 +8823,12 @@
     "name": "stoppedBeforeRetry",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 244
+      "line": 251
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/Claims.scala",
-        "line": 246
+        "line": 253
       },
       "construct": {
         "type": "temporal.standaloneactivity.StandaloneActivityState",
@@ -8896,14 +8896,14 @@
         }, {
           "position": {
             "file": "model/temporal/standaloneactivity/Claims.scala",
-            "line": 246
+            "line": 253
           },
           "construct": {
             "type": "temporal.worker.State",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Claims.scala",
-                "line": 246
+                "line": 253
               },
               "literal": {
                 "enum": {
@@ -8922,7 +8922,7 @@
     "name": "cancel",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 184
+      "line": 186
     },
     "form": "FORM_FIND",
     "property": {
@@ -8938,12 +8938,13 @@
       "steps": 4,
       "actions": 4,
       "search": 32768
-    }
+    },
+    "total": "1152"
   }, {
     "name": "cancelRequest",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 213
+      "line": 218
     },
     "form": "FORM_FIND",
     "property": {
@@ -8959,7 +8960,8 @@
       "steps": 4,
       "actions": 4,
       "search": 32768
-    }
+    },
+    "total": "1152"
   }, {
     "name": "completion",
     "position": {
@@ -8984,7 +8986,8 @@
     "expectedRun": {
       "property": "OUTCOME_SATISFIED",
       "conformance": "CONFORMANCE_CONFORMANT"
-    }
+    },
+    "total": "864"
   }, {
     "name": "nonRetryableFailure",
     "position": {
@@ -9009,12 +9012,13 @@
     "expectedRun": {
       "property": "OUTCOME_SATISFIED",
       "conformance": "CONFORMANCE_CONFORMANT"
-    }
+    },
+    "total": "864"
   }, {
     "name": "pauseHolds",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 217
+      "line": 224
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -9031,12 +9035,13 @@
       "steps": 6,
       "actions": 6,
       "search": 262144
-    }
+    },
+    "total": "1440"
   }, {
     "name": "pauseResume",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 193
+      "line": 197
     },
     "form": "FORM_FIND",
     "property": {
@@ -9056,12 +9061,13 @@
     "expectedRun": {
       "property": "OUTCOME_SATISFIED",
       "conformance": "CONFORMANCE_CONFORMANT"
-    }
+    },
+    "total": "1440"
   }, {
     "name": "retry",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 176
+      "line": 177
     },
     "form": "FORM_FIND",
     "property": {
@@ -9082,12 +9088,13 @@
       "property": "OUTCOME_INCONCLUSIVE",
       "reason": "the executions that explain the evidence disagree",
       "conformance": "CONFORMANCE_CONFORMANT"
-    }
+    },
+    "total": "1728"
   }, {
     "name": "scheduleToStartTimeout",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 196
+      "line": 200
     },
     "form": "FORM_FIND",
     "property": {
@@ -9108,12 +9115,13 @@
       "property": "OUTCOME_INCONCLUSIVE",
       "reason": "an execution that explains the evidence never reaches the claim's evaluation point",
       "conformance": "CONFORMANCE_CONFORMANT"
-    }
+    },
+    "total": "864"
   }, {
     "name": "startToCloseTimeout",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 205
+      "line": 210
     },
     "form": "FORM_FIND",
     "property": {
@@ -9129,12 +9137,13 @@
       "steps": 3,
       "actions": 3,
       "search": 4096
-    }
+    },
+    "total": "864"
   }, {
     "name": "stoppedWorkerStartsNothing",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 258
+      "line": 265
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -9150,12 +9159,13 @@
       "steps": 6,
       "actions": 6,
       "search": 262144
-    }
+    },
+    "total": "3456"
   }, {
     "name": "terminalHolds",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 215
+      "line": 222
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -9172,12 +9182,13 @@
       "steps": 3,
       "actions": 3,
       "search": 4096
-    }
+    },
+    "total": "864"
   }, {
     "name": "terminate",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 185
+      "line": 188
     },
     "form": "FORM_FIND",
     "property": {
@@ -9198,7 +9209,8 @@
       "property": "OUTCOME_INCONCLUSIVE",
       "reason": "the executions that explain the evidence disagree",
       "conformance": "CONFORMANCE_CONFORMANT"
-    }
+    },
+    "total": "864"
   } ],
   "realizations": [ {
     "id": "temporal.standaloneactivity.ActivityRealization$.standalone",

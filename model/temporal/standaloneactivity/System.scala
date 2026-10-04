@@ -327,22 +327,24 @@ def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector
     m.scenario("scheduleToCloseFirst").starts(scheduledIdle).actions(dispatch, scheduleToClose)
   val any = m.scenario("any").starts(scheduledIdle).free
   Vector(
-    query(s"${m.name}.staleDelivery") verify notPaused in stale limits three,
-    query(s"${m.name}.admittedBeforePause") verify notPaused in prePause limits three,
-    query(s"${m.name}.duplicateDelivery") verify oneActive in duplicate limits three,
+    query(s"${m.name}.staleDelivery") verify notPaused in stale limits three total 108,
+    query(s"${m.name}.admittedBeforePause") verify notPaused in prePause limits three total 108,
+    query(s"${m.name}.duplicateDelivery") verify oneActive in duplicate limits three total 108,
     // Each asks a Property its path keeps, so a violation is the watching monitor's alone.
-    query(s"${m.name}.duplicateDelivery.monitored") verify notPaused in duplicate limits three,
-    query(s"${m.name}.startedAfterCompletion.monitored") verify oneActive in reopened limits four,
-    query(s"${m.name}.any.notAdmittedWhilePaused") verify notPaused in any limits five,
-    query(s"${m.name}.any.atMostOneActive") verify oneActive in any limits five,
-    query(s"${m.name}.any.terminalStays") verify terminal in any limits five,
+    query(s"${m.name}.duplicateDelivery.monitored") verify notPaused in
+      duplicate limits three total 108,
+    query(s"${m.name}.startedAfterCompletion.monitored") verify oneActive in
+      reopened limits four total 144,
+    query(s"${m.name}.any.notAdmittedWhilePaused") verify notPaused in any limits five total 2340,
+    query(s"${m.name}.any.atMostOneActive") verify oneActive in any limits five total 2340,
+    query(s"${m.name}.any.terminalStays") verify terminal in any limits five total 2340,
     // Neither deadline is ordered before the other: each firing is a trace of its own.
-    query(s"${m.name}.scheduleToStartFirst") find startDeadline in startFirst limits three,
-    query(s"${m.name}.scheduleToCloseFirst") find closeDeadline in closeFirst limits three,
+    query(s"${m.name}.scheduleToStartFirst") find startDeadline in startFirst limits three total 72,
+    query(s"${m.name}.scheduleToCloseFirst") find closeDeadline in closeFirst limits three total 72,
     // The product's own Property, read through the design's declared refinement.
     query(s"${m.name}.product.pausedIsNotDispatched")
       .verify(pausedIsNotDispatched)
-      .in(stale) limits three
+      .in(stale) limits three total 108
   )
 
 val currentQueries: Vector[Query] = admissionQueries(currentAdmission)
@@ -376,10 +378,10 @@ val bothDeadlinesCloseFirst: Scenario[ProtocolState] =
 val competingTimers: Vector[Query] = Vector(
   query("competingTimers.scheduleToStartFirst")
     .find(scheduleToStartFires)
-    .in(bothDeadlinesStartFirst) limits three,
+    .in(bothDeadlinesStartFirst) limits three total 576,
   query("competingTimers.scheduleToCloseFirst")
     .find(scheduleToCloseFires)
-    .in(bothDeadlinesCloseFirst) limits three
+    .in(bothDeadlinesCloseFirst) limits three total 576
 )
 
 // ### The dispatch queue's interface
@@ -752,9 +754,13 @@ def committedStays(before: QueueDetail, after: QueueDetailStep): Boolean =
 /**
  * One crash at each point of the route, and the delivery that must still follow it: after the
  * invocation, after the sync match, after persistence and after a delivery. After the
- * acknowledgment nothing is left to deliver.
+ * acknowledgment nothing is left to deliver. `anyTotal` is the static combination count of its free
+ * `any` Queries.
  */
-def providerQueries(m: Machine[QueueDetail, QueueOutcome, QueueFact]): Vector[Query] =
+def providerQueries(
+    m: Machine[QueueDetail, QueueOutcome, QueueFact],
+    anyTotal: Int
+): Vector[Query] =
   val stays = m.property("committedStays") holdsAcross committedStays
   val delivers =
     m.property("delivers") when deliver holds (after => after.facts.contains(QueueFact.delivered))
@@ -780,18 +786,21 @@ def providerQueries(m: Machine[QueueDetail, QueueOutcome, QueueFact]): Vector[Qu
     .actions(enqueue, addActivityTask, persistTask, deliver, acknowledge, crash)
   val any = m.scenario("any").starts(idleQueue).free
   Vector(
-    query(s"${m.name}.crashAfterInvocation") find delivers in afterInvocation limits seven,
-    query(s"${m.name}.crashAfterSyncMatch") find delivers in afterSyncMatch limits seven,
-    query(s"${m.name}.crashAfterPersistence") find delivers in afterPersistence limits seven,
-    query(s"${m.name}.crashAfterDelivery") find delivers in afterDelivery limits seven,
-    query(s"${m.name}.crashAfterAcknowledgment") verify stays in afterAcknowledgment limits seven,
-    query(s"${m.name}.any.committedStays") verify stays in any limits twelve
+    query(s"${m.name}.crashAfterInvocation") find delivers in
+      afterInvocation limits seven total 180,
+    query(s"${m.name}.crashAfterSyncMatch") find delivers in afterSyncMatch limits seven total 210,
+    query(s"${m.name}.crashAfterPersistence") find delivers in
+      afterPersistence limits seven total 150,
+    query(s"${m.name}.crashAfterDelivery") find delivers in afterDelivery limits seven total 180,
+    query(s"${m.name}.crashAfterAcknowledgment") verify stays in
+      afterAcknowledgment limits seven total 180,
+    query(s"${m.name}.any.committedStays") verify stays in any limits twelve total anyTotal
   )
 
-val matchingQueueQueries: Vector[Query] = providerQueries(matchingQueue)
-val forgetfulQueueQueries: Vector[Query] = providerQueries(forgetfulQueue)
-val volatileQueueQueries: Vector[Query] = providerQueries(volatileQueue)
-val lossyMatchingQueueQueries: Vector[Query] = providerQueries(lossyMatchingQueue)
+val matchingQueueQueries: Vector[Query] = providerQueries(matchingQueue, anyTotal = 2880)
+val forgetfulQueueQueries: Vector[Query] = providerQueries(forgetfulQueue, anyTotal = 2880)
+val volatileQueueQueries: Vector[Query] = providerQueries(volatileQueue, anyTotal = 2880)
+val lossyMatchingQueueQueries: Vector[Query] = providerQueries(lossyMatchingQueue, anyTotal = 3240)
 
 /** Storage loss drops a committed message, and the queue records that it did. */
 val storageLossDrops: Property[QueueDetail] =
@@ -806,7 +815,8 @@ val persistedThenLost: Scenario[QueueDetail] =
     .actions(enqueue, addActivityTask, persistTask, storageLoss)
 
 val storageLossQuery: Query =
-  query("lossyMatchingQueue.storageLoss") find storageLossDrops in persistedThenLost limits seven
+  query("lossyMatchingQueue.storageLoss") find storageLossDrops in
+    persistedThenLost limits seven total 120
 
 // ### The record as a member
 //
@@ -905,13 +915,13 @@ def overQueueQueries(c: Composition[OverQueue]): Vector[Query] =
     c.scenario("duplicateDelivery").starts(idleOverQueue).actionKeys("dispatch", "admit", "admit")
   val any = c.scenario("any").starts(idleOverQueue).free
   Vector(
-    query(s"${c.name}.staleDelivery") verify notPaused in stale limits three,
-    query(s"${c.name}.admittedBeforePause") verify notPaused in prePause limits three,
-    query(s"${c.name}.duplicateDelivery") verify oneActive in duplicate limits three,
-    query(s"${c.name}.failedCommit") verify failedCommit in duplicate limits three,
-    query(s"${c.name}.any.notAdmittedWhilePaused") verify notPaused in any limits five,
-    query(s"${c.name}.any.atMostOneActive") verify oneActive in any limits five,
-    query(s"${c.name}.any.terminalStays") verify terminal in any limits five
+    query(s"${c.name}.staleDelivery") verify notPaused in stale limits three total 432,
+    query(s"${c.name}.admittedBeforePause") verify notPaused in prePause limits three total 432,
+    query(s"${c.name}.duplicateDelivery") verify oneActive in duplicate limits three total 432,
+    query(s"${c.name}.failedCommit") verify failedCommit in duplicate limits three total 432,
+    query(s"${c.name}.any.notAdmittedWhilePaused") verify notPaused in any limits five total 9360,
+    query(s"${c.name}.any.atMostOneActive") verify oneActive in any limits five total 9360,
+    query(s"${c.name}.any.terminalStays") verify terminal in any limits five total 9360
   )
 
 val currentOverQueueQueries: Vector[Query] = overQueueQueries(currentOverQueue)
@@ -983,7 +993,8 @@ val currentOverLossyMatching: Composition[OverMatching] =
     .replaces("queue", dispatchQueueUnderStorageLoss)
     .ends(s => admissionEnds(s.activity))
 
-def overMatchingQueries(c: Composition[OverMatching]): Vector[Query] =
+/** `anyTotal` is the static combination count of its free `any` Queries. */
+def overMatchingQueries(c: Composition[OverMatching], anyTotal: Int): Vector[Query] =
   val notPaused = c.property("notAdmittedWhilePaused") holdsAcross ((before, after) =>
     !admitsWhilePaused(before.activity.phase, after.state.activity.phase)
   )
@@ -1040,18 +1051,24 @@ def overMatchingQueries(c: Composition[OverMatching]): Vector[Query] =
     )
   val any = c.scenario("any").starts(idleOverMatching).free
   Vector(
-    query(s"${c.name}.staleDelivery") verify notPaused in stale limits five,
-    query(s"${c.name}.admittedBeforePause") verify notPaused in prePause limits five,
-    query(s"${c.name}.deliveredAgainAfterLostAck") verify oneActive in lostAck limits seven,
-    query(s"${c.name}.crashAfterAdmissionCommit") verify oneActive in crashAfterCommit limits eight,
-    query(s"${c.name}.any.notAdmittedWhilePaused") verify notPaused in any limits twelve,
-    query(s"${c.name}.any.atMostOneActive") verify oneActive in any limits twelve,
-    query(s"${c.name}.any.terminalStays") verify terminal in any limits twelve
+    query(s"${c.name}.staleDelivery") verify notPaused in stale limits five total 5400,
+    query(s"${c.name}.admittedBeforePause") verify notPaused in prePause limits five total 5400,
+    query(s"${c.name}.deliveredAgainAfterLostAck") verify oneActive in
+      lostAck limits seven total 6480,
+    query(s"${c.name}.crashAfterAdmissionCommit") verify oneActive in
+      crashAfterCommit limits eight total 8640,
+    query(s"${c.name}.any.notAdmittedWhilePaused") verify notPaused in
+      any limits twelve total anyTotal,
+    query(s"${c.name}.any.atMostOneActive") verify oneActive in any limits twelve total anyTotal,
+    query(s"${c.name}.any.terminalStays") verify terminal in any limits twelve total anyTotal
   )
 
-val currentOverMatchingQueries: Vector[Query] = overMatchingQueries(currentOverMatching)
-val staleOverMatchingQueries: Vector[Query] = overMatchingQueries(staleOverMatching)
-val currentOverLossyMatchingQueries: Vector[Query] = overMatchingQueries(currentOverLossyMatching)
+val currentOverMatchingQueries: Vector[Query] =
+  overMatchingQueries(currentOverMatching, anyTotal = 233280)
+val staleOverMatchingQueries: Vector[Query] =
+  overMatchingQueries(staleOverMatching, anyTotal = 233280)
+val currentOverLossyMatchingQueries: Vector[Query] =
+  overMatchingQueries(currentOverLossyMatching, anyTotal = 246240)
 
 // ### The held race, run against a server
 //
@@ -1105,7 +1122,7 @@ val heldStaleDelivery: Query =
   (query("heldAdmission.staleDelivery") find staleDeliveryRejected in heldAdmission
     .scenario("heldStaleDelivery")
     .starts(scheduledIdle)
-    .actions(dispatch, control(Control.pause), attemptStart) limits three).expect(
+    .actions(dispatch, control(Control.pause), attemptStart) limits three total 108).expect(
     umpire.realize.RunExpectation(
       umpire.realize.Conformance.conformant,
       umpire.realize.Outcome.satisfied,
@@ -1191,7 +1208,7 @@ val lostAdmissionResponseQuery: Query =
   ) find committedDespiteLostResponse in admissionResponseLoss
     .scenario("oneLostResponse")
     .starts(responseLossInitial)
-    .actions(dispatch, ackLoss) limits three).expect(
+    .actions(dispatch, ackLoss) limits three total 144).expect(
     umpire.realize
       .RunExpectation(umpire.realize.Conformance.conformant, umpire.realize.Outcome.satisfied)
   )

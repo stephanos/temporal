@@ -89,9 +89,9 @@ def typedOverQueueQueries(c: Composition[OverQueue]): Vector[Query] =
       c.synced(_.activity -> attemptStart)
     )
   Vector(
-    query(s"${c.name}.staleDelivery") verify oneActive in stale limits three,
-    query(s"${c.name}.admittedBeforePause") verify oneActive in prePause limits three,
-    query(s"${c.name}.duplicateDelivery") verify oneActive in duplicate limits three
+    query(s"${c.name}.staleDelivery") verify oneActive in stale limits three total 432,
+    query(s"${c.name}.admittedBeforePause") verify oneActive in prePause limits three total 432,
+    query(s"${c.name}.duplicateDelivery") verify oneActive in duplicate limits three total 432
   )
 
 val currentOverQueueTypedQueries: Vector[Query] = typedOverQueueQueries(currentOverQueueTyped)
@@ -165,10 +165,14 @@ def typedOverMatchingQueries(c: Composition[OverMatching]): Vector[Query] =
       c.synced(_.activity -> attemptStart)
     )
   Vector(
-    query(s"${c.name}.staleDelivery") verify oneActive in stale limits five,
-    query(s"${c.name}.admittedBeforePause") verify oneActive in prePause limits five,
-    query(s"${c.name}.deliveredAgainAfterLostAck") verify oneActive in lostAck limits seven,
-    query(s"${c.name}.crashAfterAdmissionCommit") verify oneActive in crashAfterCommit limits eight
+    query(s"${c.name}.staleDelivery") verify oneActive in stale limits five total 5400,
+    query(s"${c.name}.admittedBeforePause") verify oneActive in prePause limits five total 5400,
+    query(
+      s"${c.name}.deliveredAgainAfterLostAck"
+    ) verify oneActive in lostAck limits seven total 6480,
+    query(
+      s"${c.name}.crashAfterAdmissionCommit"
+    ) verify oneActive in crashAfterCommit limits eight total 8640
   )
 
 val currentOverMatchingTypedQueries: Vector[Query] =
@@ -186,7 +190,7 @@ val startedByPollingWorkerTyped: Property[StandaloneActivityState] =
     (_.state.worker.phase == WorkerPhase.polling)
 
 val stoppedWorkerStartsNothingTyped: Query =
-  query verify startedByPollingWorkerTyped in stoppedBeforeRetry limits six
+  query verify startedByPollingWorkerTyped in stoppedBeforeRetry limits six total 3456
 
 // ### Separators in composed keys, and actions spelled alike in two members
 
@@ -250,6 +254,6 @@ val tappedBoth =
 val switchLimits = Limits(steps = 4, actions = 4, search = 64)
 
 val switchQueries: Vector[Query] = Vector(
-  query("turnedOn") verify turnedOn in switchSchedule limits switchLimits,
-  query("tappedBoth") verify tappedBoth in switchSchedule limits switchLimits
+  query("turnedOn") verify turnedOn in switchSchedule limits switchLimits total 16,
+  query("tappedBoth") verify tappedBoth in switchSchedule limits switchLimits total 16
 )

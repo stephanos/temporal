@@ -102,13 +102,22 @@ func (p *Plan) lower(key string, priority int64, actions []*umpirespb.ActionClas
 		}
 	}
 	c := &Candidate{Key: key, Priority: priority, Model: m, Actions: actions}
-	encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(m)
+	// A total is metadata no identity reads: the digest hashes the candidate without totals, so a
+	// corrected source total names the same candidate as before.
+	encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(umpiremodel.WithoutTotals(m))
 	if err != nil {
 		c.Rejection = err.Error()
 		return c
 	}
 	sum := sha256.Sum256(encoded)
 	c.Digest = hex.EncodeToString(sum[:])
+	// A changed schedule changes the candidate's static combination count, so the candidate asserts
+	// its own recount; the source Query's assertion in p.base is the author's and stays as written.
+	if m, err = umpiremodel.WithTotals(m); err != nil {
+		c.Rejection = err.Error()
+		return c
+	}
+	c.Model = m
 	lower, err := producer.NewProducer(m)
 	if err != nil {
 		c.Rejection = err.Error()

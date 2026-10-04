@@ -278,16 +278,16 @@ def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector
     .actions(dispatch, attemptStart, attemptStart)
   val any = m.scenario("any").starts(scheduledEmpty).free
   Vector(
-    query(s"${m.name}.staleDelivery") verify notPaused in stale limits three,
-    query(s"${m.name}.admittedBeforePause") verify notPaused in prePause limits three,
-    query(s"${m.name}.duplicateDelivery") verify oneActive in duplicate limits three,
-    query(s"${m.name}.any.notAdmittedWhilePaused") verify notPaused in any limits five,
-    query(s"${m.name}.any.atMostOneActive") verify oneActive in any limits five,
-    query(s"${m.name}.any.terminalStays") verify terminal in any limits five,
+    query(s"${m.name}.staleDelivery") verify notPaused in stale limits three total 135,
+    query(s"${m.name}.admittedBeforePause") verify notPaused in prePause limits three total 135,
+    query(s"${m.name}.duplicateDelivery") verify oneActive in duplicate limits three total 135,
+    query(s"${m.name}.any.notAdmittedWhilePaused") verify notPaused in any limits five total 2250,
+    query(s"${m.name}.any.atMostOneActive") verify oneActive in any limits five total 2250,
+    query(s"${m.name}.any.terminalStays") verify terminal in any limits five total 2250,
     // The product's own Property, read through the design's declared refinement.
     query(s"${m.name}.product.pausedIsNotDispatched")
       .verify(pausedIsNotDispatched)
-      .in(stale) limits three
+      .in(stale) limits three total 135
   )
 
 val currentQueries: Vector[Query] = admissionQueries(currentAdmission)

@@ -219,43 +219,52 @@ def designQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
     .actions(callerClose, handlerFinish(Resolution.succeeded), complete(Resolution.succeeded))
   val any = m.scenario("any").starts(opened).free
   Vector(
-    query(s"${m.name}.closedThenFinished") verify preserved in closedThenFinished limits four,
+    query(s"${m.name}.closedThenFinished") verify preserved in
+      closedThenFinished limits four total 26880,
     query(s"${m.name}.resetThenDelivered.ackOnlyWhenKept").verify(acked) in
-      resetThenDelivered limits four,
+      resetThenDelivered limits four total 20160,
     query(s"${m.name}.resetThenDelivered.outcomePreserved").verify(preserved) in
-      resetThenDelivered limits four,
-    query(s"${m.name}.canceledAcrossReset") verify preserved in canceledAcrossReset limits five,
-    query(s"${m.name}.ackedThenReset") verify preserved in ackedThenReset limits four,
+      resetThenDelivered limits four total 20160,
+    query(s"${m.name}.canceledAcrossReset") verify preserved in
+      canceledAcrossReset limits five total 33600,
+    query(s"${m.name}.ackedThenReset") verify preserved in ackedThenReset limits four total 20160,
     query(s"${m.name}.duplicateCompletion").verify(knowledgeFinal) in duplicateCompletion limits
-      four,
+      four total 20160,
     query(s"${m.name}.resetBetweenCommitAndAcknowledgment").verify(acked) in
-      resetBetweenDeliveries limits four,
-    query(s"${m.name}.any.outcomePreserved") verify preserved in any limits twelve,
-    query(s"${m.name}.any.ackOnlyWhenKept") verify acked in any limits twelve,
-    query(s"${m.name}.any.closedHistoryIsFrozen") verify frozen in any limits twelve,
-    query(s"${m.name}.any.handlerEffectIsIrreversible") verify irreversible in any limits twelve,
-    query(s"${m.name}.any.knownIsTheHandlersOutcome") verify handlers in any limits twelve,
-    query(s"${m.name}.any.knowledgeIsFinal") verify knowledgeFinal in any limits twelve,
-    query(s"${m.name}.detachedWorkProceeds") find finishesAfterClose in detachedWork limits four,
+      resetBetweenDeliveries limits four total 26880,
+    query(s"${m.name}.any.outcomePreserved") verify preserved in any limits twelve total 806400,
+    query(s"${m.name}.any.ackOnlyWhenKept") verify acked in any limits twelve total 806400,
+    query(s"${m.name}.any.closedHistoryIsFrozen") verify frozen in any limits twelve total 806400,
+    query(s"${m.name}.any.handlerEffectIsIrreversible") verify irreversible in
+      any limits twelve total 806400,
+    query(s"${m.name}.any.knownIsTheHandlersOutcome") verify handlers in
+      any limits twelve total 806400,
+    query(s"${m.name}.any.knowledgeIsFinal") verify knowledgeFinal in
+      any limits twelve total 806400,
+    query(s"${m.name}.detachedWorkProceeds") find finishesAfterClose in
+      detachedWork limits four total 13440,
     query(s"${m.name}.intentWithoutReceipt").find(requestedButUnreceived) in cancelRequested limits
-      four,
+      four total 6720,
     query(s"${m.name}.receiptWithoutEffect").find(receivedButSucceeded) in
-      cancelReceivedThenSucceeded limits four,
+      cancelReceivedThenSucceeded limits four total 20160,
     query(s"${m.name}.effectWithoutKnowledge").find(canceledButUnknown) in
-      cancelReceivedThenCanceled limits four,
-    query(s"${m.name}.canceledIsKnown") find completionCancels in canceledThenDelivered limits four,
+      cancelReceivedThenCanceled limits four total 20160,
+    query(s"${m.name}.canceledIsKnown") find completionCancels in
+      canceledThenDelivered limits four total 26880,
     query(s"${m.name}.asyncCompletion").find(completionSucceeds) in finishedThenSucceeded limits
-      four,
-    query(s"${m.name}.asyncFailure") find completionFails in finishedThenFailed limits four,
+      four total 13440,
+    query(s"${m.name}.asyncFailure") find completionFails in
+      finishedThenFailed limits four total 13440,
     query(s"${m.name}.transientRejectionAfterClose").find(rejectedTransiently) in
-      deliveredToClosed limits four,
+      deliveredToClosed limits four total 20160,
     query(s"${m.name}.permanentRejectionAfterClose").find(rejectedPermanently) in
-      deliveredToClosed limits four,
-    query(s"${m.name}.lostAfterReset") find lostAfterReset in closedThenFinished limits four,
+      deliveredToClosed limits four total 20160,
+    query(s"${m.name}.lostAfterReset") find lostAfterReset in
+      closedThenFinished limits four total 26880,
     query(s"${m.name}.resetAfterRetention").find(reappliesRetained) in closedThenFinished limits
-      four,
+      four total 26880,
     query(s"${m.name}.resetBeforeRetention").find(routedToSuccessor) in resetThenDelivered limits
-      four
+      four total 20160
   )
 
 val rejectAfterCloseQueries: Vector[Query] = designQueries(rejectAfterCloseDesign)
@@ -285,11 +294,12 @@ def safetyQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
     .actions(handlerFinish(Resolution.failed), reset, complete(Resolution.failed))
   val any = m.scenario("any").starts(opened).free
   Vector(
-    query(s"${m.name}.closedThenFinished") verify preserved in closedThenFinished limits four,
+    query(s"${m.name}.closedThenFinished") verify preserved in
+      closedThenFinished limits four total 26880,
     query(s"${m.name}.resetThenDelivered.ackOnlyWhenKept").verify(acked) in
-      resetThenDelivered limits four,
-    query(s"${m.name}.any.outcomePreserved") verify preserved in any limits twelve,
-    query(s"${m.name}.any.ackOnlyWhenKept") verify acked in any limits twelve
+      resetThenDelivered limits four total 20160,
+    query(s"${m.name}.any.outcomePreserved") verify preserved in any limits twelve total 806400,
+    query(s"${m.name}.any.ackOnlyWhenKept") verify acked in any limits twelve total 806400
   )
 
 val retainAndRouteBoundedRetryQueries: Vector[Query] =
@@ -353,20 +363,21 @@ def deadlineQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
     .actions(handlerFinish(Resolution.succeeded), scheduleToClose, complete(Resolution.succeeded))
   val any = m.scenario("any").starts(opened).free
   Vector(
-    query(s"${m.name}.closedThenFinished") verify preserved in closedThenFinished limits four,
+    query(s"${m.name}.closedThenFinished") verify preserved in
+      closedThenFinished limits four total 26880,
     query(s"${m.name}.resetThenDelivered.ackOnlyWhenKept").verify(acked) in
-      resetThenDelivered limits four,
-    query(s"${m.name}.any.outcomePreserved") verify preserved in any limits twelve,
-    query(s"${m.name}.any.ackOnlyWhenKept") verify acked in any limits twelve,
-    query(s"${m.name}.any.noUnnecessaryWait") verify necessary in any limits twelve,
+      resetThenDelivered limits four total 20160,
+    query(s"${m.name}.any.outcomePreserved") verify preserved in any limits twelve total 887040,
+    query(s"${m.name}.any.ackOnlyWhenKept") verify acked in any limits twelve total 887040,
+    query(s"${m.name}.any.noUnnecessaryWait") verify necessary in any limits twelve total 887040,
     query(s"${m.name}.expiredAfterClosedLoss").find(expiresWithNothingOwed) in
-      closedLossThenExpired limits five,
+      closedLossThenExpired limits five total 33600,
     query(s"${m.name}.expiredAfterResetLoss").find(expiresWithNothingOwed) in
-      resetLossThenExpired limits five,
+      resetLossThenExpired limits five total 26880,
     query(s"${m.name}.expiredWhileReported").find(expiresWhileOwed) in reportedThenExpired limits
-      four,
+      four total 13440,
     query(s"${m.name}.lateCompletionIsDropped").find(lateCompletionIsDropped) in
-      expiredThenDelivered limits four
+      expiredThenDelivered limits four total 20160
   )
 
 val rejectAfterCloseWithDeadlineQueries: Vector[Query] =

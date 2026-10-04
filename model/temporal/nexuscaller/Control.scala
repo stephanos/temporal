@@ -68,7 +68,7 @@ object Control:
       8,
       8,
       262144
-    ))
+    ) total 960)
       .expect(
         RunExpectation(
           Conformance.inconclusive,

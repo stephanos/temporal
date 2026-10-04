@@ -45,6 +45,7 @@ lift: model/lifter/testdata/lifts/Rejects.scala:679: records reads the facts of 
 lift: model/lifter/testdata/lifts/Rejects.scala:487: refinedNothing replaces the refinement of oneStart, which declares none: declare it with `refines` in the machine
 lift: model/lifter/testdata/lifts/Rejects.scala:505: refinedOtherwise refines glimpse of fixture.rejects.Glimpse, fixture.rejects.Seen, Nothing in place of first of fixture.rejects.Flag, fixture.rejects.Outcome, Nothing: a replacement refines a machine of the same state, outcome and fact types, whose facts and outcomes the kept refinement names
 lift: model/lifter/testdata/lifts/Rejects.scala:638: spare replaces first, and no member fills spare
+lift: model/lifter/testdata/lifts/Rejects.scala:782: total of flipQueries takes an integer literal the author computed at each call, such as a Query's total, not fixture.rejects.Rejects$package.twoStates.+(0)
 lift: model/lifter/testdata/lifts/Rejects.scala:284: fixture.rejects.SharedB$.share and fixture.rejects.SharedA$.share would share the Definition ID fixture.rejects.Shared$.share: two declarations pinned to one former owner keep the distinct names they had there
 lift: model/lifter/testdata/lifts/Rejects.scala:664: lit of litStays names a def of the lifted sources, which the lifter binds, not ((l: fixture.rejects.Lamp) => l.lit): declare it as `def lit(...)` and pass that
 lift: model/lifter/testdata/lifts/Rejects.scala:214: channel shuffled's order is umpire.Order.fromOrdinal(1), not a case of Order: a channel names its order as Order.fifo or Order.unordered
@@ -57,6 +58,10 @@ lift: model/lifter/testdata/lifts/Rejects.scala:603: no sync of flipPair pairs p
 lift: model/lifter/testdata/lifts/Rejects.scala:611: syncs flipRight, flipSpare of flipTrio each pair flip of left, and synced names one: a sync is selected by a member action it alone pairs
 lift: model/lifter/testdata/lifts/Rejects.scala:375: tapped binds two actions named tap, fixture.rejects.TapA$.tap and fixture.rejects.TapB$.tap: a machine's actions have distinct names
 lift: model/lifter/testdata/lifts/Rejects.scala:736: an input is declared by the token a val names, as `val level = input[T]` and `.input(level)`, not a token no val declares
+lift: model/lifter/testdata/lifts/Rejects.scala:768: Query totalComputed asserts its total as fixture.rejects.Rejects$package.twoStates.*(1); a total is an integer literal the author computed, or an Int parameter of the shared def that declares the Query, supplied as a literal at each call site
+lift: model/lifter/testdata/lifts/Rejects.scala:771: Query totalKept asserts its total as fixture.rejects.Rejects$package.twoStates; a total is an integer literal the author computed, or an Int parameter of the shared def that declares the Query, supplied as a literal at each call site
+lift: model/lifter/testdata/lifts/Rejects.scala:774: Query totalNegative asserts the total -2; a total counts combinations, so it is at least 0
+lift: model/lifter/testdata/lifts/Rejects.scala:765: Query totaledTwice asserts its total twice: 2 and 2; a Query has one total
 lift: model/lifter/testdata/lifts/Rejects.scala:337: fixture.rejects.TwinA$.twin and fixture.rejects.TwinB$.twin are both named twin, and claims name a machine or composition by its name
 lift: model/lifter/testdata/lifts/Rejects.scala:19: fixture.rejects.Unbounded.notes is a list, which has no bound: a state holds messages in a channel's Inbox
 lift: model/lifter/testdata/lifts/Rejects.scala:407: fact lost has fields, so the evidence of its name alone does not say what confirms it: declare `evidence { case Dropped.lost(...) => ... }`
@@ -68,6 +73,7 @@ lift: model/lifter/testdata/lifts/Rejects.scala:170: unrefinedOutcomes names the
 lift: model/lifter/testdata/lifts/Rejects.scala:428: unrelatedRead pairs flips, a Property of second, with lampFlips, a Scenario of oneStart, and reads it through no refinement
 lift: model/lifter/testdata/lifts/Rejects.scala:388: Scenario eitherStart of twoStarts names no start, and twoStarts declares 2 starts: name the one it starts in with `starts`
 lift: model/lifter/testdata/lifts/Rejects.scala:399: Scenario eitherPair of startsPair names no start, and its member twoStarts declares 2 starts: name the one it starts in with `starts`
+lift: model/lifter/testdata/lifts/Rejects.scala:762: Query untotaled asserts no total: write `.total(n)` with n its static combination count, which model/README.md shows how to compute
 lift: model/lifter/testdata/lifts/Rejects.scala:748: UpTo[-1] has no values: a counter counts from 0 to a bound of at least 0
 lift: model/lifter/testdata/lifts/Rejects.scala:31: channel closed holds at most 0 messages; a channel holds at least one
 lift: model/lifter/testdata/lifts/Rejects.scala:141: two monitors are named twice: fixture.rejects.Rejects$package$.twiceFirst and fixture.rejects.Rejects$package$.twiceSecond, and would share one Definition ID

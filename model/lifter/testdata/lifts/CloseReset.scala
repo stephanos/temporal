@@ -296,17 +296,21 @@ def closeResetQueries(m: Machine[CloseResetState, Answer, Nothing]): Vector[Quer
     .actions(handlerFinish(Resolution.succeeded), complete(Resolution.succeeded), reset)
   val any = m.scenario("any").starts(opened).free
   Vector(
-    query(s"${m.name}.closedThenFinished") verify preserved in closedThenFinished limits four,
+    query(
+      s"${m.name}.closedThenFinished"
+    ) verify preserved in closedThenFinished limits four total 10752,
     query(
       s"${m.name}.resetThenDelivered.ackOnlyWhenKept"
-    ) verify acked in resetThenDelivered limits four,
+    ) verify acked in resetThenDelivered limits four total 8064,
     query(
       s"${m.name}.resetThenDelivered.outcomePreserved"
-    ) verify preserved in resetThenDelivered limits four,
-    query(s"${m.name}.canceledAcrossReset") verify preserved in canceledAcrossReset limits four,
-    query(s"${m.name}.ackedThenReset") verify preserved in ackedThenReset limits four,
-    query(s"${m.name}.any.outcomePreserved") verify preserved in any limits six,
-    query(s"${m.name}.any.ackOnlyWhenKept") verify acked in any limits six
+    ) verify preserved in resetThenDelivered limits four total 8064,
+    query(
+      s"${m.name}.canceledAcrossReset"
+    ) verify preserved in canceledAcrossReset limits four total 10752,
+    query(s"${m.name}.ackedThenReset") verify preserved in ackedThenReset limits four total 8064,
+    query(s"${m.name}.any.outcomePreserved") verify preserved in any limits six total 145152,
+    query(s"${m.name}.any.ackOnlyWhenKept") verify acked in any limits six total 145152
   )
 
 val rejectAfterCloseQueries: Vector[Query] = closeResetQueries(rejectAfterCloseDesign)

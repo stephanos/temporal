@@ -3,10 +3,15 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/umpire/lower"
+	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 const repository = "../../../.."
@@ -90,4 +95,45 @@ func TestAPinnedTreeIsPublishedWholeAndThenChecksClean(t *testing.T) {
 	unknown.pinned = []lower.Selected{{Model: "nexus-caller.json", Query: "absent"}}
 	require.ErrorContains(t, sync(root, complete, unknown, true), "no Model declares the selected Query")
 	require.NoError(t, sync(root, complete, selected, false), "a refused selection publishes nothing")
+}
+
+// Cases are generated only from IR whose every Query declares its total: each Query without one is
+// refused with its count, in every IR file at once, and IR declaring every total is admitted.
+func TestEveryQueryWithoutATotalIsRefused(t *testing.T) {
+	directory := t.TempDir()
+	queries := 0
+	for _, name := range []string{"nexus-caller.json", "nexus-control.json"} {
+		m, err := umpiremodel.Load(filepath.Join(repository, "model/ir", name))
+		require.NoError(t, err)
+		m = umpiremodel.WithoutTotals(m)
+		queries += len(m.GetQueries())
+		encoded, err := protojson.Marshal(m)
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(filepath.Join(directory, name), encoded, 0o644))
+	}
+	err := requireTotals(directory)
+	require.ErrorContains(t, err, "nexus-caller.json")
+	require.ErrorContains(t, err, "nexus-control.json")
+	require.ErrorContains(t, err, "query forgedCompletion declares no total: its static combination count is ")
+	require.Len(t, err.(interface{ Unwrap() []error }).Unwrap(), 2, "one refusal per IR file")
+	require.Equal(t, queries, strings.Count(err.Error(), "declares no total"), "every Query is reported")
+
+	for _, name := range []string{"nexus-caller.json", "nexus-control.json"} {
+		path := filepath.Join(directory, name)
+		m, err := umpiremodel.Load(path)
+		require.NoError(t, err)
+		totaled := proto.CloneOf(m)
+		for _, q := range totaled.GetQueries() {
+			total, err := umpiremodel.QueryTotal(totaled, q)
+			require.NoError(t, err)
+			n, ok := total.N()
+			require.True(t, ok)
+			q.Total = wrapperspb.Int64(n)
+		}
+		require.NoError(t, umpiremodel.Validate(totaled))
+		encoded, err := protojson.Marshal(totaled)
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(path, encoded, 0o644))
+	}
+	require.NoError(t, requireTotals(directory))
 }

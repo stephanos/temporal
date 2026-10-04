@@ -183,6 +183,16 @@ class Fixtures extends munit.FunSuite:
     "upToNegative"
   )
 
+  // The refusals of fn-112.11's Query totals.
+  private val totalRejects: Seq[String] = Seq(
+    "untotaled",
+    "totaledTwice",
+    "totalComputed",
+    "totalKept",
+    "totalNegative",
+    "sharedComputed"
+  )
+
   private val rejected = Seq(
     "unbounded",
     "waiting",
@@ -227,7 +237,7 @@ class Fixtures extends munit.FunSuite:
     "splatted",
     "explained"
   ).map("fixture.rejects.Rejects$package$." + _) ++ (selectorRejects ++ patternRejects ++
-    inputRejects).map(
+    inputRejects ++ totalRejects).map(
     "fixture.rejects.Rejects$package$." + _
   ) ++ Seq(
     // DefinitionScope pins, a name the compiler made up and a computed accepted outcome, refused in
@@ -742,6 +752,40 @@ class Fixtures extends munit.FunSuite:
       named("types", "fixture.inputs.Counted").at("/record/fields/1/type").toString,
       """{"intRange":{"high":"2"}}"""
     )
+
+  // fn-112.11: the total each Query asserts (lifts/Totals.scala).
+  concurrently(
+    "a Query's total lifts infix, dotted, around expect and from a shared def's argument"
+  ):
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val (model, _, _) = declarations("totals", Seq("queries", "lampTotals", "plainLampTotals"))
+    def record(name: String): ObjectNode =
+      val q = model
+        .path("queries")
+        .elements()
+        .asScala
+        .find(_.path("name").asText() == name)
+        .getOrElse(fail(s"the totals fixture lifted no Query named $name"))
+        .deepCopy[ObjectNode]()
+      q.remove(java.util.List.of("name", "position"))
+      q
+    def total(name: String): String = record(name).path("total").asText()
+    def without(name: String): String =
+      val q = record(name)
+      q.remove("total")
+      q.toPrettyString
+    for name <- Seq("infixTotal", "dottedTotal", "totalThenExpect", "expectThenTotal") do
+      assertEquals(total(name), "4", name)
+    assertEquals(record("dottedTotal").toPrettyString, record("infixTotal").toPrettyString)
+    assertEquals(record("expectThenTotal").toPrettyString, record("totalThenExpect").toPrettyString)
+    val unexpected = record("totalThenExpect")
+    assert(unexpected.has("expectedRun"), "expect left no expected run")
+    unexpected.remove("expectedRun")
+    assertEquals(unexpected.toPrettyString, record("infixTotal").toPrettyString)
+    // Each instance of the shared def carries the total its call supplied, and nothing else apart.
+    assertEquals(total("lamp.anyLit"), "12")
+    assertEquals(total("plainLamp.anyLit"), "4")
+    assertEquals(without("plainLamp.anyLit").replace("plainLamp", "lamp"), without("lamp.anyLit"))
 
   // fn-112.4: typed composition selectors (lifts/Members.scala).
   // Each composition of temporal/standaloneactivity beside its typed twin, the later designs derived

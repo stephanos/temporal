@@ -21,13 +21,23 @@ func checked(t *testing.T, m *umpirespb.Model) *Report {
 	return Check(m, DefaultScope)
 }
 
+// mutated is the fixture with each mutation applied, recounted as an exploration recounts the
+// candidate it derives: each Query that asserts a total asserts the derived Model's count.
 func mutated(t *testing.T, fixture string, mutate ...func(m *umpirespb.Model)) *umpirespb.Model {
 	t.Helper()
 	m := proto.Clone(lifted(t, fixture)).(*umpirespb.Model)
 	for _, f := range mutate {
 		f(m)
 	}
-	return m
+	return recounted(t, m)
+}
+
+// recounted is m with each Query that asserts a total asserting m's count (WithTotals).
+func recounted(t *testing.T, m *umpirespb.Model) *umpirespb.Model {
+	t.Helper()
+	out, err := WithTotals(m)
+	require.NoError(t, err)
+	return out
 }
 
 // receiptKey spells a receipt's subject, owner, name and part, those it has.

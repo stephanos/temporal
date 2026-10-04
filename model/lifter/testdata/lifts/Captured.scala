@@ -117,11 +117,11 @@ val bothPut = detailedPair.scenario.actions(detailedPair.synced(_.back -> put))
 
 val two = Limits(steps = 2, actions = 2, search = 64)
 
-val putStoresOnce = query find putStores in putOnce limits two
-val durableAfterFlush = query verify durableStays in putThenFlush limits two
+val putStoresOnce = query find putStores in putOnce limits two total 2
+val durableAfterFlush = query verify durableStays in putThenFlush limits two total 6
 // A Property of the opaque store read on the disk, through the refinement the disk declares.
-val putStoresThroughDisk = query verify putStores in putThenFlush limits two
-val bothPutHeld = query find frontHeld in bothPut limits two
+val putStoresThroughDisk = query verify putStores in putThenFlush limits two total 6
+val bothPutHeld = query find frontHeld in bothPut limits two total 6
 
 /**
  * Claims declared inside a function over a machine take the one explicit-name form, with no val:
@@ -131,16 +131,16 @@ def anyQueries(m: Machine[Disk, Outcome, Fact]): Vector[Query] = Vector(
   query(s"${m.name}.any.durableStays") verify durableStays in m
     .scenario("any")
     .starts(Disk(Stage.empty))
-    .free limits two,
+    .free limits two total 18,
   query(s"${m.name}.any.everPut") find (m.property(s"${m.name}.everPut") holds (after =>
     after.facts.contains(Fact.stored)
-  )) in m.scenario("anyPut").starts(Disk(Stage.empty)).free limits two
+  )) in m.scenario("anyPut").starts(Disk(Stage.empty)).free limits two total 18
 )
 
 /** A local val inside a function names its declaration. */
 def localQueries(m: Machine[Disk, Outcome, Fact]): Vector[Query] =
   val stays = m.property holds (after => after.state.stage != Stage.empty)
-  Vector(query("localStays") verify stays in putThenFlush limits two)
+  Vector(query("localStays") verify stays in putThenFlush limits two total 6)
 
 val durableEventually =
   disk.leadsTo("durableEventually")(

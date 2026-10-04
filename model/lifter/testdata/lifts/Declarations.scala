@@ -157,12 +157,12 @@ val bothPut: Scenario[DetailedPair] =
 val two: Limits = Limits("two", steps = 2, actions = 2, search = 64)
 
 val queries: Vector[Query] = Vector(
-  query("durableStays") verify durableStays in anyDisk limits two,
-  query("putAccepted") verify putAccepted in putThenFlush limits two,
-  query("putStores") find putStores in putOnce limits two,
+  query("durableStays") verify durableStays in anyDisk limits two total 18,
+  query("putAccepted") verify putAccepted in putThenFlush limits two total 6,
+  query("putStores") find putStores in putOnce limits two total 2,
   query("putStoresThroughDisk")
     .verify(putStores)
-    .in(putThenFlush) limits two,
-  query("keptTogether") verify keptTogether in anyPair limits two,
-  query("bothPut") find frontHeld in bothPut limits two
+    .in(putThenFlush) limits two total 6,
+  query("keptTogether") verify keptTogether in anyPair limits two total 8,
+  query("bothPut") find frontHeld in bothPut limits two total 6
 )

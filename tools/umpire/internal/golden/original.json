@@ -1,4 +1,6 @@
 {
-  "inert_fields": [],
+  "inert_fields": [
+    "temporal.server.api.umpire.v1.Query.total"
+  ],
   "entity_attachments": []
 }

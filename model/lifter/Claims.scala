@@ -29,6 +29,9 @@ private enum Decl:
   /** A function-valued argument: the def of the lifted sources it names, by its full name. */
   case FunctionRef(name: String)
 
+  /** An integer literal, such as the total a shared def's call supplies. */
+  case Number(value: Long)
+
 private[lift] trait Claims:
   self: Lifting =>
   import ctx.*
@@ -190,6 +193,8 @@ private[lift] trait Claims:
       }
       fold(e, inner, named)
     case Literal(StringConstant(s))       => Decl.Text(s)
+    case Literal(IntConstant(i))          => Decl.Number(i)
+    case Literal(LongConstant(l))         => Decl.Number(l)
     case r: Ref if env.contains(r.symbol) => env(r.symbol)
     // `s"..."`, with each argument folded to its text.
     case Apply(Select(Apply(Select(sc, "apply"), List(parts)), "s"), List(args))
@@ -277,6 +282,10 @@ private[lift] trait Claims:
             queries(name).withExpectedRun(emit(ir.RunExpectation, Bound(expected, Map.empty)))
           Decl.Declared(name)
         case other => fail(t, s"expect declares a Query's live assessment, not $other")
+    case Apply(Select(q, "total"), List(n)) =>
+      fold(q, env, named) match
+        case Decl.Declared(name) if queries.contains(name) => totalOf(name, n, env)
+        case other => fail(t, s"total asserts a Query's static combination count, not $other")
     case Apply(Select(q, "limits"), List(l)) =>
       fold(q, env, named) match
         case Decl.QueryIn(name, form, p, s) =>
@@ -329,6 +338,51 @@ private[lift] trait Claims:
     case other => fail(other, s"not a declaration the IR carries: ${other.show}")
 
   /**
+   * Records the total the Query `name` asserts, `n`: an integer literal, or a parameter of the
+   * declaring def around it that each call supplies as one.
+   */
+  def totalOf(name: String, n: Term, env: Map[Symbol, Decl]): Decl =
+    val total = numberOf(n, env).getOrElse(
+      fail(
+        n,
+        s"Query $name asserts its total as ${unwidened(n).show}; a total is an integer literal " +
+          "the author computed, or an Int parameter of the shared def that declares the Query, " +
+          "supplied as a literal at each call site"
+      )
+    )
+    val q = queries(name)
+    for was <- q.total do
+      fail(n, s"Query $name asserts its total twice: $was and $total; a Query has one total")
+    if total < 0 then
+      fail(
+        n,
+        s"Query $name asserts the total $total; a total counts combinations, so it is at least 0"
+      )
+    queries(name) = q.withTotal(total)
+    Decl.Declared(name)
+
+  /**
+   * An integer the author wrote: a literal, or a parameter of the declaring def around it bound to
+   * one.
+   */
+  def numberOf(t: Term, env: Map[Symbol, Decl]): Option[Long] = unwidened(t) match
+    case l @ Literal(IntConstant(_) | LongConstant(_)) =>
+      PartialFunction.condOpt(fold(l, env)) { case Decl.Number(v) => v }
+    case r: Ref => env.get(r.symbol).collect { case Decl.Number(v) => v }
+    case _      => None
+
+  /** A term without Scala's widening of an Int to a Long: `Int.int2long(n)` or `n.toLong`. */
+  def unwidened(t: Term): Term = t match
+    case Typed(e, _)                                        => unwidened(e)
+    case Inlined(_, Nil, e)                                 => unwidened(e)
+    case NamedArg(_, e)                                     => unwidened(e)
+    case Apply(f, List(e)) if widens(f.symbol)              => unwidened(e)
+    case Select(e, "toLong") if isNamed(e.tpe, "scala.Int") => unwidened(e)
+    case _                                                  => t
+  private def widens(f: Symbol): Boolean =
+    f.name == "int2long" && f.maybeOwner.fullName.stripSuffix("$") == "scala.Int"
+
+  /**
    * The body of a declaring function `d` at its call `t`, its arguments bound: each value folded, each
    * function-valued argument to the def of the lifted sources it names, and each type parameter to
    * the type the call applies it to, so a claim written once over `Declares[S]` and its predicates
@@ -352,10 +406,30 @@ private[lift] trait Claims:
       }
       .toMap
     val bound = params.zip(args).map { (p, a) =>
-      p.symbol -> functions.get(p.symbol).fold(fold(a, env))(f => Decl.FunctionRef(f.fullName))
+      p.symbol -> functions
+        .get(p.symbol)
+        .fold(argument(p, d, a, env))(f => Decl.FunctionRef(f.fullName))
     }
     val types = typeParams.zip(targs.map(a => instantiated(a.tpe))).toMap
     binding(functions, types)(fold(d.rhs.get, bound.toMap))
+
+  /**
+   * The value argument `a` of the parameter `p` of `d`, folded: an integer parameter, such as the
+   * total of a Query the def declares, takes a literal the author computed, or a parameter of the
+   * declaring def around the call bound to one.
+   */
+  def argument(p: ValDef, d: DefDef, a: Term, env: Map[Symbol, Decl]): Decl =
+    if !Seq("scala.Int", "scala.Long").exists(isNamed(p.tpt.tpe, _)) then fold(a, env)
+    else
+      Decl.Number(
+        numberOf(a, env).getOrElse(
+          fail(
+            a,
+            s"${p.name} of ${d.name} takes an integer literal the author computed at each call, " +
+              s"such as a Query's total, not ${unwidened(a).show}"
+          )
+        )
+      )
 
   /**
    * The def of the lifted sources an argument for the function-valued parameter `p` of `d` names: the

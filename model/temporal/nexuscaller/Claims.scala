@@ -168,36 +168,38 @@ val four: Limits = Limits("four", steps = 4, actions = 4, search = 32768)
 // The product claim is verified over every trace of one path, outside `functionalQueries`, because
 // a verify Query realizes nothing.
 
-val syncCompletion: Query = (query("syncCompletion") find syncSucceeds in syncReplied limits two)
-  .expect(RunExpectation(Conformance.conformant, Outcome.satisfied))
-  .explore(
-    Exploration(
-      "nexusDeadlines",
-      Vector(
-        Variation(
-          0,
-          Vector(
-            Alternative("startDeadline", 30, Vector(schedule(unset, unset, expires))),
-            Alternative("scheduleDeadline", 20, Vector(schedule(unset, expires, unset))),
-            Alternative("unbounded", 10, Vector(schedule(unset, unset, unset)))
+val syncCompletion: Query =
+  (query("syncCompletion") find syncSucceeds in syncReplied limits two total 384)
+    .expect(RunExpectation(Conformance.conformant, Outcome.satisfied))
+    .explore(
+      Exploration(
+        "nexusDeadlines",
+        Vector(
+          Variation(
+            0,
+            Vector(
+              Alternative("startDeadline", 30, Vector(schedule(unset, unset, expires))),
+              Alternative("scheduleDeadline", 20, Vector(schedule(unset, expires, unset))),
+              Alternative("unbounded", 10, Vector(schedule(unset, unset, unset)))
+            )
           )
-        )
-      ),
-      runs = 1,
-      edits = 1,
-      dropPrefix = true
+        ),
+        runs = 1,
+        edits = 1,
+        dropPrefix = true
+      )
     )
-  )
 val asyncCompletion: Query =
-  (query("asyncCompletion") find completionSucceeds in asyncThenSucceeded limits three).expect(
-    RunExpectation(
-      Conformance.conformant,
-      Outcome.inconclusive,
-      "the executions that explain the evidence disagree"
+  (query("asyncCompletion") find completionSucceeds in asyncThenSucceeded limits three total 576)
+    .expect(
+      RunExpectation(
+        Conformance.conformant,
+        Outcome.inconclusive,
+        "the executions that explain the evidence disagree"
+      )
     )
-  )
 val asyncFailure: Query =
-  (query("asyncFailure") find completionFails in asyncThenFailed limits three).expect(
+  (query("asyncFailure") find completionFails in asyncThenFailed limits three total 576).expect(
     RunExpectation(
       Conformance.conformant,
       Outcome.inconclusive,
@@ -205,14 +207,14 @@ val asyncFailure: Query =
     )
   )
 val handlerError: Query =
-  (query("handlerError") find handlerErrorFails in nonRetryableError limits two).expect(
+  (query("handlerError") find handlerErrorFails in nonRetryableError limits two total 384).expect(
     RunExpectation(
       Conformance.conformant,
       Outcome.inconclusive,
       "an execution that explains the evidence never reaches the claim's evaluation point"
     )
   )
-val retry: Query = (query("retry") find retrySucceeds in retriedThenSucceeded limits four)
+val retry: Query = (query("retry") find retrySucceeds in retriedThenSucceeded limits four total 768)
   .expect(
     RunExpectation(
       Conformance.conformant,
@@ -222,6 +224,7 @@ val retry: Query = (query("retry") find retrySucceeds in retriedThenSucceeded li
   )
 val scheduleToStartTimeout: Query =
   (query("scheduleToStartTimeout") find scheduleToStartFires in scheduleToStartExpires limits three)
+    .total(576)
     .expect(
       RunExpectation(
         Conformance.conformant,
@@ -230,19 +233,21 @@ val scheduleToStartTimeout: Query =
       )
     )
 val startToCloseTimeout: Query =
-  (query("startToCloseTimeout") find startToCloseFires in startToCloseExpires limits three).expect(
-    RunExpectation(
-      Conformance.conformant,
-      Outcome.inconclusive,
-      "an execution that explains the evidence never reaches the claim's evaluation point"
+  (query("startToCloseTimeout") find startToCloseFires in startToCloseExpires limits three)
+    .total(576)
+    .expect(
+      RunExpectation(
+        Conformance.conformant,
+        Outcome.inconclusive,
+        "an execution that explains the evidence never reaches the claim's evaluation point"
+      )
     )
-  )
 
 /**
  * A product claim on a protocol path, read through the refinement the protocol machine declares.
  */
 val terminalHolds: Query =
-  query("terminalHolds") verify terminalIsFinal in asyncThenSucceeded limits three
+  query("terminalHolds") verify terminalIsFinal in asyncThenSucceeded limits three total 576
 
 /** The functional Queries in declaration order. */
 val functionalQueries: Vector[Query] =
@@ -283,6 +288,5 @@ val repliedThenStopped: Scenario[NexusCallerState] = nexusCaller
 
 /** The cross-entity claim, verified over that path. */
 val stoppedWorkerRepliesNothing: Query =
-  query(
-    "stoppedWorkerRepliesNothing"
-  ) verify repliedByPollingWorker in repliedThenStopped limits four
+  query("stoppedWorkerRepliesNothing") verify repliedByPollingWorker in
+    repliedThenStopped limits four total 1536

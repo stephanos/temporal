@@ -15,7 +15,8 @@ import (
 // end gave the node, rather than the first.
 // It also rejects the rest of model/SEMANTICS.md's Admission list: an unknown version or a
 // construct of no known kind, crossed types, duplicate keys, catalogs that are not finite, bounds,
-// misused channels, readings without a refinement, and recursion.
+// misused channels, readings without a refinement, recursion, and a Query total that is not the
+// Query's static combination count.
 // A realization is checked as a whole of its own: what it names it declares, once, and its commands
 // depend on each other without a cycle.
 func Validate(m *umpirespb.Model) error {
@@ -72,6 +73,7 @@ func Validate(m *umpirespb.Model) error {
 		v.schedules(m, composed)
 		v.selectors(m, composed)
 		v.identities(m)
+		v.totals(m)
 	}
 	return errors.Join(v.errs...)
 }

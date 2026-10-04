@@ -168,32 +168,37 @@ val six: Limits = Limits("six", steps = 6, actions = 6, search = 262144)
 
 // ### The Queries
 
-val completion: Query = (query("completion") find completes in completed limits three)
+val completion: Query = (query("completion") find completes in completed limits three total 864)
   .expect(RunExpectation(Conformance.conformant, Outcome.satisfied))
 val nonRetryableFailure: Query =
-  (query("nonRetryableFailure") find nonRetryableFails in nonRetryable limits three)
+  (query("nonRetryableFailure") find nonRetryableFails in nonRetryable limits three total 864)
     .expect(RunExpectation(Conformance.conformant, Outcome.satisfied))
-val retry: Query = (query("retry") find retryCompletes in retriedThenCompleted limits six)
-  .expect(
-    RunExpectation(
-      Conformance.conformant,
-      Outcome.inconclusive,
-      "the executions that explain the evidence disagree"
+val retry: Query =
+  (query("retry") find retryCompletes in retriedThenCompleted limits six total 1728)
+    .expect(
+      RunExpectation(
+        Conformance.conformant,
+        Outcome.inconclusive,
+        "the executions that explain the evidence disagree"
+      )
     )
-  )
-val cancel: Query = query("cancel") find canceledByWorker in cancelRequestedThenCanceled limits four
-val terminate: Query = (query("terminate") find terminated in terminatedWhileScheduled limits three)
-  .expect(
-    RunExpectation(
-      Conformance.conformant,
-      Outcome.inconclusive,
-      "the executions that explain the evidence disagree"
+val cancel: Query =
+  query("cancel") find canceledByWorker in cancelRequestedThenCanceled limits four total 1152
+val terminate: Query =
+  (query("terminate") find terminated in terminatedWhileScheduled limits three total 864)
+    .expect(
+      RunExpectation(
+        Conformance.conformant,
+        Outcome.inconclusive,
+        "the executions that explain the evidence disagree"
+      )
     )
-  )
-val pauseResume: Query = (query("pauseResume") find completes in pausedThenCompleted limits six)
-  .expect(RunExpectation(Conformance.conformant, Outcome.satisfied))
+val pauseResume: Query =
+  (query("pauseResume") find completes in pausedThenCompleted limits six total 1440)
+    .expect(RunExpectation(Conformance.conformant, Outcome.satisfied))
 val scheduleToStartTimeout: Query =
   (query("scheduleToStartTimeout") find scheduleToStartFires in scheduleToStartExpires limits three)
+    .total(864)
     .expect(
       RunExpectation(
         Conformance.conformant,
@@ -202,7 +207,7 @@ val scheduleToStartTimeout: Query =
       )
     )
 val startToCloseTimeout: Query =
-  query("startToCloseTimeout") find startToCloseFires in startToCloseExpires limits three
+  query("startToCloseTimeout") find startToCloseFires in startToCloseExpires limits three total 864
 
 /**
  * Asks the one Property no functional Query asks, over the path that takes a cancel request. It is
@@ -210,11 +215,13 @@ val startToCloseTimeout: Query =
  * Go's.
  */
 val cancelRequest: Query =
-  query("cancelRequest") find cancelRequestedWhileStarted in cancelRequestedThenCanceled limits four
+  query("cancelRequest") find cancelRequestedWhileStarted in
+    cancelRequestedThenCanceled limits four total 1152
 
-val terminalHolds: Query = query("terminalHolds") verify terminalIsFinal in completed limits three
+val terminalHolds: Query =
+  query("terminalHolds") verify terminalIsFinal in completed limits three total 864
 val pauseHolds: Query =
-  query("pauseHolds") verify pausedIsNotDispatched in pausedThenCompleted limits six
+  query("pauseHolds") verify pausedIsNotDispatched in pausedThenCompleted limits six total 1440
 
 /** The functional Queries in declaration order. */
 val functionalQueries: Vector[Query] = Vector(
@@ -255,4 +262,5 @@ val stoppedBeforeRetry: Scenario[StandaloneActivityState] = standaloneActivity
 
 /** The cross-entity claim, verified over that path. */
 val stoppedWorkerStartsNothing: Query =
-  query("stoppedWorkerStartsNothing") verify startedByPollingWorker in stoppedBeforeRetry limits six
+  query("stoppedWorkerStartsNothing") verify startedByPollingWorker in
+    stoppedBeforeRetry limits six total 3456

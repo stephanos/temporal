@@ -199,6 +199,15 @@ func syncedActions(c *umpirespb.Composition) map[[2]string]bool {
 // composedCount counts a composition's class keys, its members' classes no sync names and each
 // sync's pairs of them, refusing them past the Members ceiling before any is made.
 func (v *validator) composedCount(c *umpirespb.Composition) error {
+	n, err := v.composedClassCount(c)
+	if err != nil {
+		return err
+	}
+	return v.in.within("classes", v.in.ceilings.Members, n)
+}
+
+// composedClassCount counts a composition's classes, as composedCount does, past any ceiling.
+func (v *validator) composedClassCount(c *umpirespb.Composition) (count, error) {
 	var n count
 	synced := syncedActions(c)
 	members := map[string]*umpirespb.Machine{}
@@ -207,14 +216,14 @@ func (v *validator) composedCount(c *umpirespb.Composition) error {
 		for _, b := range members[mb.GetField()].GetSteps() {
 			a, ok := v.actions[b.GetAction()]
 			if !ok {
-				return errorAt(b.GetPosition(), "no action %s", b.GetAction())
+				return count{}, errorAt(b.GetPosition(), "no action %s", b.GetAction())
 			}
 			if synced[[2]string{mb.GetField(), a.GetName()}] {
 				continue
 			}
 			k, err := v.in.sizeOfProduct(inputFields(a))
 			if err != nil {
-				return err
+				return count{}, err
 			}
 			n = n.plus(k)
 		}
@@ -222,15 +231,15 @@ func (v *validator) composedCount(c *umpirespb.Composition) error {
 	for _, s := range c.GetSyncs() {
 		first, err := v.actionCount(members[s.GetFirst().GetMember()], s.GetFirst().GetAction())
 		if err != nil {
-			return err
+			return count{}, err
 		}
 		second, err := v.actionCount(members[s.GetSecond().GetMember()], s.GetSecond().GetAction())
 		if err != nil {
-			return err
+			return count{}, err
 		}
 		n = n.plus(first.times(second))
 	}
-	return v.in.within("classes", v.in.ceilings.Members, n)
+	return n, nil
 }
 
 // actionCount counts the classes of the action of this name a member binds.

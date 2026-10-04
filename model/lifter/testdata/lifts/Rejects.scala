@@ -753,3 +753,30 @@ val below = machine[Below, Outcome, Nothing] {
 val belowFree = below.scenario.free
 val belowAny = below.property holds (after => after.state.count == 0)
 val upToNegative: Query = query verify belowAny in belowFree limits one
+
+// ### fn-112.11: the total each Query asserts (2 states of Flag x 1 scheduled flip = 2)
+
+val twoStates: Int = 2
+
+/** A Query that asserts no total. */
+val untotaled: Query = query verify flips in secondFlips limits one
+
+/** A Query that asserts its total twice. */
+val totaledTwice: Query = query verify flips in secondFlips limits one total 2 total 2
+
+/** A total the lifter would have to compute. */
+val totalComputed: Query = query verify flips in secondFlips limits one total (twoStates * 1)
+
+/** A total kept in a val. */
+val totalKept: Query = query verify flips in secondFlips limits one total twoStates
+
+/** A total below zero. */
+val totalNegative: Query = query verify flips in secondFlips limits one total -2
+
+/** A shared def's total computed at its call. */
+def flipQueries(m: Machine[Flag, Outcome, Nothing], total: Int): Vector[Query] = Vector(
+  query(s"${m.name}.flipsAgain") verify flips in m
+    .scenario("flipsAgain")
+    .actions(flip) limits one total total
+)
+val sharedComputed: Vector[Query] = flipQueries(second, twoStates + 0)

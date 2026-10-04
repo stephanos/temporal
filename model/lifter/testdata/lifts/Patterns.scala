@@ -215,8 +215,10 @@ val run = Limits(steps = 2, actions = 2, search = 64)
 val jobAny = job.scenario.free
 val pairAny = pair.scenario.free
 
-def onJob(name: String, p: Property[Job]): Query = query(name) verify p in jobAny limits run
-def onPair(name: String, p: Property[Pair]): Query = query(name) verify p in pairAny limits run
+def onJob(name: String, p: Property[Job]): Query =
+  query(name) verify p in jobAny limits run total 72
+def onPair(name: String, p: Property[Pair]): Query =
+  query(name) verify p in pairAny limits run total 192
 
 val claims: Vector[Query] = Vector(
   onJob("doneKeeps", doneKeeps),
