@@ -73,3 +73,24 @@ func TestIRPathsLeaveOutLawSidecars(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []string{filepath.Join(dir, "activity.json"), filepath.Join(dir, "nexus.json")}, paths)
 }
+
+// The standalone Nexus operation, the laws' second entity, receives them without listing them:
+// its terminal statuses are final, its own reading of closed rejection (a repeated request id is
+// answered OK) holds, and its functional laws are found from its start (fn-122 R6, R11).
+func TestNexusOperationReceivesTheLaws(t *testing.T) {
+	path := filepath.Join("..", "..", "..", "model", "ir", "nexus-operation.json")
+	m, err := Load(path)
+	require.NoError(t, err)
+	c, err := checkedOnce(m)
+	require.NoError(t, err)
+	require.Equal(t, map[string]ReceiptKind{
+		"query nexusOperation nexusOperation.terminalStatesAreFinal":    Verified,
+		"query nexusOperation nexusOperation.closedIsRejectedUniformly": Verified,
+		"query nexusOperation nexusOperation.terminateSettles":          Found,
+		"query nexusOperation nexusOperation.cancelIsRequested":         Found,
+	}, kinds(c.report))
+	sidecar, err := ReadLawSidecar(path)
+	require.NoError(t, err)
+	require.NotNil(t, sidecar)
+	require.Empty(t, LawViolations(c.report, sidecar))
+}

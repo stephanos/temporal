@@ -295,7 +295,18 @@ FailedPrecondition, where the activity answers NotFound), and it overrides
 close. Every law of the catalog now has two checked-in instantiating machines:
 `terminalStatesAreFinal` and `closedIsRejectedUniformly` (activityProduct, currentAdmission,
 nexusOperation), `pausedIsNotDispatched` (activityProduct, currentAdmission), `terminateSettles` and
-`cancelIsRequested` (activityProtocol, nexusOperation). Its generated finds run live.
+`cancelIsRequested` (activityProtocol, nexusOperation). Its generated finds run live, with the
+standalone Nexus flag enabled for the live suite in Go.
+
+Open findings of task 4, for the owner:
+- No Realization or Case can declare a required dynamic-configuration setting, so with
+  `nexusoperation.enableStandalone` off preparation passes and the Run fails on Unimplemented
+  ("Standalone Nexus operation is disabled", chasm/lib/nexusoperation/frontend.go), naming no flag.
+  R6's "fails at preparation naming the flag" needs a Case/Profile field and a Prepare check
+  (api/testpilot, common/testing/testpilot).
+- The Driver reserves a Nexus handler only through a workflow's or an activity's start, so the
+  operation's handler paths (`handlerReply`, `complete`) are modeled and verified but no Case through
+  them lowers.
 
 **For the owner.** No claim is unclassified. These are the borderline calls, each decided above:
 

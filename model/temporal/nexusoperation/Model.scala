@@ -22,9 +22,11 @@ val handler: Party = Party()
 /** Named by the id the caller chose: every request and read carries it. */
 val operation: Entity = Entity(key = "operationId")
 
-/** The handler's answer to the start: a result at once, a failure at once, or an async start. */
+/**
+ * The handler's answer to the start: a result, a failure or a cancel at once, or an async start.
+ */
 enum Reply derives Finite:
-  case syncSuccess, syncFailure, async
+  case syncSuccess, syncFailure, syncCanceled, async
 
 /** How a started operation's completion settles it. */
 enum Resolution derives Finite:
@@ -81,14 +83,18 @@ object Operation:
     if s.phase != unstarted then disabled
     else accept(OperationState(scheduled, false), statusScheduled)
 
-  /** TransitionStarted, or a synchronous completion straight from scheduled. */
+  /**
+   * TransitionStarted, or a synchronous completion straight from scheduled; a canceled answer settles
+   * it canceled (operation.go invocationResultCancel, onCanceled).
+   */
   def handlerReply(s: OperationState, r: Reply): List[OperationStep] =
     if s.phase != scheduled then disabled
     else
       r match
-        case Reply.syncSuccess => accept(s.copy(phase = succeeded), statusSucceeded)
-        case Reply.syncFailure => accept(s.copy(phase = failed), statusFailed)
-        case Reply.async       => accept(s.copy(phase = started), statusStarted)
+        case Reply.syncSuccess  => accept(s.copy(phase = succeeded), statusSucceeded)
+        case Reply.syncFailure  => accept(s.copy(phase = failed), statusFailed)
+        case Reply.syncCanceled => accept(s.copy(phase = canceled), statusCanceled)
+        case Reply.async        => accept(s.copy(phase = started), statusStarted)
 
   /** An async operation's completion; a canceled failure settles it canceled. */
   def complete(s: OperationState, r: Resolution): List[OperationStep] =

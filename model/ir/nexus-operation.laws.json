@@ -8,7 +8,7 @@
       "requestCancel": "temporal.nexusoperation.Model$package.requestCancel",
       "requested": "temporal.nexusoperation.OperationFact.statusCancelRequested"
     },
-    "position": "model/temporal/nexusoperation/Properties.scala:50"
+    "position": "model/temporal/nexusoperation/Properties.scala:52"
   }, {
     "machine": "nexusOperation",
     "name": "nexusOperation.closedIsRejectedUniformly",
@@ -20,7 +20,7 @@
       "rejected": "temporal.nexusoperation.Outcome.alreadyCompleted"
     },
     "overriddenBy": "temporal.nexusoperation.Properties$package$.closedRejectsOrRepeats",
-    "position": "model/temporal/nexusoperation/Properties.scala:39"
+    "position": "model/temporal/nexusoperation/Properties.scala:41"
   }, {
     "machine": "nexusOperation",
     "name": "nexusOperation.terminalStatesAreFinal",
@@ -30,7 +30,7 @@
       "status": "temporal.nexusoperation.Operation$.phase",
       "terminal": "temporal.nexusoperation.Operation$.terminal"
     },
-    "position": "model/temporal/nexusoperation/Properties.scala:39"
+    "position": "model/temporal/nexusoperation/Properties.scala:41"
   }, {
     "machine": "nexusOperation",
     "name": "nexusOperation.terminateSettles",
@@ -40,7 +40,7 @@
       "terminate": "temporal.nexusoperation.Model$package.terminate",
       "settled": "temporal.nexusoperation.OperationFact.statusTerminated"
     },
-    "position": "model/temporal/nexusoperation/Properties.scala:44"
+    "position": "model/temporal/nexusoperation/Properties.scala:46"
   } ],
   "waivers": [ {
     "machine": "nexusOperation",
@@ -48,7 +48,7 @@
     "waiver": "overriding",
     "by": "temporal.nexusoperation.Properties$package$.closedRejectsOrRepeats",
     "because": "a repeated request id is answered OK after close: operation.go RequestCancel and Terminate",
-    "position": "model/temporal/nexusoperation/Properties.scala:57"
+    "position": "model/temporal/nexusoperation/Properties.scala:59"
   } ],
   "catalog": [ {
     "law": "cancelIsRequested",
