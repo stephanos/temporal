@@ -257,18 +257,25 @@ logical day still passed from the program's point of view.
 This is the default `--clock-tick=strict` policy: `time.Now` returns the same
 instant throughout a busy stretch. If a test needs successive reads to differ,
 `--clock-tick=forward` on `explore` or `qualify` adds a seeded 1 to 1024
-nanoseconds per read. The offset leaves the native timer clock, scheduler, and
-simulation time unchanged, but application durations or deadlines derived from
-`time.Now` can observe it: `time.Since` on a reading that still carries its
-monotonic value can come out short or negative, and a deadline computed from
-such a reading can expire later than a
-timer set for the same duration. Readings differ only at nanosecond
-resolution, so coarser timestamps can still tie. The policy is part of the
-recorded execution identity, and replay restores it.
+nanoseconds per read to the process virtual clock, using a separate
+seed-derived stream that consumes no scheduling draws. `time.Now`, monotonic
+elapsed time, timers, sleeps, context deadlines, and simulation time observe
+that shared clock. A draw can make a timer due while work is runnable; the
+runtime delivers it at its next timer check without skipping runnable work.
+Runtime-internal clock reads do not tick. Explicit `testing/synctest` bubbles
+keep their private clocks and take precedence over the process clock.
+Readings differ only at nanosecond resolution, so coarser timestamps can still
+tie. The recorded environment binds the policy into execution identity, and
+replay restores it. These source semantics do not establish workload
+repeatability or exact replay; the remaining qualification is recorded in the
+[milestones](../../MILESTONES.md#open-findings).
 
 Virtual time does not bulldoze runnable work. A busy loop or a goroutine
-repeatedly polling a `select` remains runnable, so the clock cannot advance.
-That is when the supervisor's real wall-time watchdog steps in. A watchdog
+repeatedly polling a `select` remains runnable, so it prevents an idle jump to a
+future timer deadline. Without forward `time.Now` draws, the clock cannot
+advance; even with those draws, timer delivery requires the next timer check
+at a cooperative scheduling point. The supervisor's real wall-time watchdog
+bounds work that never reaches such a point. A watchdog
 observation is kept separate from a deterministic target failure because host
 elapsed time is a safety bound, not part of the virtual schedule.
 

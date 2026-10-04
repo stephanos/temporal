@@ -207,24 +207,20 @@ Explicit `testing/synctest` bubbles keep their private clocks and take precedenc
 over the process clock.
 
 The default `strict` clock-tick policy leaves `time.Now` unchanged while work is
-runnable. The optional `forward` policy adds a cumulative 1–1024 nanosecond
-increment at each `time.Now` read, using a separate seed-derived stream. Only
-`time.Now` observes that offset; the native timer clock, scheduler clock reads,
-and simulation time retain the idle-driven clock. Application calculations
-that derive deadlines or durations from `time.Now` can still observe the
-offset. For a reading that still carries its monotonic value, `time.Since`
-and `time.Until` read the idle-driven clock rather than the ticked one, so an
-elapsed time measured against such a reading is short by that reading's offset
-and negative within one busy stretch, and a deadline derived from it expires
-later than a native timer armed for the same duration. A reading stripped of
-its monotonic value, as by `Round(0)`, serialization, or parsing, is compared
-against a fresh ticked `time.Now` instead. Distinct readings are a
-nanosecond-resolution property of process
+runnable. The optional `forward` policy advances the process virtual clock by
+1–1024 nanoseconds at each `time.Now` read, using a separate seed-derived stream
+that consumes no scheduling draws. `gomadTimeNow` adds each draw directly to
+`faketime`; `time.Now`, monotonic elapsed time, native timers, sleeps, context
+deadlines, and simulation time observe that shared clock. A draw can make a
+timer due while work is runnable; the runtime delivers it at its next timer
+check without skipping runnable work. Runtime-internal clock reads do not
+tick. Distinct readings are a nanosecond-resolution property of process
 `time.Now`; a `testing/synctest` bubble keeps its own clock, and timestamps
 truncated to a coarser unit can still tie. The recorded environment binds the
-policy into Campaign, Artifact,
-and portable-plan identity, and replay restores it. Separating the offset
-keeps timestamp ticking out of native timer-clock advancement.
+policy into Campaign, Artifact, and portable-plan identity, and replay
+restores it. These source semantics do not establish workload repeatability
+or exact replay; the remaining qualification is recorded in the
+[milestones](../../MILESTONES.md#open-findings).
 
 ### Quiescence and native timers
 
@@ -233,8 +229,11 @@ tickers, callbacks, and context deadlines. The runtime advances directly to the
 earliest deadline only after its deadlock accounting proves that no goroutine is
 runnable. All timers at that instant become eligible before scheduling resumes.
 
-A runnable goroutine, including a busy loop or polling `select`, prevents time
-advancement. Unsupported blocking host I/O also cannot be converted into a
+A runnable goroutine, including a busy loop or polling `select`, prevents an
+idle jump to a future timer deadline. Without forward `time.Now` draws, it also
+prevents clock advancement; even with those draws, timer delivery requires the
+next timer check at a cooperative scheduling point. Unsupported blocking host
+I/O also cannot be converted into a
 logical clock event. Runner's wall watchdog bounds both cases without letting
 host elapsed time affect supported timer delivery.
 
