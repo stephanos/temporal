@@ -294,6 +294,23 @@ func (d Delta) ComparedOutputs(outputs Derived) Derived {
 	return out
 }
 
+// unproduced reports each archived file no longer produced, which only a reduced fixture may be, and
+// each reduced fixture that is not archived.
+func (d Delta) unproduced(archived, current map[string][]byte) []error {
+	var errs []error
+	for _, key := range slices.Sorted(maps.Keys(archived)) {
+		if _, ok := current[key]; !ok && !slices.Contains(d.Reduced, key) {
+			errs = append(errs, fmt.Errorf("%s is archived and no longer produced", key))
+		}
+	}
+	for _, key := range d.Reduced {
+		if _, ok := archived[key]; !ok {
+			errs = append(errs, fmt.Errorf("reduced fixture %s is not archived", key))
+		}
+	}
+	return errs
+}
+
 // Rederives reports whether the delta changes a baseline Model, so whatever the archive derived from
 // it is derived again from the expected Model.
 func (d Delta) Rederives() bool { return len(d.Attachments) > 0 || len(d.Replacements) > 0 }
@@ -724,17 +741,7 @@ func OriginalModels(files map[string][]byte) (map[string]*umpirespb.Model, error
 // replacements, which lists exactly the claims the delta lists for it. Each must be produced. A
 // reduced fixture must be an archived one, and may be retired: only it may no longer be produced.
 func (d Delta) Inventory(archived, current map[string][]byte) error {
-	var errs []error
-	for _, key := range slices.Sorted(maps.Keys(archived)) {
-		if _, ok := current[key]; !ok && !slices.Contains(d.Reduced, key) {
-			errs = append(errs, fmt.Errorf("%s is archived and no longer produced", key))
-		}
-	}
-	for _, key := range d.Reduced {
-		if _, ok := archived[key]; !ok {
-			errs = append(errs, fmt.Errorf("reduced fixture %s is not archived", key))
-		}
-	}
+	errs := d.unproduced(archived, current)
 	// added are the files the delta adds, each of which must be produced; optional are the law
 	// sidecars of new IR files, which a new IR file without capabilities does not have.
 	added, optional := map[string]bool{}, map[string]bool{}

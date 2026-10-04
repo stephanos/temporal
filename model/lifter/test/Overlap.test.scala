@@ -44,16 +44,21 @@ class Overlap extends munit.FunSuite:
       }
       .toVector
 
-  private def runs(lines: Vector[String]): Iterator[Vector[String]] = lines.sliding(run).filter(_.size == run)
+  private def runs(lines: Vector[String]): Iterator[Vector[String]] =
+    lines.sliding(run).filter(_.size == run)
 
   /** For each fixture with shared lines, the numbers of those lines, beside the files they are in. */
   private def shared(fixtures: Seq[Path], live: Seq[Path]): Map[Path, (Seq[Int], Set[Path])] =
     val owners = live.flatMap(f => runs(substantive(f).map(_._1)).map(_ -> f)).groupMap(_._1)(_._2)
     fixtures.flatMap { fixture =>
       val lines = substantive(fixture)
-      val hits = lines.indices.sliding(run).filter(_.size == run).flatMap { window =>
-        owners.get(window.map(lines(_)._1).toVector).map(window -> _)
-      }.toSeq
+      val hits = lines.indices
+        .sliding(run)
+        .filter(_.size == run)
+        .flatMap { window =>
+          owners.get(window.map(lines(_)._1).toVector).map(window -> _)
+        }
+        .toSeq
       val numbers = hits.flatMap(_._1).distinct.sorted.map(lines(_)._2)
       Option.when(numbers.nonEmpty)(fixture -> (numbers, hits.flatMap(_._2).toSet))
     }.toMap
@@ -71,13 +76,17 @@ class Overlap extends munit.FunSuite:
 
   test("a copied run is counted, and a run shorter than the window is not"):
     val scratch =
-      Files.createTempDirectory(Files.createDirectories(root.resolve("model/gen/history")), "overlap.")
+      Files.createTempDirectory(
+        Files.createDirectories(root.resolve("model/gen/history")),
+        "overlap."
+      )
     def write(name: String, text: String) = Files.writeString(scratch.resolve(name), text)
     val model = write(
       "Model.scala",
       "package live\n\nval a = 1\nval b = 2\nval c = 3\n// note\nval d = 4\nval e = 5\n"
     )
-    val copied = write("Copied.scala", "package fixture\n\nval a = 1\nval b = 2\n\nval c = 3\nval d = 4\n")
+    val copied =
+      write("Copied.scala", "package fixture\n\nval a = 1\nval b = 2\n\nval c = 3\nval d = 4\n")
     val short = write("Short.scala", "val a = 1\nval b = 2\nval c = 3\nval x = 9\n")
     val found = shared(Seq(copied, short), Seq(model))
     assertEquals(found.keySet, Set(copied))

@@ -265,11 +265,19 @@ func IRFiles(dir string) ([]string, error) {
 	return slices.DeleteFunc(paths, IsLawSidecar), nil
 }
 
-func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
+// inventoried checks that each reduced fixture is an entry of the IR inventory.
+func (c Config) inventoried() error {
 	for _, path := range c.Reduced {
 		if !slices.Contains(c.Inventory, path) {
-			return nil, fmt.Errorf("reduced IR inventory entry %s is not inventoried", path)
+			return fmt.Errorf("reduced IR inventory entry %s is not inventoried", path)
 		}
+	}
+	return nil
+}
+
+func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
+	if err := c.inventoried(); err != nil {
+		return nil, err
 	}
 	base := "model/scalav2"
 	if _, err := os.Stat(filepath.Join(root, base)); errors.Is(err, fs.ErrNotExist) {
@@ -301,12 +309,10 @@ func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
 			return nil, fmt.Errorf("missing later IR inventory entry %s", path)
 		}
 	}
+	// A reduced fixture is a new Model, or retired: it is compared with no frozen input.
+	maps.DeleteFunc(expected, func(_, entry string) bool { return slices.Contains(c.Reduced, entry) })
 	out := map[string]*umpirespb.Model{}
 	for _, path := range slices.Sorted(maps.Keys(expected)) {
-		// A reduced fixture is a new Model, or retired: it is compared with no frozen input.
-		if slices.Contains(c.Reduced, expected[path]) {
-			continue
-		}
 		if !found[path] {
 			return nil, fmt.Errorf("missing IR inventory entry %s", path)
 		}
