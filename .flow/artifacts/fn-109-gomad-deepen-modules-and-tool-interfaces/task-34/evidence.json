@@ -1,0 +1,129 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.34",
+  "status": "in_progress",
+  "result": "SOURCE_PROGRESS_ONLY",
+  "base_commit": "608df98bdbf1e079e6db8a87849330797ba34439",
+  "commits": [],
+  "tests": [
+    "go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run '^TestCharacterizeUnknownCommandsAndPrivateModes$' -v",
+    "go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run \"TestCampaignSemanticValidation|TestResolveExplore|TestResolveChoiceTrace|TestPlan|TestCharacterize|TestPublicCommand|TestExploreErrorReports|TestQualifyGrammar\" -v",
+    "go test -count=1 -tags test_dep . -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$' -v",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./cmd/gomad/internal/cli",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./cmd/gomad/internal/cli",
+    "gofmt -d cmd/gomad/internal/cli/characterization_test.go",
+    "go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run '^TestCharacterizeUnknownCommandsAndPrivateModes$' -v",
+    "go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run \"TestCampaignSemanticValidation|TestResolveExplore|TestResolveChoiceTrace|TestPlan|TestCharacterize|TestPublicCommand|TestExploreErrorReports|TestQualifyGrammar\" -v",
+    "go test -count=1 -tags test_dep . -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$' -v",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./cmd/gomad/internal/cli",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./cmd/gomad/internal/cli",
+    "gofmt -d cmd/gomad/internal/cli/characterization_test.go"
+  ],
+  "prs": [],
+  "source_path": "tools/gomad3/cmd/gomad/internal/cli/characterization_test.go",
+  "source_sha256": "cd34cd65054126f2d1311db44395354355b45766abdd707210eb8b8ef6dd7c02",
+  "baseline": "red (actual complete configured CLI lint exit 1; 54 findings, including unchecked reader.Close)",
+  "final_lint": "red (exit 1; 53 unchanged production findings)",
+  "commands": [
+    {
+      "phase": "baseline",
+      "check": "private-mode",
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/baseline-private-mode.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 1.557,
+      "top_level_passes": 1
+    },
+    {
+      "phase": "baseline",
+      "check": "portable-cli",
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/baseline-portable-cli.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 0.463,
+      "top_level_passes": 34
+    },
+    {
+      "phase": "baseline",
+      "check": "boundaries",
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/baseline-boundaries.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 6.157,
+      "top_level_passes": 5
+    },
+    {
+      "phase": "baseline",
+      "check": "lint",
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/baseline-lint.receipt.json",
+      "exit_code": 1,
+      "elapsed_seconds": 2.148,
+      "top_level_passes": null
+    },
+    {
+      "phase": "baseline",
+      "check": "errortype",
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/baseline-errortype.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 0.517,
+      "top_level_passes": null
+    },
+    {
+      "phase": "baseline",
+      "check": "gofmt",
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/baseline-gofmt.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 0.142,
+      "top_level_passes": null
+    },
+    {
+      "phase": "final",
+      "check": "private-mode",
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/final-private-mode.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 1.636,
+      "top_level_passes": 1
+    },
+    {
+      "phase": "final",
+      "check": "portable-cli",
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/final-portable-cli.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 0.73,
+      "top_level_passes": 34
+    },
+    {
+      "phase": "final",
+      "check": "boundaries",
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/final-boundaries.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 5.8,
+      "top_level_passes": 5
+    },
+    {
+      "phase": "final",
+      "check": "lint",
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/final-lint.receipt.json",
+      "exit_code": 1,
+      "elapsed_seconds": 1.998,
+      "top_level_passes": null
+    },
+    {
+      "phase": "final",
+      "check": "errortype",
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/final-errortype.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 0.31,
+      "top_level_passes": null
+    },
+    {
+      "phase": "final",
+      "check": "gofmt",
+      "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/final-gofmt.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 0.239,
+      "top_level_passes": null
+    }
+  ],
+  "source_checks": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/source-check.json",
+  "lint_delta": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/lint-delta.json",
+  "genuine_close_failure_executed": false,
+  "formal_review": "deferred to conductor; no verdict",
+  "qualification": "Original R6/R18/R19, task4/task5/predecessors/task21, matched first-baseline identities, complete/full/formal/affected-consumer and native darwin/arm64 plus linux/amd64 gates remain required and open."
+}

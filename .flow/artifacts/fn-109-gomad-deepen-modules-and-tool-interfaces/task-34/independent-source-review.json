@@ -1,0 +1,100 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.34",
+  "verdict": "SOURCE_PROGRESS_COMMIT_ONLY",
+  "formal_ship": false,
+  "task_acceptance_complete": false,
+  "source_sha256": "cd34cd65054126f2d1311db44395354355b45766abdd707210eb8b8ef6dd7c02",
+  "base_commit": "608df98bdbf1e079e6db8a87849330797ba34439",
+  "head_unchanged": true,
+  "created": "2026-10-04T21:24:26.888401+00:00",
+  "requested_reviewer": "gpt-6.1-sol at high",
+  "executed_model_metadata": "unavailable",
+  "reviewer_writer_family": "same requested family",
+  "tier": "session (jev-unavailable(no_key))",
+  "introduced_findings": {
+    "critical": [],
+    "important": [],
+    "minor": []
+  },
+  "inherited_acceptance_gaps": [
+    "Complete CLI lint RED with 52 errcheck and 1 ST1005",
+    "Genuine reader-close failure and primary+cleanup failure execution unproved",
+    "Original R6/R18/R19, task4/task5/predecessors/task21, first-baseline fixed identities, complete/full/completion/formal/affected-consumer and both-native qualification open"
+  ],
+  "artifact_sha256": {
+    "independent-source-review.md": "0a7dc4ff965477b3188fad39b33365718009147d02dcf7c98f9c6dbef51a72ea",
+    "review-audit.py": "3b1dee406fa2232083b5b8ec0cbec0765f233f0bdf93e6de5a09d2f132afa6cc",
+    "review-audit-evidence.json": "3b985bd24220b417943f71c2a6569ba143c1a6aeeb14d129f858469509379b2e",
+    "review-reaudit.py": "fd25a79c28e87fd3533010e005adaa7b8ca8b43ffc3be2485d0564c028cfbe89",
+    "review-final-private-mode.receipt.json": "30951ad6d95d7591cbd3a9cb1d320d7fc441a5fb308b2aca4e33274aedf1735c",
+    "review-final-private-mode.log": "f0cb6e65eeee15bdfa2726a83289dbbb2a6514871aefe648d43551c1d1bac341",
+    "review-final-portable-cli.receipt.json": "e52a6f275c64d2816936dac30ffa33dd4f234b1102cd971234eba4f92c2573c1",
+    "review-final-portable-cli.log": "70318f1b164d2738b4418193ec81daf41a11515917f0f553a14221e7a9f68cd1",
+    "review-final-boundaries.receipt.json": "3c85ecda342f1302e23174ed47dca7fa8bb4ff1216ff6497f5537f3316d6d067",
+    "review-final-boundaries.log": "1c84a68467392a1031dc954b301021cfe0439cd9cc986677f762ccf77424ed41",
+    "review-final-lint.receipt.json": "61369929e49c5910bdfaacacba93101136787b92e29c94b6da869ceb27b8c0e6",
+    "review-final-lint.log": "4d72d1ab1fcb78761d8a7109bf1718b32548188c8cb806b08ec359405f7420d9",
+    "review-final-errortype.receipt.json": "12b0824914d6ea6149918687f5817382e2eefbc8af919cd356581e57a6015bf4",
+    "review-final-errortype.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "review-final-gofmt.receipt.json": "7bf030a39f6901defbb244f3043c6d94bc432b14129063107a5b2f5539163126",
+    "review-final-gofmt.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "tool_sha256_supplement": {
+    "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+  },
+  "fresh_checks": [
+    {
+      "command": "go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run '^TestCharacterizeUnknownCommandsAndPrivateModes$' -v",
+      "exit_code": 0,
+      "top_level_passes": 1,
+      "elapsed_seconds": 0.766,
+      "log": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/review-final-private-mode.log"
+    },
+    {
+      "command": "go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run \"TestCampaignSemanticValidation|TestResolveExplore|TestResolveChoiceTrace|TestPlan|TestCharacterize|TestPublicCommand|TestExploreErrorReports|TestQualifyGrammar\" -v",
+      "exit_code": 0,
+      "top_level_passes": 34,
+      "elapsed_seconds": 0.722,
+      "log": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/review-final-portable-cli.log"
+    },
+    {
+      "command": "go test -count=1 -tags test_dep . -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$' -v",
+      "exit_code": 0,
+      "top_level_passes": 5,
+      "elapsed_seconds": 9.147,
+      "log": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/review-final-boundaries.log"
+    },
+    {
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./cmd/gomad/internal/cli",
+      "exit_code": 1,
+      "top_level_passes": null,
+      "elapsed_seconds": 1.055,
+      "log": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/review-final-lint.log"
+    },
+    {
+      "command": "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./cmd/gomad/internal/cli",
+      "exit_code": 0,
+      "top_level_passes": null,
+      "elapsed_seconds": 0.951,
+      "log": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/review-final-errortype.log"
+    },
+    {
+      "command": "gofmt -d cmd/gomad/internal/cli/characterization_test.go",
+      "exit_code": 0,
+      "top_level_passes": null,
+      "elapsed_seconds": 0.389,
+      "log": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/review-final-gofmt.log"
+    }
+  ],
+  "protected_inputs": 1044,
+  "writer_receipts_audited": 12,
+  "all_handles_terminal": true,
+  "bootstrap_failure": {
+    "command": "python review-audit.py gates",
+    "exit_code": 127,
+    "reason": "python unavailable; script did not execute"
+  },
+  "completed_audit_command": "python3 review-audit.py gates",
+  "completed_audit_exit": 0,
+  "read_only_reaudit_command": "python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/review-reaudit.py"
+}

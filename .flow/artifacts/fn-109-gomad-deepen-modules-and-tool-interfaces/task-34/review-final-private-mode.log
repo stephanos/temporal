@@ -1,0 +1,4 @@
+=== RUN   TestCharacterizeUnknownCommandsAndPrivateModes
+--- PASS: TestCharacterizeUnknownCommandsAndPrivateModes (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.003s

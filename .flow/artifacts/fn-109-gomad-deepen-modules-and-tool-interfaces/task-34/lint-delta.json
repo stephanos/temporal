@@ -1,0 +1,15 @@
+{
+  "baseline_findings": 54,
+  "final_findings": 53,
+  "resolved": [
+    "tools/gomad3/cmd/gomad/internal/cli/characterization_test.go:92:15: Error return value of `reader.Close` is not checked (errcheck)"
+  ],
+  "introduced": [],
+  "remaining": {
+    "errcheck": 52,
+    "staticcheck": 1
+  },
+  "remaining_diagnostics_and_source_lines_byte_identical": true,
+  "baseline_log": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/baseline-lint.log",
+  "final_log": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/final-lint.log"
+}

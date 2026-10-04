@@ -1,0 +1,468 @@
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/plan
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/execute-shard
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/merge
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/explore
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/qualify
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/qualify-set
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/merge-set
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/compare-support
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/analyze
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/resume
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/recover
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/replay
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/minimize
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/doctor
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/inspect
+--- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/plan (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/execute-shard (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/merge (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/explore (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/qualify (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/qualify-set (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/merge-set (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/compare-support (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/analyze (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/resume (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/recover (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/replay (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/minimize (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/doctor (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/inspect (0.00s)
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/explore_count_zero
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/explore_irrelevant_choice_bytes
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/plan_missing_output
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/qualify_repeat_zero
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/analyze_negative_timeout
+--- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification (0.01s)
+    --- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/explore_count_zero (0.00s)
+    --- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/explore_irrelevant_choice_bytes (0.00s)
+    --- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/plan_missing_output (0.01s)
+    --- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/qualify_repeat_zero (0.00s)
+    --- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/analyze_negative_timeout (0.00s)
+=== RUN   TestPlanAndExploreRejectHiddenPlanRoute
+--- PASS: TestPlanAndExploreRejectHiddenPlanRoute (0.00s)
+=== RUN   TestPlanValidationOrderAndJSONRouting
+--- PASS: TestPlanValidationOrderAndJSONRouting (0.00s)
+=== RUN   TestPublicCommandWriterFailuresPreserveStatus
+--- PASS: TestPublicCommandWriterFailuresPreserveStatus (0.00s)
+=== RUN   TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments
+--- PASS: TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments (0.00s)
+=== RUN   TestCampaignSemanticValidationBelongsToRunner
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveExploreStrategy
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveExploreCoverage
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveChoiceTrace
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/parseCampaignRequest
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveExploreGuidance
+--- PASS: TestCampaignSemanticValidationBelongsToRunner (0.00s)
+    --- PASS: TestCampaignSemanticValidationBelongsToRunner/resolveExploreStrategy (0.00s)
+    --- PASS: TestCampaignSemanticValidationBelongsToRunner/resolveExploreCoverage (0.00s)
+    --- PASS: TestCampaignSemanticValidationBelongsToRunner/resolveChoiceTrace (0.00s)
+    --- PASS: TestCampaignSemanticValidationBelongsToRunner/parseCampaignRequest (0.00s)
+    --- PASS: TestCampaignSemanticValidationBelongsToRunner/resolveExploreGuidance (0.00s)
+=== RUN   TestCharacterizeHelpAndUsage
+=== RUN   TestCharacterizeHelpAndUsage/usage
+=== RUN   TestCharacterizeHelpAndUsage/plan
+=== RUN   TestCharacterizeHelpAndUsage/execute-shard
+=== RUN   TestCharacterizeHelpAndUsage/merge
+=== RUN   TestCharacterizeHelpAndUsage/explore
+=== RUN   TestCharacterizeHelpAndUsage/qualify
+=== RUN   TestCharacterizeHelpAndUsage/qualify-set
+=== RUN   TestCharacterizeHelpAndUsage/merge-set
+=== RUN   TestCharacterizeHelpAndUsage/compare-support
+=== RUN   TestCharacterizeHelpAndUsage/analyze
+=== RUN   TestCharacterizeHelpAndUsage/resume
+=== RUN   TestCharacterizeHelpAndUsage/recover
+=== RUN   TestCharacterizeHelpAndUsage/replay
+=== RUN   TestCharacterizeHelpAndUsage/minimize
+=== RUN   TestCharacterizeHelpAndUsage/doctor
+=== RUN   TestCharacterizeHelpAndUsage/inspect
+--- PASS: TestCharacterizeHelpAndUsage (0.02s)
+    --- PASS: TestCharacterizeHelpAndUsage/usage (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/plan (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/execute-shard (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/merge (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/explore (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/qualify (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/qualify-set (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/merge-set (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/compare-support (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/analyze (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/resume (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/recover (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/replay (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/minimize (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/doctor (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/inspect (0.00s)
+=== RUN   TestCharacterizeUnknownCommandsAndPrivateModes
+--- PASS: TestCharacterizeUnknownCommandsAndPrivateModes (0.00s)
+=== RUN   TestCharacterizeInputRejection
+=== RUN   TestCharacterizeInputRejection/explore_zero_count
+=== RUN   TestCharacterizeInputRejection/explore_count_and_seeds
+=== RUN   TestCharacterizeInputRejection/explore_unknown_strategy
+=== RUN   TestCharacterizeInputRejection/seed_strategy_explicit_zero_choice_bound
+=== RUN   TestCharacterizeInputRejection/seed_strategy_explicit_zero_simulation_bound
+=== RUN   TestCharacterizeInputRejection/seed_strategy_explicit_zero_start_ordinal
+=== RUN   TestCharacterizeInputRejection/choice_exploration_explicit_zero_executions
+=== RUN   TestCharacterizeInputRejection/choice_exploration_missing_depth
+=== RUN   TestCharacterizeInputRejection/choice_exploration_count
+=== RUN   TestCharacterizeInputRejection/choice_exploration_seed_range
+=== RUN   TestCharacterizeInputRejection/choice_exploration_guide
+=== RUN   TestCharacterizeInputRejection/choice_exploration_simulation_bound
+=== RUN   TestCharacterizeInputRejection/simulation_exploration_explicit_zero_bound
+=== RUN   TestCharacterizeInputRejection/simulation_exploration_choice_depth
+=== RUN   TestCharacterizeInputRejection/simulation_exploration_start_ordinal
+=== RUN   TestCharacterizeInputRejection/simulation_exploration_count
+=== RUN   TestCharacterizeInputRejection/simulation_exploration_diagnostics
+=== RUN   TestCharacterizeInputRejection/choice_bytes_without_choices
+=== RUN   TestCharacterizeInputRejection/choice_bytes_above_maximum
+=== RUN   TestCharacterizeInputRejection/choice_coverage_without_choices
+=== RUN   TestCharacterizeInputRejection/unknown_coverage
+=== RUN   TestCharacterizeInputRejection/probe_without_semantic_coverage
+=== RUN   TestCharacterizeInputRejection/corpus_without_guide
+=== RUN   TestCharacterizeInputRejection/guide_without_corpus
+=== RUN   TestCharacterizeInputRejection/guide_regression_without_guide
+=== RUN   TestCharacterizeInputRejection/unknown_capability_mode
+=== RUN   TestCharacterizeInputRejection/explore_output
+=== RUN   TestCharacterizeInputRejection/missing_target
+=== RUN   TestCharacterizeInputRejection/unknown_target_kind
+=== RUN   TestCharacterizeInputRejection/exec_without_provenance
+=== RUN   TestCharacterizeInputRejection/go-run_without_package
+=== RUN   TestCharacterizeInputRejection/go-test_arguments_without_separator
+=== RUN   TestCharacterizeInputRejection/relative_working_directory
+=== RUN   TestCharacterizeInputRejection/explore_JSON_input_error
+=== RUN   TestCharacterizeInputRejection/plan_inherits_explore_validation
+=== RUN   TestCharacterizeInputRejection/qualify_repeat_below_two
+=== RUN   TestCharacterizeInputRejection/qualify_repeat_above_maximum
+=== RUN   TestCharacterizeInputRejection/qualify_successful_replay_without_bounds
+=== RUN   TestCharacterizeInputRejection/qualify_success_bounds_without_replay
+=== RUN   TestCharacterizeInputRejection/qualify_choice_bytes_without_choices
+=== RUN   TestCharacterizeInputRejection/qualify_missing_target
+=== RUN   TestCharacterizeInputRejection/analyze_format
+=== RUN   TestCharacterizeInputRejection/analyze_timeout_above_maximum
+=== RUN   TestCharacterizeInputRejection/analyze_negative_timeout
+=== RUN   TestCharacterizeInputRejection/analyze_exec_target
+=== RUN   TestCharacterizeInputRejection/analyze_capability_mode
+=== RUN   TestCharacterizeInputRejection/minimize_explicit_zero_budget
+=== RUN   TestCharacterizeInputRejection/minimize_missing_artifact
+=== RUN   TestCharacterizeInputRejection/replay_missing_artifact
+=== RUN   TestCharacterizeInputRejection/execute-shard_missing_plan
+=== RUN   TestCharacterizeInputRejection/execute-shard_malformed_shard
+=== RUN   TestCharacterizeInputRejection/execute-shard_index_outside_count
+=== RUN   TestCharacterizeInputRejection/resume_missing_campaign
+=== RUN   TestCharacterizeInputRejection/doctor_positional_argument
+=== RUN   TestCharacterizeInputRejection/merge_missing_output
+=== RUN   TestCharacterizeInputRejection/merge_missing_shard
+=== RUN   TestCharacterizeInputRejection/recover_missing_campaign
+=== RUN   TestCharacterizeInputRejection/inspect_missing_artifact
+=== RUN   TestCharacterizeInputRejection/qualify-set_missing_manifest
+=== RUN   TestCharacterizeInputRejection/qualify-set_format
+=== RUN   TestCharacterizeInputRejection/qualify-set_positional_argument
+=== RUN   TestCharacterizeInputRejection/qualify-set_malformed_shard
+=== RUN   TestCharacterizeInputRejection/merge-set_missing_shard_reports
+=== RUN   TestCharacterizeInputRejection/compare-support_missing_candidate
+--- PASS: TestCharacterizeInputRejection (0.00s)
+    --- PASS: TestCharacterizeInputRejection/explore_zero_count (0.00s)
+    --- PASS: TestCharacterizeInputRejection/explore_count_and_seeds (0.00s)
+    --- PASS: TestCharacterizeInputRejection/explore_unknown_strategy (0.00s)
+    --- PASS: TestCharacterizeInputRejection/seed_strategy_explicit_zero_choice_bound (0.00s)
+    --- PASS: TestCharacterizeInputRejection/seed_strategy_explicit_zero_simulation_bound (0.00s)
+    --- PASS: TestCharacterizeInputRejection/seed_strategy_explicit_zero_start_ordinal (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_exploration_explicit_zero_executions (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_exploration_missing_depth (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_exploration_count (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_exploration_seed_range (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_exploration_guide (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_exploration_simulation_bound (0.00s)
+    --- PASS: TestCharacterizeInputRejection/simulation_exploration_explicit_zero_bound (0.00s)
+    --- PASS: TestCharacterizeInputRejection/simulation_exploration_choice_depth (0.00s)
+    --- PASS: TestCharacterizeInputRejection/simulation_exploration_start_ordinal (0.00s)
+    --- PASS: TestCharacterizeInputRejection/simulation_exploration_count (0.00s)
+    --- PASS: TestCharacterizeInputRejection/simulation_exploration_diagnostics (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_bytes_without_choices (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_bytes_above_maximum (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_coverage_without_choices (0.00s)
+    --- PASS: TestCharacterizeInputRejection/unknown_coverage (0.00s)
+    --- PASS: TestCharacterizeInputRejection/probe_without_semantic_coverage (0.00s)
+    --- PASS: TestCharacterizeInputRejection/corpus_without_guide (0.00s)
+    --- PASS: TestCharacterizeInputRejection/guide_without_corpus (0.00s)
+    --- PASS: TestCharacterizeInputRejection/guide_regression_without_guide (0.00s)
+    --- PASS: TestCharacterizeInputRejection/unknown_capability_mode (0.00s)
+    --- PASS: TestCharacterizeInputRejection/explore_output (0.00s)
+    --- PASS: TestCharacterizeInputRejection/missing_target (0.00s)
+    --- PASS: TestCharacterizeInputRejection/unknown_target_kind (0.00s)
+    --- PASS: TestCharacterizeInputRejection/exec_without_provenance (0.00s)
+    --- PASS: TestCharacterizeInputRejection/go-run_without_package (0.00s)
+    --- PASS: TestCharacterizeInputRejection/go-test_arguments_without_separator (0.00s)
+    --- PASS: TestCharacterizeInputRejection/relative_working_directory (0.00s)
+    --- PASS: TestCharacterizeInputRejection/explore_JSON_input_error (0.00s)
+    --- PASS: TestCharacterizeInputRejection/plan_inherits_explore_validation (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify_repeat_below_two (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify_repeat_above_maximum (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify_successful_replay_without_bounds (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify_success_bounds_without_replay (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify_choice_bytes_without_choices (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify_missing_target (0.00s)
+    --- PASS: TestCharacterizeInputRejection/analyze_format (0.00s)
+    --- PASS: TestCharacterizeInputRejection/analyze_timeout_above_maximum (0.00s)
+    --- PASS: TestCharacterizeInputRejection/analyze_negative_timeout (0.00s)
+    --- PASS: TestCharacterizeInputRejection/analyze_exec_target (0.00s)
+    --- PASS: TestCharacterizeInputRejection/analyze_capability_mode (0.00s)
+    --- PASS: TestCharacterizeInputRejection/minimize_explicit_zero_budget (0.00s)
+    --- PASS: TestCharacterizeInputRejection/minimize_missing_artifact (0.00s)
+    --- PASS: TestCharacterizeInputRejection/replay_missing_artifact (0.00s)
+    --- PASS: TestCharacterizeInputRejection/execute-shard_missing_plan (0.00s)
+    --- PASS: TestCharacterizeInputRejection/execute-shard_malformed_shard (0.00s)
+    --- PASS: TestCharacterizeInputRejection/execute-shard_index_outside_count (0.00s)
+    --- PASS: TestCharacterizeInputRejection/resume_missing_campaign (0.00s)
+    --- PASS: TestCharacterizeInputRejection/doctor_positional_argument (0.00s)
+    --- PASS: TestCharacterizeInputRejection/merge_missing_output (0.00s)
+    --- PASS: TestCharacterizeInputRejection/merge_missing_shard (0.00s)
+    --- PASS: TestCharacterizeInputRejection/recover_missing_campaign (0.00s)
+    --- PASS: TestCharacterizeInputRejection/inspect_missing_artifact (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify-set_missing_manifest (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify-set_format (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify-set_positional_argument (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify-set_malformed_shard (0.00s)
+    --- PASS: TestCharacterizeInputRejection/merge-set_missing_shard_reports (0.00s)
+    --- PASS: TestCharacterizeInputRejection/compare-support_missing_candidate (0.00s)
+=== RUN   TestCharacterizeByteSizeAndFlagValueRejection
+--- PASS: TestCharacterizeByteSizeAndFlagValueRejection (0.00s)
+=== RUN   TestCharacterizeInstallationResolution
+--- PASS: TestCharacterizeInstallationResolution (0.01s)
+=== RUN   TestCharacterizeExploreRequestDefaultsAndWiring
+--- PASS: TestCharacterizeExploreRequestDefaultsAndWiring (0.00s)
+=== RUN   TestCharacterizeExploreOutputAndStatus
+=== RUN   TestCharacterizeExploreOutputAndStatus/text_success
+=== RUN   TestCharacterizeExploreOutputAndStatus/JSON_success
+=== RUN   TestCharacterizeExploreOutputAndStatus/text_failure
+=== RUN   TestCharacterizeExploreOutputAndStatus/JSON_failure
+=== RUN   TestCharacterizeExploreOutputAndStatus/invalid_input_error
+=== RUN   TestCharacterizeExploreOutputAndStatus/runner_failure
+=== RUN   TestCharacterizeExploreOutputAndStatus/cancelled
+=== RUN   TestCharacterizeExploreOutputAndStatus/semantic_coverage_failure
+=== RUN   TestCharacterizeExploreOutputAndStatus/unsupported_target
+--- PASS: TestCharacterizeExploreOutputAndStatus (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/text_success (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/JSON_success (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/text_failure (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/JSON_failure (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/invalid_input_error (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/runner_failure (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/cancelled (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/semantic_coverage_failure (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/unsupported_target (0.00s)
+=== RUN   TestCharacterizePlanRequestAndOutput
+--- PASS: TestCharacterizePlanRequestAndOutput (0.00s)
+=== RUN   TestCharacterizeReplayRequestOutputAndStatus
+=== RUN   TestCharacterizeReplayRequestOutputAndStatus/verify_only
+=== RUN   TestCharacterizeReplayRequestOutputAndStatus/reproduced_success
+=== RUN   TestCharacterizeReplayRequestOutputAndStatus/divergence
+=== RUN   TestCharacterizeReplayRequestOutputAndStatus/preflight
+=== RUN   TestCharacterizeReplayRequestOutputAndStatus/replay_failure
+--- PASS: TestCharacterizeReplayRequestOutputAndStatus (0.00s)
+    --- PASS: TestCharacterizeReplayRequestOutputAndStatus/verify_only (0.00s)
+    --- PASS: TestCharacterizeReplayRequestOutputAndStatus/reproduced_success (0.00s)
+    --- PASS: TestCharacterizeReplayRequestOutputAndStatus/divergence (0.00s)
+    --- PASS: TestCharacterizeReplayRequestOutputAndStatus/preflight (0.00s)
+    --- PASS: TestCharacterizeReplayRequestOutputAndStatus/replay_failure (0.00s)
+=== RUN   TestCharacterizeExecuteShardRequestOutputAndStatus
+--- PASS: TestCharacterizeExecuteShardRequestOutputAndStatus (0.00s)
+=== RUN   TestCharacterizeInstallationWiring
+--- PASS: TestCharacterizeInstallationWiring (0.00s)
+=== RUN   TestCharacterizeOutputWriterFailures
+=== RUN   TestCharacterizeOutputWriterFailures/explore_text_result
+=== RUN   TestCharacterizeOutputWriterFailures/explore_JSON_result
+=== RUN   TestCharacterizeOutputWriterFailures/explore_text_input_error
+=== RUN   TestCharacterizeOutputWriterFailures/explore_JSON_input_error
+=== RUN   TestCharacterizeOutputWriterFailures/plan_text_result
+=== RUN   TestCharacterizeOutputWriterFailures/plan_JSON_result
+=== RUN   TestCharacterizeOutputWriterFailures/replay_result
+=== RUN   TestCharacterizeOutputWriterFailures/replay_verification
+=== RUN   TestCharacterizeOutputWriterFailures/execute-shard_result
+=== RUN   TestCharacterizeOutputWriterFailures/resume_result
+=== RUN   TestCharacterizeOutputWriterFailures/minimize_text_result
+=== RUN   TestCharacterizeOutputWriterFailures/minimize_JSON_result
+=== RUN   TestCharacterizeOutputWriterFailures/minimize_usage
+=== RUN   TestCharacterizeOutputWriterFailures/recover_usage
+=== RUN   TestCharacterizeOutputWriterFailures/inspect_usage
+=== RUN   TestCharacterizeOutputWriterFailures/analyze_input_error
+=== RUN   TestCharacterizeOutputWriterFailures/qualify-set_input_error
+=== RUN   TestCharacterizeOutputWriterFailures/doctor_installation_error
+=== RUN   TestCharacterizeOutputWriterFailures/replay_installation_error
+--- PASS: TestCharacterizeOutputWriterFailures (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/explore_text_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/explore_JSON_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/explore_text_input_error (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/explore_JSON_input_error (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/plan_text_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/plan_JSON_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/replay_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/replay_verification (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/execute-shard_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/resume_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/minimize_text_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/minimize_JSON_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/minimize_usage (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/recover_usage (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/inspect_usage (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/analyze_input_error (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/qualify-set_input_error (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/doctor_installation_error (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/replay_installation_error (0.00s)
+=== RUN   TestResolveExploreSeedsSupportsCountWithoutAmbiguity
+=== RUN   TestResolveExploreSeedsSupportsCountWithoutAmbiguity/default
+=== RUN   TestResolveExploreSeedsSupportsCountWithoutAmbiguity/explicit_seeds
+=== RUN   TestResolveExploreSeedsSupportsCountWithoutAmbiguity/one
+=== RUN   TestResolveExploreSeedsSupportsCountWithoutAmbiguity/three
+=== RUN   TestResolveExploreSeedsSupportsCountWithoutAmbiguity/zero
+=== RUN   TestResolveExploreSeedsSupportsCountWithoutAmbiguity/conflict
+--- PASS: TestResolveExploreSeedsSupportsCountWithoutAmbiguity (0.00s)
+    --- PASS: TestResolveExploreSeedsSupportsCountWithoutAmbiguity/default (0.00s)
+    --- PASS: TestResolveExploreSeedsSupportsCountWithoutAmbiguity/explicit_seeds (0.00s)
+    --- PASS: TestResolveExploreSeedsSupportsCountWithoutAmbiguity/one (0.00s)
+    --- PASS: TestResolveExploreSeedsSupportsCountWithoutAmbiguity/three (0.00s)
+    --- PASS: TestResolveExploreSeedsSupportsCountWithoutAmbiguity/zero (0.00s)
+    --- PASS: TestResolveExploreSeedsSupportsCountWithoutAmbiguity/conflict (0.00s)
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/count
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/multiple_seeds
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/guidance
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/missing_max_executions
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/zero_max_executions
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/missing_max_depth
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/missing_exploration_bytes
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/unknown
+--- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/count (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/multiple_seeds (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/guidance (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/missing_max_executions (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/zero_max_executions (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/missing_max_depth (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/missing_exploration_bytes (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/unknown (0.00s)
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/count
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/multiple_seeds
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/guidance
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/choice_depth
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/choice_start_ordinal
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_max_executions
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_forced_decisions
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_exploration_bytes
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_result_bytes
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_runtime_bound
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/zero_crash_bound
+--- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/count (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/multiple_seeds (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/guidance (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/choice_depth (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/choice_start_ordinal (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_max_executions (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_forced_decisions (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_exploration_bytes (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_result_bytes (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_runtime_bound (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/zero_crash_bound (0.00s)
+=== RUN   TestResolveExploreStrategyRejectsExplorationBoundsForSeeds
+--- PASS: TestResolveExploreStrategyRejectsExplorationBoundsForSeeds (0.00s)
+=== RUN   TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes
+--- PASS: TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes (0.00s)
+=== RUN   TestResolveExploreTypedErrorPresentation
+--- PASS: TestResolveExploreTypedErrorPresentation (0.00s)
+=== RUN   TestResolveExploreGuidanceEnablesSemanticCoverageAndRequiresCorpus
+--- PASS: TestResolveExploreGuidanceEnablesSemanticCoverageAndRequiresCorpus (0.00s)
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/disabled
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/enabled_default
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/enabled_explicit
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/bytes_without_choices
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/enabled_zero
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/too_small
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/too_large
+--- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity (0.00s)
+    --- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/disabled (0.00s)
+    --- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/enabled_default (0.00s)
+    --- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/enabled_explicit (0.00s)
+    --- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/bytes_without_choices (0.00s)
+    --- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/enabled_zero (0.00s)
+    --- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/too_small (0.00s)
+    --- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/too_large (0.00s)
+=== RUN   TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure
+--- PASS: TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure (0.00s)
+=== RUN   TestCharacterizePlanRequestDefaults
+--- PASS: TestCharacterizePlanRequestDefaults (0.00s)
+=== RUN   TestCharacterizePlanInputRejection
+=== RUN   TestCharacterizePlanInputRejection/unknown_strategy
+=== RUN   TestCharacterizePlanInputRejection/unknown_strategy_precedes_count
+=== RUN   TestCharacterizePlanInputRejection/capability_mode_precedes_strategy
+=== RUN   TestCharacterizePlanInputRejection/zero_count
+=== RUN   TestCharacterizePlanInputRejection/seed_strategy_explicit_zero_bound
+=== RUN   TestCharacterizePlanInputRejection/choice_exploration_seed_range
+=== RUN   TestCharacterizePlanInputRejection/malformed_seeds
+=== RUN   TestCharacterizePlanInputRejection/guide_regression_without_guide
+=== RUN   TestCharacterizePlanInputRejection/guide_without_corpus
+=== RUN   TestCharacterizePlanInputRejection/guide_with_explicit_empty_coverage
+=== RUN   TestCharacterizePlanInputRejection/explicit_empty_coverage
+=== RUN   TestCharacterizePlanInputRejection/unknown_coverage
+=== RUN   TestCharacterizePlanInputRejection/probe_without_semantic_coverage
+=== RUN   TestCharacterizePlanInputRejection/unknown_probe
+=== RUN   TestCharacterizePlanInputRejection/diagnostics_with_exploration
+=== RUN   TestCharacterizePlanInputRejection/choice_bytes_below_minimum
+=== RUN   TestCharacterizePlanInputRejection/choice_coverage_without_choices
+=== RUN   TestCharacterizePlanInputRejection/choice_coverage_precedes_target
+=== RUN   TestCharacterizePlanInputRejection/missing_target
+=== RUN   TestCharacterizePlanInputRejection/target_arguments_without_separator
+=== RUN   TestCharacterizePlanInputRejection/relative_working_directory
+--- PASS: TestCharacterizePlanInputRejection (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/unknown_strategy (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/unknown_strategy_precedes_count (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/capability_mode_precedes_strategy (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/zero_count (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/seed_strategy_explicit_zero_bound (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/choice_exploration_seed_range (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/malformed_seeds (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/guide_regression_without_guide (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/guide_without_corpus (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/guide_with_explicit_empty_coverage (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/explicit_empty_coverage (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/unknown_coverage (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/probe_without_semantic_coverage (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/unknown_probe (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/diagnostics_with_exploration (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/choice_bytes_below_minimum (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/choice_coverage_without_choices (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/choice_coverage_precedes_target (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/missing_target (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/target_arguments_without_separator (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/relative_working_directory (0.00s)
+=== RUN   TestCharacterizePlanFlagErrors
+--- PASS: TestCharacterizePlanFlagErrors (0.00s)
+=== RUN   TestCharacterizePlanOperationErrors
+=== RUN   TestCharacterizePlanOperationErrors/portable_restriction
+=== RUN   TestCharacterizePlanOperationErrors/runner_failure
+=== RUN   TestCharacterizePlanOperationErrors/cancelled_JSON
+--- PASS: TestCharacterizePlanOperationErrors (0.00s)
+    --- PASS: TestCharacterizePlanOperationErrors/portable_restriction (0.00s)
+    --- PASS: TestCharacterizePlanOperationErrors/runner_failure (0.00s)
+    --- PASS: TestCharacterizePlanOperationErrors/cancelled_JSON (0.00s)
+=== RUN   TestCharacterizeExploreErrorWriteRouting
+=== RUN   TestCharacterizeExploreErrorWriteRouting/explore_count
+=== RUN   TestCharacterizeExploreErrorWriteRouting/plan_count
+=== RUN   TestCharacterizeExploreErrorWriteRouting/explore_diagnostics
+=== RUN   TestCharacterizeExploreErrorWriteRouting/plan_missing_output
+=== RUN   TestCharacterizeExploreErrorWriteRouting/explore_output
+--- PASS: TestCharacterizeExploreErrorWriteRouting (0.00s)
+    --- PASS: TestCharacterizeExploreErrorWriteRouting/explore_count (0.00s)
+    --- PASS: TestCharacterizeExploreErrorWriteRouting/plan_count (0.00s)
+    --- PASS: TestCharacterizeExploreErrorWriteRouting/explore_diagnostics (0.00s)
+    --- PASS: TestCharacterizeExploreErrorWriteRouting/plan_missing_output (0.00s)
+    --- PASS: TestCharacterizeExploreErrorWriteRouting/explore_output (0.00s)
+=== RUN   TestCharacterizeHiddenPlanFlag
+--- PASS: TestCharacterizeHiddenPlanFlag (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.066s

@@ -89,7 +89,9 @@ func TestCharacterizeUnknownCommandsAndPrivateModes(t *testing.T) {
 	os.Stdin = reader
 	defer func() {
 		os.Stdin = original
-		reader.Close()
+		if err := reader.Close(); err != nil {
+			t.Errorf("close coordinator request reader: %v", err)
+		}
 	}()
 	if got, want := runGomad("__coordinator"), (commandResult{status: 3, stderr: "decode coordinator request: EOF\n"}); got != want {
 		t.Fatalf("coordinator with empty request = %s, want %s", got, want)

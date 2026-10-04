@@ -577,6 +577,20 @@ R13/R18/R19, task 12/predecessors, matched first-baseline identities and complet
 full/formal/both-native/affected-consumer qualification stay required and open.
 Root commits reviewed progress before another source writer.
 
+Task 34's independently reviewed private-mode fixture cleanup restores stdin
+before checking its existing single pipe-reader Close, reports failure through
+nonfatal testing.T, and preserves every other fixture byte and assertion.
+Baseline and final private-mode 1/1, portable CLI 34/34, five actual boundaries,
+errortype and formatting pass on developmental linux/arm64. Actual unfiltered
+CLI lint falls from 54 to 53 byte-identical production findings, with exactly
+one fixture diagnostic resolved and none introduced. All 1,044 protected inputs
+remain unchanged; generator inputs are unaffected. Fresh source review permits
+SOURCE_PROGRESS_COMMIT_ONLY. Genuine Close and simultaneous primary/cleanup
+failure execution remain unproved. Task 21 consumes the evidence; original
+R6/R18/R19, task 4/task 5/predecessors, matched first-baseline identities and
+complete/full/formal/both-native/affected-consumer qualification remain required
+and open. Root commits reviewed source progress before another source writer.
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.

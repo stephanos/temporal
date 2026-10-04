@@ -1,0 +1,56 @@
+{
+  "result": "PASS",
+  "source_verdict": "SOURCE_PROGRESS_COMMIT_ONLY",
+  "start": "2026-10-04T21:26:34.212756+00:00",
+  "end": "2026-10-04T21:26:35.731087+00:00",
+  "exit_code": 0,
+  "tests_repeated": 0,
+  "source_reaudit": {
+    "verdict": "SOURCE_PROGRESS_COMMIT_ONLY",
+    "review_artifact_bindings": 16,
+    "writer_artifact_bindings": 32,
+    "serial_receipts": 18,
+    "source_audit": {
+      "read_only_audit": "PASS",
+      "source_sha256": "cd34cd65054126f2d1311db44395354355b45766abdd707210eb8b8ef6dd7c02",
+      "protected_count": 1044,
+      "writer_checks": 12,
+      "lint": {
+        "baseline": 54,
+        "final": 53,
+        "resolved": [
+          "tools/gomad3/cmd/gomad/internal/cli/characterization_test.go:92:15: Error return value of `reader.Close` is not checked (errcheck)"
+        ],
+        "introduced": [],
+        "retained_blocks_byte_identical": true,
+        "remaining": {
+          "errcheck": 52,
+          "staticcheck": 1
+        }
+      }
+    },
+    "read_only": true
+  },
+  "document_sha256": {
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.34.md": "d4611da6ec164b85548ac3406ffa4de926a1b5797c2a2221ed2ac4a29ea3479f",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.34.json": "0bb901e4c40319db5a13c512c26eb6959298510763d0063e09073d15a70a2c04",
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md": "14ac1427fe2c582273ca003f8ae1b69671c52630bddd5a578e2a6467fde8ef43",
+    "MILESTONES.md": "83fb6784807f30b239161d4f0f3ea770d2b2b309c252721326dd52e9baa974a9",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/acceptance-open.md": "3bdf6710464988547e9008adc019c9ea1d589ba39d25338466a73139691eb033"
+  },
+  "original_task_prefix_sha256": "8695219bc3c960876f1090f83dc2b435a2bf463364a14156f035ff3d3da56b1b",
+  "original_description_acceptance_preserved": true,
+  "task_status": "blocked",
+  "task_status_source": "flow-state",
+  "tracked_task_fallback_status": "todo",
+  "fallback_interpretation": "Flow runtime flow-state is authoritative; tracked todo snapshot does not supersede blocked runtime status.",
+  "consumer_status": "blocked",
+  "consumer_depends_on_task34": true,
+  "parent_status": "open",
+  "parent_completion_review_status": "unknown",
+  "parent_done": 2,
+  "parent_total": 34,
+  "corrected_root_metadata_preflight": "Literal +Task 34 paragraph marker was corrected by root; no source change.",
+  "all_handles_terminal": true,
+  "metadata_script_sha256": "e5ca6477cfbc6f589d0d46d878c51b81d13087d8c75ccd734c578603b464f416"
+}

@@ -1,0 +1,9 @@
+# Task 34 metadata recheck
+
+PASS. The task summary, parent task-34 outcome, Milestones row/paragraph and acceptance-open record preserve `SOURCE_PROGRESS_COMMIT_ONLY`, 53 residual production lint findings, developmental linux/arm64 scope, unproved genuine Close/primary+cleanup failures, and original first-baseline/full/formal/affected-consumer/both-native requirements. No source gates were repeated.
+
+Read-only `flowctl show` independently confirms task 34 and consumer task 21 are blocked, task 21 depends on task 34, and the parent remains open with completion review unknown and 2/34 tasks done. Task 34's tracked JSON still says todo because it is Flow's fallback snapshot; the authoritative `flow-state` runtime status is blocked. That distinction does not require manually editing the fallback.
+
+The task's original Description and Acceptance match their admitted source text. Its pre-Done-summary prefix SHA-256 is `8695219bc3c960876f1090f83dc2b435a2bf463364a14156f035ff3d3da56b1b`. The literal `+Task 34` Milestones marker found during preflight was corrected by root. A first metadata script run required literal platform names in every document and exited 1; the parent correctly uses `both-native`, so that overly literal review assertion was corrected. The final metadata script exits 0. No product defect or source change resulted.
+
+`review-metadata-check.json` binds the five inspected file hashes, authoritative runtime status snapshots and final read-only source re-audit. The re-audit preserves all 1,044 protected inputs, the exact candidate reconstruction, all 12 writer receipts and all six fresh reviewer receipts. The independent source review files remain frozen. Root's pending root-source-checks manifest was not treated as a source defect. All command handles are terminal.
