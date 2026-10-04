@@ -12,6 +12,7 @@
   "id": "fn-118-declare-how-temporal-apis-behave-once",
   "impl_review_rounds": {
     "fn-118-declare-how-temporal-apis-behave-once.1": 0,
+    "fn-118-declare-how-temporal-apis-behave-once.2": 0,
     "fn-118-declare-how-temporal-apis-behave-once.3": 0
   },
   "next_task": 1,
@@ -186,10 +187,69 @@
       "task": "fn-118-declare-how-temporal-apis-behave-once.3",
       "timestamp": "2026-10-04T21:11:41.364586Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4a678ad0549967c454f252773021b9a286359839c600f74bbd8ce3226aa67ea4",
+      "backend": "claude",
+      "base_sha": "f275cf66530c32e0252bb0d14e6bc05556777c23",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "394883c2c0417568e3c1b956ac18972b63abb124",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 5743,
+      "output_sha256": "490f49bc8dca3ef8dd8727d40d24e37dcb637108325de44f582fe55248aa51a7",
+      "reservation_id": "0522df25fbd0416b8e477fe3fc3b1514",
+      "round_consumed": true,
+      "scope": "impl:fn-118-declare-how-temporal-apis-behave-once.2",
+      "superseded_by": null,
+      "task": "fn-118-declare-how-temporal-apis-behave-once.2",
+      "timestamp": "2026-10-04T23:42:10.094172Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "d9747624d607db390d0974a14a190738b63798026d5bb52bf32bd1c278bfdb6d",
+      "backend": "claude",
+      "base_sha": "f275cf66530c32e0252bb0d14e6bc05556777c23",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5d1ca7061229622fd9f96128fdf5aefe60215282",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 2214,
+      "output_sha256": "11d491be687c306c7c90aa119977b697b2b817470021dfd9fe3f5e434cff105c",
+      "reservation_id": "3ac0165f8a354a39a26a7fe48dbb757c",
+      "round_consumed": true,
+      "scope": "impl:fn-118-declare-how-temporal-apis-behave-once.2",
+      "superseded_by": null,
+      "task": "fn-118-declare-how-temporal-apis-behave-once.2",
+      "timestamp": "2026-10-04T23:51:06.444278Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-118-declare-how-temporal-apis-behave-once.1": 1,
+    "impl:fn-118-declare-how-temporal-apis-behave-once.2": 1,
     "impl:fn-118-declare-how-temporal-apis-behave-once.3": 1,
     "plan": 1,
     "plan#completion": 0
@@ -198,6 +258,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-118-declare-how-temporal-apis-behave-once.1": 0,
+    "impl:fn-118-declare-how-temporal-apis-behave-once.2": 0,
     "impl:fn-118-declare-how-temporal-apis-behave-once.3": 0,
     "plan": 0
   },
@@ -215,5 +276,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T21:11:41.659165Z"
+  "updated_at": "2026-10-04T23:51:06.482264Z"
 }
