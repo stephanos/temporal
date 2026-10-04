@@ -109,7 +109,7 @@ Split out of fn-113 so the specs run in a line. Rolls fn-112's constructs out to
 fixtures, and removes the string-named forms from the framework. Realizations refer to their own
 ids by value, identity evidence lines go, and the contents of each IR file are declared in Scala
 with one lifter run writing all of them. Every Model folder gets the same file names as the
-activity, and no `Claims.scala` remains. Lifter fixtures that copy live Model text shrink to minimal fixture-local Models (fn-114.10), and a final rename (fn-114.9, owner request 2026-10-04) gives the tool folders
+activity, and no `Claims.scala` remains. Type annotations the compiler and lifter do not need are dropped from the Models (fn-114.11), lifter fixtures that copy live Model text shrink to minimal fixture-local Models (fn-114.10), and a final rename (fn-114.9, owner request 2026-10-04) gives the tool folders
 names that say what they hold: `model/lifter` becomes `model/irgen`, `model/gate` becomes `model/check`
 (absorbing `model/metrics`), and the `model/gen` build cache becomes `model/build`.
 
