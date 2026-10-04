@@ -62,9 +62,12 @@ unproved. The broader 419-finding receipt is historical; no new whole-Gomad coun
 is inferred from package-only progress. Implementation review and plan-sync are
 deferred: no formal SHIP, task-done event or downstream synchronization is claimed.
 
+stage: impl-review - skipped(policy: conductor-deferred; fresh independent source review passed, but full/native qualification remains red)
+stage: plan-sync - skipped(config: disabled; task remains blocked rather than done)
+
 ## Evidence
 - Source progress and qualification: [handover](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/handover.md), [worker evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/evidence.json), [acceptance open](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/acceptance-open.md).
 - Fresh independent review: [review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/independent-source-review.md), [checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/independent-source-review-checks.json).
 - Root checkpoint verification: [checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/source-checkpoint-verification.json).
-- Commits: this checkpoint's owning Git commit; not a Flow completion receipt.
+- Commits: f34369bf64eabf00d50ac3c720dd42bda07ccc25 (verified source progress; not a Flow completion receipt).
 - PRs: none; no push.
