@@ -6,6 +6,8 @@ package model
 // total the lifter computed for its Query.
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -36,4 +38,16 @@ func TestCapabilitiesGeneratedClaims(t *testing.T) {
 		"query keptJob keptJob.statusStaysClosed":             Verified,
 		"query pair pair.pausedIsNotDispatched":               Verified,
 	}, kinds(c.report))
+}
+
+// The law sidecar the lifter writes beside an IR file is JSON and no Model: every reader of a
+// directory of IR files, the Case generator and the exploration bridge among them, lists it apart.
+func TestIRPathsLeaveOutLawSidecars(t *testing.T) {
+	dir := t.TempDir()
+	for _, name := range []string{"activity.json", "activity.laws.json", "nexus.json", "notes.txt"} {
+		require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte("{}"), 0o600))
+	}
+	paths, err := IRPaths(dir)
+	require.NoError(t, err)
+	require.Equal(t, []string{filepath.Join(dir, "activity.json"), filepath.Join(dir, "nexus.json")}, paths)
 }

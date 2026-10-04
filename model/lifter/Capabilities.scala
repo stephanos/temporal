@@ -42,8 +42,8 @@ final private[lift] case class LawEntry(
  * The law sidecar of one IR file (`model/ir/<file>.laws.json`), or none where no capability
  * declaration was lifted: each generated claim with its law and bindings, each waiver with its
  * reason, and the catalog's laws, each with what it says and its instantiating machines, one machine
- * per state type, since a machine derived from another or a composition reading a member shares the
- * member's.
+ * per state type, since a machine derived from another shares its state type. A composition is no
+ * instantiating entity: it reads its members' capabilities through their projections.
  */
 private[lift] def lawSidecar(ctx: Context): Option[JValue] =
   def text(s: String) = JString(s)
@@ -189,7 +189,10 @@ private[lift] trait Capabilities:
         law.name,
         LawEntry(law.name, by.toSeq.sorted, law.cites, law.promises, law.doesNotPromise, Vector())
       )
-      lawCatalog(law.name) = entry.copy(instantiating = entry.instantiating :+ (machine -> state))
+      // An instantiating entity is a machine with its own state type: a composition reading its
+      // members' capabilities through their projections is not one again.
+      if machineNamed(machine).nonEmpty then
+        lawCatalog(law.name) = entry.copy(instantiating = entry.instantiating :+ (machine -> state))
 
     // The waivers, each of a law the catalog brings, with a reason; a law waived once.
     val excepted = mutable.Set.empty[String]

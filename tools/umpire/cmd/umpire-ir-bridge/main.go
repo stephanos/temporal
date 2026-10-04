@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	_ "go.temporal.io/api/workflowservice/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
@@ -34,7 +33,7 @@ func run() error {
 	if len(os.Args) != 1 {
 		return errors.New("usage: umpire-ir-bridge [proposal <regression.json>]; bridge runs in model")
 	}
-	paths, err := filepath.Glob("ir/*.json")
+	paths, err := umpiremodel.IRPaths("ir")
 	if err != nil {
 		return err
 	}

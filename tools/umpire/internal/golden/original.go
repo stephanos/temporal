@@ -351,8 +351,7 @@ func OriginalModels(files map[string][]byte) (map[string]*umpirespb.Model, error
 	out := map[string]*umpirespb.Model{}
 	for key, encoded := range files {
 		modelKey := strings.HasPrefix(key, OriginalIR) || strings.HasPrefix(key, OriginalLifts)
-		// A law sidecar beside an IR file is JSON and no Model (tools/umpire/model.LawSidecarSuffix).
-		if !strings.HasSuffix(key, ".json") || strings.HasSuffix(key, ".laws.json") || !modelKey {
+		if !strings.HasSuffix(key, ".json") || IsLawSidecar(key) || !modelKey {
 			continue
 		}
 		m := new(umpirespb.Model)
