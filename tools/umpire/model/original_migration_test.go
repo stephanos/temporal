@@ -203,3 +203,58 @@ func TestOriginalBaselineRejectsAChangedAnswer(t *testing.T) {
 	})
 	require.ErrorContains(t, err, "receipt")
 }
+
+// TestOriginalBaselineRejectsAFlippedGuard flips the guard of one step Function. The IR comparison
+// no longer reads Function bodies, so it admits the flip; the derived semantics refuse it. A guard
+// negated twice, in a renamed Function, means the same and derives the same.
+func TestOriginalBaselineRejectsAFlippedGuard(t *testing.T) {
+	const key = "ir/activity.json"
+	in := readOriginal(t)
+	archived, err := golden.ReadDerived(in.root, originalModelOutputs)
+	require.NoError(t, err)
+	want := golden.Derived{"semantics/" + key: archived["semantics/"+key]}
+	compare := func(m *umpirespb.Model) error {
+		got := originalDigests(t, map[string]*umpirespb.Model{key: m}, "semantics")
+		return golden.CompareDerived(want, got, func(string) string {
+			return golden.Explain(want["semantics/"+key], func(original bool, s *golden.Stream) error {
+				derived := m
+				if original {
+					derived = in.baselines[key]
+				}
+				return originalDerive(t, migrationBinding(t, derived), "semantics", s)
+			})
+		})
+	}
+	// guarded is the first step Function of the Model whose body is a guard.
+	guarded := func(m *umpirespb.Model) (*umpirespb.StepBinding, *umpirespb.Function) {
+		for _, machine := range m.GetMachines() {
+			for _, step := range machine.GetSteps() {
+				for _, f := range m.GetFunctions() {
+					if f.GetName() == step.GetFunction() && f.GetBody().GetIf() != nil {
+						return step, f
+					}
+				}
+			}
+		}
+		require.FailNow(t, "no step Function is a guard")
+		return nil, nil
+	}
+
+	flipped := proto.CloneOf(in.baselines[key])
+	_, f := guarded(flipped)
+	guard := f.GetBody().GetIf()
+	guard.Then, guard.Else = guard.Else, guard.Then
+	require.NoError(t, in.delta.MatchOriginal(in.baselines[key], flipped))
+	require.ErrorContains(t, compare(flipped), "derived output semantics/"+key+" differs from the original baseline: part 0 subject")
+
+	restructured := proto.CloneOf(in.baselines[key])
+	step, f := guarded(restructured)
+	not := func(e *umpirespb.Expr) *umpirespb.Expr {
+		return &umpirespb.Expr{Position: e.GetPosition(), Kind: &umpirespb.Expr_Unary{Unary: &umpirespb.Unary{Op: umpirespb.Unary_OP_NOT, Operand: e}}}
+	}
+	f.GetBody().GetIf().Condition = not(not(f.GetBody().GetIf().GetCondition()))
+	f.Name += "Restructured"
+	step.Function = f.GetName()
+	require.NoError(t, in.delta.MatchOriginal(in.baselines[key], restructured))
+	require.NoError(t, compare(restructured))
+}

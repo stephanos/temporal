@@ -50,10 +50,8 @@ var originalTrees = map[string]string{
 }
 
 // Delta is the closed list of differences from the original baseline that R1 of fn-112 permits
-// beyond source positions: nothing else may differ.
+// beyond source positions and Functions: nothing else may differ.
 type Delta struct {
-	// Functions are lifter-internal Function symbols renamed since the baseline, from the frozen name.
-	Functions []Substitution `json:"function_name_substitutions"`
 	// InertFields are IR fields, by full protobuf name, that the baseline never sets and that carry
 	// metadata no table, ID, fingerprint, answer or Case reads: Query.total, named-choice names.
 	InertFields []string `json:"inert_fields"`
@@ -94,8 +92,7 @@ func (d Delta) check() error {
 			return fmt.Errorf("entity attachment %+v is not one machine's entity or one action's on or creates", a)
 		}
 	}
-	_, err := inverse(d.Functions)
-	return err
+	return nil
 }
 
 func inertField(name string) (protoreflect.FieldDescriptor, error) {
@@ -116,19 +113,6 @@ func inertField(name string) (protoreflect.FieldDescriptor, error) {
 		return nil, fmt.Errorf("inert field %q: %s has no such field", name, message.FullName())
 	}
 	return field, nil
-}
-
-func inverse(functions []Substitution) ([]Substitution, error) {
-	from, to := map[string]bool{}, map[string]bool{}
-	out := make([]Substitution, 0, len(functions))
-	for _, s := range functions {
-		if s.Old == s.New || from[s.Old] || to[s.New] {
-			return nil, fmt.Errorf("function-name substitution of %q is not a rename to one new name", s.Old)
-		}
-		from[s.Old], to[s.New] = true, true
-		out = append(out, Substitution{Old: s.New, New: s.Old})
-	}
-	return out, nil
 }
 
 // Expected is the baseline Model with the attachments applied: what the current Model must equal.
@@ -174,7 +158,8 @@ func (d Delta) Unapplied(applied map[int]bool) error {
 	return errors.Join(errs...)
 }
 
-// ProjectBaseline gives an expected Model as the comparison reads it: without source positions.
+// ProjectBaseline gives an expected Model as the comparison reads it: without source positions or
+// Functions.
 func (d Delta) ProjectBaseline(expected *umpirespb.Model) (*umpirespb.Model, error) {
 	m := proto.CloneOf(expected)
 	for _, name := range d.InertFields {
@@ -194,26 +179,10 @@ func (d Delta) ProjectBaseline(expected *umpirespb.Model) (*umpirespb.Model, err
 	return m, sourceless(m)
 }
 
-// ProjectCurrent gives a current Model as the comparison reads it: in the baseline's Function names,
-// without source positions and without the inert fields.
+// ProjectCurrent gives a current Model as the comparison reads it: without source positions,
+// Functions or the inert fields.
 func (d Delta) ProjectCurrent(current *umpirespb.Model) (*umpirespb.Model, error) {
 	m := proto.CloneOf(current)
-	back, err := inverse(d.Functions)
-	if err != nil {
-		return nil, err
-	}
-	declared := map[string]bool{}
-	for _, f := range m.GetFunctions() {
-		declared[f.GetName()] = true
-	}
-	for _, s := range back {
-		if declared[s.New] {
-			return nil, fmt.Errorf("function %s keeps its frozen name although %s renames it", s.New, s.Old)
-		}
-	}
-	if err := (Projection{Functions: back}).rename(m); err != nil {
-		return nil, err
-	}
 	for _, name := range d.InertFields {
 		field, err := inertField(name)
 		if err != nil {
@@ -231,16 +200,41 @@ func (d Delta) ProjectCurrent(current *umpirespb.Model) (*umpirespb.Model, error
 	return m, sourceless(m)
 }
 
-// sourceless removes where m was lifted from and every position, and puts its Functions in name
-// order, the order the lifter writes them in, which a renamed Function may leave.
+// functionReference is what every Function reference that is set reads as.
+const functionReference = "<function>"
+
+// functionReferences are the IR fields that name a Function of the Model.
+var functionReferences = map[protoreflect.FullName]bool{
+	"temporal.server.api.umpire.v1.Call.function":               true,
+	"temporal.server.api.umpire.v1.StepBinding.function":        true,
+	"temporal.server.api.umpire.v1.Machine.evidence":            true,
+	"temporal.server.api.umpire.v1.Refinement.map":              true,
+	"temporal.server.api.umpire.v1.Refinement.visible":          true,
+	"temporal.server.api.umpire.v1.Refinement.visible_outcomes": true,
+	"temporal.server.api.umpire.v1.Monitor.next":                true,
+	"temporal.server.api.umpire.v1.Monitor.violated":            true,
+	"temporal.server.api.umpire.v1.Monitor.after":               true,
+	"temporal.server.api.umpire.v1.Property.holds":              true,
+	"temporal.server.api.umpire.v1.Progress.from":               true,
+	"temporal.server.api.umpire.v1.Progress.to":                 true,
+}
+
+// sourceless removes where m was lifted from and every position, every Function, and the name of
+// each Function a declaration refers to. fn-112 gives constructs other bodies and retires or adds
+// helper Functions without changing what they mean, and what they mean is compared on the tables,
+// answers, receipts, fingerprints and Cases derived from the Model. An empty reference stays empty,
+// so whether a declaration names a Function, such as a refinement's visibility projection or the
+// point a monitor evaluates at, is still compared here.
 func sourceless(m *umpirespb.Model) error {
 	m.Source = ""
-	slices.SortStableFunc(m.Functions, func(a, b *umpirespb.Function) int { return strings.Compare(a.GetName(), b.GetName()) })
+	m.Functions = nil
 	position := (&umpirespb.Position{}).ProtoReflect().Descriptor()
 	return messages(m.ProtoReflect(), func(child protoreflect.Message) (bool, error) {
-		child.Range(func(f protoreflect.FieldDescriptor, _ protoreflect.Value) bool {
+		child.Range(func(f protoreflect.FieldDescriptor, v protoreflect.Value) bool {
 			if f.Message() == position {
 				child.Clear(f)
+			} else if functionReferences[f.FullName()] && v.String() != "" {
+				child.Set(f, protoreflect.ValueOfString(functionReference))
 			}
 			return true
 		})

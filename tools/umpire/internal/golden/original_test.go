@@ -56,16 +56,13 @@ func TestOriginalBaselineInputs(t *testing.T) {
 	models, err := OriginalModels(current)
 	require.NoError(t, err)
 	require.Len(t, baselines, 12, "six IR Models and six positive lifter fixtures")
-	originals := map[string]*umpirespb.Model{}
 	applied := map[int]bool{}
 	for _, key := range slices.Sorted(maps.Keys(baselines)) {
 		expected, err := delta.Expected(baselines[key], applied)
 		require.NoError(t, err, key)
 		require.NoError(t, delta.MatchOriginal(expected, models[key]), key)
-		originals[key] = baselines[key]
 	}
 	require.NoError(t, delta.Unapplied(applied))
-	require.NoError(t, Config{Projection: Projection{Functions: delta.Functions}}.FunctionsRenamed(originals))
 }
 
 // owner splits a symbol-based Definition ID into the compiler owner the lifter took it from, which
@@ -148,15 +145,21 @@ func TestOriginalBaselineOwnerMapIsTheArchives(t *testing.T) {
 	require.Equal(t, []string{"fixture.channels.Channels$package$", "radio.deliver"}, []string{at, name})
 }
 
-// originalJob is a baseline and its current spelling: moved to another file and line, lifted from
-// other roots, with one Function renamed as the delta records.
-func originalJob(t *testing.T) (delta Delta, baseline, current *umpirespb.Model) {
+// originalJob is a baseline, with a refinement, a monitor and an `ends` that calls a Function, and
+// its current spelling: moved to another file and line, lifted from other roots, with one Function
+// renamed.
+func originalJob(t *testing.T) (baseline, current *umpirespb.Model) {
 	t.Helper()
 	baseline = JobModel("once", "submit", "take", "finish")
 	baseline.Actions[0].Examples = []*umpirespb.Example{
 		{Value: &umpirespb.Value{Kind: &umpirespb.Value_Text{Text: "a"}}},
 		{Value: &umpirespb.Value{Kind: &umpirespb.Value_Text{Text: "b"}}},
 	}
+	baseline.Machines[0].Ends.GetLambda().Body = &umpirespb.Expr{Kind: &umpirespb.Expr_Call{Call: &umpirespb.Call{Function: "job.ends",
+		Args: []*umpirespb.Expr{{Kind: &umpirespb.Expr_Var{Var: "state"}}}}}}
+	baseline.Machines[0].Refines = &umpirespb.Refinement{Product: "queue", Map: "job.queued", Visible: "job.listed"}
+	baseline.Monitors = []*umpirespb.Monitor{{Id: "job.watch", Name: "watch", Next: "job.watch.next", Violated: "job.watch.violated",
+		Evaluate: &umpirespb.Monitor_After{After: "job.watch.after"}}}
 	current = proto.CloneOf(baseline)
 	current.Source = "model: moved roots"
 	require.NoError(t, positions(current.ProtoReflect(), func(at protoreflect.Message) error {
@@ -165,43 +168,79 @@ func originalJob(t *testing.T) (delta Delta, baseline, current *umpirespb.Model)
 		return nil
 	}))
 	renameFunction(current, "job.finishes", "job.Finishing$.finishes")
-	return Delta{Functions: []Substitution{{Old: "job.finishes", New: "job.Finishing$.finishes"}}}, baseline, current
+	return baseline, current
 }
 
 func TestOriginalMatchAdmitsOnlyTheRecordedDelta(t *testing.T) {
-	delta, baseline, current := originalJob(t)
-	require.NoError(t, delta.MatchOriginal(baseline, current))
-	require.Error(t, Delta{}.MatchOriginal(baseline, current), "the rename is recorded")
+	baseline, current := originalJob(t)
+	require.NoError(t, Delta{}.MatchOriginal(baseline, current))
 
 	const label = "temporal.server.api.umpire.v1.Example.example"
 	labelled := proto.CloneOf(current)
 	for i, e := range labelled.Actions[0].Examples {
 		e.Example = []string{"first", "second"}[i]
 	}
-	inert := delta
-	inert.InertFields = []string{label}
+	inert := Delta{InertFields: []string{label}}
 	require.NoError(t, inert.check())
 	require.NoError(t, inert.MatchOriginal(baseline, labelled), "an inert name is admitted")
-	require.Error(t, delta.MatchOriginal(baseline, labelled), "a name no inert field lists")
+	require.Error(t, Delta{}.MatchOriginal(baseline, labelled), "a name no inert field lists")
 	_, err := inert.ProjectBaseline(labelled)
 	require.ErrorContains(t, err, "is set in the baseline")
 
-	rejected := map[string]func(*umpirespb.Model){
+	// Functions are not compared here: what they mean is compared on the outputs derived from the
+	// Model, which even a changed table row changes.
+	admitted := map[string]func(*umpirespb.Model){
+		"function rename": func(m *umpirespb.Model) { renameFunction(m, "job.evidence", "job.evidenceOf") },
+		"step function rename": func(m *umpirespb.Model) {
+			functionNamed(m, "job.take.step").Name = "job.Take$.step"
+			m.Machines[0].Steps[1].Function = "job.Take$.step"
+		},
 		"table row": func(m *umpirespb.Model) {
 			step := functionNamed(m, "job.take.step").Body.GetIf().Then.GetList().Items[0].GetConstruct()
 			step.Args[1].GetLiteral().GetEnum().Case = "waiting"
 		},
+		"restructured body": func(m *umpirespb.Model) {
+			guard := functionNamed(m, "job.take.step").Body.GetIf()
+			guard.Then, guard.Else = guard.Else, guard.Then
+			guard.Condition = &umpirespb.Expr{Kind: &umpirespb.Expr_Unary{Unary: &umpirespb.Unary{Op: umpirespb.Unary_OP_NOT, Operand: guard.Condition}}}
+		},
+		"inventory": func(m *umpirespb.Model) {
+			m.Functions = append(m.Functions[1:], &umpirespb.Function{Name: "job.helper", Body: m.Functions[0].Body})
+		},
+		"called function rename": func(m *umpirespb.Model) { m.Machines[0].Ends.GetLambda().Body.GetCall().Function = "job.Ends$.ends" },
+	}
+	for name, change := range admitted {
+		t.Run(name, func(t *testing.T) {
+			changed := proto.CloneOf(labelled)
+			change(changed)
+			require.NoError(t, inert.MatchOriginal(baseline, changed))
+		})
+	}
+
+	rejected := map[string]func(*umpirespb.Model){
 		"state key": func(m *umpirespb.Model) { m.Types[0].GetEnum().Cases[1].Name = "pending" },
 		"definition ID": func(m *umpirespb.Model) {
 			m.Actions[0].Id = "job.Moved$.submit"
 			m.Machines[0].Steps[0].Action = "job.Moved$.submit"
 		},
-		"unlisted function rename": func(m *umpirespb.Model) { renameFunction(m, "job.evidence", "job.evidenceOf") },
-		"listed rename unmade":     func(m *umpirespb.Model) { renameFunction(m, "job.Finishing$.finishes", "job.finishes") },
-		"branch order":             func(m *umpirespb.Model) { slices.Reverse(m.Actions[0].Examples) },
-		"branch count":             func(m *umpirespb.Model) { m.Actions[0].Examples = m.Actions[0].Examples[:1] },
-		"query limits":             func(m *umpirespb.Model) { m.Queries[0].Limits.Steps++ },
-		"entity":                   func(m *umpirespb.Model) { m.Machines[0].Entity = "queue" },
+		"branch order":                     func(m *umpirespb.Model) { slices.Reverse(m.Actions[0].Examples) },
+		"branch count":                     func(m *umpirespb.Model) { m.Actions[0].Examples = m.Actions[0].Examples[:1] },
+		"query limits":                     func(m *umpirespb.Model) { m.Queries[0].Limits.Steps++ },
+		"entity":                           func(m *umpirespb.Model) { m.Machines[0].Entity = "queue" },
+		"no visibility projection":         func(m *umpirespb.Model) { m.Machines[0].Refines.Visible = "" },
+		"an outcome visibility projection": func(m *umpirespb.Model) { m.Machines[0].Refines.VisibleOutcomes = "job.outcomes" },
+		"no evidence":                      func(m *umpirespb.Model) { m.Machines[0].Evidence = "" },
+		"evaluation point": func(m *umpirespb.Model) {
+			m.Monitors[0].Evaluate = &umpirespb.Monitor_EveryStep{EveryStep: &umpirespb.Empty{}}
+		},
+		"step of another action": func(m *umpirespb.Model) { m.Machines[0].Steps[1].Action = "job.drop" },
+		"step added": func(m *umpirespb.Model) {
+			m.Machines[0].Steps = append(m.Machines[0].Steps, &umpirespb.StepBinding{Action: "job.take", Function: "job.take.step"})
+		},
+		"step removed": func(m *umpirespb.Model) { m.Machines[0].Steps = m.Machines[0].Steps[1:] },
+		"call argument": func(m *umpirespb.Model) {
+			m.Machines[0].Ends.GetLambda().Body.GetCall().Args[0].Kind = &umpirespb.Expr_Var{Var: "before"}
+		},
 	}
 	for name, change := range rejected {
 		t.Run(name, func(t *testing.T) {
@@ -212,10 +251,21 @@ func TestOriginalMatchAdmitsOnlyTheRecordedDelta(t *testing.T) {
 	}
 }
 
+// TestOriginalFunctionReferencesAreTheIRs checks that each projected reference is a string field of
+// the IR, so a renamed field cannot silently stop being projected.
+func TestOriginalFunctionReferencesAreTheIRs(t *testing.T) {
+	require.Len(t, functionReferences, 12)
+	for name := range functionReferences {
+		field, err := inertField(string(name))
+		require.NoError(t, err)
+		require.Equal(t, protoreflect.StringKind, field.Kind(), name)
+		require.False(t, field.IsList(), name)
+	}
+}
+
 func TestOriginalEntityAttachmentsAreExact(t *testing.T) {
-	_, baseline, current := originalJob(t)
+	baseline, current := originalJob(t)
 	delta := Delta{
-		Functions:   []Substitution{{Old: "job.finishes", New: "job.Finishing$.finishes"}},
 		Attachments: []Attachment{{Machine: "job", Field: "entity", Entity: "queue"}, {Action: "job.submit", Field: "on", Entity: "queue"}},
 	}
 	require.NoError(t, delta.check())
@@ -254,17 +304,14 @@ func TestOriginalDeltaIsClosed(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, d.check())
 	for name, invalid := range map[string]Delta{
-		"unknown field":        {InertFields: []string{"temporal.server.api.umpire.v1.Query.nothing"}},
-		"unknown message":      {InertFields: []string{"temporal.server.api.umpire.v1.Nothing.name"}},
-		"not of the IR":        {InertFields: []string{"google.protobuf.Duration.seconds"}},
-		"not a full name":      {InertFields: []string{"total"}},
-		"machine field":        {Attachments: []Attachment{{Machine: "job", Field: "on", Entity: "queue"}}},
-		"action field":         {Attachments: []Attachment{{Action: "job.submit", Field: "entity", Entity: "queue"}}},
-		"both":                 {Attachments: []Attachment{{Machine: "job", Action: "job.submit", Field: "entity", Entity: "queue"}}},
-		"no entity":            {Attachments: []Attachment{{Machine: "job", Field: "entity"}}},
-		"two renames of one":   {Functions: []Substitution{{Old: "a", New: "b"}, {Old: "a", New: "c"}}},
-		"two renames to one":   {Functions: []Substitution{{Old: "a", New: "c"}, {Old: "b", New: "c"}}},
-		"a rename to the same": {Functions: []Substitution{{Old: "a", New: "a"}}},
+		"unknown field":   {InertFields: []string{"temporal.server.api.umpire.v1.Query.nothing"}},
+		"unknown message": {InertFields: []string{"temporal.server.api.umpire.v1.Nothing.name"}},
+		"not of the IR":   {InertFields: []string{"google.protobuf.Duration.seconds"}},
+		"not a full name": {InertFields: []string{"total"}},
+		"machine field":   {Attachments: []Attachment{{Machine: "job", Field: "on", Entity: "queue"}}},
+		"action field":    {Attachments: []Attachment{{Action: "job.submit", Field: "entity", Entity: "queue"}}},
+		"both":            {Attachments: []Attachment{{Machine: "job", Action: "job.submit", Field: "entity", Entity: "queue"}}},
+		"no entity":       {Attachments: []Attachment{{Machine: "job", Field: "entity"}}},
 	} {
 		require.Error(t, invalid.check(), name)
 	}
