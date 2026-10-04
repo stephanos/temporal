@@ -1,0 +1,86 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.26",
+  "base_commit": "984fa118347ebc7b39b7080dd5b9e95e941a00d4",
+  "purpose": "Root source-progress verification; no full/native/formal qualification claim",
+  "integrity": {
+    "verified_current_files": 980,
+    "verified_receipts": 18,
+    "failures": []
+  },
+  "focused_cli": {
+    "command": "go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run \"TestCampaignSemanticValidation|TestResolveExplore|TestResolveChoiceTrace|TestPlan|TestCharacterize|TestPublicCommand|TestExploreErrorReports|TestQualifyGrammar\" -v",
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+    "environment": {
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED",
+        "LINT_TEST_BASE_REV"
+      ],
+      "set": {
+        "GOENV": "off",
+        "GOFLAGS": "",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOMAXPROCS": "2",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin"
+      }
+    },
+    "start": "2026-10-04T13:47:12.134Z",
+    "end": "2026-10-04T13:47:12.422Z",
+    "exit_code": 0,
+    "signal": null,
+    "elapsed_seconds": 0.288,
+    "output_sha256": "3276b04bbe3dcc01b82130f01bd3ae8d0b4a4b6dfde09f49a1091f5dd891ebe6",
+    "top_level_passes": 34,
+    "failures": [],
+    "skips": [],
+    "terminal_output": [
+      "--- PASS: TestCharacterizeHiddenPlanFlag (0.00s)",
+      "PASS",
+      "ok  \tgo.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli\t0.033s",
+      ""
+    ],
+    "stability_before": true,
+    "stability_after": true
+  },
+  "source_freeze": "verified-source.json",
+  "worker_evidence": "evidence.json",
+  "remaining": [
+    "54 inherited unfiltered CLI lint findings; zero introduced/resolved",
+    "Full CLI/end-to-end missing patched launcher and unsupported linux/arm64",
+    "Expanded portable-plan native execution and Darwin diagnostic identity goldens",
+    "Original task5/predecessor/R6/R18/R19/task21/full/native/formal requirements"
+  ],
+  "receipt_index_integrity": {
+    "receipt_index_entries": 18,
+    "old_cli_base_matches_saved": true,
+    "errors": []
+  },
+  "independent_review": {
+    "review_sha256": "77b317f27641c2aac426319210da601b4568f8f7b5703e30bb9654915ba88601",
+    "checks_sha256": "c3a8ce5e233678dca8395db687fdde11d2a6bb1fa021c91c861e84a25144dc46",
+    "introduced_findings": 0,
+    "formal_ship": false,
+    "worker_and_reviewer_terminal": true
+  },
+  "flow_validation": {
+    "task_count": 26,
+    "exit_code": 0,
+    "errors": [],
+    "warnings": []
+  },
+  "staged_diff_checks": {
+    "owned_paths": 66,
+    "unexpected_paths": [],
+    "full_exit": 2,
+    "full_diagnostic_files": [
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/final-cli.log"
+    ],
+    "full_diagnostic_count": 92,
+    "authored_command": "git diff --cached --check -- . ':!*.log'",
+    "authored_exit": 0,
+    "authored_output": "",
+    "raw_evidence_modified": false
+  }
+}

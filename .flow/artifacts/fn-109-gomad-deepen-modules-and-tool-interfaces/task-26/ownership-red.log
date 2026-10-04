@@ -1,0 +1,35 @@
+=== RUN   TestCampaignSemanticValidationBelongsToRunner
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveExploreStrategy
+    campaign_semantics_ownership_test.go:48: cli.go:839:21: CLI duplicates Runner's semantic responsibility through ParseSeeds
+    campaign_semantics_ownership_test.go:48: cli.go:843:6: CLI duplicates Runner's semantic responsibility through Count
+    campaign_semantics_ownership_test.go:48: cli.go:863:21: CLI duplicates Runner's semantic responsibility through ParseSeeds
+    campaign_semantics_ownership_test.go:48: cli.go:867:6: CLI duplicates Runner's semantic responsibility through Count
+    campaign_semantics_ownership_test.go:84: resolveExploreStrategy: 0 checked Runner.ParseSingleBaseSeed calls, want 2 in actual validation
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveExploreCoverage
+    campaign_semantics_ownership_test.go:48: cli.go:953:7: CLI duplicates Runner's semantic responsibility through CoverageNone
+    campaign_semantics_ownership_test.go:48: cli.go:953:28: CLI duplicates Runner's semantic responsibility through CoverageChoice
+    campaign_semantics_ownership_test.go:48: cli.go:957:7: CLI duplicates Runner's semantic responsibility through CoverageSemantic
+    campaign_semantics_ownership_test.go:48: cli.go:957:32: CLI duplicates Runner's semantic responsibility through CoverageSemanticChoice
+    campaign_semantics_ownership_test.go:48: cli.go:958:16: CLI duplicates Runner's semantic responsibility through MissingRequiredSemanticProbes
+    campaign_semantics_ownership_test.go:84: resolveExploreCoverage: 0 checked Runner.ValidateCoverage calls, want 1 in actual validation
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveChoiceTrace
+    campaign_semantics_ownership_test.go:42: cli.go:972:13: CLI duplicates Runner's trace capacity rule
+    campaign_semantics_ownership_test.go:42: cli.go:972:55: CLI duplicates Runner's trace capacity rule
+    campaign_semantics_ownership_test.go:42: cli.go:972:13: CLI duplicates Runner's trace capacity rule
+    campaign_semantics_ownership_test.go:42: cli.go:972:55: CLI duplicates Runner's trace capacity rule
+    campaign_semantics_ownership_test.go:84: resolveChoiceTrace: 0 checked Runner.ValidateChoiceTraceLimit calls, want 1 in actual validation
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/parseCampaignRequest
+    campaign_semantics_ownership_test.go:48: cli.go:725:22: CLI duplicates Runner's semantic responsibility through CoverageChoice
+    campaign_semantics_ownership_test.go:48: cli.go:725:63: CLI duplicates Runner's semantic responsibility through CoverageSemanticChoice
+    campaign_semantics_ownership_test.go:84: parseCampaignRequest: 0 checked Runner.ValidateChoiceCoverage calls, want 1 in actual validation
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveExploreGuidance
+    campaign_semantics_ownership_test.go:84: resolveExploreGuidance: 0 checked Runner.NormalizeCoverage calls, want 1 in actual validation
+--- FAIL: TestCampaignSemanticValidationBelongsToRunner (0.00s)
+    --- FAIL: TestCampaignSemanticValidationBelongsToRunner/resolveExploreStrategy (0.00s)
+    --- FAIL: TestCampaignSemanticValidationBelongsToRunner/resolveExploreCoverage (0.00s)
+    --- FAIL: TestCampaignSemanticValidationBelongsToRunner/resolveChoiceTrace (0.00s)
+    --- FAIL: TestCampaignSemanticValidationBelongsToRunner/parseCampaignRequest (0.00s)
+    --- FAIL: TestCampaignSemanticValidationBelongsToRunner/resolveExploreGuidance (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.008s
+FAIL

@@ -1,0 +1,274 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.26",
+  "status": "SOURCE_PROGRESS_ONLY",
+  "base_commit": "984fa118347ebc7b39b7080dd5b9e95e941a00d4",
+  "commits": [],
+  "tests": [
+    "go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -v",
+    "go vet -tags test_dep ./cmd/gomad/internal/cli",
+    "go test -count=1 -tags test_dep . -run 'TestPackageArchitecture|TestRunnerExternalConsumerCompiles|TestRunnerRequestsCompileInExternalModule' -v",
+    "go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run 'TestResolveExplore|TestResolveChoiceTrace|TestPlan|TestCharacterize|TestPublicCommand|TestExploreErrorReports|TestQualifyGrammar' -v",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./cmd/gomad/internal/cli",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./cmd/gomad/internal/cli",
+    "go test -count=1 -tags test_dep ./runner -run 'TestCampaignOption|TestCampaignRequestNormalizes|TestParseSingleBaseSeed|TestParseStrategyAndCoverage|TestDiagnosticsOffPreservesExistingCanonicalIdentities|TestValidateConfig' -v",
+    "go test -count=1 -tags test_dep . -run \"TestPackageArchitecture|TestRunnerExternalConsumerCompiles|TestRunnerRequestsCompileInExternalModule\" -v",
+    "go test -count=1 -tags test_dep ./cmd/gomad/... -v",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./cmd/gomad/internal/cli",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./cmd/gomad/internal/cli",
+    "go test -count=1 -tags test_dep ./runner -run \"TestCampaignOption|TestCampaignRequestNormalizes|TestParseSingleBaseSeed|TestParseStrategyAndCoverage|TestDiagnosticsOffPreservesExistingCanonicalIdentities|TestValidateConfig|TestCreateCampaignPlan|TestPortablePlan\" -v",
+    "go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run \"TestCampaignSemanticValidation|TestResolveExplore|TestResolveChoiceTrace|TestPlan|TestCharacterize|TestPublicCommand|TestExploreErrorReports|TestQualifyGrammar\" -v",
+    "go test -count=1 -tags test_dep ./runner -run \"TestCampaignOption|TestCampaignRequestNormalizes|TestParseSingleBaseSeed|TestParseStrategyAndCoverage|TestDiagnosticsOffPreservesExistingCanonicalIdentities|TestValidateConfig|TestCreateCampaignPlanRejectsDynamicallyDiscoveredOrEarlyStopWork\" -v",
+    "test -z \"$(gofmt -l cmd/gomad/internal/cli/cli.go cmd/gomad/internal/cli/campaign_semantics_ownership_test.go cmd/gomad/internal/cli/characterization_test.go cmd/gomad/internal/cli/cli_test.go testdata/runnerconsumer/consumer.go)\"",
+    "go test -count=1 -tags test_dep -overlay=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/old-cli-overlay.json ./cmd/gomad/internal/cli -run \"TestResolveExplore|TestResolveChoiceTrace|TestPlan|TestCharacterize|TestPublicCommand|TestExploreErrorReports|TestQualifyGrammar\" -v",
+    "go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run TestCampaignSemanticValidationBelongsToRunner -v",
+    "go test -count=1 -tags test_dep ./cmd/gomad/internal/cli -run TestCampaignSemanticValidationBelongsToRunner -v"
+  ],
+  "prs": [],
+  "receipts": [
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/affected-cli.receipt.json",
+      "sha256": "3b92a40460804415a2133fb99327b85cba24e957878992aa42df205ee5880f11",
+      "exit_code": 1,
+      "elapsed_seconds": 1.522,
+      "source_freeze": "verified-source.json",
+      "source_freeze_sha256": "4b8f67c52f405b4201b1a7d20b3a7282dcdd4965a688470a777c1c04893f7e7d",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/affected-vet.receipt.json",
+      "sha256": "41895298bb84b78d92f63842d970528e59367eb70bfd45bb05afa43e210dc4a5",
+      "exit_code": 0,
+      "elapsed_seconds": 0.35,
+      "source_freeze": "verified-source.json",
+      "source_freeze_sha256": "4b8f67c52f405b4201b1a7d20b3a7282dcdd4965a688470a777c1c04893f7e7d",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/baseline-boundary.receipt.json",
+      "sha256": "992104a81d59a3eb6150ab8beab5b76a91345fb32ceb5d2d09bd29f4c021b3b7",
+      "exit_code": 0,
+      "elapsed_seconds": 2.694,
+      "source_freeze": "old-source.json",
+      "source_freeze_sha256": "3dd93c317d437ba69bde9ded734aedabe89067ee5e242e9a3710f34651782e75",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/baseline-cli.receipt.json",
+      "sha256": "1c3a5b8e25649293ca7ea7c701bc1921e8e9fe1bee4469672f4e82ce857dcc1d",
+      "exit_code": 0,
+      "elapsed_seconds": 0.78,
+      "source_freeze": "old-source.json",
+      "source_freeze_sha256": "3dd93c317d437ba69bde9ded734aedabe89067ee5e242e9a3710f34651782e75",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/baseline-errortype.receipt.json",
+      "sha256": "69b2295edf4aab7e9699b4e71776c3a101e7bf584101bab8511ab4888f5c5fb6",
+      "exit_code": 0,
+      "elapsed_seconds": 1.122,
+      "source_freeze": "old-source.json",
+      "source_freeze_sha256": "3dd93c317d437ba69bde9ded734aedabe89067ee5e242e9a3710f34651782e75",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/baseline-lint.receipt.json",
+      "sha256": "f93815192c8126c1000d8976f709680b0e02129bf948681f32f84f637147ce64",
+      "exit_code": 1,
+      "elapsed_seconds": 6.627,
+      "source_freeze": "old-source.json",
+      "source_freeze_sha256": "3dd93c317d437ba69bde9ded734aedabe89067ee5e242e9a3710f34651782e75",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/baseline-runner.receipt.json",
+      "sha256": "538870c8587cc3e9e53ca76a7f477a9d2e3ae21ff15dd3aebe4a30f9557e6eb4",
+      "exit_code": 0,
+      "elapsed_seconds": 0.491,
+      "source_freeze": "old-source.json",
+      "source_freeze_sha256": "3dd93c317d437ba69bde9ded734aedabe89067ee5e242e9a3710f34651782e75",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/final-boundary.receipt.json",
+      "sha256": "cf96ed47d973fce38cbb12e5ded0521499da6acfdb5bd7a98db5fd3d3321796b",
+      "exit_code": 0,
+      "elapsed_seconds": 4.535,
+      "source_freeze": "verified-source.json",
+      "source_freeze_sha256": "4b8f67c52f405b4201b1a7d20b3a7282dcdd4965a688470a777c1c04893f7e7d",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/final-cli.receipt.json",
+      "sha256": "da4c4e4004c72b81bbaf9500316217933ef42582930cd22837e1f9f00063288b",
+      "exit_code": 1,
+      "elapsed_seconds": 0.606,
+      "source_freeze": "final-source.json",
+      "source_freeze_sha256": "ec8e2bd081470c1fe0e3404585c6642e27cecba22328dc52c54ccba432cb45f1",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/final-errortype.receipt.json",
+      "sha256": "a347b589b4565de46fea08f11ef0bb4e5ab80ffcd21017820f2bfa7c80bf17d7",
+      "exit_code": 0,
+      "elapsed_seconds": 0.134,
+      "source_freeze": "verified-source.json",
+      "source_freeze_sha256": "4b8f67c52f405b4201b1a7d20b3a7282dcdd4965a688470a777c1c04893f7e7d",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/final-lint.receipt.json",
+      "sha256": "b4c5ae4cc54f5fa00a4a0c7371a0c51271f91827c8112442ef650230d33e0a01",
+      "exit_code": 1,
+      "elapsed_seconds": 1.012,
+      "source_freeze": "verified-source.json",
+      "source_freeze_sha256": "4b8f67c52f405b4201b1a7d20b3a7282dcdd4965a688470a777c1c04893f7e7d",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/final-runner.receipt.json",
+      "sha256": "e794824a20db849c162b655accec77145b956d4ad5fe22bcfb9e14053066396e",
+      "exit_code": 1,
+      "elapsed_seconds": 0.567,
+      "source_freeze": "final-source.json",
+      "source_freeze_sha256": "ec8e2bd081470c1fe0e3404585c6642e27cecba22328dc52c54ccba432cb45f1",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/focused-cli.receipt.json",
+      "sha256": "3d9b5a42aac4e10b388f2024c8cf4ee33b00268c671ec99b041782771d338730",
+      "exit_code": 0,
+      "elapsed_seconds": 0.268,
+      "source_freeze": "verified-source.json",
+      "source_freeze_sha256": "4b8f67c52f405b4201b1a7d20b3a7282dcdd4965a688470a777c1c04893f7e7d",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/focused-runner.receipt.json",
+      "sha256": "b0cbc1ee91e9add37a04bc8180107593df7a58f63c44ec2cd6105469c32f6cbd",
+      "exit_code": 0,
+      "elapsed_seconds": 0.233,
+      "source_freeze": "verified-source.json",
+      "source_freeze_sha256": "4b8f67c52f405b4201b1a7d20b3a7282dcdd4965a688470a777c1c04893f7e7d",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/format-check.receipt.json",
+      "sha256": "1b268369558d5586d9b7fac004689945927ffccdbc8a4a61f089f7cbdd6118e6",
+      "exit_code": 0,
+      "elapsed_seconds": 0.02,
+      "source_freeze": "verified-source.json",
+      "source_freeze_sha256": "4b8f67c52f405b4201b1a7d20b3a7282dcdd4965a688470a777c1c04893f7e7d",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/old-cli-behavior.receipt.json",
+      "sha256": "08fc46d9c29fcd12cb69707863619b4107128c569c719248548bf21db0b06855",
+      "exit_code": 0,
+      "elapsed_seconds": 1.113,
+      "source_freeze": "verified-source.json",
+      "source_freeze_sha256": "4b8f67c52f405b4201b1a7d20b3a7282dcdd4965a688470a777c1c04893f7e7d",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/ownership-green.receipt.json",
+      "sha256": "768977173f297a2772358109f8fc2a973d3da615130a871b8d240aa07f722a69",
+      "exit_code": 0,
+      "elapsed_seconds": 0.831,
+      "source_freeze": "final-source.json",
+      "source_freeze_sha256": "ec8e2bd081470c1fe0e3404585c6642e27cecba22328dc52c54ccba432cb45f1",
+      "stability_before": true,
+      "stability_after": true
+    },
+    {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/ownership-red.receipt.json",
+      "sha256": "55ab268b9d4330ba29c623b14d0ce4875f996ec5a1593b513ab6566803b4257f",
+      "exit_code": 1,
+      "elapsed_seconds": 1.106,
+      "source_freeze": "ownership-red-source.json",
+      "source_freeze_sha256": "174f35292ef5d2a0d6d0ad03d9feda3cb38bff63f054dce47afc3a8dd2f7b118",
+      "stability_before": true,
+      "stability_after": true
+    }
+  ],
+  "lint_delta": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/lint-delta.json",
+  "source": {
+    "base_freeze": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/old-source.json",
+    "final_delta": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/verified-source.json",
+    "changed_paths": [
+      "tools/gomad3/cmd/gomad/internal/cli/campaign_semantics_ownership_test.go",
+      "tools/gomad3/cmd/gomad/internal/cli/characterization_test.go",
+      "tools/gomad3/cmd/gomad/internal/cli/cli_test.go",
+      "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "tools/gomad3/testdata/runnerconsumer/consumer.go"
+    ],
+    "production_cli_before_sha256": "234c3d5ce203142d1976db95efaa7f667ab8143fbc2ea25ef6abfdf4be76cdcb",
+    "production_cli_final_sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+    "unchanged_inputs": {
+      "tools/gomad3/cmd/gomad/e2e_test.go": {
+        "baseline_sha256": "1b7c0fa99fab8b4c4ab1d1e95f940c8bf5a238f8458cdb46292af1202c6fc7e8",
+        "final_sha256": "1b7c0fa99fab8b4c4ab1d1e95f940c8bf5a238f8458cdb46292af1202c6fc7e8"
+      },
+      "tools/gomad3/cmd/gomad/internal/cli/doctor_test.go": {
+        "baseline_sha256": "3243eebce07a40e2f9e49f2a6a0a8596c453a967c846945eb1bc791e9b8a3e3e",
+        "final_sha256": "3243eebce07a40e2f9e49f2a6a0a8596c453a967c846945eb1bc791e9b8a3e3e"
+      },
+      "tools/gomad3/cmd/gomad/internal/cli/cli_test.go": {
+        "baseline_sha256": "0c66ecee38e7db9466e31b738ce01a87913d9e45b5d185ff2182c2c2f6d26c5b",
+        "final_sha256": "46525ba481d226cddf2a7723d825c09f18116fe94906920aac434666c9cdb0f3"
+      },
+      "tools/gomad3/runner/campaign_options.go": {
+        "baseline_sha256": "7f2eb52921e6aaf2f34d5f3ec9da79b83979627dd45bf40e57f2e9400862aeb0",
+        "final_sha256": "7f2eb52921e6aaf2f34d5f3ec9da79b83979627dd45bf40e57f2e9400862aeb0"
+      },
+      "tools/gomad3/runner/portable_plan_test.go": {
+        "baseline_sha256": "eaa8787da8a2f67ff01ee01ed468a6e2eb009fcce94a422bac2ff16b4bd5c626",
+        "final_sha256": "eaa8787da8a2f67ff01ee01ed468a6e2eb009fcce94a422bac2ff16b4bd5c626"
+      },
+      "tools/gomad3/runner/preparation_owner_test.go": {
+        "baseline_sha256": "e8d0309b038a77217d0d4e011a9430838563468b087be105d6a93ad191a7b66c",
+        "final_sha256": "e8d0309b038a77217d0d4e011a9430838563468b087be105d6a93ad191a7b66c"
+      }
+    },
+    "unchanged_failing_test_bodies": {
+      "TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput": {
+        "source": "tools/gomad3/cmd/gomad/internal/cli/cli_test.go",
+        "baseline_sha256": "7f3cbb81ea70e25559e789c9eea3c22f36f2865834528a3a1d9be44952665b2c",
+        "final_sha256": "7f3cbb81ea70e25559e789c9eea3c22f36f2865834528a3a1d9be44952665b2c"
+      },
+      "TestRunDoctorReportsAvailableContractAsJSON": {
+        "source": "tools/gomad3/cmd/gomad/internal/cli/cli_test.go",
+        "baseline_sha256": "f017c7c9cd4db6fac149baf7cf35cd26a9e98903c13a7997bd8e72c8d2e2a037",
+        "final_sha256": "f017c7c9cd4db6fac149baf7cf35cd26a9e98903c13a7997bd8e72c8d2e2a037"
+      }
+    }
+  },
+  "open_gates": [
+    "ordinary CLI complete package and end-to-end gate (absent patched toolchain / unsupported linux/arm64)",
+    "expanded portable-plan native execution tests",
+    "darwin-only fixed diagnostic identity goldens (skipped by existing platform guard)",
+    "54 inherited unfiltered CLI golangci findings",
+    "original task5 and task4/predecessor acceptance",
+    "R6/R18/R19 and task21 full/native qualification on darwin/arm64 and linux/amd64",
+    "conductor independent source review and progress commit",
+    "formal full-green-tree review"
+  ],
+  "review": "deferred to conductor; no verdict",
+  "delegates": 0,
+  "live_handles": []
+}

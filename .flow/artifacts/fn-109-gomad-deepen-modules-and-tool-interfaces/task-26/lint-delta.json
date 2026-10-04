@@ -1,0 +1,989 @@
+{
+  "before_count": 54,
+  "after_count": 54,
+  "inherited": [
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+        "line": 88,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+        "line": 88,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+        "line": 185,
+        "column": 14,
+        "message": "ST1005: error strings should not be capitalized",
+        "linter": "staticcheck",
+        "source": "return \"\", fmt.Errorf(\"Runner is not a regular executable: %s\", path)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/application.go",
+        "line": 185,
+        "column": 14,
+        "message": "ST1005: error strings should not be capitalized",
+        "linter": "staticcheck",
+        "source": "return \"\", fmt.Errorf(\"Runner is not a regular executable: %s\", path)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 36,
+        "column": 13,
+        "message": "Error return value of `fmt.Fprint` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprint(stderr, usage)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 36,
+        "column": 13,
+        "message": "Error return value of `fmt.Fprint` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprint(stderr, usage)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 41,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 41,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 46,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 46,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 57,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 57,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 63,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 63,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 109,
+        "column": 13,
+        "message": "Error return value of `fmt.Fprint` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprint(stderr, usage)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 109,
+        "column": 13,
+        "message": "Error return value of `fmt.Fprint` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprint(stderr, usage)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 117,
+        "column": 14,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stderr, \"gomad: %s: merge campaign shards: %v\\n\", classification, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 117,
+        "column": 14,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stderr, \"gomad: %s: merge campaign shards: %v\\n\", classification, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 123,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+        "line": 123,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/characterization_test.go",
+        "line": 92,
+        "column": 15,
+        "message": "Error return value of `reader.Close` is not checked",
+        "linter": "errcheck",
+        "source": "reader.Close()"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/characterization_test.go",
+        "line": 92,
+        "column": 15,
+        "message": "Error return value of `reader.Close` is not checked",
+        "linter": "errcheck",
+        "source": "reader.Close()"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 99,
+        "column": 13,
+        "message": "Error return value of `fmt.Fprint` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprint(stderr, usage)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 98,
+        "column": 13,
+        "message": "Error return value of `fmt.Fprint` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprint(stderr, usage)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 137,
+        "column": 14,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stderr, \"unknown gomad command %q\\n%s\", arguments[0], usage)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 136,
+        "column": 14,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stderr, \"unknown gomad command %q\\n%s\", arguments[0], usage)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 365,
+        "column": 13,
+        "message": "Error return value of `fmt.Fprint` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprint(stderr, usage)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 364,
+        "column": 13,
+        "message": "Error return value of `fmt.Fprint` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprint(stderr, usage)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 370,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 369,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 375,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 374,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 380,
+        "column": 14,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stderr, \"resolve artifact directory: %v\\n\", err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 379,
+        "column": 14,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stderr, \"resolve artifact directory: %v\\n\", err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 397,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stderr, \"encode doctor report: %v\\n\", marshalErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 396,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stderr, \"encode doctor report: %v\\n\", marshalErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 400,
+        "column": 14,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stdout, \"%s\\n\", encoded)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 399,
+        "column": 14,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stdout, \"%s\\n\", encoded)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 402,
+        "column": 14,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stdout, \"gomad doctor: available=%t host=%s go=%s toolchain=%s runner=%s boundary=%s\\n\", report.Available, report.Host, report.GoVersion, report.ToolchainBuild, report.RunnerBuild, report.BoundaryManifestVersion)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 401,
+        "column": 14,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stdout, \"gomad doctor: available=%t host=%s go=%s toolchain=%s runner=%s boundary=%s\\n\", report.Available, report.Host, report.GoVersion, report.ToolchainBuild, report.RunnerBuild, report.BoundaryManifestVersion)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 404,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stdout, \"%-10s %-5s %s\\n\", check.Name, check.Status, check.Detail)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 403,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stdout, \"%-10s %-5s %s\\n\", check.Name, check.Status, check.Detail)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 443,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 442,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 451,
+        "column": 14,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stderr, \"gomad:%s\\n\", formatChoiceTrace(summary.ChoiceTrace))"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 450,
+        "column": 14,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stderr, \"gomad:%s\\n\", formatChoiceTrace(summary.ChoiceTrace))"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 455,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 454,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 475,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 474,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 484,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 483,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 492,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 491,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 597,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 596,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 609,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 608,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 617,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 616,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 675,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 674,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 683,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 682,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 690,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 689,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 698,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 697,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 706,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 705,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 720,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 719,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 737,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 736,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 747,
+        "column": 17,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 746,
+        "column": 17,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 753,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 752,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 760,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 759,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 997,
+        "column": 13,
+        "message": "Error return value of `fmt.Fprint` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprint(stderr, usage)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 996,
+        "column": 13,
+        "message": "Error return value of `fmt.Fprint` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprint(stderr, usage)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 1002,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 1001,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 1011,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 1010,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 1014,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 1013,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 1018,
+        "column": 14,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stdout, \"gomad: verified %s\\n\", result.Artifact.Path)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 1017,
+        "column": 14,
+        "message": "Error return value of `fmt.Fprintf` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintf(stdout, \"gomad: verified %s\\n\", result.Artifact.Path)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 1023,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "line": 1022,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+        "line": 83,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+        "line": 83,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+        "line": 181,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+        "line": 181,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+        "line": 193,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+        "line": 193,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "line": 32,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "line": 32,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "line": 44,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "line": 44,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "line": 52,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "line": 52,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "line": 70,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "line": 70,
+        "column": 16,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, writeErr)"
+      }
+    },
+    {
+      "before": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "line": 76,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      },
+      "after": {
+        "path": "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "line": 76,
+        "column": 15,
+        "message": "Error return value of `fmt.Fprintln` is not checked",
+        "linter": "errcheck",
+        "source": "fmt.Fprintln(stderr, err)"
+      }
+    }
+  ],
+  "introduced": [],
+  "resolved": [],
+  "matching": "multiset of path, complete diagnostic, linter and exact trimmed source excerpt; before/after locations retained",
+  "owners": [
+    "tools/gomad3/cmd/gomad/internal/cli/application.go",
+    "tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go",
+    "tools/gomad3/cmd/gomad/internal/cli/characterization_test.go",
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+    "tools/gomad3/cmd/gomad/internal/cli/qualify.go",
+    "tools/gomad3/cmd/gomad/internal/cli/resume.go"
+  ]
+}

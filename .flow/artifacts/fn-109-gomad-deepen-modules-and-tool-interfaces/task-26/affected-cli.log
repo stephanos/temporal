@@ -1,0 +1,748 @@
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/plan
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/execute-shard
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/merge
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/explore
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/qualify
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/qualify-set
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/merge-set
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/compare-support
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/analyze
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/resume
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/recover
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/replay
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/minimize
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/doctor
+=== RUN   TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/inspect
+--- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/plan (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/execute-shard (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/merge (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/explore (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/qualify (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/qualify-set (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/merge-set (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/compare-support (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/analyze (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/resume (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/recover (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/replay (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/minimize (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/doctor (0.00s)
+    --- PASS: TestPublicCommandGrammarRejectsMissingOperandsBeforeInstallation/inspect (0.00s)
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/explore_count_zero
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/explore_irrelevant_choice_bytes
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/plan_missing_output
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/qualify_repeat_zero
+=== RUN   TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/analyze_negative_timeout
+--- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification (0.01s)
+    --- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/explore_count_zero (0.00s)
+    --- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/explore_irrelevant_choice_bytes (0.00s)
+    --- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/plan_missing_output (0.01s)
+    --- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/qualify_repeat_zero (0.00s)
+    --- PASS: TestPublicCommandExplicitZeroAndIrrelevantFlagClassification/analyze_negative_timeout (0.00s)
+=== RUN   TestPlanAndExploreRejectHiddenPlanRoute
+--- PASS: TestPlanAndExploreRejectHiddenPlanRoute (0.00s)
+=== RUN   TestPlanValidationOrderAndJSONRouting
+--- PASS: TestPlanValidationOrderAndJSONRouting (0.00s)
+=== RUN   TestPublicCommandWriterFailuresPreserveStatus
+--- PASS: TestPublicCommandWriterFailuresPreserveStatus (0.00s)
+=== RUN   TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments
+--- PASS: TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments (0.00s)
+=== RUN   TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes
+=== RUN   TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes/adjacent
+=== RUN   TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes/environment
+=== RUN   TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes/explicit_before_environment
+--- PASS: TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes (0.00s)
+    --- PASS: TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes/adjacent (0.00s)
+    --- PASS: TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes/environment (0.00s)
+    --- PASS: TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes/explicit_before_environment (0.00s)
+=== RUN   TestApplicationRetainsInstallationIdentityAndPrivateCommands
+--- PASS: TestApplicationRetainsInstallationIdentityAndPrivateCommands (0.00s)
+=== RUN   TestApplicationInstallFailsClosed
+=== RUN   TestApplicationInstallFailsClosed/executable_unavailable
+=== RUN   TestApplicationInstallFailsClosed/invalid_environment_root
+=== RUN   TestApplicationInstallFailsClosed/runner_not_executable
+--- PASS: TestApplicationInstallFailsClosed (0.00s)
+    --- PASS: TestApplicationInstallFailsClosed/executable_unavailable (0.00s)
+    --- PASS: TestApplicationInstallFailsClosed/invalid_environment_root (0.00s)
+    --- PASS: TestApplicationInstallFailsClosed/runner_not_executable (0.00s)
+=== RUN   TestApplicationDispatchesPrivateModesOverProcessStreams
+--- PASS: TestApplicationDispatchesPrivateModesOverProcessStreams (0.00s)
+=== RUN   TestApplicationResolvesOnlyAfterInputValidation
+--- PASS: TestApplicationResolvesOnlyAfterInputValidation (0.00s)
+=== RUN   TestCampaignSemanticValidationBelongsToRunner
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveExploreStrategy
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveExploreCoverage
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveChoiceTrace
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/parseCampaignRequest
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveExploreGuidance
+--- PASS: TestCampaignSemanticValidationBelongsToRunner (0.00s)
+    --- PASS: TestCampaignSemanticValidationBelongsToRunner/resolveExploreStrategy (0.00s)
+    --- PASS: TestCampaignSemanticValidationBelongsToRunner/resolveExploreCoverage (0.00s)
+    --- PASS: TestCampaignSemanticValidationBelongsToRunner/resolveChoiceTrace (0.00s)
+    --- PASS: TestCampaignSemanticValidationBelongsToRunner/parseCampaignRequest (0.00s)
+    --- PASS: TestCampaignSemanticValidationBelongsToRunner/resolveExploreGuidance (0.00s)
+=== RUN   TestParseCampaignShardUsesZeroBasedIndex
+--- PASS: TestParseCampaignShardUsesZeroBasedIndex (0.00s)
+=== RUN   TestFormatMissingOrdinalsCompactsRanges
+--- PASS: TestFormatMissingOrdinalsCompactsRanges (0.00s)
+=== RUN   TestCharacterizeHelpAndUsage
+=== RUN   TestCharacterizeHelpAndUsage/usage
+=== RUN   TestCharacterizeHelpAndUsage/plan
+=== RUN   TestCharacterizeHelpAndUsage/execute-shard
+=== RUN   TestCharacterizeHelpAndUsage/merge
+=== RUN   TestCharacterizeHelpAndUsage/explore
+=== RUN   TestCharacterizeHelpAndUsage/qualify
+=== RUN   TestCharacterizeHelpAndUsage/qualify-set
+=== RUN   TestCharacterizeHelpAndUsage/merge-set
+=== RUN   TestCharacterizeHelpAndUsage/compare-support
+=== RUN   TestCharacterizeHelpAndUsage/analyze
+=== RUN   TestCharacterizeHelpAndUsage/resume
+=== RUN   TestCharacterizeHelpAndUsage/recover
+=== RUN   TestCharacterizeHelpAndUsage/replay
+=== RUN   TestCharacterizeHelpAndUsage/minimize
+=== RUN   TestCharacterizeHelpAndUsage/doctor
+=== RUN   TestCharacterizeHelpAndUsage/inspect
+--- PASS: TestCharacterizeHelpAndUsage (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/usage (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/plan (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/execute-shard (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/merge (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/explore (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/qualify (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/qualify-set (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/merge-set (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/compare-support (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/analyze (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/resume (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/recover (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/replay (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/minimize (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/doctor (0.00s)
+    --- PASS: TestCharacterizeHelpAndUsage/inspect (0.00s)
+=== RUN   TestCharacterizeUnknownCommandsAndPrivateModes
+--- PASS: TestCharacterizeUnknownCommandsAndPrivateModes (0.00s)
+=== RUN   TestCharacterizeInputRejection
+=== RUN   TestCharacterizeInputRejection/explore_zero_count
+=== RUN   TestCharacterizeInputRejection/explore_count_and_seeds
+=== RUN   TestCharacterizeInputRejection/explore_unknown_strategy
+=== RUN   TestCharacterizeInputRejection/seed_strategy_explicit_zero_choice_bound
+=== RUN   TestCharacterizeInputRejection/seed_strategy_explicit_zero_simulation_bound
+=== RUN   TestCharacterizeInputRejection/seed_strategy_explicit_zero_start_ordinal
+=== RUN   TestCharacterizeInputRejection/choice_exploration_explicit_zero_executions
+=== RUN   TestCharacterizeInputRejection/choice_exploration_missing_depth
+=== RUN   TestCharacterizeInputRejection/choice_exploration_count
+=== RUN   TestCharacterizeInputRejection/choice_exploration_seed_range
+=== RUN   TestCharacterizeInputRejection/choice_exploration_guide
+=== RUN   TestCharacterizeInputRejection/choice_exploration_simulation_bound
+=== RUN   TestCharacterizeInputRejection/simulation_exploration_explicit_zero_bound
+=== RUN   TestCharacterizeInputRejection/simulation_exploration_choice_depth
+=== RUN   TestCharacterizeInputRejection/simulation_exploration_start_ordinal
+=== RUN   TestCharacterizeInputRejection/simulation_exploration_count
+=== RUN   TestCharacterizeInputRejection/simulation_exploration_diagnostics
+=== RUN   TestCharacterizeInputRejection/choice_bytes_without_choices
+=== RUN   TestCharacterizeInputRejection/choice_bytes_above_maximum
+=== RUN   TestCharacterizeInputRejection/choice_coverage_without_choices
+=== RUN   TestCharacterizeInputRejection/unknown_coverage
+=== RUN   TestCharacterizeInputRejection/probe_without_semantic_coverage
+=== RUN   TestCharacterizeInputRejection/corpus_without_guide
+=== RUN   TestCharacterizeInputRejection/guide_without_corpus
+=== RUN   TestCharacterizeInputRejection/guide_regression_without_guide
+=== RUN   TestCharacterizeInputRejection/unknown_capability_mode
+=== RUN   TestCharacterizeInputRejection/explore_output
+=== RUN   TestCharacterizeInputRejection/missing_target
+=== RUN   TestCharacterizeInputRejection/unknown_target_kind
+=== RUN   TestCharacterizeInputRejection/exec_without_provenance
+=== RUN   TestCharacterizeInputRejection/go-run_without_package
+=== RUN   TestCharacterizeInputRejection/go-test_arguments_without_separator
+=== RUN   TestCharacterizeInputRejection/relative_working_directory
+=== RUN   TestCharacterizeInputRejection/explore_JSON_input_error
+=== RUN   TestCharacterizeInputRejection/plan_inherits_explore_validation
+=== RUN   TestCharacterizeInputRejection/qualify_repeat_below_two
+=== RUN   TestCharacterizeInputRejection/qualify_repeat_above_maximum
+=== RUN   TestCharacterizeInputRejection/qualify_successful_replay_without_bounds
+=== RUN   TestCharacterizeInputRejection/qualify_success_bounds_without_replay
+=== RUN   TestCharacterizeInputRejection/qualify_choice_bytes_without_choices
+=== RUN   TestCharacterizeInputRejection/qualify_missing_target
+=== RUN   TestCharacterizeInputRejection/analyze_format
+=== RUN   TestCharacterizeInputRejection/analyze_timeout_above_maximum
+=== RUN   TestCharacterizeInputRejection/analyze_negative_timeout
+=== RUN   TestCharacterizeInputRejection/analyze_exec_target
+=== RUN   TestCharacterizeInputRejection/analyze_capability_mode
+=== RUN   TestCharacterizeInputRejection/minimize_explicit_zero_budget
+=== RUN   TestCharacterizeInputRejection/minimize_missing_artifact
+=== RUN   TestCharacterizeInputRejection/replay_missing_artifact
+=== RUN   TestCharacterizeInputRejection/execute-shard_missing_plan
+=== RUN   TestCharacterizeInputRejection/execute-shard_malformed_shard
+=== RUN   TestCharacterizeInputRejection/execute-shard_index_outside_count
+=== RUN   TestCharacterizeInputRejection/resume_missing_campaign
+=== RUN   TestCharacterizeInputRejection/doctor_positional_argument
+=== RUN   TestCharacterizeInputRejection/merge_missing_output
+=== RUN   TestCharacterizeInputRejection/merge_missing_shard
+=== RUN   TestCharacterizeInputRejection/recover_missing_campaign
+=== RUN   TestCharacterizeInputRejection/inspect_missing_artifact
+=== RUN   TestCharacterizeInputRejection/qualify-set_missing_manifest
+=== RUN   TestCharacterizeInputRejection/qualify-set_format
+=== RUN   TestCharacterizeInputRejection/qualify-set_positional_argument
+=== RUN   TestCharacterizeInputRejection/qualify-set_malformed_shard
+=== RUN   TestCharacterizeInputRejection/merge-set_missing_shard_reports
+=== RUN   TestCharacterizeInputRejection/compare-support_missing_candidate
+--- PASS: TestCharacterizeInputRejection (0.00s)
+    --- PASS: TestCharacterizeInputRejection/explore_zero_count (0.00s)
+    --- PASS: TestCharacterizeInputRejection/explore_count_and_seeds (0.00s)
+    --- PASS: TestCharacterizeInputRejection/explore_unknown_strategy (0.00s)
+    --- PASS: TestCharacterizeInputRejection/seed_strategy_explicit_zero_choice_bound (0.00s)
+    --- PASS: TestCharacterizeInputRejection/seed_strategy_explicit_zero_simulation_bound (0.00s)
+    --- PASS: TestCharacterizeInputRejection/seed_strategy_explicit_zero_start_ordinal (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_exploration_explicit_zero_executions (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_exploration_missing_depth (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_exploration_count (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_exploration_seed_range (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_exploration_guide (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_exploration_simulation_bound (0.00s)
+    --- PASS: TestCharacterizeInputRejection/simulation_exploration_explicit_zero_bound (0.00s)
+    --- PASS: TestCharacterizeInputRejection/simulation_exploration_choice_depth (0.00s)
+    --- PASS: TestCharacterizeInputRejection/simulation_exploration_start_ordinal (0.00s)
+    --- PASS: TestCharacterizeInputRejection/simulation_exploration_count (0.00s)
+    --- PASS: TestCharacterizeInputRejection/simulation_exploration_diagnostics (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_bytes_without_choices (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_bytes_above_maximum (0.00s)
+    --- PASS: TestCharacterizeInputRejection/choice_coverage_without_choices (0.00s)
+    --- PASS: TestCharacterizeInputRejection/unknown_coverage (0.00s)
+    --- PASS: TestCharacterizeInputRejection/probe_without_semantic_coverage (0.00s)
+    --- PASS: TestCharacterizeInputRejection/corpus_without_guide (0.00s)
+    --- PASS: TestCharacterizeInputRejection/guide_without_corpus (0.00s)
+    --- PASS: TestCharacterizeInputRejection/guide_regression_without_guide (0.00s)
+    --- PASS: TestCharacterizeInputRejection/unknown_capability_mode (0.00s)
+    --- PASS: TestCharacterizeInputRejection/explore_output (0.00s)
+    --- PASS: TestCharacterizeInputRejection/missing_target (0.00s)
+    --- PASS: TestCharacterizeInputRejection/unknown_target_kind (0.00s)
+    --- PASS: TestCharacterizeInputRejection/exec_without_provenance (0.00s)
+    --- PASS: TestCharacterizeInputRejection/go-run_without_package (0.00s)
+    --- PASS: TestCharacterizeInputRejection/go-test_arguments_without_separator (0.00s)
+    --- PASS: TestCharacterizeInputRejection/relative_working_directory (0.00s)
+    --- PASS: TestCharacterizeInputRejection/explore_JSON_input_error (0.00s)
+    --- PASS: TestCharacterizeInputRejection/plan_inherits_explore_validation (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify_repeat_below_two (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify_repeat_above_maximum (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify_successful_replay_without_bounds (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify_success_bounds_without_replay (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify_choice_bytes_without_choices (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify_missing_target (0.00s)
+    --- PASS: TestCharacterizeInputRejection/analyze_format (0.00s)
+    --- PASS: TestCharacterizeInputRejection/analyze_timeout_above_maximum (0.00s)
+    --- PASS: TestCharacterizeInputRejection/analyze_negative_timeout (0.00s)
+    --- PASS: TestCharacterizeInputRejection/analyze_exec_target (0.00s)
+    --- PASS: TestCharacterizeInputRejection/analyze_capability_mode (0.00s)
+    --- PASS: TestCharacterizeInputRejection/minimize_explicit_zero_budget (0.00s)
+    --- PASS: TestCharacterizeInputRejection/minimize_missing_artifact (0.00s)
+    --- PASS: TestCharacterizeInputRejection/replay_missing_artifact (0.00s)
+    --- PASS: TestCharacterizeInputRejection/execute-shard_missing_plan (0.00s)
+    --- PASS: TestCharacterizeInputRejection/execute-shard_malformed_shard (0.00s)
+    --- PASS: TestCharacterizeInputRejection/execute-shard_index_outside_count (0.00s)
+    --- PASS: TestCharacterizeInputRejection/resume_missing_campaign (0.00s)
+    --- PASS: TestCharacterizeInputRejection/doctor_positional_argument (0.00s)
+    --- PASS: TestCharacterizeInputRejection/merge_missing_output (0.00s)
+    --- PASS: TestCharacterizeInputRejection/merge_missing_shard (0.00s)
+    --- PASS: TestCharacterizeInputRejection/recover_missing_campaign (0.00s)
+    --- PASS: TestCharacterizeInputRejection/inspect_missing_artifact (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify-set_missing_manifest (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify-set_format (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify-set_positional_argument (0.00s)
+    --- PASS: TestCharacterizeInputRejection/qualify-set_malformed_shard (0.00s)
+    --- PASS: TestCharacterizeInputRejection/merge-set_missing_shard_reports (0.00s)
+    --- PASS: TestCharacterizeInputRejection/compare-support_missing_candidate (0.00s)
+=== RUN   TestCharacterizeByteSizeAndFlagValueRejection
+--- PASS: TestCharacterizeByteSizeAndFlagValueRejection (0.00s)
+=== RUN   TestCharacterizeInstallationResolution
+--- PASS: TestCharacterizeInstallationResolution (0.01s)
+=== RUN   TestCharacterizeExploreRequestDefaultsAndWiring
+--- PASS: TestCharacterizeExploreRequestDefaultsAndWiring (0.00s)
+=== RUN   TestCharacterizeExploreOutputAndStatus
+=== RUN   TestCharacterizeExploreOutputAndStatus/text_success
+=== RUN   TestCharacterizeExploreOutputAndStatus/JSON_success
+=== RUN   TestCharacterizeExploreOutputAndStatus/text_failure
+=== RUN   TestCharacterizeExploreOutputAndStatus/JSON_failure
+=== RUN   TestCharacterizeExploreOutputAndStatus/invalid_input_error
+=== RUN   TestCharacterizeExploreOutputAndStatus/runner_failure
+=== RUN   TestCharacterizeExploreOutputAndStatus/cancelled
+=== RUN   TestCharacterizeExploreOutputAndStatus/semantic_coverage_failure
+=== RUN   TestCharacterizeExploreOutputAndStatus/unsupported_target
+--- PASS: TestCharacterizeExploreOutputAndStatus (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/text_success (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/JSON_success (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/text_failure (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/JSON_failure (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/invalid_input_error (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/runner_failure (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/cancelled (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/semantic_coverage_failure (0.00s)
+    --- PASS: TestCharacterizeExploreOutputAndStatus/unsupported_target (0.00s)
+=== RUN   TestCharacterizePlanRequestAndOutput
+--- PASS: TestCharacterizePlanRequestAndOutput (0.00s)
+=== RUN   TestCharacterizeReplayRequestOutputAndStatus
+=== RUN   TestCharacterizeReplayRequestOutputAndStatus/verify_only
+=== RUN   TestCharacterizeReplayRequestOutputAndStatus/reproduced_success
+=== RUN   TestCharacterizeReplayRequestOutputAndStatus/divergence
+=== RUN   TestCharacterizeReplayRequestOutputAndStatus/preflight
+=== RUN   TestCharacterizeReplayRequestOutputAndStatus/replay_failure
+--- PASS: TestCharacterizeReplayRequestOutputAndStatus (0.00s)
+    --- PASS: TestCharacterizeReplayRequestOutputAndStatus/verify_only (0.00s)
+    --- PASS: TestCharacterizeReplayRequestOutputAndStatus/reproduced_success (0.00s)
+    --- PASS: TestCharacterizeReplayRequestOutputAndStatus/divergence (0.00s)
+    --- PASS: TestCharacterizeReplayRequestOutputAndStatus/preflight (0.00s)
+    --- PASS: TestCharacterizeReplayRequestOutputAndStatus/replay_failure (0.00s)
+=== RUN   TestCharacterizeExecuteShardRequestOutputAndStatus
+--- PASS: TestCharacterizeExecuteShardRequestOutputAndStatus (0.00s)
+=== RUN   TestCharacterizeInstallationWiring
+--- PASS: TestCharacterizeInstallationWiring (0.00s)
+=== RUN   TestCharacterizeOutputWriterFailures
+=== RUN   TestCharacterizeOutputWriterFailures/explore_text_result
+=== RUN   TestCharacterizeOutputWriterFailures/explore_JSON_result
+=== RUN   TestCharacterizeOutputWriterFailures/explore_text_input_error
+=== RUN   TestCharacterizeOutputWriterFailures/explore_JSON_input_error
+=== RUN   TestCharacterizeOutputWriterFailures/plan_text_result
+=== RUN   TestCharacterizeOutputWriterFailures/plan_JSON_result
+=== RUN   TestCharacterizeOutputWriterFailures/replay_result
+=== RUN   TestCharacterizeOutputWriterFailures/replay_verification
+=== RUN   TestCharacterizeOutputWriterFailures/execute-shard_result
+=== RUN   TestCharacterizeOutputWriterFailures/resume_result
+=== RUN   TestCharacterizeOutputWriterFailures/minimize_text_result
+=== RUN   TestCharacterizeOutputWriterFailures/minimize_JSON_result
+=== RUN   TestCharacterizeOutputWriterFailures/minimize_usage
+=== RUN   TestCharacterizeOutputWriterFailures/recover_usage
+=== RUN   TestCharacterizeOutputWriterFailures/inspect_usage
+=== RUN   TestCharacterizeOutputWriterFailures/analyze_input_error
+=== RUN   TestCharacterizeOutputWriterFailures/qualify-set_input_error
+=== RUN   TestCharacterizeOutputWriterFailures/doctor_installation_error
+=== RUN   TestCharacterizeOutputWriterFailures/replay_installation_error
+--- PASS: TestCharacterizeOutputWriterFailures (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/explore_text_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/explore_JSON_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/explore_text_input_error (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/explore_JSON_input_error (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/plan_text_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/plan_JSON_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/replay_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/replay_verification (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/execute-shard_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/resume_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/minimize_text_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/minimize_JSON_result (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/minimize_usage (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/recover_usage (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/inspect_usage (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/analyze_input_error (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/qualify-set_input_error (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/doctor_installation_error (0.00s)
+    --- PASS: TestCharacterizeOutputWriterFailures/replay_installation_error (0.00s)
+=== RUN   TestByteSizeFlagParsesBinaryUnitsCanonically
+--- PASS: TestByteSizeFlagParsesBinaryUnitsCanonically (0.00s)
+=== RUN   TestRunCompareSupportMapsReviewAndIncomparableStatuses
+--- PASS: TestRunCompareSupportMapsReviewAndIncomparableStatuses (0.00s)
+=== RUN   TestRunCompareSupportDistinguishesInvalidReportsFromIOFailures
+=== RUN   TestRunCompareSupportDistinguishesInvalidReportsFromIOFailures/invalid_report
+=== RUN   TestRunCompareSupportDistinguishesInvalidReportsFromIOFailures/missing_report
+--- PASS: TestRunCompareSupportDistinguishesInvalidReportsFromIOFailures (0.00s)
+    --- PASS: TestRunCompareSupportDistinguishesInvalidReportsFromIOFailures/invalid_report (0.00s)
+    --- PASS: TestRunCompareSupportDistinguishesInvalidReportsFromIOFailures/missing_report (0.00s)
+=== RUN   TestResolveExploreSeedsSupportsCountWithoutAmbiguity
+=== RUN   TestResolveExploreSeedsSupportsCountWithoutAmbiguity/default
+=== RUN   TestResolveExploreSeedsSupportsCountWithoutAmbiguity/explicit_seeds
+=== RUN   TestResolveExploreSeedsSupportsCountWithoutAmbiguity/one
+=== RUN   TestResolveExploreSeedsSupportsCountWithoutAmbiguity/three
+=== RUN   TestResolveExploreSeedsSupportsCountWithoutAmbiguity/zero
+=== RUN   TestResolveExploreSeedsSupportsCountWithoutAmbiguity/conflict
+--- PASS: TestResolveExploreSeedsSupportsCountWithoutAmbiguity (0.00s)
+    --- PASS: TestResolveExploreSeedsSupportsCountWithoutAmbiguity/default (0.00s)
+    --- PASS: TestResolveExploreSeedsSupportsCountWithoutAmbiguity/explicit_seeds (0.00s)
+    --- PASS: TestResolveExploreSeedsSupportsCountWithoutAmbiguity/one (0.00s)
+    --- PASS: TestResolveExploreSeedsSupportsCountWithoutAmbiguity/three (0.00s)
+    --- PASS: TestResolveExploreSeedsSupportsCountWithoutAmbiguity/zero (0.00s)
+    --- PASS: TestResolveExploreSeedsSupportsCountWithoutAmbiguity/conflict (0.00s)
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/count
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/multiple_seeds
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/guidance
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/missing_max_executions
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/zero_max_executions
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/missing_max_depth
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/missing_exploration_bytes
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/unknown
+--- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/count (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/multiple_seeds (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/guidance (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/missing_max_executions (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/zero_max_executions (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/missing_max_depth (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/missing_exploration_bytes (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSingleSeedExploration/unknown (0.00s)
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/count
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/multiple_seeds
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/guidance
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/choice_depth
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/choice_start_ordinal
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_max_executions
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_forced_decisions
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_exploration_bytes
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_result_bytes
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_runtime_bound
+=== RUN   TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/zero_crash_bound
+--- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/count (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/multiple_seeds (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/guidance (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/choice_depth (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/choice_start_ordinal (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_max_executions (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_forced_decisions (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_exploration_bytes (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_result_bytes (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/missing_runtime_bound (0.00s)
+    --- PASS: TestResolveExploreStrategyRequiresExplicitBoundedSimulationExploration/zero_crash_bound (0.00s)
+=== RUN   TestResolveExploreStrategyRejectsExplorationBoundsForSeeds
+--- PASS: TestResolveExploreStrategyRejectsExplorationBoundsForSeeds (0.00s)
+=== RUN   TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes
+--- PASS: TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes (0.00s)
+=== RUN   TestResolveExploreTypedErrorPresentation
+--- PASS: TestResolveExploreTypedErrorPresentation (0.00s)
+=== RUN   TestResolveExploreGuidanceEnablesSemanticCoverageAndRequiresCorpus
+--- PASS: TestResolveExploreGuidanceEnablesSemanticCoverageAndRequiresCorpus (0.00s)
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/disabled
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/enabled_default
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/enabled_explicit
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/bytes_without_choices
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/enabled_zero
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/too_small
+=== RUN   TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/too_large
+--- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity (0.00s)
+    --- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/disabled (0.00s)
+    --- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/enabled_default (0.00s)
+    --- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/enabled_explicit (0.00s)
+    --- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/bytes_without_choices (0.00s)
+    --- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/enabled_zero (0.00s)
+    --- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/too_small (0.00s)
+    --- PASS: TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity/too_large (0.00s)
+=== RUN   TestRunRejectsUnknownCommandWithUsageStatus
+--- PASS: TestRunRejectsUnknownCommandWithUsageStatus (0.00s)
+=== RUN   TestParseTargetPreservesArgumentVector
+--- PASS: TestParseTargetPreservesArgumentVector (0.00s)
+=== RUN   TestParseCapabilityModeUsesClosedVocabulary
+--- PASS: TestParseCapabilityModeUsesClosedVocabulary (0.00s)
+=== RUN   TestAnalyzeClassifiesLinkedCapabilityCapacityAsUnsupported
+--- PASS: TestAnalyzeClassifiesLinkedCapabilityCapacityAsUnsupported (0.00s)
+=== RUN   TestCapabilityAnalysisTimeoutAllowsLinkedBuild
+=== RUN   TestCapabilityAnalysisTimeoutAllowsLinkedBuild/closure_default
+=== RUN   TestCapabilityAnalysisTimeoutAllowsLinkedBuild/linked_default
+=== RUN   TestCapabilityAnalysisTimeoutAllowsLinkedBuild/guarded_default
+=== RUN   TestCapabilityAnalysisTimeoutAllowsLinkedBuild/explicit_bounded
+=== RUN   TestCapabilityAnalysisTimeoutAllowsLinkedBuild/negative
+=== RUN   TestCapabilityAnalysisTimeoutAllowsLinkedBuild/over_maximum
+--- PASS: TestCapabilityAnalysisTimeoutAllowsLinkedBuild (0.00s)
+    --- PASS: TestCapabilityAnalysisTimeoutAllowsLinkedBuild/closure_default (0.00s)
+    --- PASS: TestCapabilityAnalysisTimeoutAllowsLinkedBuild/linked_default (0.00s)
+    --- PASS: TestCapabilityAnalysisTimeoutAllowsLinkedBuild/guarded_default (0.00s)
+    --- PASS: TestCapabilityAnalysisTimeoutAllowsLinkedBuild/explicit_bounded (0.00s)
+    --- PASS: TestCapabilityAnalysisTimeoutAllowsLinkedBuild/negative (0.00s)
+    --- PASS: TestCapabilityAnalysisTimeoutAllowsLinkedBuild/over_maximum (0.00s)
+=== RUN   TestRunAnalyzeForwardsTargetAndClassifiesReport
+=== RUN   TestRunAnalyzeForwardsTargetAndClassifiesReport/emits_supported_JSON_without_executing_target
+=== RUN   TestRunAnalyzeForwardsTargetAndClassifiesReport/unsupported
+=== RUN   TestRunAnalyzeForwardsTargetAndClassifiesReport/opaque_executable
+=== RUN   TestRunAnalyzeForwardsTargetAndClassifiesReport/invalid_package
+=== RUN   TestRunAnalyzeForwardsTargetAndClassifiesReport/infrastructure
+=== RUN   TestRunAnalyzeForwardsTargetAndClassifiesReport/cleanup_failure_preserves_classification
+=== RUN   TestRunAnalyzeForwardsTargetAndClassifiesReport/cleanup_failure_after_supported_report
+=== RUN   TestRunAnalyzeForwardsTargetAndClassifiesReport/builds_from_prepared_review
+=== RUN   TestRunAnalyzeForwardsTargetAndClassifiesReport/output_failure_is_infrastructure
+--- PASS: TestRunAnalyzeForwardsTargetAndClassifiesReport (0.00s)
+    --- PASS: TestRunAnalyzeForwardsTargetAndClassifiesReport/emits_supported_JSON_without_executing_target (0.00s)
+    --- PASS: TestRunAnalyzeForwardsTargetAndClassifiesReport/unsupported (0.00s)
+    --- PASS: TestRunAnalyzeForwardsTargetAndClassifiesReport/opaque_executable (0.00s)
+    --- PASS: TestRunAnalyzeForwardsTargetAndClassifiesReport/invalid_package (0.00s)
+    --- PASS: TestRunAnalyzeForwardsTargetAndClassifiesReport/infrastructure (0.00s)
+    --- PASS: TestRunAnalyzeForwardsTargetAndClassifiesReport/cleanup_failure_preserves_classification (0.00s)
+    --- PASS: TestRunAnalyzeForwardsTargetAndClassifiesReport/cleanup_failure_after_supported_report (0.00s)
+    --- PASS: TestRunAnalyzeForwardsTargetAndClassifiesReport/builds_from_prepared_review (0.00s)
+    --- PASS: TestRunAnalyzeForwardsTargetAndClassifiesReport/output_failure_is_infrastructure (0.00s)
+=== RUN   TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput
+    cli_test.go:548: status=3 stdout="" stderr="analyze target capabilities: inspect target capability closure: start command \"/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go\": fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory\n"
+--- FAIL: TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput (0.00s)
+=== RUN   TestRunDoctorReportsAvailableContractAsJSON
+    cli_test.go:566: status = 1, stdout = "{\"schema\":\"gomad3.doctor/v3\",\"available\":false,\"host\":\"linux/arm64\",\"supported_platforms\":[\"darwin/arm64\",\"linux/amd64\"],\"go_version\":\"go1.26.4\",\"toolchain_build\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"runner_build\":\"sha256:527aa9f431539da8e151d5434d1d5e611d973f601d8e970790882624554146b0\",\"boundary_manifest_version\":\"go1.27.1-v1\",\"io_inventory_sha256\":\"sha256:e1ca9d600db41e888bd471c676533d767aaeba007ee0b893971d1d4d81e3d363\",\"io_implementation_sha256\":\"sha256:008681f59e6711f6e22fc24194da51729c1b9d3fd0c73ea9a4ea08099a4854ed\",\"adapters\":[{\"module\":\"github.com/Masterminds/sprig/v3\",\"version\":\"v3.3.0\",\"sum\":\"h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs=\",\"status\":\"available\"},{\"module\":\"github.com/cactus/go-statsd-client/v5\",\"version\":\"v5.1.0\",\"sum\":\"h1:sbbdfIl9PgisjEoXzvXI1lwUKWElngsjJKaZeC021P4=\",\"status\":\"available\"},{\"module\":\"github.com/cockroachdb/pebble\",\"version\":\"v0.0.0-20260703021901-41f35d3cb7df\",\"sum\":\"h1:p7vkumDcPw0de7t8pYA95HPC4cYQZGDG6b57d4Om5cA=\",\"status\":\"available\"},{\"module\":\"github.com/getsentry/sentry-go\",\"version\":\"v0.46.0\",\"sum\":\"h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=\",\"status\":\"available\"},{\"module\":\"github.com/go-playground/validator/v10\",\"version\":\"v10.30.1\",\"sum\":\"h1:f3zDSN/zOma+w6+1Wswgd9fLkdwy06ntQJp0BBvFG0w=\",\"status\":\"available\"},{\"module\":\"github.com/hashicorp/go-metrics\",\"version\":\"v0.5.4\",\"sum\":\"h1:8mmPiIJkTPPEbAiV97IxdAGNdRdaWwVap1BU6elejKY=\",\"status\":\"available\"},{\"module\":\"github.com/hashicorp/go-sockaddr\",\"version\":\"v1.0.7\",\"sum\":\"h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw=\",\"status\":\"available\"},{\"module\":\"github.com/hashicorp/memberlist\",\"version\":\"v0.5.4\",\"sum\":\"h1:40YY+3qq2tAUhZIMEK8kqusKZBBjdwJ3NUjvYkcxh74=\",\"status\":\"available\"},{\"module\":\"go.opentelemetry.io/otel/sdk\",\"version\":\"v1.44.0\",\"sum\":\"h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58=\",\"status\":\"available\"},{\"module\":\"go.temporal.io/sdk\",\"version\":\"v1.48.0\",\"sum\":\"h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118=\",\"status\":\"available\"},{\"module\":\"go.uber.org/fx\",\"version\":\"v1.24.0\",\"sum\":\"h1:wE8mruvpg2kiiL1Vqd0CC+tr0/24XIB10Iwp2lLWzkg=\",\"status\":\"available\"},{\"module\":\"golang.org/x/net\",\"version\":\"v0.58.0\",\"sum\":\"h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To=\",\"status\":\"available\"},{\"module\":\"google.golang.org/grpc\",\"version\":\"v1.83.2\",\"sum\":\"h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU=\",\"status\":\"available\"},{\"module\":\"modernc.org/libc\",\"version\":\"v1.72.3\",\"sum\":\"h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=\",\"status\":\"available\"},{\"module\":\"modernc.org/memory\",\"version\":\"v1.11.0\",\"sum\":\"h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=\",\"status\":\"available\"}],\"installation_source\":\"adjacent\",\"toolchain_root\":\"/home/agent/.cache/codex-build/tmp/TestRunDoctorReportsAvailableContractAsJSON3859094328/001/.toolchain\",\"artifact_directory\":\"/home/agent/.cache/codex-build/tmp/TestRunDoctorReportsAvailableContractAsJSON3859094328/001/artifacts\",\"repair_instruction\":\"install the Gomad toolchain at /home/agent/.cache/codex-build/tmp/TestRunDoctorReportsAvailableContractAsJSON3859094328/001/.toolchain or set GOMAD3_TOOLCHAIN_DIR\",\"checks\":[{\"name\":\"host\",\"status\":\"error\",\"detail\":\"linux/arm64 is unsupported; supported=darwin/arm64,linux/amd64\"},{\"name\":\"toolchain\",\"status\":\"ok\",\"detail\":\"go1.26.4 build=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"},{\"name\":\"runner\",\"status\":\"ok\",\"detail\":\"sha256:527aa9f431539da8e151d5434d1d5e611d973f601d8e970790882624554146b0\"},{\"name\":\"adapter:github.com/Masterminds/sprig/v3\",\"status\":\"ok\",\"detail\":\"github.com/Masterminds/sprig/v3@v3.3.0 h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs=\"},{\"name\":\"adapter:github.com/cactus/go-statsd-client/v5\",\"status\":\"ok\",\"detail\":\"github.com/cactus/go-statsd-client/v5@v5.1.0 h1:sbbdfIl9PgisjEoXzvXI1lwUKWElngsjJKaZeC021P4=\"},{\"name\":\"adapter:github.com/cockroachdb/pebble\",\"status\":\"ok\",\"detail\":\"github.com/cockroachdb/pebble@v0.0.0-20260703021901-41f35d3cb7df h1:p7vkumDcPw0de7t8pYA95HPC4cYQZGDG6b57d4Om5cA=\"},{\"name\":\"adapter:github.com/getsentry/sentry-go\",\"status\":\"ok\",\"detail\":\"github.com/getsentry/sentry-go@v0.46.0 h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=\"},{\"name\":\"adapter:github.com/go-playground/validator/v10\",\"status\":\"ok\",\"detail\":\"github.com/go-playground/validator/v10@v10.30.1 h1:f3zDSN/zOma+w6+1Wswgd9fLkdwy06ntQJp0BBvFG0w=\"},{\"name\":\"adapter:github.com/hashicorp/go-metrics\",\"status\":\"ok\",\"detail\":\"github.com/hashicorp/go-metrics@v0.5.4 h1:8mmPiIJkTPPEbAiV97IxdAGNdRdaWwVap1BU6elejKY=\"},{\"name\":\"adapter:github.com/hashicorp/go-sockaddr\",\"status\":\"ok\",\"detail\":\"github.com/hashicorp/go-sockaddr@v1.0.7 h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw=\"},{\"name\":\"adapter:github.com/hashicorp/memberlist\",\"status\":\"ok\",\"detail\":\"github.com/hashicorp/memberlist@v0.5.4 h1:40YY+3qq2tAUhZIMEK8kqusKZBBjdwJ3NUjvYkcxh74=\"},{\"name\":\"adapter:go.opentelemetry.io/otel/sdk\",\"status\":\"ok\",\"detail\":\"go.opentelemetry.io/otel/sdk@v1.44.0 h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58=\"},{\"name\":\"adapter:go.temporal.io/sdk\",\"status\":\"ok\",\"detail\":\"go.temporal.io/sdk@v1.48.0 h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118=\"},{\"name\":\"adapter:go.uber.org/fx\",\"status\":\"ok\",\"detail\":\"go.uber.org/fx@v1.24.0 h1:wE8mruvpg2kiiL1Vqd0CC+tr0/24XIB10Iwp2lLWzkg=\"},{\"name\":\"adapter:golang.org/x/net\",\"status\":\"ok\",\"detail\":\"golang.org/x/net@v0.58.0 h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To=\"},{\"name\":\"adapter:google.golang.org/grpc\",\"status\":\"ok\",\"detail\":\"google.golang.org/grpc@v1.83.2 h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU=\"},{\"name\":\"adapter:modernc.org/libc\",\"status\":\"ok\",\"detail\":\"modernc.org/libc@v1.72.3 h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=\"},{\"name\":\"adapter:modernc.org/memory\",\"status\":\"ok\",\"detail\":\"modernc.org/memory@v1.11.0 h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=\"},{\"name\":\"artifacts\",\"status\":\"ok\",\"detail\":\"/home/agent/.cache/codex-build/tmp/TestRunDoctorReportsAvailableContractAsJSON3859094328/001/artifacts\"}]}\n", stderr = ""
+--- FAIL: TestRunDoctorReportsAvailableContractAsJSON (0.00s)
+=== RUN   TestRunDoctorReportsRepairCommandWhenToolchainIsMissing
+--- PASS: TestRunDoctorReportsRepairCommandWhenToolchainIsMissing (0.00s)
+=== RUN   TestRunInspectReportsBatchAsTextAndJSON
+=== RUN   TestRunInspectReportsBatchAsTextAndJSON/text
+=== RUN   TestRunInspectReportsBatchAsTextAndJSON/json
+--- PASS: TestRunInspectReportsBatchAsTextAndJSON (0.00s)
+    --- PASS: TestRunInspectReportsBatchAsTextAndJSON/text (0.00s)
+    --- PASS: TestRunInspectReportsBatchAsTextAndJSON/json (0.00s)
+=== RUN   TestRunInspectRejectsChoicesForBatch
+--- PASS: TestRunInspectRejectsChoicesForBatch (0.00s)
+=== RUN   TestPrintInspectionReportsInterruptedSimulationExplorationWork
+--- PASS: TestPrintInspectionReportsInterruptedSimulationExplorationWork (0.00s)
+=== RUN   TestPrintInspectionReportsSimulationExplorationEvidence
+--- PASS: TestPrintInspectionReportsSimulationExplorationEvidence (0.00s)
+=== RUN   TestRunInspectReportsOutputFailure
+--- PASS: TestRunInspectReportsOutputFailure (0.00s)
+=== RUN   TestRunRecoverReportsStableTextAndJSON
+=== RUN   TestRunRecoverReportsStableTextAndJSON/text
+=== RUN   TestRunRecoverReportsStableTextAndJSON/json
+--- PASS: TestRunRecoverReportsStableTextAndJSON (0.00s)
+    --- PASS: TestRunRecoverReportsStableTextAndJSON/text (0.00s)
+    --- PASS: TestRunRecoverReportsStableTextAndJSON/json (0.00s)
+=== RUN   TestRunRecoverDistinguishesInvalidInputFromInfrastructureFailure
+=== RUN   TestRunRecoverDistinguishesInvalidInputFromInfrastructureFailure/invalid
+=== RUN   TestRunRecoverDistinguishesInvalidInputFromInfrastructureFailure/infrastructure
+--- PASS: TestRunRecoverDistinguishesInvalidInputFromInfrastructureFailure (0.00s)
+    --- PASS: TestRunRecoverDistinguishesInvalidInputFromInfrastructureFailure/invalid (0.00s)
+    --- PASS: TestRunRecoverDistinguishesInvalidInputFromInfrastructureFailure/infrastructure (0.00s)
+=== RUN   TestRunRecoverRepairsPublishedBatchPrivateState
+--- PASS: TestRunRecoverRepairsPublishedBatchPrivateState (0.00s)
+=== RUN   TestExploreReporterEmitsStableJSONEventsAndEveryArtifact
+--- PASS: TestExploreReporterEmitsStableJSONEventsAndEveryArtifact (0.00s)
+=== RUN   TestExploreReporterReportsRetainedSuccessfulRuns
+--- PASS: TestExploreReporterReportsRetainedSuccessfulRuns (0.00s)
+=== RUN   TestExploreReporterReportsGuidedCorpusUpdates
+--- PASS: TestExploreReporterReportsGuidedCorpusUpdates (0.00s)
+=== RUN   TestExploreReporterReportsSimulationExplorationBoundsAndRemainingWork
+--- PASS: TestExploreReporterReportsSimulationExplorationBoundsAndRemainingWork (0.00s)
+=== RUN   TestRunExploreReportsFlagErrorsAsJSON
+--- PASS: TestRunExploreReportsFlagErrorsAsJSON (0.00s)
+=== RUN   TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure
+--- PASS: TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure (0.00s)
+=== RUN   TestRunQualifyForwardsFlagsAndClassifiesOutcome
+=== RUN   TestRunQualifyForwardsFlagsAndClassifiesOutcome/repeat_one_seed_and_retain_the_JSON_report
+=== RUN   TestRunQualifyForwardsFlagsAndClassifiesOutcome/nondeterministic_evidence
+=== RUN   TestRunQualifyForwardsFlagsAndClassifiesOutcome/replays_repeated_target_failure
+=== RUN   TestRunQualifyForwardsFlagsAndClassifiesOutcome/replays_every_retained_success
+=== RUN   TestRunQualifyForwardsFlagsAndClassifiesOutcome/successful_replay_requires_bounds
+=== RUN   TestRunQualifyForwardsFlagsAndClassifiesOutcome/success_bounds_require_successful_replay
+=== RUN   TestRunQualifyForwardsFlagsAndClassifiesOutcome/retains_missing_successful_replay_artifact
+=== RUN   TestRunQualifyForwardsFlagsAndClassifiesOutcome/retains_replay_cancellation
+=== RUN   TestRunQualifyForwardsFlagsAndClassifiesOutcome/retains_unsupported_boundary
+=== RUN   TestRunQualifyForwardsFlagsAndClassifiesOutcome/rejects_unbounded_repeat
+--- PASS: TestRunQualifyForwardsFlagsAndClassifiesOutcome (0.00s)
+    --- PASS: TestRunQualifyForwardsFlagsAndClassifiesOutcome/repeat_one_seed_and_retain_the_JSON_report (0.00s)
+    --- PASS: TestRunQualifyForwardsFlagsAndClassifiesOutcome/nondeterministic_evidence (0.00s)
+    --- PASS: TestRunQualifyForwardsFlagsAndClassifiesOutcome/replays_repeated_target_failure (0.00s)
+    --- PASS: TestRunQualifyForwardsFlagsAndClassifiesOutcome/replays_every_retained_success (0.00s)
+    --- PASS: TestRunQualifyForwardsFlagsAndClassifiesOutcome/successful_replay_requires_bounds (0.00s)
+    --- PASS: TestRunQualifyForwardsFlagsAndClassifiesOutcome/success_bounds_require_successful_replay (0.00s)
+    --- PASS: TestRunQualifyForwardsFlagsAndClassifiesOutcome/retains_missing_successful_replay_artifact (0.00s)
+    --- PASS: TestRunQualifyForwardsFlagsAndClassifiesOutcome/retains_replay_cancellation (0.00s)
+    --- PASS: TestRunQualifyForwardsFlagsAndClassifiesOutcome/retains_unsupported_boundary (0.00s)
+    --- PASS: TestRunQualifyForwardsFlagsAndClassifiesOutcome/rejects_unbounded_repeat (0.00s)
+=== RUN   TestRunResumeForwardsCampaignAndClassifiesResult
+=== RUN   TestRunResumeForwardsCampaignAndClassifiesResult/stored_campaign
+=== RUN   TestRunResumeForwardsCampaignAndClassifiesResult/invalid_journal_is_an_input_error
+--- PASS: TestRunResumeForwardsCampaignAndClassifiesResult (0.00s)
+    --- PASS: TestRunResumeForwardsCampaignAndClassifiesResult/stored_campaign (0.00s)
+    --- PASS: TestRunResumeForwardsCampaignAndClassifiesResult/invalid_journal_is_an_input_error (0.00s)
+=== RUN   TestExploreReporterHumanOutputIncludesProgressAndReplayCommands
+--- PASS: TestExploreReporterHumanOutputIncludesProgressAndReplayCommands (0.00s)
+=== RUN   TestClassifyExploreErrorDistinguishesInputTargetAndRunner
+--- PASS: TestClassifyExploreErrorDistinguishesInputTargetAndRunner (0.00s)
+=== RUN   TestExploreErrorStatusDistinguishesUserAndOperationalFailures
+--- PASS: TestExploreErrorStatusDistinguishesUserAndOperationalFailures (0.00s)
+=== RUN   TestClassifyExploreSummaryDistinguishesWatchdogAndReplayDivergence
+--- PASS: TestClassifyExploreSummaryDistinguishesWatchdogAndReplayDivergence (0.00s)
+=== RUN   TestReportReplayResultStatesWhetherFailureWasReproduced
+=== RUN   TestReportReplayResultStatesWhetherFailureWasReproduced/success
+=== RUN   TestReportReplayResultStatesWhetherFailureWasReproduced/target_failure
+=== RUN   TestReportReplayResultStatesWhetherFailureWasReproduced/watchdog_observation
+=== RUN   TestReportReplayResultStatesWhetherFailureWasReproduced/divergence
+--- PASS: TestReportReplayResultStatesWhetherFailureWasReproduced (0.00s)
+    --- PASS: TestReportReplayResultStatesWhetherFailureWasReproduced/success (0.00s)
+    --- PASS: TestReportReplayResultStatesWhetherFailureWasReproduced/target_failure (0.00s)
+    --- PASS: TestReportReplayResultStatesWhetherFailureWasReproduced/watchdog_observation (0.00s)
+    --- PASS: TestReportReplayResultStatesWhetherFailureWasReproduced/divergence (0.00s)
+=== RUN   TestRunMinimizeForwardsFlags
+=== RUN   TestRunMinimizeForwardsFlags/bounded_store_and_installation
+=== RUN   TestRunMinimizeForwardsFlags/initial_run
+=== RUN   TestRunMinimizeForwardsFlags/resume
+--- PASS: TestRunMinimizeForwardsFlags (0.00s)
+    --- PASS: TestRunMinimizeForwardsFlags/bounded_store_and_installation (0.00s)
+    --- PASS: TestRunMinimizeForwardsFlags/initial_run (0.00s)
+    --- PASS: TestRunMinimizeForwardsFlags/resume (0.00s)
+=== RUN   TestRunQualifySetForwardsFlags
+=== RUN   TestRunQualifySetForwardsFlags/public_paths_and_executable
+=== RUN   TestRunQualifySetForwardsFlags/runs_one_shard
+=== RUN   TestRunQualifySetForwardsFlags/checks_one_shard
+=== RUN   TestRunQualifySetForwardsFlags/rejects_index_past_count
+=== RUN   TestRunQualifySetForwardsFlags/rejects_malformed_shard
+=== RUN   TestRunQualifySetForwardsFlags/rejects_count_past_manifest
+--- PASS: TestRunQualifySetForwardsFlags (0.00s)
+    --- PASS: TestRunQualifySetForwardsFlags/public_paths_and_executable (0.00s)
+    --- PASS: TestRunQualifySetForwardsFlags/runs_one_shard (0.00s)
+    --- PASS: TestRunQualifySetForwardsFlags/checks_one_shard (0.00s)
+    --- PASS: TestRunQualifySetForwardsFlags/rejects_index_past_count (0.00s)
+    --- PASS: TestRunQualifySetForwardsFlags/rejects_malformed_shard (0.00s)
+    --- PASS: TestRunQualifySetForwardsFlags/rejects_count_past_manifest (0.00s)
+=== RUN   TestRunMergeSetMapsStatuses
+=== RUN   TestRunMergeSetMapsStatuses/merged
+=== RUN   TestRunMergeSetMapsStatuses/merged_as_json
+=== RUN   TestRunMergeSetMapsStatuses/retained_mismatch
+=== RUN   TestRunMergeSetMapsStatuses/invalid_shards
+=== RUN   TestRunMergeSetMapsStatuses/output_failure
+=== RUN   TestRunMergeSetMapsStatuses/requires_manifest
+=== RUN   TestRunMergeSetMapsStatuses/requires_shard_reports
+--- PASS: TestRunMergeSetMapsStatuses (0.00s)
+    --- PASS: TestRunMergeSetMapsStatuses/merged (0.00s)
+    --- PASS: TestRunMergeSetMapsStatuses/merged_as_json (0.00s)
+    --- PASS: TestRunMergeSetMapsStatuses/retained_mismatch (0.00s)
+    --- PASS: TestRunMergeSetMapsStatuses/invalid_shards (0.00s)
+    --- PASS: TestRunMergeSetMapsStatuses/output_failure (0.00s)
+    --- PASS: TestRunMergeSetMapsStatuses/requires_manifest (0.00s)
+    --- PASS: TestRunMergeSetMapsStatuses/requires_shard_reports (0.00s)
+=== RUN   TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses
+=== RUN   TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses/false
+=== RUN   TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses/true
+--- PASS: TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses (0.01s)
+    --- PASS: TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses/false (0.00s)
+    --- PASS: TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses/true (0.00s)
+=== RUN   TestExploreDiagnosticsRejectsForcedPrefixesBeforePreparation
+--- PASS: TestExploreDiagnosticsRejectsForcedPrefixesBeforePreparation (0.00s)
+=== RUN   TestQualifyDiagnosticsRetainsInterruptedReports
+=== RUN   TestQualifyDiagnosticsRetainsInterruptedReports/cancel=false/first=false
+=== RUN   TestQualifyDiagnosticsRetainsInterruptedReports/cancel=false/first=true
+=== RUN   TestQualifyDiagnosticsRetainsInterruptedReports/cancel=true/first=false
+=== RUN   TestQualifyDiagnosticsRetainsInterruptedReports/cancel=true/first=true
+--- PASS: TestQualifyDiagnosticsRetainsInterruptedReports (0.01s)
+    --- PASS: TestQualifyDiagnosticsRetainsInterruptedReports/cancel=false/first=false (0.00s)
+    --- PASS: TestQualifyDiagnosticsRetainsInterruptedReports/cancel=false/first=true (0.00s)
+    --- PASS: TestQualifyDiagnosticsRetainsInterruptedReports/cancel=true/first=false (0.00s)
+    --- PASS: TestQualifyDiagnosticsRetainsInterruptedReports/cancel=true/first=true (0.00s)
+=== RUN   TestCheckReportsAvailableContract
+    doctor_test.go:18: report = cli.Report{Schema:"gomad3.doctor/v3", Available:false, Host:"linux/arm64", SupportedPlatforms:[]string{"darwin/arm64", "linux/amd64"}, GoVersion:"go1.27.1", ToolchainBuild:"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", RunnerBuild:"sha256:527aa9f431539da8e151d5434d1d5e611d973f601d8e970790882624554146b0", BoundaryManifestVersion:"go1.27.1-v1", IOInventorySHA256:"sha256:e1ca9d600db41e888bd471c676533d767aaeba007ee0b893971d1d4d81e3d363", IOImplementationSHA256:"sha256:008681f59e6711f6e22fc24194da51729c1b9d3fd0c73ea9a4ea08099a4854ed", Adapters:[]cli.Adapter{cli.Adapter{Module:"github.com/Masterminds/sprig/v3", Version:"v3.3.0", Sum:"h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs=", Status:"available"}, cli.Adapter{Module:"github.com/cactus/go-statsd-client/v5", Version:"v5.1.0", Sum:"h1:sbbdfIl9PgisjEoXzvXI1lwUKWElngsjJKaZeC021P4=", Status:"available"}, cli.Adapter{Module:"github.com/cockroachdb/pebble", Version:"v0.0.0-20260703021901-41f35d3cb7df", Sum:"h1:p7vkumDcPw0de7t8pYA95HPC4cYQZGDG6b57d4Om5cA=", Status:"available"}, cli.Adapter{Module:"github.com/getsentry/sentry-go", Version:"v0.46.0", Sum:"h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=", Status:"available"}, cli.Adapter{Module:"github.com/go-playground/validator/v10", Version:"v10.30.1", Sum:"h1:f3zDSN/zOma+w6+1Wswgd9fLkdwy06ntQJp0BBvFG0w=", Status:"available"}, cli.Adapter{Module:"github.com/hashicorp/go-metrics", Version:"v0.5.4", Sum:"h1:8mmPiIJkTPPEbAiV97IxdAGNdRdaWwVap1BU6elejKY=", Status:"available"}, cli.Adapter{Module:"github.com/hashicorp/go-sockaddr", Version:"v1.0.7", Sum:"h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw=", Status:"available"}, cli.Adapter{Module:"github.com/hashicorp/memberlist", Version:"v0.5.4", Sum:"h1:40YY+3qq2tAUhZIMEK8kqusKZBBjdwJ3NUjvYkcxh74=", Status:"available"}, cli.Adapter{Module:"go.opentelemetry.io/otel/sdk", Version:"v1.44.0", Sum:"h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58=", Status:"available"}, cli.Adapter{Module:"go.temporal.io/sdk", Version:"v1.48.0", Sum:"h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118=", Status:"available"}, cli.Adapter{Module:"go.uber.org/fx", Version:"v1.24.0", Sum:"h1:wE8mruvpg2kiiL1Vqd0CC+tr0/24XIB10Iwp2lLWzkg=", Status:"available"}, cli.Adapter{Module:"golang.org/x/net", Version:"v0.58.0", Sum:"h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To=", Status:"available"}, cli.Adapter{Module:"google.golang.org/grpc", Version:"v1.83.2", Sum:"h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU=", Status:"available"}, cli.Adapter{Module:"modernc.org/libc", Version:"v1.72.3", Sum:"h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=", Status:"available"}, cli.Adapter{Module:"modernc.org/memory", Version:"v1.11.0", Sum:"h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI=", Status:"available"}}, InstallationSource:"test", ToolchainRoot:"/home/agent/.cache/codex-build/tmp/TestCheckReportsAvailableContract4082347222/001/.toolchain", ArtifactDirectory:"/home/agent/.cache/codex-build/tmp/TestCheckReportsAvailableContract4082347222/001/artifacts", RepairInstruction:"repair test toolchain", Checks:[]cli.CheckResult{cli.CheckResult{Name:"host", Status:"error", Detail:"linux/arm64 is unsupported; supported=darwin/arm64,linux/amd64"}, cli.CheckResult{Name:"toolchain", Status:"ok", Detail:"go1.27.1 build=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}, cli.CheckResult{Name:"runner", Status:"ok", Detail:"sha256:527aa9f431539da8e151d5434d1d5e611d973f601d8e970790882624554146b0"}, cli.CheckResult{Name:"adapter:github.com/Masterminds/sprig/v3", Status:"ok", Detail:"github.com/Masterminds/sprig/v3@v3.3.0 h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs="}, cli.CheckResult{Name:"adapter:github.com/cactus/go-statsd-client/v5", Status:"ok", Detail:"github.com/cactus/go-statsd-client/v5@v5.1.0 h1:sbbdfIl9PgisjEoXzvXI1lwUKWElngsjJKaZeC021P4="}, cli.CheckResult{Name:"adapter:github.com/cockroachdb/pebble", Status:"ok", Detail:"github.com/cockroachdb/pebble@v0.0.0-20260703021901-41f35d3cb7df h1:p7vkumDcPw0de7t8pYA95HPC4cYQZGDG6b57d4Om5cA="}, cli.CheckResult{Name:"adapter:github.com/getsentry/sentry-go", Status:"ok", Detail:"github.com/getsentry/sentry-go@v0.46.0 h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0="}, cli.CheckResult{Name:"adapter:github.com/go-playground/validator/v10", Status:"ok", Detail:"github.com/go-playground/validator/v10@v10.30.1 h1:f3zDSN/zOma+w6+1Wswgd9fLkdwy06ntQJp0BBvFG0w="}, cli.CheckResult{Name:"adapter:github.com/hashicorp/go-metrics", Status:"ok", Detail:"github.com/hashicorp/go-metrics@v0.5.4 h1:8mmPiIJkTPPEbAiV97IxdAGNdRdaWwVap1BU6elejKY="}, cli.CheckResult{Name:"adapter:github.com/hashicorp/go-sockaddr", Status:"ok", Detail:"github.com/hashicorp/go-sockaddr@v1.0.7 h1:G+pTkSO01HpR5qCxg7lxfsFEZaG+C0VssTy/9dbT+Fw="}, cli.CheckResult{Name:"adapter:github.com/hashicorp/memberlist", Status:"ok", Detail:"github.com/hashicorp/memberlist@v0.5.4 h1:40YY+3qq2tAUhZIMEK8kqusKZBBjdwJ3NUjvYkcxh74="}, cli.CheckResult{Name:"adapter:go.opentelemetry.io/otel/sdk", Status:"ok", Detail:"go.opentelemetry.io/otel/sdk@v1.44.0 h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58="}, cli.CheckResult{Name:"adapter:go.temporal.io/sdk", Status:"ok", Detail:"go.temporal.io/sdk@v1.48.0 h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118="}, cli.CheckResult{Name:"adapter:go.uber.org/fx", Status:"ok", Detail:"go.uber.org/fx@v1.24.0 h1:wE8mruvpg2kiiL1Vqd0CC+tr0/24XIB10Iwp2lLWzkg="}, cli.CheckResult{Name:"adapter:golang.org/x/net", Status:"ok", Detail:"golang.org/x/net@v0.58.0 h1:ynWG7rqYi4ccpTEuPZ2QGWHktVEM9DMCj9yzDE0Q7To="}, cli.CheckResult{Name:"adapter:google.golang.org/grpc", Status:"ok", Detail:"google.golang.org/grpc@v1.83.2 h1:EManeRomTObA0BU7I8vXgg/78uE5MJ9M8B39EX2WscU="}, cli.CheckResult{Name:"adapter:modernc.org/libc", Status:"ok", Detail:"modernc.org/libc@v1.72.3 h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU="}, cli.CheckResult{Name:"adapter:modernc.org/memory", Status:"ok", Detail:"modernc.org/memory@v1.11.0 h1:o4QC8aMQzmcwCK3t3Ux/ZHmwFPzE6hf2Y5LbkRs+hbI="}, cli.CheckResult{Name:"artifacts", Status:"ok", Detail:"/home/agent/.cache/codex-build/tmp/TestCheckReportsAvailableContract4082347222/001/artifacts"}}}
+--- FAIL: TestCheckReportsAvailableContract (0.00s)
+=== RUN   TestCheckExplainsMissingToolchain
+--- PASS: TestCheckExplainsMissingToolchain (0.00s)
+=== RUN   TestCheckRejectsUnsupportedHostAndUnwritableArtifacts
+--- PASS: TestCheckRejectsUnsupportedHostAndUnwritableArtifacts (0.00s)
+=== RUN   TestChoiceExplorationDivergenceClassificationAndStatus
+=== RUN   TestChoiceExplorationDivergenceClassificationAndStatus/choice_confidence_failure
+=== RUN   TestChoiceExplorationDivergenceClassificationAndStatus/choice_mixed_failure
+=== RUN   TestChoiceExplorationDivergenceClassificationAndStatus/confidence_counter_without_target_failure
+=== RUN   TestChoiceExplorationDivergenceClassificationAndStatus/world_replay_divergence
+=== RUN   TestChoiceExplorationDivergenceClassificationAndStatus/target_failure
+=== RUN   TestChoiceExplorationDivergenceClassificationAndStatus/success
+--- PASS: TestChoiceExplorationDivergenceClassificationAndStatus (0.00s)
+    --- PASS: TestChoiceExplorationDivergenceClassificationAndStatus/choice_confidence_failure (0.00s)
+    --- PASS: TestChoiceExplorationDivergenceClassificationAndStatus/choice_mixed_failure (0.00s)
+    --- PASS: TestChoiceExplorationDivergenceClassificationAndStatus/confidence_counter_without_target_failure (0.00s)
+    --- PASS: TestChoiceExplorationDivergenceClassificationAndStatus/world_replay_divergence (0.00s)
+    --- PASS: TestChoiceExplorationDivergenceClassificationAndStatus/target_failure (0.00s)
+    --- PASS: TestChoiceExplorationDivergenceClassificationAndStatus/success (0.00s)
+=== RUN   TestInspectReportsCandidateReplayDivergence
+--- PASS: TestInspectReportsCandidateReplayDivergence (0.00s)
+=== RUN   TestFullyAnsweredGuidanceReportsZeroExecutionsAndSuccessStatus
+--- PASS: TestFullyAnsweredGuidanceReportsZeroExecutionsAndSuccessStatus (0.00s)
+=== RUN   TestGuidanceReportsNoCorpusSelectionAndNewExecutions
+--- PASS: TestGuidanceReportsNoCorpusSelectionAndNewExecutions (0.00s)
+=== RUN   TestResumeGuidanceModePreservesExplicitFalseAndTrue
+--- PASS: TestResumeGuidanceModePreservesExplicitFalseAndTrue (0.00s)
+=== RUN   TestGuideRegressionRequiresGuidance
+--- PASS: TestGuideRegressionRequiresGuidance (0.00s)
+=== RUN   TestEmptyShardDoesNotReportPartiallyAnsweredPlanAsFullyAnswered
+--- PASS: TestEmptyShardDoesNotReportPartiallyAnsweredPlanAsFullyAnswered (0.00s)
+=== RUN   TestRunInspectReportsWhetherTheTargetIsShared
+=== RUN   TestRunInspectReportsWhetherTheTargetIsShared/store_with_a_target_pool
+=== RUN   TestRunInspectReportsWhetherTheTargetIsShared/store_without_one
+--- PASS: TestRunInspectReportsWhetherTheTargetIsShared (0.01s)
+    --- PASS: TestRunInspectReportsWhetherTheTargetIsShared/store_with_a_target_pool (0.01s)
+    --- PASS: TestRunInspectReportsWhetherTheTargetIsShared/store_without_one (0.01s)
+=== RUN   TestCharacterizePlanRequestDefaults
+--- PASS: TestCharacterizePlanRequestDefaults (0.00s)
+=== RUN   TestCharacterizePlanInputRejection
+=== RUN   TestCharacterizePlanInputRejection/unknown_strategy
+=== RUN   TestCharacterizePlanInputRejection/unknown_strategy_precedes_count
+=== RUN   TestCharacterizePlanInputRejection/capability_mode_precedes_strategy
+=== RUN   TestCharacterizePlanInputRejection/zero_count
+=== RUN   TestCharacterizePlanInputRejection/seed_strategy_explicit_zero_bound
+=== RUN   TestCharacterizePlanInputRejection/choice_exploration_seed_range
+=== RUN   TestCharacterizePlanInputRejection/malformed_seeds
+=== RUN   TestCharacterizePlanInputRejection/guide_regression_without_guide
+=== RUN   TestCharacterizePlanInputRejection/guide_without_corpus
+=== RUN   TestCharacterizePlanInputRejection/guide_with_explicit_empty_coverage
+=== RUN   TestCharacterizePlanInputRejection/explicit_empty_coverage
+=== RUN   TestCharacterizePlanInputRejection/unknown_coverage
+=== RUN   TestCharacterizePlanInputRejection/probe_without_semantic_coverage
+=== RUN   TestCharacterizePlanInputRejection/unknown_probe
+=== RUN   TestCharacterizePlanInputRejection/diagnostics_with_exploration
+=== RUN   TestCharacterizePlanInputRejection/choice_bytes_below_minimum
+=== RUN   TestCharacterizePlanInputRejection/choice_coverage_without_choices
+=== RUN   TestCharacterizePlanInputRejection/choice_coverage_precedes_target
+=== RUN   TestCharacterizePlanInputRejection/missing_target
+=== RUN   TestCharacterizePlanInputRejection/target_arguments_without_separator
+=== RUN   TestCharacterizePlanInputRejection/relative_working_directory
+--- PASS: TestCharacterizePlanInputRejection (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/unknown_strategy (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/unknown_strategy_precedes_count (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/capability_mode_precedes_strategy (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/zero_count (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/seed_strategy_explicit_zero_bound (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/choice_exploration_seed_range (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/malformed_seeds (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/guide_regression_without_guide (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/guide_without_corpus (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/guide_with_explicit_empty_coverage (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/explicit_empty_coverage (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/unknown_coverage (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/probe_without_semantic_coverage (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/unknown_probe (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/diagnostics_with_exploration (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/choice_bytes_below_minimum (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/choice_coverage_without_choices (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/choice_coverage_precedes_target (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/missing_target (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/target_arguments_without_separator (0.00s)
+    --- PASS: TestCharacterizePlanInputRejection/relative_working_directory (0.00s)
+=== RUN   TestCharacterizePlanFlagErrors
+--- PASS: TestCharacterizePlanFlagErrors (0.00s)
+=== RUN   TestCharacterizePlanOperationErrors
+=== RUN   TestCharacterizePlanOperationErrors/portable_restriction
+=== RUN   TestCharacterizePlanOperationErrors/runner_failure
+=== RUN   TestCharacterizePlanOperationErrors/cancelled_JSON
+--- PASS: TestCharacterizePlanOperationErrors (0.00s)
+    --- PASS: TestCharacterizePlanOperationErrors/portable_restriction (0.00s)
+    --- PASS: TestCharacterizePlanOperationErrors/runner_failure (0.00s)
+    --- PASS: TestCharacterizePlanOperationErrors/cancelled_JSON (0.00s)
+=== RUN   TestCharacterizeExploreErrorWriteRouting
+=== RUN   TestCharacterizeExploreErrorWriteRouting/explore_count
+=== RUN   TestCharacterizeExploreErrorWriteRouting/plan_count
+=== RUN   TestCharacterizeExploreErrorWriteRouting/explore_diagnostics
+=== RUN   TestCharacterizeExploreErrorWriteRouting/plan_missing_output
+=== RUN   TestCharacterizeExploreErrorWriteRouting/explore_output
+--- PASS: TestCharacterizeExploreErrorWriteRouting (0.00s)
+    --- PASS: TestCharacterizeExploreErrorWriteRouting/explore_count (0.00s)
+    --- PASS: TestCharacterizeExploreErrorWriteRouting/plan_count (0.00s)
+    --- PASS: TestCharacterizeExploreErrorWriteRouting/explore_diagnostics (0.00s)
+    --- PASS: TestCharacterizeExploreErrorWriteRouting/plan_missing_output (0.00s)
+    --- PASS: TestCharacterizeExploreErrorWriteRouting/explore_output (0.00s)
+=== RUN   TestCharacterizeHiddenPlanFlag
+--- PASS: TestCharacterizeHiddenPlanFlag (0.00s)
+=== RUN   TestQuoteArgumentProducesOnePOSIXShellWord
+--- PASS: TestQuoteArgumentProducesOnePOSIXShellWord (0.00s)
+=== RUN   TestResolveWorkingDirectory
+=== RUN   TestResolveWorkingDirectory/unclean
+=== RUN   TestResolveWorkingDirectory/missing
+=== RUN   TestResolveWorkingDirectory/not-module
+=== RUN   TestResolveWorkingDirectory/file-not-a-dir
+=== RUN   TestResolveWorkingDirectory/relative
+--- PASS: TestResolveWorkingDirectory (0.00s)
+    --- PASS: TestResolveWorkingDirectory/unclean (0.00s)
+    --- PASS: TestResolveWorkingDirectory/missing (0.00s)
+    --- PASS: TestResolveWorkingDirectory/not-module (0.00s)
+    --- PASS: TestResolveWorkingDirectory/file-not-a-dir (0.00s)
+    --- PASS: TestResolveWorkingDirectory/relative (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.072s
+FAIL

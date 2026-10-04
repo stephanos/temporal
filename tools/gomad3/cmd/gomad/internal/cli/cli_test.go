@@ -312,6 +312,7 @@ func TestResolveChoiceTraceRequiresEnablementAndBoundedCapacity(t *testing.T) {
 		{name: "enabled default", enabled: true, limit: 8 << 20, want: 8 << 20},
 		{name: "enabled explicit", enabled: true, limit: 1 << 20, limitSet: true, want: 1 << 20},
 		{name: "bytes without choices", limit: 1 << 20, limitSet: true, wantError: true},
+		{name: "enabled zero", enabled: true, limitSet: true, wantError: true},
 		{name: "too small", enabled: true, limit: 1, limitSet: true, wantError: true},
 		{name: "too large", enabled: true, limit: 65 << 20, limitSet: true, wantError: true},
 	} {

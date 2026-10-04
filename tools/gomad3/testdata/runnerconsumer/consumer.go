@@ -36,7 +36,27 @@ func (matchingReplayer) Replay(_ context.Context, spec runner.ReplaySpec) (runne
 var (
 	_ runner.Preparer         = cachedPreparer{}
 	_ runner.ArtifactReplayer = matchingReplayer{}
+	_ error                   = (*runner.NotSingleBaseSeedError)(nil)
+	_ error                   = (*runner.SemanticCoverageRequiredError)(nil)
 )
+
+func CampaignSemantics(seeds string, coverage runner.CoverageMode, guided bool, probes []string, traceLimit uint64) (runner.SeedSelection, error) {
+	strategy := runner.NormalizeStrategy("")
+	if _, err := runner.ParseStrategy(string(strategy)); err != nil {
+		return runner.SeedSelection{}, err
+	}
+	mode := runner.NormalizeCoverage(coverage, guided)
+	if err := runner.ValidateCoverage(mode, probes); err != nil {
+		return runner.SeedSelection{}, err
+	}
+	if err := runner.ValidateChoiceTraceLimit(traceLimit); err != nil {
+		return runner.SeedSelection{}, err
+	}
+	if err := runner.ValidateChoiceCoverage(mode, traceLimit); err != nil {
+		return runner.SeedSelection{}, err
+	}
+	return runner.ParseSingleBaseSeed(seeds)
+}
 
 // Operations runs each Runner operation once with substituted preparation
 // and replay where the request accepts them.

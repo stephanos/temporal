@@ -1,0 +1,165 @@
+tools/gomad3/cmd/gomad/internal/cli/application.go:88:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/application.go:185:14: ST1005: error strings should not be capitalized (staticcheck)
+		return "", fmt.Errorf("Runner is not a regular executable: %s", path)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:36:13: Error return value of `fmt.Fprint` is not checked (errcheck)
+		fmt.Fprint(stderr, usage)
+		          ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:41:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:46:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:57:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:63:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:109:13: Error return value of `fmt.Fprint` is not checked (errcheck)
+		fmt.Fprint(stderr, usage)
+		          ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:117:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "gomad: %s: merge campaign shards: %v\n", classification, err)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/campaign_shards.go:123:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/characterization_test.go:92:15: Error return value of `reader.Close` is not checked (errcheck)
+		reader.Close()
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:99:13: Error return value of `fmt.Fprint` is not checked (errcheck)
+		fmt.Fprint(stderr, usage)
+		          ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:137:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "unknown gomad command %q\n%s", arguments[0], usage)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:365:13: Error return value of `fmt.Fprint` is not checked (errcheck)
+		fmt.Fprint(stderr, usage)
+		          ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:370:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:375:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:380:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "resolve artifact directory: %v\n", err)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:397:15: Error return value of `fmt.Fprintf` is not checked (errcheck)
+			fmt.Fprintf(stderr, "encode doctor report: %v\n", marshalErr)
+			           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:400:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stdout, "%s\n", encoded)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:402:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stdout, "gomad doctor: available=%t host=%s go=%s toolchain=%s runner=%s boundary=%s\n", report.Available, report.Host, report.GoVersion, report.ToolchainBuild, report.RunnerBuild, report.BoundaryManifestVersion)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:404:15: Error return value of `fmt.Fprintf` is not checked (errcheck)
+			fmt.Fprintf(stdout, "%-10s %-5s %s\n", check.Name, check.Status, check.Detail)
+			           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:443:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:451:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stderr, "gomad:%s\n", formatChoiceTrace(summary.ChoiceTrace))
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:455:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, writeErr)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:475:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:484:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:492:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:597:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:609:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:617:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:675:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:683:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:690:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:698:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:706:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:720:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:737:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:747:17: Error return value of `fmt.Fprintln` is not checked (errcheck)
+				fmt.Fprintln(stderr, writeErr)
+				            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:753:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:760:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:997:13: Error return value of `fmt.Fprint` is not checked (errcheck)
+		fmt.Fprint(stderr, usage)
+		          ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:1002:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:1011:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:1014:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:1018:14: Error return value of `fmt.Fprintf` is not checked (errcheck)
+		fmt.Fprintf(stdout, "gomad: verified %s\n", result.Artifact.Path)
+		           ^
+tools/gomad3/cmd/gomad/internal/cli/cli.go:1023:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/qualify.go:83:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/qualify.go:181:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/qualify.go:193:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, writeErr)
+		            ^
+tools/gomad3/cmd/gomad/internal/cli/resume.go:32:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/resume.go:44:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, err)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/resume.go:52:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/resume.go:70:16: Error return value of `fmt.Fprintln` is not checked (errcheck)
+			fmt.Fprintln(stderr, writeErr)
+			            ^
+tools/gomad3/cmd/gomad/internal/cli/resume.go:76:15: Error return value of `fmt.Fprintln` is not checked (errcheck)
+		fmt.Fprintln(stderr, err)
+		            ^
+54 issues:
+* errcheck: 53
+* staticcheck: 1

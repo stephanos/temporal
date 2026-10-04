@@ -201,6 +201,8 @@ func TestCharacterizeByteSizeAndFlagValueRejection(t *testing.T) {
 		want      commandResult
 	}{
 		{[]string{"explore", "--json", "--output-limit=0", "go-run", "./cmd"}, commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"invalid value \"0\" for flag -output-limit: invalid byte size \"0\""}` + "\n"}},
+		{[]string{"explore", "--json", "--choices", "--choice-bytes=0", "--coverage=choice"}, commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"invalid value \"0\" for flag -choice-bytes: invalid byte size \"0\""}` + "\n"}},
+		{[]string{"plan", "--json", "--choice-bytes=0", "--coverage=choice"}, commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"invalid value \"0\" for flag -choice-bytes: invalid byte size \"0\""}` + "\n"}},
 		{[]string{"explore", "--json", "--parallel=many", "go-run", "./cmd"}, commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"invalid value \"many\" for flag -parallel: parse error"}` + "\n"}},
 		{[]string{"qualify", "--json", "--seed=-1", "go-run", "./cmd"}, commandResult{status: 2, stdout: `{"schema":"gomad3.qualify-event/v1","type":"error","classification":"invalid_input","message":"invalid value \"-1\" for flag -seed: parse error"}` + "\n"}},
 		{[]string{"resume", "--json", "--unknown"}, commandResult{status: 2, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"invalid_input","message":"flag provided but not defined: -unknown"}` + "\n"}},

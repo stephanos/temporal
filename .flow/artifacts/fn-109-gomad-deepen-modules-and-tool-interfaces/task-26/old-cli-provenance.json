@@ -1,0 +1,6 @@
+{
+  "base_commit": "984fa118347ebc7b39b7080dd5b9e95e941a00d4",
+  "command": "git show 984fa118347ebc7b39b7080dd5b9e95e941a00d4:tools/gomad3/cmd/gomad/internal/cli/cli.go",
+  "saved": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/old-cli.go",
+  "sha256": "234c3d5ce203142d1976db95efaa7f667ab8143fbc2ea25ef6abfdf4be76cdcb"
+}

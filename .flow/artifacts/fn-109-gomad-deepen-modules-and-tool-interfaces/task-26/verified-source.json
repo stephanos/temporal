@@ -1,0 +1,12 @@
+{
+  "base": "old-source.json",
+  "base_sha256": "3dd93c317d437ba69bde9ded734aedabe89067ee5e242e9a3710f34651782e75",
+  "changed": {
+    "tools/gomad3/cmd/gomad/internal/cli/campaign_semantics_ownership_test.go": "c5798ca275c7a563e3e0530abe30b63838cdce2570efc20d7e4c56f38a2117dc",
+    "tools/gomad3/cmd/gomad/internal/cli/characterization_test.go": "528bd0cdfd6b2f971ee70498e1b2f0774d9784325c14f20806bad8fa9803c365",
+    "tools/gomad3/cmd/gomad/internal/cli/cli_test.go": "46525ba481d226cddf2a7723d825c09f18116fe94906920aac434666c9cdb0f3",
+    "tools/gomad3/cmd/gomad/internal/cli/cli.go": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277",
+    "tools/gomad3/testdata/runnerconsumer/consumer.go": "34f3df3aed388c243eb94bcc2d0448f8aee03e6d7104269e10e4b06dd0cefd27"
+  },
+  "removed": []
+}

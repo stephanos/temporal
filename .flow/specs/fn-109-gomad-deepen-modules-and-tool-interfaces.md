@@ -452,6 +452,21 @@ workload/default, reporting or native acceptance requirement. Future campaign
 repairs must preserve the characterized completion invariant panics unless a
 separate completion-error redesign is admitted.
 
+Task 26's independently reviewed source progress restores Runner semantic
+ownership in actual CLI callers at the original validation points. Typed error
+translation, enabled-zero/presence checks, first-error presentation and writer
+routing remain characterized. Current and saved base CLI pass the same 33
+behavioral tests; the meaningful ownership regression adds the 34th final test.
+Runner production and the eight existing public seams remain unchanged.
+Architecture and both external-consumer compilation checks pass. Actual affected
+CLI lint remains red on the same 54 findings with zero introduced/resolved;
+complete CLI and expanded portable-plan tests retain unsupported-host/missing
+patched-toolchain failures, and Darwin identity proof remains skipped.
+Task 26 stays blocked on qualification. Task 21 consumes this source correction;
+original task 5/predecessors, R6/R18/R19, full/native/formal and fixed-identity
+requirements remain unchanged and open. Its handover and review are immutable
+pre-commit source snapshots. Commit verified progress before another source task.
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.
@@ -477,4 +492,3 @@ Secondary IDs identify the five opportunities in the assessment's order.
 
 R18-R20 apply across all findings. This coverage is contractual, not task status
 or implementation evidence.
-

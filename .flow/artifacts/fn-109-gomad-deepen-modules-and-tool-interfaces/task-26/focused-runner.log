@@ -1,0 +1,277 @@
+=== RUN   TestCampaignOptionsCharacterization
+--- PASS: TestCampaignOptionsCharacterization (0.01s)
+=== RUN   TestParseSingleBaseSeedSharesRunnerStrategyRule
+--- PASS: TestParseSingleBaseSeedSharesRunnerStrategyRule (0.00s)
+=== RUN   TestCampaignOptionErrorsPreserveKindThroughWrapping
+--- PASS: TestCampaignOptionErrorsPreserveKindThroughWrapping (0.00s)
+=== RUN   TestCampaignOptionNormalizationAndValidation
+--- PASS: TestCampaignOptionNormalizationAndValidation (0.00s)
+=== RUN   TestCampaignOptionsLegacyCharacterization
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_default_strategy
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_explicit_strategy
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_budget_policy
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_first_policy
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_observation
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_strict_clock_tick
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_read-only_mounts
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_read-only_mount_limits
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_keep_all_successes
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_keep_novel_successes
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_execution_evidence
+=== RUN   TestCampaignOptionsLegacyCharacterization/guided
+=== RUN   TestCampaignOptionsLegacyCharacterization/sharded
+=== RUN   TestCampaignOptionsLegacyCharacterization/sharded_frozen_guidance
+=== RUN   TestCampaignOptionsLegacyCharacterization/choice_exploration
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_exploration
+=== RUN   TestCampaignOptionsLegacyCharacterization/resume
+=== RUN   TestCampaignOptionsLegacyCharacterization/resume_explicit_regression_override
+=== RUN   TestCampaignOptionsLegacyCharacterization/resume_missing_campaign
+=== RUN   TestCampaignOptionsLegacyCharacterization/isolated_injected_executor
+=== RUN   TestCampaignOptionsLegacyCharacterization/isolated_injected_preparer
+=== RUN   TestCampaignOptionsLegacyCharacterization/isolated_empty_coordinator_command
+=== RUN   TestCampaignOptionsLegacyCharacterization/isolated_empty_coordinator_command_after_invalid_request
+=== RUN   TestCampaignOptionsLegacyCharacterization/resume_with_preparer
+=== RUN   TestCampaignOptionsLegacyCharacterization/resume_without_Runner_build
+=== RUN   TestCampaignOptionsLegacyCharacterization/resume_without_supervisor
+=== RUN   TestCampaignOptionsLegacyCharacterization/resume_ignores_fresh_request_faults
+=== RUN   TestCampaignOptionsLegacyCharacterization/malformed_seeds
+=== RUN   TestCampaignOptionsLegacyCharacterization/empty_seeds
+=== RUN   TestCampaignOptionsLegacyCharacterization/shard_index_outside_count
+=== RUN   TestCampaignOptionsLegacyCharacterization/shard_without_plan_identity
+=== RUN   TestCampaignOptionsLegacyCharacterization/shard_malformed_plan_identity
+=== RUN   TestCampaignOptionsLegacyCharacterization/shard_choice_strategy
+=== RUN   TestCampaignOptionsLegacyCharacterization/shard_guidance_without_frozen_plan
+=== RUN   TestCampaignOptionsLegacyCharacterization/shard_first_failure_policy
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_max_executions
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_choice_depth
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_choice_start_ordinal
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_forced_decisions
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_exploration_bytes
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_exploration_result_bytes
+=== RUN   TestCampaignOptionsLegacyCharacterization/seed_dimension_limits
+=== RUN   TestCampaignOptionsLegacyCharacterization/choice_forced_decisions
+=== RUN   TestCampaignOptionsLegacyCharacterization/choice_result_bytes
+=== RUN   TestCampaignOptionsLegacyCharacterization/choice_dimension_limits
+=== RUN   TestCampaignOptionsLegacyCharacterization/choice_multiple_seeds
+=== RUN   TestCampaignOptionsLegacyCharacterization/choice_guidance
+=== RUN   TestCampaignOptionsLegacyCharacterization/choice_without_trace
+=== RUN   TestCampaignOptionsLegacyCharacterization/choice_without_max_executions
+=== RUN   TestCampaignOptionsLegacyCharacterization/choice_without_depth
+=== RUN   TestCampaignOptionsLegacyCharacterization/choice_without_exploration_bytes
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_multiple_seeds
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_guidance
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_without_trace
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_without_max_executions
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_choice_depth
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_choice_start_ordinal
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_without_forced_decisions
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_without_exploration_bytes
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_without_result_bytes
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_without_runtime_dimension
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_without_scenario_dimension
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_without_network_dimension
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_without_storage_dimension
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_without_fault_dimension
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_without_crash_dimension
+=== RUN   TestCampaignOptionsLegacyCharacterization/simulation_without_any_dimension
+=== RUN   TestCampaignOptionsLegacyCharacterization/unknown_strategy
+=== RUN   TestCampaignOptionsLegacyCharacterization/zero_parallelism
+=== RUN   TestCampaignOptionsLegacyCharacterization/zero_execution_timeout
+=== RUN   TestCampaignOptionsLegacyCharacterization/zero_overall_timeout
+=== RUN   TestCampaignOptionsLegacyCharacterization/negative_termination_grace
+=== RUN   TestCampaignOptionsLegacyCharacterization/termination_grace_beyond_execution_timeout
+=== RUN   TestCampaignOptionsLegacyCharacterization/zero_output_limit
+=== RUN   TestCampaignOptionsLegacyCharacterization/zero_World_transition_limit
+=== RUN   TestCampaignOptionsLegacyCharacterization/invalid_I/O_transcript_limit
+=== RUN   TestCampaignOptionsLegacyCharacterization/diagnostics_without_choice_trace
+=== RUN   TestCampaignOptionsLegacyCharacterization/diagnostics_with_choice_exploration
+=== RUN   TestCampaignOptionsLegacyCharacterization/choice_trace_below_minimum
+=== RUN   TestCampaignOptionsLegacyCharacterization/choice_trace_above_maximum
+=== RUN   TestCampaignOptionsLegacyCharacterization/probes_without_coverage
+=== RUN   TestCampaignOptionsLegacyCharacterization/unknown_required_probe
+=== RUN   TestCampaignOptionsLegacyCharacterization/probes_with_choice_coverage
+=== RUN   TestCampaignOptionsLegacyCharacterization/unknown_coverage
+=== RUN   TestCampaignOptionsLegacyCharacterization/choice_coverage_without_trace
+=== RUN   TestCampaignOptionsLegacyCharacterization/execution_evidence_with_multiple_seeds
+=== RUN   TestCampaignOptionsLegacyCharacterization/execution_evidence_without_semantic_coverage
+=== RUN   TestCampaignOptionsLegacyCharacterization/invalid_clock_tick
+=== RUN   TestCampaignOptionsLegacyCharacterization/disabled_retention_with_count
+=== RUN   TestCampaignOptionsLegacyCharacterization/disabled_retention_with_bytes
+=== RUN   TestCampaignOptionsLegacyCharacterization/novel_retention_without_coverage
+=== RUN   TestCampaignOptionsLegacyCharacterization/novel_retention_without_bytes
+=== RUN   TestCampaignOptionsLegacyCharacterization/all_retention_without_count
+=== RUN   TestCampaignOptionsLegacyCharacterization/all_retention_without_bytes
+=== RUN   TestCampaignOptionsLegacyCharacterization/unknown_retention
+=== RUN   TestCampaignOptionsLegacyCharacterization/empty_artifact_root
+=== RUN   TestCampaignOptionsLegacyCharacterization/empty_Runner_build
+=== RUN   TestCampaignOptionsLegacyCharacterization/guidance_without_corpus
+=== RUN   TestCampaignOptionsLegacyCharacterization/guidance_without_coverage
+=== RUN   TestCampaignOptionsLegacyCharacterization/regression_without_guidance
+=== RUN   TestCampaignOptionsLegacyCharacterization/corpus_without_guidance
+=== RUN   TestCampaignOptionsLegacyCharacterization/snapshot_without_guidance
+=== RUN   TestCampaignOptionsLegacyCharacterization/all_policy_with_budget
+=== RUN   TestCampaignOptionsLegacyCharacterization/first_policy_with_budget
+=== RUN   TestCampaignOptionsLegacyCharacterization/zero_budget
+=== RUN   TestCampaignOptionsLegacyCharacterization/unknown_failure_policy
+=== RUN   TestCampaignOptionsLegacyCharacterization/no_supervisor_command
+=== RUN   TestCampaignOptionsLegacyCharacterization/injected_executor_without_supervisor_command
+=== RUN   TestCampaignOptionsLegacyCharacterization/mounts_without_working_directory
+=== RUN   TestCampaignOptionsLegacyCharacterization/malformed_mount
+=== RUN   TestCampaignOptionsLegacyCharacterization/missing_mount_source
+=== RUN   TestCampaignOptionsLegacyCharacterization/invalid_mount_limits
+=== RUN   TestCampaignOptionsLegacyCharacterization/malformed_environment_entry
+=== RUN   TestCampaignOptionsLegacyCharacterization/reserved_environment_name
+=== RUN   TestCampaignOptionsLegacyCharacterization/reserved_environment_prefix
+=== RUN   TestCampaignOptionsLegacyCharacterization/duplicate_environment_name
+=== RUN   TestCampaignOptionsLegacyCharacterization/clock_tick_as_target_environment
+=== RUN   TestCampaignOptionsLegacyCharacterization/precedence_seeds_before_strategy
+=== RUN   TestCampaignOptionsLegacyCharacterization/precedence_shard_before_strategy_bounds
+=== RUN   TestCampaignOptionsLegacyCharacterization/precedence_strategy_before_limits
+=== RUN   TestCampaignOptionsLegacyCharacterization/precedence_limits_before_identity
+=== RUN   TestCampaignOptionsLegacyCharacterization/precedence_coverage_before_retention
+=== RUN   TestCampaignOptionsLegacyCharacterization/precedence_policy_before_supervisor
+=== RUN   TestCampaignOptionsLegacyCharacterization/precedence_mounts_before_environment
+=== RUN   TestCampaignOptionsLegacyCharacterization/precedence_environment_before_clock_tick
+=== RUN   TestCampaignOptionsLegacyCharacterization/precedence_transcript_before_clock_tick
+--- PASS: TestCampaignOptionsLegacyCharacterization (0.01s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_default_strategy (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_explicit_strategy (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_budget_policy (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_first_policy (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_observation (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_strict_clock_tick (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_read-only_mounts (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_read-only_mount_limits (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_keep_all_successes (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_keep_novel_successes (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_execution_evidence (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/guided (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/sharded (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/sharded_frozen_guidance (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/choice_exploration (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_exploration (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/resume (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/resume_explicit_regression_override (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/resume_missing_campaign (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/isolated_injected_executor (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/isolated_injected_preparer (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/isolated_empty_coordinator_command (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/isolated_empty_coordinator_command_after_invalid_request (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/resume_with_preparer (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/resume_without_Runner_build (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/resume_without_supervisor (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/resume_ignores_fresh_request_faults (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/malformed_seeds (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/empty_seeds (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/shard_index_outside_count (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/shard_without_plan_identity (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/shard_malformed_plan_identity (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/shard_choice_strategy (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/shard_guidance_without_frozen_plan (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/shard_first_failure_policy (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_max_executions (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_choice_depth (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_choice_start_ordinal (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_forced_decisions (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_exploration_bytes (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_exploration_result_bytes (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/seed_dimension_limits (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/choice_forced_decisions (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/choice_result_bytes (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/choice_dimension_limits (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/choice_multiple_seeds (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/choice_guidance (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/choice_without_trace (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/choice_without_max_executions (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/choice_without_depth (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/choice_without_exploration_bytes (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_multiple_seeds (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_guidance (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_without_trace (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_without_max_executions (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_choice_depth (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_choice_start_ordinal (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_without_forced_decisions (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_without_exploration_bytes (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_without_result_bytes (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_without_runtime_dimension (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_without_scenario_dimension (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_without_network_dimension (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_without_storage_dimension (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_without_fault_dimension (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_without_crash_dimension (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/simulation_without_any_dimension (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/unknown_strategy (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/zero_parallelism (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/zero_execution_timeout (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/zero_overall_timeout (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/negative_termination_grace (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/termination_grace_beyond_execution_timeout (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/zero_output_limit (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/zero_World_transition_limit (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/invalid_I/O_transcript_limit (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/diagnostics_without_choice_trace (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/diagnostics_with_choice_exploration (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/choice_trace_below_minimum (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/choice_trace_above_maximum (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/probes_without_coverage (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/unknown_required_probe (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/probes_with_choice_coverage (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/unknown_coverage (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/choice_coverage_without_trace (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/execution_evidence_with_multiple_seeds (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/execution_evidence_without_semantic_coverage (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/invalid_clock_tick (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/disabled_retention_with_count (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/disabled_retention_with_bytes (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/novel_retention_without_coverage (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/novel_retention_without_bytes (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/all_retention_without_count (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/all_retention_without_bytes (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/unknown_retention (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/empty_artifact_root (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/empty_Runner_build (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/guidance_without_corpus (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/guidance_without_coverage (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/regression_without_guidance (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/corpus_without_guidance (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/snapshot_without_guidance (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/all_policy_with_budget (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/first_policy_with_budget (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/zero_budget (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/unknown_failure_policy (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/no_supervisor_command (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/injected_executor_without_supervisor_command (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/mounts_without_working_directory (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/malformed_mount (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/missing_mount_source (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/invalid_mount_limits (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/malformed_environment_entry (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/reserved_environment_name (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/reserved_environment_prefix (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/duplicate_environment_name (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/clock_tick_as_target_environment (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/precedence_seeds_before_strategy (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/precedence_shard_before_strategy_bounds (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/precedence_strategy_before_limits (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/precedence_limits_before_identity (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/precedence_coverage_before_retention (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/precedence_policy_before_supervisor (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/precedence_mounts_before_environment (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/precedence_environment_before_clock_tick (0.00s)
+    --- PASS: TestCampaignOptionsLegacyCharacterization/precedence_transcript_before_clock_tick (0.00s)
+=== RUN   TestCampaignRequestNormalizesTheRequest
+--- PASS: TestCampaignRequestNormalizesTheRequest (0.00s)
+=== RUN   TestParseStrategyAndCoverageModeAreTheOneReading
+--- PASS: TestParseStrategyAndCoverageModeAreTheOneReading (0.00s)
+=== RUN   TestValidateConfigRecordsOnlyTheForwardClockTick
+--- PASS: TestValidateConfigRecordsOnlyTheForwardClockTick (0.00s)
+=== RUN   TestDiagnosticsOffPreservesExistingCanonicalIdentities
+    diagnostic_identity_test.go:20: retained baseline is darwin/arm64
+--- SKIP: TestDiagnosticsOffPreservesExistingCanonicalIdentities (0.00s)
+=== RUN   TestCreateCampaignPlanRejectsDynamicallyDiscoveredOrEarlyStopWork
+--- PASS: TestCreateCampaignPlanRejectsDynamicallyDiscoveredOrEarlyStopWork (0.00s)
+=== RUN   TestValidateConfigAcceptsReadOnlyMountsWithoutProfile
+--- PASS: TestValidateConfigAcceptsReadOnlyMountsWithoutProfile (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner	0.021s

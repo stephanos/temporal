@@ -179,7 +179,30 @@ Unexported changes inside `tools/gomad3/cmd/gomad/internal/cli`:
 
 ## fn-109.5 shared plan and explore parsing
 
-**Exported changes: two additions in `runner`, no removals or signature changes.**
+The original task-5 record below lists two parsing additions. The current
+candidate also exposes the eight R6 semantic seams inventoried here before
+task 26's corrective CLI edits (2026-10-04, base `984fa118347e`).
+This additive inventory is not fixed-identity, format or native preservation
+proof, and does not resolve unknown external consumers or mixed-WIP attribution.
+
+| Existing exported addition in `runner/campaign_options.go` | Preserved contract and corrective caller use |
+| --- | --- |
+| `type NotSingleBaseSeedError struct{}`, `func (*NotSingleBaseSeedError) Error() string` | Typed cardinality error; CLI translates with `errors.As` to its strategy-specific message at the original validation point. |
+| `type SemanticCoverageRequiredError struct{}`, `func (*SemanticCoverageRequiredError) Error() string` | Typed semantic-probe compatibility error; CLI preserves its existing flag-specific message. |
+| `func NormalizeStrategy(Strategy) Strategy` | Empty strategy means seed; already shared through `ParseStrategy`. |
+| `func NormalizeCoverage(CoverageMode, bool) CoverageMode` | Empty coverage means semantic only for guided CLI defaulting; direct guided Runner requests retain their required explicit coverage. |
+| `func ValidateCoverage(CoverageMode, []string) error` | Owns mode/probe compatibility and known-probe validation; CLI retains parsing and presentation. |
+| `func ValidateChoiceTraceLimit(uint64) error` | Zero means disabled; CLI still rejects zero when choices are enabled and preserves flag-presence checks. |
+| `func ValidateChoiceCoverage(CoverageMode, uint64) error` | Owns choice coverage's enabled-trace dependency; CLI retains its existing flag-specific error. |
+| `func ParseSingleBaseSeed(string) (SeedSelection, error)` | Owns parsing and single-base-seed cardinality for choice/simulation exploration; CLI keeps count/guide/bound presence checks in their original order. |
+
+Task 26 preserves these public signatures and both typed error methods. It
+changes their actual CLI consumers rather than removing public additions based
+on a repository-only absence of external callers. External compilation protects
+accessibility, not a claim of existing consumer demand. The original task 5 and
+its predecessor/native acceptance remain open in authoritative Flow state.
+
+**Original parsing inventory: two additions in `runner`, no removals or signature changes.**
 
 - `func ParseStrategy(value string) (Strategy, error)`: the one reading of a strategy name. An
   empty name is `StrategySeed` (as an omitted `CampaignSpec.Strategy` is); an unknown name fails

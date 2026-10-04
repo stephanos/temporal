@@ -1,0 +1,16 @@
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const cp = require('child_process');
+const root = '/Users/stephan/Workspace/skunkworks/gomad/temporal';
+const dir = __dirname;
+const base = '984fa118347ebc7b39b7080dd5b9e95e941a00d4';
+const relative = 'tools/gomad3/cmd/gomad/internal/cli/cli.go';
+const bytes = cp.execFileSync('git', ['show', base + ':' + relative], { cwd: root });
+const sha256 = crypto.createHash('sha256').update(bytes).digest('hex');
+if (sha256 !== JSON.parse(fs.readFileSync(path.join(dir, 'old-source.json')))[relative]) throw new Error('old CLI does not match pre-edit freeze');
+const saved = path.join(dir, 'old-cli.go');
+fs.writeFileSync(saved, bytes);
+fs.writeFileSync(path.join(dir, 'old-cli-overlay.json'), JSON.stringify({ Replace: { [path.join(root, relative)]: saved } }, null, 2) + '\n');
+fs.writeFileSync(path.join(dir, 'old-cli-provenance.json'), JSON.stringify({ base_commit: base, command: 'git show ' + base + ':' + relative, saved, sha256 }, null, 2) + '\n');
+console.log(JSON.stringify({ base_commit: base, sha256 }));

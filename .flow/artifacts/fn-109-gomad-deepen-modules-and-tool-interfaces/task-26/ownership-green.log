@@ -1,0 +1,14 @@
+=== RUN   TestCampaignSemanticValidationBelongsToRunner
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveExploreStrategy
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveExploreCoverage
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveChoiceTrace
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/parseCampaignRequest
+=== RUN   TestCampaignSemanticValidationBelongsToRunner/resolveExploreGuidance
+--- PASS: TestCampaignSemanticValidationBelongsToRunner (0.00s)
+    --- PASS: TestCampaignSemanticValidationBelongsToRunner/resolveExploreStrategy (0.00s)
+    --- PASS: TestCampaignSemanticValidationBelongsToRunner/resolveExploreCoverage (0.00s)
+    --- PASS: TestCampaignSemanticValidationBelongsToRunner/resolveChoiceTrace (0.00s)
+    --- PASS: TestCampaignSemanticValidationBelongsToRunner/parseCampaignRequest (0.00s)
+    --- PASS: TestCampaignSemanticValidationBelongsToRunner/resolveExploreGuidance (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomad/internal/cli	0.003s

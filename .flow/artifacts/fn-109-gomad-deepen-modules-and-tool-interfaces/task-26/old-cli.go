@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -721,7 +722,7 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 		}
 		return campaignRequest{}, 2, false
 	}
-	if err := runner.ValidateChoiceCoverage(coverageMode, resolvedChoiceLimit); err != nil {
+	if (coverageMode == runner.CoverageChoice || coverageMode == runner.CoverageSemanticChoice) && resolvedChoiceLimit == 0 {
 		if writeErr := reporter.Error("invalid_input", fmt.Errorf("--coverage=%s requires --choices", coverageMode)); writeErr != nil {
 			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
 				return campaignRequest{}, 3, false
@@ -835,12 +836,12 @@ func resolveExploreStrategy(options exploreStrategyOptions) (runner.Strategy, bo
 		if options.CountSet {
 			return "", false, errors.New("--strategy=choice-exploration does not accept --count")
 		}
-		if _, err := runner.ParseSingleBaseSeed(options.Seeds); err != nil {
-			var single *runner.NotSingleBaseSeedError
-			if errors.As(err, &single) {
-				return "", false, errors.New("--strategy=choice-exploration requires exactly one base seed")
-			}
+		selection, err := runner.ParseSeeds(options.Seeds)
+		if err != nil {
 			return "", false, err
+		}
+		if selection.Count() != 1 {
+			return "", false, errors.New("--strategy=choice-exploration requires exactly one base seed")
 		}
 		if options.Guide {
 			return "", false, errors.New("--strategy=choice-exploration does not support --guide")
@@ -859,12 +860,12 @@ func resolveExploreStrategy(options exploreStrategyOptions) (runner.Strategy, bo
 		if options.CountSet {
 			return "", false, errors.New("--strategy=simulation-exploration does not accept --count")
 		}
-		if _, err := runner.ParseSingleBaseSeed(options.Seeds); err != nil {
-			var single *runner.NotSingleBaseSeedError
-			if errors.As(err, &single) {
-				return "", false, errors.New("--strategy=simulation-exploration requires exactly one base seed")
-			}
+		selection, err := runner.ParseSeeds(options.Seeds)
+		if err != nil {
 			return "", false, err
+		}
+		if selection.Count() != 1 {
+			return "", false, errors.New("--strategy=simulation-exploration requires exactly one base seed")
 		}
 		if options.Guide {
 			return "", false, errors.New("--strategy=simulation-exploration does not support --guide")
@@ -920,7 +921,7 @@ func resolveExploreGuidance(enabled bool, corpus, coverage string, coverageSet b
 		return "", errors.New("--guide requires semantic or choice coverage")
 	}
 	if !coverageSet {
-		return string(runner.NormalizeCoverage("", true)), nil
+		return string(runner.CoverageSemantic), nil
 	}
 	return coverage, nil
 }
@@ -948,12 +949,15 @@ func resolveExploreCoverage(value string, required []string) (runner.CoverageMod
 	if err != nil {
 		return "", err
 	}
-	if err := runner.ValidateCoverage(mode, required); err != nil {
-		var required *runner.SemanticCoverageRequiredError
-		if errors.As(err, &required) {
-			return "", errors.New("--require-probe requires --coverage=semantic")
+	switch mode {
+	case runner.CoverageNone, runner.CoverageChoice:
+		if len(required) != 0 {
+			return "", fmt.Errorf("--require-probe requires --coverage=semantic")
 		}
-		return "", err
+	case runner.CoverageSemantic, runner.CoverageSemanticChoice:
+		if _, err := deterministicio.MissingRequiredSemanticProbes(deterministicio.SemanticCoverage{}, required); err != nil {
+			return "", err
+		}
 	}
 	return mode, nil
 }
@@ -965,10 +969,7 @@ func resolveChoiceTrace(enabled bool, limit byteSize, limitSet bool) (uint64, er
 		}
 		return 0, nil
 	}
-	if limit == 0 {
-		return 0, fmt.Errorf("--choice-bytes must be between %d bytes and 64MiB", runner.MinimumChoiceTraceBytes)
-	}
-	if err := runner.ValidateChoiceTraceLimit(uint64(limit)); err != nil {
+	if limit < runner.MinimumChoiceTraceBytes || limit > runner.MaximumChoiceTraceBytes {
 		return 0, fmt.Errorf("--choice-bytes must be between %d bytes and 64MiB", runner.MinimumChoiceTraceBytes)
 	}
 	return uint64(limit), nil

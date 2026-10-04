@@ -1,0 +1,8 @@
+=== RUN   TestPackageArchitecture
+--- PASS: TestPackageArchitecture (2.00s)
+=== RUN   TestRunnerRequestsCompileInExternalModule
+--- PASS: TestRunnerRequestsCompileInExternalModule (0.24s)
+=== RUN   TestRunnerExternalConsumerCompiles
+--- PASS: TestRunnerExternalConsumerCompiles (0.21s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3	2.451s
