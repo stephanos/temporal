@@ -18,9 +18,19 @@ private enum Decl:
 
   /** A declared Property or Scenario. */
   case Claim(ref: ir.ClaimRef)
-  case QueryNamed(name: String)
-  case QueryOn(name: String, form: ir.Query.Form, property: ir.ClaimRef)
-  case QueryIn(name: String, form: ir.Query.Form, property: ir.ClaimRef, scenario: ir.ClaimRef)
+
+  /**
+   * A Query being declared, by the name `query("...")` or its val gives it, or None where neither
+   * does: `query` then names it after its Scenario and Property.
+   */
+  case QueryNamed(name: Option[String])
+  case QueryOn(name: Option[String], form: ir.Query.Form, property: ir.ClaimRef)
+  case QueryIn(
+      name: Option[String],
+      form: ir.Query.Form,
+      property: ir.ClaimRef,
+      scenario: ir.ClaimRef
+  )
   case Bounds(limits: ir.Limits)
 
   /** A declared Query or progress claim. */
@@ -58,13 +68,27 @@ private[lift] trait Claims:
    * by name, which `named` lifts.
    */
   def classOf(t: Term): ir.ActionClass = t match
-    case Typed(e, _)                                             => classOf(e)
-    case _ if namedClass(t)                                      => named(t)
-    case Apply(Apply(Select(a, "apply"), Nil), _) if isAction(a) => ir.ActionClass(action(a))
-    case Apply(Select(a, "apply"), values) if isAction(a)        =>
+    case Typed(e, _)                                      => classOf(e)
+    case _ if namedClass(t)                               => named(t)
+    case Apply(Select(a, "apply"), Nil) if isAction(a)    => firstClass(a, t)
+    case Apply(Select(a, "apply"), values) if isAction(a) =>
       ir.ActionClass(action(a), values.map(literalValue))
     case ref => ir.ActionClass(action(ref))
   private def isAction(t: Term): Boolean = isNamed(t.tpe, "umpire.Action")
+
+  /**
+   * `start()`: the class of every input of the action `a` at its domain's first value, as
+   * `start(unset, unset, unset)` writes it, and the one class of an action with no input.
+   */
+  def firstClass(a: Term, at: Tree): ir.ActionClass =
+    val id = action(a)
+    ir.ActionClass(id, actions(id).inputs.map(firstInput(_, actions(id).name, at)))
+
+  /** The value an input a class omits takes, its domain's first, refused where it has none. */
+  def firstInput(input: ir.Param, action: String, at: Tree): ir.Value =
+    firstValue(input.getType).getOrElse(
+      fail(at, s"input ${input.name} of $action has no values to default to: supply it")
+    )
 
   /**
    * Keeps the first declaration under a key and refuses a different second one, which would share
@@ -137,13 +161,14 @@ private[lift] trait Claims:
           )
 
   def query(
-      name: String,
+      named: Option[String],
       form: ir.Query.Form,
       p: ir.ClaimRef,
       s: ir.ClaimRef,
       limits: ir.Limits,
       at: Tree
   ): Decl =
+    val name = named.getOrElse(defaultQueryName(p, s))
     val through = readsThrough(name, p, s, at)
     val q = ir.Query(
       name = name,
@@ -154,8 +179,23 @@ private[lift] trait Claims:
       through = through,
       limits = Some(limits)
     )
+    // Two Queries of one Scenario and Property named by neither would share the name they take.
+    for existing <- queries.get(name) if named.isEmpty && existing != q do
+      fail(
+        at,
+        s"this Query of ${p.name} in ${s.name} takes the name $name from its Scenario and " +
+          "Property, which another Query has: name it with `query(\"...\")` or with a val"
+      )
     register(queries, name, q, at, s"Query $name")
     Decl.Declared(name)
+
+  /**
+   * The name of a Query neither `query("...")` nor a val names, such as an item of a list a shared
+   * def declares: `<machine>.<scenario>.<property>`, after the machine its Scenario is declared on,
+   * its Scenario and its Property, so the Query of `notAdmittedWhilePaused` in the Scenario `any` of
+   * `m` is `m.any.notAdmittedWhilePaused`.
+   */
+  def defaultQueryName(p: ir.ClaimRef, s: ir.ClaimRef): String = s"${s.machine}.${s.name}.${p.name}"
 
   /**
    * The name a declaration chain takes from the val that declares it, or a refusal where no val
@@ -259,8 +299,10 @@ private[lift] trait Claims:
       }
     case Select(b, "free") => scenario(fold(b, env, named), t)(_.withFree(true))
 
-    case Apply(Ident("query"), List(name)) => Decl.QueryNamed(textOf(fold(name, env), name))
-    case Ident("query") => Decl.QueryNamed(captured(named, "a Query", "`query(\"...\")`", t))
+    case Apply(Ident("query"), List(name)) =>
+      Decl.QueryNamed(Some(textOf(fold(name, env), name)))
+    // Named after its val, or once its Scenario and Property are known, after them.
+    case Ident("query") => Decl.QueryNamed(named.map(capturedName(_, t, "a Query")))
     case Apply(TypeApply(Select(q, form @ ("find" | "verify")), _), List(p)) =>
       fold(q, env, named) match
         case Decl.QueryNamed(name) =>

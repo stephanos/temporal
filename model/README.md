@@ -322,10 +322,13 @@ The lifter reads what an author wrote, as written:
   `rebind`, `extend`, `refining`, `assuming` and `unmonitored`; action chains
   (`action`, `timer`, `internal`, `on`, `creates`, `input[T]`, `schema`, `results`, `example`);
   input tokens, `val scheduleToStart = input[Timeout]` declared on an action with
-  `.input(scheduleToStart)`, each input named after its token's `val`;
+  `.input(scheduleToStart)`, each input named after its token's `val`; classes, `flip`, the
+  positional `start(unset, expires, unset)` and `start()`, every input at its domain's first value
+  (`start(unset, unset, unset)`, and for an action with no input its one class);
   Properties, Scenarios, Queries, Limits, monitors, assumptions, holes, channels, compositions,
   progress claims and realizations. A composition names its members by field selector
-  (`_.activity -> currentRecord`), and so do its `sync`, `replaces` and `withMember`; a Scenario
+  (`_.activity -> currentRecord`), and so do its `sync`, `replaces` and `withMember`; a `sync`
+  with no name is named after its first member's action; a Scenario
   or `whenAction` of it names a sync by one member action it pairs, `c.synced(_.activity ->
   dispatch)`, and a member's own action by `c.own(_.activity, control(Control.pause))`.
 - **Shared claims:** `property` and `scenario` are declared on `Declares[S]`, the supertype of a
@@ -350,7 +353,8 @@ The lifter reads what an author wrote, as written:
   `command(instruction, …)`; `rpc(role, method) { … }`, `poll(…) { … }` and `call.setting { … }`,
   which appends assignments and keeps the call's name; `statusTable(fact -> value, …)`. A command
   is named after its `val` in kebab case (`val pauseActivity` is `pause-activity`) unless written
-  out as `Command(id, …)`. A declaration referred to by value is written as its id, and a fact as
+  out as `Command(id, …)`. A declaration referred to by value is written as its id, a monitor as
+  its name (`MonitorExpectation(terminalFinality, …)` in a Query's expected Run), and a fact as
   its enum case, or the companion of a case with fields. A lookup `table(fact)` is resolved when
   the lifter lifts. The lifter refuses a command no `val` declares, a `perform` or `onPath` with no
   class, a lookup of a fact its table lists twice or not at all, and a request-scope line that is
@@ -394,13 +398,18 @@ val putStoresOnce = query find putStores in putOnce limits two total 2
 The same holds for `timer`, `internal`, `compose[S](members*)`, `monitor[S, O, F, M](initial)…`,
 `assume`, `hole`, `channel[M](capacity = …, …)` and `Realization(machine = …, …)` without `name`.
 The explicit forms, such as `machine[S, O, F](family, name)`, `action(name, party)` and
-`property("…")`, name a declaration whose name differs from its `val`'s. A Property, Scenario or
-Query with no `val`, built in a list or in a function over a machine argument, keeps
-`property("…")`, `scenario("…")` or `query("…")`. A captured form with no `val`, or with a name
-the compiler made up such as an anonymous given's, is refused at its line. So are two declarations
-that would share a name: two machines or compositions, two Properties or two Scenarios of one
-machine, two Queries, monitors, assumptions, holes, channels or realizations, Limits of one name
-with different bounds, and two actions one machine binds.
+`property("…")`, name a declaration whose name differs from its `val`'s. A Property or Scenario
+with no `val`, built in a list or in a function over a machine argument, keeps `property("…")` or
+`scenario("…")`. A Query that neither a `val` nor `query("…")` names is named
+`<machine>.<scenario>.<property>`, after the machine its Scenario is declared on, its Scenario and
+its Property: `query verify notPaused in any` over a design `m` is `m.any.notAdmittedWhilePaused`.
+Any other captured form with no `val`, or with a name the compiler made up such as an anonymous
+given's, is refused at its line. So are two declarations that would share a name: two machines or
+compositions, two Properties or two Scenarios of one machine, two Queries (two unnamed Queries of
+one Scenario and Property among them), two syncs of one composition, monitors, assumptions, holes,
+channels or realizations, Limits of one name with different bounds, and two actions one machine
+binds. A monitor a Query's expected Run names by value is refused where no `val` declares it or no
+lifted machine watches it.
 
 A feature's files are split by kind, and its larger subjects into folders that repeat the same
 file names. The standalone activity is the example:
@@ -476,7 +485,9 @@ val stale = currentOverQueue.scenario.actions(
 )
 ```
 
-`->` pairs a member with its value; it never means a transition. A selector, a sync and a
+`->` pairs a member with its value; it never means a transition. A sync with no name,
+`.sync(_.activity -> dispatch, _.queue -> enqueue)`, is named after its first member's action, here
+`dispatch`; one written with its name is that name. A selector, a sync and a
 member's action are resolved by the field and the action's declaration, not by the strings the IR
 keys them with: `synced` finds the one sync that pairs that member's action, and `own` an action
 that member binds and no sync pairs. `withMember` keeps the syncs, ends and member order and names
@@ -547,8 +558,10 @@ with its value, `:=` gives a named slot a value; everything else the DSL adds is
 `:=` is one operator (`@targetName("set")`) for both kinds of named slot, an action's input token
 and a request's field. A named call `start(scheduleToStart := expires)` is sugar for the positional
 `start(unset, expires, unset)`: the supplied inputs take the action's declaration order, and an
-omitted input takes its domain's first value, here `unset`. The lifter refuses, at the call's line,
-a token that is no input of the action and a token supplied twice. A value of the wrong type for its
+omitted input takes its domain's first value, here `unset`. `start()`, which omits every input, is
+core: the class of every input at its first value, `start(unset, unset, unset)`, and the one class of
+an action with no input. The lifter refuses, at the call's line, a token that is no input of the
+action, a token supplied twice and an omitted input whose domain has no value. A value of the wrong type for its
 token is a compile error.
 
 A step that can go more than one way names each result with `choose`, which is core: it says

@@ -656,16 +656,44 @@ private[lift] trait Realizations:
           case _ => fail(t, s"not a realization declaration: ${t.show}")
 
   /**
-   * A string a declaration names: a constant; the IR's name of a machine or a channel; the id of a
-   * declaration it refers to by value, a role, script, actuator, learned value, kind of evidence or
-   * command; the name of a fact; or a field of a declaration written out, such as a family's root.
+   * A string a declaration names: a constant; the IR's name of a machine, a channel or a monitor; the
+   * id of a declaration it refers to by value, a role, script, actuator, learned value, kind of
+   * evidence or command; the name of a fact; or a field of a declaration written out, such as a
+   * family's root.
    */
   def textOfBound(b0: Bound): String =
     val f = follow(b0)
     f.term match
-      case t if commandLike(t.tpe)      => commandName(f)
-      case r: Ref if factCase(r.symbol) => r.symbol.name
-      case _                            => reducedText(b0)
+      case t if commandLike(t.tpe)               => commandName(f)
+      case r: Ref if factCase(r.symbol)          => r.symbol.name
+      case t if isNamed(t.tpe, "umpire.Monitor") => monitorName(t)
+      case _                                     => reducedText(b0)
+
+  /**
+   * The name of a monitor written by value, `MonitorExpectation(terminalFinality, …)`: the one the
+   * declaration of its val gives it. A monitor no val declares, or that no lifted machine watches,
+   * names none a Query's expected Run can read.
+   */
+  private def monitorName(t: Term): String =
+    val sym = t match
+      case r: Ref => Some(resolveSymbol(r)).filter(s => s.isValDef && defs.contains(s))
+      case _      => None
+    val id = sym
+      .map(monitorOf(_, t))
+      .getOrElse(
+        fail(
+          t,
+          s"a monitor is named by the val that declares it, not ${t.show}: declare it with a val " +
+            "and refer to it by value"
+        )
+      )
+    if !machines.values.exists(_.monitors.contains(id)) then
+      fail(
+        t,
+        s"${monitors(id).name} is a monitor no lifted machine watches: name one the Query's machine " +
+          "lists under `monitors`"
+      )
+    monitors(id).name
 
   private def reducedText(b0: Bound): String =
     val b = reduce(b0)

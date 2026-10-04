@@ -109,7 +109,7 @@ final case class DetailedPair(front: Store, back: Disk)
 
 val detailedPair: Composition[DetailedPair] =
   compose[DetailedPair](Family, "detailedPair")("front" -> store, "back" -> disk)
-    .sync("putBoth", "front" -> put, "back" -> put)
+    .sync("put", "front" -> put, "back" -> put)
     .replaces("back", store)
     .ends(p => p.front.kept == Kept.held)
 
@@ -128,7 +128,7 @@ val bothPut: Scenario[DetailedPair] =
   detailedPair
     .scenario("bothPut")
     .starts(DetailedPair(Store(Kept.nothing), Disk(Stage.empty)))
-    .actionKeys("putBoth")
+    .actionKeys("put")
 
 val two: Limits = Limits("two", steps = 2, actions = 2, search = 64)
 

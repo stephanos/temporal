@@ -133,7 +133,9 @@ final class Query private[umpire] (
 
 /**
  * `val completion = query find completes in completed limits three`, named after its `val`, or
- * `query("syncCompletion") find syncSucceeds in syncReplied limits two`.
+ * `query("syncCompletion") find syncSucceeds in syncReplied limits two`. A Query neither names, such
+ * as an item of a list, is named `<machine>.<scenario>.<property>` after its Scenario's machine, its
+ * Scenario and its Property.
  */
 final class QueryDecl private[umpire] (name: String):
   infix def find[P](p: Property[P]): QueryOn[P] = QueryOn(name, QueryForm.find, p)

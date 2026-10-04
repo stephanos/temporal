@@ -14,7 +14,7 @@ import scala.compiletime.error
 import scalapb.{GeneratedEnum, GeneratedMessage, GeneratedMessageCompanion, UnrecognizedEnum}
 import scala.util.NotGiven
 import com.google.protobuf.ByteString
-import umpire.{Channel, ClassRef, Machine}
+import umpire.{Channel, ClassRef, Machine, Monitor}
 
 /**
  * How the find Queries of one machine run against a system. Declared with named arguments and no
@@ -598,4 +598,12 @@ enum Conformance:
 enum Outcome:
   case satisfied, violated, inconclusive
 
-final case class MonitorExpectation(name: String, outcome: Outcome, reason: String = "")
+/**
+ * The verdict a completed live Run must support for one monitor of the Query's machine, named by
+ * value, `MonitorExpectation(terminalFinality, Outcome.satisfied)`, or by its name.
+ */
+final case class MonitorExpectation(
+    name: String | Monitor[?, ?, ?, ?],
+    outcome: Outcome,
+    reason: String = ""
+)

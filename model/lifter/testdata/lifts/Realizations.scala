@@ -7,14 +7,17 @@
 // instead of a Case. `errandRealization` runs a standalone activity whose first attempt fails and
 // whose retry completes, on a machine whose facts a listing reports. `tallyRealization` declares
 // evidence read from one message that keeps fields, one of them without its value, which no Case
-// carries, and the Run's own record as evidence. The lifter's tests
+// carries, and the Run's own record as evidence. `heldByValue` names the monitors of a Query's
+// expected Run by value, and `heldByName` by their names. The lifter's tests
 // lift them and compare the IR with expected/realizations.json.
 package fixture.realizations
 
 import fixture.specimens.admission.{
+  atMostOneActiveAttempt,
   dispatch,
   scheduledEmpty,
   staleAdmission,
+  terminalFinality,
   three,
   AdmissionFact,
   Message as Dispatched
@@ -349,6 +352,31 @@ private val heldRace = staleAdmission
 
 val pauseRaceQuery: Query =
   query("staleAdmission.pauseRace") find pausedWhileQueued in heldRace limits three total 90
+
+// A Run's expected verdicts with each monitor of the stale design named by value, beside the same
+// verdicts with each named by its name: one expected Run.
+val heldByValue: Query =
+  (query find pausedWhileQueued in heldRace limits three total 90).expect(
+    RunExpectation(
+      Conformance.conformant,
+      Outcome.satisfied,
+      monitors = Vector(
+        MonitorExpectation(atMostOneActiveAttempt, Outcome.inconclusive, "never evaluated"),
+        MonitorExpectation(terminalFinality, Outcome.satisfied)
+      )
+    )
+  )
+val heldByName: Query =
+  (query find pausedWhileQueued in heldRace limits three total 90).expect(
+    RunExpectation(
+      Conformance.conformant,
+      Outcome.satisfied,
+      monitors = Vector(
+        MonitorExpectation("atMostOneActiveAttempt", Outcome.inconclusive, "never evaluated"),
+        MonitorExpectation("terminalFinality", Outcome.satisfied)
+      )
+    )
+  )
 
 private def raceEvidence(records: String, commitment: Commitment) =
   Evidence.read(

@@ -99,9 +99,10 @@ val putOnly = disk.restrict(put)
 
 final case class DetailedPair(front: Store, back: Disk)
 
+// Its sync is named after its first member's action, `put`.
 val detailedPair =
   compose[DetailedPair](_.front -> store, _.back -> disk)
-    .sync("putBoth", _.front -> put, _.back -> put)
+    .sync(_.front -> put, _.back -> put)
     .replaces(_.back, store)
     .ends(p => p.front.kept == Kept.held)
 
@@ -111,8 +112,9 @@ val durableStays = disk.property holdsAcross { (before, after) =>
 }
 val frontHeld = detailedPair.property holds (after => after.state.front.kept == Kept.held)
 
-// Each starts in its machine's declared start, or in its members' starts.
-val putOnce = store.scenario.actions(put)
+// Each starts in its machine's declared start, or in its members' starts. `put()` is the one class
+// of an action with no input, as `put` is.
+val putOnce = store.scenario.actions(put())
 val putThenFlush = disk.scenario.actions(put, flush)
 val bothPut = detailedPair.scenario.actions(detailedPair.synced(_.back -> put))
 
@@ -125,11 +127,12 @@ val putStoresThroughDisk = query verify putStores in putThenFlush limits two tot
 val bothPutHeld = query find frontHeld in bothPut limits two total 6
 
 /**
- * Claims declared inside a function over a machine take the one explicit-name form, with no val:
- * a computed name, a Property and a Scenario in a list.
+ * Claims declared inside a function over a machine have no val: a Query named by neither is named
+ * after its Scenario's machine, its Scenario and its Property, `disk.any.durableStays`, and a
+ * Property and a Scenario in a list take the one explicit-name form.
  */
 def anyQueries(m: Machine[Disk, Outcome, Fact]): Vector[Query] = Vector(
-  query(s"${m.name}.any.durableStays") verify durableStays in m
+  query verify durableStays in m
     .scenario("any")
     .starts(Disk(Stage.empty))
     .free limits two total 18,

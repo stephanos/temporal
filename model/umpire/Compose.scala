@@ -52,6 +52,14 @@ final class Composition[S <: Product] @publicInBinary private[umpire] (
   ): Composition[S] =
     copy(syncs = syncs :+ (name, first, second))
 
+  /**
+   * Pairs two members' actions into one step named after the first member's action, each member by
+   * its field: `.sync(_.activity -> dispatch, _.queue -> enqueue)` is the sync `dispatch`. The
+   * lifter reads the name from the action's declaration, so it is empty here.
+   */
+  def sync(first: S => (Any, Action[?]), second: S => (Any, Action[?])): Composition[S] =
+    copy(syncs = syncs :+ ("", first, second))
+
   /** Which composed states the composition may end in. */
   def ends(end: S => Boolean): Composition[S] = copy(isEnd = end)
 

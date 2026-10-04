@@ -140,11 +140,24 @@ private[lift] trait Compositions:
       case None =>
         val (member, a) = arrow(t)
         ir.SyncMove(constString(member), actions(action(a)).name)
+    // A sync named `n`, or after its first member's action, refused where another has its name.
+    def sync(c: ir.Composition, n: String, first: Term, second: Term, at: Tree) =
+      for s <- c.syncs.find(_.name == n) do
+        fail(
+          at,
+          s"${c.name} pairs two syncs named $n, and the IR keys a sync by its name: a sync is " +
+            "named after its first member's action unless it names itself, `.sync(\"name\", ...)`"
+        )
+      c.addSyncs(ir.Sync(n, Some(move(c, n, first)), Some(move(c, n, second))))
     def walk(t: Term): ir.Composition = t match
       case Apply(Select(inner, "sync"), List(name, first, second)) =>
-        val c = walk(inner)
-        val n = constString(name)
-        c.addSyncs(ir.Sync(n, Some(move(c, n, first)), Some(move(c, n, second))))
+        sync(walk(inner), constString(name), first, second, name)
+      // Named after the first member's action, as its declaration names it.
+      case Apply(Select(inner, "sync"), List(first, second)) =>
+        val (_, body) = selector(first).getOrElse(
+          fail(first, s"sync names a member by a selector, `_.member -> action`, not ${first.show}")
+        )
+        sync(walk(inner), actions(action(arrow(body)._2)).name, first, second, first)
       case Apply(Select(inner, "ends"), List(p))                 => walk(inner).withEnds(lift(p))
       case Apply(Select(inner, "replaces"), List(field, opaque)) =>
         val c = walk(inner)

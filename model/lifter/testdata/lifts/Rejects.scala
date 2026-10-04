@@ -314,8 +314,14 @@ object Anonymous:
   given Limits = Limits(steps = 1, actions = 1, search = 8)
   val anonymous: Query = query("anonymous") verify flips in secondFlips limits summon[Limits]
 
-/** A Query in a list, which no val names. */
-val unnamedInList: Vector[Query] = Vector(query verify flips in secondFlips limits one)
+/**
+ * Two Queries of one Scenario and Property in a list, which no val names: both take the name
+ * `second.secondFlips.flips`.
+ */
+val unnamedTwice: Vector[Query] = Vector(
+  query verify flips in secondFlips limits one,
+  query find flips in secondFlips limits one
+)
 
 /** A Property in the body of a function, which no val names. */
 def unnamedChecks(m: Machine[Flag, Outcome, Nothing]): Vector[Query] = Vector(
@@ -610,6 +616,58 @@ val flipTrio = compose[Trio](_.left -> oneStart, _.right -> oneStart, _.spare ->
 val flipTrioLit = flipTrio.property holds (after => after.state.left.lit)
 val eitherFlip = flipTrio.scenario.actions(flipTrio.synced(_.left -> flip))
 val syncedTwice: Query = query verify flipTrioLit in eitherFlip limits one
+
+// ### Names a declaration takes by default (fn-112.10)
+
+/** A sync named after its first member's action, which another sync of the composition is named. */
+val syncNamedTwice = compose[Trio](_.left -> oneStart, _.right -> oneStart, _.spare -> oneStart)
+  .sync("flip", _.left -> flip, _.right -> flip)
+  .sync(_.left -> flip, _.spare -> flip)
+
+object emptied:
+  /** A count whose range ends below its start, so it has no values. */
+  opaque type Unreached = Int
+
+  object Unreached:
+    given Finite[Unreached] = Finite.upTo(-1)
+
+val unreached = input[emptied.Unreached]
+val reach = action(Party("fixture")).input(unreached)
+def reachStep(l: Lamp, u: emptied.Unreached): List[Step[Lamp, Outcome, Nothing]] = Nil
+val reachLamp = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(reach ~> reachStep)
+}
+val reachLit = reachLamp.property holds (after => after.state.lit)
+
+/** `reach()`, whose input has no first value to take. */
+val reachOnce = reachLamp.scenario.actions(reach())
+val omittedEmpty: Query = query verify reachLit in reachOnce limits one
+
+/** A monitor a Query's expected Run names by a def, which no val declares. */
+def flipWatch: Monitor[Flag, Outcome, Nothing, Boolean] =
+  monitor[Flag, Outcome, Nothing, Boolean]("flipWatch", false)((seen, _, _) => seen)(seen => seen)
+val watchUnnamed: Query = (query verify flips in secondFlips limits one).expect(
+  umpire.realize.RunExpectation(
+    umpire.realize.Conformance.conformant,
+    umpire.realize.Outcome.satisfied,
+    monitors =
+      Vector(umpire.realize.MonitorExpectation(flipWatch, umpire.realize.Outcome.satisfied))
+  )
+)
+
+/** A monitor a Query's expected Run names by value, which no machine watches. */
+val unwatched: Monitor[Flag, Outcome, Nothing, Boolean] =
+  monitor[Flag, Outcome, Nothing, Boolean]("unwatched", false)((seen, _, _) => seen)(seen => seen)
+val watchUnwatched: Query = (query verify flips in secondFlips limits one).expect(
+  umpire.realize.RunExpectation(
+    umpire.realize.Conformance.conformant,
+    umpire.realize.Outcome.satisfied,
+    monitors =
+      Vector(umpire.realize.MonitorExpectation(unwatched, umpire.realize.Outcome.satisfied))
+  )
+)
 
 /** `own` of a member action a sync pairs. */
 val ownFlip = flipPair.scenario.actions(flipPair.own(_.left, flip))

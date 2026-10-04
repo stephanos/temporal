@@ -116,13 +116,7 @@ private[lift] trait Syntax:
         .zip(declared.inputs)
         .map:
           case (Some(input), _) if supplied.contains(input) => literalValue(supplied(input))
-          case (_, param)                                   =>
-            firstValue(param.getType).getOrElse(
-              fail(
-                t,
-                s"input ${param.name} of ${declared.name} has no values to default to: supply it"
-              )
-            )
+          case (_, param)                                   => firstInput(param, declared.name, t)
       ir.ActionClass(id, values)
     case _ => fail(t, s"outside the liftable subset: ${t.show}")
 
@@ -174,30 +168,6 @@ private[lift] trait Syntax:
             t,
             s"an input supplied by name is written `token := value` in the call, not $written"
           )
-
-  /**
-   * The first value of a finite type, in the catalog order the Go reader lists: false, the low end of
-   * a range, an enum's first case that has values with each field at its first value, a record with
-   * each field at its first value. None for a type with no values.
-   */
-  private def firstValue(t: ir.TypeRef): Option[ir.Value] = t.ref match
-    case ir.TypeRef.Ref.Bool(_)     => Some(ir.Value(ir.Value.Kind.Bool(false)))
-    case ir.TypeRef.Ref.IntRange(r) =>
-      Option.when(r.low <= r.high)(ir.Value(ir.Value.Kind.Int(r.low)))
-    case ir.TypeRef.Ref.Named(n) =>
-      def firsts(fields: Seq[ir.Field]): Option[Seq[ir.Value]] =
-        fields.foldLeft(Option(Seq.empty[ir.Value])): (vs, f) =>
-          vs.flatMap(vs => firstValue(f.getType).map(vs :+ _))
-      types.get(n).map(_.shape) match
-        case Some(ir.Type.Shape.Enum(e)) =>
-          e.cases.iterator
-            .flatMap(c => firsts(c.fields).map(fs => ir.EnumValue(n, c.name, fs)))
-            .nextOption()
-            .map(v => ir.Value(ir.Value.Kind.Enum(v)))
-        case Some(ir.Type.Shape.Record(r)) =>
-          firsts(r.fields).map(fs => ir.Value(ir.Value.Kind.Record(ir.RecordValue(n, fs))))
-        case _ => None
-    case _ => None
 
   /**
    * The composed key of the fact a composition's `after.records(_.member, fact)` reads,

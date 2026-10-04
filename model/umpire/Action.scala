@@ -104,8 +104,11 @@ final class Action[I <: Tuple] private[umpire] (val decl: ActionDecl):
       )
     )
 
-  /** The one class of an action with no input, or of a timer. */
-  def apply()(using I =:= EmptyTuple): Class = Class(decl, Nil)
+  /**
+   * The class of every input at its domain's first value, `start()` for `start(unset, unset,
+   * unset)`: the one class of an action with no input, or of a timer.
+   */
+  def apply(): Class = Class(decl, decl.domains.map(_.values.head))
 
   // The positional calls are members, typed by the inputs at each position, so that a call of
   // another form may be an extension: Scala tries the named call of Syntax.scala where these do not

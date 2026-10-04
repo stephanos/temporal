@@ -131,6 +131,8 @@ class Fixtures extends munit.FunSuite:
       "temporal.nexuscaller.Claims$package$.syncCompletion",
       "fixture.realizations.Realizations$package$.pauseRace",
       "fixture.realizations.Realizations$package$.pauseRaceQuery",
+      "fixture.realizations.Realizations$package$.heldByValue",
+      "fixture.realizations.Realizations$package$.heldByName",
       "fixture.realizations.Realizations$package$.doorRealization",
       "fixture.realizations.Realizations$package$.doorOpens",
       "fixture.realizations.Realizations$package$.errandRealization",
@@ -207,6 +209,10 @@ class Fixtures extends munit.FunSuite:
     "choiceKept"
   )
 
+  // The refusals of fn-112.10's names taken by default.
+  private val defaultRejects: Seq[String] =
+    Seq("unnamedTwice", "syncNamedTwice", "omittedEmpty", "watchUnnamed", "watchUnwatched")
+
   // The refusals of fn-112.12's claim bundles and of a moved type whose pinned name is taken.
   private val bundleRejects: Seq[String] = Seq("mixedBundle", "movedNameTaken")
 
@@ -239,7 +245,6 @@ class Fixtures extends munit.FunSuite:
     "shuffling",
     "guessing",
     "sharedIds",
-    "unnamedInList",
     "unnamedProperty",
     "twins",
     "askedTwice",
@@ -265,7 +270,7 @@ class Fixtures extends munit.FunSuite:
     "splatted",
     "explained"
   ).map("fixture.rejects.Rejects$package$." + _) ++ (selectorRejects ++ patternRejects ++
-    inputRejects ++ totalRejects ++ choiceRejects ++ bundleRejects).map(
+    inputRejects ++ totalRejects ++ choiceRejects ++ bundleRejects ++ defaultRejects).map(
     "fixture.rejects.Rejects$package$." + _
   ) ++ Seq(
     // DefinitionScope pins, a name the compiler made up and a computed accepted outcome, refused in
@@ -536,6 +541,24 @@ class Fixtures extends munit.FunSuite:
       .asText()
     assertEquals(bare, "executions")
 
+  // fn-112.10: a monitor of a Query's expected Run named by value, as by its name.
+  test("a monitor expectation names its monitor by value as by its name"):
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    def expected(name: String) = mapper
+      .readTree(ir("realizations"))
+      .path("queries")
+      .elements()
+      .asScala
+      .find(_.path("name").asText() == name)
+      .getOrElse(fail(s"the realizations fixture lifted no Query $name"))
+      .path("expectedRun")
+    val byValue = expected("heldByValue")
+    assertEquals(
+      byValue.path("monitors").elements().asScala.map(_.path("name").asText()).toList,
+      List("atMostOneActiveAttempt", "terminalFinality")
+    )
+    assertEquals(byValue.toPrettyString, expected("heldByName").toPrettyString)
+
   concurrently("the lifter refuses a mapped read ending at a singular message"):
     val out = lifted("typedMapped")
     val result = lift(
@@ -789,7 +812,15 @@ class Fixtures extends munit.FunSuite:
     val protocol = "temporal.standaloneactivity.Model$package$.activityProtocol"
     val (model, _, property) = declarations(
       "inputs",
-      Seq("byNameQuery", "byPositionQuery", "urgentByNameQuery", "urgentByPositionQuery", protocol)
+      Seq(
+        "byNameQuery",
+        "byPositionQuery",
+        "urgentByNameQuery",
+        "urgentByPositionQuery",
+        "omittedQuery",
+        "omittedByPositionQuery",
+        protocol
+      )
     )
     def named(kind: String, name: String): JsonNode = model
       .path(kind)
@@ -801,6 +832,8 @@ class Fixtures extends munit.FunSuite:
       named("scenarios", scenario).path("actions").toPrettyString
     // A call by name is its positional twin, class by class: partial, reordered and defaulted.
     assertEquals(actionsOf("byName"), actionsOf("byPosition"))
+    // fn-112.10: a call that omits every input is its positional twin at every first value.
+    assertEquals(actionsOf("omitted"), actionsOf("omittedByPosition"))
     assertEquals(property("urgentByName"), property("urgentByPosition"))
     val respond = named("actions", "respond")
     assertEquals(
@@ -954,7 +987,8 @@ class Fixtures extends munit.FunSuite:
       unqueried.map(models + _) ++ Seq(
         "stoppedWorkerStartsNothingTyped",
         "temporal.standaloneactivity.Queries$package$.stoppedWorkerStartsNothing",
-        "switchQueries"
+        "switchQueries",
+        "flickedBothOnce"
       )
     val (model, _, property) = declarations("members", roots)
     def all(kind: String) = model.path(kind).elements().asScala.toList
@@ -1014,6 +1048,13 @@ class Fixtures extends munit.FunSuite:
       all("properties").find(named(name)).get.path("whenAction").asText()
     assertEquals(whenAction("turnedOn"), "left_side_turn-on")
     assertEquals(whenAction("tappedBoth"), "tap_both-ways")
+    // fn-112.10: a sync named after its first member's action, kept by `withMember` and selected
+    // by `synced` from either member.
+    for d <- Seq("flicks", "leftFlicks") do
+      val c = all("compositions").find(named(d)).getOrElse(fail(s"no composition $d"))
+      assertEquals(texts(c.path("syncs"), "name"), List("flick"), d)
+    assertEquals(keys("bothFlick"), List("flick"))
+    assertEquals(whenAction("flickedBoth"), "flick")
     def bound(machine: String) = all("machines")
       .find(named(machine))
       .get

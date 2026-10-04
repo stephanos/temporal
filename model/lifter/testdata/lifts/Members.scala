@@ -5,7 +5,8 @@
 // lift the cross-entity claim here, which names the attempt-start sync by the worker's side where
 // production names it by the activity's; and lift `switchQueries`, whose field, sync and action
 // names carry the separators of the composed keys and whose two members bind actions spelled alike,
-// for the exact keys they select.
+// for the exact keys they select; and lift `flickedBothOnce`, over a sync named after its first
+// member's action and a composition `withMember` derives from it.
 package fixture.members
 
 import temporal.standaloneactivity.{six, standaloneActivity, Paths}
@@ -85,6 +86,20 @@ val tappedBoth =
     after.state.left_side.on == after.state.right_side.on
   )
 val switchLimits = Limits(steps = 4, actions = 4, search = 64)
+
+// ### A sync named after its first member's action, kept by the composition derived from it
+
+val flicks = compose[Switches](_.left_side -> leftSwitch, _.right_side -> rightSwitch)
+  .sync(_.left_side -> Left.flick, _.right_side -> Right.flick)
+  .ends(_ => true)
+val flickOnly = leftSwitch.restrict(Left.flick)
+val leftFlicks = flicks.withMember(_.left_side -> flickOnly)
+val bothFlick = leftFlicks.scenario.actions(leftFlicks.synced(_.right_side -> Right.flick))
+val flickedBoth =
+  leftFlicks.property.whenAction(leftFlicks.synced(_.left_side -> Left.flick)) holds (after =>
+    after.state.left_side.on == after.state.right_side.on
+  )
+val flickedBothOnce: Query = query verify flickedBoth in bothFlick limits switchLimits total 4
 
 val switchQueries: Vector[Query] = Vector(
   query("turnedOn") verify turnedOn in switchSchedule limits switchLimits total 16,

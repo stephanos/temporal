@@ -1,6 +1,6 @@
 // Input tokens, inputs supplied by name and a bounded counter (fn-112.5). Each Scenario that
-// supplies inputs by name, `token := value`, has a twin with the positional calls it stands for,
-// and the lifter's tests require one IR of the two. The counted state is the standalone activity's
+// supplies inputs by name, `token := value`, or omits every input, `start()`, has a twin with the
+// positional calls it stands for, and the lifter's tests require one IR of the two. The counted state is the standalone activity's
 // protocol state with its counter bounded by its field's type, and the tests require the record the
 // protocol state lifts to. The control action reports results by name, with no enum of that name.
 package fixture.inputs
@@ -95,6 +95,14 @@ val byPosition = counted.scenario.actions(
   steer(Control.unpause)
 )
 
+// Every input omitted, `start()`: each at its domain's first value, beside its positional twin.
+val omitted = counted.scenario.actions(start(), respond(), steer())
+val omittedByPosition = counted.scenario.actions(
+  start(Timeout.unset, Timeout.unset, Timeout.unset),
+  respond(Answer.completed, false),
+  steer(Control.pause)
+)
+
 // A Property restricted to a class named by name, beside its positional twin.
 val urgentByName = counted.property.when(respond(urgent := true)) holds
   (after => after.state.attempts <= 2)
@@ -107,3 +115,5 @@ val byNameQuery = query verify scheduled in byName limits six total 1728
 val byPositionQuery = query verify scheduled in byPosition limits six total 1728
 val urgentByNameQuery = query verify urgentByName in byName limits six total 1728
 val urgentByPositionQuery = query verify urgentByPosition in byPosition limits six total 1728
+val omittedQuery = query verify scheduled in omitted limits six total 864
+val omittedByPositionQuery = query verify scheduled in omittedByPosition limits six total 864

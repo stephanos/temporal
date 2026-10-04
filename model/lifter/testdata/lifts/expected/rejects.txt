@@ -1,98 +1,102 @@
 lift: model/lifter/testdata/lifts/Rejects.scala:314: Limits takes its name from the val that declares it, and given_Limits is a name the compiler made up: declare it with a val of the name it has
 lift: model/lifter/testdata/lifts/Rejects.scala:304: a DefinitionScope names its former owner as a nonempty string literal, not umpire.DefinitionScope.apply("fixture.rejects.".+("Former$package$"))
-lift: model/lifter/testdata/lifts/Rejects.scala:540: accept answers the outcome a `given Accepted[O] = Accepted(o)` of the lifted sources names, not fixture.rejects.ComputedAccepted.given_Accepted_Outcome
+lift: model/lifter/testdata/lifts/Rejects.scala:546: accept answers the outcome a `given Accepted[O] = Accepted(o)` of the lifted sources names, not fixture.rejects.ComputedAccepted.given_Accepted_Outcome
 lift: model/lifter/testdata/lifts/Rejects.scala:257: fixture.rejects.PinnedTwice$ pins its Definition IDs twice, at model/lifter/testdata/lifts/Rejects.scala:256 and here: an owner has one DefinitionScope
 lift: model/lifter/testdata/lifts/Rejects.scala:269: fixture.rejects.PinsOuter$.PinsInner$ pins its Definition IDs inside fixture.rejects.PinsOuter$, which pins its own: a DefinitionScope pins the declarations of one owner, not of the owners nested in it
-lift: model/lifter/testdata/lifts/Rejects.scala:513: aliasFirst is an alias of itself, through aliasFirst, aliasSecond: an alias names a value declared without it
-lift: model/lifter/testdata/lifts/Rejects.scala:352: Query asked is declared twice, and both would share one Definition ID
-lift: model/lifter/testdata/lifts/Rejects.scala:480: assumedAgain assumes lampOpaque twice: a machine names each assumption once
-lift: model/lifter/testdata/lifts/Rejects.scala:435: two assumptions are named opaque: fixture.rejects.OpaqueA$.opaque and fixture.rejects.OpaqueB$.opaque, and the IR names them by name
-lift: model/lifter/testdata/lifts/Rejects.scala:484: assumingTwice assumes lampFaulty twice: a machine names each assumption once
-lift: model/lifter/testdata/lifts/Rejects.scala:629: own names the action dim, which takes inputs, and a Scenario lists classes: name one with `dim(...)`
+lift: model/lifter/testdata/lifts/Rejects.scala:519: aliasFirst is an alias of itself, through aliasFirst, aliasSecond: an alias names a value declared without it
+lift: model/lifter/testdata/lifts/Rejects.scala:358: Query asked is declared twice, and both would share one Definition ID
+lift: model/lifter/testdata/lifts/Rejects.scala:486: assumedAgain assumes lampOpaque twice: a machine names each assumption once
+lift: model/lifter/testdata/lifts/Rejects.scala:441: two assumptions are named opaque: fixture.rejects.OpaqueA$.opaque and fixture.rejects.OpaqueB$.opaque, and the IR names them by name
+lift: model/lifter/testdata/lifts/Rejects.scala:490: assumingTwice assumes lampFaulty twice: a machine names each assumption once
+lift: model/lifter/testdata/lifts/Rejects.scala:687: own names the action dim, which takes inputs, and a Scenario lists classes: name one with `dim(...)`
 lift: model/lifter/testdata/lifts/Rejects.scala:196: channel batches's messages are lists, which have no finite catalog in the IR: give them an enum or a record
-lift: model/lifter/testdata/lifts/Rejects.scala:361: limits bound are declared twice with different bounds, here and at model/lifter/testdata/lifts/Rejects.scala:358: a Query's receipt names its limits by name
-lift: model/lifter/testdata/lifts/Rejects.scala:822: the alternative lampOff of a choose is not one step written out: write its step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative
-lift: model/lifter/testdata/lifts/Rejects.scala:813: the alternative lampOn of a choose is not one step written out: write its step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative
-lift: model/lifter/testdata/lifts/Rejects.scala:842: the alternative lampOn of a choose is not one step written out: write its step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative
-lift: model/lifter/testdata/lifts/Rejects.scala:862: an alternative of a choose is written in the call as `token -> step`, not keptOn
-lift: model/lifter/testdata/lifts/Rejects.scala:831: the alternative lampOn of a choose is not one step written out: write its step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative
-lift: model/lifter/testdata/lifts/Rejects.scala:853: a choice is named by the token a val declares, as `val committed = choice` and `choose(committed -> ...)`, not a token no val declares
-lift: model/lifter/testdata/lifts/Rejects.scala:795: choose names lampOn twice: an alternative is named by its token's val, so give each alternative a name of its own
+lift: model/lifter/testdata/lifts/Rejects.scala:367: limits bound are declared twice with different bounds, here and at model/lifter/testdata/lifts/Rejects.scala:364: a Query's receipt names its limits by name
+lift: model/lifter/testdata/lifts/Rejects.scala:880: the alternative lampOff of a choose is not one step written out: write its step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative
+lift: model/lifter/testdata/lifts/Rejects.scala:871: the alternative lampOn of a choose is not one step written out: write its step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative
+lift: model/lifter/testdata/lifts/Rejects.scala:900: the alternative lampOn of a choose is not one step written out: write its step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative
+lift: model/lifter/testdata/lifts/Rejects.scala:920: an alternative of a choose is written in the call as `token -> step`, not keptOn
+lift: model/lifter/testdata/lifts/Rejects.scala:889: the alternative lampOn of a choose is not one step written out: write its step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative
+lift: model/lifter/testdata/lifts/Rejects.scala:911: a choice is named by the token a val declares, as `val committed = choice` and `choose(committed -> ...)`, not a token no val declares
+lift: model/lifter/testdata/lifts/Rejects.scala:853: choose names lampOn twice: an alternative is named by its token's val, so give each alternative a name of its own
 lift: model/lifter/testdata/lifts/Rejects.scala:79: countdown calls itself, directly or through another function: a recursive function has no IR form, so write the bounded computation out
 lift: model/lifter/testdata/lifts/Rejects.scala:178: channel counts's messages are Int, and their catalog umpire.Finite.of[scala.Int](1, 5) is not `Finite.upTo(n)`: the IR carries an Int only as a range from 0, so declare the channel with one or give its messages an opaque type with a range
 lift: model/lifter/testdata/lifts/Rejects.scala:132: crossedRead reads flips, a Property of second, through the refinement of refining, which refines first
 lift: model/lifter/testdata/lifts/Rejects.scala:72: fixture.rejects.Twice holds channel leaky in first and second; a state holds a channel in one field
-lift: model/lifter/testdata/lifts/Rejects.scala:529: because explains the steps a step function writes out and does not explain, such as `accept(...)` or `List(Step(...))`: give each other step its explanation where it is written
-lift: model/lifter/testdata/lifts/Rejects.scala:464: extendBound extends oneStart by flip, which it binds already: rebind replaces the step function of an action the source binds
-lift: model/lifter/testdata/lifts/Rejects.scala:706: shade is no input of bright, which takes level, glow: supply an input the action declares
-lift: model/lifter/testdata/lifts/Rejects.scala:659: from finishes the `never(...)` written directly before it, not neverLit: chain it onto that call
-lift: model/lifter/testdata/lifts/Rejects.scala:448: two holes are named gap: fixture.rejects.GapA$.gap and fixture.rejects.GapB$.gap, and the IR names them by name
+lift: model/lifter/testdata/lifts/Rejects.scala:535: because explains the steps a step function writes out and does not explain, such as `accept(...)` or `List(Step(...))`: give each other step its explanation where it is written
+lift: model/lifter/testdata/lifts/Rejects.scala:470: extendBound extends oneStart by flip, which it binds already: rebind replaces the step function of an action the source binds
+lift: model/lifter/testdata/lifts/Rejects.scala:764: shade is no input of bright, which takes level, glow: supply an input the action declares
+lift: model/lifter/testdata/lifts/Rejects.scala:717: from finishes the `never(...)` written directly before it, not neverLit: chain it onto that call
+lift: model/lifter/testdata/lifts/Rejects.scala:454: two holes are named gap: fixture.rejects.GapA$.gap and fixture.rejects.GapB$.gap, and the IR names them by name
 lift: model/lifter/testdata/lifts/Rejects.scala:230: channel guessed's loss is umpire.Loss.valueOf("reliable"), not a case of Loss: a channel names its loss as Loss.lossy or Loss.reliable
-lift: model/lifter/testdata/lifts/Rejects.scala:723: doubleTint declares the input shade twice: an action takes each input once
-lift: model/lifter/testdata/lifts/Rejects.scala:654: a keeps projection is a field path, such as `_.phase` or `_.activity.phase`, or a def whose body is one, not ((l: fixture.rejects.Lamp) => l.lit.unary_!)
+lift: model/lifter/testdata/lifts/Rejects.scala:781: doubleTint declares the input shade twice: an action takes each input once
+lift: model/lifter/testdata/lifts/Rejects.scala:712: a keeps projection is a field path, such as `_.phase` or `_.activity.phase`, or a def whose body is one, not ((l: fixture.rejects.Lamp) => l.lit.unary_!)
 lift: model/lifter/testdata/lifts/Rejects.scala:58: listening holds the lossy channel leaky and binds no leakyLoss step: a lossy channel's loss is a step whose meaning the machine says
-lift: model/lifter/testdata/lifts/Rejects.scala:509: loopFirst is derived from itself, through loopFirst, loopSecond: a machine derives from a machine declared without it
-lift: model/lifter/testdata/lifts/Rejects.scala:642: loopPair is derived from itself, through loopPair, loopPairBack: a composition derives from a composition declared without it
-lift: model/lifter/testdata/lifts/Rejects.scala:579: right of memberIncompatible holds a fixture.rejects.Lamp, and first is a machine of fixture.rejects.Flag: a member is a machine of its field's type
-lift: model/lifter/testdata/lifts/Rejects.scala:572: compose names a member by one field of Lamps, such as `_.left`, not `_.left.lit`
+lift: model/lifter/testdata/lifts/Rejects.scala:515: loopFirst is derived from itself, through loopFirst, loopSecond: a machine derives from a machine declared without it
+lift: model/lifter/testdata/lifts/Rejects.scala:700: loopPair is derived from itself, through loopPair, loopPairBack: a composition derives from a composition declared without it
+lift: model/lifter/testdata/lifts/Rejects.scala:585: right of memberIncompatible holds a fixture.rejects.Lamp, and first is a machine of fixture.rejects.Flag: a member is a machine of its field's type
+lift: model/lifter/testdata/lifts/Rejects.scala:578: compose names a member by one field of Lamps, such as `_.left`, not `_.left.lit`
 lift: model/lifter/testdata/lifts/Rejects.scala:165: middle replaces first, and no member fills middle
-lift: model/lifter/testdata/lifts/Rejects.scala:875: fixture.rejects.Mixed bundles no claims, since count holds no Property, Scenario or Query: a case class bundles the claims a shared def declares together when its every field holds one
-lift: model/lifter/testdata/lifts/Rejects.scala:625: Scenario mixedFlips of flipPair lists push beside composed classes: a composition's Scenario selects each of its classes with `.synced(_.member -> action)` or `.own(_.member, action)`
+lift: model/lifter/testdata/lifts/Rejects.scala:933: fixture.rejects.Mixed bundles no claims, since count holds no Property, Scenario or Query: a case class bundles the claims a shared def declares together when its every field holds one
+lift: model/lifter/testdata/lifts/Rejects.scala:683: Scenario mixedFlips of flipPair lists push beside composed classes: a composition's Scenario selects each of its classes with `.synced(_.member -> action)` or `.own(_.member, action)`
 lift: model/lifter/testdata/lifts/MovedRejects.scala:13: fixture.rejects.moved.Gauge and fixture.rejects.Gauge would both be named fixture.rejects.Gauge in the IR: a type moved under a DefinitionScope keeps a name no other type of the Model has
-lift: model/lifter/testdata/lifts/Rejects.scala:719: level is no input of dim, which declares no input by a token: supply an input the action declares
+lift: model/lifter/testdata/lifts/Rejects.scala:777: level is no input of dim, which declares no input by a token: supply an input the action declares
 lift: model/lifter/testdata/lifts/Rejects.scala:135: limits backwards declare -1 steps; a bound is at least 0
 lift: root fixture.rejects.Rejects$package$.noSuchRoot: names no declaration of the lifted sources
-lift: model/lifter/testdata/lifts/Rejects.scala:621: own names tap of left, and tapLamp binds no action of fixture.rejects.TapB$.tap: name the action left binds, not one of another declaration spelled alike
-lift: model/lifter/testdata/lifts/Rejects.scala:615: sync flipBoth pairs flip of left, which steps only with its pair: name it with `.synced(_.left -> flip)`
-lift: model/lifter/testdata/lifts/Rejects.scala:683: lit of litBy is a function parameter, which names a def only where a declaring function of the lifted sources is called with one: call the def itself
-lift: model/lifter/testdata/lifts/Rejects.scala:423: evidence covers only some values of fact lost, which has fields: its name alone does not say what confirms it, so write a line for all of it
-lift: model/lifter/testdata/lifts/Rejects.scala:461: rebindUnbound rebinds push, which oneStart does not bind: extend binds an action the source does not
-lift: model/lifter/testdata/lifts/Rejects.scala:470: reboundTwice rebinds flip twice: a machine binds an action once
-lift: model/lifter/testdata/lifts/Rejects.scala:672: records reads the fixture.rejects.Note fact ping of left, and its member oneStart records no facts
-lift: model/lifter/testdata/lifts/Rejects.scala:670: records reads the facts of the member one field of the composed state names, such as `_.activity`, not `_.left.lit`
-lift: model/lifter/testdata/lifts/Rejects.scala:679: records reads the facts of spare, and no member of spared fills it
-lift: model/lifter/testdata/lifts/Rejects.scala:487: refinedNothing replaces the refinement of oneStart, which declares none: declare it with `refines` in the machine
-lift: model/lifter/testdata/lifts/Rejects.scala:505: refinedOtherwise refines glimpse of fixture.rejects.Glimpse, fixture.rejects.Seen, Nothing in place of first of fixture.rejects.Flag, fixture.rejects.Outcome, Nothing: a replacement refines a machine of the same state, outcome and fact types, whose facts and outcomes the kept refinement names
-lift: model/lifter/testdata/lifts/Rejects.scala:638: spare replaces first, and no member fills spare
-lift: model/lifter/testdata/lifts/Rejects.scala:782: total of flipQueries takes an integer literal the author computed at each call, such as a Query's total, not fixture.rejects.Rejects$package.twoStates.+(0)
+lift: model/lifter/testdata/lifts/Rejects.scala:645: input unreached of reach has no values to default to: supply it
+lift: model/lifter/testdata/lifts/Rejects.scala:679: own names tap of left, and tapLamp binds no action of fixture.rejects.TapB$.tap: name the action left binds, not one of another declaration spelled alike
+lift: model/lifter/testdata/lifts/Rejects.scala:673: sync flipBoth pairs flip of left, which steps only with its pair: name it with `.synced(_.left -> flip)`
+lift: model/lifter/testdata/lifts/Rejects.scala:741: lit of litBy is a function parameter, which names a def only where a declaring function of the lifted sources is called with one: call the def itself
+lift: model/lifter/testdata/lifts/Rejects.scala:429: evidence covers only some values of fact lost, which has fields: its name alone does not say what confirms it, so write a line for all of it
+lift: model/lifter/testdata/lifts/Rejects.scala:467: rebindUnbound rebinds push, which oneStart does not bind: extend binds an action the source does not
+lift: model/lifter/testdata/lifts/Rejects.scala:476: reboundTwice rebinds flip twice: a machine binds an action once
+lift: model/lifter/testdata/lifts/Rejects.scala:730: records reads the fixture.rejects.Note fact ping of left, and its member oneStart records no facts
+lift: model/lifter/testdata/lifts/Rejects.scala:728: records reads the facts of the member one field of the composed state names, such as `_.activity`, not `_.left.lit`
+lift: model/lifter/testdata/lifts/Rejects.scala:737: records reads the facts of spare, and no member of spared fills it
+lift: model/lifter/testdata/lifts/Rejects.scala:493: refinedNothing replaces the refinement of oneStart, which declares none: declare it with `refines` in the machine
+lift: model/lifter/testdata/lifts/Rejects.scala:511: refinedOtherwise refines glimpse of fixture.rejects.Glimpse, fixture.rejects.Seen, Nothing in place of first of fixture.rejects.Flag, fixture.rejects.Outcome, Nothing: a replacement refines a machine of the same state, outcome and fact types, whose facts and outcomes the kept refinement names
+lift: model/lifter/testdata/lifts/Rejects.scala:696: spare replaces first, and no member fills spare
+lift: model/lifter/testdata/lifts/Rejects.scala:840: total of flipQueries takes an integer literal the author computed at each call, such as a Query's total, not fixture.rejects.Rejects$package.twoStates.+(0)
 lift: model/lifter/testdata/lifts/Rejects.scala:284: fixture.rejects.SharedB$.share and fixture.rejects.SharedA$.share would share the Definition ID fixture.rejects.Shared$.share: two declarations pinned to one former owner keep the distinct names they had there
-lift: model/lifter/testdata/lifts/Rejects.scala:664: lit of litStays names a def of the lifted sources, which the lifter binds, not ((l: fixture.rejects.Lamp) => l.lit): declare it as `def lit(...)` and pass that
+lift: model/lifter/testdata/lifts/Rejects.scala:722: lit of litStays names a def of the lifted sources, which the lifter binds, not ((l: fixture.rejects.Lamp) => l.lit): declare it as `def lit(...)` and pass that
 lift: model/lifter/testdata/lifts/Rejects.scala:214: channel shuffled's order is umpire.Order.fromOrdinal(1), not a case of Order: a channel names its order as Order.fifo or Order.unordered
-lift: model/lifter/testdata/lifts/Rejects.scala:804: choose names lampOn twice, by fixture.rejects.Rejects$package$.lampOn and fixture.rejects.Elsewhere$.lampOn: an alternative is named by its token's val, so give each alternative a name of its own
-lift: model/lifter/testdata/lifts/Rejects.scala:521: in lists its members, so a list passed as `xs*` has no IR form: write them out
-lift: model/lifter/testdata/lifts/Rejects.scala:710: bright is given level twice: supply each input once
-lift: model/lifter/testdata/lifts/Rejects.scala:715: an input supplied by name is written `token := value` in the call, not keptLevel
-lift: model/lifter/testdata/lifts/Rejects.scala:576: sync flipSpare names spare, which no member of syncNoMember fills: a selector names a member of the composition
-lift: model/lifter/testdata/lifts/Rejects.scala:583: sync tapFlip pairs tap of left, and tapLamp binds no action of fixture.rejects.TapB$.tap: a sync pairs the action its member binds, not one of another declaration
-lift: model/lifter/testdata/lifts/Rejects.scala:603: no sync of flipPair pairs push of right: name the step right takes alone with `.own(_.right, push)`
-lift: model/lifter/testdata/lifts/Rejects.scala:611: syncs flipRight, flipSpare of flipTrio each pair flip of left, and synced names one: a sync is selected by a member action it alone pairs
-lift: model/lifter/testdata/lifts/Rejects.scala:375: tapped binds two actions named tap, fixture.rejects.TapA$.tap and fixture.rejects.TapB$.tap: a machine's actions have distinct names
-lift: model/lifter/testdata/lifts/Rejects.scala:736: an input is declared by the token a val names, as `val level = input[T]` and `.input(level)`, not a token no val declares
-lift: model/lifter/testdata/lifts/Rejects.scala:768: Query totalComputed asserts its total as fixture.rejects.Rejects$package.twoStates.*(1); a total is an integer literal the author computed, or an Int parameter of the shared def that declares the Query, supplied as a literal at each call site
-lift: model/lifter/testdata/lifts/Rejects.scala:771: Query totalKept asserts its total as fixture.rejects.Rejects$package.twoStates; a total is an integer literal the author computed, or an Int parameter of the shared def that declares the Query, supplied as a literal at each call site
-lift: model/lifter/testdata/lifts/Rejects.scala:774: Query totalNegative asserts the total -2; a total counts combinations, so it is at least 0
-lift: model/lifter/testdata/lifts/Rejects.scala:765: Query totaledTwice asserts its total twice: 2 and 2; a Query has one total
-lift: model/lifter/testdata/lifts/Rejects.scala:337: fixture.rejects.TwinA$.twin and fixture.rejects.TwinB$.twin are both named twin, and claims name a machine or composition by its name
+lift: model/lifter/testdata/lifts/Rejects.scala:862: choose names lampOn twice, by fixture.rejects.Rejects$package$.lampOn and fixture.rejects.Elsewhere$.lampOn: an alternative is named by its token's val, so give each alternative a name of its own
+lift: model/lifter/testdata/lifts/Rejects.scala:527: in lists its members, so a list passed as `xs*` has no IR form: write them out
+lift: model/lifter/testdata/lifts/Rejects.scala:768: bright is given level twice: supply each input once
+lift: model/lifter/testdata/lifts/Rejects.scala:773: an input supplied by name is written `token := value` in the call, not keptLevel
+lift: model/lifter/testdata/lifts/Rejects.scala:625: syncNamedTwice pairs two syncs named flip, and the IR keys a sync by its name: a sync is named after its first member's action unless it names itself, `.sync("name", ...)`
+lift: model/lifter/testdata/lifts/Rejects.scala:582: sync flipSpare names spare, which no member of syncNoMember fills: a selector names a member of the composition
+lift: model/lifter/testdata/lifts/Rejects.scala:589: sync tapFlip pairs tap of left, and tapLamp binds no action of fixture.rejects.TapB$.tap: a sync pairs the action its member binds, not one of another declaration
+lift: model/lifter/testdata/lifts/Rejects.scala:609: no sync of flipPair pairs push of right: name the step right takes alone with `.own(_.right, push)`
+lift: model/lifter/testdata/lifts/Rejects.scala:617: syncs flipRight, flipSpare of flipTrio each pair flip of left, and synced names one: a sync is selected by a member action it alone pairs
+lift: model/lifter/testdata/lifts/Rejects.scala:381: tapped binds two actions named tap, fixture.rejects.TapA$.tap and fixture.rejects.TapB$.tap: a machine's actions have distinct names
+lift: model/lifter/testdata/lifts/Rejects.scala:794: an input is declared by the token a val names, as `val level = input[T]` and `.input(level)`, not a token no val declares
+lift: model/lifter/testdata/lifts/Rejects.scala:826: Query totalComputed asserts its total as fixture.rejects.Rejects$package.twoStates.*(1); a total is an integer literal the author computed, or an Int parameter of the shared def that declares the Query, supplied as a literal at each call site
+lift: model/lifter/testdata/lifts/Rejects.scala:829: Query totalKept asserts its total as fixture.rejects.Rejects$package.twoStates; a total is an integer literal the author computed, or an Int parameter of the shared def that declares the Query, supplied as a literal at each call site
+lift: model/lifter/testdata/lifts/Rejects.scala:832: Query totalNegative asserts the total -2; a total counts combinations, so it is at least 0
+lift: model/lifter/testdata/lifts/Rejects.scala:823: Query totaledTwice asserts its total twice: 2 and 2; a Query has one total
+lift: model/lifter/testdata/lifts/Rejects.scala:343: fixture.rejects.TwinA$.twin and fixture.rejects.TwinB$.twin are both named twin, and claims name a machine or composition by its name
 lift: model/lifter/testdata/lifts/Rejects.scala:19: fixture.rejects.Unbounded.notes is a list, which has no bound: a state holds messages in a channel's Inbox
-lift: model/lifter/testdata/lifts/Rejects.scala:407: fact lost has fields, so the evidence of its name alone does not say what confirms it: declare `evidence { case Dropped.lost(...) => ... }`
-lift: model/lifter/testdata/lifts/Rejects.scala:416: evidence names no line for fact lost, which has fields: its name alone does not say what confirms it, so write a line for all of it
-lift: model/lifter/testdata/lifts/Rejects.scala:318: a Query takes its name from the val that declares it, and no val declares this one: declare it with a val, or name it with `query("...")`
-lift: model/lifter/testdata/lifts/Rejects.scala:322: a Property takes its name from the val that declares it, and no val declares this one: declare it with a val, or name it with `.property("...")`
+lift: model/lifter/testdata/lifts/Rejects.scala:413: fact lost has fields, so the evidence of its name alone does not say what confirms it: declare `evidence { case Dropped.lost(...) => ... }`
+lift: model/lifter/testdata/lifts/Rejects.scala:422: evidence names no line for fact lost, which has fields: its name alone does not say what confirms it, so write a line for all of it
+lift: model/lifter/testdata/lifts/Rejects.scala:328: a Property takes its name from the val that declares it, and no val declares this one: declare it with a val, or name it with `.property("...")`
+lift: model/lifter/testdata/lifts/Rejects.scala:323: this Query of flips in secondFlips takes the name second.secondFlips.flips from its Scenario and Property, which another Query has: name it with `query("...")` or with a val
 lift: model/lifter/testdata/lifts/Rejects.scala:154: unrefined names the facts a refined machine sees, and declares no refinement
 lift: model/lifter/testdata/lifts/Rejects.scala:170: unrefinedOutcomes names the outcomes a refined machine sees, and declares no refinement
-lift: model/lifter/testdata/lifts/Rejects.scala:428: unrelatedRead pairs flips, a Property of second, with lampFlips, a Scenario of oneStart, and reads it through no refinement
-lift: model/lifter/testdata/lifts/Rejects.scala:388: Scenario eitherStart of twoStarts names no start, and twoStarts declares 2 starts: name the one it starts in with `starts`
-lift: model/lifter/testdata/lifts/Rejects.scala:399: Scenario eitherPair of startsPair names no start, and its member twoStarts declares 2 starts: name the one it starts in with `starts`
-lift: model/lifter/testdata/lifts/Rejects.scala:762: Query untotaled asserts no total: write `.total(n)` with n its static combination count, which model/README.md shows how to compute
-lift: model/lifter/testdata/lifts/Rejects.scala:748: UpTo[-1] has no values: a counter counts from 0 to a bound of at least 0
+lift: model/lifter/testdata/lifts/Rejects.scala:434: unrelatedRead pairs flips, a Property of second, with lampFlips, a Scenario of oneStart, and reads it through no refinement
+lift: model/lifter/testdata/lifts/Rejects.scala:394: Scenario eitherStart of twoStarts names no start, and twoStarts declares 2 starts: name the one it starts in with `starts`
+lift: model/lifter/testdata/lifts/Rejects.scala:405: Scenario eitherPair of startsPair names no start, and its member twoStarts declares 2 starts: name the one it starts in with `starts`
+lift: model/lifter/testdata/lifts/Rejects.scala:820: Query untotaled asserts no total: write `.total(n)` with n its static combination count, which model/README.md shows how to compute
+lift: model/lifter/testdata/lifts/Rejects.scala:806: UpTo[-1] has no values: a counter counts from 0 to a bound of at least 0
 lift: model/lifter/testdata/lifts/Rejects.scala:31: channel closed holds at most 0 messages; a channel holds at least one
+lift: model/lifter/testdata/lifts/Rejects.scala:656: a monitor is named by the val that declares it, not fixture.rejects.Rejects$package.flipWatch: declare it with a val and refer to it by value
+lift: model/lifter/testdata/lifts/Rejects.scala:668: unwatched is a monitor no lifted machine watches: name one the Query's machine lists under `monitors`
 lift: model/lifter/testdata/lifts/Rejects.scala:141: two monitors are named twice: fixture.rejects.Rejects$package$.twiceFirst and fixture.rejects.Rejects$package$.twiceSecond, and would share one Definition ID
-lift: model/lifter/testdata/lifts/Rejects.scala:633: whenAction names every class of an action, and own names a class of dim: name the action dim without its inputs
-lift: model/lifter/testdata/lifts/Rejects.scala:650: stays declares litAfterFlip about every step, so it takes no when: write the restriction into its predicates, or declare the Property with `holds`
-lift: model/lifter/testdata/lifts/Rejects.scala:588: left of spareless holds a fixture.rejects.Lamp, and first is a machine of fixture.rejects.Flag: a member is a machine of its field's type
-lift: model/lifter/testdata/lifts/Rejects.scala:587: withMember names spare, which no member of spareless fills: a selector names a member of the composition
-lift: model/lifter/testdata/lifts/Rejects.scala:592: left of standIn stands in for first, and oneStart refines no machine: declare the machine it stands in for with `refines` in oneStart
-lift: model/lifter/testdata/lifts/Rejects.scala:597: tapLamp binds no action flip, which sync flipBoth of flipPair pairs for left: a member's new machine binds the actions its syncs pair
+lift: model/lifter/testdata/lifts/Rejects.scala:691: whenAction names every class of an action, and own names a class of dim: name the action dim without its inputs
+lift: model/lifter/testdata/lifts/Rejects.scala:708: stays declares litAfterFlip about every step, so it takes no when: write the restriction into its predicates, or declare the Property with `holds`
+lift: model/lifter/testdata/lifts/Rejects.scala:594: left of spareless holds a fixture.rejects.Lamp, and first is a machine of fixture.rejects.Flag: a member is a machine of its field's type
+lift: model/lifter/testdata/lifts/Rejects.scala:593: withMember names spare, which no member of spareless fills: a selector names a member of the composition
+lift: model/lifter/testdata/lifts/Rejects.scala:598: left of standIn stands in for first, and oneStart refines no machine: declare the machine it stands in for with `refines` in oneStart
+lift: model/lifter/testdata/lifts/Rejects.scala:603: tapLamp binds no action flip, which sync flipBoth of flipPair pairs for left: a member's new machine binds the actions its syncs pair
 lift: model/lifter/testdata/lifts/Rejects.scala:294: fixture.rejects.Self$ pins its Definition IDs to itself, which changes none of them: pin an owner only where its declarations came from another
 lift: model/lifter/testdata/lifts/ScriptRejects.scala:88: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.standaloneactivity.Inputs.scheduleToStart is no field of the request
 lift: model/lifter/testdata/lifts/ScriptRejects.scala:41: onPath names at least one class whose path carries the command
