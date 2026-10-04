@@ -555,7 +555,7 @@ func TestAStateOfTheRightKeyButAnotherTypeIsOutsideTheDomain(t *testing.T) {
 }
 
 // ends, visible and visibleOutcomes each made to return 3: a located error, never a state that is no
-// end or a fact the product does not see. Build reads ends; the refinement Check reads reads the two
+// end or a fact the product does not see. Build reads ends; the refinement Check reads the two
 // others.
 func TestEndsAndVisibleMustReturnABoolean(t *testing.T) {
 	three := func(at *umpirespb.Expr) *umpirespb.Expr { return admLiteral(at, admIntValue(3)) }
