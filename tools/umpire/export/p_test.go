@@ -187,9 +187,7 @@ func TestPDisagreesOnAnotherMonitor(t *testing.T) {
 	needs(t, PTool)
 	reference := openNamed(t, "activity-system")
 	cases := map[string]func(m *umpirespb.Model){
-		"over means completed and timed out at once": func(m *umpirespb.Model) {
-			function(m, "temporal.standaloneactivity.System$package$.admissionOver").GetBody().GetBinary().Op = umpirespb.Binary_OP_AND
-		},
+		"over means completed and timed out at once": overAtOnce,
 		"violated when closed": func(m *umpirespb.Model) {
 			function(m, "temporal.standaloneactivity.System$package$.terminalFinality.violated").GetBody().GetBinary().GetRight().GetLiteral().GetEnum().Case = "closed"
 		},

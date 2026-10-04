@@ -723,7 +723,7 @@ func TestAPathThatEndsInAStepNothingConfirmsIsAnError(t *testing.T) {
 	var refused *cp.Error
 	require.ErrorAs(t, err, &refused)
 	require.Equal(t, &cp.Error{Definition: "temporal.activity.standalone.action.activityProtocol.workerStop", Construct: "evidence.action-unmapped"}, refused)
-	require.ErrorContains(t, err, "model/temporal/standaloneactivity/Claims.scala:")
+	require.ErrorContains(t, err, "model/temporal/standaloneactivity/Queries.scala:")
 }
 
 // A path that takes a class again with no kind of evidence that names the second step is an error of

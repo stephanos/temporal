@@ -390,10 +390,36 @@ that would share a name: two machines or compositions, two Properties or two Sce
 machine, two Queries, monitors, assumptions, holes, channels or realizations, Limits of one name
 with different bounds, and two actions one machine binds.
 
+A feature's files are split by kind, and its larger subjects into folders that repeat the same
+file names. The standalone activity is the example:
+
+```text
+standaloneactivity/
+  Model.scala         vocabulary, the product and protocol machines, their composition with the worker
+  Properties.scala    what those machines promise, and the promises the folders below declare
+  Queries.scala       the Scenarios (`Paths`), Limits and Queries that ask about them
+  Realization.scala   the realization
+  admission/          Model.scala, Properties.scala, Queries.scala: the record and its designs
+  compositions/       Model.scala, Properties.scala, Queries.scala: the designs over the task queue
+```
+
+`Model.scala` holds domains, actions, step functions, machines, compositions and monitors, since a
+machine names its monitors and the two files would otherwise initialize each other in a cycle.
+`Properties.scala` holds what the machines promise, the specification a reviewer reads on its own;
+`Queries.scala` holds Scenarios, Limits and Queries, since a Scenario means nothing except as the
+path of a Query. A folder is a subpackage (`package standaloneactivity; package admission`), so it
+reads its parent's vocabulary without imports and its `Model.scala` does not collide with the
+parent's. Each machine's vocabulary is an object of its own (`Product`, `Protocol`, `Admission`):
+its status sets, which steps and promises read by name (`Product.terminal`, `Protocol.held`), and
+its step functions, named after the actions they answer (`attemptStart ~> Protocol.attemptStart`).
+A file that declares Properties over a machine argument returns them as a bundle (below), so its
+Queries read them by field rather than declaring them.
+
 Two families in one package cannot both be package-level givens, since each file would see both.
 Each then lives in an object of its own, `object SystemFamily: given family: Family = …`, and each
 file imports the one its declarations take (`import SystemFamily.given`), as the standalone
-activity's Model.scala and System.scala do.
+activity's files do: its Model.scala declares `ActivityFamily` and `SystemFamily`, and the files of
+its `admission/` and `compositions/` import `SystemFamily.given`.
 
 An action, monitor, assumption, hole, channel with the actions it derives, or realization takes its
 Definition ID from its `val`'s owner and name. Declarations moved to a new owner keep their IDs
@@ -430,7 +456,7 @@ A composition is written with field selectors, and one derives from another by r
 ```scala
 val currentOverQueue = compose[OverQueue](_.activity -> currentRecord, _.queue -> dispatchQueue)
   .sync("dispatch", _.activity -> dispatch, _.queue -> enqueue)
-  .ends(s => admissionEnds(s.activity))
+  .ends(s => Admission.ends(s.activity))
 val staleOverQueue = currentOverQueue.withMember(_.activity -> staleRecord)
 val stale = currentOverQueue.scenario.actions(
   currentOverQueue.synced(_.activity -> dispatch),
@@ -454,7 +480,7 @@ with `enqueue`, `deliver` and `acknowledge`, and that imports nothing of any fea
 opaque contract `dispatchQueue`, the providers that refine it (`matchingQueue`, the lossy one and
 the violating controls), the laws `queueLaws` every provider is held to, and the provider Queries.
 A feature keeps its own syncs and its cross-entity claims, as the standalone activity's
-`System.scala` does. The queue is a bounded abstraction, not a general queue: one message at a
+`compositions/` does. The queue is a bounded abstraction, not a general queue: one message at a
 time, delivered at most twice before its acknowledgment. The detailed provider's table, and a
 design composed with it, has depth ten, so its free Queries run within `twelve`. Its declarations
 keep the family, Definition IDs and type names they had in the standalone activity's system

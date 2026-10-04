@@ -239,13 +239,13 @@ func playedKinds(t testing.TB, source *testpilotspb.Case, run *testpilotspb.Run,
 // the Case's declarations lift from it, one piece per step the path confirms by evidence, in path
 // order; the Contract reads it as the witness and is satisfied.
 //
-// The claims are read off Claims.scala and the protocol machine:
+// The claims are read off Properties.scala and the protocol machine:
 //
 //   - completion, pauseResume (`completes`) and nonRetryableFailure (`nonRetryableFails`) are
 //     satisfied: the status the Run ends on is recorded by the claim's class alone, every step of that
 //     class the machine has satisfies the claim, and an activity that is over takes no answer.
 //   - terminate (`terminated`) stays open: a control of an activity that is over is not found and
-//     records nothing (protocolControlStep), so a second terminate after the one the Run shows is a
+//     records nothing (Protocol.control), so a second terminate after the one the Run shows is a
 //     step of the claim's class that no evidence reports and on which the claim fails. The executions
 //     that explain the Run disagree.
 //   - retry (`retryCompletes`) stays open: the claim fixes the whole state the activity ends in, its

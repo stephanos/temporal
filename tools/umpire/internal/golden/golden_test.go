@@ -500,3 +500,42 @@ func TestUnsplitNamesTheFileAndRootADeclarationLeft(t *testing.T) {
 	require.Equal(t, "model/a/Other.scala", unsplit.GetMachines()[1].GetPosition().GetFile())
 	require.Equal(t, "model/b/Queue.scala", current.GetMachines()[0].GetPosition().GetFile(), "the current Model is kept")
 }
+
+func TestMergeNamesTheDirectoryOfAPosition(t *testing.T) {
+	cfg := Config{
+		Paths:  []Substitution{{Old: "old/a/Claims.scala", New: "model/a/Claims.scala"}, {Old: "old/b/Model.scala", New: "model/b/Model.scala"}},
+		Labels: []Substitution{{Old: "old model", New: "model"}},
+		Merges: []Substitution{{Old: "model/a/", New: "model/a"}},
+	}
+	original := &umpirespb.Model{Source: "old model", Machines: []*umpirespb.Machine{
+		{Name: "claim", Position: &umpirespb.Position{File: "old/a/Claims.scala", Line: 3}},
+		{Name: "other", Position: &umpirespb.Position{File: "old/b/Model.scala", Line: 4}},
+	}}
+	current := &umpirespb.Model{Source: "model", Machines: []*umpirespb.Machine{
+		{Name: "claim", Position: &umpirespb.Position{File: "model/a/admission/Properties.scala", Line: 3}},
+		{Name: "other", Position: &umpirespb.Position{File: "model/b/Model.scala", Line: 4}},
+	}}
+	moved, err := cfg.Match(original, current)
+	require.NoError(t, err)
+	require.True(t, moved)
+	require.Equal(t, "model/a/admission/Properties.scala", current.GetMachines()[0].GetPosition().GetFile(), "the current Model is kept")
+
+	left := proto.CloneOf(current)
+	left.Machines[0].Position.File = "model/b/Model.scala"
+	_, err = cfg.Match(original, left)
+	require.Error(t, err, "a declaration leaving the merged directory still fails")
+	entered := proto.CloneOf(current)
+	entered.Machines[1].Position.File = "model/a/Model.scala"
+	_, err = cfg.Match(original, entered)
+	require.Error(t, err, "a declaration entering the merged directory still fails")
+
+	cfg.Merges = []Substitution{{Old: "model/a", New: "model/a"}}
+	_, err = cfg.Match(original, current)
+	require.ErrorContains(t, err, "not a directory")
+}
+
+func TestMergeSourcesRewritesOnlyQuotedPathsUnderTheDirectory(t *testing.T) {
+	cfg := Config{Merges: []Substitution{{Old: "model/a/", New: "model/a"}}}
+	require.JSONEq(t, `{"path":"model/a","sub":"model/a","other":"model/b/Model.scala","note":"at model/a/Model.scala:3"}`,
+		string(cfg.MergeSources([]byte(`{"path":"model/a/Model.scala","sub":"model/a/admission/Queries.scala","other":"model/b/Model.scala","note":"at model/a/Model.scala:3"}`))))
+}

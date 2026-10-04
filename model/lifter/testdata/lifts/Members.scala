@@ -8,7 +8,7 @@
 // for the exact keys they select.
 package fixture.members
 
-import temporal.standaloneactivity.{six, standaloneActivity, stoppedBeforeRetry}
+import temporal.standaloneactivity.{six, standaloneActivity, Paths}
 import temporal.standaloneactivity.StandaloneActivityState
 import temporal.standaloneactivity.SystemFamily.given
 import temporal.worker.Phase as WorkerPhase
@@ -23,7 +23,7 @@ val startedByPollingWorkerTyped: Property[StandaloneActivityState] =
     (_.state.worker.phase == WorkerPhase.polling)
 
 val stoppedWorkerStartsNothingTyped: Query =
-  query verify startedByPollingWorkerTyped in stoppedBeforeRetry limits six total 3456
+  query verify startedByPollingWorkerTyped in Paths.stoppedBeforeRetry limits six total 3456
 
 // ### Separators in composed keys, and actions spelled alike in two members
 

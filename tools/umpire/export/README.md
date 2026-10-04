@@ -155,7 +155,7 @@ both backends.
 ## P: one monitor
 
 `Slice.PMonitor` writes `terminalFinality` as a P spec machine. It translates the monitor's IR
-functions into P functions: `finality`, `admissionOver`, and the monitor's `next` and `violated`.
+functions into P functions: `finality`, `terminal`, and the monitor's `next` and `violated`.
 A driver machine announces each event trace to it. The event carries the state before the step and
 the step's outcome and state.
 

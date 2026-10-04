@@ -1,0 +1,120 @@
+package temporal
+package standaloneactivity
+package compositions
+
+import umpire.*
+import taskqueue.*
+import admission.dispatch
+
+// ### Over the opaque queue
+
+def overQueueQueries(c: Composition[OverQueue]): Vector[Query] =
+  val claims = overQueueClaims(c)
+  val stale = c
+    .scenario("staleDeliveryAfterPause")
+    .actions(
+      c.synced(_.activity -> dispatch),
+      c.own(_.activity, control(Control.pause)),
+      c.synced(_.activity -> attemptStart)
+    )
+  val prePause = c
+    .scenario("admittedBeforePause")
+    .actions(
+      c.synced(_.activity -> dispatch),
+      c.synced(_.activity -> attemptStart),
+      c.own(_.activity, control(Control.pause))
+    )
+  val duplicate = c
+    .scenario("duplicateDelivery")
+    .actions(
+      c.synced(_.activity -> dispatch),
+      c.synced(_.activity -> attemptStart),
+      c.synced(_.activity -> attemptStart)
+    )
+  val any = c.scenario("any").free
+  Vector(
+    query(s"${c.name}.staleDelivery") verify claims.notPaused in stale limits three total 432,
+    query(s"${c.name}.admittedBeforePause") verify claims.notPaused in
+      prePause limits three total 432,
+    query(s"${c.name}.duplicateDelivery") verify claims.oneActive in
+      duplicate limits three total 432,
+    query(s"${c.name}.failedCommit") verify claims.failedCommit in duplicate limits three total 432,
+    query(s"${c.name}.any.notAdmittedWhilePaused") verify claims.notPaused in
+      any limits five total 9360,
+    query(s"${c.name}.any.atMostOneActive") verify claims.oneActive in any limits five total 9360,
+    query(s"${c.name}.any.terminalStays") verify claims.terminal in any limits five total 9360
+  )
+
+val currentOverQueueQueries: Vector[Query] = overQueueQueries(currentOverQueue)
+val staleOverQueueQueries: Vector[Query] = overQueueQueries(staleOverQueue)
+
+// ### Over the detailed queue
+
+/** `anyTotal` is the static combination count of its free `any` Queries. */
+def overMatchingQueries(c: Composition[OverMatching], anyTotal: Int): Vector[Query] =
+  val claims = overMatchingClaims(c)
+  val stale = c
+    .scenario("staleDeliveryAfterPause")
+    .actions(
+      c.synced(_.activity -> dispatch),
+      c.own(_.queue, addActivityTask),
+      c.own(_.queue, persistTask),
+      c.own(_.activity, control(Control.pause)),
+      c.synced(_.activity -> attemptStart)
+    )
+  val prePause = c
+    .scenario("admittedBeforePause")
+    .actions(
+      c.synced(_.activity -> dispatch),
+      c.own(_.queue, addActivityTask),
+      c.own(_.queue, persistTask),
+      c.synced(_.activity -> attemptStart),
+      c.own(_.activity, control(Control.pause))
+    )
+  // The answer to the poller is lost after the commit, so the persisted task is handed out again.
+  val lostAck = c
+    .scenario("deliveredAgainAfterLostAck")
+    .actions(
+      c.synced(_.activity -> dispatch),
+      c.own(_.queue, addActivityTask),
+      c.own(_.queue, persistTask),
+      c.synced(_.activity -> attemptStart),
+      c.own(_.queue, ackLoss),
+      c.synced(_.activity -> attemptStart)
+    )
+  // A crash after the admission commit and before the acknowledgment: history retries the sync match.
+  val crashAfterCommit = c
+    .scenario("crashAfterAdmissionCommit")
+    .actions(
+      c.synced(_.activity -> dispatch),
+      c.own(_.queue, addActivityTask),
+      c.own(_.queue, syncMatch),
+      c.synced(_.activity -> attemptStart),
+      c.own(_.queue, crash),
+      c.own(_.queue, addActivityTask),
+      c.own(_.queue, syncMatch),
+      c.synced(_.activity -> attemptStart)
+    )
+  val any = c.scenario("any").free
+  Vector(
+    query(s"${c.name}.staleDelivery") verify claims.notPaused in stale limits five total 5400,
+    query(s"${c.name}.admittedBeforePause") verify claims.notPaused in
+      prePause limits five total 5400,
+    query(s"${c.name}.deliveredAgainAfterLostAck") verify claims.oneActive in
+      lostAck limits seven total 6480,
+    query(s"${c.name}.crashAfterAdmissionCommit") verify claims.oneActive in
+      crashAfterCommit limits eight total 8640,
+    query(s"${c.name}.any.notAdmittedWhilePaused") verify claims.notPaused in
+      any limits twelve total anyTotal,
+    query(s"${c.name}.any.atMostOneActive") verify claims.oneActive in
+      any limits twelve total anyTotal,
+    query(s"${c.name}.any.terminalStays") verify claims.terminal in
+      any limits twelve total anyTotal
+  )
+
+val currentOverMatchingQueries: Vector[Query] =
+  overMatchingQueries(currentOverMatching, anyTotal = 233280)
+val staleOverMatchingQueries: Vector[Query] =
+  overMatchingQueries(staleOverMatching, anyTotal = 233280)
+val currentOverLossyMatchingQueries: Vector[Query] =
+  overMatchingQueries(currentOverLossyMatching, anyTotal = 246240)

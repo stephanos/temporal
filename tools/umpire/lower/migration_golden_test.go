@@ -608,17 +608,28 @@ func compareLoweredCases(cfg golden.Config, expected, actual map[string][]byte, 
 				return fmt.Errorf("no golden %s", name)
 			}
 			var err error
+			current := actual[name]
+			// A path under a merged directory names the directory on both sides, and a Case whose
+			// paths that changes is identified as putCase identifies it.
 			if file != "identity.json" {
-				original = cfg.RenameSources(original)
-			} else if renamed := cfg.RenameSources(expected[dir+"/case.json"]); !bytes.Equal(renamed, expected[dir+"/case.json"]) {
-				if original, err = renamedIdentity(renamed); err != nil {
-					return fmt.Errorf("%s: %w", name, err)
+				original = cfg.MergeSources(cfg.RenameSources(original))
+				current = cfg.MergeSources(current)
+			} else {
+				if renamed := cfg.MergeSources(cfg.RenameSources(expected[dir+"/case.json"])); !bytes.Equal(renamed, expected[dir+"/case.json"]) {
+					if original, err = renamedIdentity(renamed); err != nil {
+						return fmt.Errorf("%s: %w", name, err)
+					}
+				}
+				if merged := cfg.MergeSources(actual[dir+"/case.json"]); !bytes.Equal(merged, actual[dir+"/case.json"]) {
+					if current, err = renamedIdentity(merged); err != nil {
+						return fmt.Errorf("%s: %w", name, err)
+					}
 				}
 			}
 			if want[name], err = cfg.Projection.Case(kind, original, wantID); err != nil {
 				return fmt.Errorf("%s: %w", name, err)
 			}
-			if got[name], err = cfg.Projection.Case(kind, actual[name], id); err != nil {
+			if got[name], err = cfg.Projection.Case(kind, current, id); err != nil {
 				return fmt.Errorf("%s: %w", name, err)
 			}
 		}
@@ -633,7 +644,7 @@ func compareLoweredCases(cfg golden.Config, expected, actual map[string][]byte, 
 	return golden.Compare(want, got)
 }
 
-// renamedIdentity is the identity putCase records for a golden Case whose source paths were renamed.
+// renamedIdentity is the identity putCase records for a Case whose source paths were renamed or merged.
 func renamedIdentity(encoded []byte) ([]byte, error) {
 	identity, err := recordedrun.CaseIdentity(encoded)
 	if err != nil {

@@ -154,6 +154,80 @@
     {
       "old": "temporal.standaloneactivity.System$package$.storageLossQuery",
       "new": "temporal.taskqueue.Queries$package$.storageLossQuery"
+    },
+    {
+      "old": "temporal.standaloneactivity.Claims$package$.functionalQueries",
+      "new": "temporal.standaloneactivity.Functional$.all"
+    },
+    {
+      "old": "temporal.standaloneactivity.Claims$package$.terminalHolds",
+      "new": "temporal.standaloneactivity.Queries$package$.terminalHolds"
+    },
+    {
+      "old": "temporal.standaloneactivity.Claims$package$.pauseHolds",
+      "new": "temporal.standaloneactivity.Queries$package$.pauseHolds"
+    },
+    {
+      "old": "temporal.standaloneactivity.Claims$package$.cancelRequest",
+      "new": "temporal.standaloneactivity.Queries$package$.cancelRequest"
+    },
+    {
+      "old": "temporal.standaloneactivity.Claims$package$.stoppedWorkerStartsNothing",
+      "new": "temporal.standaloneactivity.Queries$package$.stoppedWorkerStartsNothing"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.currentQueries",
+      "new": "temporal.standaloneactivity.admission.Queries$package$.currentQueries"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.staleQueries",
+      "new": "temporal.standaloneactivity.admission.Queries$package$.staleQueries"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.heldStaleDelivery",
+      "new": "temporal.standaloneactivity.admission.Queries$package$.heldStaleDelivery"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.lostAdmissionResponseQuery",
+      "new": "temporal.standaloneactivity.admission.Queries$package$.lostAdmissionResponseQuery"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.competingTimers",
+      "new": "temporal.standaloneactivity.Queries$package$.competingTimers"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.currentOverQueueQueries",
+      "new": "temporal.standaloneactivity.compositions.Queries$package$.currentOverQueueQueries"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.staleOverQueueQueries",
+      "new": "temporal.standaloneactivity.compositions.Queries$package$.staleOverQueueQueries"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.currentOverMatchingQueries",
+      "new": "temporal.standaloneactivity.compositions.Queries$package$.currentOverMatchingQueries"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.staleOverMatchingQueries",
+      "new": "temporal.standaloneactivity.compositions.Queries$package$.staleOverMatchingQueries"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.currentOverLossyMatchingQueries",
+      "new": "temporal.standaloneactivity.compositions.Queries$package$.currentOverLossyMatchingQueries"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.currentOverForgetful",
+      "new": "temporal.standaloneactivity.compositions.Model$package$.currentOverForgetful"
+    },
+    {
+      "old": "temporal.standaloneactivity.System$package$.currentOverVolatile",
+      "new": "temporal.standaloneactivity.compositions.Model$package$.currentOverVolatile"
+    }
+  ],
+  "source_path_merges": [
+    {
+      "old": "model/temporal/standaloneactivity/",
+      "new": "model/temporal/standaloneactivity"
     }
   ],
   "source_label_substitutions": [

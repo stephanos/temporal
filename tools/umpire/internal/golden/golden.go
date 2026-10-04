@@ -45,7 +45,15 @@ type Config struct {
 	Splits []Substitution `json:"source_path_splits"`
 	// RootMoves are the roots whose declarations moved to another owner with them, from the frozen
 	// root to the current one: a current Model's source names each by its frozen root.
-	RootMoves  []Substitution `json:"source_root_moves"`
+	RootMoves []Substitution `json:"source_root_moves"`
+	// Merges are the feature directories whose declarations moved between their own files after the
+	// mapped goldens were captured, from the directory (ending in "/") to the one name every position
+	// under it compares as, in the mapped original and in the current Model alike. A feature
+	// reorganized by subject and declaration kind mixes declarations of several frozen files in one
+	// file, which Splits cannot name. Which file of its directory a declaration sits in is read by no
+	// table, Definition ID, fingerprint, answer or Case, and the original-baseline harness drops
+	// positions entirely; a declaration moving to another feature or fixture still fails.
+	Merges     []Substitution `json:"source_path_merges"`
 	Projection Projection     `json:"projection"`
 }
 
@@ -136,6 +144,16 @@ func (p Projection) Case(kind string, encoded []byte, id string) ([]byte, error)
 func (c Config) RenameSources(encoded []byte) []byte {
 	for _, r := range c.Renames {
 		encoded = bytes.ReplaceAll(encoded, []byte(strconv.Quote(r.Old)), []byte(strconv.Quote(r.New)))
+	}
+	return encoded
+}
+
+// MergeSources applies Merges to the source paths a lowered Case, Program or Contract names: each is a
+// JSON string that is a path under a merged directory, which becomes the directory's name.
+func (c Config) MergeSources(encoded []byte) []byte {
+	for _, m := range c.Merges {
+		quoted := regexp.MustCompile(`"` + regexp.QuoteMeta(m.Old) + `[\w./-]*"`)
+		encoded = quoted.ReplaceAllLiteral(encoded, []byte(strconv.Quote(m.New)))
 	}
 	return encoded
 }
@@ -323,6 +341,12 @@ func (c Config) Match(original, current *umpirespb.Model) (bool, error) {
 	if current, err = c.Unsplit(current); err != nil {
 		return false, err
 	}
+	if mapped, err = c.Merged(mapped); err != nil {
+		return false, err
+	}
+	if current, err = c.Merged(current); err != nil {
+		return false, err
+	}
 	if proto.Equal(mapped, current) {
 		return true, nil
 	}
@@ -374,6 +398,30 @@ func (c Config) Unsplit(current *umpirespb.Model) (*umpirespb.Model, error) {
 		for _, s := range c.Splits {
 			if p.Get(field).String() == s.Old {
 				p.Set(field, protoreflect.ValueOfString(s.New))
+				break
+			}
+		}
+		return nil
+	})
+	return m, err
+}
+
+// Merged gives m with every position in a merged directory naming that directory.
+func (c Config) Merged(m *umpirespb.Model) (*umpirespb.Model, error) {
+	for _, merge := range c.Merges {
+		if !strings.HasSuffix(merge.Old, "/") {
+			return nil, fmt.Errorf("source path merge of %q, which is not a directory", merge.Old)
+		}
+	}
+	if len(c.Merges) == 0 {
+		return m, nil
+	}
+	m = proto.CloneOf(m)
+	err := positions(m.ProtoReflect(), func(p protoreflect.Message) error {
+		field := p.Descriptor().Fields().ByName("file")
+		for _, merge := range c.Merges {
+			if strings.HasPrefix(p.Get(field).String(), merge.Old) {
+				p.Set(field, protoreflect.ValueOfString(merge.New))
 				break
 			}
 		}

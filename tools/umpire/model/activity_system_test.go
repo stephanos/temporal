@@ -1,6 +1,6 @@
 package model
 
-// The standalone activity's system contract, lifted from model/temporal/standaloneactivity/System.scala
+// The standalone activity's system contract, lifted from model/temporal/standaloneactivity/{admission,compositions}
 // and the shared task queue it composes, model/temporal/taskqueue, into ir/activity-system.json and
 // checked here through Check alone: the provider checks below are the queue's own. What each test expects is the
 // trace oracle of model/specimens/activity.md it names, in the keys of the lifted Model: the

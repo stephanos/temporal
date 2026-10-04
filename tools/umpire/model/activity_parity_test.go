@@ -1,12 +1,15 @@
 package model
 
 import (
+	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 )
 
 // What the product machine disables is what the baseline pins by hand: a canceled answer without a
@@ -35,30 +38,55 @@ func TestActivityEvidenceIsInCatalogOrder(t *testing.T) {
 	}
 }
 
+// The activity's claims are declared in Properties.scala and Queries.scala, beside the system
+// contract's that are written there once: the scheduleToClose deadline's, the competing timers', and
+// the promises each admission design and composition declares. Every declaration there is lifted,
+// into the activity root or the system contract's, and every claim the activity root lifts is
+// declared there.
 func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
-	source, err := os.ReadFile(filepath.Join("..", "..", "..", "model", "temporal", "standaloneactivity", "Claims.scala"))
-	require.NoError(t, err)
+	dir := filepath.Join("..", "..", "..", "model", "temporal", "standaloneactivity")
+	files := []string{"Properties.scala", "Queries.scala"}
+	var source []byte
+	at := map[string]bool{}
+	for _, file := range files {
+		text, err := os.ReadFile(filepath.Join(dir, file))
+		require.NoError(t, err)
+		source = append(append(source, text...), '\n')
+		at["model/temporal/standaloneactivity/"+file] = true
+	}
 	declared := []string{}
 	for _, match := range regexp.MustCompile(`(?:\.|\b)(property|scenario|query)\(\s*"([^"\n]+)"`).FindAllStringSubmatch(string(source), -1) {
 		declared = append(declared, match[1]+" "+match[2])
 	}
-	// A declaration that states no name is named after its val.
-	for _, match := range regexp.MustCompile(`(?m)^val (\w+)\s*=\s*\(?\s*(?:(query)\b|\w+\.(property|scenario)\b)`).FindAllStringSubmatch(string(source), -1) {
+	// A declaration that states no name is named after its val, which may be a member of an object.
+	for _, match := range regexp.MustCompile(`(?m)^[ \t]*val (\w+)\s*=\s*\(?\s*(?:(query)\b|\w+\.(property|scenario)\b)`).FindAllStringSubmatch(string(source), -1) {
 		declared = append(declared, match[2]+match[3]+" "+match[1])
 	}
-	m := activityModel(t)
-	var lifted []string
-	for _, p := range m.GetProperties() {
-		lifted = append(lifted, "property "+p.GetName())
-	}
-	for _, s := range m.GetScenarios() {
-		lifted = append(lifted, "scenario "+s.GetName())
-	}
-	for _, q := range m.GetQueries() {
-		lifted = append(lifted, "query "+q.GetName())
+	system, err := Load(activitySystemIR)
+	require.NoError(t, err)
+	lifted := map[string]bool{}
+	for _, m := range []*umpirespb.Model{activityModel(t), system} {
+		// The system contract's claims declared elsewhere, in admission/, compositions/ and the task
+		// queue, are not these files'.
+		here := func(p *umpirespb.Position) bool { return m != system || at[p.GetFile()] }
+		for _, p := range m.GetProperties() {
+			if here(p.GetPosition()) {
+				lifted["property "+p.GetName()] = true
+			}
+		}
+		for _, s := range m.GetScenarios() {
+			if here(s.GetPosition()) {
+				lifted["scenario "+s.GetName()] = true
+			}
+		}
+		for _, q := range m.GetQueries() {
+			if here(q.GetPosition()) {
+				lifted["query "+q.GetName()] = true
+			}
+		}
 	}
 	require.NotEmpty(t, declared)
-	require.ElementsMatch(t, declared, lifted)
+	require.ElementsMatch(t, declared, slices.Collect(maps.Keys(lifted)))
 }
 
 func TestActivityTablesAccountForEveryPair(t *testing.T) {

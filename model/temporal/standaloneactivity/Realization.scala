@@ -35,6 +35,8 @@ import temporal.server.api.testpilot.v1.{
 }
 
 import Timeout.{expires, unset}
+import worker.workerStop
+import admission.{admissionResponseLoss, dispatch, heldAdmission}
 
 object ActivityRealization:
   private val workflowServiceRole = "temporal.workflow-service"

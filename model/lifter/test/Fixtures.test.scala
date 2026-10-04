@@ -898,14 +898,15 @@ class Fixtures extends munit.FunSuite:
   // separators, over two members that bind actions spelled alike.
   concurrently("typed members, syncs, replaces, withMember, synced and own keep the composed keys"):
     import com.fasterxml.jackson.databind.JsonNode
-    val system = "temporal.standaloneactivity.System$package$."
+    val queries = "temporal.standaloneactivity.compositions.Queries$package$."
+    val models = "temporal.standaloneactivity.compositions.Model$package$."
     val overQueue = Seq("currentOverQueue", "staleOverQueue")
     val overMatching = Seq("currentOverMatching", "staleOverMatching", "currentOverLossyMatching")
     val unqueried = Seq("currentOverForgetful", "currentOverVolatile")
-    val roots = (overQueue ++ overMatching).map(d => s"$system${d}Queries") ++
-      unqueried.map(system + _) ++ Seq(
+    val roots = (overQueue ++ overMatching).map(d => s"$queries${d}Queries") ++
+      unqueried.map(models + _) ++ Seq(
         "stoppedWorkerStartsNothingTyped",
-        "temporal.standaloneactivity.Claims$package$.stoppedWorkerStartsNothing",
+        "temporal.standaloneactivity.Queries$package$.stoppedWorkerStartsNothing",
         "switchQueries"
       )
     val (model, _, property) = declarations("members", roots)

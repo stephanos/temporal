@@ -30,21 +30,21 @@ object Roots:
   private val activity = Seq(
     "temporal.standaloneactivity.Model$package$.standaloneActivity",
     "temporal.standaloneactivity.Model$package$.activityProduct",
-    "temporal.standaloneactivity.Claims$package$.functionalQueries",
-    "temporal.standaloneactivity.Claims$package$.terminalHolds",
-    "temporal.standaloneactivity.Claims$package$.pauseHolds",
-    "temporal.standaloneactivity.Claims$package$.cancelRequest",
-    "temporal.standaloneactivity.Claims$package$.stoppedWorkerStartsNothing",
+    "temporal.standaloneactivity.Functional$.all",
+    "temporal.standaloneactivity.Queries$package$.terminalHolds",
+    "temporal.standaloneactivity.Queries$package$.pauseHolds",
+    "temporal.standaloneactivity.Queries$package$.cancelRequest",
+    "temporal.standaloneactivity.Queries$package$.stoppedWorkerStartsNothing",
     "temporal.standaloneactivity.ActivityRealization$.standalone"
   )
 
   // Its system contract, the admission designs, and the shared task queue's providers it composes:
   // ir/activity-system.json. A composition no Query runs over is a root of its own.
   private val activitySystem = Seq(
-    "currentQueries",
-    "staleQueries",
-    "competingTimers"
-  ).map("temporal.standaloneactivity.System$package$." + _) ++ Seq(
+    "temporal.standaloneactivity.admission.Queries$package$.currentQueries",
+    "temporal.standaloneactivity.admission.Queries$package$.staleQueries",
+    "temporal.standaloneactivity.Queries$package$.competingTimers"
+  ) ++ Seq(
     "matchingQueueQueries",
     "forgetfulQueueQueries",
     "volatileQueueQueries",
@@ -55,17 +55,18 @@ object Roots:
     "staleOverQueueQueries",
     "currentOverMatchingQueries",
     "staleOverMatchingQueries",
-    "currentOverLossyMatchingQueries",
+    "currentOverLossyMatchingQueries"
+  ).map("temporal.standaloneactivity.compositions.Queries$package$." + _) ++ Seq(
     "currentOverForgetful",
     "currentOverVolatile"
-  ).map("temporal.standaloneactivity.System$package$." + _)
+  ).map("temporal.standaloneactivity.compositions.Model$package$." + _)
 
   // The held race a server is run through, and the realization that runs it: ir/activity-race.json.
   // It is a Model of its own, so the system contract's Queries are the ones its checkers were given.
   private val activityRace = Seq(
-    "temporal.standaloneactivity.System$package$.heldStaleDelivery",
+    "temporal.standaloneactivity.admission.Queries$package$.heldStaleDelivery",
     "temporal.standaloneactivity.ActivityRealization$.heldDelivery",
-    "temporal.standaloneactivity.System$package$.lostAdmissionResponseQuery",
+    "temporal.standaloneactivity.admission.Queries$package$.lostAdmissionResponseQuery",
     "temporal.standaloneactivity.ActivityRealization$.lostAdmissionResponse"
   )
 

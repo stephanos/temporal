@@ -437,13 +437,35 @@ func locationProjection(cfg golden.Config) func(string) string {
 	for _, split := range cfg.Splits {
 		current[split.Old] = current[split.New]
 	}
+	// A path under a merged directory, listed or not, names the directory, as Match compares it.
+	merged := func(path string) (string, bool) {
+		for _, merge := range cfg.Merges {
+			if strings.HasPrefix(path, merge.Old) {
+				return merge.New, true
+			}
+		}
+		return path, false
+	}
+	for from, to := range current {
+		current[from], _ = merged(to)
+	}
 	files := slices.SortedFunc(maps.Keys(current), func(x, y string) int { return cmp.Or(len(y)-len(x), strings.Compare(x, y)) })
 	for i := range files {
 		files[i] = regexp.QuoteMeta(files[i])
 	}
+	for _, merge := range cfg.Merges {
+		files = append(files, regexp.QuoteMeta(merge.Old)+`[\w./-]*\w`)
+	}
 	located := regexp.MustCompile(`(` + strings.Join(files, "|") + `)(?::[0-9]+)*`)
 	return func(s string) string {
-		return located.ReplaceAllStringFunc(s, func(at string) string { return current[located.FindStringSubmatch(at)[1]] })
+		return located.ReplaceAllStringFunc(s, func(at string) string {
+			path := located.FindStringSubmatch(at)[1]
+			if to, ok := current[path]; ok {
+				return to
+			}
+			to, _ := merged(path)
+			return to
+		})
 	}
 }
 
