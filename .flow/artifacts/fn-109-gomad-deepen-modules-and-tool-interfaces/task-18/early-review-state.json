@@ -1,0 +1,8 @@
+{
+  "task_title": "Early read-only filesystem creation-time owner correctness review",
+  "task_body": "Compare stable task18 filesystem production owners against actual dirty task17 baseline at /tmp/gomad-task18.U1uS6Z/baseline-overlay. Review ownership, operation ordering, local mapping accounting and alias lifetime, process semantic preservation, FS concrete indexes and shared volume boundaries. Tests and descriptor are still evolving and outside this early production review.",
+  "acceptance": "Return concrete Critical/Important/Minor source findings with paths and baseline comparison, reviewed source hashes and stability caveats. No edits, artifacts, tests, builds, generation, Flow/git changes, bridges or native acceptance claims. Native and frozen-final review remain outstanding.",
+  "touches_count": 0,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

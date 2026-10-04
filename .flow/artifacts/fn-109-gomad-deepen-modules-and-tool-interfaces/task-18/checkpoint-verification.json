@@ -1,0 +1,866 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.18",
+  "scope": "bounded source checkpoint for conductor-only staging",
+  "base_head": "9c0438b314b5a8368b1067a02abb865c24077f70",
+  "archive_sha256": "d643dab95e5137e20d0fc63f8414215399a8036cbac0f1681237bd6c6a22daa4",
+  "archive_paths": [
+    "tools/gomad3",
+    "tools/gomad3sim",
+    "go.mod",
+    "go.sum",
+    "tools/gomad3integration/qualification/tests.generator.json",
+    "tools/gomad3integration/qualification/tests.json",
+    "tests/acquire_shard_test.go",
+    "tests/activity_api_batch_cancel_test.go",
+    "tests/activity_api_batch_delete_test.go",
+    "tests/activity_api_batch_reset_test.go",
+    "tests/activity_api_batch_security_test.go",
+    "tests/activity_api_batch_terminate_test.go",
+    "tests/activity_api_batch_unpause_test.go",
+    "tests/activity_api_batch_update_options_test.go",
+    "tests/activity_api_pause_test.go",
+    "tests/activity_api_reset_test.go",
+    "tests/activity_api_rules_test.go",
+    "tests/activity_api_update_test.go",
+    "tests/activity_driver_test.go",
+    "tests/activity_metrics_parity_test.go",
+    "tests/activity_parity_test.go",
+    "tests/activity_standalone_test.go",
+    "tests/activity_test.go",
+    "tests/add_tasks_test.go",
+    "tests/admin_batch_refresh_workflow_tasks_test.go",
+    "tests/admin_test.go",
+    "tests/advanced_visibility_test.go",
+    "tests/archival_test.go",
+    "tests/callbacks_migration_test.go",
+    "tests/callbacks_test.go",
+    "tests/cancel_workflow_test.go",
+    "tests/chasm_test.go",
+    "tests/child_workflow_test.go",
+    "tests/client_data_converter_test.go",
+    "tests/client_misc_test.go",
+    "tests/comp_callbacks_test.go",
+    "tests/continue_as_new_test.go",
+    "tests/cron_test.go",
+    "tests/describe_test.go",
+    "tests/dlq_test.go",
+    "tests/eager_activity_dispatch_test.go",
+    "tests/eager_workflow_start_test.go",
+    "tests/gethistory_test.go",
+    "tests/history_node_cleanup_test.go",
+    "tests/http_api_test.go",
+    "tests/links_test.go",
+    "tests/max_buffered_event_test.go",
+    "tests/namespace_interceptor_test.go",
+    "tests/namespace_poller_limits_test.go",
+    "tests/namespace_test.go",
+    "tests/nexus_api_test.go",
+    "tests/nexus_api_validation_test.go",
+    "tests/nexus_endpoint_test.go",
+    "tests/nexus_matching_test.go",
+    "tests/nexus_otel_test.go",
+    "tests/nexus_standalone_callbacks_test.go",
+    "tests/nexus_standalone_test.go",
+    "tests/nexus_workflow_query_test.go",
+    "tests/nexus_workflow_signal_test.go",
+    "tests/nexus_workflow_test.go",
+    "tests/nexus_workflow_update_test.go",
+    "tests/nil_search_attribute_test.go",
+    "tests/partition_scaling_test.go",
+    "tests/pause_workflow_execution_test.go",
+    "tests/poller_scaling_test.go",
+    "tests/premature_eos_test.go",
+    "tests/priority_fairness_test.go",
+    "tests/purge_dlq_tasks_api_test.go",
+    "tests/query_workflow_test.go",
+    "tests/relay_task_test.go",
+    "tests/reset_workflow_test.go",
+    "tests/schedule_migration_test.go",
+    "tests/schedule_test.go",
+    "tests/schedule_workflow_pause_interaction_test.go",
+    "tests/signal_with_start_from_workflow_test.go",
+    "tests/signal_workflow_test.go",
+    "tests/sizelimit_test.go",
+    "tests/stickytq_test.go",
+    "tests/task_queue_stats_test.go",
+    "tests/task_queue_test.go",
+    "tests/timeskipping_fast_forward_test.go",
+    "tests/timeskipping_propagation_test.go",
+    "tests/timeskipping_test.go",
+    "tests/tls_test.go",
+    "tests/transient_task_test.go",
+    "tests/update_workflow_sdk_test.go",
+    "tests/update_workflow_test.go",
+    "tests/user_metadata_test.go",
+    "tests/user_timers_test.go",
+    "tests/versioning_3_one_time_override_test.go",
+    "tests/versioning_3_query_test.go",
+    "tests/versioning_3_suite_test.go",
+    "tests/versioning_3_test.go",
+    "tests/versioning_test.go",
+    "tests/worker_commands_task_test.go",
+    "tests/worker_deployment_helpers_test.go",
+    "tests/worker_deployment_test.go",
+    "tests/worker_deployment_version_test.go",
+    "tests/worker_registry_test.go",
+    "tests/workflow_alias_search_attribute_test.go",
+    "tests/workflow_api_batch_cancel_test.go",
+    "tests/workflow_api_batch_delete_test.go",
+    "tests/workflow_api_batch_reset_test.go",
+    "tests/workflow_api_batch_signal_test.go",
+    "tests/workflow_api_batch_terminate_test.go",
+    "tests/workflow_api_batch_update_options_test.go",
+    "tests/workflow_buffered_events_test.go",
+    "tests/workflow_completion_pagination_test.go",
+    "tests/workflow_delete_execution_test.go",
+    "tests/workflow_failures_test.go",
+    "tests/workflow_memo_test.go",
+    "tests/workflow_reset_test.go",
+    "tests/workflow_reset_with_child_test.go",
+    "tests/workflow_task_reported_problems_test.go",
+    "tests/workflow_task_test.go",
+    "tests/workflow_test.go",
+    "tests/workflow_timer_test.go",
+    "tests/workflow_type_encoding_test.go",
+    "tests/workflow_visibility_test.go"
+  ],
+  "scratch": "/tmp/fn109-task18-checkpoint.wjz9pdom",
+  "module_root": "/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3",
+  "helper_sha256": "7ce1f9afb053c643b3e9c60629645ca37ce47fd5d5854dc358a23c7483260de4",
+  "retained_manifest_sha256": "1d42629bd964f696412940bf75619878c965b07f54cfe693f7eb31e91d5861be",
+  "retained_source_hashes_matched": 14,
+  "changed_count": 14,
+  "changed_source_paths": [
+    "tools/gomad3/Makefile",
+    "tools/gomad3/filesystem_handles_ownership_test.go",
+    "tools/gomad3/runner/internal/execution/simulation_root_integration_test.go",
+    "tools/gomad3/simulation_gate_selection_test.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/export_test.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles_test.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/local_handles.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_handles_test.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/volume.go",
+    "tools/gomad3/toolchain/version/version.json",
+    "tools/gomad3sim/filesystem_handles_toolchain_test.go"
+  ],
+  "source_origins": {
+    "tools/gomad3/filesystem_handles_ownership_test.go": {
+      "input": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/filesystem_handles_ownership_test.go",
+      "sha256": "67e23f90d84ee19c00884d4277b80641079d96580c80e97950de572ac6f87257",
+      "origin": "full-hash-verified current task18 bytes"
+    },
+    "tools/gomad3/Makefile": {
+      "input": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/Makefile",
+      "sha256": "a25443d9c1adaefe838a39809d8deeffd6323a0916f4ac3a52a1083da598a200",
+      "origin": "full-hash-verified current task18 bytes"
+    },
+    "tools/gomad3/simulation_gate_selection_test.go": {
+      "input": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/simulation_gate_selection_test.go",
+      "sha256": "2b830d04d7ea3c3ad70cc33b6f9a11e96cdde4dd0ad5995f644e04429208f979",
+      "origin": "full-hash-verified current task18 bytes"
+    },
+    "tools/gomad3/runner/internal/execution/simulation_root_integration_test.go": {
+      "input": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/runner/internal/execution/simulation_root_integration_test.go",
+      "sha256": "02544185057eff83b65b288b6062c374376b3a10137dc526405c222e052ec682",
+      "origin": "full-hash-verified current task18 bytes"
+    },
+    "tools/gomad3/toolchain/version/version.json": {
+      "input": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/toolchain/version/version.json",
+      "sha256": "94358dc0d221c0c0ba0e4f487303b0e9acd46afa212d24091ab44b124f276779",
+      "origin": "full-hash-verified current task18 bytes"
+    },
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go": {
+      "input": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go",
+      "sha256": "17a6163daca49c776abee8eac53aca8f68e47f2ef09d51a2364f83bf52d13453",
+      "origin": "full-hash-verified current task18 bytes"
+    },
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles.go": {
+      "input": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles.go",
+      "sha256": "5b95fb83701ca10dbb8af5c53af8e9c7997cdddf8b78384a222bb585bf9de9d0",
+      "origin": "full-hash-verified current task18 bytes"
+    },
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/local_handles.go": {
+      "input": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/local_handles.go",
+      "sha256": "9e74dcd7201572f4618e2933b1f272439c24c478ce5e92483ca0de00e742eb98",
+      "origin": "full-hash-verified current task18 bytes"
+    },
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go": {
+      "input": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go",
+      "sha256": "983194fedffe08a092ee14e113149472a91e65c2576b1806934e22b02d32e4c2",
+      "origin": "full-hash-verified current task18 bytes"
+    },
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/volume.go": {
+      "input": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/volume.go",
+      "sha256": "efd241e55910a4006df26db847a03d90f7b44b35e5d4df357367b4b60902afa1",
+      "origin": "full-hash-verified current task18 bytes"
+    },
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/export_test.go": {
+      "input": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/export_test.go",
+      "sha256": "8f04c57217c92ed2e09e3fff4268a2c369267a55ffc9d31c48f18fca77ce3220",
+      "origin": "full-hash-verified current task18 bytes"
+    },
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles_test.go": {
+      "input": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles_test.go",
+      "sha256": "7b99ae8033ee7a94a63d7227e20e612f6f94b175b87978a1b1e87ae3716a268b",
+      "origin": "full-hash-verified current task18 bytes"
+    },
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_handles_test.go": {
+      "input": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_handles_test.go",
+      "sha256": "801685588aa34bc16ff361936149726492470a167a029cb2dc88dd5c22db1ff5",
+      "origin": "full-hash-verified current task18 bytes"
+    },
+    "tools/gomad3sim/filesystem_handles_toolchain_test.go": {
+      "input": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3sim/filesystem_handles_toolchain_test.go",
+      "sha256": "408bab9e04f15ccb6ded28380e5bad236f901b13a4071dd0e9d4d2e237d5e70b",
+      "origin": "full-hash-verified current task18 bytes"
+    }
+  },
+  "delta": [
+    {
+      "path": "tools/gomad3/Makefile",
+      "before_sha256": "28318e32d3360cfcd644298944e864e704670ac80f55c550d32461a55afc8497",
+      "after_sha256": "a25443d9c1adaefe838a39809d8deeffd6323a0916f4ac3a52a1083da598a200"
+    },
+    {
+      "path": "tools/gomad3/filesystem_handles_ownership_test.go",
+      "before_sha256": null,
+      "after_sha256": "67e23f90d84ee19c00884d4277b80641079d96580c80e97950de572ac6f87257"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/execution/simulation_root_integration_test.go",
+      "before_sha256": "bc4c86b6210232026f0eb94edbee209fa9817a62b66d58a2da7b627e9bbbf833",
+      "after_sha256": "02544185057eff83b65b288b6062c374376b3a10137dc526405c222e052ec682"
+    },
+    {
+      "path": "tools/gomad3/simulation_gate_selection_test.go",
+      "before_sha256": "57febc14101facc1b4db77ba3f8dba55669e51036e23790eb1372c27dec38bbb",
+      "after_sha256": "2b830d04d7ea3c3ad70cc33b6f9a11e96cdde4dd0ad5995f644e04429208f979"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/export_test.go",
+      "before_sha256": "2b9f7b7cb5643ef2de13fdf73bdb85cafb3962c539bc9f1b9d0e8adb22889606",
+      "after_sha256": "8f04c57217c92ed2e09e3fff4268a2c369267a55ffc9d31c48f18fca77ce3220"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go",
+      "before_sha256": "87b4413f203c404935a789b16774408978c847a84d79358c4d79cc3306e583e1",
+      "after_sha256": "17a6163daca49c776abee8eac53aca8f68e47f2ef09d51a2364f83bf52d13453"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles.go",
+      "before_sha256": null,
+      "after_sha256": "5b95fb83701ca10dbb8af5c53af8e9c7997cdddf8b78384a222bb585bf9de9d0"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles_test.go",
+      "before_sha256": null,
+      "after_sha256": "7b99ae8033ee7a94a63d7227e20e612f6f94b175b87978a1b1e87ae3716a268b"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/local_handles.go",
+      "before_sha256": null,
+      "after_sha256": "9e74dcd7201572f4618e2933b1f272439c24c478ce5e92483ca0de00e742eb98"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_handles_test.go",
+      "before_sha256": null,
+      "after_sha256": "801685588aa34bc16ff361936149726492470a167a029cb2dc88dd5c22db1ff5"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go",
+      "before_sha256": "e850022f49baf3e539efea0eda7680d9d3f8eb5aeab8b5d005b55ceaeec79449",
+      "after_sha256": "983194fedffe08a092ee14e113149472a91e65c2576b1806934e22b02d32e4c2"
+    },
+    {
+      "path": "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/volume.go",
+      "before_sha256": "ecaad9fa09b3da86e06df8d709576c738079886595b28bd4d7887f42d75e16d7",
+      "after_sha256": "efd241e55910a4006df26db847a03d90f7b44b35e5d4df357367b4b60902afa1"
+    },
+    {
+      "path": "tools/gomad3/toolchain/version/version.json",
+      "before_sha256": "75d2429a49e42df374e2fc2b77710d1694322c5198a4b54f6c9bfb95ab88c8de",
+      "after_sha256": "94358dc0d221c0c0ba0e4f487303b0e9acd46afa212d24091ab44b124f276779"
+    },
+    {
+      "path": "tools/gomad3sim/filesystem_handles_toolchain_test.go",
+      "before_sha256": null,
+      "after_sha256": "408bab9e04f15ccb6ded28380e5bad236f901b13a4071dd0e9d4d2e237d5e70b"
+    }
+  ],
+  "source_files_before": 1050,
+  "source_files_after": 1056,
+  "complete_source_manifests": {
+    "before": {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-18/checkpoint-source-before.log",
+      "sha256": "b2a35f7e9e3347eee1c1d1508e9b7aa1f548586ec083cc08076d9f1a9b08f379"
+    },
+    "after": {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-18/checkpoint-source-after.log",
+      "sha256": "4e6d322fdf6a91a3f17e59042d4b05f16789ebab5ae964f737c6955ed64aa51c"
+    },
+    "module_before": {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-18/checkpoint-module-before.log",
+      "sha256": "663aa6904e2d471228a069510cec04a48b89583077a5f2da3b5cc66492ff8d40"
+    },
+    "module_after": {
+      "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-18/checkpoint-module-after.log",
+      "sha256": "9fb31b914b8eaceb29066a693f7cf7cfd803173633fb1d51836d78b4af0aaba9"
+    }
+  },
+  "root_tests_ast_inputs": {
+    "count": 113,
+    "paths": [
+      "tests/acquire_shard_test.go",
+      "tests/activity_api_batch_cancel_test.go",
+      "tests/activity_api_batch_delete_test.go",
+      "tests/activity_api_batch_reset_test.go",
+      "tests/activity_api_batch_security_test.go",
+      "tests/activity_api_batch_terminate_test.go",
+      "tests/activity_api_batch_unpause_test.go",
+      "tests/activity_api_batch_update_options_test.go",
+      "tests/activity_api_pause_test.go",
+      "tests/activity_api_reset_test.go",
+      "tests/activity_api_rules_test.go",
+      "tests/activity_api_update_test.go",
+      "tests/activity_driver_test.go",
+      "tests/activity_metrics_parity_test.go",
+      "tests/activity_parity_test.go",
+      "tests/activity_standalone_test.go",
+      "tests/activity_test.go",
+      "tests/add_tasks_test.go",
+      "tests/admin_batch_refresh_workflow_tasks_test.go",
+      "tests/admin_test.go",
+      "tests/advanced_visibility_test.go",
+      "tests/archival_test.go",
+      "tests/callbacks_migration_test.go",
+      "tests/callbacks_test.go",
+      "tests/cancel_workflow_test.go",
+      "tests/chasm_test.go",
+      "tests/child_workflow_test.go",
+      "tests/client_data_converter_test.go",
+      "tests/client_misc_test.go",
+      "tests/comp_callbacks_test.go",
+      "tests/continue_as_new_test.go",
+      "tests/cron_test.go",
+      "tests/describe_test.go",
+      "tests/dlq_test.go",
+      "tests/eager_activity_dispatch_test.go",
+      "tests/eager_workflow_start_test.go",
+      "tests/gethistory_test.go",
+      "tests/history_node_cleanup_test.go",
+      "tests/http_api_test.go",
+      "tests/links_test.go",
+      "tests/max_buffered_event_test.go",
+      "tests/namespace_interceptor_test.go",
+      "tests/namespace_poller_limits_test.go",
+      "tests/namespace_test.go",
+      "tests/nexus_api_test.go",
+      "tests/nexus_api_validation_test.go",
+      "tests/nexus_endpoint_test.go",
+      "tests/nexus_matching_test.go",
+      "tests/nexus_otel_test.go",
+      "tests/nexus_standalone_callbacks_test.go",
+      "tests/nexus_standalone_test.go",
+      "tests/nexus_workflow_query_test.go",
+      "tests/nexus_workflow_signal_test.go",
+      "tests/nexus_workflow_test.go",
+      "tests/nexus_workflow_update_test.go",
+      "tests/nil_search_attribute_test.go",
+      "tests/partition_scaling_test.go",
+      "tests/pause_workflow_execution_test.go",
+      "tests/poller_scaling_test.go",
+      "tests/premature_eos_test.go",
+      "tests/priority_fairness_test.go",
+      "tests/purge_dlq_tasks_api_test.go",
+      "tests/query_workflow_test.go",
+      "tests/relay_task_test.go",
+      "tests/reset_workflow_test.go",
+      "tests/schedule_migration_test.go",
+      "tests/schedule_test.go",
+      "tests/schedule_workflow_pause_interaction_test.go",
+      "tests/signal_with_start_from_workflow_test.go",
+      "tests/signal_workflow_test.go",
+      "tests/sizelimit_test.go",
+      "tests/stickytq_test.go",
+      "tests/task_queue_stats_test.go",
+      "tests/task_queue_test.go",
+      "tests/timeskipping_fast_forward_test.go",
+      "tests/timeskipping_propagation_test.go",
+      "tests/timeskipping_test.go",
+      "tests/tls_test.go",
+      "tests/transient_task_test.go",
+      "tests/update_workflow_sdk_test.go",
+      "tests/update_workflow_test.go",
+      "tests/user_metadata_test.go",
+      "tests/user_timers_test.go",
+      "tests/versioning_3_one_time_override_test.go",
+      "tests/versioning_3_query_test.go",
+      "tests/versioning_3_suite_test.go",
+      "tests/versioning_3_test.go",
+      "tests/versioning_test.go",
+      "tests/worker_commands_task_test.go",
+      "tests/worker_deployment_helpers_test.go",
+      "tests/worker_deployment_test.go",
+      "tests/worker_deployment_version_test.go",
+      "tests/worker_registry_test.go",
+      "tests/workflow_alias_search_attribute_test.go",
+      "tests/workflow_api_batch_cancel_test.go",
+      "tests/workflow_api_batch_delete_test.go",
+      "tests/workflow_api_batch_reset_test.go",
+      "tests/workflow_api_batch_signal_test.go",
+      "tests/workflow_api_batch_terminate_test.go",
+      "tests/workflow_api_batch_update_options_test.go",
+      "tests/workflow_buffered_events_test.go",
+      "tests/workflow_completion_pagination_test.go",
+      "tests/workflow_delete_execution_test.go",
+      "tests/workflow_failures_test.go",
+      "tests/workflow_memo_test.go",
+      "tests/workflow_reset_test.go",
+      "tests/workflow_reset_with_child_test.go",
+      "tests/workflow_task_reported_problems_test.go",
+      "tests/workflow_task_test.go",
+      "tests/workflow_test.go",
+      "tests/workflow_timer_test.go",
+      "tests/workflow_type_encoding_test.go",
+      "tests/workflow_visibility_test.go"
+    ],
+    "compiled_or_executed": false
+  },
+  "committed_task17_predecessor_sha256": {
+    "tools/gomad3/Makefile": "28318e32d3360cfcd644298944e864e704670ac80f55c550d32461a55afc8497",
+    "tools/gomad3/simulation_gate_selection_test.go": "57febc14101facc1b4db77ba3f8dba55669e51036e23790eb1372c27dec38bbb",
+    "tools/gomad3/runner/internal/execution/simulation_root_integration_test.go": "bc4c86b6210232026f0eb94edbee209fa9817a62b66d58a2da7b627e9bbbf833",
+    "tools/gomad3/toolchain/version/version.json": "75d2429a49e42df374e2fc2b77710d1694322c5198a4b54f6c9bfb95ab88c8de"
+  },
+  "overlay_inventory_count": 79,
+  "inherited_architecture_sha256": "b2e3408d952433ee36d65926a64880629e41f3b5f161057786eeedf5aa9e45ca",
+  "task19_checker_imported": false,
+  "full_source_unchanged_after_each_check": true,
+  "ignored_generated_cache_prefix": "tools/gomad3/.toolchain/",
+  "observations": [
+    {
+      "label": "host",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "env",
+        "GOVERSION",
+        "GOOS",
+        "GOARCH",
+        "GOROOT"
+      ],
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go env GOVERSION GOOS GOARCH GOROOT",
+      "cwd": "/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3",
+      "environment": {
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOMAXPROCS": "2",
+        "GOENV": "off",
+        "GOFLAGS": "",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "TMPDIR": "/tmp/fn109-task18-checkpoint.wjz9pdom/tmp"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOROOT",
+        "GOEXPERIMENT"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.004028,
+      "log": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-18/checkpoint-host.log",
+        "sha256": "84c0e0c578345ebe7515e81efba90b6c9fbdadbde5b55206ffc7d4e933115c51"
+      },
+      "source_manifest_sha256": "4e6d322fdf6a91a3f17e59042d4b05f16789ebab5ae964f737c6955ed64aa51c"
+    },
+    {
+      "label": "ownership-selection-architecture-list",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        ".",
+        "-list",
+        "^Test(PackageArchitecture|PublicPackagesDoNotExportTypeAliases|RunnerExecutionInjectionIsPrivate|RunnerRequestsCompileInExternalModule|CurrentVocabularyHasNoLegacyCampaignBoundary|MakeTargetsMatchTheirOwnership|ExactModuleEdges|CapabilityEvaluationHasNoHostEffect|DomainModulesDoNotExportWireFraming|FilesystemHandlesOwnOneImplementation|NetworkHandlesOwnOneImplementation|SimulationGateSelectsProcessNetworkHandles|ProcessCommandsOwnModelWireTranslation)$"
+      ],
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep . -list '^Test(PackageArchitecture|PublicPackagesDoNotExportTypeAliases|RunnerExecutionInjectionIsPrivate|RunnerRequestsCompileInExternalModule|CurrentVocabularyHasNoLegacyCampaignBoundary|MakeTargetsMatchTheirOwnership|ExactModuleEdges|CapabilityEvaluationHasNoHostEffect|DomainModulesDoNotExportWireFraming|FilesystemHandlesOwnOneImplementation|NetworkHandlesOwnOneImplementation|SimulationGateSelectsProcessNetworkHandles|ProcessCommandsOwnModelWireTranslation)$'",
+      "cwd": "/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3",
+      "environment": {
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOMAXPROCS": "2",
+        "GOENV": "off",
+        "GOFLAGS": "",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "TMPDIR": "/tmp/fn109-task18-checkpoint.wjz9pdom/tmp"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOROOT",
+        "GOEXPERIMENT"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.29889,
+      "log": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-18/checkpoint-ownership-selection-architecture-list.log",
+        "sha256": "9f00ca968bcd9ca137138ec3e0f96e3982551d1a9f79ba313ed633721b786e4c"
+      },
+      "source_manifest_sha256": "4e6d322fdf6a91a3f17e59042d4b05f16789ebab5ae964f737c6955ed64aa51c",
+      "selected_tests": [
+        "TestPackageArchitecture",
+        "TestPublicPackagesDoNotExportTypeAliases",
+        "TestRunnerExecutionInjectionIsPrivate",
+        "TestRunnerRequestsCompileInExternalModule",
+        "TestCurrentVocabularyHasNoLegacyCampaignBoundary",
+        "TestMakeTargetsMatchTheirOwnership",
+        "TestExactModuleEdges",
+        "TestCapabilityEvaluationHasNoHostEffect",
+        "TestDomainModulesDoNotExportWireFraming",
+        "TestFilesystemHandlesOwnOneImplementation",
+        "TestNetworkHandlesOwnOneImplementation",
+        "TestProcessCommandsOwnModelWireTranslation",
+        "TestSimulationGateSelectsProcessNetworkHandles"
+      ]
+    },
+    {
+      "label": "ownership-selection-architecture",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-count=1",
+        "-timeout=120s",
+        "-tags",
+        "test_dep",
+        ".",
+        "-run",
+        "^Test(PackageArchitecture|PublicPackagesDoNotExportTypeAliases|RunnerExecutionInjectionIsPrivate|RunnerRequestsCompileInExternalModule|CurrentVocabularyHasNoLegacyCampaignBoundary|MakeTargetsMatchTheirOwnership|ExactModuleEdges|CapabilityEvaluationHasNoHostEffect|DomainModulesDoNotExportWireFraming|FilesystemHandlesOwnOneImplementation|NetworkHandlesOwnOneImplementation|SimulationGateSelectsProcessNetworkHandles|ProcessCommandsOwnModelWireTranslation)$",
+        "-v"
+      ],
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -timeout=120s -tags test_dep . -run '^Test(PackageArchitecture|PublicPackagesDoNotExportTypeAliases|RunnerExecutionInjectionIsPrivate|RunnerRequestsCompileInExternalModule|CurrentVocabularyHasNoLegacyCampaignBoundary|MakeTargetsMatchTheirOwnership|ExactModuleEdges|CapabilityEvaluationHasNoHostEffect|DomainModulesDoNotExportWireFraming|FilesystemHandlesOwnOneImplementation|NetworkHandlesOwnOneImplementation|SimulationGateSelectsProcessNetworkHandles|ProcessCommandsOwnModelWireTranslation)$' -v",
+      "cwd": "/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3",
+      "environment": {
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOMAXPROCS": "2",
+        "GOENV": "off",
+        "GOFLAGS": "",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "TMPDIR": "/tmp/fn109-task18-checkpoint.wjz9pdom/tmp"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOROOT",
+        "GOEXPERIMENT"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.478983,
+      "log": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-18/checkpoint-ownership-selection-architecture.log",
+        "sha256": "646c74d64e3c4d8d6ee9d662bcd44e3ab8da6c666fd8cefefef69da3264fba3a"
+      },
+      "source_manifest_sha256": "4e6d322fdf6a91a3f17e59042d4b05f16789ebab5ae964f737c6955ed64aa51c",
+      "passed_top_level_tests": [
+        "TestPackageArchitecture",
+        "TestPublicPackagesDoNotExportTypeAliases",
+        "TestRunnerExecutionInjectionIsPrivate",
+        "TestRunnerRequestsCompileInExternalModule",
+        "TestCurrentVocabularyHasNoLegacyCampaignBoundary",
+        "TestMakeTargetsMatchTheirOwnership",
+        "TestExactModuleEdges",
+        "TestCapabilityEvaluationHasNoHostEffect",
+        "TestDomainModulesDoNotExportWireFraming",
+        "TestFilesystemHandlesOwnOneImplementation",
+        "TestNetworkHandlesOwnOneImplementation",
+        "TestProcessCommandsOwnModelWireTranslation",
+        "TestSimulationGateSelectsProcessNetworkHandles"
+      ]
+    },
+    {
+      "label": "generation-version",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-count=1",
+        "-timeout=120s",
+        "-tags",
+        "test_dep",
+        "./internal/gomadtool/generation/...",
+        "./toolchain/version",
+        "-v"
+      ],
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -timeout=120s -tags test_dep ./internal/gomadtool/generation/... ./toolchain/version -v",
+      "cwd": "/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3",
+      "environment": {
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOMAXPROCS": "2",
+        "GOENV": "off",
+        "GOFLAGS": "",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "TMPDIR": "/tmp/fn109-task18-checkpoint.wjz9pdom/tmp"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOROOT",
+        "GOEXPERIMENT"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 1.089605,
+      "log": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-18/checkpoint-generation-version.log",
+        "sha256": "d116f3624ec171dd94c4a330b535b1bd52d036d8c7391b1913d5d2ada6b2bdc7"
+      },
+      "source_manifest_sha256": "4e6d322fdf6a91a3f17e59042d4b05f16789ebab5ae964f737c6955ed64aa51c"
+    },
+    {
+      "label": "version-check",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "run",
+        "./cmd/gomadtool",
+        "version-generate",
+        "-check"
+      ],
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go run ./cmd/gomadtool version-generate -check",
+      "cwd": "/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3",
+      "environment": {
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOMAXPROCS": "2",
+        "GOENV": "off",
+        "GOFLAGS": "",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "TMPDIR": "/tmp/fn109-task18-checkpoint.wjz9pdom/tmp"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOROOT",
+        "GOEXPERIMENT"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 2.299649,
+      "log": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-18/checkpoint-version-check.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "source_manifest_sha256": "4e6d322fdf6a91a3f17e59042d4b05f16789ebab5ae964f737c6955ed64aa51c"
+    },
+    {
+      "label": "protocol-check",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "run",
+        "./cmd/gomadtool",
+        "protocol-generate",
+        "-check"
+      ],
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go run ./cmd/gomadtool protocol-generate -check",
+      "cwd": "/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3",
+      "environment": {
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOMAXPROCS": "2",
+        "GOENV": "off",
+        "GOFLAGS": "",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "TMPDIR": "/tmp/fn109-task18-checkpoint.wjz9pdom/tmp"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOROOT",
+        "GOEXPERIMENT"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.07869,
+      "log": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-18/checkpoint-protocol-check.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "source_manifest_sha256": "4e6d322fdf6a91a3f17e59042d4b05f16789ebab5ae964f737c6955ed64aa51c"
+    },
+    {
+      "label": "validate",
+      "argv": [
+        "make",
+        "validate"
+      ],
+      "command": "make validate",
+      "cwd": "/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3",
+      "environment": {
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOMAXPROCS": "2",
+        "GOENV": "off",
+        "GOFLAGS": "",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "TMPDIR": "/tmp/fn109-task18-checkpoint.wjz9pdom/tmp"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOROOT",
+        "GOEXPERIMENT"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 11.663361,
+      "log": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-18/checkpoint-validate.log",
+        "sha256": "64bdd91a4c4ba6154a78de59d11c62b8fd1ccadccb7b5687b14f3066c363a833"
+      },
+      "source_manifest_sha256": "4e6d322fdf6a91a3f17e59042d4b05f16789ebab5ae964f737c6955ed64aa51c"
+    },
+    {
+      "label": "scoped-vet",
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "vet",
+        "-tags",
+        "test_dep",
+        ".",
+        "./internal/gomadtool/generation/...",
+        "./toolchain/version"
+      ],
+      "command": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go vet -tags test_dep . ./internal/gomadtool/generation/... ./toolchain/version",
+      "cwd": "/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3",
+      "environment": {
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOMAXPROCS": "2",
+        "GOENV": "off",
+        "GOFLAGS": "",
+        "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "TMPDIR": "/tmp/fn109-task18-checkpoint.wjz9pdom/tmp"
+      },
+      "unset": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOROOT",
+        "GOEXPERIMENT"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.090837,
+      "log": {
+        "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-18/checkpoint-scoped-vet.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "source_manifest_sha256": "4e6d322fdf6a91a3f17e59042d4b05f16789ebab5ae964f737c6955ed64aa51c"
+    }
+  ],
+  "original_source_audit_sha256": "3d2563181f489fba083dc9b34197cfc7be1545dc53cab9772b3cde6be3d997dd",
+  "original_evidence_sha256": "89ede09e01d2fc8143f894e838b02547c2bf34816b8fbede1b9d852be82a7131",
+  "original_handover_sha256": "288965c292be9d8d383cbdda779eee99a34fa21dfebf0e2551c2a1fea695313a",
+  "reused_original_logs": {
+    "ownership-red.log": {
+      "sha256": "9b93223370eb61a98f470f4fa3b3d9fb500ede4caf9bf4576233ca4cf6313000",
+      "historical_exit_code": 1,
+      "scope": "intended architectural RED against actual old production"
+    },
+    "ownership-green.log": {
+      "sha256": "b80baf90283cc500d33d770c6565596691e956fcbd50da8973127408a4ae1c3c",
+      "historical_exit_code": 0,
+      "scope": "migrated architecture and preserved boundaries"
+    },
+    "behavior-old.log": {
+      "sha256": "e6b5b293da19db03e3e90e39fa5926cd9ad408f1d74863950ee241e321380638",
+      "historical_exit_code": 0,
+      "scope": "developmental original-production behavioral baseline"
+    },
+    "behavior-new.log": {
+      "sha256": "8e0ec9fd68cbf175b561862f39bb1529cc0de03983d5458567853fea4958bbea",
+      "historical_exit_code": 0,
+      "scope": "developmental migrated behavioral tests"
+    },
+    "gate-selection-red.log": {
+      "sha256": "7244859194d969ea27ade5005c95dd7791b8f45034ab1a276509530459aef834",
+      "historical_exit_code": 1,
+      "scope": "intended RED: canonical Make filter excludes four new process tests"
+    },
+    "gate-selection-green.log": {
+      "sha256": "a5e2431e9a5575ec439375ae916585dc52db8531eac92915c35423f8cb46e6a0",
+      "historical_exit_code": 0,
+      "scope": "canonical Make selection and ownership/package guards"
+    },
+    "developmental-repeat.log": {
+      "sha256": "969e459ee5d46366545b7854821ab7bea52f043decf697ce51e9dc125f39eda9",
+      "historical_exit_code": 0,
+      "scope": "20 focused developmental repetitions"
+    },
+    "developmental-race.log": {
+      "sha256": "298f9e1e343d2b7629f7385dbcc64ec1b7e19fb08f5dbb981b71beded8912fb4",
+      "historical_exit_code": 0,
+      "scope": "focused developmental race tests"
+    },
+    "root-developmental-link.log": {
+      "sha256": "a7d102eab4ea7f4839974ea072787c10d8c095a901ebe735b69c5c2a159c2849",
+      "historical_exit_code": 0,
+      "scope": "compile/link only; not executed"
+    },
+    "runner-integration-compile.log": {
+      "sha256": "2e987d1de06f8fb54b87c45887ee734d41a97472758dd538c7d83b40bb7be3a7",
+      "historical_exit_code": 0,
+      "scope": "compile/link only; not executed"
+    },
+    "preservation.log": {
+      "sha256": "3a6837b24f2e3cd7dd2df6b47213d03bf5ab6b283ce4406f0845622ba16bb9b5",
+      "historical_exit_code": 0,
+      "scope": "unchanged source preimages and exact tested-copy comparison"
+    }
+  },
+  "root_fixture": {
+    "path": "tools/gomad3sim/filesystem_handles_toolchain_test.go",
+    "sha256": "408bab9e04f15ccb6ded28380e5bad236f901b13a4071dd0e9d4d2e237d5e70b",
+    "prior_link_only_log": "root-developmental-link.log",
+    "prior_link_only_log_sha256": "a7d102eab4ea7f4839974ea072787c10d8c095a901ebe735b69c5c2a159c2849",
+    "new_compilation_or_execution": false
+  },
+  "reuse_reason": "The exact original candidate and source-audit identities match. Original behavior RED/GREEN, race/repeat, developmental shim and link-only evidence remains developmental; no new source or concurrency change warrants repeating it.",
+  "model_routing": {
+    "tier_judgments": 1,
+    "judge_reason": "no_key",
+    "assigned_model": "gpt-6.1-sol",
+    "assigned_effort": "high",
+    "actual_model_metadata": "unknown",
+    "original_writer_and_reviewer_same_family": true,
+    "judge_log_sha256": "06b1dcd2fd64156a6d78d7ce322833faa8be5faa794b8cf77ad49db4a2f6eeb0",
+    "judged_state_sha256": "419526c783d096b848dc9e67a140e530f75ce2dab5f777efa56ea8ad841df0b3",
+    "agents_or_bridges_spawned": 0
+  },
+  "native_acceptance": false,
+  "native_platforms_open": [
+    "darwin/arm64",
+    "linux/amd64"
+  ],
+  "native_gaps": [
+    "Patched .toolchain/bin/go absent; baseline overlay/Runner/root executions exit 127",
+    "Unchanged task-17 complete builder rejects linux/arm64, exit 2; supported darwin/arm64 and linux/amd64 gates remain open",
+    "Unchanged task-16 linter is Mach-O ARM64 and incompatible with Linux; platform evidence reused",
+    "Root actual-process/replay fixtures and native pipe transport fixture compile but have not executed",
+    "Developmental shim tests do not qualify native virtual time, IPC, replay, scheduler or isolation"
+  ],
+  "formal_ship_verdict": false,
+  "task_completion": false,
+  "shared_source_writes": false,
+  "git_index_writes": false,
+  "git_history_writes": false,
+  "flow_state_writes": false,
+  "commits": [],
+  "prs": []
+}

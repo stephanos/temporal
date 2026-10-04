@@ -1,0 +1,4 @@
+COMMAND: env GOROOT=/tmp/gomad-task18.U1uS6Z/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task18.U1uS6Z/go/bin/go test -race -count=1 -tags test_dep internal/gomadfs -run HandleOperations\|MappingAccounting\|Registry\|ObserverRejectsWrite
+ok  	internal/gomadfs	1.042s
+ELAPSED_SECONDS=1.742
+EXIT_CODE=0

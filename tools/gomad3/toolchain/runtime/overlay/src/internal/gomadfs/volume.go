@@ -720,12 +720,12 @@ func (fs *FS) rebuildAfterLifecycleLocked() {
 	for handle := range fs.handles {
 		handle.revoked = true
 	}
-	fs.handles = make(map[*Handle]struct{})
+	fs.handles = make(map[*localHandle]struct{})
 	for mapping := range fs.mappings {
 		mapping.revoked = true
 		clear(mapping.data)
 	}
-	fs.mappings = make(map[*Mapping]struct{})
+	fs.mappings = make(map[*localMapping]struct{})
 	fs.mappedBytes = 0
 	fs.generation++
 	fs.openHandles = 0

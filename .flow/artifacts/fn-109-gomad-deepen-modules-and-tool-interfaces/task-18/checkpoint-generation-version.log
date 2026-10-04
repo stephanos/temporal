@@ -1,0 +1,118 @@
+=== RUN   TestGenerateWritesAndChecksAllArtifacts
+--- PASS: TestGenerateWritesAndChecksAllArtifacts (0.00s)
+=== RUN   TestInterceptionPackagesReturnsSortedUniquePackages
+--- PASS: TestInterceptionPackagesReturnsSortedUniquePackages (0.00s)
+=== RUN   TestGenerateWritesDeclaredHookBoilerplate
+--- PASS: TestGenerateWritesDeclaredHookBoilerplate (0.00s)
+=== RUN   TestLoadRejectsIncompleteGeneratedHookSemantics
+=== RUN   TestLoadRejectsIncompleteGeneratedHookSemantics/unknown_policy
+=== RUN   TestLoadRejectsIncompleteGeneratedHookSemantics/modeled_hook
+=== RUN   TestLoadRejectsIncompleteGeneratedHookSemantics/no_transcript
+--- PASS: TestLoadRejectsIncompleteGeneratedHookSemantics (0.00s)
+    --- PASS: TestLoadRejectsIncompleteGeneratedHookSemantics/unknown_policy (0.00s)
+    --- PASS: TestLoadRejectsIncompleteGeneratedHookSemantics/modeled_hook (0.00s)
+    --- PASS: TestLoadRejectsIncompleteGeneratedHookSemantics/no_transcript (0.00s)
+=== RUN   TestGenerateCompilerTestOverlaySeparatesFixturesFromProduction
+--- PASS: TestGenerateCompilerTestOverlaySeparatesFixturesFromProduction (0.00s)
+=== RUN   TestCheckCompilerTestsRejectsInvalidManifest
+=== RUN   TestCheckCompilerTestsRejectsInvalidManifest/trailing_data
+=== RUN   TestCheckCompilerTestsRejectsInvalidManifest/empty_tests
+=== RUN   TestCheckCompilerTestsRejectsInvalidManifest/unknown_field
+=== RUN   TestCheckCompilerTestsRejectsInvalidManifest/wrong_Go_version
+--- PASS: TestCheckCompilerTestsRejectsInvalidManifest (0.00s)
+    --- PASS: TestCheckCompilerTestsRejectsInvalidManifest/trailing_data (0.00s)
+    --- PASS: TestCheckCompilerTestsRejectsInvalidManifest/empty_tests (0.00s)
+    --- PASS: TestCheckCompilerTestsRejectsInvalidManifest/unknown_field (0.00s)
+    --- PASS: TestCheckCompilerTestsRejectsInvalidManifest/wrong_Go_version (0.00s)
+=== RUN   TestCompilerTestCasesExposeValidatedFixtureOracles
+--- PASS: TestCompilerTestCasesExposeValidatedFixtureOracles (0.00s)
+=== RUN   TestLoadRejectsInvalidManifest
+=== RUN   TestLoadRejectsInvalidManifest/duplicate_probe
+=== RUN   TestLoadRejectsInvalidManifest/bad_disposition
+=== RUN   TestLoadRejectsInvalidManifest/missing_delegate
+=== RUN   TestLoadRejectsInvalidManifest/missing_signature
+=== RUN   TestLoadRejectsInvalidManifest/missing_fingerprint
+=== RUN   TestLoadRejectsInvalidManifest/trailing_data
+=== RUN   TestLoadRejectsInvalidManifest/unknown_field
+=== RUN   TestLoadRejectsInvalidManifest/duplicate_target
+--- PASS: TestLoadRejectsInvalidManifest (0.00s)
+    --- PASS: TestLoadRejectsInvalidManifest/duplicate_probe (0.00s)
+    --- PASS: TestLoadRejectsInvalidManifest/bad_disposition (0.00s)
+    --- PASS: TestLoadRejectsInvalidManifest/missing_delegate (0.00s)
+    --- PASS: TestLoadRejectsInvalidManifest/missing_signature (0.00s)
+    --- PASS: TestLoadRejectsInvalidManifest/missing_fingerprint (0.00s)
+    --- PASS: TestLoadRejectsInvalidManifest/trailing_data (0.00s)
+    --- PASS: TestLoadRejectsInvalidManifest/unknown_field (0.00s)
+    --- PASS: TestLoadRejectsInvalidManifest/duplicate_target (0.00s)
+=== RUN   TestLoadRejectsUnresolvedAndCyclicDelegates
+=== RUN   TestLoadRejectsUnresolvedAndCyclicDelegates/unresolved
+=== RUN   TestLoadRejectsUnresolvedAndCyclicDelegates/cycle
+--- PASS: TestLoadRejectsUnresolvedAndCyclicDelegates (0.00s)
+    --- PASS: TestLoadRejectsUnresolvedAndCyclicDelegates/unresolved (0.00s)
+    --- PASS: TestLoadRejectsUnresolvedAndCyclicDelegates/cycle (0.00s)
+=== RUN   TestValidateCandidateCoverageRequiresExplicitClassification
+--- PASS: TestValidateCandidateCoverageRequiresExplicitClassification (0.00s)
+=== RUN   TestValidateDelegateReachabilityRejectsBypassedBoundary
+--- PASS: TestValidateDelegateReachabilityRejectsBypassedBoundary (0.00s)
+=== RUN   TestQualifyChecksPinnedStandardLibrarySignatures
+--- PASS: TestQualifyChecksPinnedStandardLibrarySignatures (0.50s)
+=== RUN   TestRefreshFingerprintsRepairsMissingSourceIdentity
+--- PASS: TestRefreshFingerprintsRepairsMissingSourceIdentity (0.17s)
+=== RUN   TestGenerateRendersPlatformOverridesForTheCompilerAndHostIdentity
+=== RUN   TestGenerateRendersPlatformOverridesForTheCompilerAndHostIdentity/primary_platform
+=== RUN   TestGenerateRendersPlatformOverridesForTheCompilerAndHostIdentity/foreign_source
+=== RUN   TestGenerateRendersPlatformOverridesForTheCompilerAndHostIdentity/bad_fingerprint
+=== RUN   TestGenerateRendersPlatformOverridesForTheCompilerAndHostIdentity/undeclared_platform
+--- PASS: TestGenerateRendersPlatformOverridesForTheCompilerAndHostIdentity (0.01s)
+    --- PASS: TestGenerateRendersPlatformOverridesForTheCompilerAndHostIdentity/primary_platform (0.00s)
+    --- PASS: TestGenerateRendersPlatformOverridesForTheCompilerAndHostIdentity/foreign_source (0.00s)
+    --- PASS: TestGenerateRendersPlatformOverridesForTheCompilerAndHostIdentity/bad_fingerprint (0.00s)
+    --- PASS: TestGenerateRendersPlatformOverridesForTheCompilerAndHostIdentity/undeclared_platform (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary	0.693s
+=== RUN   TestChoiceImplementationIdentityBindsGeneratedAndInstrumentedInputs
+--- PASS: TestChoiceImplementationIdentityBindsGeneratedAndInstrumentedInputs (0.00s)
+=== RUN   TestReadSimulationModelSchemaPinsBoundedOperationVocabulary
+--- PASS: TestReadSimulationModelSchemaPinsBoundedOperationVocabulary (0.00s)
+=== RUN   TestReadLiveCapabilitySchemaPinsClosedProtocol
+--- PASS: TestReadLiveCapabilitySchemaPinsClosedProtocol (0.00s)
+=== RUN   TestLiveCapabilityUniverseIdentityBindsBoundaryAndForbiddenVocabulary
+--- PASS: TestLiveCapabilityUniverseIdentityBindsBoundaryAndForbiddenVocabulary (0.00s)
+=== RUN   TestLiveCapabilityImplementationIdentityBindsProducerAndValidatorInputs
+--- PASS: TestLiveCapabilityImplementationIdentityBindsProducerAndValidatorInputs (0.00s)
+=== RUN   TestRunGeneratesAndChecksEveryEndpoint
+--- PASS: TestRunGeneratesAndChecksEveryEndpoint (0.39s)
+=== RUN   TestReadSchemaRejectsTrailingData
+--- PASS: TestReadSchemaRejectsTrailingData (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol	0.389s
+=== RUN   TestGenerateAcceptsPinnedPseudoVersion
+--- PASS: TestGenerateAcceptsPinnedPseudoVersion (0.01s)
+=== RUN   TestLoadRejectsNonCanonicalAdapterVersions
+=== RUN   TestLoadRejectsNonCanonicalAdapterVersions/#00
+=== RUN   TestLoadRejectsNonCanonicalAdapterVersions/latest
+=== RUN   TestLoadRejectsNonCanonicalAdapterVersions/main
+=== RUN   TestLoadRejectsNonCanonicalAdapterVersions/v1
+=== RUN   TestLoadRejectsNonCanonicalAdapterVersions/v1.2
+=== RUN   TestLoadRejectsNonCanonicalAdapterVersions/v1.2.3invalid
+--- PASS: TestLoadRejectsNonCanonicalAdapterVersions (0.00s)
+    --- PASS: TestLoadRejectsNonCanonicalAdapterVersions/#00 (0.00s)
+    --- PASS: TestLoadRejectsNonCanonicalAdapterVersions/latest (0.00s)
+    --- PASS: TestLoadRejectsNonCanonicalAdapterVersions/main (0.00s)
+    --- PASS: TestLoadRejectsNonCanonicalAdapterVersions/v1 (0.00s)
+    --- PASS: TestLoadRejectsNonCanonicalAdapterVersions/v1.2 (0.00s)
+    --- PASS: TestLoadRejectsNonCanonicalAdapterVersions/v1.2.3invalid (0.00s)
+=== RUN   TestGenerateRendersDescriptorConsumers
+--- PASS: TestGenerateRendersDescriptorConsumers (0.13s)
+=== RUN   TestGenerateAllowsNoBuiltInAdapters
+--- PASS: TestGenerateAllowsNoBuiltInAdapters (0.01s)
+=== RUN   TestGenerateRejectsBoundaryVersionMismatch
+--- PASS: TestGenerateRejectsBoundaryVersionMismatch (0.00s)
+=== RUN   TestGenerateRejectsPatchAllowlistDrift
+--- PASS: TestGenerateRejectsPatchAllowlistDrift (0.00s)
+=== RUN   TestGenerateRejectsOverlayAllowlistDrift
+--- PASS: TestGenerateRejectsOverlayAllowlistDrift (0.00s)
+=== RUN   TestLoadRejectsDuplicateAllowedPath
+--- PASS: TestLoadRejectsDuplicateAllowedPath (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/toolchain/version	0.154s

@@ -1,0 +1,5 @@
+COMMAND: env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./runner/internal/execution -run Filesystem\|Libc\|Sqlite
+env: '.toolchain/bin/go': No such file or directory
+env: use -[v]S to pass options in shebang lines
+ELAPSED_SECONDS=0.108
+EXIT_CODE=127

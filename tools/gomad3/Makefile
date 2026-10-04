@@ -144,7 +144,7 @@ test-simulation: toolchain
 		$(CURDIR)/.toolchain/bin/go test -exec $(CURDIR)/internal/gomadtool/conformance/scripts/exec.sh \
 		-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
-		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^Test(Scenario|ProcessExploration|ProcessAndInProcess|ProcessNetworkHandle|ProcessBackend(Carries|Resets|Routes|Preserves|Crash|Model))' ./runner/internal/execution
+		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^Test(Scenario|ProcessExploration|ProcessAndInProcess|ProcessNetworkHandle|ProcessFilesystemHandle|ProcessBackend(Carries|Resets|Routes|Preserves|Crash|Model))' ./runner/internal/execution
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
 		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^TestProcessBackendSynchronizesNodeClockWithModelDelay$$/^forward$$' ./runner/internal/execution
 

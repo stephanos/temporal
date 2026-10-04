@@ -1,0 +1,141 @@
+COMMAND: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep . -run \^TestFilesystemHandlesOwnOneImplementation\$
+--- FAIL: TestFilesystemHandlesOwnOneImplementation (0.00s)
+    filesystem_handles_ownership_test.go:33: Handle.Read redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Read redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Read redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Read redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Read redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.ReadAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.ReadAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.ReadAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.ReadAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.ReadAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.ReadAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.ReadAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Write redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Write redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Write redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Write redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Write redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Write redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Write redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Write redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Write redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Write redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Write redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Write redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.WriteAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.WriteAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.WriteAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.WriteAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.WriteAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.WriteAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.WriteAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.WriteAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.WriteAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.WriteAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.WriteAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.WriteAt redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Truncate redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Truncate redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Truncate redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Truncate redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Truncate redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Truncate redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Truncate redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Truncate redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Truncate redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Truncate redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Truncate redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Chmod redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Chmod redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Chmod redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Chmod redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Chmod redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Chtimes redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Chtimes redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Chtimes redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Chtimes redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Chtimes redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Chdir redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Chdir redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Chdir redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Chdir redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Chdir redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Seek redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Seek redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Seek redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Seek redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Stat redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Stat redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Path redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.ReadDir redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.ReadDir redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.ReadDir redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.ReadDir redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.ReadDir redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.ReadDir redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.ReadDir redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Close redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Close redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Close redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Sync redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Sync redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Map redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Map redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Map redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Map redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Map redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Map redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Map redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Map redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Map redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Map redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Map redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.Map redispatches after construction
+    filesystem_handles_ownership_test.go:33: Mapping.Bytes redispatches after construction
+    filesystem_handles_ownership_test.go:33: Mapping.Bytes redispatches after construction
+    filesystem_handles_ownership_test.go:33: Mapping.Close redispatches after construction
+    filesystem_handles_ownership_test.go:33: Mapping.Close redispatches after construction
+    filesystem_handles_ownership_test.go:33: Mapping.Close redispatches after construction
+    filesystem_handles_ownership_test.go:33: Mapping.Close redispatches after construction
+    filesystem_handles_ownership_test.go:33: Mapping.Close redispatches after construction
+    filesystem_handles_ownership_test.go:33: Mapping.Close redispatches after construction
+    filesystem_handles_ownership_test.go:33: Mapping.ownerTransferredLocked redispatches after construction
+    filesystem_handles_ownership_test.go:33: Mapping.errorLocked redispatches after construction
+    filesystem_handles_ownership_test.go:33: Mapping.errorLocked redispatches after construction
+    filesystem_handles_ownership_test.go:33: Mapping.errorLocked redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.errorLocked redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.errorLocked redispatches after construction
+    filesystem_handles_ownership_test.go:33: Handle.errorLocked redispatches after construction
+    filesystem_handles_ownership_test.go:66: Mapping combines remote and local filesystem ownership
+    filesystem_handles_ownership_test.go:66: Handle combines remote and local filesystem ownership
+    filesystem_handles_ownership_test.go:85: Handle owns optional backend state: [fs]
+    filesystem_handles_ownership_test.go:85: Handle owns optional backend state: [processHandle]
+    filesystem_handles_ownership_test.go:85: Handle owns optional backend state: [node]
+    filesystem_handles_ownership_test.go:85: Handle owns optional backend state: [name]
+    filesystem_handles_ownership_test.go:85: Handle owns optional backend state: [offset]
+    filesystem_handles_ownership_test.go:85: Handle owns optional backend state: [directoryOffset]
+    filesystem_handles_ownership_test.go:85: Handle owns optional backend state: [readable]
+    filesystem_handles_ownership_test.go:85: Handle owns optional backend state: [writable]
+    filesystem_handles_ownership_test.go:85: Handle owns optional backend state: [append]
+    filesystem_handles_ownership_test.go:85: Handle owns optional backend state: [closed]
+    filesystem_handles_ownership_test.go:85: Handle owns optional backend state: [revoked]
+    filesystem_handles_ownership_test.go:85: Handle owns optional backend state: [generation]
+    filesystem_handles_ownership_test.go:88: Handle has 0 implementation contracts, want one
+    filesystem_handles_ownership_test.go:85: Mapping owns optional backend state: [fs]
+    filesystem_handles_ownership_test.go:85: Mapping owns optional backend state: [processHandle]
+    filesystem_handles_ownership_test.go:85: Mapping owns optional backend state: [node]
+    filesystem_handles_ownership_test.go:85: Mapping owns optional backend state: [offset]
+    filesystem_handles_ownership_test.go:85: Mapping owns optional backend state: [data]
+    filesystem_handles_ownership_test.go:85: Mapping owns optional backend state: [writable]
+    filesystem_handles_ownership_test.go:85: Mapping owns optional backend state: [owner]
+    filesystem_handles_ownership_test.go:85: Mapping owns optional backend state: [closed]
+    filesystem_handles_ownership_test.go:85: Mapping owns optional backend state: [revoked]
+    filesystem_handles_ownership_test.go:85: Mapping owns optional backend state: [generation]
+    filesystem_handles_ownership_test.go:88: Mapping has 0 implementation contracts, want one
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3	0.005s
+FAIL
+ELAPSED_SECONDS=0.202
+EXIT_CODE=1

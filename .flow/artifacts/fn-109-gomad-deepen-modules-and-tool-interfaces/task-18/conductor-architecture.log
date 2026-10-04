@@ -1,0 +1,4 @@
+COMMAND: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep . -run SimulationGate\|FilesystemHandles\|NetworkHandles\|ProcessCommands\|PackageArchitecture
+ok  	go.temporal.io/server/tools/gomad3	0.647s
+ELAPSED_SECONDS=1.026
+EXIT_CODE=0

@@ -1,0 +1,6 @@
+COMMAND: env GOROOT=/tmp/gomad-task18.U1uS6Z/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task18.U1uS6Z/go/bin/go test -count=1 -tags test_dep internal/gomadfs internal/gomadio internal/gomadmodelwire -skip FilesystemProcessTransport
+ok  	internal/gomadfs	0.062s
+ok  	internal/gomadio	0.002s
+ok  	internal/gomadmodelwire	0.001s
+ELAPSED_SECONDS=0.203
+EXIT_CODE=0

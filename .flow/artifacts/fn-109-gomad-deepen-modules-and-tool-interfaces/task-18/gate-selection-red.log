@@ -1,0 +1,11 @@
+COMMAND: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep . -run SimulationGate
+--- FAIL: TestSimulationGateSelectsProcessNetworkHandles (0.01s)
+    simulation_gate_selection_test.go:66: canonical main simulation gate excludes TestProcessFilesystemHandlePartialIOAndLifetime
+    simulation_gate_selection_test.go:66: canonical main simulation gate excludes TestProcessFilesystemHandleDirectoryAndChdir
+    simulation_gate_selection_test.go:66: canonical main simulation gate excludes TestProcessFilesystemHandleAccessAndBounds
+    simulation_gate_selection_test.go:66: canonical main simulation gate excludes TestProcessFilesystemHandleReplayRejectsWriteBeforeMutation
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3	0.014s
+FAIL
+ELAPSED_SECONDS=0.310
+EXIT_CODE=1

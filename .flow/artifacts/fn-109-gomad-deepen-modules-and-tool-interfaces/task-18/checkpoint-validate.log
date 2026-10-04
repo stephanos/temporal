@@ -1,0 +1,13 @@
+GOCACHE=/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+GOCACHE=/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+GOCACHE=/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3
+gomad3 patch and overlay inputs are valid
+GOCACHE=/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3
+gomad3 script ownership is valid
+GOCACHE=/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool compatibility-pack check --root=/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3
+compatibility packs are current
+GOCACHE=/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3/.toolchain/generator-cache go test -count=1 -tags test_dep -run '^TestHostPacksBindCurrentProfile$' ./internal/compatibilitypack
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	0.002s
+GOCACHE=/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool qualification-manifest-generate --root=/tmp/fn109-task18-checkpoint.wjz9pdom/tools/gomad3/../.. --spec=tools/gomad3integration/qualification/tests.generator.json --output=tools/gomad3integration/qualification/tests.json -check

@@ -1,0 +1,3 @@
+COMMAND: env GOROOT=/tmp/gomad-task18.U1uS6Z/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task18.U1uS6Z/go/bin/go vet -tags test_dep internal/gomadfs
+ELAPSED_SECONDS=0.203
+EXIT_CODE=0

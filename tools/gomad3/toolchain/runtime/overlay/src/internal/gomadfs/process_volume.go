@@ -13,6 +13,60 @@ import (
 
 var processFilesystem = &FS{process: true}
 
+type processHandle struct {
+	processHandle uint64
+	name          string
+	closed        bool
+}
+type processMapping struct {
+	processHandle uint64
+	data          []byte
+	closed        bool
+}
+
+func (handle *processHandle) Read(destination []byte) (int, error) {
+	return handle.read(destination, 0, false)
+}
+func (handle *processHandle) ReadAt(destination []byte, offset int64) (int, error) {
+	return handle.read(destination, offset, true)
+}
+func (handle *processHandle) Write(source []byte) (int, error) { return handle.write(source, 0, false) }
+func (handle *processHandle) WriteAt(source []byte, offset int64) (int, error) {
+	return handle.write(source, offset, true)
+}
+func (handle *processHandle) Path() string { return handle.name }
+func (handle *processHandle) Truncate(size int64) error {
+	_, err := handle.operation(processVolumeCommand{Operation: processVolumeHandleTruncateOp, Size: size})
+	return err
+}
+func (handle *processHandle) Chmod(mode uint32) error {
+	_, err := handle.operation(processVolumeCommand{Operation: processVolumeHandleChmodOp, Mode: mode})
+	return err
+}
+func (handle *processHandle) Chtimes(modTime int64) error {
+	_, err := handle.operation(processVolumeCommand{Operation: processVolumeHandleChtimesOp, ModTime: modTime})
+	return err
+}
+func (handle *processHandle) Chdir() error {
+	_, err := handle.operation(processVolumeCommand{Operation: processVolumeHandleChdirOp})
+	return err
+}
+func (handle *processHandle) Seek(offset int64, whence int) (int64, error) {
+	response, err := handle.operation(processVolumeCommand{Operation: processVolumeHandleSeekOp, Offset: offset, Whence: int64(whence)})
+	return response.Offset, err
+}
+func (handle *processHandle) Close() error {
+	_, err := handle.operation(processVolumeCommand{Operation: processVolumeHandleCloseOp})
+	if err == nil {
+		handle.closed = true
+	}
+	return err
+}
+func (handle *processHandle) Sync() error {
+	_, err := handle.operation(processVolumeCommand{Operation: processVolumeHandleSyncOp})
+	return err
+}
+
 func processResolve(name string) (string, string, error) {
 	response, err := exchangeProcessVolume(processVolumeCommand{Operation: processVolumeResolveOp, Path: name})
 	return response.Path, response.Base, err
@@ -46,7 +100,7 @@ func processOpen(name string, flags OpenFlags, perm uint32) (*Handle, error) {
 	if response.Handle == 0 || response.Path == "" {
 		return nil, syscall.EIO
 	}
-	return &Handle{fs: processFilesystem, processHandle: response.Handle, name: response.Path}, nil
+	return &Handle{implementation: &processHandle{processHandle: response.Handle, name: response.Path}}, nil
 }
 
 func processPathOperation(command processVolumeCommand) error {
@@ -62,7 +116,7 @@ func processGetwd() string {
 	return response.Path
 }
 
-func processHandleRead(handle *Handle, destination []byte, offset int64, at bool) (int, error) {
+func (handle *processHandle) read(destination []byte, offset int64, at bool) (int, error) {
 	if handle.closed {
 		return 0, ErrClosed
 	}
@@ -78,7 +132,7 @@ func processHandleRead(handle *Handle, destination []byte, offset int64, at bool
 	return read, err
 }
 
-func processHandleWrite(handle *Handle, source []byte, offset int64, at bool) (int, error) {
+func (handle *processHandle) write(source []byte, offset int64, at bool) (int, error) {
 	if handle.closed {
 		return 0, ErrClosed
 	}
@@ -93,7 +147,7 @@ func processHandleWrite(handle *Handle, source []byte, offset int64, at bool) (i
 	return int(response.BytesTransferred), err
 }
 
-func processHandleOperation(handle *Handle, command processVolumeCommand) (processVolumeResult, error) {
+func (handle *processHandle) operation(command processVolumeCommand) (processVolumeResult, error) {
 	if handle.closed {
 		return processVolumeResult{}, ErrClosed
 	}
@@ -101,8 +155,8 @@ func processHandleOperation(handle *Handle, command processVolumeCommand) (proce
 	return exchangeProcessVolume(command)
 }
 
-func processHandleStat(handle *Handle) (Entry, error) {
-	response, err := processHandleOperation(handle, processVolumeCommand{Operation: processVolumeHandleStatOp})
+func (handle *processHandle) Stat() (Entry, error) {
+	response, err := handle.operation(processVolumeCommand{Operation: processVolumeHandleStatOp})
 	if err != nil {
 		return Entry{}, err
 	}
@@ -112,32 +166,32 @@ func processHandleStat(handle *Handle) (Entry, error) {
 	return response.Entries[0], nil
 }
 
-func processHandleReadDir(handle *Handle, count int) ([]Entry, error) {
-	response, err := processHandleOperation(handle, processVolumeCommand{Operation: processVolumeHandleReadDirOp, DirectoryCount: int64(count)})
+func (handle *processHandle) ReadDir(count int) ([]Entry, error) {
+	response, err := handle.operation(processVolumeCommand{Operation: processVolumeHandleReadDirOp, DirectoryCount: int64(count)})
 	if response.Entries == nil {
 		response.Entries = []Entry{}
 	}
 	return response.Entries, err
 }
 
-func processHandleMap(handle *Handle, offset int64, length uint64, writable bool) (*Mapping, error) {
+func (handle *processHandle) Map(offset int64, length uint64, writable bool) (*Mapping, error) {
 	// A process volume serves mapping bytes by copy over the model exchange,
 	// so a store through the copy cannot reach the volume; writable mappings
 	// stay unsupported there instead of silently detaching.
 	if writable {
 		return nil, syscall.ENOTSUP
 	}
-	response, err := processHandleOperation(handle, processVolumeCommand{Operation: processVolumeHandleMapOp, Offset: offset, MapLength: length})
+	response, err := handle.operation(processVolumeCommand{Operation: processVolumeHandleMapOp, Offset: offset, MapLength: length})
 	if err != nil {
 		return nil, err
 	}
 	if response.Handle == 0 {
 		return nil, syscall.EIO
 	}
-	return &Mapping{fs: processFilesystem, processHandle: response.Handle}, nil
+	return &Mapping{implementation: &processMapping{processHandle: response.Handle}}, nil
 }
 
-func processMappingBytes(mapping *Mapping) ([]byte, error) {
+func (mapping *processMapping) Bytes() ([]byte, error) {
 	if mapping.closed {
 		return nil, syscall.EINVAL
 	}
@@ -151,7 +205,7 @@ func processMappingBytes(mapping *Mapping) ([]byte, error) {
 	return mapping.data, nil
 }
 
-func processMappingClose(mapping *Mapping) error {
+func (mapping *processMapping) Close() error {
 	if mapping.closed {
 		return syscall.EINVAL
 	}

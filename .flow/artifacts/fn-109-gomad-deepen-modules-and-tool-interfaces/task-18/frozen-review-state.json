@@ -1,0 +1,8 @@
+{
+  "task_title": "Frozen filesystem handle source and test integration review",
+  "task_body": "Read-only final review of complete task18 source/test/gate/descriptor candidate bound by final-source.sha256 against actual dirty task17 baseline. Cover owner correctness, shared three-backend operation fixtures, real-process IPC/registry/replay cases, canonical selectors, unchanged typed wire and volume semantics, evidence completeness and native limitations.",
+  "acceptance": "Return strengths and actionable Critical/Important/Minor findings with exact paths, verify manifest before/after and review canonical handover/evidence once present. No writes/tests/build/generation/Flow/git/bridges; report source-only readiness, never formal SHIP/native completion. Task18 native Quick gates remain unavailable.",
+  "touches_count": 0,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

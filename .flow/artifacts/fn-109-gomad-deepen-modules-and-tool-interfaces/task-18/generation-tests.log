@@ -1,0 +1,6 @@
+COMMAND: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep ./internal/gomadtool/generation/... ./toolchain/version
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary	0.868s
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol	0.764s
+ok  	go.temporal.io/server/tools/gomad3/toolchain/version	0.400s
+ELAPSED_SECONDS=1.106
+EXIT_CODE=0

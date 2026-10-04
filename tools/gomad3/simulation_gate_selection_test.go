@@ -37,11 +37,11 @@ func TestSimulationGateSelectsProcessNetworkHandles(t *testing.T) {
 		return true
 	}
 	root := "TestRootProcessSimulationUsesRunnerTransport/"
-	files, err := filepath.Glob("../../tools/gomad3sim/network*toolchain_test.go")
+	files, err := filepath.Glob("../../tools/gomad3sim/*toolchain_test.go")
 	if err != nil {
 		t.Fatal(err)
 	}
-	handles := 0
+	handles := make(map[string]int)
 	for _, path := range files {
 		file, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
 		if err != nil {
@@ -49,10 +49,19 @@ func TestSimulationGateSelectsProcessNetworkHandles(t *testing.T) {
 		}
 		for _, declaration := range file.Decls {
 			function, ok := declaration.(*ast.FuncDecl)
-			if !ok || !strings.HasPrefix(function.Name.Name, "TestProcessNetworkHandle") {
+			if !ok {
 				continue
 			}
-			handles++
+			prefix := ""
+			for _, family := range []string{"TestProcessNetworkHandle", "TestProcessFilesystemHandle"} {
+				if strings.HasPrefix(function.Name.Name, family) {
+					prefix = family
+				}
+			}
+			if prefix == "" {
+				continue
+			}
+			handles[prefix]++
 			if !selected(root+function.Name.Name, filters[0][1]) {
 				t.Errorf("canonical main simulation gate excludes %s", function.Name.Name)
 			}
@@ -61,8 +70,10 @@ func TestSimulationGateSelectsProcessNetworkHandles(t *testing.T) {
 			}
 		}
 	}
-	if handles != 13 {
-		t.Fatalf("process network handle cases = %d, want 13", handles)
+	for prefix, want := range map[string]int{"TestProcessNetworkHandle": 13, "TestProcessFilesystemHandle": 4} {
+		if handles[prefix] != want {
+			t.Fatalf("%s cases=%d, want %d", prefix, handles[prefix], want)
+		}
 	}
 	delay := root + "TestProcessBackendSynchronizesNodeClockWithModelDelay/"
 	for _, filter := range filters {

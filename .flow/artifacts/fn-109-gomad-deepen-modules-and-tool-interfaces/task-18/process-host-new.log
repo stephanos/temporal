@@ -1,0 +1,4 @@
+COMMAND: env GOROOT=/tmp/gomad-task18.U1uS6Z/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task18.U1uS6Z/go/bin/go test -count=1 -tags test_dep internal/gomadfs -run Registry\|FilesystemHandle\|FilesystemMapping\|FilesystemMounted\|WritableMap\|ProcessVolume
+ok  	internal/gomadfs	0.011s
+ELAPSED_SECONDS=0.302
+EXIT_CODE=0

@@ -1,0 +1,8 @@
+{
+  "task_title": "Prepare exact task18 checkpoint after committed task17",
+  "task_body": "Archive committed task17 tools/gomad3 and tools/gomad3sim with root module files, two qualification JSON inputs and exactly 113 committed top-level test AST inputs into isolated scratch. Overlay only fourteen retained task18 source identities. Verify full source hashes, exact fourteen-path delta, 79-entry overlay descriptor and unchanged unrelated archived sources. Run bounded ownership, canonical selection, inherited architecture, generation, complete cheap validation and scoped vet checks.",
+  "acceptance": "All fourteen retained hashes match and only those fourteen source paths differ from committed task17. Full before/after inventories and fresh commands bind the candidate. Reuse original source-audit and behavioral evidence; keep native/process and task acceptance open. No shared source/docs/tests, Git/index, Flow-state mutations, agents, bridges or formal SHIP.",
+  "touches_count": 14,
+  "has_quick_commands": true,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}
