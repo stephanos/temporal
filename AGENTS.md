@@ -160,6 +160,8 @@ fast scout: claude-opus-5-5 at low
 
 thinking scout: claude-opus-5-5 at high
 
+research: claude-fable-5-1 at high
+
 ### Codex
 
 reviewer: gpt-6.1-sol at high
@@ -169,6 +171,13 @@ implementer: gpt-6.1-sol at high
 fast scout: gpt-6-luna at low
 
 thinking scout: gpt-6.1-sol at high
+
+research: gpt-6.1-astra at high
+
+`research` is investigation that ends in a report rather than a change or a decision: surveys of
+the codebase, audits, tool and literature evaluations, web research. It always uses the research
+model above, never the thinking scout; spec writing, task breakdown and design decisions stay with the
+thinking scout.
 
 Demanding tasks include ambiguous work or changes with a large blast radius.
 Explicit invocation instructions take precedence over the matching section,
