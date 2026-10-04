@@ -84,6 +84,15 @@ type Delta struct {
 	// NewIRFiles are IR files, by archive key, that the baseline has no Model for: "new_ir_files":
 	// ["ir/nexus-operation.json"]. Each must be produced, and nothing compares it with the baseline.
 	NewIRFiles []string `json:"new_ir_files"`
+	// Reduced are the archived lifter fixtures, by archive key, that fn-114.10 replaced:
+	// "reduced_fixtures": ["lifts/admission.json"]. They copied live Model text; each is reduced to a
+	// fixture-local Model, a new Model rather than a converted one, or retired outright, and neither
+	// harness compares it with its frozen original (Compared, ComparedOutputs, Config.Inputs). What its
+	// copied text exercised is covered by the reduced fixture's own lifter test or by the gate's
+	// live-Model lift, mapped in .flow/tmp/fn114-10/. A reduced fixture is still produced, lifted by the
+	// lifter's own tests against its expected file; a retired one is not, so the inventory does not
+	// require it. Each stays archived, and the archive stays frozen.
+	Reduced []string `json:"reduced_fixtures"`
 }
 
 // Attachment attaches the machine of a name, or the action of an ID, to an entity.
@@ -150,6 +159,13 @@ func irKey(key string) bool {
 	return ok && name != ".json" && strings.HasSuffix(name, ".json") && !strings.Contains(name, "/") && !IsLawSidecar(name)
 }
 
+// liftKey reports whether key is a positive lifter fixture's archive key: a .json file under lifts/,
+// so never the refusals.
+func liftKey(key string) bool {
+	name, ok := strings.CutPrefix(key, OriginalLifts)
+	return ok && name != ".json" && strings.HasSuffix(name, ".json") && !strings.Contains(name, "/")
+}
+
 func (d Delta) check() error {
 	for _, name := range d.InertFields {
 		if _, err := inertField(name); err != nil {
@@ -180,6 +196,13 @@ func (d Delta) check() error {
 			return fmt.Errorf("new Case %+v is not one generated Query's, or one Query's of a new IR file", c)
 		}
 		cases[c] = true
+	}
+	reduced := map[string]bool{}
+	for _, key := range d.Reduced {
+		if !liftKey(key) || reduced[key] {
+			return fmt.Errorf("reduced fixture %q is not one lifter fixture under %s", key, OriginalLifts)
+		}
+		reduced[key] = true
 	}
 	return nil
 }
@@ -244,6 +267,28 @@ func (d Delta) replacements(key string) []int {
 	for i, r := range d.Replacements {
 		if r.Model == key {
 			out = append(out, i)
+		}
+	}
+	return out
+}
+
+// Compared gives files by archive key without the reduced fixtures, which nothing compares with
+// their baselines. Inventory still reads every file.
+func (d Delta) Compared(files map[string][]byte) map[string][]byte {
+	out := maps.Clone(files)
+	for _, key := range d.Reduced {
+		delete(out, key)
+	}
+	return out
+}
+
+// ComparedOutputs gives derived outputs, keyed `<output>/<archive key>`, without the reduced
+// fixtures' outputs.
+func (d Delta) ComparedOutputs(outputs Derived) Derived {
+	out := maps.Clone(outputs)
+	for key := range outputs {
+		if _, model, _ := strings.Cut(key, "/"); slices.Contains(d.Reduced, model) {
+			delete(out, key)
 		}
 	}
 	return out
@@ -676,12 +721,18 @@ func OriginalModels(files map[string][]byte) (map[string]*umpirespb.Model, error
 // archived lifter fixture, and every archived refusal at some line. Later fixtures and refusals, for
 // constructs added after the baseline, may be added. Of IR files and Cases only the delta's may be
 // added: its new IR files, its new Cases, and the law sidecar of an IR file that is new or has law
-// replacements, which lists exactly the claims the delta lists for it. Each must be produced.
+// replacements, which lists exactly the claims the delta lists for it. Each must be produced. A
+// reduced fixture must be an archived one, and may be retired: only it may no longer be produced.
 func (d Delta) Inventory(archived, current map[string][]byte) error {
 	var errs []error
 	for _, key := range slices.Sorted(maps.Keys(archived)) {
-		if _, ok := current[key]; !ok {
+		if _, ok := current[key]; !ok && !slices.Contains(d.Reduced, key) {
 			errs = append(errs, fmt.Errorf("%s is archived and no longer produced", key))
+		}
+	}
+	for _, key := range d.Reduced {
+		if _, ok := archived[key]; !ok {
+			errs = append(errs, fmt.Errorf("reduced fixture %s is not archived", key))
 		}
 	}
 	// added are the files the delta adds, each of which must be produced; optional are the law

@@ -638,3 +638,78 @@ func TestOriginalKeyNamesTheArchivedFile(t *testing.T) {
 	require.Equal(t, "ir/activity.json", OriginalKey("model/scalav2/ir/activity.json"))
 	require.Equal(t, "lifts/admission.json", OriginalKey("model/scalav2/lifter/testdata/lifts/expected/admission.json"))
 }
+
+// TestReducedInventoryIsNotCompared reduces a lifter fixture of the IR inventory: Inputs leaves it out
+// and Unreduced drops its goldens, so a change of it, or its retirement, passes while the same of
+// another fixture fails. Only an inventoried lifter fixture, listed once, is reduced.
+func TestReducedInventoryIsNotCompared(t *testing.T) {
+	const lifts = "model/scalav2/lifter/testdata/lifts/expected/"
+	root := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(root, "model", "scalav2", "ir"), 0755))
+	require.NoError(t, os.MkdirAll(filepath.Join(root, lifts), 0755))
+	cfg := Config{Inventory: []string{"model/scalav2/ir/one.json", lifts + "a.json", lifts + "b.json"}, Later: []string{lifts + "later.json"}}
+	write := func(path, source string) {
+		require.NoError(t, os.WriteFile(filepath.Join(root, path), []byte(`{"source":"`+source+`"}`), 0644))
+	}
+	for _, path := range append(slices.Clone(cfg.Inventory), cfg.Later...) {
+		write(path, "model: frozen")
+	}
+	// goldens stands for the goldens of each input: its frozen input and what it lowers to.
+	goldens := func(inputs map[string]*umpirespb.Model) map[string][]byte {
+		out := map[string][]byte{}
+		for path, m := range inputs {
+			encoded, err := Proto(m)
+			require.NoError(t, err)
+			key := strings.TrimPrefix(path, "model/scalav2/")
+			out["inputs/"+key], out["original/"+key+"/queries/q/case.json"] = encoded, encoded
+		}
+		return out
+	}
+	inputs, err := cfg.Inputs(root)
+	require.NoError(t, err)
+	expected := goldens(inputs)
+	require.Len(t, expected, 6)
+
+	cfg.Reduced, err = cfg.reduced([]string{"lifts/a.json"})
+	require.NoError(t, err)
+	require.Equal(t, []string{lifts + "a.json"}, cfg.Reduced)
+	require.Len(t, cfg.Unreduced(expected), 4, "the reduced fixture's goldens, wherever filed")
+	write(lifts+"a.json", "model: reduced")
+	inputs, err = cfg.Inputs(root)
+	require.NoError(t, err)
+	require.NotContains(t, inputs, lifts+"a.json")
+	require.NoError(t, Compare(cfg.Unreduced(expected), goldens(inputs)), "a listed fixture is a new Model")
+	write(lifts+"b.json", "model: reduced")
+	inputs, err = cfg.Inputs(root)
+	require.NoError(t, err)
+	require.Error(t, Compare(cfg.Unreduced(expected), goldens(inputs)), "an unlisted fixture is compared")
+	require.NoError(t, os.Remove(filepath.Join(root, lifts+"a.json")))
+	inputs, err = cfg.Inputs(root)
+	require.NoError(t, err, "a listed fixture may be retired")
+	require.NotContains(t, inputs, lifts+"a.json")
+	require.NoError(t, os.Remove(filepath.Join(root, lifts+"b.json")))
+	_, err = cfg.Inputs(root)
+	require.ErrorContains(t, err, "missing IR inventory entry "+lifts+"b.json", "an unlisted fixture must still exist")
+	stray := Config{Inventory: cfg.Inventory[:1], Reduced: cfg.Reduced}
+	_, err = stray.Inputs(root)
+	require.ErrorContains(t, err, "is not inventoried")
+
+	for name, keys := range map[string][]string{
+		"an IR file":   {"ir/one.json"},
+		"unknown":      {"lifts/unknown.json"},
+		"later":        {"lifts/later.json"},
+		"listed twice": {"lifts/a.json", "lifts/a.json"},
+	} {
+		_, err := cfg.reduced(keys)
+		require.Error(t, err, name)
+	}
+	// The configuration reads the original baseline's reduced fixtures, at their inventory paths.
+	configured, err := Configuration()
+	require.NoError(t, err)
+	delta, err := OriginalDelta()
+	require.NoError(t, err)
+	require.Len(t, configured.Reduced, len(delta.Reduced))
+	for i, path := range configured.Reduced {
+		require.Equal(t, delta.Reduced[i], OriginalKey(path))
+	}
+}

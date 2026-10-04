@@ -2,28 +2,15 @@
 // which declare their members, syncs and replaced machines by field, derive each later design by
 // `withMember` and select their Scenarios' composed classes with `synced` and `own`. The lifter's
 // tests lift those Queries for their exact composed keys, members, syncs and replacement targets;
-// lift the cross-entity claim here, which names the attempt-start sync by the worker's side where
-// production names it by the activity's; and lift `switchQueries`, whose field, sync and action
-// names carry the separators of the composed keys and whose two members bind actions spelled alike,
-// for the exact keys they select; and lift `flickedBothOnce`, over a sync named after its first
-// member's action and a composition `withMember` derives from it.
+// lift `switchQueries` here, whose field, sync and action names carry the separators of the composed
+// keys and whose two members bind actions spelled alike, for the exact keys they select; and lift
+// `flickedBothOnce`, over a sync named after its first member's action, which a composition
+// `withMember` derives from it keeps and `synced` selects from either member.
 package fixture.members
 
-import temporal.standaloneactivity.{six, standaloneActivity, Paths}
-import temporal.standaloneactivity.StandaloneActivityState
-import temporal.standaloneactivity.SystemFamily.given
-import temporal.worker.Phase as WorkerPhase
 import umpire.*
 
-// ### The cross-entity claim, about every attempt start the sync pairs
-
-val startedByPollingWorkerTyped: Property[StandaloneActivityState] =
-  standaloneActivity.property
-    .whenAction(standaloneActivity.synced(_.worker -> temporal.worker.serve)) holds
-    (_.state.worker.phase == WorkerPhase.polling)
-
-val stoppedWorkerStartsNothingTyped: Query =
-  query verify startedByPollingWorkerTyped in Paths.stoppedBeforeRetry limits six total 3456
+given Family = Family("fixture.members")
 
 // ### Separators in composed keys, and actions spelled alike in two members
 

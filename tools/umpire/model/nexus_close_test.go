@@ -10,8 +10,8 @@ package model
 // retention or a reset that reapplies it. nexus_close_baseline_test.go compares the one behavior the Go
 // baseline also has, and lists which claims are which.
 //
-// No expectation here is an explored-state count: the specimen's counts are those of its sketch, which
-// lifter/testdata/lifts/CloseReset.scala is and checking_test.go pins.
+// No expectation here is an explored-state count: the specimen's counts are those of its sketch, a
+// lifter fixture fn-114.10 retired once this Model carried each of its designs.
 
 import (
 	"cmp"

@@ -85,10 +85,10 @@ func loweredAll(t *testing.T, m *umpirespb.Model) (out []string, cases int) {
 
 // TestNamedChoicesLowerTheSameCases names every step record of each Model with a realization and
 // lowers each of its Queries: the standings, the Cases' bytes, their inventories and gaps, and the
-// errors are the unnamed Model's. realizations.json and activity-race.json branch: a row of theirs has
-// several results, each now named.
+// errors are the unnamed Model's. activity-race.json branches: one of its rows has several results,
+// each now named.
 func TestNamedChoicesLowerTheSameCases(t *testing.T) {
-	branches := map[string]bool{"model/ir/activity-race.json": true, "model/lifter/testdata/lifts/expected/realizations.json": true}
+	branches := map[string]bool{"model/ir/activity-race.json": true}
 	for _, path := range []string{
 		"model/ir/activity.json", "model/ir/activity-race.json", "model/ir/nexus-caller.json", "model/ir/nexus-control.json",
 		"model/lifter/testdata/lifts/expected/realizations.json",

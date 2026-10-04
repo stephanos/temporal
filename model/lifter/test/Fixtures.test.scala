@@ -121,14 +121,9 @@ class Fixtures extends munit.FunSuite:
       "fixture.specimens.admission.Admission$package$.currentQueries",
       "fixture.specimens.admission.Admission$package$.staleQueries"
     ),
-    "closereset" -> Seq(
-      "fixture.specimens.closereset.CloseReset$package$.rejectAfterCloseQueries",
-      "fixture.specimens.closereset.CloseReset$package$.ackByOriginalQueries",
-      "fixture.specimens.closereset.CloseReset$package$.retainAndRouteQueries"
-    ),
     "realizations" -> Seq(
       "fixture.realizations.Realizations$package$.learnedRun",
-      "temporal.nexuscaller.Queries$package$.syncCompletion",
+      "fixture.realizations.Realizations$package$.runOpens",
       "fixture.realizations.Realizations$package$.pauseRace",
       "fixture.realizations.Realizations$package$.pauseRaceQuery",
       "fixture.realizations.Realizations$package$.doorRealization",
@@ -537,7 +532,8 @@ class Fixtures extends munit.FunSuite:
       ).sorted
     )
 
-  concurrently("typed schemas, methods, paths, enums and constants lift to their protobuf names"):
+  // The typed selectors no live Model writes (lifts/Typed.scala); model/ir pins the rest.
+  concurrently("typed schemas, paths and bound constants lift to their protobuf names"):
     val out = lifted("typed")
     val roots = Seq("typedMachine", "typedRealization")
       .map("fixture.typed.Typed$package$." + _)
@@ -546,91 +542,24 @@ class Fixtures extends munit.FunSuite:
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val model = mapper.readTree(Files.readString(out))
     val actions = model.path("actions")
-    assertEquals(actions.size(), 2)
+    assertEquals(actions.size(), 1)
     assertEquals(
       actions.get(0).path("schemas").get(0).asText(),
       "temporal.api.workflowservice.v1.StartActivityExecutionRequest"
     )
-    assertEquals(
-      actions.get(1).path("schemas").elements().asScala.map(_.asText()).toList,
-      List(
-        "temporal.api.workflowservice.v1.StartActivityExecutionResponse",
-        "temporal.api.workflowservice.v1.StartActivityExecutionRequest"
-      )
-    )
     val realizations = model.path("realizations")
     assertEquals(realizations.size(), 1)
     val typed = realizations.get(0)
-    assertEquals(typed.path("evidence").get(0).path("read").path("path").asText(), "executions[*]")
+    val call = typed.at("/scripts/0/items/0/command/rpc")
+    assertEquals(call.at("/assign/0/target").asText(), "heartbeat_timeout.seconds")
+    assertEquals(call.at("/assign/0/value/literal/number").asText(), "5")
+    assertEquals(call.at("/reads/0/path").asText(), "run_id")
     assertEquals(
-      typed.at("/scripts/0/items/0/command/rpc/method").asText(),
-      "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution"
-    )
-    assertEquals(
-      typed.at("/scripts/0/items/0/command/rpc/assign/1/target").asText(),
-      "task_queue.name"
-    )
-    assertEquals(typed.at("/scripts/0/items/0/command/rpc/reads/0/path").asText(), "run_id")
-    assertEquals(
-      typed.at("/scripts/0/items/1/command/poll/evidence").asText(),
-      "fixture.typed.evidence.listed"
-    )
-    assertEquals(
-      typed.at("/scripts/0/items/2/command/rpc/reads/0/path").asText(),
+      typed.at("/scripts/0/items/1/command/rpc/reads/0/path").asText(),
       "history.events[*].event_id"
     )
-    assertEquals(
-      typed.at("/evidence/2/history").asText(),
-      "nexus_operation_scheduled_event_attributes"
-    )
-    assertEquals(
-      typed.at("/evidence/3/runEvent/guard/all/operands/0/equal/right/literal/enumName").asText(),
-      "DELIVERY_ADMISSION_DECISION_ADMITTED"
-    )
-    assertEquals(
-      typed.at("/scripts/0/items/3/command/nexusReply/reply/message").asText(),
-      "temporal.api.common.v1.Payload"
-    )
-    assertEquals(
-      typed.at("/scripts/0/items/3/command/nexusReply/reply/fields/0/name").asText(),
-      "metadata"
-    )
-    assertEquals(
-      typed
-        .at("/scripts/0/items/3/command/nexusReply/reply/fields/0/value/mapping/entries/0/key")
-        .asText(),
-      "encoding"
-    )
-    assertEquals(
-      typed
-        .at(
-          "/scripts/0/items/3/command/nexusReply/reply/fields/0/value/mapping/entries/0/value/utf8"
-        )
-        .asText(),
-      "json/plain"
-    )
-
-  concurrently(
-    "typed Long operands lift as protobuf integer values, including bound helper values"
-  ):
-    val out = lifted("typedLong")
-    val roots = Seq("fixture.typed.Typed$package$.typedLongRealization")
-    val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
-    assert(!result.failed, result.diagnostics)
-    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
-    val realizations = mapper.readTree(Files.readString(out)).path("realizations")
-    assertEquals(realizations.size(), 1)
-    val rpc = realizations.get(0).at("/scripts/0/items/0/command/rpc")
-    assertEquals(
-      rpc.path("assign").get(0).path("target").asText(),
-      "start_to_close_timeout.seconds"
-    )
-    assertEquals(rpc.at("/assign/0/value/literal/number").asText(), "300")
-    assertEquals(
-      rpc.path("assign").get(1).path("target").asText(),
-      "schedule_to_start_timeout.seconds"
-    )
-    assertEquals(rpc.at("/assign/1/value/literal/number").asText(), "2")
+    // Through `Option.map` the optional message is selected, not indexed as repeated.
+    assertEquals(typed.at("/evidence/0/fields/0/path").asText(), "delivery_admission.delivery_id")
 
   test("typed repeated reads preserve bare paths"):
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
@@ -646,7 +575,7 @@ class Fixtures extends munit.FunSuite:
     assertEquals(bare, "executions")
 
   // fn-112.10: a monitor of a Query's expected Run named by value, as by its name. Lifted apart
-  // from the realizations fixture, whose expected IR the original baseline holds.
+  // from the realizations fixture: no realization runs the watched door.
   concurrently("a monitor expectation names its monitor by value as by its name"):
     val out = lifted("monitorExpectations")
     val roots =
@@ -665,7 +594,7 @@ class Fixtures extends munit.FunSuite:
     val byValue = expected("heldByValue")
     assertEquals(
       byValue.path("monitors").elements().asScala.map(_.path("name").asText()).toList,
-      List("atMostOneActiveAttempt", "terminalFinality")
+      List("opensOnce", "staysOpen")
     )
     assertEquals(byValue.toPrettyString, expected("heldByName").toPrettyString)
 
@@ -981,7 +910,6 @@ class Fixtures extends munit.FunSuite:
   // fn-112.5: input tokens, inputs supplied by name and a bounded counter (lifts/Inputs.scala).
   concurrently("inputs supplied by name lift as their positional calls, and UpTo as the Int range"):
     import com.fasterxml.jackson.databind.JsonNode
-    val protocol = "temporal.standaloneactivity.Model$package$.activityProtocol"
     val (model, _, property) = declarations(
       "inputs",
       Seq(
@@ -990,8 +918,7 @@ class Fixtures extends munit.FunSuite:
         "urgentByNameQuery",
         "urgentByPositionQuery",
         "omittedQuery",
-        "omittedByPositionQuery",
-        protocol
+        "omittedByPositionQuery"
       )
     )
     def named(kind: String, name: String): JsonNode = model
@@ -1019,13 +946,8 @@ class Fixtures extends munit.FunSuite:
       !model.path("types").elements().asScala.exists(_.path("name").asText().endsWith(".Delivery")),
       "results named a type"
     )
-    // UpTo[2] lifts as the Int range 0..2 of the protocol state's attempt counter, so the counted
-    // state has the protocol state's record, and Go keys both catalogs alike.
-    def record(name: String): String = named("types", name).path("record").toPrettyString
-    assertEquals(
-      record("fixture.inputs.Counted"),
-      record("temporal.standaloneactivity.ProtocolState")
-    )
+    // UpTo[2] lifts as the Int range 0..2, the record the live protocol state's attempt counter
+    // lifts to in model/ir/activity.json, which the gate holds.
     assertEquals(
       named("types", "fixture.inputs.Counted").at("/record/fields/1/type").toString,
       """{"intRange":{"high":"2"}}"""
@@ -1146,8 +1068,7 @@ class Fixtures extends munit.FunSuite:
   // fn-112.4, fn-112.7: typed composition selectors (lifts/Members.scala).
   // The production compositions of temporal/standaloneactivity, written with typed selectors and
   // derived by `withMember`, keep their exact members, syncs, replacement targets and Scenario keys;
-  // the cross-entity claim names one sync by either member; and the keys of names that carry
-  // separators, over two members that bind actions spelled alike.
+  // and the keys of names that carry separators, over two members that bind actions spelled alike.
   concurrently("typed members, syncs, replaces, withMember, synced and own keep the composed keys"):
     import com.fasterxml.jackson.databind.JsonNode
     val queries = "temporal.standaloneactivity.compositions.Queries$package$."
@@ -1156,13 +1077,8 @@ class Fixtures extends munit.FunSuite:
     val overMatching = Seq("currentOverMatching", "staleOverMatching", "currentOverLossyMatching")
     val unqueried = Seq("currentOverForgetful", "currentOverVolatile")
     val roots = (overQueue ++ overMatching).map(d => s"$queries${d}Queries") ++
-      unqueried.map(models + _) ++ Seq(
-        "stoppedWorkerStartsNothingTyped",
-        "temporal.standaloneactivity.Queries$package$.stoppedWorkerStartsNothing",
-        "switchQueries",
-        "flickedBothOnce"
-      )
-    val (model, _, property) = declarations("members", roots)
+      unqueried.map(models + _) ++ Seq("switchQueries", "flickedBothOnce")
+    val (model, _, _) = declarations("members", roots)
     def all(kind: String) = model.path(kind).elements().asScala.toList
     def named(name: String)(n: JsonNode) = n.path("name").asText() == name
     def texts(n: JsonNode, field: String) =
@@ -1209,7 +1125,6 @@ class Fixtures extends munit.FunSuite:
         scenarioKeys(d, "crashAfterAdmissionCommit"),
         matched ++ List("admit", "queue_crash", "queue_addActivityTask", "queue_syncMatch", "admit")
       )
-    assertEquals(property("startedByPollingWorkerTyped"), property("startedByPollingWorker"))
     def keys(name: String) =
       all("scenarios").find(named(name)).get.path("keys").elements().asScala.map(_.asText()).toList
     assertEquals(

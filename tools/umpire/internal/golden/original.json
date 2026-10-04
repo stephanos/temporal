@@ -285,5 +285,10 @@
   ],
   "new_ir_files": [
     "ir/nexus-operation.json"
+  ],
+  "reduced_fixtures": [
+    "lifts/admission.json",
+    "lifts/closereset.json",
+    "lifts/realizations.json"
   ]
 }

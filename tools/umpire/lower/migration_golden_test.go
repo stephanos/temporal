@@ -258,7 +258,8 @@ func TestMigrationGoldens(t *testing.T) {
 	prefixArtifacts(actual, captureArtifacts(t, cfg, inputs, false), "original")
 	prefixArtifacts(actual, captureArtifacts(t, cfg, inputs, true), "mapped")
 	prefixArtifacts(actual, legacyArtifacts(t), "oracles")
-	require.NoError(t, compareMigrationArtifactInventory(expected, actual))
+	// A reduced or retired fixture is no input, so none of its goldens is compared.
+	require.NoError(t, compareMigrationArtifactInventory(cfg.Unreduced(expected), actual))
 }
 
 func migrationJobArtifacts(t *testing.T) map[string][]byte {

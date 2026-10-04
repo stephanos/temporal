@@ -295,6 +295,8 @@ func TestMigrationGoldens(t *testing.T) {
 	expected, err := golden.Read(filepath.Join("testdata", "migration"))
 	require.NoError(t, err)
 	cfg, models := migrationInputs(t)
+	// A reduced or retired fixture is no input, so none of its goldens is compared.
+	expected = cfg.Unreduced(expected)
 	require.NoError(t, cfg.RootsApply(migrationOriginals(t, expected, models), models))
 	for path, current := range models {
 		original := new(umpirespb.Model)
