@@ -39,6 +39,8 @@ message WaitHint {
   // Where the hint is declared, with its line.
   SourceLocation source = 2;
   // The hint's share of the wait's timeout; positive.
+  // (-- api-linter: core::0140::prepositions=disabled
+  //     aip.dev/not-precedent: The name is the hint's own "at most" bound; it is internal to Testpilot. --)
   int64 at_most_milliseconds = 3;
 }
 

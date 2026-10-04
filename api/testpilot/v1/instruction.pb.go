@@ -366,6 +366,8 @@ type WaitHint struct {
 	// Where the hint is declared, with its line.
 	Source *SourceLocation `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
 	// The hint's share of the wait's timeout; positive.
+	// (-- api-linter: core::0140::prepositions=disabled
+	//     aip.dev/not-precedent: The name is the hint's own "at most" bound; it is internal to Testpilot. --)
 	AtMostMilliseconds int64 `protobuf:"varint,3,opt,name=at_most_milliseconds,json=atMostMilliseconds,proto3" json:"at_most_milliseconds,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
