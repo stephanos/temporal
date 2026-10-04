@@ -46,7 +46,7 @@ Reviewer/root preflight failures and superseded concurrent checks are retained.
 Original R13/R18/R19, task12/predecessors/task21, matched first-baseline fixed
 identities and complete/full/completion/formal/both-native/affected-consumer
 qualification remain required and open. No native or formal SHIP is claimed.
-Root owns the reviewed source checkpoint and records its actual commit afterward.
+Root's reviewed source-progress checkpoint is e521cbd2e39e8521bff013de19e569eff8a1392c.
 
 Tier: session (jev-unavailable(no_key))
 Requested writer/reviewer: gpt-6.1-sol at high, same family; actual models unknown.
@@ -54,6 +54,6 @@ stage: impl-review - skipped(policy: conductor-deferred; fresh source review pas
 stage: plan-sync - skipped(config: disabled; task remains blocked rather than done)
 
 ## Evidence
-- Commits:
+- Commits: e521cbd2e39e8521bff013de19e569eff8a1392c
 - Tests: serial artifact49/49, focused23/23, boundaries5/5; errortype/static/generator exit0; lint exit1 two unchanged findings.
 - PRs:
