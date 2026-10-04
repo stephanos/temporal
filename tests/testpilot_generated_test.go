@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -16,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/chasm/lib/activity"
+	"go.temporal.io/server/chasm/lib/nexusoperation"
 	"go.temporal.io/server/common/dynamicconfig"
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -159,12 +161,15 @@ func TestTestpilotGeneratedCases(t *testing.T) {
 			testcore.CheckTestShard(t)
 			fixture, err := testpilotcore.LoadGeneratedCase(generatedCaseDirectory, entry)
 			require.NoError(t, err)
+			// The cluster runs under every setting the Case's Program requires, and the Profile records
+			// each, so preparation checks the Case against what the server actually runs with.
+			required := requiredSettings(t, fixture.Source)
 			if !bindsNexusEndpoint(fixture.Source) {
-				runGeneratedCaseOnCluster(t, entry, fixture, "", []testpilotcore.SwitchSetting{
+				runGeneratedCaseOnCluster(t, entry, fixture, "", append([]testpilotcore.SwitchSetting{
 					{Setting: activity.Enabled, Value: true},
 					{Setting: activity.EnableStandaloneActivityOperatorCommands, Value: true},
 					{Setting: dynamicconfig.EnableChasm, Value: true},
-				})
+				}, required...))
 				return
 			}
 			// Each value appends only the Verdict it produced, and nothing here counts them: the test
@@ -175,6 +180,7 @@ func TestTestpilotGeneratedCases(t *testing.T) {
 				t.Run(value.Name, func(t *testing.T) {
 					// Standalone activity needs CHASM independently of the Nexus implementation switch.
 					settings := append(slices.Clone(value.Settings), testpilotcore.SwitchSetting{Setting: dynamicconfig.EnableChasm, Value: true})
+					settings = append(settings, required...)
 					verdict := runGeneratedCaseOnCluster(t, entry, fixture, value.Name, settings)
 					results = append(results, testpilotcore.SwitchVerdict{Value: value.Name, Verdict: verdict})
 				})
@@ -182,6 +188,36 @@ func TestTestpilotGeneratedCases(t *testing.T) {
 			require.NoError(t, testpilotcore.CheckSwitchAgreement(testpilotcore.NexusImplementationSwitchName, results))
 		})
 	}
+}
+
+// requiredSettingKinds turns the value of each dynamic-configuration key a generated Case may require
+// into its typed setting, by its lower-case key. dynamicconfig has no public lookup from a key to its
+// setting, so a Case that requires a key missing here fails rather than running against a server that
+// does not set it.
+var requiredSettingKinds = map[string]func(value string) (testpilotcore.SwitchSetting, error){
+	strings.ToLower(nexusoperation.Enabled.Key().String()): boolSetting(nexusoperation.Enabled),
+}
+
+func boolSetting(setting dynamicconfig.GenericSetting) func(string) (testpilotcore.SwitchSetting, error) {
+	return func(value string) (testpilotcore.SwitchSetting, error) {
+		parsed, err := strconv.ParseBool(value)
+		return testpilotcore.SwitchSetting{Setting: setting, Value: parsed}, err
+	}
+}
+
+// requiredSettings is the dynamic configuration a Case's Program requires, as the settings its
+// cluster is constructed with.
+func requiredSettings(t *testing.T, source *testpilotspb.Case) []testpilotcore.SwitchSetting {
+	t.Helper()
+	var settings []testpilotcore.SwitchSetting
+	for _, required := range source.GetProgram().GetRequiredSettings() {
+		kind, ok := requiredSettingKinds[strings.ToLower(required.GetKey())]
+		require.True(t, ok, "the Case requires %s, which the suite cannot set", required.GetKey())
+		setting, err := kind(required.GetValue())
+		require.NoError(t, err, "the Case requires %s=%s", required.GetKey(), required.GetValue())
+		settings = append(settings, setting)
+	}
+	return settings
 }
 
 // runGeneratedCaseOnCluster constructs one dedicated cluster under settings, binds the Case to two
@@ -223,6 +259,7 @@ func runGeneratedCaseOnCluster(t *testing.T, entry lower.GeneratedCase, fixture 
 		profile, err := testpilotdriver.DeriveProfile(fixture.Source, catalog, testpilotdriver.Environment{
 			Identity: binding.Identity, Namespace: binding.Namespace, TaskQueue: binding.TaskQueue,
 			HandlerTaskQueue: handlerQueue, NexusEndpoint: binding.NexusEndpoint, DeliveryControl: needsHold,
+			DynamicConfig: binding.DynamicConfig,
 		})
 		require.NoError(t, err)
 		if _, err := testpilot.Prepare(fixture.Source, profile); err != nil {

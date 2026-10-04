@@ -39,6 +39,52 @@ func rowKeyOf(property, machine, row string) string {
 	return fmt.Sprintf("%s on %s at %s", property, machine, row)
 }
 
+// The frozen baseline predates the product's capabilities: it names the product's two laws after the
+// vals that declared their calls, where the capability declaration now names each
+// `activityProduct.<law>`. The predicates are the laws', so every row answers alike under either name.
+var renamedActivityProperties = map[string]string{
+	"terminalIsFinal":       "activityProduct.terminalStatesAreFinal",
+	"pausedIsNotDispatched": "activityProduct.pausedIsNotDispatched",
+}
+
+// The laws the capabilities bring that the baseline never declared, so Go has no answer to compare
+// with theirs: a closed activity's uniform rejection, and the protocol's functional laws.
+var activityLawsAfterBaseline = []string{
+	"activityProduct.closedIsRejectedUniformly",
+	"activityProtocol.terminateSettles",
+	"activityProtocol.cancelIsRequested",
+}
+
+// The Queries the frozen baseline answers that the capabilities retired, each to the generated
+// Query that verifies the same Property now. A retired Query verified its law through the protocol
+// over one of the baseline's paths; its twin verifies it over a free search of the product, so only
+// the verdict carries over, not the counts, rows or witness.
+var retiredActivityQueries = map[string]string{
+	"query activityProtocol terminalHolds": "query activityProduct activityProduct.terminalStatesAreFinal",
+	"query activityProtocol pauseHolds":    "query activityProduct activityProduct.pausedIsNotDispatched",
+}
+
+// renamedProperty is a frozen Property's name in the lifted Model.
+func renamedProperty(name string) string {
+	if renamed, ok := renamedActivityProperties[name]; ok {
+		return renamed
+	}
+	return name
+}
+
+// comparedRows is the row answers of the Properties the baseline declares, without those of the laws
+// it predates, and how many of those it dropped.
+func comparedRows(rows map[string]rowSide) (map[string]rowSide, int) {
+	out := map[string]rowSide{}
+	for key, side := range rows {
+		property, _, _ := strings.Cut(key, " on ")
+		if !slices.Contains(activityLawsAfterBaseline, property) {
+			out[key] = side
+		}
+	}
+	return out, len(rows) - len(out)
+}
+
 func frozenPropertyRows(t *testing.T) map[string]rowSide {
 	t.Helper()
 	meaning := frozenReaderMeaning(t, "activity")
@@ -74,14 +120,14 @@ func frozenPropertyRows(t *testing.T) map[string]rowSide {
 				side.Outcome = umpire.CounterexampleFound
 				side.Witness = &Trace{Initial: atom(table.States, table.IDs.States, row.Source), Steps: []TraceStep{step}}
 			}
-			out[rowKeyOf(property.Name, property.Owner, row.Key)] = side
+			out[rowKeyOf(renamedProperty(property.Name), property.Owner, row.Key)] = side
 		}
 	}
 	var refined []migrationRefinedProperty
 	frozenReaderJSON(t, "refined-properties/ir/activity.json", &refined)
 	for _, row := range refined {
 		require.Empty(t, row.Error)
-		out[rowKeyOf(row.Name, row.Machine, row.Row)] = rowSide{Outcome: row.Outcome, About: row.About, Witness: row.Witness}
+		out[rowKeyOf(renamedProperty(row.Name), row.Machine, row.Row)] = rowSide{Outcome: row.Outcome, About: row.About, Witness: row.Witness}
 	}
 	return out
 }
@@ -238,21 +284,26 @@ func sameTrace(a, b *Trace) bool {
 }
 
 // Every Property the comparison covers says the same of every row on both sides: whether it is about
-// the row's step, and whether it holds there. The Properties asked are exactly the compared ones, so
-// one added to the baseline is asked here or fails the inventory.
+// the row's step, and whether it holds there. The Properties asked are exactly the compared ones and
+// the laws the baseline predates, so one added to the baseline is asked here or fails the inventory.
 func TestActivityPropertiesAgreeOnEveryRow(t *testing.T) {
 	want := frozenPropertyRows(t)
-	got := irPropertyRows(t, activityModel(t))
+	all := irPropertyRows(t, activityModel(t))
+	got, after := comparedRows(all)
 	require.Empty(t, rowDisagreements(want, got))
 
 	machines := built(t, activityModel(t))
 	protocol, product := machines["activityProtocol"].Table, machines["activityProduct"].Table
 	composed := composedTable(t, activityModel(t), "standaloneActivity")
 	require.Len(t, want, 10*len(protocol.Rows)+2*len(product.Rows)+len(composed.Rows))
+	// The product's closed rejection on both sides and the protocol's two functional laws.
+	require.Equal(t, 3*len(protocol.Rows)+len(product.Rows), after)
 
 	// The rows give every Property both answers to disagree about: steps it is not about, steps it
 	// holds on and, for the Properties about one class, steps it fails on. A Property is tallied over
-	// the rows of the table its compared Query runs on.
+	// the rows of the table its compared Query runs on: the product's laws over the product's, where
+	// their generated Queries search, and the laws the baseline predates by the IR's answers, which
+	// are the baseline's on every other row.
 	over := map[string]*Table{}
 	for _, q := range activityModel(t).GetQueries() {
 		owner := q.GetScenario().GetMachine()
@@ -265,7 +316,7 @@ func TestActivityPropertiesAgreeOnEveryRow(t *testing.T) {
 	tally := map[string][3]int{}
 	for property, table := range over {
 		for _, row := range table.Rows {
-			side, ok := want[rowKeyOf(property, table.Machine, row.Key)]
+			side, ok := all[rowKeyOf(property, table.Machine, row.Key)]
 			require.True(t, ok, "%s at %s", property, row.Key)
 			counts := tally[property]
 			switch {
@@ -279,7 +330,7 @@ func TestActivityPropertiesAgreeOnEveryRow(t *testing.T) {
 			tally[property] = counts
 		}
 	}
-	require.Len(t, tally, 11)
+	require.Len(t, tally, 11+len(activityLawsAfterBaseline))
 	failing := 0
 	for property, counts := range tally {
 		table := over[property]
@@ -294,8 +345,9 @@ func TestActivityPropertiesAgreeOnEveryRow(t *testing.T) {
 	require.Equal(t, composed, over["startedByPollingWorker"])
 }
 
-// pathDisagreements is every compared Query whose answer through a lifted Model differs from its
-// frozen receipt, as a list.
+// pathDisagreements is every compared path Query whose answer through a lifted Model differs from
+// its frozen receipt, as a list. A retired Query is no path Query any more; twinDisagreements
+// compares its verdict.
 func pathDisagreements(t *testing.T, m *umpirespb.Model) []string {
 	t.Helper()
 	report := checked(t, m)
@@ -304,12 +356,34 @@ func pathDisagreements(t *testing.T, m *umpirespb.Model) []string {
 		if expected.Subject != QuerySubject {
 			continue
 		}
+		if _, retired := retiredActivityQueries[receiptKey(expected.Receipt)]; retired {
+			continue
+		}
 		got := receiptOf(t, report, receiptKey(expected.Receipt))
 		if got.Kind != expected.Kind || got.Explored != expected.Explored || got.Expanded != expected.Expanded ||
 			got.Exercised != expected.Exercised || !slices.Equal(got.Rows, expected.Rows) || !sameTrace(got.Witness, expected.Witness) {
 			out = append(out, expected.Key.Name)
 		}
 	}
+	return out
+}
+
+// twinDisagreements is every retired Query whose generated twin answers a lifted Model with another
+// verdict than the frozen receipt, as a list.
+func twinDisagreements(t *testing.T, m *umpirespb.Model) []string {
+	t.Helper()
+	report := checked(t, m)
+	var out []string
+	for _, expected := range frozenReaderMeaning(t, "activity").Receipts {
+		twin, retired := retiredActivityQueries[receiptKey(expected.Receipt)]
+		if expected.Subject != QuerySubject || !retired {
+			continue
+		}
+		if receiptOf(t, report, twin).Kind != expected.Kind {
+			out = append(out, expected.Key.Name)
+		}
+	}
+	slices.Sort(out)
 	return out
 }
 
@@ -335,12 +409,15 @@ func stateField(f *umpirespb.Function, param int, name string) *umpirespb.Expr {
 // as Go does, and is told apart by the rows: one mutant for each way a Property is declared, a
 // same-step predicate, the class a Property is about, a transition predicate read on its own
 // machine and through the refinement, and the composition's Property, by its predicate and by the
-// composed action it is about.
+// composed action it is about. A retired Query's generated twin searches its machine freely, so it
+// is no path Query and may catch a mutant the paths miss; `twins` names the retired Queries whose
+// twin does.
 func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 	want := frozenPropertyRows(t)
 	for name, mutant := range map[string]struct {
 		mutate func(t *testing.T, m *umpirespb.Model)
 		rows   []string
+		twins  []string
 	}{
 		// The review's example: the cancel request of the baseline's path is taken at attempt 1.
 		"cancelRequestedWhileStarted also wants the first attempt": {
@@ -357,17 +434,19 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 			},
 			rows: []string{"canceledByWorker on activityProtocol at started-1-unset-unset-unset-attemptResult-completed"},
 		},
-		// No path of the baseline that reads this Property terminates the activity.
+		// No path of the baseline that reads this Property terminates the activity. The free search of
+		// the product that retired pauseHolds does: it terminates a scheduled activity.
 		"pausedIsNotDispatched also forbids a terminate": {
 			mutate: func(t *testing.T, m *umpirespb.Model) {
-				f := activityFunction(t, m, "activityProduct.property.pausedIsNotDispatched")
+				f := activityFunction(t, m, "activityProduct.property.activityProduct.pausedIsNotDispatched")
 				narrowed(f, binary(umpirespb.Binary_OP_NE, stateField(f, 1, "phase"),
 					expr(admEnum("temporal.standaloneactivity.ProductPhase", "terminated"))))
 			},
 			rows: []string{
-				"pausedIsNotDispatched on activityProduct at scheduled-control-terminate",
-				"pausedIsNotDispatched on activityProtocol at scheduled-0-unset-unset-unset-control-terminate",
+				"activityProduct.pausedIsNotDispatched on activityProduct at scheduled-control-terminate",
+				"activityProduct.pausedIsNotDispatched on activityProtocol at scheduled-0-unset-unset-unset-control-terminate",
 			},
+			twins: []string{"pauseHolds"},
 		},
 		// The one attempt start on the cross-entity path is the first attempt's.
 		"startedByPollingWorker also wants the first attempt": {
@@ -394,7 +473,9 @@ func TestActivityPropertyRowsCatchWhatThePathsMiss(t *testing.T) {
 			mutant.mutate(t, m)
 			require.NoError(t, Validate(m))
 			require.Empty(t, pathDisagreements(t, m), "the path Queries tell the mutant apart on their own")
-			differing := rowDisagreements(want, irPropertyRows(t, m))
+			require.Equal(t, mutant.twins, twinDisagreements(t, m))
+			rows, _ := comparedRows(irPropertyRows(t, m))
+			differing := rowDisagreements(want, rows)
 			require.NotEmpty(t, differing)
 			for _, row := range mutant.rows {
 				require.True(t, slices.ContainsFunc(differing, func(d string) bool { return strings.HasPrefix(d, row+":") }),
@@ -420,5 +501,7 @@ func TestActivityCrossEntityClaimByClassAnswersAlike(t *testing.T) {
 		WhenClass: &umpirespb.ActionClass{Action: attemptStart}}
 	require.NoError(t, Validate(m))
 	require.Empty(t, pathDisagreements(t, m))
-	require.Empty(t, rowDisagreements(frozenPropertyRows(t), irPropertyRows(t, m)))
+	require.Empty(t, twinDisagreements(t, m))
+	rows, _ := comparedRows(irPropertyRows(t, m))
+	require.Empty(t, rowDisagreements(frozenPropertyRows(t), rows))
 }

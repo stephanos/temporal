@@ -12,11 +12,15 @@ final private[lift] class Lifting(val ctx: Context)
       Realizations,
       Compositions,
       Claims,
+      Capabilities,
       Syntax:
   import ctx.*
   import ctx.quotes.reflect.*
 
-  /** A root: a machine, a composition, a Query, a list of Queries, a progress claim, or a realization. */
+  /**
+   * A root: a machine, a composition, a Query, a list of Queries, a progress claim, a realization, or
+   * a capability declaration.
+   */
   def liftRoot(root: String): Unit =
     val sym = defs.keys
       .find(s => s.isValDef && s.fullName == root)
@@ -25,6 +29,7 @@ final private[lift] class Lifting(val ctx: Context)
     if isNamed(d.tpt.tpe, "umpire.Machine") then machineOf(sym, d)
     else if isNamed(d.tpt.tpe, "umpire.Composition") then compositionOf(sym, d)
     else if isNamed(d.tpt.tpe, "umpire.realize.Realization") then realizationOf(sym, d)
+    else if isNamed(d.tpt.tpe, "umpire.Capabilities") then fold(Ref(sym), Map.empty): Unit
     else
       val kind = d.tpt.tpe.widen.dealias
       val claims = Set("umpire.Query", "umpire.Progress")

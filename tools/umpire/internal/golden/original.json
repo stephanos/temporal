@@ -1,7 +1,8 @@
 {
   "inert_fields": [
     "temporal.server.api.umpire.v1.Query.total",
-    "temporal.server.api.umpire.v1.Construct.choice"
+    "temporal.server.api.umpire.v1.Construct.choice",
+    "temporal.server.api.umpire.v1.Realization.required_settings"
   ],
   "entity_attachments": [
     {
@@ -64,5 +65,225 @@
       "field": "on",
       "entity": "taskQueue"
     }
+  ],
+  "law_replacements": [
+    {
+      "model": "ir/activity.json",
+      "machine": "activityProduct",
+      "law": "closedIsRejectedUniformly",
+      "verdict": "verified-within-limits"
+    },
+    {
+      "model": "ir/activity.json",
+      "machine": "activityProduct",
+      "law": "pausedIsNotDispatched",
+      "verdict": "verified-within-limits",
+      "renames": "pausedIsNotDispatched",
+      "retires": [
+        "pauseHolds"
+      ]
+    },
+    {
+      "model": "ir/activity.json",
+      "machine": "activityProduct",
+      "law": "terminalStatesAreFinal",
+      "verdict": "verified-within-limits",
+      "renames": "terminalIsFinal",
+      "retires": [
+        "terminalHolds"
+      ]
+    },
+    {
+      "model": "ir/activity.json",
+      "machine": "activityProtocol",
+      "law": "cancelIsRequested",
+      "verdict": "found"
+    },
+    {
+      "model": "ir/activity.json",
+      "machine": "activityProtocol",
+      "law": "terminateSettles",
+      "verdict": "found"
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "activityProduct",
+      "law": "closedIsRejectedUniformly",
+      "verdict": "verified-within-limits"
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "activityProduct",
+      "law": "pausedIsNotDispatched",
+      "verdict": "verified-within-limits",
+      "renames": "pausedIsNotDispatched"
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "activityProduct",
+      "law": "terminalStatesAreFinal",
+      "verdict": "verified-within-limits"
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "currentAdmission",
+      "law": "pausedIsNotDispatched",
+      "verdict": "verified-within-limits",
+      "renames": "notAdmittedWhilePaused",
+      "retires": [
+        "currentAdmission.any.notAdmittedWhilePaused"
+      ]
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "currentAdmission",
+      "law": "terminalStatesAreFinal",
+      "verdict": "verified-within-limits",
+      "renames": "terminalStays",
+      "retires": [
+        "currentAdmission.any.terminalStays"
+      ]
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "staleAdmission",
+      "law": "pausedIsNotDispatched",
+      "verdict": "counterexample",
+      "renames": "notAdmittedWhilePaused",
+      "retires": [
+        "staleAdmission.any.notAdmittedWhilePaused"
+      ]
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "staleAdmission",
+      "law": "terminalStatesAreFinal",
+      "verdict": "counterexample",
+      "renames": "terminalStays",
+      "retires": [
+        "staleAdmission.any.terminalStays"
+      ]
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "currentOverLossyMatching",
+      "law": "pausedIsNotDispatched",
+      "verdict": "verified-within-limits",
+      "renames": "notAdmittedWhilePaused",
+      "retires": [
+        "currentOverLossyMatching.any.notAdmittedWhilePaused"
+      ]
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "currentOverLossyMatching",
+      "law": "terminalStatesAreFinal",
+      "verdict": "verified-within-limits",
+      "renames": "terminalStays",
+      "retires": [
+        "currentOverLossyMatching.any.terminalStays"
+      ]
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "currentOverMatching",
+      "law": "pausedIsNotDispatched",
+      "verdict": "verified-within-limits",
+      "renames": "notAdmittedWhilePaused",
+      "retires": [
+        "currentOverMatching.any.notAdmittedWhilePaused"
+      ]
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "currentOverMatching",
+      "law": "terminalStatesAreFinal",
+      "verdict": "verified-within-limits",
+      "renames": "terminalStays",
+      "retires": [
+        "currentOverMatching.any.terminalStays"
+      ]
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "currentOverQueue",
+      "law": "pausedIsNotDispatched",
+      "verdict": "verified-within-limits",
+      "renames": "notAdmittedWhilePaused",
+      "retires": [
+        "currentOverQueue.any.notAdmittedWhilePaused"
+      ]
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "currentOverQueue",
+      "law": "terminalStatesAreFinal",
+      "verdict": "verified-within-limits",
+      "renames": "terminalStays",
+      "retires": [
+        "currentOverQueue.any.terminalStays"
+      ]
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "staleOverMatching",
+      "law": "pausedIsNotDispatched",
+      "verdict": "counterexample",
+      "renames": "notAdmittedWhilePaused",
+      "retires": [
+        "staleOverMatching.any.notAdmittedWhilePaused"
+      ]
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "staleOverMatching",
+      "law": "terminalStatesAreFinal",
+      "verdict": "counterexample",
+      "renames": "terminalStays",
+      "retires": [
+        "staleOverMatching.any.terminalStays"
+      ]
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "staleOverQueue",
+      "law": "pausedIsNotDispatched",
+      "verdict": "counterexample",
+      "renames": "notAdmittedWhilePaused",
+      "retires": [
+        "staleOverQueue.any.notAdmittedWhilePaused"
+      ]
+    },
+    {
+      "model": "ir/activity-system.json",
+      "machine": "staleOverQueue",
+      "law": "terminalStatesAreFinal",
+      "verdict": "counterexample",
+      "renames": "terminalStays",
+      "retires": [
+        "staleOverQueue.any.terminalStays"
+      ]
+    }
+  ],
+  "new_cases": [
+    {
+      "model": "ir/activity.json",
+      "query": "activityProtocol.cancelIsRequested"
+    },
+    {
+      "model": "ir/activity.json",
+      "query": "activityProtocol.terminateSettles"
+    },
+    {
+      "model": "ir/nexus-operation.json",
+      "query": "nexusOperation.cancelIsRequested"
+    },
+    {
+      "model": "ir/nexus-operation.json",
+      "query": "nexusOperation.terminateSettles"
+    }
+  ],
+  "new_ir_files": [
+    "ir/nexus-operation.json"
   ]
 }

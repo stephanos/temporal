@@ -242,7 +242,7 @@ func TestMigrationGoldens(t *testing.T) {
 	for path, current := range inputs {
 		original := new(umpirespb.Model)
 		require.NoError(t, protojson.Unmarshal(expected["original/inputs/"+strings.TrimPrefix(path, "model/scalav2/")], original), path)
-		mapped, err := cfg.Match(original, current)
+		mapped, err := cfg.MatchAt(golden.OriginalKey(path), original, current)
 		require.NoError(t, err, path)
 		prefix := "original"
 		if mapped {
@@ -458,8 +458,9 @@ func clearPositionFields(m protoreflect.Message) {
 	})
 }
 
-// TestMigrationProjectionKeepsLoweredCases checks that the current IR of every Model, which Match
-// admits, lowers to the mapped goldens' Cases: every Query Case byte for byte, every exploration Case
+// TestMigrationProjectionKeepsLoweredCases checks that the current IR of every Model, which MatchAt
+// admits, without the generated claims the original baseline's delta lists, lowers to the mapped
+// goldens' Cases: every Query Case byte for byte, every exploration Case
 // except its IDs, which carry the digest of the whole candidate Model. It checks it again for the
 // Nexus caller changed the way the IR-changing tasks change it. A changed step passes the IR
 // comparison, which reads no Function, and fails on its Cases.
@@ -472,7 +473,11 @@ func TestMigrationProjectionKeepsLoweredCases(t *testing.T) {
 	for _, input := range slices.Sorted(maps.Keys(inputs)) {
 		t.Run(strings.TrimPrefix(input, "model/scalav2/"), func(t *testing.T) {
 			ikey := "mapped/" + strings.TrimPrefix(input, "model/scalav2/")
-			actual, ids := lowerMigrationCases(t, ikey, inputs[input])
+			// The generated claims the original baseline's delta lists are compared there: their Cases
+			// with the new Cases it lists (TestOriginalBaselineCases).
+			ungenerated, err := golden.Ungenerated(golden.OriginalKey(input), inputs[input])
+			require.NoError(t, err)
+			actual, ids := lowerMigrationCases(t, ikey, ungenerated)
 			require.NoError(t, compareLoweredCases(cfg, expected, actual, ids, ikey))
 		})
 	}

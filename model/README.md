@@ -353,7 +353,9 @@ The lifter reads what an author wrote, as written:
   lifter binds where the function is called, as it binds a machine argument; a type parameter
   reads as the type the call applies it to. A case class whose every field is a Property, Scenario
   or Query bundles claims: built by its constructor in such a function, it lifts as its claims, and
-  `x.field` reads one back.
+  `x.field` reads one back. The laws such functions state once for every entity are lifted sources
+  too: `model/temporal/laws`, and of the framework `model/umpire/laws` alone, whose TASTy the lifter
+  reads beside the Models'.
 - **Types:** enums with and without case fields, case classes, and bounded counters `UpTo[N]`: a
   field `attempts: UpTo[2]` has the values 0, 1 and 2, lifted as the IR int range 0..2, and a step
   writes one with `UpTo(n)`. It replaces integer fields bounded by the per-record
@@ -432,7 +434,10 @@ it, and each kind has one form for that: `machine[S, O, F](family, name)`, `acti
 composition has none: each is named after its `val`, and a composition names its members, syncs and
 Scenario classes by field selector, never by a string key. A progress claim is always named,
 `m.leadsTo(name)(…)`. A Property or Scenario with no `val`, built in a list or in a function over a
-machine argument, keeps `property("…")` or `scenario("…")`. A Query that neither a `val` nor `query("…")` names is named
+machine argument, keeps `property("…")` or `scenario("…")`, except where the function's body ends
+in it and a `val` declares the function's call: it then takes that `val`'s name, as a law's instance
+does (`val terminalStays = terminalStatesAreFinal(m)(Admission.phase, Admission.terminal)`). A Query
+that neither a `val` nor `query("…")` names is named
 `<machine>.<scenario>.<property>`, after the machine its Scenario is declared on, its Scenario and
 its Property: `query verify notPaused in any` over a design `m` is `m.any.notAdmittedWhilePaused`.
 Any other captured form with no `val`, or with a name the compiler made up such as an anonymous
@@ -542,18 +547,57 @@ keep the family, Definition IDs and type names they had in the standalone activi
 contract, through the pin and the type-name rule above.
 
 A claim over several designs is one function over `Declares[S]` whose state-dependent parts are
-parameters, and each call passes defs of the lifted sources:
+parameters, and each call passes defs of the lifted sources. A law is such a function, written once
+for every entity in `model/temporal/laws` or `model/umpire/laws`, and each instance is named by the
+`val` that declares its call:
 
 ```scala
-def notAdmittedWhilePaused[S](m: Declares[S])(paused: S => Boolean, running: S => Boolean) =
-  m.property("notAdmittedWhilePaused").never(s => running(s.state)).from(paused)
+object pausedIsNotDispatched extends Law(cites = Seq("chasm/lib/activity/tasks.go"), promises = "…", doesNotPromise = "…"):
+  def apply[S](m: Declares[S])(paused: S => Boolean, running: S => Boolean): Property[S] =
+    m.property.never(s => running(s.state)).from(paused)
 
-val onRecord = notAdmittedWhilePaused(currentRecord)(Admission.paused, Admission.running)
+val notAdmittedWhilePaused = pausedIsNotDispatched(m)(Admission.paused, Admission.running)
 ```
 
-A lambda passed for such a parameter is refused at its line, naming the def to write, and so is a
-claim pattern after `when` (a pattern reads every step) and a `keeps` projection that is not a field
-path.
+A law is an object named after it: its `apply` states it, and its `Law` arguments are the server
+code it rests on, what it promises and what it does not. A lambda passed for a function-valued
+parameter is refused at its line, naming the def to write, and so is a claim pattern after `when` (a
+pattern reads every step) and a `keeps` projection that is not a field path. Any other value
+parameter, such as an outcome, a fact or an action class, reads as the value the call passes: an
+expression, a class or `when` reads `rejected` as `Outcome.notFound`.
+
+A machine declares its capabilities, each binding a protocol's parameters to its own vocabulary,
+and receives the laws the given `Catalog` brings for each capability and for each pair it declares
+both of, without listing them (model/umpire/Capabilities.scala, model/umpire/laws):
+
+```scala
+import temporal.laws.given
+
+val jobCapabilities = capabilities(job, limits = three)(
+  Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone),
+  Pausable(pause = pause, unpause = resume, paused = Jobs.paused),
+  Pollable(dispatch = poll, running = Jobs.running),
+  Terminable(terminate = kill, settled = Note.killedNote, reach = Seq(poll))
+).except(closedIsRejectedUniformly, because = "…")
+```
+
+Each law is lifted as a Property, a Scenario and a Query, all named `<machine>.<law>`: the law's
+`apply` (or the def an `overriding(law -> def, because = …)` names, which takes the law's
+parameters) folded with the model and the fields of the capabilities that bring it, bound by
+parameter name. A law of one action class (`when`) is asked by a `find` from the start through
+`reach` and that class; any other is verified over the free Scenario from the start under `limits`.
+The Query's total is computed as below; a find expects of a server the Run its capability's
+`expect` names (Terminable and Cancelable carry one). `except` lifts nothing for its law. A Query of
+the entity's own reads a generated Property by its law, `declared.claim(pausedIsNotDispatched)`, as
+the activity's pinned paths do; a law the declaration waives has none. The lifter writes what
+it expanded beside the IR file, as `<file>.laws.json`: each generated claim with its law and
+bindings, each waiver with its reason and position, and the catalog's laws with what they say and
+the machines, one per state type, that instantiate them. A capability declaration is a root of an IR
+file like a Query. Refused at their lines: an action the machine does not bind, a lambda for a
+function-valued field, two capabilities of one kind, a waiver of a law the catalog does not bring,
+a waiver whose reason is blank, and an overriding def with other parameters than the law's. The
+compiler refuses a predicate of another state type, a declaration without `limits`, a waiver
+without `because`, and a declaration where no `Catalog` is given.
 
 Such a function returns several claims as a bundle, a case class whose every field is a Property,
 Scenario or Query. The lifter folds the constructor's call to its claims, and a field read to the
@@ -708,6 +752,13 @@ fact reads as once, `statusTable(fact -> value, …)` beside its realization, an
 reads the status it polls for from that table. The table is the realization-side form of the
 `Describable` status map of [.plans/SEMANTIC_PROTOCOLS.md](../.plans/SEMANTIC_PROTOCOLS.md); the
 lifter reads it when it lifts, and it adds nothing to the IR.
+
+A realization whose system serves the feature only behind a flag says so,
+`requiredSettings = Vector(RequiredSetting(key, value))`, the key and value as the server's dynamic
+configuration spells them (the standalone Nexus operation's `nexusoperation.enableStandalone`). A
+Case lowered through it carries them, Testpilot's preparation refuses a Profile whose dynamic
+configuration lacks one or sets it otherwise, naming the setting, and the live suite applies each
+Case's settings to the server it starts.
 
 ### Naming protobuf data in a Model
 

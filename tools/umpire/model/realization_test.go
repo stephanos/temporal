@@ -582,6 +582,14 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 				Script: "controller", Command: "start-workflow", Key: &umpirespb.Operand{Kind: &umpirespb.Operand_Run{Run: &umpirespb.Empty{}}}}}
 		}, "command pending-attempts of script controller: evidence temporal.nexus.caller.evidence.pendingAttempts is a Run Event, which a poll does not read"},
 
+		// A required setting names its key and its value, and no key twice, whatever its case.
+		{"a required setting with no value", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
+			r.RequiredSettings = []*umpirespb.RequiredSetting{{Key: "nexusoperation.enableStandalone"}}
+		}, "realization asyncNexus: a required setting names no key or no value"},
+		{"a setting required twice", func(_ *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
+			r.RequiredSettings = []*umpirespb.RequiredSetting{{Key: "nexusoperation.enableStandalone", Value: "true"}, {Key: "nexusoperation.enablestandalone", Value: "true"}}
+		}, "realization asyncNexus: it requires setting nexusoperation.enablestandalone twice"},
+
 		{"a result that is a message", func(t *testing.T, _ *umpirespb.Model, r *umpirespb.Realization) {
 			c := admCommand(t, admScript(t, r, "workflow"), "finish-workflow")
 			c.GetFinish().Result = &umpirespb.Operand{Kind: &umpirespb.Operand_Literal{Literal: &umpirespb.ProtoValue{

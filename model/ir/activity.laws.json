@@ -1,0 +1,91 @@
+{
+  "claims": [ {
+    "machine": "activityProduct",
+    "name": "activityProduct.closedIsRejectedUniformly",
+    "law": "closedIsRejectedUniformly",
+    "capabilities": [ "Closable" ],
+    "bindings": {
+      "status": "temporal.standaloneactivity.Product$.phase",
+      "terminal": "temporal.standaloneactivity.Product$.terminal",
+      "rejected": "temporal.standaloneactivity.Outcome.notFound"
+    },
+    "position": "model/temporal/standaloneactivity/Properties.scala:20"
+  }, {
+    "machine": "activityProduct",
+    "name": "activityProduct.pausedIsNotDispatched",
+    "law": "pausedIsNotDispatched",
+    "capabilities": [ "Pausable", "Pollable" ],
+    "bindings": {
+      "paused": "temporal.standaloneactivity.Product$.paused",
+      "running": "temporal.standaloneactivity.Product$.running"
+    },
+    "position": "model/temporal/standaloneactivity/Properties.scala:21"
+  }, {
+    "machine": "activityProduct",
+    "name": "activityProduct.terminalStatesAreFinal",
+    "law": "terminalStatesAreFinal",
+    "capabilities": [ "Closable" ],
+    "bindings": {
+      "status": "temporal.standaloneactivity.Product$.phase",
+      "terminal": "temporal.standaloneactivity.Product$.terminal"
+    },
+    "position": "model/temporal/standaloneactivity/Properties.scala:20"
+  }, {
+    "machine": "activityProtocol",
+    "name": "activityProtocol.cancelIsRequested",
+    "law": "cancelIsRequested",
+    "capabilities": [ "Cancelable" ],
+    "bindings": {
+      "requestCancel": "temporal.standaloneactivity.Model$package.control.apply(temporal.standaloneactivity.Control.requestCancel)",
+      "requested": "temporal.standaloneactivity.ProtocolFact.statusCancelRequested"
+    },
+    "position": "model/temporal/standaloneactivity/Properties.scala:44"
+  }, {
+    "machine": "activityProtocol",
+    "name": "activityProtocol.terminateSettles",
+    "law": "terminateSettles",
+    "capabilities": [ "Terminable" ],
+    "bindings": {
+      "terminate": "temporal.standaloneactivity.Model$package.control.apply(temporal.standaloneactivity.Control.terminate)",
+      "settled": "temporal.standaloneactivity.ProtocolFact.statusTerminated"
+    },
+    "position": "model/temporal/standaloneactivity/Properties.scala:38"
+  } ],
+  "waivers": [ ],
+  "catalog": [ {
+    "law": "cancelIsRequested",
+    "capabilities": [ "Cancelable" ],
+    "cites": [ "chasm/lib/activity/operator_commands.go", "chasm/lib/activity/statemachine.go", "chasm/lib/nexusoperation/operation.go" ],
+    "promises": "a cancel request of an entity whose work is in flight records the request and leaves the entity live",
+    "doesNotPromise": "that the entity is then canceled, which only its work's answer settles; what a cancel with no work in flight does (the activity settles canceled at once); or what a second request answers (the Nexus operation answers ErrCancellationAlreadyRequested)",
+    "instantiating": [ "activityProtocol" ]
+  }, {
+    "law": "closedIsRejectedUniformly",
+    "capabilities": [ "Closable" ],
+    "cites": [ "chasm/lib/activity/activity.go", "chasm/lib/nexusoperation/operation.go", "chasm/lib/scheduler/scheduler.go" ],
+    "promises": "every step from a terminal status keeps the state and answers the entity's rejecting outcome",
+    "doesNotPromise": "which outcome rejects (a parameter: the activity answers NotFound, the Nexus operation and the schedule FailedPrecondition), or that a repeated request with the same request id is rejected: the server answers it as the first",
+    "instantiating": [ "activityProduct" ]
+  }, {
+    "law": "pausedIsNotDispatched",
+    "capabilities": [ "Pausable", "Pollable" ],
+    "cites": [ "chasm/lib/activity/statemachine.go", "chasm/lib/activity/tasks.go", "chasm/lib/scheduler/scheduler.go" ],
+    "promises": "while an entity is paused no work is handed to a worker: no step from paused lands in running",
+    "doesNotPromise": "what a pause of held work does (the activity waits for the worker as pause-requested), what a second pause or an unpause of a live entity answers, or that an unpause resumes the work",
+    "instantiating": [ "activityProduct" ]
+  }, {
+    "law": "terminalStatesAreFinal",
+    "capabilities": [ "Closable" ],
+    "cites": [ "chasm/lib/activity/statemachine.go", "chasm/lib/nexusoperation/operation_statemachine.go" ],
+    "promises": "no step moves an entity out of a terminal status, or from one terminal status to another",
+    "doesNotPromise": "that a closed entity answers a mutation by rejecting it (closedIsRejectedUniformly), that its status is reported, or that the close is recorded once",
+    "instantiating": [ "activityProduct" ]
+  }, {
+    "law": "terminateSettles",
+    "capabilities": [ "Terminable" ],
+    "cites": [ "chasm/lib/activity/activity.go", "chasm/lib/activity/statemachine.go", "chasm/lib/nexusoperation/operation_statemachine.go" ],
+    "promises": "a terminate of a live entity settles it as terminated in one step and records that",
+    "doesNotPromise": "what a terminate of a closed entity answers (closedIsRejectedUniformly), what a second terminate answers (the activity answers the same request id OK, the Nexus operation also refuses another id by name), or that a reason and an identity are recorded: the schedule records only that it closed",
+    "instantiating": [ "activityProtocol" ]
+  } ]
+}

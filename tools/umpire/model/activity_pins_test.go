@@ -98,11 +98,17 @@ func TestActivityRefinement(t *testing.T) {
 func TestActivityQueries(t *testing.T) {
 	r := checked(t, activityModel(t))
 	for _, name := range []string{"completion", "nonRetryableFailure", "retry", "cancel", "terminate", "pauseResume",
-		"scheduleToStartTimeout", "startToCloseTimeout"} {
+		"scheduleToStartTimeout", "startToCloseTimeout",
+		// The finds the protocol's capabilities generate, one per functional law.
+		"activityProtocol.terminateSettles", "activityProtocol.cancelIsRequested"} {
 		require.Equal(t, Found, receiptOf(t, r, "query activityProtocol "+name).Kind, name)
 	}
-	require.Equal(t, Verified, receiptOf(t, r, "query activityProtocol terminalHolds").Kind)
-	require.Equal(t, Verified, receiptOf(t, r, "query activityProtocol pauseHolds").Kind)
+	// The product's laws, which its capabilities generate as verifications over a free search of the
+	// product (they retire terminalHolds and pauseHolds, which verified them through the protocol's
+	// paths), and the uniform rejection of a closed activity, which no hand-written Query asked.
+	for _, law := range []string{"terminalStatesAreFinal", "pausedIsNotDispatched", "closedIsRejectedUniformly"} {
+		require.Equal(t, Verified, receiptOf(t, r, "query activityProduct activityProduct."+law).Kind, law)
+	}
 	// Not vacuous: the scenario performs an attempt start while the worker polls, so the claim is
 	// exercised, not merely never contradicted.
 	stopped := receiptOf(t, r, "query standaloneActivity stoppedWorkerStartsNothing")

@@ -30,6 +30,9 @@ type Profile struct {
 	// DeliveryControl says the Profile's environment can hold and release a delivery inside the
 	// server; without it a Program that does is refused at preparation.
 	DeliveryControl bool
+	// Configuration is the dynamic configuration the Profile's environment runs under, by lower-case
+	// key; a Program whose required setting it lacks or sets otherwise is refused at preparation.
+	Configuration map[string]string
 }
 
 type Observation struct {

@@ -15,7 +15,9 @@
   ],
   "later_inventory": [
     "model/scalav2/lifter/testdata/lifts/expected/taskqueue.json",
-    "model/scalav2/lifter/testdata/lifts/expected/captured.json"
+    "model/scalav2/lifter/testdata/lifts/expected/captured.json",
+    "model/scalav2/lifter/testdata/lifts/expected/capabilities.json",
+    "model/scalav2/ir/nexus-operation.json"
   ],
   "source_path_substitutions": [
     {
@@ -159,14 +161,6 @@
     {
       "old": "temporal.standaloneactivity.Claims$package$.functionalQueries",
       "new": "temporal.standaloneactivity.Functional$.all"
-    },
-    {
-      "old": "temporal.standaloneactivity.Claims$package$.terminalHolds",
-      "new": "temporal.standaloneactivity.Queries$package$.terminalHolds"
-    },
-    {
-      "old": "temporal.standaloneactivity.Claims$package$.pauseHolds",
-      "new": "temporal.standaloneactivity.Queries$package$.pauseHolds"
     },
     {
       "old": "temporal.standaloneactivity.Claims$package$.cancelRequest",
@@ -325,6 +319,14 @@
       "new": "temporal.worker.Model$package$.polling"
     }
   ],
+  "source_root_retirements": [
+    "temporal.standaloneactivity.Claims$package$.pauseHolds",
+    "temporal.standaloneactivity.Claims$package$.terminalHolds"
+  ],
+  "source_root_additions": [
+    "temporal.standaloneactivity.Properties$package$.productCapabilities",
+    "temporal.standaloneactivity.Properties$package$.protocolCapabilities"
+  ],
   "source_path_merges": [
     {
       "old": "model/temporal/realize/",
@@ -340,6 +342,14 @@
     },
     {
       "old": "model/temporal/standaloneactivity/",
+      "new": "model/temporal/standaloneactivity"
+    },
+    {
+      "old": "model/temporal/laws/",
+      "new": "model/temporal/standaloneactivity"
+    },
+    {
+      "old": "model/umpire/laws/",
       "new": "model/temporal/standaloneactivity"
     },
     {
@@ -564,7 +574,8 @@
       }
     ],
     "inert_fields": [
-      "temporal.server.api.umpire.v1.Query.total"
+      "temporal.server.api.umpire.v1.Query.total",
+      "temporal.server.api.umpire.v1.Realization.required_settings"
     ],
     "projected_case_ids": [
       "exploration"

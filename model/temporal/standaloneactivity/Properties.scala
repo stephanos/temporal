@@ -1,22 +1,54 @@
-/* What the standalone activity's machines promise, the cross-entity claim of the activity and its
- * worker, and the system contract's three promises, written once for admission/ and compositions/.
+/* What the standalone activity's machines promise: the capabilities the laws read on them, the
+ * protocol's own settlement claims, the cross-entity claim of the activity and its worker, and the
+ * system contract's promise of one active attempt, written once for admission/ and compositions/.
  */
 package temporal
 package standaloneactivity
 
 import umpire.*
-import worker.Phase as WorkerPhase
-
-/** Declared on the product machine and read on the protocol machine through the map. */
-val terminalIsFinal = activityProduct.property.once(Product.terminal).keeps(_.phase)
+import temporal.laws.given
+import worker.{workerStop, Phase as WorkerPhase}
 
 /**
- * Nothing moves a paused activity straight to started. The predicate fixes no state, outcome or
- * fact, so it is verified as a function: it fails the moment a row from paused to started appears,
- * which is the regression it guards.
+ * What the product machine is, as the laws of model/temporal/laws read it: it closes, and a control
+ * of an activity that is over is not found; it pauses; and its work is handed out by a worker's poll.
+ * It receives terminalStatesAreFinal and closedIsRejectedUniformly, and pausedIsNotDispatched for
+ * pausing and polling together, each named `activityProduct.<law>` and read on the protocol machine
+ * through the map. The bound is the one the product's laws were verified under on the protocol.
  */
-val pausedIsNotDispatched =
-  activityProduct.property.never(s => Product.running(s.state)).from(Product.paused)
+val productCapabilities = capabilities(activityProduct, limits = three)(
+  Closable(status = Product.phase, terminal = Product.terminal, rejected = Outcome.notFound),
+  Pausable(
+    pause = control(Control.pause),
+    unpause = control(Control.unpause),
+    paused = Product.paused
+  ),
+  Pollable(dispatch = attemptStart, running = Product.running)
+)
+
+/**
+ * What the protocol machine is, as the functional laws read it, which a find through its realization
+ * asks: a terminate settles it, a cancel request is recorded, and DescribeActivityExecution reports
+ * its status by `activityStatus`. Each law's find starts the activity and stops the worker before the
+ * control, so no attempt is in flight when it lands, as `terminatedWhileScheduled` does. A Run
+ * explains an unobserved control of an activity that is over too, which answers notFound and records
+ * nothing, so the claim's explanations disagree.
+ */
+val protocolCapabilities = capabilities(activityProtocol, limits = three)(
+  Terminable(
+    terminate = control(Control.terminate),
+    settled = ProtocolFact.statusTerminated,
+    reach = Seq(start(), workerStop),
+    expect = inconclusive(explanationsDisagree)
+  ),
+  Cancelable(
+    requestCancel = control(Control.requestCancel),
+    requested = ProtocolFact.statusCancelRequested,
+    reach = Seq(start(), workerStop),
+    expect = inconclusive(explanationsDisagree)
+  ),
+  Describable(status = ActivityRealization.activityStatus)
+)
 
 val completes = activityProtocol.property when attemptResult(AttemptResult.completed) holds { s =>
   s.state.phase == Phase.completed && s.records(ProtocolFact.statusCompleted)
@@ -77,18 +109,10 @@ val startedByPollingWorker = standaloneActivity.property
   .holds(_.state.worker.phase == WorkerPhase.polling)
 
 // The system contract's promises are declared on each admission design and each composition with
-// the record. Each takes the states it speaks of as predicates, so one definition serves the record
-// and a composition, which reads the record through its `activity` member.
-
-def notAdmittedWhilePaused[S](m: Declares[S])(
-    paused: S => Boolean,
-    running: S => Boolean
-): Property[S] =
-  m.property("notAdmittedWhilePaused").never(s => running(s.state)).from(paused)
+// the record: the laws its capabilities bring, and the record's own count of active attempts. Each
+// takes the states it speaks of as predicates, so one definition serves the record and a
+// composition, which reads the record through its `activity` member.
 
 /** No step leaves two admitted attempts active. */
 def atMostOneActive[S](m: Declares[S])(twoActive: S => Boolean): Property[S] =
   m.property("atMostOneActive").never(s => twoActive(s.state))
-
-def terminalStays[S, P](m: Declares[S])(terminal: S => Boolean, phase: S => P): Property[S] =
-  m.property("terminalStays").once(terminal).keeps(phase)

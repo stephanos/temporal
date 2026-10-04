@@ -46,9 +46,69 @@ make umpire-check-model && make lint-model
 - [ ] fn-112 R4's three defs live under the laws, their instances keep their names, and the only IR delta is the recorded function-symbol substitutions.
 - [ ] fn-112.1 equivalence, model gate and lint-model pass; evidence under `.flow/tmp/fn122-1/`.
 ## Done summary
-TBD
+Wrote the capability laws as plain Property-returning defs with `Law` values (server citations, `promises`, `doesNotPromise`), the catalog as a Scala value with its two-entity test, and the inventory of every claim under `model/temporal/**`. fn-112's shared defs are now instances of the laws. Tables, Definition IDs, Property rows, Query answers and totals are unchanged, and model/cases is byte-identical. The original baseline passes with `original.json` untouched.
 
+**What changed**
+- `model/umpire/laws/Laws.scala`:
+  - `terminalStatesAreFinal[S, P](m)(status, terminal)` and `closedIsRejectedUniformly[S, P](m)(status, terminal, rejected)`, each with its `Law`.
+  - `Catalog.scala`: `Capability` (Closable, Terminable, Pausable, Cancelable, Pollable, Describable), `Law(name, statement, cites, promises, doesNotPromise)` with the def by reference, `Brought`, `Catalog` (`single`, `pair`, `++`, `laws(declared)`, which finds pairs among the declared set), and `entityNeutral`.
+- `model/temporal/laws`:
+  - `Terminate.scala` `terminateSettles(m)(terminate, settled)`, `Cancel.scala` `cancelIsRequested(m)(requestCancel, requested)`, `Pause.scala` `pausedIsNotDispatched(m)(paused, running)` (Pausable × Pollable), each with its `Law`.
+  - `Catalog.scala`: the one `given catalog: Catalog`.
+  - `Catalog.test.scala`: the two-entity rule over the planned declarations, failing by law name. It also checks that a pair is found without being listed and that law names are unique.
+- Instances, named by their vals:
+  - `terminalIsFinal = terminalStatesAreFinal(activityProduct)(Product.phase, Product.terminal)`;
+  - `pausedIsNotDispatched = temporal.laws.pausedIsNotDispatched(activityProduct)(…)`;
+  - `notAdmittedWhilePaused`/`terminalStays` as local vals in `admissionClaims`, `overQueueClaims` and `overMatchingClaims`.
+  - The `notAdmittedWhilePaused` and `terminalStays` defs are gone.
+- Vocabulary:
+  - `Product.terminal` and `Admission.terminal` take the phase, as `Protocol.terminal` already did, so they are the law's `terminal: P => Boolean`.
+  - New: `Product.phase`, and `Product.ends` (state-typed, keeping `ends`' inline expression).
+  - The `OverQueue`/`OverMatching.terminal` forwarders are gone.
+- Lifter (two small changes, both needed by the early proof point):
+  - `Lift.scala` reads `umpire/laws` TASTy. The framework's TASTy was excluded entirely, so no entity-neutral law could fold.
+  - `Claims.declaring` threads `named`: a def body's final declaration takes the name of the val that declares the call.
+- `.plans/SEMANTIC_PROTOCOLS.md` §3 holds the inventory: 76 claims, 8 law instances, 68 feature-specific (each with its reason), none unclassified. It also lists the planned declarations, the borderline calls for the owner, and the findings.
+- `model/README.md` documents the naming rule and the law sources.
+- `golden/config.json` gains two `source_path_merges`, laws files compared as `model/temporal/standaloneactivity`.
+
+**Decisions (own)**
+- **No function-name substitution.** Function names follow `<machine>.property.<name>`, so moving the defs moved only positions. fn-115's by-file positions needed the two merges instead.
+- **`atMostOneActive` stays in the feature.** Boundaries say one instantiating machine. "The three R4 defs move" is read as the two laws.
+- **Core form in umpire.** The sugar rule forbids pattern names in model/umpire, so the entity-neutral bodies are the core form of `once(...).keeps(...)` / a `holdsAcross`. The Temporal laws use the patterns.
+- **Catalog keys.** It is keyed by a `Capability` enum, since task 2 introduces the capability types. `Law.statement` holds the def by reference.
+- **Planned set includes task 4.** The planned declaration set includes task 4's `nexusOperation`. Without it, Terminable and Cancelable would have one machine.
+- **No Close/Poll/Describe Temporal files.** Close's laws are entity-neutral, Pollable alone has no two-machine law, and Describable's field is a realization table (see the findings).
+
+**Findings:** the bodies of `closedIsRejectedUniformly`, `terminateSettles` and `cancelIsRequested` need value-argument binding (outcome, class, fact), which the fold lacks. A throwaway probe showed each refusal (probe.md). This is task 2's, with the capability fields. A Describe law over a describe action would need a transition Property with `when`.
+
+**Shared files for the conductor's merge with fn-114.1:**
+- `model/lifter/Claims.scala` (`declaring` threads `named`)
+- `model/lifter/Lift.scala` (`lifted` filter)
+- `model/temporal/standaloneactivity/{Model,Properties}.scala`, `admission/{Model,Properties}.scala` and `compositions/{Model,Properties}.scala`
+- `tools/umpire/internal/golden/config.json` (two merges)
+- `model/ir/activity*.json` and `model/lifter/testdata/lifts/expected/{admission,realizations}.json`: regenerate after the merge.
+- `tools/umpire/model/activity_parity_test.go` and `tools/umpire/export/quint_test.go` (comment).
+- `model/README.md`
+- `original.json` is untouched.
+
+**Gates:** all pass (evidence.md):
+- `umpire-gen-model`, `umpire-check-model` and `lint-model`;
+- the OriginalBaseline and Migration goldens;
+- the full Go tooling suite: one failure on the first run, `TestActivityEveryClaimDeclarationIsLifted`, which scans source for claim vals; fixed in 225cf49ed4 and the model and export packages re-run green;
+- `lint-code-fast` (0 issues).
+
+**Review:** claude-opus-5-5 at high via `--spec claude:claude-opus-5-5:high`. Writer and reviewer are the same family (Opus). Round 1 was SHIP with 3 P3s:
+- P3 1 (record the IR-shape delta) is fixed in dfd36fdef9.
+- P3 3 (subtotal label) is fixed in dfd36fdef9. The count was right, so it was relabelled.
+- P3 2 (`Law.statement` is untyped and unread, and its name is repeated) is deferred to task 2, which reads the catalog. It can derive the name from the reference or check it there. The reference is kept because the spec names law defs "by reference".
+
+**Deferred P3/FYI:**
+- The law-file `source_path_merges` map to the activity's directory. Revisit once the Nexus operation instantiates a law, at task 4.
+- The parity test lists the law files by name.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3aad890a05, 225cf49ed4, dfd36fdef9
+- Tests: make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks (exit 0), make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks (exit 0), make lint-model (exit 0), scala-cli test model/project.scala model/umpire model/temporal incl. temporal.laws.CatalogTest (exit 0), go test -tags test_dep -count=1 -p 2 -run 'OriginalBaseline|Migration' ./tools/umpire/internal/golden ./tools/umpire/model ./tools/umpire/lower (exit 0 after merges), go test -json -tags test_dep -count=1 -p 2 -timeout 40m ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/... (exit 1: TestActivityEveryClaimDeclarationIsLifted, fixed in 225cf49ed4), go test -json -tags test_dep -count=1 -p 2 ./tools/umpire/model ./tools/umpire/export (exit 0), GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main make lint-code-fast (exit 0), flowctl claude impl-review --spec claude:claude-opus-5-5:high (SHIP, round 1)
 - PRs:

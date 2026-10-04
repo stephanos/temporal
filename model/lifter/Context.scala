@@ -111,16 +111,49 @@ final private[lift] class Context(val index: Index):
   // function-valued parameters is bound to, and the type each of its type parameters is applied to.
   var boundFunctions = Map.empty[Symbol, Symbol] // scalafix:ok DisableSyntax.var
   var boundTypes = Map.empty[Symbol, TypeRepr] // scalafix:ok DisableSyntax.var
+  // And the value each of its value parameters is bound to, such as an outcome, a fact or an action
+  // class, which an expression or a class reads in its place.
+  var boundValues = Map.empty[Symbol, Term] // scalafix:ok DisableSyntax.var
 
   /** `body`, with the bindings of one call of a declaring function added to those around it. */
-  def binding[A](functions: Map[Symbol, Symbol], types: Map[Symbol, TypeRepr])(body: => A): A =
-    val (fs, ts) = (boundFunctions, boundTypes)
+  def binding[A](
+      functions: Map[Symbol, Symbol],
+      types: Map[Symbol, TypeRepr],
+      values: Map[Symbol, Term] = Map.empty
+  )(body: => A): A =
+    val (fs, ts, vs) = (boundFunctions, boundTypes, boundValues)
     boundFunctions = fs ++ functions
     boundTypes = ts ++ types
+    boundValues = vs ++ values
     try body
     finally
       boundFunctions = fs
       boundTypes = ts
+      boundValues = vs
+
+  // While a capability declaration's law is folded: the name `<machine>.<law>` its Property takes,
+  // whatever name its body writes or its val would give it.
+  var generatedName: Option[String] = None // scalafix:ok DisableSyntax.var
+
+  /** `body`, with the first Property it declares named `name`. */
+  def generating[A](name: String)(body: => A): A =
+    val was = generatedName
+    generatedName = Some(name)
+    try body
+    finally generatedName = was
+
+  /** The name the Property being declared takes from a law's expansion, used once. */
+  def takeGenerated(): Option[String] =
+    val name = generatedName
+    generatedName = None
+    name
+
+  // Where each machine declared each of its capabilities, by kind: a machine declares each once.
+  val capabilityKinds = mutable.Map.empty[(String, String), String]
+  // What each capability declaration expanded into, for the law sidecar beside the IR file.
+  val lawClaims = mutable.ArrayBuffer.empty[LawClaim]
+  val lawWaivers = mutable.ArrayBuffer.empty[LawWaiver]
+  val lawCatalog = mutable.LinkedHashMap.empty[String, LawEntry]
 
   /** A type with the type parameters of the declaring functions being folded applied. */
   def instantiated(tpe: TypeRepr): TypeRepr =

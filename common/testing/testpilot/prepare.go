@@ -4,6 +4,7 @@ package testpilot
 import (
 	"context"
 	"errors"
+	"strings"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
@@ -38,7 +39,7 @@ func Prepare(source *testpilotspb.Case, profile Profile) (*PreparedCase, error) 
 		return nil, preparationError(err, "profile.environment_bindings")
 	}
 	// The one boundary copy: execution cannot import the facade, and ProfileSpec's public shape stays.
-	policy := execution.Profile{Identity: spec.Identity, CatalogIdentity: spec.Catalog.Identity(), Roles: spec.Roles, Opcodes: spec.Opcodes, CommandTypes: spec.CommandTypes, EnvironmentBindings: spec.EnvironmentBindings, Limits: spec.ProgramLimits, InstructionDefaults: spec.InstructionDefaults, DeliveryControl: spec.DeliveryControl}
+	policy := execution.Profile{Identity: spec.Identity, CatalogIdentity: spec.Catalog.Identity(), Roles: spec.Roles, Opcodes: spec.Opcodes, CommandTypes: spec.CommandTypes, EnvironmentBindings: spec.EnvironmentBindings, Limits: spec.ProgramLimits, InstructionDefaults: spec.InstructionDefaults, DeliveryControl: spec.DeliveryControl, Configuration: configurationByKey(spec.Configuration)}
 	program, err := execution.Prepare(source, spec.Catalog.catalog, policy)
 	if err != nil {
 		return nil, preparationError(err, "program")
@@ -48,6 +49,16 @@ func Prepare(source *testpilotspb.Case, profile Profile) (*PreparedCase, error) 
 		return nil, preparationError(err, "contract")
 	}
 	return &PreparedCase{source: proto.CloneOf(source), program: program, factory: contract, contract: contract, identity: DriverIdentity{Profile: policy.Identity, Catalog: policy.CatalogIdentity, Bindings: fingerprint}}, nil
+}
+
+// configurationByKey is the Profile's configuration by lower-case key, which BindingFingerprint has
+// already admitted: each key valid and once.
+func configurationByKey(values []ConfigurationValue) map[string]string {
+	byKey := make(map[string]string, len(values))
+	for _, value := range values {
+		byKey[strings.ToLower(value.Key)] = value.Value
+	}
+	return byKey
 }
 
 func (p *PreparedCase) Snapshot() *testpilotspb.Case { return proto.CloneOf(p.source) }

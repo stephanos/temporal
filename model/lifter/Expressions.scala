@@ -418,7 +418,9 @@ private[lift] trait Expressions:
           "function of the lifted sources is called with one: call the def itself"
       )
 
-    case r: Ref if isEnumCase(r.symbol) => enumLiteral(r.symbol, t)
+    // A value parameter of a declaring function being folded: the value its call binds it to.
+    case r: Ref if boundValues.contains(r.symbol) => lift(boundValues(r.symbol), expected)
+    case r: Ref if isEnumCase(r.symbol)           => enumLiteral(r.symbol, t)
     // A parameter, a local `val` or a pattern-bound name: every name a function's own scope owns.
     case r: Ref if local(r.symbol) => expr(t)(E.Var(nameOf(r.symbol)))
     // A string read off a declared value, such as an observation's name, is a constant.
