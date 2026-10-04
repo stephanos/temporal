@@ -94,7 +94,7 @@ func main() {
 	complete, err := lower.GenerateCases("model/ir")
 	if err == nil {
 		if err = requireTotals("model/ir"); err != nil {
-			fmt.Fprintf(os.Stderr, "model/ir: %v; every Query declares its total\n", err)
+			fmt.Fprintf(os.Stderr, "%v; every Query declares its total\n", err)
 			os.Exit(1)
 		}
 		err = sync(".", complete, selected, *update)

@@ -366,10 +366,10 @@ private[lift] trait Claims:
    * one.
    */
   def numberOf(t: Term, env: Map[Symbol, Decl]): Option[Long] = unwidened(t) match
-    case l @ Literal(IntConstant(_) | LongConstant(_)) =>
-      PartialFunction.condOpt(fold(l, env)) { case Decl.Number(v) => v }
-    case r: Ref => env.get(r.symbol).collect { case Decl.Number(v) => v }
-    case _      => None
+    case Literal(IntConstant(i))  => Some(i.toLong)
+    case Literal(LongConstant(l)) => Some(l)
+    case r: Ref                   => env.get(r.symbol).collect { case Decl.Number(v) => v }
+    case _                        => None
 
   /** A term without Scala's widening of an Int to a Long: `Int.int2long(n)` or `n.toLong`. */
   def unwidened(t: Term): Term = t match
