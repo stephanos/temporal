@@ -175,17 +175,24 @@ type env struct {
 	name   string
 	value  Value
 	parent *env
+	// state is whether a traced evaluation computed the value from the state its step function was
+	// given (decisions.go).
+	state bool
 }
 
 func (e *env) bind(name string, v Value) *env { return &env{name: name, value: v, parent: e} }
 
-func (e *env) lookup(name string) (Value, bool) {
+func (e *env) bindFrom(name string, v Value, state bool) *env {
+	return &env{name: name, value: v, parent: e, state: state}
+}
+
+func (e *env) find(name string) *env {
 	for ; e != nil; e = e.parent {
 		if e.name == name {
-			return e.value, true
+			return e
 		}
 	}
-	return Value{}, false
+	return nil
 }
 
 // Interpreter evaluates a Model's expressions.
@@ -199,6 +206,8 @@ type Interpreter struct {
 	ceilings  Ceilings
 	// sizing holds the types and channels whose catalogs are being counted.
 	sizing map[string]bool
+	// trace, when set, records the branch decisions an evaluation takes (decisions.go).
+	trace *tracer
 }
 
 // NewInterpreter indexes a Model's declarations.
@@ -225,6 +234,14 @@ func NewInterpreter(m *umpirespb.Model) *Interpreter {
 // Call applies a function to arguments, checking its precondition first: a call outside it is a
 // Model error, not a value.
 func (in *Interpreter) Call(name string, args []Value, at *umpirespb.Position) (Value, error) {
+	return in.call(name, args, nil, at)
+}
+
+// call is Call with, for a traced evaluation, which of the arguments were computed from the state.
+func (in *Interpreter) call(name string, args []Value, state []bool, at *umpirespb.Position) (Value, error) {
+	if in.trace != nil {
+		in.trace.calls = append(in.trace.calls, name)
+	}
 	f, ok := in.functions[name]
 	if !ok {
 		return Value{}, errorAt(at, "no function %s", name)
@@ -234,7 +251,7 @@ func (in *Interpreter) Call(name string, args []Value, at *umpirespb.Position) (
 	}
 	var e *env
 	for i, p := range f.GetParams() {
-		e = e.bind(p.GetName(), args[i])
+		e = e.bindFrom(p.GetName(), args[i], i < len(state) && state[i])
 	}
 	if f.GetRequires() != nil {
 		ok, err := in.eval(f.GetRequires(), e)
@@ -268,14 +285,20 @@ func (in *Interpreter) eval(x *umpirespb.Expr, e *env) (Value, error) {
 	case *umpirespb.Expr_Literal:
 		return in.literal(k.Literal), nil
 	case *umpirespb.Expr_Var:
-		v, ok := e.lookup(k.Var)
-		if !ok {
+		b := e.find(k.Var)
+		if b == nil {
 			return Value{}, errorAt(x.GetPosition(), "unbound name %s", k.Var)
 		}
-		return v, nil
+		if b.state && in.trace != nil {
+			in.trace.reads++
+		}
+		return b.value, nil
 	case *umpirespb.Expr_Field:
 		return in.field(x, k.Field, e)
 	case *umpirespb.Expr_Call:
+		if in.trace != nil {
+			return in.tracedCall(x, k.Call, e)
+		}
 		args, err := in.evalAll(k.Call.GetArgs(), e)
 		if err != nil {
 			return Value{}, err
@@ -290,10 +313,12 @@ func (in *Interpreter) eval(x *umpirespb.Expr, e *env) (Value, error) {
 	case *umpirespb.Expr_Binary:
 		return in.binary(x, k.Binary, e)
 	case *umpirespb.Expr_If:
+		d := in.deciding()
 		c, err := in.eval(k.If.GetCondition(), e)
 		if err != nil {
 			return Value{}, err
 		}
+		in.decided(d, x, c.Bool, 0, false)
 		if c.Bool {
 			return in.eval(k.If.GetThen(), e)
 		}
@@ -301,11 +326,12 @@ func (in *Interpreter) eval(x *umpirespb.Expr, e *env) (Value, error) {
 	case *umpirespb.Expr_Match:
 		return in.match(x, k.Match, e)
 	case *umpirespb.Expr_Let:
+		reads := in.reads()
 		v, err := in.eval(k.Let.GetValue(), e)
 		if err != nil {
 			return Value{}, err
 		}
-		return in.eval(k.Let.GetBody(), e.bind(k.Let.GetName(), v))
+		return in.eval(k.Let.GetBody(), e.bindFrom(k.Let.GetName(), v, in.reads() > reads))
 	case *umpirespb.Expr_List:
 		items, err := in.evalAll(k.List.GetItems(), e)
 		if err != nil {
@@ -606,12 +632,14 @@ func (in *Interpreter) binary(x *umpirespb.Expr, b *umpirespb.Binary, e *env) (V
 // a hole in the Model.
 // That hole is an undeclared one: a Hole with no ID.
 func (in *Interpreter) match(x *umpirespb.Expr, m *umpirespb.Match, e *env) (Value, error) {
+	d := in.deciding()
 	v, err := in.eval(m.GetScrutinee(), e)
 	if err != nil {
 		return Value{}, err
 	}
-	for _, c := range m.GetCases() {
-		bound, ok := in.bindPattern(c.GetPattern(), v, e)
+	state := in.reads() > d.reads
+	for i, c := range m.GetCases() {
+		bound, ok := in.bindPattern(c.GetPattern(), v, e, state)
 		if !ok {
 			continue
 		}
@@ -624,21 +652,25 @@ func (in *Interpreter) match(x *umpirespb.Expr, m *umpirespb.Match, e *env) (Val
 				continue
 			}
 		}
+		in.decided(d, x, false, i, matchesAnything(c.GetPattern()))
 		return in.eval(c.GetBody(), bound)
 	}
+	in.decided(d, x, false, -1, false)
 	return Value{}, &Hole{Position: where(x.GetPosition()), Message: "no case matches " + v.Key()}
 }
 
-func (in *Interpreter) bindPattern(p *umpirespb.Pattern, v Value, e *env) (*env, bool) {
+// bindPattern matches a pattern, binding its names; state is whether a traced evaluation computed
+// the value from the state.
+func (in *Interpreter) bindPattern(p *umpirespb.Pattern, v Value, e *env, state bool) (*env, bool) {
 	switch k := p.GetKind().(type) {
 	case *umpirespb.Pattern_Wildcard:
 		return e, true
 	case *umpirespb.Pattern_Bind:
-		inner, ok := in.bindPattern(k.Bind.GetPattern(), v, e)
+		inner, ok := in.bindPattern(k.Bind.GetPattern(), v, e, state)
 		if !ok {
 			return nil, false
 		}
-		return inner.bind(k.Bind.GetName(), v), true
+		return inner.bindFrom(k.Bind.GetName(), v, state), true
 	case *umpirespb.Pattern_Literal:
 		return e, in.literal(k.Literal).equal(v)
 	case *umpirespb.Pattern_Case:
@@ -648,14 +680,14 @@ func (in *Interpreter) bindPattern(p *umpirespb.Pattern, v Value, e *env) (*env,
 		}
 		for i, fp := range k.Case.GetFields() {
 			var ok bool
-			if e, ok = in.bindPattern(fp, v.Fields[i], e); !ok {
+			if e, ok = in.bindPattern(fp, v.Fields[i], e, state); !ok {
 				return nil, false
 			}
 		}
 		return e, true
 	case *umpirespb.Pattern_Alternatives:
 		for _, alt := range k.Alternatives.GetPatterns() {
-			if bound, ok := in.bindPattern(alt, v, e); ok {
+			if bound, ok := in.bindPattern(alt, v, e, state); ok {
 				return bound, true
 			}
 		}

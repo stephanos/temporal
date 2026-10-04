@@ -75,6 +75,31 @@ func methodNamed(at *umpirespb.Position, name string) (protoreflect.MethodDescri
 	}
 }
 
+// EvidenceElement is the message one piece of a kind of evidence is read as: the history event of a
+// history read, the element or the one message of a read's response, or the payload of a Run Event.
+// A poll's condition over the kind, and a Run Event's guard, read its fields.
+func EvidenceElement(e *umpirespb.Evidence) (protoreflect.MessageDescriptor, error) {
+	switch from := e.GetFrom().(type) {
+	case *umpirespb.Evidence_History:
+		return messageNamed(e.GetPosition(), historyEventMessage)
+	case *umpirespb.Evidence_Read:
+		return readFrom(e, from.Read, true)
+	case *umpirespb.Evidence_Single:
+		return readFrom(e, from.Single, false)
+	case *umpirespb.Evidence_RunEvent:
+		return messageNamed(e.GetPosition(), instructionOutcomeMessage)
+	default:
+		return nil, errorAt(e.GetPosition(), "evidence %s is recorded nowhere", e.GetId())
+	}
+}
+
+// FieldAt is the field a path reaches in a message, as a realization's paths are read: a field, each
+// element of a repeated field, or one member of a oneof.
+func FieldAt(at *umpirespb.Position, md protoreflect.MessageDescriptor, path string) (protoreflect.FieldDescriptor, error) {
+	end, err := walk(at, md, path)
+	return end.field, err
+}
+
 var segment = regexp.MustCompile(`^([a-z0-9_]+)(\[\*\]|<([a-z0-9_]+)>)?$`)
 
 // reached is where a field path ends: the field, and whether the path yields one value per element

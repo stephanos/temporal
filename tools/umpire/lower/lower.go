@@ -136,24 +136,36 @@ func (p *Producer) ask(query string) (*asked, Standing, error) {
 		return nil, "", err
 	}
 	a := &asked{key: receipt.Key, q: declared.Query, property: declared.Property, scenario: declared.Scenario}
-	if a.q.GetForm() != umpirespb.Query_FORM_FIND {
-		return a, NothingToRealize, nil
+	standing, r, err := Realizable(a.q, a.scenario, p.realizations)
+	if err != nil {
+		return nil, "", err
 	}
-	var realizations []*umpirespb.Realization
-	for _, r := range p.realizations {
-		if r.GetMachine() == a.scenario.GetMachine() {
-			realizations = append(realizations, r)
+	a.r = r
+	return a, standing, nil
+}
+
+// Realizable is what a Query is before anything of it is checked: a verify Query realizes nothing, a
+// find Query whose Scenario's machine no realization runs has no realization, and a find Query with
+// the one realization of its machine is lowered through it. It is the one place that is decided, for
+// the manifest and for model lint alike.
+func Realizable(q *umpirespb.Query, scenario *umpirespb.Scenario, realizations []*umpirespb.Realization) (Standing, *umpirespb.Realization, error) {
+	if q.GetForm() != umpirespb.Query_FORM_FIND {
+		return NothingToRealize, nil, nil
+	}
+	var running []*umpirespb.Realization
+	for _, r := range realizations {
+		if r.GetMachine() == scenario.GetMachine() {
+			running = append(running, r)
 		}
 	}
-	switch len(realizations) {
+	switch len(running) {
 	case 0:
-		return a, NoRealization, nil
+		return NoRealization, nil, nil
 	case 1:
-		a.r = realizations[0]
-		return a, Lowered, nil
+		return Lowered, running[0], nil
 	default:
-		return nil, "", errorAt(a.q.GetPosition(), "query %s runs on %s, which %d realizations run; a Query is lowered through one",
-			query, a.scenario.GetMachine(), len(realizations))
+		return "", nil, errorAt(q.GetPosition(), "query %s runs on %s, which %d realizations run; a Query is lowered through one",
+			q.GetName(), scenario.GetMachine(), len(running))
 	}
 }
 
