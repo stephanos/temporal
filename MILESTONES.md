@@ -26,8 +26,8 @@ changes, change the spec and summarize the change here.
 | F10 | [fn-105](.flow/specs/fn-105-gomad-follow-ups-deferred-scope.md) | D12 native Linux replay fix; D26 combined runtime candidate and D27 host-clock candidate awaiting native qualification; D3–D5 architecture, downstream D8–D10, and deferred D6/D11/D15 |
 | Downstream cell | [fn-107](.flow/specs/fn-107-gomad-finish-downstream-cell.md) | Task 5: consumer and both-platform exact replay; blocked by the absent `../downstream` checkout and qualified hosts |
 | Code-size cleanup | [fn-108](.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md) | Task 8: native linux/amd64 qualification for R9 |
-| Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | Tasks 2–12 have merged candidates awaiting acceptance; tasks 13–21 retain protocols, simulation interfaces, architecture, and final qualification |
-| Runtime patch minimization | [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | Tasks 2–4 have merged candidates awaiting native gates; task 5 retains final measurements and both-platform qualification |
+| Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | Tasks 2–12 have merged candidates awaiting acceptance; tasks 13–18 have reviewed source candidates awaiting native gates; task 19 architecture checks are underway; tasks 20–21 retain guidance and final qualification |
+| Runtime patch minimization | [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | Tasks 2–4 have merged candidates awaiting native gates; the current final `-U3` exceeds the original baseline, leaving R8's extraction reduction unmet; task 5 retains final evidence and both-platform qualification |
 | Determinism assurance and test strategy | [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) | Tasks 5, 9, and 16 have merged candidates awaiting qualification; task 10's soak gate and contract documentation are delivered and await one retained scheduled or dispatched soak run per platform |
 | Version-pin maintenance | [fn-113](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md) | Tasks 1–4 have merged candidates; final native gates and both-host acceptance remain |
 | Search-path qualification | [fn-114](.flow/specs/fn-114-gomad-correct-search-path-defects-and.md) | Task 13 candidate awaits native qualification; task 14 and R12 retain combined-candidate qualification on native linux/amd64 |
@@ -77,10 +77,13 @@ recommendation, and move to implementation. Revisit a decision only when new evi
    Reference existing evidence instead of copying it into successive manifests and reports.
    Keep generated binaries, bulk traces, and scratch snapshots local unless delivery requires
    them. Use one independent review for a completed batch; re-review actionable fixes.
-5. **Advance after the gate.** Once the required checks and review pass, complete the Flow task
-   and perform the authorized delivery action. Broaden testing only for a concrete remaining
-   risk. Report unavailable checks honestly; retry an unchanged environment failure only
-   when its cause or relevant inputs have changed.
+5. **Commit each task separately.** After its source checks and review pass, commit the task's
+   implementation, tests, documentation, and Flow records together. This supersedes older
+   task instructions reserving commits for the user. If required native gates are unavailable,
+   commit the verified progress with those gates recorded as incomplete and keep acceptance
+   open. Complete the Flow task only when all its required gates pass. Preserve unrelated
+   changes; push only when authorized. Broaden testing only for a concrete remaining risk,
+   and retry an unchanged environment failure only when its cause or relevant inputs change.
 
 On 2026-10-02, focused checks took roughly 2–15 seconds, Runner/CLI suites 111–126 seconds,
 and full host suites 128–150 seconds on darwin/arm64. Removing the overlapping broad suite
@@ -301,7 +304,30 @@ acceptance incomplete.
 checks and native qualification. The preparation owner, host-command seam,
 installation description, capability ownership, and detached Artifact/opened-handle
 migration are implemented; their task artifacts retain developmental checks and
-review evidence. Tasks 13–21 remain; native Linux qualification
+review evidence. Task 13's generated host/runtime time-wire source candidate
+passes feasible generation, validation, focused host checks and two fresh source
+audits; actual patched-runtime and process acceptance remains open on both native
+platforms. Its developmental stock-runtime vector run is not native qualification.
+Task 14's typed network/volume command candidate passes literal byte vectors for
+all 41 operations, feasible validation and two fresh source audits; real patched-runtime
+overlay/process acceptance remains open on both native platforms. Task 15's
+eleven behavioral characterizations and two-interface design comparison pass
+feasible focused/race/repeat checks and fresh source audits; native gates and
+R11 remain open. Task 16's atomic typed lifecycle source candidate passes feasible
+focused/race/repeat, preservation, validation and fresh source audits; native/process
+acceptance and R11 remain open. Task 17's creation-time network handles pass feasible
+ownership, preservation, validation and fresh source review, including canonical
+selection of its process regressions; native/process acceptance and R12 remain open.
+Task 18's creation-time filesystem handles and mappings pass feasible ownership,
+preservation, validation and fresh source review, including canonical selection
+of its process regressions; native/process acceptance and R12 remain open.
+Task 19's architecture checks are underway; tasks 20–21 retain guidance and final
+qualification. Task 19 includes repairs for the confirmed record and pack-governance
+timezone effects and inaccessible public reporting/pack-loading types. Its
+World terminal correction moves arbitrary-error normalization to process reporting
+and adds detached terminal input to the pure recorder; direct custom-error and
+sentinel-rebinding behavior changes are explicitly inventoried. Preserve known
+typed failures and fixed-identity recorded bytes. Native Linux qualification
 is part of task 21's final gate. Reuse accepted task evidence where its source
 identity still matches, without repeating implementations.
 
@@ -345,8 +371,16 @@ task 3's crypto/syscall overlay relocation and task 4's descriptor-bound canonic
 `-U1` regeneration are also merged. Local generation, validation, and focused
 conformance evidence belongs to the source candidate; required native
 darwin/arm64 and linux/amd64 gates remain for all three tasks.
-Task 5 remains. Re-anchor the task 1 baseline (`8d28bd44`) to the final
-inputs before reporting patch-size measurements.
+Task 5 remains. Fresh isolated source measurements reproduce task 1's original
+baseline (`8d28bd44`) at 32,652 bytes / 1,007 lines and the current extracted
+`-U3` at 38,362 bytes / 1,112 lines. R8's extraction reduction is therefore unmet:
+the current `-U3` is 5,710 bytes larger, although its canonical `-U1` is smaller
+at 29,015 bytes / 778 lines. Keep the original comparator; context reduction
+does not substitute for extraction reduction. The measurement inventory also
+reports overlay growth separately, including integrated work from other specs.
+Source-text equivalence on the unsupported development host is not either native
+R4 gate or R7 qualification. The source measurements and input identities are
+retained under [task 5 artifacts](.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-5/source-size-evidence.json).
 
 ## Quality assessment (2026-10-01)
 
@@ -410,7 +444,7 @@ re-measure them after pin or adapter changes.
 
 | Pin | Size | Repair |
 | --- | --- | --- |
-| Runtime patch and overlay | 21 upstream files in the combined patch; 61 overlay files | Manual rebase, `make generate`, `make upgrade-dossier`; remeasure lines after the candidate is frozen |
+| Runtime patch and overlay | 20 upstream files in the combined patch; 73 overlay files in the task 13–14 source candidate | Manual rebase, `make generate`, `make upgrade-dossier`; remeasure lines after the final candidate is frozen |
 | Interception fingerprints and boundary manifest | 131 intercepts, 132 fingerprinted entries | Generated; a diff needs an approved SHA |
 | Toolchain inventories | 25 host-clock references, 10 goroutine creation sites | Hand edits after `make test-toolchain` on each platform |
 | Dependency adapters | 15 adapters, 135 SHA-256 literals (125 distinct; 30 are per-platform prepared source sets); 6 target modules absent from the root `go.mod` (downstream cell, fn-107) | `gomadtool adapter-regenerate` dry run, then apply with the approval digest for any registered adapter, including `modernc.org/libc`; a changed or ambiguous rewrite still needs a person |
