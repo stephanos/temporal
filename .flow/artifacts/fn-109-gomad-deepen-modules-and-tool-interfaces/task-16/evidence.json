@@ -1,0 +1,240 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.16",
+  "status": "in_progress",
+  "source_status": "implemented and frozen for conductor source audit",
+  "native_acceptance": false,
+  "commits": [],
+  "prs": [],
+  "base_commit": "0dd05b313acd0986312da7fd3159520e6a21f1bf",
+  "head_commit": "0dd05b313acd0986312da7fd3159520e6a21f1bf",
+  "host": {
+    "os": "linux",
+    "arch": "arm64",
+    "go": "go1.27.1",
+    "pinned_go_available": false
+  },
+  "tier": "Tier: session(jev-unavailable(no_key)); explicit pin wins.",
+  "implementer": "gpt-6.1-sol at high",
+  "working_directory": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "observations": [
+    {
+      "phase": "baseline",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTime|SimulationModel|SimulationCoordinator|ServeSimulation'",
+      "exit_code": 0,
+      "log": "baseline-focused.log",
+      "suite_seconds": 0.004
+    },
+    {
+      "phase": "baseline",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep -race ./runner/internal/execution -run 'SimulationTime|SimulationModel'",
+      "exit_code": 0,
+      "log": "baseline-race.log",
+      "suite_seconds": 1.019
+    },
+    {
+      "phase": "red",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTimeProgressPreexisting'",
+      "exit_code": 1,
+      "log": "regressions-red.log",
+      "suite_seconds": 0.002,
+      "failures": [
+        "Malformed wait woke installed waiter before unknown-credit rejection.",
+        "Duplicate admission consumed prior delivered credit, returning External instead of Retry."
+      ]
+    },
+    {
+      "phase": "initial-migration",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTime|SimulationModel|SimulationCoordinator|ServeSimulation'",
+      "exit_code": 0,
+      "log": "first-green.log",
+      "suite_seconds": 0.004
+    },
+    {
+      "phase": "phase-coverage",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTime|SimulationModel|SimulationCoordinator|ServeSimulation'",
+      "exit_code": 0,
+      "log": "phase-coverage.log"
+    },
+    {
+      "phase": "final",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTime|SimulationModel|SimulationCoordinator|ServeSimulation'",
+      "exit_code": 0,
+      "log": "final-focused.log",
+      "suite_seconds": 0.004
+    },
+    {
+      "phase": "final",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep -race ./runner/internal/execution -run 'SimulationTime|SimulationModel|SimulationCoordinator|ServeSimulation'",
+      "exit_code": 0,
+      "log": "final-race.log",
+      "suite_seconds": 1.027
+    },
+    {
+      "phase": "final",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=100 -tags test_dep ./runner/internal/execution -run 'Simulation(Time|Model)(Progress|Lifecycle)'",
+      "exit_code": 0,
+      "log": "final-repeat.log",
+      "suite_seconds": 0.075
+    },
+    {
+      "phase": "final",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go vet -tags test_dep ./runner/internal/execution",
+      "exit_code": 0,
+      "log": "final-vet.log"
+    },
+    {
+      "phase": "final",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep . -run '^TestPackageArchitecture$'",
+      "exit_code": 0,
+      "log": "architecture.log",
+      "suite_seconds": 0.431
+    },
+    {
+      "phase": "green",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTimeProgressPreexisting'",
+      "exit_code": 0,
+      "log": "regressions-green.log",
+      "suite_seconds": 0.003
+    },
+    {
+      "phase": "preservation",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-16/compare-test-bodies.go ../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-16/simulation_progress_test.before.txt runner/internal/execution/simulation_progress_test.go",
+      "exit_code": 0,
+      "log": "test-body-comparison.json"
+    },
+    {
+      "phase": "scoped-lint",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 ../../.bin/golangci-lint-v2.13.0 run --build-tags test_dep --timeout 10m --fix=false --new-from-rev=HEAD --config=../../.github/.golangci.yml ./runner/internal/execution",
+      "exit_code": 2,
+      "log": "scoped-lint.log",
+      "failure": "Exact existing linter is Mach-O CpuArm64; incompatible with linux/arm64 host. No retry or replacement."
+    },
+    {
+      "phase": "linter-metadata",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-16/inspect-linter.go ../../.bin/golangci-lint-v2.13.0",
+      "exit_code": 0,
+      "log": "linter-platform.json"
+    },
+    {
+      "phase": "native-unavailable",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./runner/internal/execution -run 'Simulation'",
+      "exit_code": 127,
+      "log": "native-focused-unavailable.log"
+    },
+    {
+      "phase": "native-unavailable",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep -race ./runner/internal/execution -run 'Simulation'",
+      "exit_code": 127,
+      "log": "native-race-unavailable.log"
+    },
+    {
+      "phase": "native-unavailable",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration ./runner/internal/execution -run 'TestRootProcessSimulationUsesRunnerTransport'",
+      "exit_code": 127,
+      "log": "native-process-unavailable.log"
+    },
+    {
+      "phase": "native-unavailable",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./runner/...",
+      "exit_code": 127,
+      "log": "native-runner-unavailable.log"
+    },
+    {
+      "phase": "native-unavailable",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim",
+      "exit_code": 127,
+      "log": "native-root-unavailable.log"
+    }
+  ],
+  "tests": [
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTime|SimulationModel|SimulationCoordinator|ServeSimulation'",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep -race ./runner/internal/execution -run 'SimulationTime|SimulationModel'",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTimeProgressPreexisting'",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTime|SimulationModel|SimulationCoordinator|ServeSimulation'",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTime|SimulationModel|SimulationCoordinator|ServeSimulation'",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTime|SimulationModel|SimulationCoordinator|ServeSimulation'",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep -race ./runner/internal/execution -run 'SimulationTime|SimulationModel|SimulationCoordinator|ServeSimulation'",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=100 -tags test_dep ./runner/internal/execution -run 'Simulation(Time|Model)(Progress|Lifecycle)'",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go vet -tags test_dep ./runner/internal/execution",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep . -run '^TestPackageArchitecture$'",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 go test -count=1 -tags test_dep ./runner/internal/execution -run 'SimulationTimeProgressPreexisting'",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-16/compare-test-bodies.go ../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-16/simulation_progress_test.before.txt runner/internal/execution/simulation_progress_test.go",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off timeout 600 ../../.bin/golangci-lint-v2.13.0 run --build-tags test_dep --timeout 10m --fix=false --new-from-rev=HEAD --config=../../.github/.golangci.yml ./runner/internal/execution",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-16/inspect-linter.go ../../.bin/golangci-lint-v2.13.0",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./runner/internal/execution -run 'Simulation'",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep -race ./runner/internal/execution -run 'Simulation'",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration ./runner/internal/execution -run 'TestRootProcessSimulationUsesRunnerTransport'",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep ./runner/...",
+    "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim"
+  ],
+  "source_baseline_sha256": {
+    "simulation_time.go": "496b81c6cc33e7d63ae19c3c812de9f05028cb89765b38a911bb0956eb0cf622",
+    "simulation_unix.go": "64cced8a2d448316965f38cfdfe44a700dc005bdc71e0d50743e68483b8a7e3d",
+    "simulation_model.go": "2a88cbdde3fc952428cb2890efd1194423c52c104fc940368e752f7ee388b668",
+    "process_unix.go": "edd93e2d813c79831c93a0e3de23a73b9e7a5644afd0474b78041ca56e0d546a"
+  },
+  "final_source_sha256": {
+    "simulation_progress.go": "a5446daf575f02fb909955eb6ae8c6d126e3a94048a53fb1337bc444e934dcd9",
+    "simulation_time.go": "5ba93587f60bad5cbb7ce8547257da8869ec822485f23856bf45867732313697",
+    "simulation_unix.go": "95b63f504cf575574129616bec3f008de6560c29be3019537f5e8a256b150881",
+    "simulation_model.go": "2a88cbdde3fc952428cb2890efd1194423c52c104fc940368e752f7ee388b668",
+    "process_unix.go": "c9285406a0602cea4e301a80d88810a08c77f888659df158d4dd7e3d7a74f6a5",
+    "simulation_progress_test.go": "7b1051a4332f73ef1263b1054002ddff061330b1ff39d476e4d076f5b1febce3",
+    "simulation_progress_fixture_test.go": "12cbd8911c03b5ed4e0717397fec2742508daab3e28b8e91a6ca376671db8add",
+    "simulation_progress_lifecycle_test.go": "27430332b60b07ae2aebabd7f2cd8c251fae092f74bc397157699c661bcf8312",
+    "simulation_time_test.go": "3f83c32370640b54e0518f69739fd537369888f24837e1620cde23a65f8d6e90",
+    "simulation_unix_test.go": "0025f6826a715b3cb366fddc15752a91b102311903d6dbc817eecfb041e1a987"
+  },
+  "characterization_preservation": {
+    "before_test_sha256": "4d91f01eb5e378e5aa4824c2af655862d9fe0fe57772bd74f2dfa648418c0880",
+    "after_test_sha256": "7b1051a4332f73ef1263b1054002ddff061330b1ff39d476e4d076f5b1febce3",
+    "before_fixture_sha256": "35ed448549b3aa5d6ce959d86a631b37979056642144e31274e18bcbfb0e8e5c",
+    "after_fixture_sha256": "12cbd8911c03b5ed4e0717397fec2742508daab3e28b8e91a6ca376671db8add",
+    "unchanged_design_sha256": "1f2fc94d417ad3ffe2d64a2b255787d3ad74e13701bc85a7294522a0629a60c9",
+    "all_nine_valid_function_bodies_byte_identical": true,
+    "comparison": "test-body-comparison.json",
+    "preimage": "simulation_progress_test.before.txt",
+    "allowed_changes": [
+      "TestSimulationTimeProgressPreexistingMalformedWaitWakesQuiescence",
+      "TestSimulationTimeProgressPreexistingDuplicateAdmissionConsumesArrival"
+    ],
+    "fixture_changes": "Only model dispatch and known abandoned response discard callback wiring adapted."
+  },
+  "migration": {
+    "legacy_external_methods_remaining": 0,
+    "coordinator_response_bookkeeping": "Owner-private response phases keyed by participant incarnation pointer and coordinator request ID, protected by arbiter mutex.",
+    "counted_concurrent_model_operations": true,
+    "model_transport_sha256_unchanged": true,
+    "accounting_sites_migrated": 25,
+    "historic_task_site_count": 27,
+    "completion": "Wait resumption reserves its own response in one owner transaction; completion-only reservation is idempotent. Redundant coordinator completionPending flag and retainNodeCompletion bookkeeping removed while process channels/lifetime remain with coordinator."
+  },
+  "verification": {
+    "gofmt_listing": "empty",
+    "diff_check_exit_code": 0,
+    "generation": "No task-16 schema/template/overlay/generated/source-inventory changes. Task13/14 generation and validation proof remains applicable to those identical inputs; make validate not rerun for host-only lifecycle source.",
+    "native_full_host": "incomplete"
+  },
+  "prior_environment_failure": {
+    "log": "../task-15/baseline-unit.log",
+    "classification": "Pre-edit stock broad Simulation exit1, TestRunSupervisesSimulationNodeProcess and TestRunHardCrashesAndReapsSimulationNodeProcess child exit49. Unchanged environment not retried."
+  },
+  "native_gaps": [
+    "Patched toolchain executable absent; all five canonical Quick commands exit127 before executing tests.",
+    "Required darwin/arm64 and linux/amd64 process, runtime, root gomad3sim and whole Runner/host gates remain incomplete.",
+    "Stock developmental tests do not prove native timer behavior, process hard isolation or exact replay.",
+    "Existing model-delay watchdog and D12/D14 dispositions unchanged."
+  ],
+  "lint_gap": {
+    "metadata": "linter-platform.json",
+    "exact_binary_sha256": "61f380f1d4c0c57b6cc0a4df3b72183f067c860818943a258aa76171456761e8",
+    "format": "Mach-O",
+    "cpu": "CpuArm64",
+    "exit_code": 2
+  },
+  "review": "Conductor independent source audits pending. Configured codex implementation review deferred on incomplete native/process acceptance tree.",
+  "source_frozen": true,
+  "live_commands": [],
+  "flow_mutations": [],
+  "unrelated_changes": "All pre-existing task13/14 and unrelated .turbo/Flow edits preserved; user owns commits."
+}

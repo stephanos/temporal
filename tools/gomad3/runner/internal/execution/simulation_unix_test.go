@@ -41,13 +41,13 @@ func TestSimulationCoordinatorKeepsCompletedNodeResponseDeliverable(t *testing.T
 	done := make(chan struct{})
 	close(done)
 	node := &simulationNodeProcess{node: "node", incarnation: 1, done: done, time: nodeTime}
-	coordinator.time.remove(nodeTime)
+	_ = coordinator.time.progress.apply(participantRemoved{participant: nodeTime})
 
-	if err := coordinator.beginNodeResponseBarrier(1, 0, node); err != nil {
+	if err := coordinator.acceptNodeControl(simulationFrame{Request: 1}, node); err != nil {
 		t.Fatal(err)
 	}
 	coordinator.handleCoordinatorDelivery(simulationFrame{Request: 1})
-	if err := coordinator.time.acknowledgeExternal(coordinator.coordinator, 1); err != nil {
+	if err := coordinator.time.progress.apply(arrivalCreditsConsumed{participant: coordinator.coordinator, arrivals: 1}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -63,7 +63,7 @@ func TestSimulationCoordinatorStaleRemovalPreservesReplacementNode(t *testing.T)
 	}
 	oldNode := &simulationNodeProcess{node: "server", incarnation: 1, time: oldTime}
 	coordinator.nodes["server/1"] = oldNode
-	coordinator.time.remove(oldTime)
+	_ = coordinator.time.progress.apply(participantRemoved{participant: oldTime})
 	replacementTime, err := coordinator.time.register("server/1")
 	if err != nil {
 		t.Fatal(err)

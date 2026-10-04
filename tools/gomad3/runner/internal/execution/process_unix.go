@@ -100,7 +100,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		request.Simulation.delivering = simulationCoordinator.handleCoordinatorDelivery
 		request.Simulation.responded = simulationCoordinator.handleCoordinatorResponse
 		request.Simulation.arrived = func(arrivals uint32) error {
-			return simulationCoordinator.time.acknowledgeExternal(simulationCoordinator.coordinator, arrivals)
+			return simulationCoordinator.time.progress.apply(arrivalCreditsConsumed{participant: simulationCoordinator.coordinator, arrivals: arrivals})
 		}
 		defer func() { retErr = errors.Join(retErr, simulationCoordinator.close()) }()
 	}
@@ -229,11 +229,11 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 				return Result{}, errors.New("simulation coordinator transport is unavailable")
 			}
 			simulationCoordinator.model = newSimulationModelTransport(simulationModelRequestHost, simulationModelResponseHost, func() {
-				simulationCoordinator.time.deliverExternal(simulationCoordinator.coordinator)
+				_ = simulationCoordinator.time.progress.apply(modelRequestDispatched{coordinator: simulationCoordinator.coordinator})
 			}, func(frame simulationFrame) error {
 				return simulationCoordinator.handleModelArrival(frame)
 			}, func(frame simulationFrame) error {
-				return simulationCoordinator.time.acknowledgeExternal(simulationCoordinator.coordinator, frame.Arrivals)
+				return simulationCoordinator.time.progress.apply(modelAbandonedResponseDiscarded{coordinator: simulationCoordinator.coordinator, arrivals: frame.Arrivals})
 			})
 		}
 		simulationTimeRequestRead, err = resources.createPipe(simulationTimeRequestResource, inheritWrite, "simulation time request")

@@ -1,0 +1,68 @@
+{
+  "TestSimulationModelProgressCancellationKeepsCommitAndDiscardsLateArrival": {
+    "before_sha256": "b5e304ecca24a0f9aa9302da7cd65c8aab829b7f2c218b7c789e068124645c2e",
+    "after_sha256": "b5e304ecca24a0f9aa9302da7cd65c8aab829b7f2c218b7c789e068124645c2e",
+    "body_byte_identical": true,
+    "strengthened_negative": false
+  },
+  "TestSimulationModelProgressConcurrentOperationsOnOneParticipant": {
+    "before_sha256": "a5778a784d1ce41f0e27e77279dc9c3e08143da6d5b37710789c0eea63e02b91",
+    "after_sha256": "a5778a784d1ce41f0e27e77279dc9c3e08143da6d5b37710789c0eea63e02b91",
+    "body_byte_identical": true,
+    "strengthened_negative": false
+  },
+  "TestSimulationModelProgressRejectsUnknownAndDuplicateResponsesBeforeCallbacks": {
+    "before_sha256": "d11481496f798f5adf106ffdfb9166f5ffc8393393f96b73ef0b28b57be7bef5",
+    "after_sha256": "d11481496f798f5adf106ffdfb9166f5ffc8393393f96b73ef0b28b57be7bef5",
+    "body_byte_identical": true,
+    "strengthened_negative": false
+  },
+  "TestSimulationModelProgressUnknownDiscardAcknowledgementKeepsDeliveryRunnable": {
+    "before_sha256": "38a491302bebec70e1536bbb8dc9ee9ac5d2fdd0d987ca66649182c2c7c55dc7",
+    "after_sha256": "38a491302bebec70e1536bbb8dc9ee9ac5d2fdd0d987ca66649182c2c7c55dc7",
+    "body_byte_identical": true,
+    "strengthened_negative": false
+  },
+  "TestSimulationTimeProgressArrivalAtInstalledQuiescence": {
+    "before_sha256": "2435aa0523fc9c6898843e5af2eb295d8545a10fc3256b4c4a97bbf2b999ab17",
+    "after_sha256": "2435aa0523fc9c6898843e5af2eb295d8545a10fc3256b4c4a97bbf2b999ab17",
+    "body_byte_identical": true,
+    "strengthened_negative": false
+  },
+  "TestSimulationTimeProgressDeathAndRestartRejectStaleIncarnation": {
+    "before_sha256": "f87e1a8da53542606a7855320eedbde9944da4e2b87cbe021b672cd3ef52e8c7",
+    "after_sha256": "f87e1a8da53542606a7855320eedbde9944da4e2b87cbe021b672cd3ef52e8c7",
+    "body_byte_identical": true,
+    "strengthened_negative": false
+  },
+  "TestSimulationTimeProgressPartialAcknowledgementKeepsOtherDeliveryRunnable": {
+    "before_sha256": "6924c8835427864fb0c486c2b55fa0bd763ec62c45fb74127197ecfe8e480a41",
+    "after_sha256": "6924c8835427864fb0c486c2b55fa0bd763ec62c45fb74127197ecfe8e480a41",
+    "body_byte_identical": true,
+    "strengthened_negative": false
+  },
+  "TestSimulationTimeProgressPreexistingDuplicateAdmissionConsumesArrival": {
+    "before_sha256": "a431f3d659baef7e8227fa0d9dba29ee1618159d9e10b6a5a4cf489106243f5d",
+    "after_sha256": "3b3c52b7596d7c0a3d3e2b742f3d1a35cb440c43358099edf853e664b1dea650",
+    "body_byte_identical": false,
+    "strengthened_negative": true
+  },
+  "TestSimulationTimeProgressPreexistingMalformedWaitWakesQuiescence": {
+    "before_sha256": "fc0daa94023e8fed2fe28f96ca1436d6c0373802230a159b4441180af18ee18d",
+    "after_sha256": "0b7a717011a758dbfe21ca6295b297446b8355076c3f6c51d501c9d6319bbbfa",
+    "body_byte_identical": false,
+    "strengthened_negative": true
+  },
+  "TestSimulationTimeProgressUnknownAcknowledgementBeforeAdmission": {
+    "before_sha256": "e3b0c6b617d64ec7ccb0abbff143773fce71db050127638cac3bfddc19b8d745",
+    "after_sha256": "e3b0c6b617d64ec7ccb0abbff143773fce71db050127638cac3bfddc19b8d745",
+    "body_byte_identical": true,
+    "strengthened_negative": false
+  },
+  "TestSimulationTimeProgressUnknownAcknowledgementBeforeForwardAndTransfer": {
+    "before_sha256": "e6bdcab3df58a9adf1719cb672915a4438d206842d0bcb823a4cff67aeaec2e4",
+    "after_sha256": "e6bdcab3df58a9adf1719cb672915a4438d206842d0bcb823a4cff67aeaec2e4",
+    "body_byte_identical": true,
+    "strengthened_negative": false
+  }
+}

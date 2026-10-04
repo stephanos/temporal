@@ -1,0 +1,12 @@
+Argument-validation attempt (no tier judgment executed):
+/home/agent/.codex/scripts/flowctl judge --preset tier --state-file .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-16/checkpoint-preparation-state.json --explicit-model gpt-6.1-sol --role-model gpt-6.1-sol --explain --json
+Exit 1
+{
+  "success": false,
+  "error": "--explain applies only to the route preset"
+}
+
+Single actual tier judgment:
+/home/agent/.codex/scripts/flowctl judge --preset tier --state-file .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-16/checkpoint-preparation-state.json --explicit-model gpt-6.1-sol --role-model gpt-6.1-sol --json
+Exit 0
+{"success": true, "available": false, "preset": "tier", "reason": "no_key", "tier_line": "Tier: session (jev-unavailable(no_key))", "spawn_model": null, "implementer": "gpt-6.1-sol"}

@@ -136,9 +136,9 @@ func simulationProgressTransport(t *testing.T, coordinator *simulationCoordinato
 	responseRead, responseWrite := io.Pipe()
 	discarded := make(chan simulationFrame, 1)
 	coordinator.model = newSimulationModelTransport(requestWrite, responseRead, func() {
-		coordinator.time.deliverExternal(coordinator.coordinator)
+		_ = coordinator.time.progress.apply(modelRequestDispatched{coordinator: coordinator.coordinator})
 	}, coordinator.handleModelArrival, func(frame simulationFrame) error {
-		err := coordinator.time.acknowledgeExternal(coordinator.coordinator, frame.Arrivals)
+		err := coordinator.time.progress.apply(modelAbandonedResponseDiscarded{coordinator: coordinator.coordinator, arrivals: frame.Arrivals})
 		discarded <- frame
 		return err
 	})

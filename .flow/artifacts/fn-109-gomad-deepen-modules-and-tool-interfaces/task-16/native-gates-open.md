@@ -1,0 +1,7 @@
+# Task 16 acceptance blocked after reviewed source implementation
+
+Task 16's atomic lifecycle source is integrated in the current worktree and reviewed by two fresh read-only same-family audits with no source findings. Independent stock Go 1.27.1 linux/arm64 focused, expanded race, 100-repeat, scoped vet, architecture, preservation comparison, make validate and formatting/diff checks passed. Exact hashes and commands are retained in evidence.json, handover.md and conductor-verification.md; commits are empty because the user owns commits.
+
+The five required patched-toolchain Quick commands exit 127 because `.toolchain/bin/go` is absent. The current linux/arm64 development host is neither supported native qualification platform. The exact existing linter is Mach-O CpuArm64 and exits 2 before analysis. Required patched whole-host/Runner, root process transport, gomad3sim toolchain, native timing/isolation and both-platform qualifications remain incomplete. The historical stock broad Simulation child-exit-49 baseline remains attributed to the unchanged unavailable environment, not waived or retried without a cause change.
+
+Formal implementation review is deferred while required gates are unavailable; source audits do not establish SHIP, task completion or R11 closure. D12, resolved D14, the model-delay watchdog and all preservation expectations retain their existing dispositions. Source implementation may advance to task 17 under MILESTONES item 4 after this reviewed predecessor, while native acceptance stays open.

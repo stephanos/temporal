@@ -1,0 +1,8 @@
+{
+  "task_title": "Prepare exact task16 source checkpoint after committed task15",
+  "task_body": "Archive committed task15 HEAD tools/gomad3 into isolated scratch; overlay only ten task16 final source identities, retaining identical simulation_model.go. Verify nine changed source paths, unchanged design, nine original valid test bodies, two strengthened negatives and exactly two fixture callback substitutions. Run bounded stock-Go listing, focused execution and inherited architecture checks with complete before/after source inventories.",
+  "acceptance": "All ten retained full-source hashes match and exactly nine source paths differ from task15. All nine valid characterization bodies remain byte-identical and only permitted negatives/fixture callbacks change. Record focused checks and provenance for conductor-only staging, retain original source audit and native acceptance gaps, and make no shared source, Git/index or Flow-state writes.",
+  "touches_count": 10,
+  "has_quick_commands": true,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

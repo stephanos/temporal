@@ -30,17 +30,8 @@ type simulationNodeProcess struct {
 	activationAcknowledged bool
 	hardCrashStarted       bool
 	completionRelease      chan bool
-	completionPending      bool
 	time                   *simulationTimeParticipant
 }
-
-type simulationResponseBarrier uint8
-
-const (
-	simulationResponseBarrierExternal simulationResponseBarrier = iota + 1
-	simulationResponseBarrierWaitExternal
-	simulationResponseBarrierWaitPending
-)
 
 type simulationCoordinator struct {
 	mu                     sync.Mutex
@@ -49,7 +40,6 @@ type simulationCoordinator struct {
 	model                  *simulationModelTransport
 	time                   *simulationTimeArbiter
 	coordinator            *simulationTimeParticipant
-	responses              map[uint64]simulationResponseBarrier
 	explorationPlan        []byte
 	explorationRecords     [][]byte
 	explorationRecordBytes uint64
@@ -74,7 +64,7 @@ func newSimulationCoordinator(request Spec) (*simulationCoordinator, error) {
 	}
 	return &simulationCoordinator{
 		request: request, nodes: make(map[string]*simulationNodeProcess), time: timeArbiter, coordinator: participant,
-		responses: make(map[uint64]simulationResponseBarrier), explorationPlan: explorationPlan,
+		explorationPlan:        explorationPlan,
 		explorationRecordLimit: explorationRecordLimit, explorationRecordCount: explorationRecordCount,
 	}, nil
 }
@@ -88,16 +78,16 @@ func (coordinator *simulationCoordinator) handle(ctx context.Context, frame simu
 	if frame.Kind == simulationFrameStop || frame.Kind == simulationFrameCrash {
 		node, err := coordinator.node(frame)
 		if err != nil {
-			if barrierErr := coordinator.beginResponseBarrier(frame.Request, frame.Arrivals); barrierErr != nil {
+			if barrierErr := coordinator.time.progress.apply(coordinatorRequestAccepted{participant: coordinator.coordinator, request: frame.Request, arrivals: frame.Arrivals}); barrierErr != nil {
 				return simulationFrame{}, errors.Join(err, barrierErr)
 			}
 			return simulationFrame{}, err
 		}
-		if err := coordinator.beginNodeResponseBarrier(frame.Request, frame.Arrivals, node); err != nil {
+		if err := coordinator.acceptNodeControl(frame, node); err != nil {
 			return simulationFrame{}, err
 		}
 	} else if frame.Kind != simulationFrameWait {
-		if err := coordinator.beginResponseBarrier(frame.Request, frame.Arrivals); err != nil {
+		if err := coordinator.time.progress.apply(coordinatorRequestAccepted{participant: coordinator.coordinator, request: frame.Request, arrivals: frame.Arrivals}); err != nil {
 			return simulationFrame{}, err
 		}
 	}
@@ -156,15 +146,15 @@ func (coordinator *simulationCoordinator) retainedExplorationRecords() [][]byte 
 	return records
 }
 
-func (coordinator *simulationCoordinator) beginNodeResponseBarrier(request uint64, arrivals uint32, node *simulationNodeProcess) error {
+func (coordinator *simulationCoordinator) acceptNodeControl(frame simulationFrame, node *simulationNodeProcess) error {
 	if !nodeCompleted(node) {
-		if err := coordinator.beginForwardedResponseBarrier(request, arrivals, node); err == nil {
+		if err := coordinator.time.progress.apply(coordinatorControlForwarded{participant: coordinator.coordinator, node: node.time, request: frame.Request, arrivals: frame.Arrivals}); err == nil {
 			return nil
 		} else if !nodeCompleted(node) {
 			return err
 		}
 	}
-	return coordinator.beginResponseBarrier(request, arrivals)
+	return coordinator.time.progress.apply(coordinatorRequestAccepted{participant: coordinator.coordinator, request: frame.Request, arrivals: frame.Arrivals})
 }
 
 func (coordinator *simulationCoordinator) handleCoordinatorTime(ctx context.Context, request simulationTimeRequest) (simulationTimeResponse, error) {
@@ -172,40 +162,15 @@ func (coordinator *simulationCoordinator) handleCoordinatorTime(ctx context.Cont
 }
 
 func (coordinator *simulationCoordinator) handleCoordinatorDelivery(frame simulationFrame) {
-	coordinator.mu.Lock()
-	barrier := coordinator.responses[frame.Request]
-	delete(coordinator.responses, frame.Request)
-	coordinator.mu.Unlock()
-	switch barrier {
-	case simulationResponseBarrierExternal, simulationResponseBarrierWaitExternal:
-		coordinator.time.deliverExternal(coordinator.coordinator)
-	case simulationResponseBarrierWaitPending:
-		coordinator.time.beginHandledExternal(coordinator.coordinator)
-		coordinator.time.deliverExternal(coordinator.coordinator)
-	default:
-		return
-	}
+	_ = coordinator.time.progress.apply(coordinatorResponseDelivered{participant: coordinator.coordinator, request: frame.Request})
 }
 
 func (coordinator *simulationCoordinator) handleCoordinatorResponse(simulationFrame) {
-	coordinator.time.runnable(coordinator.coordinator)
+	_ = coordinator.time.progress.apply(participantRunnable{participant: coordinator.coordinator})
 }
 
 func (coordinator *simulationCoordinator) handleWaitAcceptance(frame simulationFrame) error {
-	coordinator.time.runnable(coordinator.coordinator)
-	if err := coordinator.time.acknowledgeExternal(coordinator.coordinator, frame.Arrivals); err != nil {
-		return err
-	}
-	coordinator.time.beginHandledExternal(coordinator.coordinator)
-	coordinator.mu.Lock()
-	if coordinator.responses[frame.Request] != 0 {
-		coordinator.mu.Unlock()
-		coordinator.time.endExternal(coordinator.coordinator)
-		return errors.New("simulation response barrier is duplicated")
-	}
-	coordinator.responses[frame.Request] = simulationResponseBarrierWaitExternal
-	coordinator.mu.Unlock()
-	return nil
+	return coordinator.time.progress.apply(coordinatorWaitAccepted{participant: coordinator.coordinator, request: frame.Request, arrivals: frame.Arrivals})
 }
 
 func (coordinator *simulationCoordinator) handleModelArrival(frame simulationFrame) error {
@@ -213,7 +178,7 @@ func (coordinator *simulationCoordinator) handleModelArrival(frame simulationFra
 	if err != nil {
 		return err
 	}
-	return coordinator.time.transferExternalArrival(coordinator.coordinator, frame.Arrivals, node.time)
+	return coordinator.time.progress.apply(modelResponseArrived{coordinator: coordinator.coordinator, node: node.time, arrivals: frame.Arrivals})
 }
 
 func (coordinator *simulationCoordinator) start(ctx context.Context, frame simulationFrame) (simulationFrame, error) {
@@ -254,11 +219,13 @@ func (coordinator *simulationCoordinator) start(ctx context.Context, frame simul
 			return coordinator.time.quiesce(childCtx, node.time, child)
 		},
 		delivering: func(simulationFrame) {
-			coordinator.time.deliverExternal(node.time)
+			_ = coordinator.time.progress.apply(participantResponseDelivered{participant: node.time})
 		},
-		responded: func(simulationFrame) { coordinator.time.runnable(node.time) },
+		responded: func(simulationFrame) {
+			_ = coordinator.time.progress.apply(participantRunnable{participant: node.time})
+		},
 		arrived: func(arrivals uint32) error {
-			return coordinator.time.acknowledgeExternal(node.time, arrivals)
+			return coordinator.time.progress.apply(arrivalCreditsConsumed{participant: node.time, arrivals: arrivals})
 		},
 	}
 	go func() {
@@ -266,16 +233,11 @@ func (coordinator *simulationCoordinator) start(ctx context.Context, frame simul
 		coordinator.mu.Lock()
 		completionRelease := node.completionRelease
 		coordinator.mu.Unlock()
-		if completionRelease == nil {
-			coordinator.retainNodeCompletion(node)
-			close(node.done)
-		} else {
-			close(node.done)
-			if !<-completionRelease {
-				coordinator.retainNodeCompletion(node)
-			}
+		close(node.done)
+		if completionRelease != nil {
+			<-completionRelease
 		}
-		coordinator.time.remove(node.time)
+		_ = coordinator.time.progress.apply(participantRemoved{participant: node.time})
 		node.readyOnce.Do(func() { close(node.ready) })
 	}()
 
@@ -283,7 +245,7 @@ func (coordinator *simulationCoordinator) start(ctx context.Context, frame simul
 	case <-node.ready:
 		select {
 		case <-node.done:
-			barrierErr := coordinator.retainCompletionUntilResponse(frame.Request, node)
+			barrierErr := coordinator.time.progress.apply(coordinatorCompletionReserved{participant: coordinator.coordinator, request: frame.Request})
 			if node.err != nil {
 				return simulationFrame{}, fmt.Errorf("start simulation node: %w", errors.Join(node.err, barrierErr))
 			}
@@ -305,7 +267,7 @@ func (coordinator *simulationCoordinator) activate(ctx context.Context, frame si
 	select {
 	case <-node.ready:
 	case <-node.done:
-		return simulationFrame{}, errors.Join(errors.New("simulation node exited before activation"), coordinator.retainCompletionUntilResponse(frame.Request, node))
+		return simulationFrame{}, errors.Join(errors.New("simulation node exited before activation"), coordinator.time.progress.apply(coordinatorCompletionReserved{participant: coordinator.coordinator, request: frame.Request}))
 	case <-ctx.Done():
 		return simulationFrame{}, ctx.Err()
 	}
@@ -321,7 +283,7 @@ func (coordinator *simulationCoordinator) activate(ctx context.Context, frame si
 	case <-node.activated:
 		return simulationFrame{Node: node.node, Incarnation: node.incarnation}, nil
 	case <-node.done:
-		return simulationFrame{}, errors.Join(errors.New("simulation node exited before acknowledging activation"), coordinator.retainCompletionUntilResponse(frame.Request, node))
+		return simulationFrame{}, errors.Join(errors.New("simulation node exited before acknowledging activation"), coordinator.time.progress.apply(coordinatorCompletionReserved{participant: coordinator.coordinator, request: frame.Request}))
 	case <-ctx.Done():
 		return simulationFrame{}, ctx.Err()
 	}
@@ -334,9 +296,9 @@ func (coordinator *simulationCoordinator) handleNodeFrame(ctx context.Context, n
 	modelRequest := frame.Kind == simulationFrameModel
 	var err error
 	if modelRequest {
-		err = coordinator.time.forwardExternalAfterArrivals(node.time, frame.Arrivals, frame.Time, coordinator.coordinator)
+		err = coordinator.time.progress.apply(modelRequestForwarded{source: node.time, destination: coordinator.coordinator, arrivals: frame.Arrivals, current: frame.Time})
 	} else {
-		err = coordinator.time.beginExternalAfterArrivals(node.time, frame.Arrivals)
+		err = coordinator.time.progress.apply(participantRequestAccepted{participant: node.time, arrivals: frame.Arrivals})
 	}
 	if err != nil {
 		return simulationFrame{}, err
@@ -370,7 +332,7 @@ func (coordinator *simulationCoordinator) handleNodeFrame(ctx context.Context, n
 		return simulationFrame{Node: node.node, Incarnation: node.incarnation, Payload: encodeSimulationActivationTime(current)}, nil
 	case simulationFrameModel:
 		if coordinator.model == nil {
-			coordinator.time.endExternal(coordinator.coordinator)
+			_ = coordinator.time.progress.apply(modelDispatchUnavailable{coordinator: coordinator.coordinator})
 			return simulationFrame{}, errors.New("simulation model transport is unavailable")
 		}
 		response, err := coordinator.model.exchange(ctx, frame)
@@ -405,13 +367,13 @@ func (coordinator *simulationCoordinator) stop(ctx context.Context, frame simula
 		node.hardCrashStarted = true
 		close(node.hardCrash)
 		coordinator.mu.Unlock()
-		coordinator.time.deliverExternal(node.time)
+		_ = coordinator.time.progress.apply(participantResponseDelivered{participant: node.time})
 		select {
 		case <-node.reaped:
 			node.cancel()
 			return simulationFrame{Node: node.node, Incarnation: node.incarnation}, nil
 		case <-node.done:
-			barrierErr := coordinator.retainCompletionUntilResponse(frame.Request, node)
+			barrierErr := coordinator.time.progress.apply(coordinatorCompletionReserved{participant: coordinator.coordinator, request: frame.Request})
 			select {
 			case <-node.reaped:
 				node.cancel()
@@ -424,10 +386,10 @@ func (coordinator *simulationCoordinator) stop(ctx context.Context, frame simula
 		}
 	}
 	node.cancel()
-	coordinator.time.deliverExternal(node.time)
+	_ = coordinator.time.progress.apply(participantResponseDelivered{participant: node.time})
 	response, waitErr := coordinator.waitNode(ctx, node, false)
 	if nodeCompleted(node) {
-		waitErr = errors.Join(waitErr, coordinator.retainCompletionUntilResponse(frame.Request, node))
+		waitErr = errors.Join(waitErr, coordinator.time.progress.apply(coordinatorCompletionReserved{participant: coordinator.coordinator, request: frame.Request}))
 	}
 	if waitErr == nil {
 		coordinator.removeNode(node)
@@ -445,7 +407,7 @@ func (coordinator *simulationCoordinator) wait(ctx context.Context, frame simula
 		return simulationFrame{}, err
 	}
 	if !nodeCompleted(node) {
-		if err := coordinator.releaseWaitResponseBarrier(frame.Request); err != nil {
+		if err := coordinator.time.progress.apply(coordinatorWaitSuspended{participant: coordinator.coordinator, request: frame.Request}); err != nil {
 			return simulationFrame{}, err
 		}
 	}
@@ -454,10 +416,7 @@ func (coordinator *simulationCoordinator) wait(ctx context.Context, frame simula
 	coordinator.mu.Unlock()
 	response, waitErr := coordinator.waitNode(ctx, node, crashed)
 	completed := nodeCompleted(node)
-	if completed {
-		waitErr = errors.Join(waitErr, coordinator.retainCompletionUntilResponse(frame.Request, node))
-	}
-	waitErr = errors.Join(waitErr, coordinator.reserveWaitResponseBarrier(frame.Request))
+	waitErr = errors.Join(waitErr, coordinator.time.progress.apply(coordinatorWaitResumed{participant: coordinator.coordinator, request: frame.Request}))
 	waitErr = errors.Join(waitErr, coordinator.releaseCompletionWait(node, completionRelease, completed))
 	if waitErr == nil {
 		coordinator.removeNode(node)
@@ -487,93 +446,6 @@ func (coordinator *simulationCoordinator) releaseCompletionWait(node *simulation
 	return nil
 }
 
-func (coordinator *simulationCoordinator) retainNodeCompletion(node *simulationNodeProcess) {
-	coordinator.mu.Lock()
-	node.completionPending = true
-	coordinator.mu.Unlock()
-}
-
-func (coordinator *simulationCoordinator) retainCompletionUntilResponse(request uint64, node *simulationNodeProcess) error {
-	coordinator.mu.Lock()
-	responsePending := coordinator.responses[request] != 0
-	if node.completionPending {
-		node.completionPending = false
-		if !responsePending {
-			coordinator.responses[request] = simulationResponseBarrierExternal
-		}
-		coordinator.mu.Unlock()
-		if !responsePending {
-			coordinator.time.beginHandledExternal(coordinator.coordinator)
-		}
-		return nil
-	}
-	coordinator.mu.Unlock()
-	if responsePending {
-		return nil
-	}
-	return coordinator.beginResponseBarrier(request, 0)
-}
-
-func (coordinator *simulationCoordinator) beginResponseBarrier(request uint64, arrivals uint32) error {
-	if err := coordinator.time.beginExternalAfterArrivals(coordinator.coordinator, arrivals); err != nil {
-		return err
-	}
-	coordinator.mu.Lock()
-	if coordinator.responses[request] != 0 {
-		coordinator.mu.Unlock()
-		coordinator.time.endExternal(coordinator.coordinator)
-		return errors.New("simulation response barrier is duplicated")
-	}
-	coordinator.responses[request] = simulationResponseBarrierExternal
-	coordinator.mu.Unlock()
-	return nil
-}
-
-func (coordinator *simulationCoordinator) beginForwardedResponseBarrier(request uint64, arrivals uint32, node *simulationNodeProcess) error {
-	if err := coordinator.time.forwardExternalAfterArrivals(coordinator.coordinator, arrivals, 0, node.time); err != nil {
-		return err
-	}
-	coordinator.mu.Lock()
-	if coordinator.responses[request] != 0 {
-		coordinator.mu.Unlock()
-		coordinator.time.endExternal(coordinator.coordinator)
-		coordinator.time.endExternal(node.time)
-		return errors.New("simulation response barrier is duplicated")
-	}
-	coordinator.responses[request] = simulationResponseBarrierExternal
-	coordinator.mu.Unlock()
-	return nil
-}
-
-func (coordinator *simulationCoordinator) releaseWaitResponseBarrier(request uint64) error {
-	coordinator.mu.Lock()
-	if coordinator.responses[request] != simulationResponseBarrierWaitExternal {
-		coordinator.mu.Unlock()
-		return errors.New("simulation wait response barrier is unavailable")
-	}
-	coordinator.responses[request] = simulationResponseBarrierWaitPending
-	coordinator.mu.Unlock()
-	coordinator.time.endExternal(coordinator.coordinator)
-	return nil
-}
-
-func (coordinator *simulationCoordinator) reserveWaitResponseBarrier(request uint64) error {
-	coordinator.mu.Lock()
-	barrier := coordinator.responses[request]
-	if barrier == simulationResponseBarrierWaitExternal {
-		coordinator.mu.Unlock()
-		return nil
-	}
-	if barrier != simulationResponseBarrierWaitPending {
-		coordinator.mu.Unlock()
-		return errors.New("simulation wait response barrier is unavailable")
-	}
-	coordinator.responses[request] = simulationResponseBarrierWaitExternal
-	coordinator.mu.Unlock()
-	coordinator.time.beginHandledExternal(coordinator.coordinator)
-	return nil
-}
-
 func nodeCompleted(node *simulationNodeProcess) bool {
 	select {
 	case <-node.done:
@@ -590,7 +462,7 @@ func (coordinator *simulationCoordinator) removeNode(node *simulationNodeProcess
 		delete(coordinator.nodes, key)
 	}
 	coordinator.mu.Unlock()
-	coordinator.time.remove(node.time)
+	_ = coordinator.time.progress.apply(participantRemoved{participant: node.time})
 }
 
 func (coordinator *simulationCoordinator) waitNode(ctx context.Context, node *simulationNodeProcess, crashed bool) (simulationFrame, error) {
@@ -662,7 +534,7 @@ func (coordinator *simulationCoordinator) close() error {
 			result = errors.Join(result, fmt.Errorf("simulation node %s/%d process group remains", node.node, node.incarnation))
 		}
 	}
-	coordinator.time.remove(coordinator.coordinator)
+	_ = coordinator.time.progress.apply(participantRemoved{participant: coordinator.coordinator})
 	return result
 }
 

@@ -99,10 +99,13 @@ type simulationTimeArbiter struct {
 	current      int64
 	forward      bool
 	participants map[string]*simulationTimeParticipant
+	progress     *simulationProgress
 }
 
 func newSimulationTimeArbiter(forward bool) *simulationTimeArbiter {
-	return &simulationTimeArbiter{current: simulationInitialTime, forward: forward, participants: make(map[string]*simulationTimeParticipant)}
+	arbiter := &simulationTimeArbiter{current: simulationInitialTime, forward: forward, participants: make(map[string]*simulationTimeParticipant)}
+	arbiter.progress = &simulationProgress{arbiter: arbiter, responses: make(map[simulationResponseIdentity]simulationResponsePhase)}
+	return arbiter
 }
 
 func (arbiter *simulationTimeArbiter) register(name string) (*simulationTimeParticipant, error) {
@@ -162,16 +165,15 @@ func (arbiter *simulationTimeArbiter) quiesce(ctx context.Context, participant *
 		arbiter.mu.Unlock()
 		return simulationTimeResponse{}, err
 	}
-	if uint64(request.Arrivals) > participant.delivered {
+	if err := arbiter.progress.validateCredits(participant, request.Arrivals); err != nil {
 		arbiter.mu.Unlock()
-		return simulationTimeResponse{}, fmt.Errorf("simulation time request acknowledged unknown external work: participant=%q arrivals=%d external=%d delivered=%d", participant.name, request.Arrivals, participant.external, participant.delivered)
+		return simulationTimeResponse{}, err
 	}
 	if request.Current > arbiter.current {
 		arbiter.current = request.Current
 	}
 	participant.generation = request.Generation
-	participant.external -= uint64(request.Arrivals)
-	participant.delivered -= uint64(request.Arrivals)
+	arbiter.progress.consume(participant, request.Arrivals)
 	if request.Current < arbiter.current && !arbiter.forward {
 		response := simulationTimeResponse{Generation: request.Generation, Kind: simulationTimeAdvance, Time: arbiter.current}
 		arbiter.mu.Unlock()
@@ -211,12 +213,6 @@ func (arbiter *simulationTimeArbiter) quiesce(ctx context.Context, participant *
 	}
 }
 
-func (arbiter *simulationTimeArbiter) runnable(participant *simulationTimeParticipant) {
-	arbiter.mu.Lock()
-	defer arbiter.mu.Unlock()
-	arbiter.runnableLocked(participant)
-}
-
 func (arbiter *simulationTimeArbiter) runnableLocked(participant *simulationTimeParticipant) {
 	if participant == nil || arbiter.participants[participant.name] != participant || participant.waiter == nil {
 		return
@@ -241,149 +237,6 @@ func (arbiter *simulationTimeArbiter) externalLocked(participant *simulationTime
 		Kind:       simulationTimeExternal,
 		Time:       arbiter.current,
 	}}
-}
-
-func (arbiter *simulationTimeArbiter) beginExternal(participant *simulationTimeParticipant) {
-	arbiter.mu.Lock()
-	defer arbiter.mu.Unlock()
-	if participant == nil || arbiter.participants[participant.name] != participant {
-		return
-	}
-	participant.external++
-	arbiter.externalLocked(participant)
-	arbiter.settleLocked()
-}
-
-func (arbiter *simulationTimeArbiter) beginHandledExternal(participant *simulationTimeParticipant) {
-	arbiter.mu.Lock()
-	defer arbiter.mu.Unlock()
-	if participant == nil || arbiter.participants[participant.name] != participant {
-		return
-	}
-	participant.external++
-	participant.handling++
-	arbiter.externalLocked(participant)
-	arbiter.settleLocked()
-}
-
-func (arbiter *simulationTimeArbiter) beginExternalAfterArrivals(participant *simulationTimeParticipant, arrivals uint32) error {
-	arbiter.mu.Lock()
-	defer arbiter.mu.Unlock()
-	if participant == nil || arbiter.participants[participant.name] != participant {
-		return errors.New("simulation time participant is inactive")
-	}
-	if uint64(arrivals) > participant.delivered {
-		return fmt.Errorf("simulation time request acknowledged unknown external work: participant=%q arrivals=%d external=%d delivered=%d", participant.name, arrivals, participant.external, participant.delivered)
-	}
-	participant.external -= uint64(arrivals)
-	participant.delivered -= uint64(arrivals)
-	participant.external++
-	participant.handling++
-	arbiter.externalLocked(participant)
-	return nil
-}
-
-func (arbiter *simulationTimeArbiter) forwardExternalAfterArrivals(source *simulationTimeParticipant, arrivals uint32, current int64, destination *simulationTimeParticipant) error {
-	arbiter.mu.Lock()
-	defer arbiter.mu.Unlock()
-	if source == nil || destination == nil || source == destination || arbiter.participants[source.name] != source || arbiter.participants[destination.name] != destination {
-		return errors.New("simulation time participant is inactive")
-	}
-	if current != 0 && current < simulationInitialTime || !arbiter.forward && current > arbiter.current {
-		return fmt.Errorf("simulation forwarded time does not match the current epoch: participant=%q current=%d cluster=%d", source.name, current, arbiter.current)
-	}
-	if uint64(arrivals) > source.delivered {
-		return fmt.Errorf("simulation time request acknowledged unknown external work: participant=%q arrivals=%d external=%d delivered=%d", source.name, arrivals, source.external, source.delivered)
-	}
-	if current > arbiter.current {
-		arbiter.current = current
-	}
-	source.external -= uint64(arrivals)
-	source.delivered -= uint64(arrivals)
-	source.external++
-	destination.external++
-	destination.handling++
-	arbiter.externalLocked(source)
-	arbiter.externalLocked(destination)
-	arbiter.settleLocked()
-	return nil
-}
-
-func (arbiter *simulationTimeArbiter) transferExternalArrival(source *simulationTimeParticipant, arrivals uint32, destination *simulationTimeParticipant) error {
-	arbiter.mu.Lock()
-	defer arbiter.mu.Unlock()
-	if source == nil || arbiter.participants[source.name] != source {
-		return errors.New("simulation time external arrival source is inactive")
-	}
-	if destination == nil || source == destination || arbiter.participants[destination.name] != destination {
-		return errors.New("simulation time external arrival destination is inactive")
-	}
-	if uint64(arrivals) > source.delivered {
-		return fmt.Errorf("simulation time request acknowledged unknown external work: participant=%q arrivals=%d external=%d delivered=%d", source.name, arrivals, source.external, source.delivered)
-	}
-	if destination.delivered >= destination.external {
-		return errors.New("simulation time external arrival is unexpected")
-	}
-	source.external -= uint64(arrivals)
-	source.delivered -= uint64(arrivals)
-	destination.delivered++
-	arbiter.runnableLocked(destination)
-	arbiter.settleLocked()
-	return nil
-}
-
-func (arbiter *simulationTimeArbiter) acknowledgeExternal(participant *simulationTimeParticipant, arrivals uint32) error {
-	arbiter.mu.Lock()
-	defer arbiter.mu.Unlock()
-	if participant == nil || arbiter.participants[participant.name] != participant {
-		return errors.New("simulation time participant is inactive")
-	}
-	if uint64(arrivals) > participant.delivered {
-		return fmt.Errorf("simulation time request acknowledged unknown external work: participant=%q arrivals=%d external=%d delivered=%d", participant.name, arrivals, participant.external, participant.delivered)
-	}
-	participant.external -= uint64(arrivals)
-	participant.delivered -= uint64(arrivals)
-	arbiter.settleLocked()
-	return nil
-}
-
-func (arbiter *simulationTimeArbiter) deliverExternal(participant *simulationTimeParticipant) {
-	arbiter.mu.Lock()
-	defer arbiter.mu.Unlock()
-	if participant == nil || arbiter.participants[participant.name] != participant || participant.delivered >= participant.external {
-		return
-	}
-	participant.delivered++
-	if participant.handling != 0 {
-		participant.handling--
-	}
-	arbiter.runnableLocked(participant)
-}
-
-func (arbiter *simulationTimeArbiter) endExternal(participant *simulationTimeParticipant) {
-	arbiter.mu.Lock()
-	defer arbiter.mu.Unlock()
-	if participant == nil || arbiter.participants[participant.name] != participant || participant.external == 0 {
-		return
-	}
-	participant.external--
-	if participant.handling != 0 {
-		participant.handling--
-	}
-	arbiter.settleLocked()
-}
-
-func (arbiter *simulationTimeArbiter) remove(participant *simulationTimeParticipant) {
-	arbiter.mu.Lock()
-	defer arbiter.mu.Unlock()
-	if participant == nil || arbiter.participants[participant.name] != participant {
-		return
-	}
-	if participant.waiter != nil {
-		participant.waiter <- simulationTimeResult{err: errors.New("simulation time participant was removed")}
-	}
-	delete(arbiter.participants, participant.name)
-	arbiter.settleLocked()
 }
 
 func (arbiter *simulationTimeArbiter) settleLocked() {

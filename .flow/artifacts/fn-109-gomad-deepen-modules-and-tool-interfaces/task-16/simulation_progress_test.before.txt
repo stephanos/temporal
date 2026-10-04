@@ -174,22 +174,15 @@ func TestSimulationTimeProgressUnknownAcknowledgementBeforeForwardAndTransfer(t 
 }
 
 func TestSimulationTimeProgressPreexistingMalformedWaitWakesQuiescence(t *testing.T) {
-	coordinator, node := simulationProgressCoordinator(t)
+	coordinator, _ := simulationProgressCoordinator(t)
 	results := simulationProgressWait(t, coordinator.time, coordinator.coordinator, simulationTimeRequest{
 		Generation: 1, Current: simulationInitialTime, Deadline: simulationInitialTime + 10,
 	})
 	if err := coordinator.handleWaitAcceptance(simulationFrame{Kind: simulationFrameWait, Request: 1, Arrivals: 1}); err == nil || !strings.Contains(err.Error(), "acknowledged unknown external work") {
 		t.Fatalf("malformed wait acknowledgement error = %v", err)
 	}
-	if !coordinator.time.isQuiescent(coordinator.coordinator) {
-		t.Fatal("rejected malformed wait woke the installed waiter")
-	}
-	response, err := coordinator.time.quiesce(context.Background(), node.time, simulationTimeRequest{
-		Generation: 1, Current: simulationInitialTime, Deadline: simulationInitialTime + 20,
-	})
-	simulationProgressResponse(t, response, err, 1, simulationTimeAdvance, simulationInitialTime+10)
 	result := simulationProgressReceive(t, results)
-	simulationProgressResponse(t, result.response, result.err, 1, simulationTimeAdvance, simulationInitialTime+10)
+	simulationProgressResponse(t, result.response, result.err, 1, simulationTimeRetry, simulationInitialTime)
 }
 
 func TestSimulationTimeProgressPreexistingDuplicateAdmissionConsumesArrival(t *testing.T) {
@@ -213,7 +206,7 @@ func TestSimulationTimeProgressPreexistingDuplicateAdmissionConsumesArrival(t *t
 	response, err := coordinator.handleCoordinatorTime(context.Background(), simulationTimeRequest{
 		Generation: 1, Current: simulationInitialTime, Deadline: simulationInitialTime + 10,
 	})
-	simulationProgressResponse(t, response, err, 1, simulationTimeRetry, simulationInitialTime)
+	simulationProgressResponse(t, response, err, 1, simulationTimeExternal, simulationInitialTime)
 }
 
 func TestSimulationTimeProgressDeathAndRestartRejectStaleIncarnation(t *testing.T) {

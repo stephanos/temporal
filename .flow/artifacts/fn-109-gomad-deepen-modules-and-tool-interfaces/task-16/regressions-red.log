@@ -1,0 +1,7 @@
+--- FAIL: TestSimulationTimeProgressPreexistingMalformedWaitWakesQuiescence (0.00s)
+    simulation_progress_test.go:185: rejected malformed wait woke the installed waiter
+--- FAIL: TestSimulationTimeProgressPreexistingDuplicateAdmissionConsumesArrival (0.00s)
+    simulation_progress_test.go:216: time response = execution.simulationTimeResponse{Generation:0x1, Kind:0x4, Time:946684800000000000}, error = <nil>; want execution.simulationTimeResponse{Generation:0x1, Kind:0x2, Time:946684800000000000}
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/execution	0.002s
+FAIL

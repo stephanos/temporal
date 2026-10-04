@@ -306,7 +306,7 @@ func TestSimulationTimeArbiterCancelsAnEpochWhenExternalWorkArrives(t *testing.T
 			runtime.Gosched()
 		}
 	}
-	arbiter.runnable(node)
+	_ = arbiter.progress.apply(participantRunnable{participant: node})
 
 	want := simulationTimeResponse{Generation: 1, Kind: simulationTimeRetry, Time: simulationInitialTime}
 	if response := <-responses; response != want {
@@ -331,7 +331,7 @@ func TestSimulationTimeArbiterDoesNotAdvancePastExternalWorkOrInactiveParticipan
 		t.Fatal(err)
 	}
 	arbiter.activate(coordinator)
-	arbiter.beginExternal(coordinator)
+	simulationPendingExternal(t, arbiter, coordinator)
 
 	response, err := arbiter.quiesce(context.Background(), coordinator, simulationTimeRequest{
 		Generation: 1, Current: simulationInitialTime, Deadline: simulationInitialTime + 20,
@@ -343,7 +343,7 @@ func TestSimulationTimeArbiterDoesNotAdvancePastExternalWorkOrInactiveParticipan
 	if response != wantExternal {
 		t.Fatalf("external response = %#v, want %#v", response, wantExternal)
 	}
-	arbiter.endExternal(coordinator)
+	simulationFinishExternal(t, arbiter, coordinator)
 
 	responses := make(chan simulationTimeResponse, 2)
 	errors := make(chan error, 2)
@@ -396,7 +396,7 @@ func TestSimulationTimeArbiterExcludesAnExternallyBlockedParticipant(t *testing.
 	}
 	arbiter.activate(coordinator)
 	arbiter.activate(node)
-	arbiter.beginExternal(coordinator)
+	simulationPendingExternal(t, arbiter, coordinator)
 
 	response, err := arbiter.quiesce(context.Background(), node, simulationTimeRequest{
 		Generation: 1, Current: simulationInitialTime, Deadline: simulationInitialTime + 10,
@@ -408,7 +408,7 @@ func TestSimulationTimeArbiterExcludesAnExternallyBlockedParticipant(t *testing.
 	if response != want {
 		t.Fatalf("response = %#v, want %#v", response, want)
 	}
-	arbiter.endExternal(coordinator)
+	simulationFinishExternal(t, arbiter, coordinator)
 	response, err = arbiter.quiesce(context.Background(), coordinator, simulationTimeRequest{
 		Generation: 1, Current: simulationInitialTime, Deadline: simulationInitialTime + 20,
 	})
@@ -443,7 +443,7 @@ func TestSimulationTimeArbiterSettlesWhenLastRunnableParticipantBlocksExternally
 		errors <- quiesceErr
 	}()
 	waitForSimulationQuiescence(t, arbiter, coordinator)
-	arbiter.beginExternal(node)
+	simulationPendingExternal(t, arbiter, node)
 
 	if current := arbiter.currentTime(); current != simulationInitialTime+10 {
 		t.Fatalf("current time = %d", current)
@@ -472,7 +472,7 @@ func TestSimulationTimeArbiterDoesNotSettleWhileExternalRequestIsHandled(t *test
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
-	if err := arbiter.beginExternalAfterArrivals(node, 0); err != nil {
+	if err := arbiter.progress.apply(participantRequestAccepted{participant: node, arrivals: 0}); err != nil {
 		t.Fatal(err)
 	}
 	responses := make(chan simulationTimeResponse, 1)
@@ -507,10 +507,10 @@ func TestSimulationTimeArbiterAdvancesAfterForwardedRequestIsDelivered(t *testin
 	}
 	arbiter.activate(coordinator)
 	arbiter.activate(node)
-	if err := arbiter.forwardExternalAfterArrivals(node, 0, 0, coordinator); err != nil {
+	if err := arbiter.progress.apply(modelRequestForwarded{source: node, arrivals: 0, current: 0, destination: coordinator}); err != nil {
 		t.Fatal(err)
 	}
-	arbiter.deliverExternal(coordinator)
+	_ = arbiter.progress.apply(participantResponseDelivered{participant: coordinator})
 
 	response, err := arbiter.quiesce(context.Background(), coordinator, simulationTimeRequest{
 		Generation: 1, Current: simulationInitialTime, Deadline: simulationInitialTime + 10, Arrivals: 1,
@@ -547,7 +547,7 @@ func TestSimulationTimeArbiterForwardsExternalRequestAtomically(t *testing.T) {
 		errors <- quiesceErr
 	}()
 	waitForSimulationQuiescence(t, arbiter, coordinator)
-	if err := arbiter.forwardExternalAfterArrivals(node, 0, 0, coordinator); err != nil {
+	if err := arbiter.progress.apply(modelRequestForwarded{source: node, arrivals: 0, current: 0, destination: coordinator}); err != nil {
 		t.Fatal(err)
 	}
 	if current := arbiter.currentTime(); current != simulationInitialTime {
@@ -579,9 +579,9 @@ func TestSimulationTimeArbiterTransfersExternalArrivalAtomically(t *testing.T) {
 	arbiter.activate(coordinator)
 	arbiter.activate(node)
 	arbiter.activate(observer)
-	arbiter.beginExternal(coordinator)
-	arbiter.deliverExternal(coordinator)
-	arbiter.beginExternal(node)
+	simulationPendingExternal(t, arbiter, coordinator)
+	_ = arbiter.progress.apply(participantResponseDelivered{participant: coordinator})
+	simulationPendingExternal(t, arbiter, node)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
@@ -595,7 +595,7 @@ func TestSimulationTimeArbiterTransfersExternalArrivalAtomically(t *testing.T) {
 		errors <- quiesceErr
 	}()
 	waitForSimulationQuiescence(t, arbiter, observer)
-	if err := arbiter.transferExternalArrival(coordinator, 1, node); err != nil {
+	if err := arbiter.progress.apply(modelResponseArrived{coordinator: coordinator, arrivals: 1, node: node}); err != nil {
 		t.Fatal(err)
 	}
 	if current := arbiter.currentTime(); current != simulationInitialTime {
@@ -620,8 +620,8 @@ func TestSimulationTimeArbiterWaitsForDeliveredExternalWorkToBeConsumed(t *testi
 	}
 	arbiter.activate(coordinator)
 	arbiter.activate(node)
-	arbiter.beginExternal(node)
-	arbiter.deliverExternal(node)
+	simulationPendingExternal(t, arbiter, node)
+	_ = arbiter.progress.apply(participantResponseDelivered{participant: node})
 
 	responses := make(chan simulationTimeResponse, 2)
 	errors := make(chan error, 2)
@@ -683,7 +683,7 @@ func TestSimulationTimeArbiterRejoinsAfterExternalWorkArrives(t *testing.T) {
 		errors <- quiesceErr
 	}()
 	waitForSimulationQuiescence(t, arbiter, participant)
-	arbiter.beginExternal(participant)
+	simulationPendingExternal(t, arbiter, participant)
 	wantExternal := simulationTimeResponse{Generation: 1, Kind: simulationTimeExternal, Time: simulationInitialTime}
 	if response := <-responses; response != wantExternal {
 		t.Fatalf("external response = %#v, want %#v", response, wantExternal)
@@ -691,7 +691,7 @@ func TestSimulationTimeArbiterRejoinsAfterExternalWorkArrives(t *testing.T) {
 	if err := <-errors; err != nil {
 		t.Fatal(err)
 	}
-	arbiter.deliverExternal(participant)
+	_ = arbiter.progress.apply(participantResponseDelivered{participant: participant})
 
 	go func() {
 		response, quiesceErr := arbiter.quiesce(context.Background(), participant, simulationTimeRequest{
@@ -785,12 +785,12 @@ func TestSimulationTimeArbiterForwardTickEarlyResponsesDoNotRewind(t *testing.T)
 		{name: "inactive", set: func(*simulationTimeArbiter, *simulationTimeParticipant) {}, kind: simulationTimeAdvance},
 		{name: "delivered", set: func(arbiter *simulationTimeArbiter, participant *simulationTimeParticipant) {
 			arbiter.activate(participant)
-			arbiter.beginExternal(participant)
-			arbiter.deliverExternal(participant)
+			simulationPendingExternal(t, arbiter, participant)
+			_ = arbiter.progress.apply(participantResponseDelivered{participant: participant})
 		}, kind: simulationTimeRetry},
 		{name: "external", set: func(arbiter *simulationTimeArbiter, participant *simulationTimeParticipant) {
 			arbiter.activate(participant)
-			arbiter.beginExternal(participant)
+			simulationPendingExternal(t, arbiter, participant)
 		}, kind: simulationTimeExternal},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -850,7 +850,7 @@ func TestSimulationTimeArbiterAdoptsForwardedModelCurrent(t *testing.T) {
 	arbiter.activate(destination)
 
 	current := simulationInitialTime + 100
-	if err := arbiter.forwardExternalAfterArrivals(source, 0, current, destination); err != nil {
+	if err := arbiter.progress.apply(modelRequestForwarded{source: source, arrivals: 0, current: current, destination: destination}); err != nil {
 		t.Fatal(err)
 	}
 	if actual := arbiter.currentTime(); actual != current {
@@ -881,7 +881,7 @@ func TestSimulationTimeArbiterRejectsInvalidForwardedModelCurrentWithoutMutation
 			arbiter.activate(source)
 			arbiter.activate(destination)
 
-			if err := arbiter.forwardExternalAfterArrivals(source, test.arrivals, test.current, destination); err == nil {
+			if err := arbiter.progress.apply(modelRequestForwarded{source: source, arrivals: test.arrivals, current: test.current, destination: destination}); err == nil {
 				t.Fatal("arbiter accepted an invalid forwarded model current")
 			}
 			if current := arbiter.currentTime(); current != simulationInitialTime {
@@ -891,5 +891,35 @@ func TestSimulationTimeArbiterRejectsInvalidForwardedModelCurrentWithoutMutation
 				t.Fatalf("arbiter changed participants after rejecting the request: source=%#v destination=%#v", source, destination)
 			}
 		})
+	}
+}
+
+func simulationPendingExternal(t *testing.T, arbiter *simulationTimeArbiter, participant *simulationTimeParticipant) {
+	t.Helper()
+	destination, err := arbiter.register("pending/" + participant.name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, event := range []simulationProgressEvent{
+		coordinatorControlForwarded{participant: participant, node: destination, request: 1},
+		participantResponseDelivered{participant: destination},
+		arrivalCreditsConsumed{participant: destination, arrivals: 1},
+		participantRemoved{participant: destination},
+	} {
+		if err := arbiter.progress.apply(event); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func simulationFinishExternal(t *testing.T, arbiter *simulationTimeArbiter, participant *simulationTimeParticipant) {
+	t.Helper()
+	for _, event := range []simulationProgressEvent{
+		coordinatorResponseDelivered{participant: participant, request: 1},
+		arrivalCreditsConsumed{participant: participant, arrivals: 1},
+	} {
+		if err := arbiter.progress.apply(event); err != nil {
+			t.Fatal(err)
+		}
 	}
 }

@@ -1,0 +1,20 @@
+=== RUN   TestPackageArchitecture
+--- PASS: TestPackageArchitecture (0.29s)
+=== RUN   TestPublicPackagesDoNotExportTypeAliases
+--- PASS: TestPublicPackagesDoNotExportTypeAliases (0.02s)
+=== RUN   TestRunnerExecutionInjectionIsPrivate
+--- PASS: TestRunnerExecutionInjectionIsPrivate (0.00s)
+=== RUN   TestRunnerRequestsCompileInExternalModule
+--- PASS: TestRunnerRequestsCompileInExternalModule (1.59s)
+=== RUN   TestCurrentVocabularyHasNoLegacyCampaignBoundary
+--- PASS: TestCurrentVocabularyHasNoLegacyCampaignBoundary (0.01s)
+=== RUN   TestMakeTargetsMatchTheirOwnership
+--- PASS: TestMakeTargetsMatchTheirOwnership (0.00s)
+=== RUN   TestExactModuleEdges
+--- PASS: TestExactModuleEdges (0.09s)
+=== RUN   TestCapabilityEvaluationHasNoHostEffect
+--- PASS: TestCapabilityEvaluationHasNoHostEffect (0.09s)
+=== RUN   TestDomainModulesDoNotExportWireFraming
+--- PASS: TestDomainModulesDoNotExportWireFraming (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3	2.096s
