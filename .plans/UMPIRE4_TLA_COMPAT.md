@@ -110,10 +110,10 @@ language-level temporal syntax does not establish support in every simulator or 
 
 ### Learn from the repository's Quint prototype without inheriting its shortcuts
 
-The [Quint framework](../model0/quint/umpire.qnt) and feature Models are useful local experiments.
+The [Quint framework](https://github.com/stephanos/temporal/blob/0b31bab957174df1b10ba46794fd72b9672e8d32/model0/quint/umpire.qnt) and feature Models are useful local experiments.
 They already encode pure step functions, explicit `last` results, triggered claims, and model-checker
-entrypoints. The current [Nexus](../model0/quint/nexus_caller.qnt) and
-[activity](../model0/quint/standalone_activity.qnt) `fire` actions select a result with
+entrypoints. The current [Nexus](https://github.com/stephanos/temporal/blob/0b31bab957174df1b10ba46794fd72b9672e8d32/model0/quint/nexus_caller.qnt) and
+[activity](https://github.com/stephanos/temporal/blob/0b31bab957174df1b10ba46794fd72b9672e8d32/model0/quint/standalone_activity.qnt) `fire` actions select a result with
 `oneOf(rows.toSet())` and toggle an `occurrence` bit on each real Step. Learn from these existing
 solutions for nondeterminism and repeated-event identity rather than reinventing them.
 
@@ -332,7 +332,7 @@ Use these anchors to understand the contract before designing an encoding:
 | [Go refinement](../tools/umpire/model/internal/checker/refine.go) and [composition](../tools/umpire/model/internal/checker/compose.go) | Visible-result projection, carried steps, stutters, member interleaving, and synchronized results. |
 | [Go progress](../tools/umpire/model/internal/checker/progress.go) and [replay](../tools/umpire/model/internal/checker/replay.go) | Separate deadlock, fair-cycle and deadline findings, work accounting, and Query-aware witness validation. |
 | [Activity and Nexus specimens](../model/specimens/README.md) | Concrete Temporal questions, proposed declarations, trace oracles, and required observations. |
-| [Existing Quint model](../model0/quint/umpire.qnt) | A comparison prototype; it is not evidence of an IR exporter or complete cross-backend conformance. |
+| [Existing Quint model](https://github.com/stephanos/temporal/blob/0b31bab957174df1b10ba46794fd72b9672e8d32/model0/quint/umpire.qnt) | A comparison prototype; it is not evidence of an IR exporter or complete cross-backend conformance. |
 
 These files are being developed together. In particular, the IR semantics' historical “What the reader
 implements” section and specimen support notes can lag working-tree code. Current Go code already

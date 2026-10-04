@@ -68,8 +68,8 @@ func modelImportProblem(file string, external bool, imported string) string {
 		return ""
 	}
 	name := strings.TrimPrefix(imported, module)
-	if strings.HasPrefix(name, "model0/") || strings.HasPrefix(name, "tools/umpire0/") || strings.HasPrefix(name, "model/") {
-		return "archive or retired model import"
+	if strings.HasPrefix(name, "model/") {
+		return "retired model import"
 	}
 	if strings.HasPrefix(file, "tools/umpire/") && (strings.HasPrefix(name, "tests/") || strings.HasPrefix(name, "tools/canary")) {
 		return "tooling imports a consumer"
@@ -152,9 +152,6 @@ func modelImportProblem(file string, external bool, imported string) string {
 func TestLiveModelDependencyGraph(t *testing.T) {
 	root, err := golden.Root()
 	require.NoError(t, err)
-	for _, archive := range []string{"model0", "tools/umpire0"} {
-		require.FileExists(t, filepath.Join(root, archive, "go.mod"))
-	}
 	require.NoDirExists(t, filepath.Join(root, "model", "scalav2"))
 	scanned := 0
 	require.NoError(t, liveGoFiles(root, func(rel, pkg string, imports []string) {
@@ -168,8 +165,8 @@ func TestLiveModelDependencyGraph(t *testing.T) {
 }
 
 // liveGoFiles visits every Go file the main module builds, by its path from root, with the package
-// it declares and what it imports. A directory with a go.mod of its own is another module, which is
-// how the archives leave the build.
+// it declares and what it imports. A directory with a go.mod of its own is another module, which
+// leaves the build.
 func liveGoFiles(root string, visit func(rel, pkg string, imports []string)) error {
 	return filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
@@ -358,11 +355,6 @@ func TestModelDependencyGraphRejectsCrossedOwners(t *testing.T) {
 		{file: "tools/umpire/internal/golden/golden.go", dependency: module + "common/testing/testpilot"},
 		{file: "tools/umpire/internal/golden/golden.go", dependency: module + "common/log"},
 		{file: "tools/umpire/cmd/x/main_test.go", dependency: module + "tests/testcore/testpilot"},
-		{file: "tools/umpire/model/load.go", dependency: module + "model0/go/umpire"},
-		{file: "tools/umpire/model/load.go", dependency: module + "tools/umpire0/model"},
-		{file: "tests/testcore/testpilot/case.go", dependency: module + "tools/umpire0/recordedrun"},
-		{file: "tests/testpilot_case_test.go", dependency: module + "model0/go/umpire"},
-		{file: "tools/canary/policy/policy.go", dependency: module + "tools/umpire0/evaluation"},
 		{file: "service/history/handler.go", dependency: module + "model/go/umpire"},
 	} {
 		t.Run(test.file+"->"+test.dependency, func(t *testing.T) {

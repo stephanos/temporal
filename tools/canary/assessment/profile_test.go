@@ -8,7 +8,7 @@ import (
 	"go.temporal.io/server/tools/canary/policy"
 )
 
-// productionCanaryIdentity is the identity Temporal/Evaluation/CanaryTests.lean pins.
+// productionCanaryIdentity is the identity the retired Lean canary tests pinned.
 const productionCanaryIdentity = "sha256:3da213bcca87cf29ab7b1e9bcb264aa5f10f850008b6a94949200e484c1944a5"
 
 func TestTheCanaryProfileIsLeansAndOnlyTheCanarys(t *testing.T) {

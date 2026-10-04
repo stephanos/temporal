@@ -1,17 +1,16 @@
 // Package producer lowers one checked Go Model Query into a Testpilot Case through a named
-// realization, the Go counterpart of model0/lean/Umpire/Case/Producer.lean. One checked Model, one
-// selected witness and one realization become one Case: the Program is the realization's
-// scaffolding with the path's actions placed where the realization binds them, and the Contract is
-// the correlated capability the Property's clauses, placed by the Scenario, lower to.
+// realization. One checked Model, one selected witness and one realization become one Case: the
+// Program is the realization's scaffolding with the path's actions placed where the realization
+// binds them, and the Contract is the correlated capability the Property's clauses, placed by the
+// Scenario, lower to.
 //
-// Orders, identities and spellings follow the Lean producer exactly, because the Case bytes are
-// compared with the checked-in fixtures Lean renders.
+// Orders, identities and spellings are fixed, because the Case bytes are compared with the
+// checked-in fixtures.
 //
-// A realization may declare more of its evidence than the Lean producer reads: the fields a kind
-// keeps, a kind every Case carries because its source is exhaustive, the Run's own record and a read
-// of one message as sources, and the steps of a path a kind confirms, which is how a class a path
-// takes more than once is confirmed step by step. None of that has a Lean counterpart. A realization
-// that declares none of it produces the bytes it did.
+// A realization may also declare the fields a kind keeps, a kind every Case carries because its
+// source is exhaustive, the Run's own record and a read of one message as sources, and the steps of a
+// path a kind confirms, which is how a class a path takes more than once is confirmed step by step. A
+// realization that declares none of it produces the bytes it did before these declarations existed.
 package producer
 
 import (
@@ -39,7 +38,7 @@ type Identity struct {
 	CaseID, Fixture, ProgramID, ContractID, RunScope string
 }
 
-// IdentityFor is the identity the Lean `case` command gives a set's Query: the Case ID
+// IdentityFor is the identity of a set's Query: the Case ID
 // `<root>.<set>.<query>`, and the fixture `<set>-<query>` every other identity derives from.
 func IdentityFor(root, set, query string) Identity {
 	id := root + "." + set + "." + query

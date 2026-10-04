@@ -174,7 +174,7 @@ func TestSourceProblemRejectsPositionsOutsideModel(t *testing.T) {
 	require.Empty(t, sourceProblem(repoRoot, &umpirespb.Position{File: inside, Line: 1}))
 	for name, p := range map[string]*umpirespb.Position{
 		"legacy":       {File: legacyRoot + "/temporal/nexuscaller/Model.scala", Line: 1},
-		"escaping":     {File: "model/../model0/scala/temporal/nexuscaller/Model.scala", Line: 1},
+		"escaping":     {File: "model/../MILESTONES.md", Line: 1},
 		"absolute":     {File: "/" + inside, Line: 1},
 		"missing":      {File: "model/temporal/nexuscaller/Missing.scala", Line: 1},
 		"past the end": {File: inside, Line: 1 << 20},

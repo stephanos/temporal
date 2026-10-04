@@ -382,6 +382,9 @@ receive no new JVM job. Default unit tests neither run Scala nor regenerate fixt
 
 ## Archive and intermediate-state rules
 
+These rules record how fn-115 created the `model0/` and `tools/umpire0/` archives. fn-124 deleted
+both on 2026-10-04; git history keeps them.
+
 1. Check the manifest's original hashes and index before any extraction. Task 2 captures the golden
    while the current paths and original oracles still exist. Task 3 transfers each oracle claim
    before removing its import; original model/go source remains untouched for the archive.

@@ -1,6 +1,6 @@
 package model
 
-// What the close and reset designs share with model0/go/nexuscaller, the Go baseline, and what they do
+// What the close and reset designs share with the frozen Go nexus caller baseline, and what they do
 // not. The baseline models one run and neither a close nor a reset, so the one behavior both have is
 // an open caller accepting an asynchronous completion: the baseline's `complete` rows of a started
 // operation. That is compared here, row by row and Query by Query. Everything else the designs claim
