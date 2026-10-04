@@ -154,65 +154,38 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
 
 ## Model routing
 
-<!-- Scaffolded by /flow-next:setup as an EXAMPLE to edit. The active routing lines
-     below record explicit user preferences rather than detected facts. flow-next
-     does not know which models your account serves and never writes one here. -->
+Use the section matching the agent running this session: Claude Code uses the
+Claude models; Codex uses the Codex models. Select that section before resolving
+a tier, and name the model and effort explicitly when dispatching. A bridged
+child uses the section matching its own harness. Unset tiers use the session model.
 
-<!-- Grammar: <tier>: <model> or <tier>: <model> at <effort>
-     Name the model ids YOUR harness and account actually serve - ask the
-     harness for its list, then invoke one; ids change and vary per account. -->
-
-<!-- reviewer: <model> - anything grading work someone else
-     produced. Prefer a different family than the writer: a same-family review
-     is not an independent verdict. Advice, not enforcement. -->
-
-<!-- Reviews are cross-family: Claude implements in-session and Codex reviews
-     through the `codex` review backend (`review.backend` in .flow/config.json),
-     so the verdict is independent of the writer. Restored 2026-09-27 after the
-     Codex budget returned; between 2026-09-09 and 2026-09-27 reviews ran on the
-     same-family `claude` backend, whose receipts say `mode: "claude"`.
-     Since 2026-10-02 all tiers are Claude models at the owner's request, so
-     reviews are same-family again (`review.backend` is `claude`); the reviewer
-     runs in a fresh context. Since 2026-10-03 every tier uses a Claude Opus
-     model at the owner's request (`review.backend` is `claude:claude-opus-5-5`);
-     reviews are same-family and run in a fresh context. Since 2026-10-03 the
-     reviewer and thinking scout use Claude Fable, so verdicts and design
-     decisions come from a different model than the Opus implementer
-     (`review.backend` is `claude:claude-opus-5-5:high`). Name the model
-     explicitly when dispatching. -->
+### Claude Code
 
 reviewer: claude-opus-5-5 at high
 
-<!-- implementer: <model> at <effort> - work handed to another harness (plan
-     here, implement cheaper or faster there). Absent = the session model
-     implements. -->
-
-<!-- Pinned rather than left unset, so the pin holds even if the session model is
-     switched down. -->
-
 implementer: claude-opus-5-5 at high
-
-<!-- fast scout: <model> - mechanical inventory scanning, where
-     the cheapest tier is the correct one. -->
 
 fast scout: claude-opus-5-5 at low
 
-<!-- thinking scout: <model> - analysis that degrades badly on a
-     fast tier. -->
-
-<!-- Spec writing, task breakdown (/flow-next:plan) and mid-flight design
-     decisions run here: they are low-volume, and a gap they miss surfaces
-     later as rework in implementation. Reviews stay on the cross-family
-     reviewer above, never on this tier. -->
-
 thinking scout: claude-opus-5-5 at high
 
-<!-- Unset is the default and the doctrine: planning, capture, interview,
-     requirement analysis, every verdict, and the worker run on the session
-     model. Effort strings pass through to the host untranslated. -->
+### Codex
 
-<!-- Resolution at each dispatch site: an explicit instruction in the moment,
-     then this block, then the agent definition's own default, then the session
-     model. A model this harness cannot reach falls back to the session model
-     with one note - routing never fails closed, and nothing here is validated. -->
+reviewer: gpt-6-sol at high
+
+implementer: gpt-6-sol at high
+
+fast scout: gpt-6-luna at low
+
+thinking scout: gpt-6-sol at high
+
+Demanding tasks include ambiguous work or changes with a large blast radius.
+Explicit invocation instructions take precedence over the matching section,
+then the agent definition's default, then the session model. If a model is
+unavailable, use the session model and report the fallback once.
+
+Run reviews in a fresh context. Resolve CLI review backends separately from
+these host-agent tiers: pass an explicit backend/model override for the selected
+reviewer when the configured `review.backend` names a different model. Report
+whether the reviewer and writer are from the same family.
 <!-- flow-next:model-routing:end -->
