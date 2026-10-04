@@ -188,14 +188,11 @@ func TestARedeliveryIsUnnamed(t *testing.T) {
 	require.Positive(t, redelivered)
 }
 
-// TestAlternativesAreNoClassesOfTheirOwn is the static side of a Query's combination total: the work
-// counted before a machine is listed is its states times its classes, and a named choice's
-// alternatives are results of one class. With one alternative of the committed admission instead of
-// two, the state catalog, the classes, the counted evaluations and the rows are the same; only the
-// results of the rows the second alternative was in are fewer.
-//
-// fn-112.11 adds Query.total, the author's static combination total; when it merges, this is where
-// the assertion that the alternatives do not enter it belongs.
+// TestAlternativesAreNoClassesOfTheirOwn: a named choice's alternatives are results of one class, so
+// they are no factor of a Query's combination total (model/SEMANTICS.md, Query totals). With one
+// alternative of the committed admission instead of two, every Query's total and its factors, the
+// state catalog, the classes, the counted evaluations and the rows are the same; only the results of
+// the rows the second alternative was in are fewer.
 func TestAlternativesAreNoClassesOfTheirOwn(t *testing.T) {
 	_, two := namedAdmission(t)
 	one := proto.CloneOf(two)
@@ -242,4 +239,18 @@ func TestAlternativesAreNoClassesOfTheirOwn(t *testing.T) {
 		}
 	}
 	require.Positive(t, fewer)
+	require.NotEmpty(t, two.GetQueries())
+	for i, q := range two.GetQueries() {
+		named, err := QueryTotal(two, q)
+		require.NoError(t, err, q.GetName())
+		single, err := QueryTotal(one, one.GetQueries()[i])
+		require.NoError(t, err, q.GetName())
+		require.Equal(t, single, named, q.GetName())
+		n, ok := named.N()
+		require.True(t, ok, q.GetName())
+		require.Positive(t, n, q.GetName())
+		require.Equal(t, q.GetTotal().GetValue(), n, "%s declares %d, counted %s", q.GetName(), q.GetTotal().GetValue(), named)
+	}
+	require.NoError(t, Validate(two))
+	require.NoError(t, Validate(one))
 }

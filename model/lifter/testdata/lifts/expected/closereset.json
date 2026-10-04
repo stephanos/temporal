@@ -5226,7 +5226,7 @@
     "name": "ackByOriginal.ackedThenReset",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 307
+      "line": 311
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5242,12 +5242,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "8064"
   }, {
     "name": "ackByOriginal.any.ackOnlyWhenKept",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 309
+      "line": 313
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5263,12 +5264,13 @@
       "steps": 6,
       "actions": 6,
       "search": 4194304
-    }
+    },
+    "total": "145152"
   }, {
     "name": "ackByOriginal.any.outcomePreserved",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 308
+      "line": 312
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5284,12 +5286,13 @@
       "steps": 6,
       "actions": 6,
       "search": 4194304
-    }
+    },
+    "total": "145152"
   }, {
     "name": "ackByOriginal.canceledAcrossReset",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 306
+      "line": 308
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5305,7 +5308,8 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "10752"
   }, {
     "name": "ackByOriginal.closedThenFinished",
     "position": {
@@ -5326,12 +5330,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "10752"
   }, {
     "name": "ackByOriginal.resetThenDelivered.ackOnlyWhenKept",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 300
+      "line": 302
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5347,12 +5352,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "8064"
   }, {
     "name": "ackByOriginal.resetThenDelivered.outcomePreserved",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 303
+      "line": 305
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5368,12 +5374,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "8064"
   }, {
     "name": "rejectAfterClose.ackedThenReset",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 307
+      "line": 311
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5389,12 +5396,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "8064"
   }, {
     "name": "rejectAfterClose.any.ackOnlyWhenKept",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 309
+      "line": 313
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5410,12 +5418,13 @@
       "steps": 6,
       "actions": 6,
       "search": 4194304
-    }
+    },
+    "total": "145152"
   }, {
     "name": "rejectAfterClose.any.outcomePreserved",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 308
+      "line": 312
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5431,12 +5440,13 @@
       "steps": 6,
       "actions": 6,
       "search": 4194304
-    }
+    },
+    "total": "145152"
   }, {
     "name": "rejectAfterClose.canceledAcrossReset",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 306
+      "line": 308
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5452,7 +5462,8 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "10752"
   }, {
     "name": "rejectAfterClose.closedThenFinished",
     "position": {
@@ -5473,12 +5484,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "10752"
   }, {
     "name": "rejectAfterClose.resetThenDelivered.ackOnlyWhenKept",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 300
+      "line": 302
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5494,12 +5506,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "8064"
   }, {
     "name": "rejectAfterClose.resetThenDelivered.outcomePreserved",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 303
+      "line": 305
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5515,12 +5528,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "8064"
   }, {
     "name": "retainAndRoute.ackedThenReset",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 307
+      "line": 311
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5536,12 +5550,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "8064"
   }, {
     "name": "retainAndRoute.any.ackOnlyWhenKept",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 309
+      "line": 313
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5557,12 +5572,13 @@
       "steps": 6,
       "actions": 6,
       "search": 4194304
-    }
+    },
+    "total": "145152"
   }, {
     "name": "retainAndRoute.any.outcomePreserved",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 308
+      "line": 312
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5578,12 +5594,13 @@
       "steps": 6,
       "actions": 6,
       "search": 4194304
-    }
+    },
+    "total": "145152"
   }, {
     "name": "retainAndRoute.canceledAcrossReset",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 306
+      "line": 308
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5599,7 +5616,8 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "10752"
   }, {
     "name": "retainAndRoute.closedThenFinished",
     "position": {
@@ -5620,12 +5638,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "10752"
   }, {
     "name": "retainAndRoute.resetThenDelivered.ackOnlyWhenKept",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 300
+      "line": 302
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5641,12 +5660,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "8064"
   }, {
     "name": "retainAndRoute.resetThenDelivered.outcomePreserved",
     "position": {
       "file": "model/lifter/testdata/lifts/CloseReset.scala",
-      "line": 303
+      "line": 305
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -5662,6 +5682,7 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "8064"
   } ]
 }

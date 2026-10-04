@@ -110,13 +110,24 @@ final class Query private[umpire] (
     val scenario: ScenarioDecl,
     val limits: Limits,
     val expectedRun: Option[realize.RunExpectation] = None,
-    val exploration: Option[realize.Exploration] = None
+    val exploration: Option[realize.Exploration] = None,
+    /** The static combination count the author asserts, which `total(n)` sets. */
+    val total: Option[Long] = None
 ):
   def expect(expected: realize.RunExpectation): Query =
-    Query(name, form, property, scenario, limits, Some(expected), exploration)
+    Query(name, form, property, scenario, limits, Some(expected), exploration, total)
 
   def explore(space: realize.Exploration): Query =
-    Query(name, form, property, scenario, limits, expectedRun, Some(space))
+    Query(name, form, property, scenario, limits, expectedRun, Some(space), total)
+
+  /**
+   * Asserts the Query's static combination count, which the lifter requires on every Query and Go
+   * recomputes: the Scenario machine's states times the scheduled slots within the step limit when
+   * the Scenario is pinned, or states times action classes times steps when it is free (see
+   * model/SEMANTICS.md, "Query totals"). Written `... limits four total 48` or `(...).total(48)`.
+   */
+  infix def total(n: Long): Query =
+    Query(name, form, property, scenario, limits, expectedRun, exploration, Some(n))
 
   override def toString: String = name
 

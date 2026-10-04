@@ -260,6 +260,9 @@
         "new": "temporal.nexuscaller.Protocol$.workerStopStep"
       }
     ],
+    "inert_fields": [
+      "temporal.server.api.umpire.v1.Query.total"
+    ],
     "projected_case_ids": [
       "exploration"
     ],

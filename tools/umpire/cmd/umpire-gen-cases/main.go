@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"maps"
@@ -10,7 +11,10 @@ import (
 	"strings"
 
 	_ "go.temporal.io/api/workflowservice/v1"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/lower"
+	umpiremodel "go.temporal.io/server/tools/umpire/model"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 // kind is one managed tree of lowered Cases: where it is published, the target that publishes it,
@@ -53,6 +57,31 @@ func sync(root string, complete map[string][]byte, selected kind, update bool) e
 	return lower.SyncCases(filepath.Join(root, filepath.FromSlash(selected.directory)), files, update)
 }
 
+// requireTotals refuses each Query of the current IR under irDirectory that declares no static
+// combination total. Lowering admits IR without totals, as lifted before the assertion existed;
+// Cases are generated only from a current Model, whose every Query declares its total.
+func requireTotals(irDirectory string) error {
+	paths, err := filepath.Glob(filepath.Join(irDirectory, "*.json"))
+	if err != nil {
+		return err
+	}
+	var errs []error
+	for _, path := range paths {
+		encoded, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		m := &umpirespb.Model{}
+		if err := protojson.Unmarshal(encoded, m); err != nil {
+			return fmt.Errorf("%s: %w", path, err)
+		}
+		if err := umpiremodel.RequireTotals(m); err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", path, err))
+		}
+	}
+	return errors.Join(errs...)
+}
+
 func main() {
 	update := flag.Bool("update", false, "rewrite generated Cases and manifest")
 	name := flag.String("kind", "model", "the managed tree: "+strings.Join(slices.Sorted(maps.Keys(kinds)), ", "))
@@ -64,6 +93,10 @@ func main() {
 	}
 	complete, err := lower.GenerateCases("model/ir")
 	if err == nil {
+		if err = requireTotals("model/ir"); err != nil {
+			fmt.Fprintf(os.Stderr, "%v; every Query declares its total\n", err)
+			os.Exit(1)
+		}
 		err = sync(".", complete, selected, *update)
 	}
 	if err != nil {

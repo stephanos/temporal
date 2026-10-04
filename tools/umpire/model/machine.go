@@ -380,6 +380,15 @@ func (in *Interpreter) preflight(decl *umpirespb.Machine, actions map[string]*um
 // classCount counts a machine's classes of every bound action together, refusing them past the
 // Members ceiling, so no caller lists them first.
 func (in *Interpreter) classCount(decl *umpirespb.Machine, actions map[string]*umpirespb.Action) (count, error) {
+	classes, err := in.boundClasses(decl, actions)
+	if err != nil {
+		return count{}, err
+	}
+	return classes, in.within("classes", in.ceilings.Members, classes)
+}
+
+// boundClasses counts a machine's classes of every bound action together, past any ceiling.
+func (in *Interpreter) boundClasses(decl *umpirespb.Machine, actions map[string]*umpirespb.Action) (count, error) {
 	var classes count
 	for _, b := range decl.GetSteps() {
 		a, ok := actions[b.GetAction()]
@@ -392,7 +401,7 @@ func (in *Interpreter) classCount(decl *umpirespb.Machine, actions map[string]*u
 		}
 		classes = classes.plus(n)
 	}
-	return classes, in.within("classes", in.ceilings.Members, classes)
+	return classes, nil
 }
 
 func inputFields(a *umpirespb.Action) []*umpirespb.Field {

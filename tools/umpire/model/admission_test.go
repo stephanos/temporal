@@ -705,7 +705,7 @@ func TestAdmissionRejectsMisaddressedSelectors(t *testing.T) {
 func TestAdmissionAdmitsWellAddressedSelectors(t *testing.T) {
 	m := admFixture(t, "declarations")
 	admScenario(m, "detailedPair", "bothPut").Keys = []string{"putBoth", "back_flush", "back_crash"}
-	require.NoError(t, Validate(m))
+	require.NoError(t, Validate(recounted(t, m)))
 	m = admFixture(t, "channels")
 	admTallyScenario(m, 2)
 	require.NoError(t, Validate(m))

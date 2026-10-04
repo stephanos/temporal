@@ -294,6 +294,23 @@ A Property's and a Scenario's Definition ID is formed from the family and the na
 machines of one family that each declare a claim of one name share it. A result names a claim by its
 family, the machine or composition it is declared on, and its name, which keeps the two apart.
 
+## Query totals
+
+A Query's `total` is its author's count of its static combinations, which the reader recomputes and
+holds the author to. For a pinned Scenario it is the Scenario machine's whole state catalog times the
+scheduled slots within the step limit, `min(steps, scheduled classes or keys)`. For a free Scenario it
+is the state catalog times the machine's finite action-class catalog, one class for every input
+assignment of every bound action (a composition's: each member's classes no sync takes plus every
+pair of classes each sync takes), times `steps`. A Query read `through` a refinement counts its
+Scenario machine's states and classes, not the refined machine's. The count is taken before anything
+is reached: unreachable states, disabled rows, repeated states and an early answer all still count,
+and a named choice's alternatives are results of one class, not classes of their own. It is a review
+and capacity figure, not a prediction of the paths the search visits or the steps a Run executes. A
+step limit of 0, or an empty pinned schedule, counts 0. `total` is metadata: no table, fingerprint,
+Definition ID, answer, lowering, Case or exploration identity reads it. It is unset only in IR lifted
+before it existed; every Query a current Model declares states one, and an exploration candidate
+whose schedule differs from its source Scenario's is counted again.
+
 ## Progress
 
 A progress claim of a machine says that from every reachable state `from` accepts, a state `to`
@@ -505,6 +522,8 @@ A reader rejects, before any check and at the position the IR gives, a Model tha
   finite catalog, a state type that holds one channel in two fields, a delivery or loss of a channel the machine's state does not hold, a lossy channel whose
   holder binds no loss, or a loss of a reliable channel;
 - declares Limits below 0, or a progress claim within fewer than one step;
+- declares a Query total below 0, one that is not the Query's static combination count, or one for a
+  Query whose count is more than an int64 holds;
 - gives an example to an action that takes other than one input, or an example that is no member of
   that input's type;
 - names the facts or the outcomes a refined machine sees on a machine that refines none, or a member replacement that

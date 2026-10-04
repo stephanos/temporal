@@ -1628,7 +1628,7 @@
     "name": "ackByOriginalWithDeadline.property.expiresWhileOwed",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 311
+      "line": 321
     },
     "params": [ {
       "name": "after",
@@ -1639,33 +1639,33 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-        "line": 312
+        "line": 322
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 312
+            "line": 322
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 312
+                "line": 322
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 312
+                    "line": 322
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                        "line": 312
+                        "line": 322
                       },
                       "var": "after"
                     },
@@ -1678,7 +1678,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 312
+                "line": 322
               },
               "literal": {
                 "enum": {
@@ -1692,26 +1692,26 @@
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 312
+            "line": 322
           },
           "call": {
             "function": "temporal.nexuscaller.closepolicy.Model$package$.carries",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 312
+                "line": 322
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 312
+                    "line": 322
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                        "line": 312
+                        "line": 322
                       },
                       "var": "after"
                     },
@@ -1723,7 +1723,7 @@
             }, {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 312
+                "line": 322
               },
               "literal": {
                 "enum": {
@@ -1740,7 +1740,7 @@
     "name": "ackByOriginalWithDeadline.property.expiresWithNothingOwed",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 309
+      "line": 319
     },
     "params": [ {
       "name": "after",
@@ -1751,33 +1751,33 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-        "line": 309
+        "line": 319
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 309
+            "line": 319
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 309
+                "line": 319
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 309
+                    "line": 319
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                        "line": 309
+                        "line": 319
                       },
                       "var": "after"
                     },
@@ -1790,7 +1790,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 309
+                "line": 319
               },
               "literal": {
                 "enum": {
@@ -1804,20 +1804,20 @@
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 309
+            "line": 319
           },
           "call": {
             "function": "temporal.nexuscaller.closepolicy.Claims$package$.nothingOwed",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 309
+                "line": 319
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 309
+                    "line": 319
                   },
                   "var": "after"
                 },
@@ -1832,7 +1832,7 @@
     "name": "ackByOriginalWithDeadline.property.lateCompletionIsDropped",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 316
+      "line": 326
     },
     "params": [ {
       "name": "after",
@@ -1843,27 +1843,27 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-        "line": 317
+        "line": 327
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 317
+            "line": 327
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 317
+                "line": 327
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 317
+                    "line": 327
                   },
                   "var": "after"
                 },
@@ -1873,7 +1873,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 317
+                "line": 327
               },
               "literal": {
                 "enum": {
@@ -1887,14 +1887,14 @@
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 317
+            "line": 327
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 317
+                "line": 327
               },
               "literal": {
                 "enum": {
@@ -1906,13 +1906,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 317
+                "line": 327
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 317
+                    "line": 327
                   },
                   "var": "after"
                 },
@@ -4439,7 +4439,7 @@
     "name": "rejectAfterCloseWithDeadline.property.expiresWhileOwed",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 311
+      "line": 321
     },
     "params": [ {
       "name": "after",
@@ -4450,33 +4450,33 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-        "line": 312
+        "line": 322
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 312
+            "line": 322
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 312
+                "line": 322
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 312
+                    "line": 322
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                        "line": 312
+                        "line": 322
                       },
                       "var": "after"
                     },
@@ -4489,7 +4489,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 312
+                "line": 322
               },
               "literal": {
                 "enum": {
@@ -4503,26 +4503,26 @@
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 312
+            "line": 322
           },
           "call": {
             "function": "temporal.nexuscaller.closepolicy.Model$package$.carries",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 312
+                "line": 322
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 312
+                    "line": 322
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                        "line": 312
+                        "line": 322
                       },
                       "var": "after"
                     },
@@ -4534,7 +4534,7 @@
             }, {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 312
+                "line": 322
               },
               "literal": {
                 "enum": {
@@ -4551,7 +4551,7 @@
     "name": "rejectAfterCloseWithDeadline.property.expiresWithNothingOwed",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 309
+      "line": 319
     },
     "params": [ {
       "name": "after",
@@ -4562,33 +4562,33 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-        "line": 309
+        "line": 319
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 309
+            "line": 319
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 309
+                "line": 319
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 309
+                    "line": 319
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                        "line": 309
+                        "line": 319
                       },
                       "var": "after"
                     },
@@ -4601,7 +4601,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 309
+                "line": 319
               },
               "literal": {
                 "enum": {
@@ -4615,20 +4615,20 @@
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 309
+            "line": 319
           },
           "call": {
             "function": "temporal.nexuscaller.closepolicy.Claims$package$.nothingOwed",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 309
+                "line": 319
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 309
+                    "line": 319
                   },
                   "var": "after"
                 },
@@ -4643,7 +4643,7 @@
     "name": "rejectAfterCloseWithDeadline.property.lateCompletionIsDropped",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 316
+      "line": 326
     },
     "params": [ {
       "name": "after",
@@ -4654,27 +4654,27 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-        "line": 317
+        "line": 327
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 317
+            "line": 327
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 317
+                "line": 327
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 317
+                    "line": 327
                   },
                   "var": "after"
                 },
@@ -4684,7 +4684,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 317
+                "line": 327
               },
               "literal": {
                 "enum": {
@@ -4698,14 +4698,14 @@
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 317
+            "line": 327
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 317
+                "line": 327
               },
               "literal": {
                 "enum": {
@@ -4717,13 +4717,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 317
+                "line": 327
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 317
+                    "line": 327
                   },
                   "var": "after"
                 },
@@ -6186,7 +6186,7 @@
     "name": "retainAndRouteWithDeadline.property.expiresWhileOwed",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 311
+      "line": 321
     },
     "params": [ {
       "name": "after",
@@ -6197,33 +6197,33 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-        "line": 312
+        "line": 322
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 312
+            "line": 322
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 312
+                "line": 322
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 312
+                    "line": 322
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                        "line": 312
+                        "line": 322
                       },
                       "var": "after"
                     },
@@ -6236,7 +6236,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 312
+                "line": 322
               },
               "literal": {
                 "enum": {
@@ -6250,26 +6250,26 @@
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 312
+            "line": 322
           },
           "call": {
             "function": "temporal.nexuscaller.closepolicy.Model$package$.carries",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 312
+                "line": 322
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 312
+                    "line": 322
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                        "line": 312
+                        "line": 322
                       },
                       "var": "after"
                     },
@@ -6281,7 +6281,7 @@
             }, {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 312
+                "line": 322
               },
               "literal": {
                 "enum": {
@@ -6298,7 +6298,7 @@
     "name": "retainAndRouteWithDeadline.property.expiresWithNothingOwed",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 309
+      "line": 319
     },
     "params": [ {
       "name": "after",
@@ -6309,33 +6309,33 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-        "line": 309
+        "line": 319
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 309
+            "line": 319
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 309
+                "line": 319
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 309
+                    "line": 319
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                        "line": 309
+                        "line": 319
                       },
                       "var": "after"
                     },
@@ -6348,7 +6348,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 309
+                "line": 319
               },
               "literal": {
                 "enum": {
@@ -6362,20 +6362,20 @@
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 309
+            "line": 319
           },
           "call": {
             "function": "temporal.nexuscaller.closepolicy.Claims$package$.nothingOwed",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 309
+                "line": 319
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 309
+                    "line": 319
                   },
                   "var": "after"
                 },
@@ -6390,7 +6390,7 @@
     "name": "retainAndRouteWithDeadline.property.lateCompletionIsDropped",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 316
+      "line": 326
     },
     "params": [ {
       "name": "after",
@@ -6401,27 +6401,27 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-        "line": 317
+        "line": 327
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 317
+            "line": 327
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 317
+                "line": 327
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 317
+                    "line": 327
                   },
                   "var": "after"
                 },
@@ -6431,7 +6431,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 317
+                "line": 327
               },
               "literal": {
                 "enum": {
@@ -6445,14 +6445,14 @@
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 317
+            "line": 327
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 317
+                "line": 327
               },
               "literal": {
                 "enum": {
@@ -6464,13 +6464,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 317
+                "line": 327
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                    "line": 317
+                    "line": 327
                   },
                   "var": "after"
                 },
@@ -6524,7 +6524,7 @@
     "name": "temporal.nexuscaller.closepolicy.Claims$package$.awaitingOwner",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 436
+      "line": 447
     },
     "params": [ {
       "name": "s",
@@ -6535,19 +6535,19 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-        "line": 436
+        "line": 447
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 436
+            "line": 447
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 436
+                "line": 447
               },
               "var": "s"
             },
@@ -6572,34 +6572,34 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-              "line": 438
+              "line": 449
             },
             "binary": {
               "op": "OP_AND",
               "left": {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                  "line": 438
+                  "line": 449
                 },
                 "binary": {
                   "op": "OP_AND",
                   "left": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                      "line": 438
+                      "line": 449
                     },
                     "binary": {
                       "op": "OP_EQ",
                       "left": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                          "line": 438
+                          "line": 449
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                              "line": 438
+                              "line": 449
                             },
                             "var": "s"
                           },
@@ -6609,7 +6609,7 @@
                       "right": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                          "line": 438
+                          "line": 449
                         },
                         "literal": {
                           "enum": {
@@ -6623,20 +6623,20 @@
                   "right": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                      "line": 438
+                      "line": 449
                     },
                     "binary": {
                       "op": "OP_EQ",
                       "left": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                          "line": 438
+                          "line": 449
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                              "line": 438
+                              "line": 449
                             },
                             "var": "s"
                           },
@@ -6646,7 +6646,7 @@
                       "right": {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                          "line": 438
+                          "line": 449
                         },
                         "construct": {
                           "type": "temporal.nexuscaller.closepolicy.Retained",
@@ -6654,7 +6654,7 @@
                           "args": [ {
                             "position": {
                               "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                              "line": 438
+                              "line": 449
                             },
                             "var": "r"
                           } ]
@@ -6667,27 +6667,27 @@
               "right": {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                  "line": 439
+                  "line": 450
                 },
                 "unary": {
                   "op": "OP_NOT",
                   "operand": {
                     "position": {
                       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                      "line": 439
+                      "line": 450
                     },
                     "call": {
                       "function": "temporal.nexuscaller.closepolicy.Model$package$.ownerKnows",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                          "line": 439
+                          "line": 450
                         },
                         "var": "s"
                       }, {
                         "position": {
                           "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                          "line": 439
+                          "line": 450
                         },
                         "var": "r"
                       } ]
@@ -6704,7 +6704,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-              "line": 440
+              "line": 451
             },
             "literal": {
               "bool": false
@@ -7779,7 +7779,7 @@
     "name": "temporal.nexuscaller.closepolicy.Claims$package$.ownerKnowsOutcome",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 442
+      "line": 453
     },
     "params": [ {
       "name": "s",
@@ -7790,19 +7790,19 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-        "line": 442
+        "line": 453
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-            "line": 442
+            "line": 453
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                "line": 442
+                "line": 453
               },
               "var": "s"
             },
@@ -7827,20 +7827,20 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-              "line": 443
+              "line": 454
             },
             "call": {
               "function": "temporal.nexuscaller.closepolicy.Model$package$.ownerKnows",
               "args": [ {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                  "line": 443
+                  "line": 454
                 },
                 "var": "s"
               }, {
                 "position": {
                   "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-                  "line": 443
+                  "line": 454
                 },
                 "var": "r"
               } ]
@@ -7853,7 +7853,7 @@
           "body": {
             "position": {
               "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-              "line": 444
+              "line": 455
             },
             "literal": {
               "bool": false
@@ -17169,7 +17169,7 @@
     "name": "ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 306
+      "line": 316
     },
     "holds": "temporal.nexuscaller.closepolicy.Model$package$.ackOnlyWhenKept",
     "transition": true
@@ -17178,7 +17178,7 @@
     "name": "expiresWhileOwed",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 310
+      "line": 320
     },
     "whenClass": {
       "action": "temporal.nexuscaller.Model$package$.scheduleToClose"
@@ -17189,7 +17189,7 @@
     "name": "expiresWithNothingOwed",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 308
+      "line": 318
     },
     "whenClass": {
       "action": "temporal.nexuscaller.Model$package$.scheduleToClose"
@@ -17200,7 +17200,7 @@
     "name": "lateCompletionIsDropped",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 314
+      "line": 324
     },
     "whenClass": {
       "action": "temporal.nexuscaller.Model$package$.complete",
@@ -17217,7 +17217,7 @@
     "name": "noUnnecessaryWait",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 307
+      "line": 317
     },
     "holds": "temporal.nexuscaller.closepolicy.Claims$package$.noUnnecessaryWait",
     "transition": true
@@ -17226,7 +17226,7 @@
     "name": "outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 305
+      "line": 315
     },
     "holds": "temporal.nexuscaller.closepolicy.Model$package$.outcomePreserved"
   }, {
@@ -17722,7 +17722,7 @@
     "name": "ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 306
+      "line": 316
     },
     "holds": "temporal.nexuscaller.closepolicy.Model$package$.ackOnlyWhenKept",
     "transition": true
@@ -17731,7 +17731,7 @@
     "name": "expiresWhileOwed",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 310
+      "line": 320
     },
     "whenClass": {
       "action": "temporal.nexuscaller.Model$package$.scheduleToClose"
@@ -17742,7 +17742,7 @@
     "name": "expiresWithNothingOwed",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 308
+      "line": 318
     },
     "whenClass": {
       "action": "temporal.nexuscaller.Model$package$.scheduleToClose"
@@ -17753,7 +17753,7 @@
     "name": "lateCompletionIsDropped",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 314
+      "line": 324
     },
     "whenClass": {
       "action": "temporal.nexuscaller.Model$package$.complete",
@@ -17770,7 +17770,7 @@
     "name": "noUnnecessaryWait",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 307
+      "line": 317
     },
     "holds": "temporal.nexuscaller.closepolicy.Claims$package$.noUnnecessaryWait",
     "transition": true
@@ -17779,7 +17779,7 @@
     "name": "outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 305
+      "line": 315
     },
     "holds": "temporal.nexuscaller.closepolicy.Model$package$.outcomePreserved"
   }, {
@@ -18031,7 +18031,7 @@
     "name": "ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 272
+      "line": 281
     },
     "holds": "temporal.nexuscaller.closepolicy.Model$package$.ackOnlyWhenKept",
     "transition": true
@@ -18040,7 +18040,7 @@
     "name": "outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 271
+      "line": 280
     },
     "holds": "temporal.nexuscaller.closepolicy.Model$package$.outcomePreserved"
   }, {
@@ -18048,7 +18048,7 @@
     "name": "ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 306
+      "line": 316
     },
     "holds": "temporal.nexuscaller.closepolicy.Model$package$.ackOnlyWhenKept",
     "transition": true
@@ -18057,7 +18057,7 @@
     "name": "expiresWhileOwed",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 310
+      "line": 320
     },
     "whenClass": {
       "action": "temporal.nexuscaller.Model$package$.scheduleToClose"
@@ -18068,7 +18068,7 @@
     "name": "expiresWithNothingOwed",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 308
+      "line": 318
     },
     "whenClass": {
       "action": "temporal.nexuscaller.Model$package$.scheduleToClose"
@@ -18079,7 +18079,7 @@
     "name": "lateCompletionIsDropped",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 314
+      "line": 324
     },
     "whenClass": {
       "action": "temporal.nexuscaller.Model$package$.complete",
@@ -18096,7 +18096,7 @@
     "name": "noUnnecessaryWait",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 307
+      "line": 317
     },
     "holds": "temporal.nexuscaller.closepolicy.Claims$package$.noUnnecessaryWait",
     "transition": true
@@ -18105,7 +18105,7 @@
     "name": "outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 305
+      "line": 315
     },
     "holds": "temporal.nexuscaller.closepolicy.Model$package$.outcomePreserved"
   }, {
@@ -19882,7 +19882,7 @@
     "name": "any",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 354
+      "line": 364
     },
     "start": {
       "position": {
@@ -19966,7 +19966,7 @@
     "name": "closedLossThenExpired",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 332
+      "line": 342
     },
     "start": {
       "position": {
@@ -20072,7 +20072,7 @@
     "name": "closedThenFinished",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 319
+      "line": 329
     },
     "start": {
       "position": {
@@ -20176,7 +20176,7 @@
     "name": "expiredThenDelivered",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 350
+      "line": 360
     },
     "start": {
       "position": {
@@ -20278,7 +20278,7 @@
     "name": "reportedThenExpired",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 346
+      "line": 356
     },
     "start": {
       "position": {
@@ -20372,7 +20372,7 @@
     "name": "resetLossThenExpired",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 342
+      "line": 352
     },
     "start": {
       "position": {
@@ -20476,7 +20476,7 @@
     "name": "resetThenDelivered",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 328
+      "line": 338
     },
     "start": {
       "position": {
@@ -23626,7 +23626,7 @@
     "name": "any",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 354
+      "line": 364
     },
     "start": {
       "position": {
@@ -23710,7 +23710,7 @@
     "name": "closedLossThenExpired",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 332
+      "line": 342
     },
     "start": {
       "position": {
@@ -23816,7 +23816,7 @@
     "name": "closedThenFinished",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 319
+      "line": 329
     },
     "start": {
       "position": {
@@ -23920,7 +23920,7 @@
     "name": "expiredThenDelivered",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 350
+      "line": 360
     },
     "start": {
       "position": {
@@ -24022,7 +24022,7 @@
     "name": "reportedThenExpired",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 346
+      "line": 356
     },
     "start": {
       "position": {
@@ -24116,7 +24116,7 @@
     "name": "resetLossThenExpired",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 342
+      "line": 352
     },
     "start": {
       "position": {
@@ -24220,7 +24220,7 @@
     "name": "resetThenDelivered",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 328
+      "line": 338
     },
     "start": {
       "position": {
@@ -25846,7 +25846,7 @@
     "name": "any",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 286
+      "line": 295
     },
     "start": {
       "position": {
@@ -25928,110 +25928,6 @@
   }, {
     "machine": "retainAndRouteBoundedRetry",
     "name": "closedThenFinished",
-    "position": {
-      "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 273
-    },
-    "start": {
-      "position": {
-        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-        "line": 166
-      },
-      "construct": {
-        "type": "temporal.nexuscaller.closepolicy.CloseResetState",
-        "args": [ {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 167
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Caller",
-              "case": "open"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 168
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Intent",
-              "case": "none"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 169
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Handler",
-              "case": "running"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 170
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Completion",
-              "case": "none"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 171
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Retained",
-              "case": "none"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
-            "line": 172
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.nexuscaller.closepolicy.Knowledge",
-              "case": "none"
-            }
-          }
-        } ]
-      }
-    },
-    "actions": [ {
-      "action": "temporal.nexuscaller.closepolicy.Model$package$.callerClose"
-    }, {
-      "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
-      "inputs": [ {
-        "enum": {
-          "type": "temporal.nexuscaller.Resolution",
-          "case": "succeeded"
-        }
-      } ]
-    }, {
-      "action": "temporal.nexuscaller.Model$package$.complete",
-      "inputs": [ {
-        "enum": {
-          "type": "temporal.nexuscaller.Resolution",
-          "case": "succeeded"
-        }
-      } ]
-    }, {
-      "action": "temporal.nexuscaller.closepolicy.Model$package$.reset"
-    } ]
-  }, {
-    "machine": "retainAndRouteBoundedRetry",
-    "name": "resetThenDelivered",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
       "line": 282
@@ -26113,6 +26009,110 @@
       }
     },
     "actions": [ {
+      "action": "temporal.nexuscaller.closepolicy.Model$package$.callerClose"
+    }, {
+      "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
+      "inputs": [ {
+        "enum": {
+          "type": "temporal.nexuscaller.Resolution",
+          "case": "succeeded"
+        }
+      } ]
+    }, {
+      "action": "temporal.nexuscaller.Model$package$.complete",
+      "inputs": [ {
+        "enum": {
+          "type": "temporal.nexuscaller.Resolution",
+          "case": "succeeded"
+        }
+      } ]
+    }, {
+      "action": "temporal.nexuscaller.closepolicy.Model$package$.reset"
+    } ]
+  }, {
+    "machine": "retainAndRouteBoundedRetry",
+    "name": "resetThenDelivered",
+    "position": {
+      "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
+      "line": 291
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+        "line": 166
+      },
+      "construct": {
+        "type": "temporal.nexuscaller.closepolicy.CloseResetState",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 167
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Caller",
+              "case": "open"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 168
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Intent",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 169
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Handler",
+              "case": "running"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 170
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Completion",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 171
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Retained",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/nexuscaller/closepolicy/Model.scala",
+            "line": 172
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.nexuscaller.closepolicy.Knowledge",
+              "case": "none"
+            }
+          }
+        } ]
+      }
+    },
+    "actions": [ {
       "action": "temporal.nexuscaller.closepolicy.Model$package$.handlerFinish",
       "inputs": [ {
         "enum": {
@@ -26136,7 +26136,7 @@
     "name": "any",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 354
+      "line": 364
     },
     "start": {
       "position": {
@@ -26220,7 +26220,7 @@
     "name": "closedLossThenExpired",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 332
+      "line": 342
     },
     "start": {
       "position": {
@@ -26326,7 +26326,7 @@
     "name": "closedThenFinished",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 319
+      "line": 329
     },
     "start": {
       "position": {
@@ -26430,7 +26430,7 @@
     "name": "expiredThenDelivered",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 350
+      "line": 360
     },
     "start": {
       "position": {
@@ -26532,7 +26532,7 @@
     "name": "reportedThenExpired",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 346
+      "line": 356
     },
     "start": {
       "position": {
@@ -26626,7 +26626,7 @@
     "name": "resetLossThenExpired",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 342
+      "line": 352
     },
     "start": {
       "position": {
@@ -26730,7 +26730,7 @@
     "name": "resetThenDelivered",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 328
+      "line": 338
     },
     "start": {
       "position": {
@@ -28356,7 +28356,7 @@
     "name": "ackByOriginal.ackedThenReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 228
+      "line": 230
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28372,12 +28372,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "ackByOriginal.any.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 234
+      "line": 236
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28393,12 +28394,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "ackByOriginal.any.closedHistoryIsFrozen",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 235
+      "line": 237
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28414,12 +28416,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "ackByOriginal.any.handlerEffectIsIrreversible",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 236
+      "line": 238
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28435,12 +28438,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "ackByOriginal.any.knowledgeIsFinal",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 238
+      "line": 242
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28456,12 +28460,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "ackByOriginal.any.knownIsTheHandlersOutcome",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 237
+      "line": 240
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28477,12 +28482,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "ackByOriginal.any.outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 233
+      "line": 235
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28498,12 +28504,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "ackByOriginal.asyncCompletion",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 247
+      "line": 254
     },
     "form": "FORM_FIND",
     "property": {
@@ -28519,12 +28526,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "ackByOriginal.asyncFailure",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 249
+      "line": 256
     },
     "form": "FORM_FIND",
     "property": {
@@ -28540,12 +28548,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "ackByOriginal.canceledAcrossReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 227
+      "line": 228
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28561,12 +28570,13 @@
       "steps": 5,
       "actions": 5,
       "search": 1048576
-    }
+    },
+    "total": "33600"
   }, {
     "name": "ackByOriginal.canceledIsKnown",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 246
+      "line": 252
     },
     "form": "FORM_FIND",
     "property": {
@@ -28582,7 +28592,8 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "ackByOriginal.closedThenFinished",
     "position": {
@@ -28603,12 +28614,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "ackByOriginal.detachedWorkProceeds",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 239
+      "line": 244
     },
     "form": "FORM_FIND",
     "property": {
@@ -28624,12 +28636,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "ackByOriginal.duplicateCompletion",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 229
+      "line": 231
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28645,12 +28658,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "ackByOriginal.effectWithoutKnowledge",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 244
+      "line": 250
     },
     "form": "FORM_FIND",
     "property": {
@@ -28666,12 +28680,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "ackByOriginal.intentWithoutReceipt",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 240
+      "line": 246
     },
     "form": "FORM_FIND",
     "property": {
@@ -28687,12 +28702,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "6720"
   }, {
     "name": "ackByOriginal.lostAfterReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 254
+      "line": 262
     },
     "form": "FORM_FIND",
     "property": {
@@ -28708,12 +28724,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "ackByOriginal.permanentRejectionAfterClose",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 252
+      "line": 260
     },
     "form": "FORM_FIND",
     "property": {
@@ -28729,12 +28746,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "ackByOriginal.receiptWithoutEffect",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 242
+      "line": 248
     },
     "form": "FORM_FIND",
     "property": {
@@ -28750,12 +28768,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "ackByOriginal.resetAfterRetention",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 255
+      "line": 264
     },
     "form": "FORM_FIND",
     "property": {
@@ -28771,12 +28790,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "ackByOriginal.resetBeforeRetention",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 257
+      "line": 266
     },
     "form": "FORM_FIND",
     "property": {
@@ -28792,12 +28812,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "ackByOriginal.resetBetweenCommitAndAcknowledgment",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 231
+      "line": 233
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28813,12 +28834,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "ackByOriginal.resetThenDelivered.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 223
+      "line": 224
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28834,12 +28856,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "ackByOriginal.resetThenDelivered.outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 225
+      "line": 226
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28855,12 +28878,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "ackByOriginal.transientRejectionAfterClose",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 250
+      "line": 258
     },
     "form": "FORM_FIND",
     "property": {
@@ -28876,12 +28900,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "ackByOriginalWithDeadline.any.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 360
+      "line": 371
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28897,12 +28922,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "887040"
   }, {
     "name": "ackByOriginalWithDeadline.any.noUnnecessaryWait",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 361
+      "line": 372
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28918,12 +28944,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "887040"
   }, {
     "name": "ackByOriginalWithDeadline.any.outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 359
+      "line": 370
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28939,12 +28966,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "887040"
   }, {
     "name": "ackByOriginalWithDeadline.closedThenFinished",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 356
+      "line": 366
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -28960,12 +28988,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "ackByOriginalWithDeadline.expiredAfterClosedLoss",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 362
+      "line": 373
     },
     "form": "FORM_FIND",
     "property": {
@@ -28981,12 +29010,13 @@
       "steps": 5,
       "actions": 5,
       "search": 1048576
-    }
+    },
+    "total": "33600"
   }, {
     "name": "ackByOriginalWithDeadline.expiredAfterResetLoss",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 364
+      "line": 375
     },
     "form": "FORM_FIND",
     "property": {
@@ -29002,12 +29032,13 @@
       "steps": 5,
       "actions": 5,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "ackByOriginalWithDeadline.expiredWhileReported",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 366
+      "line": 377
     },
     "form": "FORM_FIND",
     "property": {
@@ -29023,12 +29054,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "ackByOriginalWithDeadline.lateCompletionIsDropped",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 368
+      "line": 379
     },
     "form": "FORM_FIND",
     "property": {
@@ -29044,12 +29076,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "ackByOriginalWithDeadline.resetThenDelivered.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 357
+      "line": 368
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29065,12 +29098,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "forgetsCancelOnReset.ackedThenReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 228
+      "line": 230
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29086,12 +29120,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "forgetsCancelOnReset.any.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 234
+      "line": 236
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29107,12 +29142,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "forgetsCancelOnReset.any.closedHistoryIsFrozen",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 235
+      "line": 237
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29128,12 +29164,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "forgetsCancelOnReset.any.handlerEffectIsIrreversible",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 236
+      "line": 238
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29149,12 +29186,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "forgetsCancelOnReset.any.knowledgeIsFinal",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 238
+      "line": 242
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29170,12 +29208,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "forgetsCancelOnReset.any.knownIsTheHandlersOutcome",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 237
+      "line": 240
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29191,12 +29230,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "forgetsCancelOnReset.any.outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 233
+      "line": 235
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29212,12 +29252,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "forgetsCancelOnReset.asyncCompletion",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 247
+      "line": 254
     },
     "form": "FORM_FIND",
     "property": {
@@ -29233,12 +29274,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "forgetsCancelOnReset.asyncFailure",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 249
+      "line": 256
     },
     "form": "FORM_FIND",
     "property": {
@@ -29254,12 +29296,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "forgetsCancelOnReset.canceledAcrossReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 227
+      "line": 228
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29275,12 +29318,13 @@
       "steps": 5,
       "actions": 5,
       "search": 1048576
-    }
+    },
+    "total": "33600"
   }, {
     "name": "forgetsCancelOnReset.canceledIsKnown",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 246
+      "line": 252
     },
     "form": "FORM_FIND",
     "property": {
@@ -29296,7 +29340,8 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "forgetsCancelOnReset.closedThenFinished",
     "position": {
@@ -29317,12 +29362,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "forgetsCancelOnReset.detachedWorkProceeds",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 239
+      "line": 244
     },
     "form": "FORM_FIND",
     "property": {
@@ -29338,12 +29384,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "forgetsCancelOnReset.duplicateCompletion",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 229
+      "line": 231
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29359,12 +29406,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "forgetsCancelOnReset.effectWithoutKnowledge",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 244
+      "line": 250
     },
     "form": "FORM_FIND",
     "property": {
@@ -29380,12 +29428,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "forgetsCancelOnReset.intentWithoutReceipt",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 240
+      "line": 246
     },
     "form": "FORM_FIND",
     "property": {
@@ -29401,12 +29450,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "6720"
   }, {
     "name": "forgetsCancelOnReset.lostAfterReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 254
+      "line": 262
     },
     "form": "FORM_FIND",
     "property": {
@@ -29422,12 +29472,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "forgetsCancelOnReset.permanentRejectionAfterClose",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 252
+      "line": 260
     },
     "form": "FORM_FIND",
     "property": {
@@ -29443,12 +29494,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "forgetsCancelOnReset.receiptWithoutEffect",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 242
+      "line": 248
     },
     "form": "FORM_FIND",
     "property": {
@@ -29464,12 +29516,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "forgetsCancelOnReset.resetAfterRetention",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 255
+      "line": 264
     },
     "form": "FORM_FIND",
     "property": {
@@ -29485,12 +29538,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "forgetsCancelOnReset.resetBeforeRetention",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 257
+      "line": 266
     },
     "form": "FORM_FIND",
     "property": {
@@ -29506,12 +29560,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "forgetsCancelOnReset.resetBetweenCommitAndAcknowledgment",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 231
+      "line": 233
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29527,12 +29582,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "forgetsCancelOnReset.resetThenDelivered.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 223
+      "line": 224
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29548,12 +29604,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "forgetsCancelOnReset.resetThenDelivered.outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 225
+      "line": 226
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29569,12 +29626,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "forgetsCancelOnReset.transientRejectionAfterClose",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 250
+      "line": 258
     },
     "form": "FORM_FIND",
     "property": {
@@ -29590,12 +29648,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "rejectAfterClose.ackedThenReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 228
+      "line": 230
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29611,12 +29670,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "rejectAfterClose.any.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 234
+      "line": 236
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29632,12 +29692,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "rejectAfterClose.any.closedHistoryIsFrozen",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 235
+      "line": 237
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29653,12 +29714,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "rejectAfterClose.any.handlerEffectIsIrreversible",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 236
+      "line": 238
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29674,12 +29736,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "rejectAfterClose.any.knowledgeIsFinal",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 238
+      "line": 242
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29695,12 +29758,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "rejectAfterClose.any.knownIsTheHandlersOutcome",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 237
+      "line": 240
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29716,12 +29780,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "rejectAfterClose.any.outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 233
+      "line": 235
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29737,12 +29802,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "rejectAfterClose.asyncCompletion",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 247
+      "line": 254
     },
     "form": "FORM_FIND",
     "property": {
@@ -29758,12 +29824,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "rejectAfterClose.asyncFailure",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 249
+      "line": 256
     },
     "form": "FORM_FIND",
     "property": {
@@ -29779,12 +29846,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "rejectAfterClose.canceledAcrossReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 227
+      "line": 228
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29800,12 +29868,13 @@
       "steps": 5,
       "actions": 5,
       "search": 1048576
-    }
+    },
+    "total": "33600"
   }, {
     "name": "rejectAfterClose.canceledIsKnown",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 246
+      "line": 252
     },
     "form": "FORM_FIND",
     "property": {
@@ -29821,7 +29890,8 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "rejectAfterClose.closedThenFinished",
     "position": {
@@ -29842,12 +29912,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "rejectAfterClose.detachedWorkProceeds",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 239
+      "line": 244
     },
     "form": "FORM_FIND",
     "property": {
@@ -29863,12 +29934,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "rejectAfterClose.duplicateCompletion",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 229
+      "line": 231
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -29884,12 +29956,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "rejectAfterClose.effectWithoutKnowledge",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 244
+      "line": 250
     },
     "form": "FORM_FIND",
     "property": {
@@ -29905,12 +29978,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "rejectAfterClose.intentWithoutReceipt",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 240
+      "line": 246
     },
     "form": "FORM_FIND",
     "property": {
@@ -29926,12 +30000,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "6720"
   }, {
     "name": "rejectAfterClose.lostAfterReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 254
+      "line": 262
     },
     "form": "FORM_FIND",
     "property": {
@@ -29947,12 +30022,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "rejectAfterClose.permanentRejectionAfterClose",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 252
+      "line": 260
     },
     "form": "FORM_FIND",
     "property": {
@@ -29968,12 +30044,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "rejectAfterClose.receiptWithoutEffect",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 242
+      "line": 248
     },
     "form": "FORM_FIND",
     "property": {
@@ -29989,12 +30066,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "rejectAfterClose.resetAfterRetention",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 255
+      "line": 264
     },
     "form": "FORM_FIND",
     "property": {
@@ -30010,12 +30088,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "rejectAfterClose.resetBeforeRetention",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 257
+      "line": 266
     },
     "form": "FORM_FIND",
     "property": {
@@ -30031,12 +30110,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "rejectAfterClose.resetBetweenCommitAndAcknowledgment",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 231
+      "line": 233
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30052,12 +30132,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "rejectAfterClose.resetThenDelivered.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 223
+      "line": 224
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30073,12 +30154,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "rejectAfterClose.resetThenDelivered.outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 225
+      "line": 226
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30094,12 +30176,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "rejectAfterClose.transientRejectionAfterClose",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 250
+      "line": 258
     },
     "form": "FORM_FIND",
     "property": {
@@ -30115,12 +30198,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "rejectAfterCloseWithDeadline.any.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 360
+      "line": 371
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30136,12 +30220,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "887040"
   }, {
     "name": "rejectAfterCloseWithDeadline.any.noUnnecessaryWait",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 361
+      "line": 372
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30157,12 +30242,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "887040"
   }, {
     "name": "rejectAfterCloseWithDeadline.any.outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 359
+      "line": 370
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30178,12 +30264,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "887040"
   }, {
     "name": "rejectAfterCloseWithDeadline.closedThenFinished",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 356
+      "line": 366
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30199,12 +30286,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "rejectAfterCloseWithDeadline.expiredAfterClosedLoss",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 362
+      "line": 373
     },
     "form": "FORM_FIND",
     "property": {
@@ -30220,12 +30308,13 @@
       "steps": 5,
       "actions": 5,
       "search": 1048576
-    }
+    },
+    "total": "33600"
   }, {
     "name": "rejectAfterCloseWithDeadline.expiredAfterResetLoss",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 364
+      "line": 375
     },
     "form": "FORM_FIND",
     "property": {
@@ -30241,12 +30330,13 @@
       "steps": 5,
       "actions": 5,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "rejectAfterCloseWithDeadline.expiredWhileReported",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 366
+      "line": 377
     },
     "form": "FORM_FIND",
     "property": {
@@ -30262,12 +30352,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "rejectAfterCloseWithDeadline.lateCompletionIsDropped",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 368
+      "line": 379
     },
     "form": "FORM_FIND",
     "property": {
@@ -30283,12 +30374,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "rejectAfterCloseWithDeadline.resetThenDelivered.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 357
+      "line": 368
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30304,12 +30396,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "retainAndRoute.ackedThenReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 228
+      "line": 230
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30325,12 +30418,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "retainAndRoute.any.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 234
+      "line": 236
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30346,12 +30440,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "retainAndRoute.any.closedHistoryIsFrozen",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 235
+      "line": 237
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30367,12 +30462,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "retainAndRoute.any.handlerEffectIsIrreversible",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 236
+      "line": 238
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30388,12 +30484,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "retainAndRoute.any.knowledgeIsFinal",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 238
+      "line": 242
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30409,12 +30506,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "retainAndRoute.any.knownIsTheHandlersOutcome",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 237
+      "line": 240
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30430,12 +30528,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "retainAndRoute.any.outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 233
+      "line": 235
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30451,12 +30550,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "retainAndRoute.asyncCompletion",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 247
+      "line": 254
     },
     "form": "FORM_FIND",
     "property": {
@@ -30472,12 +30572,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "retainAndRoute.asyncFailure",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 249
+      "line": 256
     },
     "form": "FORM_FIND",
     "property": {
@@ -30493,12 +30594,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "retainAndRoute.canceledAcrossReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 227
+      "line": 228
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30514,12 +30616,13 @@
       "steps": 5,
       "actions": 5,
       "search": 1048576
-    }
+    },
+    "total": "33600"
   }, {
     "name": "retainAndRoute.canceledIsKnown",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 246
+      "line": 252
     },
     "form": "FORM_FIND",
     "property": {
@@ -30535,7 +30638,8 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "retainAndRoute.closedThenFinished",
     "position": {
@@ -30556,12 +30660,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "retainAndRoute.detachedWorkProceeds",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 239
+      "line": 244
     },
     "form": "FORM_FIND",
     "property": {
@@ -30577,12 +30682,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "retainAndRoute.duplicateCompletion",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 229
+      "line": 231
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30598,12 +30704,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "retainAndRoute.effectWithoutKnowledge",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 244
+      "line": 250
     },
     "form": "FORM_FIND",
     "property": {
@@ -30619,12 +30726,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "retainAndRoute.intentWithoutReceipt",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 240
+      "line": 246
     },
     "form": "FORM_FIND",
     "property": {
@@ -30640,12 +30748,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "6720"
   }, {
     "name": "retainAndRoute.lostAfterReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 254
+      "line": 262
     },
     "form": "FORM_FIND",
     "property": {
@@ -30661,12 +30770,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "retainAndRoute.permanentRejectionAfterClose",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 252
+      "line": 260
     },
     "form": "FORM_FIND",
     "property": {
@@ -30682,12 +30792,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "retainAndRoute.receiptWithoutEffect",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 242
+      "line": 248
     },
     "form": "FORM_FIND",
     "property": {
@@ -30703,12 +30814,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "retainAndRoute.resetAfterRetention",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 255
+      "line": 264
     },
     "form": "FORM_FIND",
     "property": {
@@ -30724,12 +30836,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "retainAndRoute.resetBeforeRetention",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 257
+      "line": 266
     },
     "form": "FORM_FIND",
     "property": {
@@ -30745,12 +30858,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "retainAndRoute.resetBetweenCommitAndAcknowledgment",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 231
+      "line": 233
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30766,12 +30880,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "retainAndRoute.resetThenDelivered.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 223
+      "line": 224
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30787,12 +30902,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "retainAndRoute.resetThenDelivered.outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 225
+      "line": 226
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30808,12 +30924,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "retainAndRoute.transientRejectionAfterClose",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 250
+      "line": 258
     },
     "form": "FORM_FIND",
     "property": {
@@ -30829,12 +30946,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "retainAndRouteBoundedRetry.any.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 292
+      "line": 302
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30850,12 +30968,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "retainAndRouteBoundedRetry.any.outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 291
+      "line": 301
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30871,12 +30990,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "retainAndRouteBoundedRetry.closedThenFinished",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 288
+      "line": 297
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30892,12 +31012,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "retainAndRouteBoundedRetry.resetThenDelivered.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 289
+      "line": 299
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30913,12 +31034,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "retainAndRouteWithDeadline.any.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 360
+      "line": 371
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30934,12 +31056,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "887040"
   }, {
     "name": "retainAndRouteWithDeadline.any.noUnnecessaryWait",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 361
+      "line": 372
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30955,12 +31078,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "887040"
   }, {
     "name": "retainAndRouteWithDeadline.any.outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 359
+      "line": 370
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30976,12 +31100,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "887040"
   }, {
     "name": "retainAndRouteWithDeadline.closedThenFinished",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 356
+      "line": 366
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -30997,12 +31122,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "retainAndRouteWithDeadline.expiredAfterClosedLoss",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 362
+      "line": 373
     },
     "form": "FORM_FIND",
     "property": {
@@ -31018,12 +31144,13 @@
       "steps": 5,
       "actions": 5,
       "search": 1048576
-    }
+    },
+    "total": "33600"
   }, {
     "name": "retainAndRouteWithDeadline.expiredAfterResetLoss",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 364
+      "line": 375
     },
     "form": "FORM_FIND",
     "property": {
@@ -31039,12 +31166,13 @@
       "steps": 5,
       "actions": 5,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "retainAndRouteWithDeadline.expiredWhileReported",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 366
+      "line": 377
     },
     "form": "FORM_FIND",
     "property": {
@@ -31060,12 +31188,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "retainAndRouteWithDeadline.lateCompletionIsDropped",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 368
+      "line": 379
     },
     "form": "FORM_FIND",
     "property": {
@@ -31081,12 +31210,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "retainAndRouteWithDeadline.resetThenDelivered.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 357
+      "line": 368
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -31102,12 +31232,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "truncatesOnReset.ackedThenReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 228
+      "line": 230
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -31123,12 +31254,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "truncatesOnReset.any.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 234
+      "line": 236
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -31144,12 +31276,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "truncatesOnReset.any.closedHistoryIsFrozen",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 235
+      "line": 237
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -31165,12 +31298,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "truncatesOnReset.any.handlerEffectIsIrreversible",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 236
+      "line": 238
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -31186,12 +31320,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "truncatesOnReset.any.knowledgeIsFinal",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 238
+      "line": 242
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -31207,12 +31342,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "truncatesOnReset.any.knownIsTheHandlersOutcome",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 237
+      "line": 240
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -31228,12 +31364,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "truncatesOnReset.any.outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 233
+      "line": 235
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -31249,12 +31386,13 @@
       "steps": 12,
       "actions": 12,
       "search": 4194304
-    }
+    },
+    "total": "806400"
   }, {
     "name": "truncatesOnReset.asyncCompletion",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 247
+      "line": 254
     },
     "form": "FORM_FIND",
     "property": {
@@ -31270,12 +31408,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "truncatesOnReset.asyncFailure",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 249
+      "line": 256
     },
     "form": "FORM_FIND",
     "property": {
@@ -31291,12 +31430,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "truncatesOnReset.canceledAcrossReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 227
+      "line": 228
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -31312,12 +31452,13 @@
       "steps": 5,
       "actions": 5,
       "search": 1048576
-    }
+    },
+    "total": "33600"
   }, {
     "name": "truncatesOnReset.canceledIsKnown",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 246
+      "line": 252
     },
     "form": "FORM_FIND",
     "property": {
@@ -31333,7 +31474,8 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "truncatesOnReset.closedThenFinished",
     "position": {
@@ -31354,12 +31496,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "truncatesOnReset.detachedWorkProceeds",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 239
+      "line": 244
     },
     "form": "FORM_FIND",
     "property": {
@@ -31375,12 +31518,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "13440"
   }, {
     "name": "truncatesOnReset.duplicateCompletion",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 229
+      "line": 231
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -31396,12 +31540,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "truncatesOnReset.effectWithoutKnowledge",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 244
+      "line": 250
     },
     "form": "FORM_FIND",
     "property": {
@@ -31417,12 +31562,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "truncatesOnReset.intentWithoutReceipt",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 240
+      "line": 246
     },
     "form": "FORM_FIND",
     "property": {
@@ -31438,12 +31584,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "6720"
   }, {
     "name": "truncatesOnReset.lostAfterReset",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 254
+      "line": 262
     },
     "form": "FORM_FIND",
     "property": {
@@ -31459,12 +31606,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "truncatesOnReset.permanentRejectionAfterClose",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 252
+      "line": 260
     },
     "form": "FORM_FIND",
     "property": {
@@ -31480,12 +31628,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "truncatesOnReset.receiptWithoutEffect",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 242
+      "line": 248
     },
     "form": "FORM_FIND",
     "property": {
@@ -31501,12 +31650,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "truncatesOnReset.resetAfterRetention",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 255
+      "line": 264
     },
     "form": "FORM_FIND",
     "property": {
@@ -31522,12 +31672,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "truncatesOnReset.resetBeforeRetention",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 257
+      "line": 266
     },
     "form": "FORM_FIND",
     "property": {
@@ -31543,12 +31694,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "truncatesOnReset.resetBetweenCommitAndAcknowledgment",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 231
+      "line": 233
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -31564,12 +31716,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "26880"
   }, {
     "name": "truncatesOnReset.resetThenDelivered.ackOnlyWhenKept",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 223
+      "line": 224
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -31585,12 +31738,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "truncatesOnReset.resetThenDelivered.outcomePreserved",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 225
+      "line": 226
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -31606,12 +31760,13 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   }, {
     "name": "truncatesOnReset.transientRejectionAfterClose",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 250
+      "line": 258
     },
     "form": "FORM_FIND",
     "property": {
@@ -31627,14 +31782,15 @@
       "steps": 4,
       "actions": 4,
       "search": 1048576
-    }
+    },
+    "total": "20160"
   } ],
   "progress": [ {
     "machine": "ackByOriginal",
     "name": "outcomeReachesOwner",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 389
+      "line": 400
     },
     "from": "temporal.nexuscaller.closepolicy.Model$package$.isDone",
     "to": "temporal.nexuscaller.closepolicy.Model$package$.settled",
@@ -31645,7 +31801,7 @@
     "name": "outcomeReachesOwner",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 415
+      "line": 426
     },
     "from": "temporal.nexuscaller.closepolicy.Model$package$.isDone",
     "to": "temporal.nexuscaller.closepolicy.Model$package$.settled",
@@ -31656,7 +31812,7 @@
     "name": "outcomeReachesOwner",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 385
+      "line": 396
     },
     "from": "temporal.nexuscaller.closepolicy.Model$package$.isDone",
     "to": "temporal.nexuscaller.closepolicy.Model$package$.settled",
@@ -31667,7 +31823,7 @@
     "name": "outcomeReachesOwner",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 407
+      "line": 418
     },
     "from": "temporal.nexuscaller.closepolicy.Model$package$.isDone",
     "to": "temporal.nexuscaller.closepolicy.Model$package$.settled",
@@ -31678,7 +31834,7 @@
     "name": "outcomeReachesOwner",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 393
+      "line": 404
     },
     "from": "temporal.nexuscaller.closepolicy.Model$package$.isDone",
     "to": "temporal.nexuscaller.closepolicy.Model$package$.settled",
@@ -31689,7 +31845,7 @@
     "name": "retainedReachesOwner",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 450
+      "line": 461
     },
     "from": "temporal.nexuscaller.closepolicy.Claims$package$.awaitingOwner",
     "to": "temporal.nexuscaller.closepolicy.Claims$package$.ownerKnowsOutcome",
@@ -31700,7 +31856,7 @@
     "name": "retainedWaitsWithoutRecovery",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 454
+      "line": 465
     },
     "from": "temporal.nexuscaller.closepolicy.Claims$package$.awaitingOwner",
     "to": "temporal.nexuscaller.closepolicy.Claims$package$.ownerKnowsOutcome",
@@ -31711,7 +31867,7 @@
     "name": "outcomeReachesOwner",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 397
+      "line": 408
     },
     "from": "temporal.nexuscaller.closepolicy.Model$package$.isDone",
     "to": "temporal.nexuscaller.closepolicy.Model$package$.settled",
@@ -31722,7 +31878,7 @@
     "name": "retainedReachesOwner",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 458
+      "line": 469
     },
     "from": "temporal.nexuscaller.closepolicy.Claims$package$.awaitingOwner",
     "to": "temporal.nexuscaller.closepolicy.Claims$package$.ownerKnowsOutcome",
@@ -31733,7 +31889,7 @@
     "name": "outcomeReachesOwner",
     "position": {
       "file": "model/temporal/nexuscaller/closepolicy/Claims.scala",
-      "line": 424
+      "line": 435
     },
     "from": "temporal.nexuscaller.closepolicy.Model$package$.isDone",
     "to": "temporal.nexuscaller.closepolicy.Model$package$.settled",

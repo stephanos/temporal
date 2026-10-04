@@ -27,15 +27,36 @@ const (
 	schemaPackage       = "temporal.server.api.umpire.v1"
 	// The fields no frozen migration input sets.
 	schemaSupplement = `{"version":1,"functions":[{"name":"f","params":[{"name":"p","type":{"intRange":{"low":"-3","high":"4"}}}],"body":{"match":{"scrutinee":{"literal":{"record":{"type":"r","fields":[{"list":{"items":[{"int":"-1"},{"bool":true}]}}]}}},"cases":[{"pattern":{"wildcard":{}},"guard":{"literal":{"bool":true}},"body":{"literal":{"text":"x"}}}]}}}]}`
-	// A Model that sets each field of schemaAdditions, which no captured wire bytes can hold.
-	currentSupplement = `{"functions":[{"name":"g","body":{"construct":{"type":"umpire.Step","choice":"committed"}}}]}`
+	// The fields schemaAdded lists, each set. It is current, not captured: no historical bytes have them.
+	schemaAddedSupplement = `{"queries":[{"name":"q","total":"48"}],"functions":[{"name":"g","body":{"construct":{"type":"umpire.Step","choice":"committed"}}}]}`
 )
 
-// schemaAdditions are the fields the schema gained after the rename, by full name. The captured
-// descriptor and wire bytes stay as they were captured; each addition is checked on its own instead.
-var schemaAdditions = []protoreflect.FullName{
-	"temporal.server.api.umpire.v1.Construct.choice",
+// schemaAddedField is a field the schema gained after the capture: the message it was added to, by its
+// name in the file (dotted when nested), and its descriptor.
+type schemaAddedField struct {
+	message string
+	field   *descriptorpb.FieldDescriptorProto
 }
+
+// What the schema gained after the capture, in the order it was added: the files it imports and the
+// fields. The lists are closed: a field added to the schema fails these tests until it is listed here
+// and schemaAddedSupplement sets it.
+var (
+	schemaAddedDependencies = []string{
+		// Query.total's wrapper.
+		"google/protobuf/wrappers.proto",
+	}
+	schemaAddedFields = []schemaAddedField{
+		// The author's static combination count (model/SEMANTICS.md, Query totals).
+		{message: "Query", field: &descriptorpb.FieldDescriptorProto{Name: proto.String("total"), Number: proto.Int32(10),
+			Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+			TypeName: proto.String(".google.protobuf.Int64Value"), JsonName: proto.String("total")}},
+		// The name of a named choice's alternative on its step record (model/SEMANTICS.md, Named choices).
+		{message: "Construct", field: &descriptorpb.FieldDescriptorProto{Name: proto.String("choice"), Number: proto.Int32(4),
+			Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
+			JsonName: proto.String("choice")}},
+	}
+)
 
 func schemaBeforeRename(t *testing.T) map[string][]byte {
 	t.Helper()
@@ -77,38 +98,37 @@ func TestSchemaRenameKeepsTheDescriptor(t *testing.T) {
 	require.Equal(t, schemaPackageBefore, before.GetPackage())
 	expected := renamedSchema(t, before)
 	require.NotContains(t, prototext.Format(expected), "modelir")
-	current := protodesc.ToFileDescriptorProto(umpirespb.File_temporal_server_api_umpire_v1_ir_proto)
-	added(t, expected, current)
-	protorequire.ProtoEqual(t, expected, current)
+	addedSinceTheCapture(t, expected)
+	protorequire.ProtoEqual(t, expected, protodesc.ToFileDescriptorProto(umpirespb.File_temporal_server_api_umpire_v1_ir_proto))
 }
 
-// added appends each of schemaAdditions to the captured descriptor as the current schema declares
-// it, with the synthetic oneof of a field with presence, so that the descriptors compare equal only
-// when nothing else changed.
-func added(t *testing.T, captured, current *descriptorpb.FileDescriptorProto) {
+// addedSinceTheCapture adds to the renamed capture what the schema gained after it, and nothing else:
+// none of it was in the capture.
+func addedSinceTheCapture(t *testing.T, file *descriptorpb.FileDescriptorProto) {
 	t.Helper()
-	for _, name := range schemaAdditions {
-		message, field := string(name.Parent().Name()), string(name.Name())
-		in := func(file *descriptorpb.FileDescriptorProto) *descriptorpb.DescriptorProto {
-			i := slices.IndexFunc(file.GetMessageType(), func(m *descriptorpb.DescriptorProto) bool { return m.GetName() == message })
-			require.GreaterOrEqual(t, i, 0, "%s names no top-level message", name)
-			return file.GetMessageType()[i]
+	for _, dependency := range schemaAddedDependencies {
+		require.NotContains(t, file.GetDependency(), dependency)
+		file.Dependency = append(file.Dependency, dependency)
+	}
+	for _, added := range schemaAddedFields {
+		messages := file.GetMessageType()
+		var message *descriptorpb.DescriptorProto
+		for _, name := range strings.Split(added.message, ".") {
+			i := slices.IndexFunc(messages, func(m *descriptorpb.DescriptorProto) bool { return m.GetName() == name })
+			require.NotEqual(t, -1, i, "no message %s", added.message)
+			message, messages = messages[i], messages[i].GetNestedType()
 		}
-		was, is := in(captured), in(current)
-		require.False(t, slices.ContainsFunc(was.GetField(), func(f *descriptorpb.FieldDescriptorProto) bool { return f.GetName() == field }),
-			"%s is in the captured descriptor already", name)
-		i := slices.IndexFunc(is.GetField(), func(f *descriptorpb.FieldDescriptorProto) bool { return f.GetName() == field })
-		require.GreaterOrEqual(t, i, 0, "the schema has no field %s", name)
-		f := proto.CloneOf(is.GetField()[i])
-		if f.OneofIndex != nil {
-			require.True(t, f.GetProto3Optional(), "%s is added to a oneof, which a later addition cannot do", name)
-			f.OneofIndex = proto.Int32(int32(len(was.GetOneofDecl())))
-			was.OneofDecl = append(was.OneofDecl, proto.CloneOf(is.GetOneofDecl()[is.GetField()[i].GetOneofIndex()]))
+		for _, field := range message.GetField() {
+			require.NotEqual(t, added.field.GetName(), field.GetName(), "%s.%s was captured", added.message, field.GetName())
+			require.NotEqual(t, added.field.GetNumber(), field.GetNumber(), "%s.%s was captured", added.message, field.GetName())
 		}
-		was.Field = append(was.Field, f)
+		message.Field = append(message.Field, proto.CloneOf(added.field))
 	}
 }
 
+// The captured wire bytes still decode to what their sources say and re-encode byte for byte, and set
+// every field the schema had at the capture: every field but those added since. schemaAddedSupplement
+// sets those, and round-trips through wire bytes too, so together they set every field of the schema.
 func TestSchemaRenameKeepsTheWireBytes(t *testing.T) {
 	inputs, err := golden.Read(filepath.Join("testdata", "migration", "inputs"))
 	require.NoError(t, err)
@@ -120,7 +140,7 @@ func TestSchemaRenameKeepsTheWireBytes(t *testing.T) {
 	delete(captured, "descriptor.binpb")
 	require.Equal(t, slices.Sorted(maps.Keys(sources)), slices.Sorted(maps.Keys(captured)))
 
-	set := map[protoreflect.FullName]bool{}
+	historical := map[protoreflect.FullName]bool{}
 	for name, wire := range captured {
 		expected := new(umpirespb.Model)
 		require.NoError(t, protojson.Unmarshal(sources[name], expected), name)
@@ -130,8 +150,36 @@ func TestSchemaRenameKeepsTheWireBytes(t *testing.T) {
 		encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(expected)
 		require.NoError(t, err, name)
 		require.Equal(t, golden.Digest(wire), golden.Digest(encoded), name)
-		schemaFieldsSet(decoded.ProtoReflect(), set)
+		schemaFieldsSet(decoded.ProtoReflect(), historical)
 	}
+	var added []protoreflect.FullName
+	for _, a := range schemaAddedFields {
+		added = append(added, protoreflect.FullName(schemaPackage+"."+a.message+"."+a.field.GetName()))
+	}
+	require.ElementsMatch(t, added, schemaFieldsUnset(historical), "the captured wire bytes set every field but those added since")
+
+	current := map[protoreflect.FullName]bool{}
+	supplement := new(umpirespb.Model)
+	require.NoError(t, protojson.Unmarshal([]byte(schemaAddedSupplement), supplement))
+	wire, err := proto.MarshalOptions{Deterministic: true}.Marshal(supplement)
+	require.NoError(t, err)
+	decoded := new(umpirespb.Model)
+	require.NoError(t, proto.Unmarshal(wire, decoded))
+	protorequire.ProtoEqual(t, supplement, decoded)
+	encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(decoded)
+	require.NoError(t, err)
+	require.Equal(t, wire, encoded)
+	schemaFieldsSet(decoded.ProtoReflect(), current)
+	for _, name := range added {
+		require.True(t, current[name], "schemaAddedSupplement sets %s", name)
+	}
+
+	maps.Copy(current, historical)
+	require.Empty(t, schemaFieldsUnset(current), "the captured wire bytes and schemaAddedSupplement set every field of the schema")
+}
+
+// schemaFieldsUnset is every field of the schema not in set.
+func schemaFieldsUnset(set map[protoreflect.FullName]bool) []protoreflect.FullName {
 	var unset []protoreflect.FullName
 	var visit func(protoreflect.MessageDescriptors)
 	visit = func(messages protoreflect.MessageDescriptors) {
@@ -146,24 +194,7 @@ func TestSchemaRenameKeepsTheWireBytes(t *testing.T) {
 		}
 	}
 	visit(umpirespb.File_temporal_server_api_umpire_v1_ir_proto.Messages())
-	require.ElementsMatch(t, schemaAdditions, unset, "the captured wire bytes set every field of the schema but its additions")
-}
-
-// TestSchemaAdditionsRoundTrip sets every field the schema gained after the rename and reads it back
-// from its wire bytes.
-func TestSchemaAdditionsRoundTrip(t *testing.T) {
-	m := new(umpirespb.Model)
-	require.NoError(t, protojson.Unmarshal([]byte(currentSupplement), m))
-	set := map[protoreflect.FullName]bool{}
-	schemaFieldsSet(m.ProtoReflect(), set)
-	for _, name := range schemaAdditions {
-		require.True(t, set[name], "currentSupplement sets no %s", name)
-	}
-	wire, err := proto.MarshalOptions{Deterministic: true}.Marshal(m)
-	require.NoError(t, err)
-	decoded := new(umpirespb.Model)
-	require.NoError(t, proto.Unmarshal(wire, decoded))
-	protorequire.ProtoEqual(t, m, decoded)
+	return unset
 }
 
 func schemaFieldsSet(m protoreflect.Message, set map[protoreflect.FullName]bool) {

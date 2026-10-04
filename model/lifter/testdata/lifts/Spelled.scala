@@ -132,13 +132,13 @@ val bothPut: Scenario[DetailedPair] =
 
 val two: Limits = Limits("two", steps = 2, actions = 2, search = 64)
 
-val putStoresOnce: Query = query("putStoresOnce") find putStores in putOnce limits two
+val putStoresOnce: Query = query("putStoresOnce") find putStores in putOnce limits two total 2
 val durableAfterFlush: Query =
-  query("durableAfterFlush") verify durableStays in putThenFlush limits two
+  query("durableAfterFlush") verify durableStays in putThenFlush limits two total 6
 // A Property of the opaque store read on the disk, through the refinement the disk declares.
 val putStoresThroughDisk: Query =
-  query("putStoresThroughDisk") verify putStores in putThenFlush limits two
-val bothPutHeld: Query = query("bothPutHeld") find frontHeld in bothPut limits two
+  query("putStoresThroughDisk") verify putStores in putThenFlush limits two total 6
+val bothPutHeld: Query = query("bothPutHeld") find frontHeld in bothPut limits two total 6
 
 /**
  * Claims declared inside a function over a machine take the one explicit-name form, with no val:
@@ -148,16 +148,16 @@ def anyQueries(m: Machine[Disk, Outcome, Fact]): Vector[Query] = Vector(
   query(s"${m.name}.any.durableStays") verify durableStays in m
     .scenario("any")
     .starts(Disk(Stage.empty))
-    .free limits two,
+    .free limits two total 18,
   query(s"${m.name}.any.everPut") find (m.property(s"${m.name}.everPut") holds (after =>
     after.facts.contains(Fact.stored)
-  )) in m.scenario("anyPut").starts(Disk(Stage.empty)).free limits two
+  )) in m.scenario("anyPut").starts(Disk(Stage.empty)).free limits two total 18
 )
 
 /** A local val inside a function names its declaration. */
 def localQueries(m: Machine[Disk, Outcome, Fact]): Vector[Query] =
   val stays = m.property("stays") holds (after => after.state.stage != Stage.empty)
-  Vector(query("localStays") verify stays in putThenFlush limits two)
+  Vector(query("localStays") verify stays in putThenFlush limits two total 6)
 
 val durableEventually: Progress[Disk] =
   disk.leadsTo("durableEventually")(

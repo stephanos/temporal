@@ -19,6 +19,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	cp "go.temporal.io/server/tools/umpire/lower/internal/producer"
+	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -363,6 +364,8 @@ func TestAnAttemptRecordThatFollowsLaterEvidenceIsNamed(t *testing.T) {
 			if test.change != nil {
 				test.change(m)
 			}
+			m, err := umpiremodel.WithTotals(m)
+			require.NoError(t, err)
 			p, err := NewProducer(m)
 			require.NoError(t, err)
 			a, _, err := p.ask(test.query)

@@ -11479,7 +11479,8 @@
       "steps": 1,
       "actions": 1,
       "search": 16
-    }
+    },
+    "total": "2"
   }, {
     "name": "errand.retry",
     "position": {
@@ -11500,7 +11501,8 @@
       "steps": 5,
       "actions": 5,
       "search": 4096
-    }
+    },
+    "total": "30"
   }, {
     "name": "errand.withdrawn",
     "position": {
@@ -11521,7 +11523,8 @@
       "steps": 3,
       "actions": 3,
       "search": 4096
-    }
+    },
+    "total": "18"
   }, {
     "name": "staleAdmission.pauseRace",
     "position": {
@@ -11542,12 +11545,13 @@
       "steps": 3,
       "actions": 3,
       "search": 4096
-    }
+    },
+    "total": "90"
   }, {
     "name": "syncCompletion",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 171
+      "line": 172
     },
     "form": "FORM_FIND",
     "property": {
@@ -11572,7 +11576,7 @@
       "name": "nexusDeadlines",
       "position": {
         "file": "model/temporal/nexuscaller/Claims.scala",
-        "line": 174
+        "line": 175
       },
       "variations": [ {
         "choices": [ {
@@ -11599,7 +11603,7 @@
           } ],
           "position": {
             "file": "model/temporal/nexuscaller/Claims.scala",
-            "line": 180
+            "line": 181
           }
         }, {
           "name": "scheduleDeadline",
@@ -11625,7 +11629,7 @@
           } ],
           "position": {
             "file": "model/temporal/nexuscaller/Claims.scala",
-            "line": 181
+            "line": 182
           }
         }, {
           "name": "unbounded",
@@ -11651,18 +11655,19 @@
           } ],
           "position": {
             "file": "model/temporal/nexuscaller/Claims.scala",
-            "line": 182
+            "line": 183
           }
         } ],
         "position": {
           "file": "model/temporal/nexuscaller/Claims.scala",
-          "line": 177
+          "line": 178
         }
       } ],
       "runs": 1,
       "edits": 1,
       "dropPrefix": true
-    }
+    },
+    "total": "384"
   }, {
     "name": "tally.opens",
     "position": {
@@ -11683,7 +11688,8 @@
       "steps": 1,
       "actions": 1,
       "search": 16
-    }
+    },
+    "total": "2"
   } ],
   "realizations": [ {
     "id": "fixture.realizations.Realizations$package$.doorRealization",

@@ -103,7 +103,7 @@ val urgentByPosition = counted.property.when(respond(Answer.completed, true)) ho
 
 val six = Limits(steps = 6, actions = 6, search = 64)
 
-val byNameQuery = query verify scheduled in byName limits six
-val byPositionQuery = query verify scheduled in byPosition limits six
-val urgentByNameQuery = query verify urgentByName in byName limits six
-val urgentByPositionQuery = query verify urgentByPosition in byPosition limits six
+val byNameQuery = query verify scheduled in byName limits six total 1728
+val byPositionQuery = query verify scheduled in byPosition limits six total 1728
+val urgentByNameQuery = query verify urgentByName in byName limits six total 1728
+val urgentByPositionQuery = query verify urgentByPosition in byPosition limits six total 1728

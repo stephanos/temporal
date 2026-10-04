@@ -348,7 +348,7 @@ private val heldRace = staleAdmission
   .actions(dispatch, control(ActivityControl.pause))
 
 val pauseRaceQuery: Query =
-  query("staleAdmission.pauseRace") find pausedWhileQueued in heldRace limits three
+  query("staleAdmission.pauseRace") find pausedWhileQueued in heldRace limits three total 90
 
 private def raceEvidence(records: String, commitment: Commitment) =
   Evidence.read(
@@ -519,7 +519,7 @@ val doorOpens: Query =
     steps = 1,
     actions = 1,
     search = 16
-  )
+  ) total 2
 
 val doorRealization: Realization = Realization(
   name = "doorRealization",
@@ -700,7 +700,7 @@ val errandRetry: Query =
     steps = 5,
     actions = 5,
     search = 4096
-  )
+  ) total 30
 
 // The one path that takes the worker's canceled answer, which Testpilot has no instruction for: its
 // Query is blocked by that command, and the retry above, whose path does not take it, is not.
@@ -720,7 +720,7 @@ val errandWithdrawn: Query =
     steps = 3,
     actions = 3,
     search = 4096
-  )
+  ) total 18
 
 private val errandType = Name("umpire-", fixture = true, suffix = "-errand")
 
@@ -950,7 +950,7 @@ val tallyOpens: Query =
     steps = 1,
     actions = 1,
     search = 16
-  )
+  ) total 2
 
 /** A realization whose evidence keeps fields and is read from one message. */
 private val tallyOpenedEvidence = Evidence.read(

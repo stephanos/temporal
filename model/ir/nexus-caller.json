@@ -289,7 +289,7 @@
     "name": "nexusCaller.property.repliedByPollingWorker",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 268
+      "line": 273
     },
     "params": [ {
       "name": "step",
@@ -300,32 +300,32 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/Claims.scala",
-        "line": 268
+        "line": 273
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/Claims.scala",
-            "line": 268
+            "line": 273
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/nexuscaller/Claims.scala",
-                "line": 268
+                "line": 273
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/Claims.scala",
-                    "line": 268
+                    "line": 273
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/Claims.scala",
-                        "line": 268
+                        "line": 273
                       },
                       "var": "step"
                     },
@@ -341,7 +341,7 @@
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/Claims.scala",
-            "line": 268
+            "line": 273
           },
           "literal": {
             "enum": {
@@ -6221,7 +6221,7 @@
     "name": "repliedByPollingWorker",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 266
+      "line": 271
     },
     "whenAction": "handlerReply",
     "holds": "nexusCaller.property.repliedByPollingWorker"
@@ -6350,12 +6350,12 @@
     "name": "repliedThenStopped",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 274
+      "line": 279
     },
     "start": {
       "position": {
         "file": "model/temporal/nexuscaller/Claims.scala",
-        "line": 276
+        "line": 281
       },
       "construct": {
         "type": "temporal.nexuscaller.NexusCallerState",
@@ -7151,7 +7151,7 @@
     "name": "asyncCompletion",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 192
+      "line": 193
     },
     "form": "FORM_FIND",
     "property": {
@@ -7172,12 +7172,13 @@
       "property": "OUTCOME_INCONCLUSIVE",
       "reason": "the executions that explain the evidence disagree",
       "conformance": "CONFORMANCE_CONFORMANT"
-    }
+    },
+    "total": "576"
   }, {
     "name": "asyncFailure",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 200
+      "line": 202
     },
     "form": "FORM_FIND",
     "property": {
@@ -7198,12 +7199,13 @@
       "property": "OUTCOME_INCONCLUSIVE",
       "reason": "the executions that explain the evidence disagree",
       "conformance": "CONFORMANCE_CONFORMANT"
-    }
+    },
+    "total": "576"
   }, {
     "name": "handlerError",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 208
+      "line": 210
     },
     "form": "FORM_FIND",
     "property": {
@@ -7224,12 +7226,13 @@
       "property": "OUTCOME_INCONCLUSIVE",
       "reason": "an execution that explains the evidence never reaches the claim's evaluation point",
       "conformance": "CONFORMANCE_CONFORMANT"
-    }
+    },
+    "total": "384"
   }, {
     "name": "retry",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 215
+      "line": 217
     },
     "form": "FORM_FIND",
     "property": {
@@ -7250,12 +7253,13 @@
       "property": "OUTCOME_INCONCLUSIVE",
       "reason": "the executions that explain the evidence disagree",
       "conformance": "CONFORMANCE_CONFORMANT"
-    }
+    },
+    "total": "768"
   }, {
     "name": "scheduleToStartTimeout",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 224
+      "line": 226
     },
     "form": "FORM_FIND",
     "property": {
@@ -7276,12 +7280,13 @@
       "property": "OUTCOME_INCONCLUSIVE",
       "reason": "an execution that explains the evidence never reaches the claim's evaluation point",
       "conformance": "CONFORMANCE_CONFORMANT"
-    }
+    },
+    "total": "576"
   }, {
     "name": "startToCloseTimeout",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 233
+      "line": 236
     },
     "form": "FORM_FIND",
     "property": {
@@ -7302,12 +7307,13 @@
       "property": "OUTCOME_INCONCLUSIVE",
       "reason": "an execution that explains the evidence never reaches the claim's evaluation point",
       "conformance": "CONFORMANCE_CONFORMANT"
-    }
+    },
+    "total": "576"
   }, {
     "name": "stoppedWorkerRepliesNothing",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 286
+      "line": 291
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -7323,12 +7329,13 @@
       "steps": 4,
       "actions": 4,
       "search": 32768
-    }
+    },
+    "total": "1536"
   }, {
     "name": "syncCompletion",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 171
+      "line": 172
     },
     "form": "FORM_FIND",
     "property": {
@@ -7353,7 +7360,7 @@
       "name": "nexusDeadlines",
       "position": {
         "file": "model/temporal/nexuscaller/Claims.scala",
-        "line": 174
+        "line": 175
       },
       "variations": [ {
         "choices": [ {
@@ -7380,7 +7387,7 @@
           } ],
           "position": {
             "file": "model/temporal/nexuscaller/Claims.scala",
-            "line": 180
+            "line": 181
           }
         }, {
           "name": "scheduleDeadline",
@@ -7406,7 +7413,7 @@
           } ],
           "position": {
             "file": "model/temporal/nexuscaller/Claims.scala",
-            "line": 181
+            "line": 182
           }
         }, {
           "name": "unbounded",
@@ -7432,23 +7439,24 @@
           } ],
           "position": {
             "file": "model/temporal/nexuscaller/Claims.scala",
-            "line": 182
+            "line": 183
           }
         } ],
         "position": {
           "file": "model/temporal/nexuscaller/Claims.scala",
-          "line": 177
+          "line": 178
         }
       } ],
       "runs": 1,
       "edits": 1,
       "dropPrefix": true
-    }
+    },
+    "total": "384"
   }, {
     "name": "terminalHolds",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 245
+      "line": 250
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -7465,7 +7473,8 @@
       "steps": 3,
       "actions": 3,
       "search": 4096
-    }
+    },
+    "total": "576"
   } ],
   "realizations": [ {
     "id": "temporal.nexuscaller.NexusRealization$.asyncNexus",

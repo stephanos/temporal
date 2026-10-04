@@ -714,6 +714,8 @@ func TestAPathThatEndsInAStepNothingConfirmsIsAnError(t *testing.T) {
 			q.GetLimits().Steps, q.GetLimits().Actions = 7, 7
 		}
 	}
+	m, err := umpiremodel.WithTotals(m)
+	require.NoError(t, err)
 	p, err := NewProducer(m)
 	require.NoError(t, err)
 	l, err := p.Lower("retry", cp.IdentityFor("temporal.case", "standaloneActivityTests", "retry"))

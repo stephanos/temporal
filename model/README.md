@@ -56,11 +56,14 @@ Property is put to work, or verify that the Property holds on every path of it (
 its exploration settings):
 
 ```scala
-val syncCompletion: Query = (query("syncCompletion") find syncSucceeds in syncReplied limits two)
-  .expect(RunExpectation(Conformance.conformant, Outcome.satisfied))
+val syncCompletion: Query =
+  (query("syncCompletion") find syncSucceeds in syncReplied limits two total 384)
+    .expect(RunExpectation(Conformance.conformant, Outcome.satisfied))
 ```
 
 The path a `find` Query returns is its witness. `limits two` bounds the search to two steps.
+`total 384` is the author's count of the Query's static combinations, which the reader checks; see
+[Counting a Query's total](#counting-a-querys-total).
 `.expect(...)` states what a real run of this path should be judged as; see
 [Following the example to a Verdict](#following-the-example-to-a-verdict).
 
@@ -371,7 +374,7 @@ val putOnly = store.restrict(put)
 val putStores = store.property when put holds (after => after.facts.contains(Fact.stored))
 val putOnce = store.scenario.actions(put)
 val two = Limits(steps = 2, actions = 2, search = 64)
-val putStoresOnce = query find putStores in putOnce limits two
+val putStoresOnce = query find putStores in putOnce limits two total 2
 ```
 
 The same holds for `timer`, `internal`, `compose[S](members*)`, `monitor[S, O, F, M](initial)…`,
@@ -498,6 +501,45 @@ the exceptions. A fact case with fields needs a line that covers all its values.
 
 `query … in s` takes no given. A Property of the machine the Scenario's machine `refines` is read
 through that refinement; a Property of an unrelated machine is refused at the Query's line.
+
+### Counting a Query's total
+
+Every Query states `total n`, the number of its static combinations, which the author works out and
+the Go reader recomputes. It is what a reviewer reads to see how large a question is before anything
+runs. Count the Scenario machine's states, its whole state catalog: the product of its fields'
+catalogs, an enum counting each case times its fields. Then:
+
+- a pinned Scenario counts states times the scheduled slots within the step limit,
+  `min(steps, scheduled actions)`;
+- a free Scenario counts states times the machine's action classes times `steps`. Each bound action
+  has one class per assignment of its inputs: an action without inputs is one class, and one with
+  inputs the product of their catalogs. A composition counts its own state record, and as classes
+  each member's classes that no sync takes plus, for each sync, the classes of its first action times
+  those of its second.
+
+`syncCompletion` above pins two actions within `limits two`. `ProtocolState` has a `Phase` of 8
+cases, `attempts` of 0 to 2 and three two-valued `Timeout`s, so 8 × 3 × 2 × 2 × 2 = 192 states, and
+the total is 192 × min(2, 2) = 384. A free Scenario of the same machine within three steps would
+count 192 × 23 × 3 = 13248: `schedule` has 2 × 2 × 2 = 8 classes, `handlerReply` 4 + 2 = 6 (one of
+its five replies carries a Boolean), `complete` 3, and the six actions without inputs one each.
+
+The count is taken before anything is reached. Unreachable states, disabled steps, states the search
+meets twice and a search that stops at its first witness all count, and a named choice's alternatives
+are results of one class, not more classes. So the total bounds what the search could be asked to
+look at; it does not predict the paths it visits, which the Query's answer reports, or what a Run
+executes. A Query read through a refinement counts its own Scenario machine, `limits` with 0 steps
+count 0, and a total changes no table, fingerprint, answer, Case or exploration identity.
+
+A Query declared inside a `def` over a machine argument, such as a list of Queries applied to several
+providers, takes the total of each Query whose count differs between instances as an `Int` parameter,
+and each call supplies the literal: `providerQueries(lossyMatchingQueue, anyTotal = 3240)`. A literal
+in the body is right only when every instance counts the same. The lifter refuses a Query with no
+total, a second `total` on one Query, a negative one, and a total that is not an integer literal or a
+parameter supplied as one, each at its line. A total that is not the count is refused by the reader
+at the Query's line with both numbers and the factors, for example
+`query syncCompletion declares a total of 380, and its static combination count is 192 states × 2
+scheduled slots (the least of 2 steps and 2 scheduled actions) = 384`. IR lifted before totals
+existed has none and is still read; generating Cases from `model/ir` requires one on every Query.
 
 Anything else, such as a `var` or a loop, stops the lift with its source line. The lifter works on
 the compiler's typed trees (TASTy) and not as a macro, because a macro sees a function's body only

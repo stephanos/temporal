@@ -144,10 +144,10 @@ val sugaredStart = sugared.scenario.actions(start)
 val coredStart = cored.scenario.actions(start)
 
 val claims: Vector[Query] = Vector(
-  query("recordsSugarStart") find recordsSugar in sugaredStart limits run,
-  query("recordsCoreStart") find recordsCore in coredStart limits run,
-  query("impliesSugarStart") verify impliesSugar in sugaredStart limits run,
-  query("impliesCoreStart") verify impliesCore in coredStart limits run,
-  query("pausedSugarStart") verify pausedSugar in sugaredStart limits run,
-  query("pausedCoreStart") verify pausedCore in coredStart limits run
+  query("recordsSugarStart") find recordsSugar in sugaredStart limits run total 8,
+  query("recordsCoreStart") find recordsCore in coredStart limits run total 8,
+  query("impliesSugarStart") verify impliesSugar in sugaredStart limits run total 8,
+  query("impliesCoreStart") verify impliesCore in coredStart limits run total 8,
+  query("pausedSugarStart") verify pausedSugar in sugaredStart limits run total 8,
+  query("pausedCoreStart") verify pausedCore in coredStart limits run total 8
 )

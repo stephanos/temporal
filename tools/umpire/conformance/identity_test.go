@@ -485,6 +485,19 @@ func TestEvidenceCarriesItsRetainedFieldsWithTheirValues(t *testing.T) {
 	}
 }
 
+// A Query total is metadata no assessment reads: the Model identity a recorded Run is bound to is the
+// same with every total, with none, and with a source total corrected, so a correction strands no Run.
+func TestAQueryTotalMovesNoModelIdentity(t *testing.T) {
+	m := activityModel(t)
+	for _, q := range m.GetQueries() {
+		require.NotNil(t, q.GetTotal(), q.GetName())
+	}
+	with := loweredActivity(t, m, "completion").factory.Binding().Model
+	without := loweredActivity(t, umpiremodel.WithoutTotals(m), "completion").factory.Binding().Model
+	require.Equal(t, with, without)
+	require.NotEmpty(t, with)
+}
+
 // A named-choice name is inert (model/SEMANTICS.md, Named choices): naming every step record of the
 // admission Model moves no Model identity, while any other change of a step record does.
 func TestAChoiceNameMovesNoModelIdentity(t *testing.T) {

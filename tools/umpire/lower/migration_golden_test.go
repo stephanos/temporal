@@ -124,7 +124,7 @@ func artifactCandidate(t *testing.T, files map[string][]byte, key string, plan *
 	t.Helper()
 	putJSON(t, files, key+"/candidate.json", c)
 	putProto(t, files, key+"/model.json", c.Model)
-	encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(c.Model)
+	encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(umpiremodel.WithoutTotals(c.Model))
 	require.NoError(t, err)
 	require.Equal(t, golden.Digest(encoded), c.Digest)
 	if c.Rejection != "" {
@@ -149,7 +149,7 @@ func artifactCandidate(t *testing.T, files map[string][]byte, key string, plan *
 
 func assessmentIdentity(t *testing.T, model *umpirespb.Model) string {
 	t.Helper()
-	bare := proto.CloneOf(model)
+	bare := umpiremodel.WithoutTotals(model)
 	bare.Source = ""
 	// Position fields must be removed, not replaced by empty messages, to preserve the wire identity.
 	clearPositionFields(bare.ProtoReflect())

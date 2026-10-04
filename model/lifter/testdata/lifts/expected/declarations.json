@@ -2627,7 +2627,8 @@
       "steps": 2,
       "actions": 2,
       "search": 64
-    }
+    },
+    "total": "6"
   }, {
     "name": "durableStays",
     "position": {
@@ -2648,7 +2649,8 @@
       "steps": 2,
       "actions": 2,
       "search": 64
-    }
+    },
+    "total": "18"
   }, {
     "name": "keptTogether",
     "position": {
@@ -2669,7 +2671,8 @@
       "steps": 2,
       "actions": 2,
       "search": 64
-    }
+    },
+    "total": "8"
   }, {
     "name": "putAccepted",
     "position": {
@@ -2690,7 +2693,8 @@
       "steps": 2,
       "actions": 2,
       "search": 64
-    }
+    },
+    "total": "6"
   }, {
     "name": "putStores",
     "position": {
@@ -2711,7 +2715,8 @@
       "steps": 2,
       "actions": 2,
       "search": 64
-    }
+    },
+    "total": "2"
   }, {
     "name": "putStoresThroughDisk",
     "position": {
@@ -2733,7 +2738,8 @@
       "steps": 2,
       "actions": 2,
       "search": 64
-    }
+    },
+    "total": "6"
   } ],
   "progress": [ {
     "machine": "disk",

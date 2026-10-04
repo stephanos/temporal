@@ -51,9 +51,19 @@ class Lifter(roots: Seq[String], prefixes: Map[String, String]) extends Inspecto
 
     // Every root is lifted, and one that fails is reported without stopping the others. Nothing is
     // written once one failed, so what a failed root left behind matters only as the functions it
-    // was still lifting.
+    // was still lifting. A root that lifted is then held to a total on each Query it declared; one
+    // that failed already reports no Query of its own as missing one.
     for root <- roots.distinct.sorted do
-      try concerns.liftRoot(root)
+      val before = queries.keySet.toSet
+      try
+        concerns.liftRoot(root)
+        for (name, q) <- queries if !before(name) && q.total.isEmpty do
+          val at = q.getPosition
+          errors += LiftError(
+            s"${at.file}:${at.line}",
+            s"Query $name asserts no total: write `.total(n)` with n its static combination " +
+              "count, which model/README.md shows how to compute"
+          )
       catch
         case e: LiftError =>
           errors += e

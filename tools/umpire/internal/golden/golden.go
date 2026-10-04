@@ -54,6 +54,10 @@ type Projection struct {
 	Functions []Substitution `json:"function_name_substitutions"`
 	// Types are exact names of finite declarations moved after the goldens were captured.
 	Types []Substitution `json:"type_name_substitutions"`
+	// InertFields are IR fields, by full protobuf name, added after the goldens were captured and read
+	// by no table, ID, fingerprint, answer or Case: a frozen input never sets one, and the current IR
+	// is compared without it.
+	InertFields []string `json:"inert_fields"`
 	// CaseIDs are the kinds of lowered Case compared without their ID. An exploration Case's IDs carry
 	// the digest of its whole candidate Model, which the changes above alter; its other bytes do not.
 	CaseIDs []string `json:"projected_case_ids"`
@@ -342,6 +346,24 @@ func (p Projection) project(m *umpirespb.Model, original bool) (*umpirespb.Model
 	m = proto.CloneOf(m)
 	if original {
 		if err := p.rename(m); err != nil {
+			return nil, err
+		}
+	}
+	for _, name := range p.InertFields {
+		field, err := inertField(name)
+		if err != nil {
+			return nil, err
+		}
+		if err := messages(m.ProtoReflect(), func(child protoreflect.Message) (bool, error) {
+			if child.Descriptor() != field.ContainingMessage() {
+				return true, nil
+			}
+			if original && child.Has(field) {
+				return false, fmt.Errorf("inert field %s is set in a frozen input", name)
+			}
+			child.Clear(field)
+			return true, nil
+		}); err != nil {
 			return nil, err
 		}
 	}
