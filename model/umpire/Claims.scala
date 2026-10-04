@@ -60,8 +60,8 @@ final class ScenarioDecl private[umpire] (
     val name: String,
     val machine: Model,
     val start: Option[Any],
-    /** The declared classes, or for a composition its composed classes or the keys that name them. */
-    val actions: Vector[ClassRef | Composed | String],
+    /** The declared classes, or for a composition its composed classes. */
+    val actions: Vector[ClassRef | Composed],
     val free: Boolean
 )
 
@@ -80,10 +80,6 @@ final class ScenarioBuilder[S] private[umpire] (name: String, m: Model, start: O
    */
   def actions(cs: (ClassRef | Composed)*): Scenario[S] =
     Scenario(ScenarioDecl(name, m, start, cs.toVector, free = false))
-
-  /** Pins the schedule to these keys, for a composition whose keys name members. */
-  def actionKeys(keys: String*): Scenario[S] =
-    Scenario(ScenarioDecl(name, m, start, keys.toVector, free = false))
 
   /** Admits any action at every step, within the Query's step limit. */
   def free: Scenario[S] = Scenario(ScenarioDecl(name, m, start, Vector.empty, free = true))

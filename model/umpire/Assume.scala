@@ -34,11 +34,8 @@ final class Hole private[umpire] (val name: String):
 
   override def toString: String = s"hole $name"
 
-/** Declares a hole. */
-def hole(name: String): Hole = Hole(name)
-
 /** Declares a hole named after the `val` that declares it. */
-def hole: Hole = hole("")
+def hole: Hole = Hole("")
 
 final private[umpire] case class HoleReached(hole: Hole) extends Exception(s"${hole.name} reached")
 

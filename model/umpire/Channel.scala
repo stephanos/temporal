@@ -85,27 +85,22 @@ final class Channel[M] private[umpire] (
   override def toString: String = s"channel $name"
 
 /**
- * Declares a bounded channel of messages of `M`. Declared with named arguments and no `name`, it is
- * named after the `val` that declares it: `val wire = channel[Note](capacity = 2, ...)`.
+ * Declares a bounded channel of messages of `M`, named after the `val` that declares it: `val wire
+ * = channel[Note](capacity = 2, ...)`. The name is read by the lifter, so the channel's own `name`
+ * is empty here.
  */
-def channel[M](
-    name: String = "",
-    capacity: Int,
-    order: Order,
-    loss: Loss,
-    duplicates: Int = 0
-)(using
+def channel[M](capacity: Int, order: Order, loss: Loss, duplicates: Int = 0)(using
     Finite[M]
 ): Channel[M] =
   require(
     capacity >= 1,
-    s"channel $name holds at most $capacity messages; a channel holds at least one"
+    s"a channel holds at most $capacity messages; a channel holds at least one"
   )
   require(
     duplicates >= 0,
-    s"channel $name delivers a message $duplicates more times; it cannot deliver fewer than once"
+    s"a channel delivers a message $duplicates more times; it cannot deliver fewer than once"
   )
-  Channel(name, capacity, order, loss, duplicates)
+  Channel("", capacity, order, loss, duplicates)
 
 /**
  * What a channel holds: its deliveries in send order, or in catalog order for an unordered channel,

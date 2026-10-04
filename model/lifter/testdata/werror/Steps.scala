@@ -5,6 +5,8 @@ package fixture.werror
 
 import umpire.*
 
+given Family = Family("fixture.werror")
+
 enum Phase derives Finite:
   case idle, working, done
 
@@ -16,14 +18,14 @@ enum Outcome derives Finite:
 enum Fact derives Finite:
   case finished
 
-val go = action("go", Party("fixture"))
+val go = action(Party("fixture"))
 
 def goStep(s: State): List[Step[State, Outcome, Fact]] = s.phase match
   case Phase.idle    => List(Step(Outcome.accepted, State(Phase.working)))
   case Phase.working => List(Step(Outcome.accepted, State(Phase.done), List(Fact.finished)))
 
 val unfinished: Machine[State, Outcome, Fact] =
-  machine[State, Outcome, Fact](Family("fixture.werror"), "unfinished") {
+  machine[State, Outcome, Fact] {
     starts(State(Phase.idle))
     ends(s => s.phase == Phase.done)
     steps(go ~> goStep)

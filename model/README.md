@@ -419,14 +419,20 @@ val two = Limits(steps = 2, actions = 2, search = 64)
 val putStoresOnce = query find putStores in putOnce limits two total 2
 ```
 
-The same holds for `timer`, `internal`, `compose[S](members*)`, `monitor[S, O, F, M](initial)…`,
-`assume`, `hole`, `channel[M](capacity = …, …)` and `Realization(machine = …, …)` without `name`,
-and for `Party()`, `Entity(key = …)` and `Observation(on = …, read = …)`, whose `name`, read as
-`attemptCount.name` in an evidence line or a kit body, is their `val`'s.
-The explicit forms, such as `machine[S, O, F](family, name)`, `action(name, party)` and
-`property("…")`, name a declaration whose name differs from its `val`'s. A Property or Scenario
-with no `val`, built in a list or in a function over a machine argument, keeps `property("…")` or
-`scenario("…")`. A Query that neither a `val` nor `query("…")` names is named
+The same holds for `timer`, `internal`, `compose[S](_.field -> machine, …)`,
+`monitor[S, O, F, M](initial)…`, `assume`, `hole`, `channel[M](capacity = …, …)` and
+`Realization(machine = …, …)` without `name`, and for `Party()`, `Entity(key = …)` and
+`Observation(on = …, read = …)`, whose `name`, read as `attemptCount.name` in an evidence line or a
+kit body, is their `val`'s.
+
+A name is written as a string only where it differs from the `val`'s, or where no `val` declares
+it, and each kind has one form for that: `machine[S, O, F](family, name)`, `action(name, party)`,
+`monitor[S, O, F, M](name, initial)`, `assume(name)`, `property(name)`, `scenario(name)`,
+`query(name)` and `Limits(name, …)`. A timer, internal step, hole, channel, derived machine and
+composition has none: each is named after its `val`, and a composition names its members, syncs and
+Scenario classes by field selector, never by a string key. A progress claim is always named,
+`m.leadsTo(name)(…)`. A Property or Scenario with no `val`, built in a list or in a function over a
+machine argument, keeps `property("…")` or `scenario("…")`. A Query that neither a `val` nor `query("…")` names is named
 `<machine>.<scenario>.<property>`, after the machine its Scenario is declared on, its Scenario and
 its Property: `query verify notPaused in any` over a design `m` is `m.any.notAdmittedWhilePaused`.
 Any other captured form with no `val`, or with a name the compiler made up such as an anonymous

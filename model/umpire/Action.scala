@@ -184,19 +184,17 @@ def action(name: String, party: Party): Action[EmptyTuple] = Action(ActionDecl(n
  */
 def action(party: Party): Action[EmptyTuple] = Action(ActionDecl("", party))
 
-/** Declares a timer: an action with no input that the system performs. */
-def timer(name: String): Action[EmptyTuple] = Action(ActionDecl(name, Party.system, timer = true))
+/**
+ * Declares a timer, an action with no input that the system performs, named after the `val` that
+ * declares it.
+ */
+def timer: Action[EmptyTuple] = Action(ActionDecl("", Party.system, timer = true))
 
-/** Declares a timer named after the `val` that declares it. */
-def timer: Action[EmptyTuple] = timer("")
-
-/** Declares a step of the system that is not a timer, such as a dispatch or a commit. */
-def internal(name: String): Action[EmptyTuple] = Action(
-  ActionDecl(name, Party.system, internal = true)
-)
-
-/** Declares a step of the system named after the `val` that declares it. */
-def internal: Action[EmptyTuple] = internal("")
+/**
+ * Declares a step of the system that is not a timer, such as a dispatch or a commit, named after
+ * the `val` that declares it.
+ */
+def internal: Action[EmptyTuple] = Action(ActionDecl("", Party.system, internal = true))
 
 /** One class of an action: the action with one assignment of its inputs. */
 final case class Class(decl: ActionDecl, values: List[Any])

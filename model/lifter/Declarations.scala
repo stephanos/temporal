@@ -40,8 +40,6 @@ private[lift] trait Declarations:
     def walk(t: Term): ir.Action = t match
       case Apply(Ident("action"), List(name, party)) =>
         named(constString(name)).withParty(constString(party))
-      case Apply(Ident("timer"), List(name))    => named(constString(name)).withTimer(true)
-      case Apply(Ident("internal"), List(name)) => named(constString(name)).withInternal(true)
       // The forms that take their name from the val.
       case Apply(Ident("action"), List(party))      => captured.withParty(constString(party))
       case Ident("timer")                           => captured.withTimer(true)
@@ -122,9 +120,6 @@ private[lift] trait Declarations:
   /** A machine, from the right-hand side of `sym`, the val that declares it. */
   def machine(sym: Symbol, rhs: Term): ir.Machine =
     rhs match
-      // `source.restrict(family, name)(keep*)`, named as it says.
-      case Apply(Apply(Select(_, "restrict"), List(family, newName)), List(_)) =>
-        derivedMachine(rhs, constString(family), constString(newName))
       // A derivation, named after its val, in the given family.
       case Derivation(_, _, _, family) =>
         derivedMachine(rhs, constString(family), capturedName(sym, rhs, "a machine"))
@@ -243,9 +238,6 @@ private[lift] trait Declarations:
    */
   object Derivation:
     def unapply(t: Term): Option[(String, Term, List[Term], Term)] = t match
-      case Apply(Apply(Select(source, "restrict"), List(f, _)), List(keep))
-          if isNamed(source.tpe, "umpire.Machine") =>
-        Some(("restrict", source, List(keep), f))
       case Apply(
             Apply(
               Select(source, op @ ("restrict" | "rebind" | "extend" | "assuming")),
@@ -570,25 +562,19 @@ private[lift] trait Declarations:
 
   // ### Channels, monitors, assumptions and holes
 
-  /** A channel, from its `channel[M](name, capacity, order, loss, duplicates)` declaration. */
+  /** A channel, from its `channel[M](capacity, order, loss, duplicates)` declaration and its val. */
   def channelOf(sym: Symbol, at: Tree): String =
     val id = definitionId(sym, at)
     if !channels.contains(id) then
       val d = valDef(sym, at, "a channel")
-      val (message, name, capacity, order, loss, duplicates, finite) = arguments(d.rhs.get) match
-        case Apply(
-              Apply(TypeApply(Ident("channel"), List(m)), List(n, c, o, l, dups)),
-              List(f)
-            ) =>
-          (m, n, c, o, l, dups, f)
+      val (message, capacity, order, loss, duplicates, finite) = arguments(d.rhs.get) match
+        case Apply(Apply(TypeApply(Ident("channel"), List(m)), List(c, o, l, dups)), List(f)) =>
+          (m, c, o, l, dups, f)
         case other =>
-          fail(
-            other,
-            "a channel is declared by `channel[M](name, capacity, order, loss, duplicates)`"
-          )
+          fail(other, "a channel is declared by `channel[M](capacity, order, loss, duplicates)`")
       val (cap, dup) =
         (constInt(capacity), if isDefault(duplicates) then 0L else constInt(duplicates))
-      val n = if isDefault(name) then capturedName(sym, d, "a channel") else constString(name)
+      val n = capturedName(sym, d, "a channel")
       if cap < 1 then
         fail(d, s"channel $n holds at most $cap messages; a channel holds at least one")
       if dup < 0 then fail(d, s"channel $n delivers a message $dup more times than once; no fewer")
@@ -768,15 +754,14 @@ private[lift] trait Declarations:
       assumptions(id) = a
     id
 
-  /** A hole, from `hole(name)`, or `hole` named after its val. */
+  /** A hole, from `hole`, named after its val. */
   def holeOf(sym: Symbol, at: Tree): String =
     val id = definitionId(sym, at)
     if !holes.contains(id) then
       val d = valDef(sym, at, "a hole")
       val name = d.rhs.get match
-        case Apply(Ident("hole"), List(name)) => constString(name)
-        case Ident("hole")                    => capturedName(sym, d, "a hole")
-        case other => fail(other, "a hole is declared by `hole` or `hole(name)`")
+        case Ident("hole") => capturedName(sym, d, "a hole")
+        case other         => fail(other, "a hole is declared by `hole`")
       distinctName("holes", holes.values.map(h => h.name -> h.id), name, id, d)
       holes(id) = ir.Hole(id = id, name = name, position = Some(pos(d)))
     id

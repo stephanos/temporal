@@ -17,8 +17,8 @@ final case class Here(on: Boolean) derives Finite
 
 final case class There(on: Boolean) derives Finite
 
-val wire: Channel[Note] =
-  channel[Note]("wire", capacity = 1, order = Order.fifo, loss = Loss.reliable)
+given Family = Family("fixture.crossed")
+val wire: Channel[Note] = channel[Note](capacity = 1, order = Order.fifo, loss = Loss.reliable)
 
 final case class Holding(inbox: Inbox[Note])
 
@@ -27,10 +27,10 @@ given Finite[Holding] =
   Finite.derived
 
 val elsewhere: Monitor[There, Outcome, Nothing, Boolean] =
-  monitor[There, Outcome, Nothing, Boolean]("elsewhere", false)((seen, _, _) => seen)(seen => seen)
+  monitor[There, Outcome, Nothing, Boolean](false)((seen, _, _) => seen)(seen => seen)
 
 val here: Machine[Here, Outcome, Nothing] =
-  machine[Here, Outcome, Nothing](Family("fixture.crossed"), "here") {
+  machine[Here, Outcome, Nothing] {
     // A monitor of another state type.
     monitors(elsewhere)
     starts(Here(false))
@@ -38,7 +38,7 @@ val here: Machine[Here, Outcome, Nothing] =
   }
 
 val holding: Machine[Holding, Outcome, Nothing] =
-  machine[Holding, Outcome, Nothing](Family("fixture.crossed"), "holding") {
+  machine[Holding, Outcome, Nothing] {
     starts(Holding(wire.empty))
     ends(_ => true)
     // A delivery handler that takes another message type.
@@ -49,7 +49,7 @@ val holding: Machine[Holding, Outcome, Nothing] =
 val nowhere: Boolean = Signal.up.in()
 
 val there: Machine[There, Outcome, Nothing] =
-  machine[There, Outcome, Nothing](Family("fixture.crossed"), "there") {
+  machine[There, Outcome, Nothing] {
     starts(There(false))
     ends(_ => true)
   }

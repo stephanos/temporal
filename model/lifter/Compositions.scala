@@ -10,14 +10,14 @@ private[lift] trait Compositions:
 
   // ### Compositions
 
-  /** `"field" -> value`, or `s.field -> value` as the body of a selector. */
+  /** `s.field -> value`, the body of a selector. */
   def arrow(t: Term): (Term, Term) = t match
     case Apply(
           TypeApply(Select(Apply(TypeApply(Ident("ArrowAssoc"), _), List(k)), "->"), _),
           List(v)
         ) =>
       (k, v)
-    case other => fail(other, s"expected `\"member\" -> value`, not ${other.show}")
+    case other => fail(other, s"expected `_.member -> value`, not ${other.show}")
 
   /** The parameter and body of a selector of the composed state, such as `_.queue -> enqueue`. */
   def selector(t: Term): Option[(ValDef, Term)] = lambda(t).collect { case (List(p), body) =>
@@ -100,10 +100,9 @@ private[lift] trait Compositions:
   private val composing = mutable.LinkedHashSet.empty[Symbol]
 
   /**
-   * A composition, from `compose[S](family, name)(members*)`, or `compose[S](members*)` named after
-   * its val `sym` in the given family, with each member by its field's name or by a selector of its
-   * field; or another composition with one member replaced, `c.withMember(_.field -> machine)`; and
-   * the syncs, ends and replacements chained onto it.
+   * A composition, from `compose[S](members*)` named after its val `sym` in the given family, with
+   * each member by a selector of its field; or another composition with one member replaced,
+   * `c.withMember(_.field -> machine)`; and the syncs, ends and replacements chained onto it.
    */
   def composition(sym: Symbol, rhs: Term): ir.Composition =
     def declared(s: TypeTree, family: String, name: String, members: Term, t: Term) =
@@ -113,33 +112,30 @@ private[lift] trait Compositions:
         name = name,
         stateType = typeRef(s.tpe, t).getNamed,
         members = varargs(members).map { m =>
-          selector(m) match
-            case Some((param, body)) =>
-              val (key, value) = arrow(body)
-              val field = selectedField(param, key, m, "compose")
-              ir.Member(field, memberMachine(field, key, value, m, name).name)
-            case None =>
-              val (field, member) = arrow(m)
-              ir.Member(constString(field), machineOf(resolveSymbol(member), member).name)
+          val (param, body) = selector(m).getOrElse(
+            fail(m, s"compose names a member by a selector, `_.member -> machine`, not ${m.show}")
+          )
+          val (key, value) = arrow(body)
+          val field = selectedField(param, key, m, "compose")
+          ir.Member(field, memberMachine(field, key, value, m, name).name)
         }
       )
     // A typed move names its member by a selector and the very action the member binds.
-    def move(c: ir.Composition, sync: String, t: Term): ir.SyncMove = selector(t) match
-      case Some((param, body)) =>
-        val (key, a) = arrow(body)
-        val field = selectedField(param, key, t, s"sync $sync")
-        val member = filled(c, field, t, s"sync $sync")
-        val id = action(a)
-        if !binds(member.machine, id) then
-          fail(
-            t,
-            s"sync $sync pairs ${actions(id).name} of $field, and ${member.machine} binds no action " +
-              s"of $id: a sync pairs the action its member binds, not one of another declaration"
-          )
-        ir.SyncMove(field, actions(id).name)
-      case None =>
-        val (member, a) = arrow(t)
-        ir.SyncMove(constString(member), actions(action(a)).name)
+    def move(c: ir.Composition, sync: String, t: Term): ir.SyncMove =
+      val (param, body) = selector(t).getOrElse(
+        fail(t, s"sync names a member by a selector, `_.member -> action`, not ${t.show}")
+      )
+      val (key, a) = arrow(body)
+      val field = selectedField(param, key, t, s"sync $sync")
+      val member = filled(c, field, t, s"sync $sync")
+      val id = action(a)
+      if !binds(member.machine, id) then
+        fail(
+          t,
+          s"sync $sync pairs ${actions(id).name} of $field, and ${member.machine} binds no action " +
+            s"of $id: a sync pairs the action its member binds, not one of another declaration"
+        )
+      ir.SyncMove(field, actions(id).name)
     // A sync named `n`, or after its first member's action, refused where another has its name.
     def sync(c: ir.Composition, n: String, first: Term, second: Term, at: Tree) =
       for s <- c.syncs.find(_.name == n) do
@@ -162,10 +158,10 @@ private[lift] trait Compositions:
       case Apply(Select(inner, "replaces"), List(field, opaque)) =>
         val c = walk(inner)
         val replaced = machineOf(resolveSymbol(opaque), opaque).name
-        selector(field) match
-          case Some((param, body)) =>
-            replaces(c, selectedField(param, body, field, "replaces"), replaced, field)
-          case None => replaces(c, constString(field), replaced, rhs)
+        val (param, body) = selector(field).getOrElse(
+          fail(field, s"replaces names a member by a selector, `_.member`, not ${field.show}")
+        )
+        replaces(c, selectedField(param, body, field, "replaces"), replaced, field)
       case Apply(Apply(Select(inner, "withMember"), List(member)), List(family)) =>
         val base = inner match
           case r: Ref => compositionOf(resolveSymbol(r), r)
@@ -175,11 +171,6 @@ private[lift] trait Compositions:
           name = capturedName(sym, rhs, "a composition"),
           position = Some(pos(rhs))
         )
-      case Apply(
-            Apply(Apply(TypeApply(Ident("compose"), List(s)), List(family, name)), List(members)),
-            _
-          ) =>
-        declared(s, constString(family), constString(name), members, t)
       case Apply(Apply(TypeApply(Ident("compose"), List(s)), List(members)), List(_, family)) =>
         declared(s, constString(family), capturedName(sym, rhs, "a composition"), members, t)
       case other => fail(other, s"not a part of a composition declaration: ${other.show}")
@@ -357,8 +348,7 @@ private[lift] trait Compositions:
               fail(
                 t,
                 s"sync ${s.name} pairs ${a.name} of $field with ${other.action} of ${other.member}, " +
-                  "which takes inputs `synced` cannot name from one side: list its classes with " +
-                  "`actionKeys`"
+                  "which takes inputs `synced` cannot name from one side"
               )
             s.name + inputs(cls)
           case Seq() =>

@@ -1,10 +1,10 @@
-// Spelled.scala's Model with every name taken from its val: the family is a given, the machines state
-// their types once, the composition names its members, syncs and Scenario classes by field
-// selectors, the Scenarios start where their machines do, the evidence lists only the fact whose
-// evidence is not its name, the refined read needs no given, and one DefinitionScope keeps every
-// symbol-based Definition ID Spelled.scala's owner gives and every top-level type's name in
-// fixture.spelled. The lifter's tests lift both and require one IR of the two, but for positions and
-// the owner of the functions each file declares.
+// A Model with every name taken from its val: the family is a given, the machines state their
+// types once, the composition names its members, syncs and Scenario classes by field selectors, the
+// Scenarios start where their machines do, the evidence lists only the fact whose evidence is not
+// its name, and the refined read needs no given. One DefinitionScope keeps every symbol-based
+// Definition ID the owner fixture.spelled.Spelled$package$ gives, and every top-level type's name
+// in fixture.spelled. The lifter's tests compare its IR with expected/captured.json and check those
+// IDs and names.
 package fixture.captured
 
 import umpire.*
