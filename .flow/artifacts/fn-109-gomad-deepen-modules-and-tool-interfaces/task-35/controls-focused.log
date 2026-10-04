@@ -1,0 +1,76 @@
+=== RUN   TestCorpusPublishesCanonicalSnapshotOnlyAfterMatchingReplay
+--- PASS: TestCorpusPublishesCanonicalSnapshotOnlyAfterMatchingReplay (0.06s)
+=== RUN   TestCorpusRejectsIdentityChangesAndNonMatchingReplay
+--- PASS: TestCorpusRejectsIdentityChangesAndNonMatchingReplay (0.04s)
+=== RUN   TestCorpusAllowsOnlyOneWriter
+--- PASS: TestCorpusAllowsOnlyOneWriter (0.01s)
+=== RUN   TestCorpusRejectsEntryCapacityOverflowBeforeOpeningCases
+--- PASS: TestCorpusRejectsEntryCapacityOverflowBeforeOpeningCases (0.32s)
+=== RUN   TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity
+=== RUN   TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v1
+=== RUN   TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v999
+--- PASS: TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity (0.00s)
+    --- PASS: TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v1 (0.00s)
+    --- PASS: TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v999 (0.00s)
+=== RUN   TestCorpusRejectsCaseWithChangedEnvironment
+--- PASS: TestCorpusRejectsCaseWithChangedEnvironment (0.01s)
+=== RUN   TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema
+=== RUN   TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/malformed
+=== RUN   TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/noncanonical
+=== RUN   TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/unknown_field
+=== RUN   TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/duplicate_schema
+--- PASS: TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema (0.00s)
+    --- PASS: TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/malformed (0.00s)
+    --- PASS: TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/noncanonical (0.00s)
+    --- PASS: TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/unknown_field (0.00s)
+    --- PASS: TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/duplicate_schema (0.00s)
+=== RUN   TestCorpusCasesShareOneTarget
+--- PASS: TestCorpusCasesShareOneTarget (0.02s)
+=== RUN   TestCorpusKeepsItsTargetUntilNoCaseSharesIt
+--- PASS: TestCorpusKeepsItsTargetUntilNoCaseSharesIt (0.02s)
+=== RUN   TestCorpusByteCapCountsTheSharedTargetOnce
+=== RUN   TestCorpusByteCapCountsTheSharedTargetOnce/private_copies
+=== RUN   TestCorpusByteCapCountsTheSharedTargetOnce/one_shared_target
+=== RUN   TestCorpusByteCapCountsTheSharedTargetOnce/fewer_cases_than_the_cap
+--- PASS: TestCorpusByteCapCountsTheSharedTargetOnce (0.00s)
+    --- PASS: TestCorpusByteCapCountsTheSharedTargetOnce/private_copies (0.00s)
+    --- PASS: TestCorpusByteCapCountsTheSharedTargetOnce/one_shared_target (0.00s)
+    --- PASS: TestCorpusByteCapCountsTheSharedTargetOnce/fewer_cases_than_the_cap (0.00s)
+=== RUN   TestCorpusReadSnapshotPreservesResultsAndErrorOrder
+=== RUN   TestCorpusReadSnapshotPreservesResultsAndErrorOrder/success
+=== RUN   TestCorpusReadSnapshotPreservesResultsAndErrorOrder/mode_before_malformed
+=== RUN   TestCorpusReadSnapshotPreservesResultsAndErrorOrder/malformed
+=== RUN   TestCorpusReadSnapshotPreservesResultsAndErrorOrder/schema_before_identity
+=== RUN   TestCorpusReadSnapshotPreservesResultsAndErrorOrder/identity
+=== RUN   TestCorpusReadSnapshotPreservesResultsAndErrorOrder/digest_before_identity
+--- PASS: TestCorpusReadSnapshotPreservesResultsAndErrorOrder (0.00s)
+    --- PASS: TestCorpusReadSnapshotPreservesResultsAndErrorOrder/success (0.00s)
+    --- PASS: TestCorpusReadSnapshotPreservesResultsAndErrorOrder/mode_before_malformed (0.00s)
+    --- PASS: TestCorpusReadSnapshotPreservesResultsAndErrorOrder/malformed (0.00s)
+    --- PASS: TestCorpusReadSnapshotPreservesResultsAndErrorOrder/schema_before_identity (0.00s)
+    --- PASS: TestCorpusReadSnapshotPreservesResultsAndErrorOrder/identity (0.00s)
+    --- PASS: TestCorpusReadSnapshotPreservesResultsAndErrorOrder/digest_before_identity (0.00s)
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder/entry_before_coverage
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder/coverage_before_features
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder/features_before_case
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder/case_before_payload
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder/payload_before_captured_inputs
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder/captured_inputs_before_mounts
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder/mounts
+--- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder (0.02s)
+    --- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder/entry_before_coverage (0.00s)
+    --- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder/coverage_before_features (0.00s)
+    --- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder/features_before_case (0.00s)
+    --- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder/case_before_payload (0.00s)
+    --- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder/payload_before_captured_inputs (0.00s)
+    --- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder/captured_inputs_before_mounts (0.00s)
+    --- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder/mounts (0.00s)
+=== RUN   TestCorpusValidationFailureDoesNotPublish
+--- PASS: TestCorpusValidationFailureDoesNotPublish (0.01s)
+=== RUN   TestCorpusCanonicalSnapshotBaseline
+    corpus_test.go:649: BASE_CANONICAL_BYTES={"coverage_sha256":"sha256:6133c1926850e76c20dadfb2f3bc78162729785eb67cf45711ec80d0dcd7cc5b","entries":[{"artifact":"cases/sha256-988727643f3e5380fef260f35d88bdd3","captured_inputs":{"io_transcript_records":"1","io_transcript_sha256":"sha256:e81de92b0622e7645f313e8c7b95f2a0481d122a093d89f03d79dd2e5b8a0496","world_initial_sha256":"sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b","world_transcript_sha256":"sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","world_transition_records":"0"},"features":[{"kind":"outcome","value":"success/success/exit"},{"kind":"io_outcome","value":"os.open/0"}],"novelty_reasons":[{"kind":"outcome","value":"success/success/exit"},{"kind":"io_outcome","value":"os.open/0"}],"payload_bytes":"149","record_hash":"sha256:988727643f3e5380fef260f35d88bdd3ce9fcfe09fbecafb649b67f19613e33e","replay":{"diagnostic":false,"match":true,"verified":true},"seed":"7","semantic_coverage":{"digest":"sha256:b14c6b04e0e4bd4b4431562e77b1b78eb7940a9cc505e47a8df9f713f4058356","probes":[],"schema":"gomad3.semantic-coverage/v1"},"stored_bytes":"7838"}],"generation":"1","identity":{"boundary_sha256":"sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0","boundary_version":"go1.27.1-v1","environment_sha256":"sha256:8a15523da42b0647d93aa136c19f86bec6d0117878938d7f86310c94a38bfd5b","instrumentation_schema":"gomad3.semantic-features/v1","instrumentation_sha256":"sha256:6b0e45f581c4be050d0caac7bb11394e111373c0212bd200394f509555773e2b","manifest_record_contract":"gomad3.execution-record/v1","manifest_schema_version":1,"target_sha256":"sha256:1876ff5982ede7673a78a35d78aa868749ba1d629c50582c92101bbfe0da2254","toolchain":{"build_key":"cbeccfefbc62a2ca026d9dded0316ecedfce33bd46b5c71b6645e86b67a0713e","go_version":"go1.26.4","target_goarch":"arm64","target_goos":"darwin"}},"schema":"gomad3.guide-corpus/v2","snapshot_sha256":"sha256:b465cb3046d07998b31810e6a10167507ead9c68d33cade81d212552d9f57833"}
+    corpus_test.go:650: BASE_CANONICAL_HASH=sha256:e243d461e78c4a4a1a7f9832091709dc8bd2f8ade34e61d318914b8269fecf2f
+--- PASS: TestCorpusCanonicalSnapshotBaseline (0.01s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	0.530s

@@ -1,0 +1,191 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.35",
+  "scope": "SOURCE_ONLY",
+  "verdict": "PERMIT_SOURCE_PROGRESS_CHECKPOINT",
+  "formal_impl_review": false,
+  "ship": false,
+  "task_complete": false,
+  "base_commit": "a80ad9b9d1a4195c4aeb2fe135557f71e6e6552a",
+  "head_commit": "a80ad9b9d1a4195c4aeb2fe135557f71e6e6552a",
+  "sources": {
+    "tools/gomad3/runner/internal/corpus/corpus.go": "7dafa70ff15f0bf46438d57689f6a7b7386d5f7e6c542d1fab75f816b75a7076",
+    "tools/gomad3/runner/internal/corpus/corpus_test.go": "25ed9196f323f18ed5b427ea558c3ff45c370f2861726cb46fda6094687bbf0e"
+  },
+  "model": {
+    "reviewer_requested": "gpt-6.1-sol",
+    "reviewer_effort_requested": "high",
+    "reviewer_actual": null,
+    "reviewer_effort_actual": null,
+    "writer_requested": "gpt-6.1-sol",
+    "writer_effort_requested": "high",
+    "writer_actual": null,
+    "same_family_requested": true,
+    "same_family_actual": null,
+    "judge": {
+      "available": false,
+      "reason": "no_key",
+      "spawn": null,
+      "implementer": "gpt-6.1-sol"
+    },
+    "note": "Preserved explicit native pin. Actual executing model metadata unavailable. No additional judge, reroute or bridge."
+  },
+  "strengths": [
+    {
+      "reference": "tools/gomad3/runner/internal/corpus/corpus.go:274",
+      "result": "Exactly one Close at original defer; nil Close performs no return assignment; nonnil Close zeroes Snapshot, returns raw sole error or primary-first join."
+    },
+    {
+      "reference": "tools/gomad3/runner/internal/corpus/corpus.go:354",
+      "result": "Equivalent cleanup for SharedTarget, with inner handle release before enclosing snapshot descriptor release; original local operation bytes preserved."
+    },
+    {
+      "reference": "tools/gomad3/runner/internal/corpus/corpus.go:156",
+      "result": "Failed validation precedes publication; writeAtomic, memory commit and committed true,error after cleanupCases remain byte-identical."
+    },
+    {
+      "reference": "tools/gomad3/runner/internal/corpus/corpus_test.go:60",
+      "result": "Four original same-position fixture defers use nonfatal t.Errorf; exact complete BASE source/test reconstruction verifies every original assertion/body/comment."
+    },
+    {
+      "reference": "tools/gomad3/runner/internal/corpus/corpus_test.go:508",
+      "result": "Bounded direct real-file success/order/zero-result/transaction controls and independent literal canonical oracle retain BASE and final receipt bindings."
+    }
+  ],
+  "findings": {
+    "critical": [],
+    "important": [],
+    "minor": []
+  },
+  "checks": [
+    {
+      "name": "audit",
+      "receipt": "review-audit.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 0.346,
+      "top_level_pass_count": null,
+      "raw_log_sha256": "2cc556601e64f282f78e372873589e4cd467d6a3114c5f2d113dbe8701060f34",
+      "stable": true
+    },
+    {
+      "name": "package",
+      "receipt": "review-package.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 0.919,
+      "top_level_pass_count": 24,
+      "raw_log_sha256": "10362e0cf859fa48b475f1e7fa4fc97b5f8722fb665fa08019100f61de84ecf1",
+      "stable": true
+    },
+    {
+      "name": "focused",
+      "receipt": "review-focused.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 0.814,
+      "top_level_pass_count": 14,
+      "raw_log_sha256": "3a3e52c3df6a2f6f3817d7f4b132e437a9373ac3f39b285c44ba35e04d263b8e",
+      "stable": true
+    },
+    {
+      "name": "boundaries",
+      "receipt": "review-boundaries.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 5.612,
+      "top_level_pass_count": 5,
+      "raw_log_sha256": "b97b077530bca85a2f86b163180427a301b4a709b203cd438e9978870ec5667e",
+      "stable": true
+    },
+    {
+      "name": "lint",
+      "receipt": "review-lint.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 0.615,
+      "top_level_pass_count": null,
+      "raw_log_sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+      "stable": true
+    },
+    {
+      "name": "errortype",
+      "receipt": "review-errortype.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 0.364,
+      "top_level_pass_count": null,
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stable": true
+    },
+    {
+      "name": "gofmt",
+      "receipt": "review-gofmt.receipt.json",
+      "exit_code": 0,
+      "elapsed_seconds": 0.144,
+      "top_level_pass_count": null,
+      "raw_log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stable": true
+    }
+  ],
+  "audit": {
+    "protected_count": 1043,
+    "protected_unchanged": true,
+    "worker_freeze_verified": true,
+    "writer_receipts_verified": 16,
+    "archived_source_audit_wrapper": "Bound __file__ to original source_audit.py; replaced its two write_text calls with comparisons against archived JSON; limited receipt interpretation to the archived 15 source-check names, all within evidence.json's 16-name list; verified audit-source receipt separately. Archived bytes unchanged.",
+    "original_reconstruction": "complete files equal Git BASE hashes",
+    "diagnostic_delta": {
+      "baseline": 6,
+      "final": 0,
+      "introduced": [],
+      "residual": [],
+      "production_sites": 2,
+      "original_fixture_sites": 4
+    },
+    "canonical_oracle": {
+      "captured_under_base_production": true,
+      "literal_passed_under_base_and_final": true,
+      "entries": 1,
+      "bytes_sha256": "sha256:e243d461e78c4a4a1a7f9832091709dc8bd2f8ade34e61d318914b8269fecf2f",
+      "snapshot_sha256": "sha256:b465cb3046d07998b31810e6a10167507ead9c68d33cade81d212552d9f57833",
+      "qualification": false
+    },
+    "generator_inputs_affected": false,
+    "generator_validate": "not run; corpus excluded from inspected descriptor/schema/template/implementation inputs"
+  },
+  "proof_limits": [
+    "Genuine first-Close failure and simultaneous primary/cleanup fault execution unproved; new sole/combined cleanup behavior has source evidence only.",
+    "Stock linux/arm64 developmental checks are neither darwin/arm64 nor linux/amd64 qualification.",
+    "Original R3/R13/R18/R19, shared fn108 assessment/retention, task12/relevant predecessors/task21, matched original first-baseline fixed identities, full/completion/formal/affected-consumer and both-native gates remain required and open.",
+    "No fresh whole-Gomad count inferred from historical 419 findings.",
+    "Root Flow/docs integration and final metadata freeze await conductor edits and metadata-only recheck."
+  ],
+  "writes": [
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-check.py",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-audit.log",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-audit.receipt.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-package.log",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-package.receipt.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-focused.log",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-focused.receipt.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-boundaries.log",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-boundaries.receipt.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-lint.log",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-lint.receipt.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-errortype.log",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-errortype.receipt.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-gofmt.log",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-gofmt.receipt.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/independent-source-review.md",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/independent-source-review.json"
+  ],
+  "handles": {
+    "command": "all terminal",
+    "sessions": [
+      {
+        "id": 94031,
+        "state": "terminal"
+      },
+      {
+        "id": 52778,
+        "state": "terminal"
+      }
+    ],
+    "delegates": []
+  },
+  "mutations": "Only new reviewer-owned proof via apply_patch; no product, worker proof, Git/index/branch, Flow, config, network, download or delegation writes."
+}

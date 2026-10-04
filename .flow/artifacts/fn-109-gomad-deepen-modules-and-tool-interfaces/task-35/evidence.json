@@ -1,0 +1,40 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.35",
+  "status": "in_progress",
+  "result": "SOURCE_PROGRESS_ONLY",
+  "base_commit": "a80ad9b9d1a4195c4aeb2fe135557f71e6e6552a",
+  "commits": [],
+  "prs": [],
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "sources": {
+    "tools/gomad3/runner/internal/corpus/corpus.go": "7dafa70ff15f0bf46438d57689f6a7b7386d5f7e6c542d1fab75f816b75a7076",
+    "tools/gomad3/runner/internal/corpus/corpus_test.go": "25ed9196f323f18ed5b427ea558c3ff45c370f2861726cb46fda6094687bbf0e"
+  },
+  "tests": [
+    "go test -count=1 -tags test_dep -v ./runner/internal/corpus",
+    "go test -count=1 -tags test_dep -v ./runner/internal/corpus -run '^TestCorpus(PublishesCanonicalSnapshotOnlyAfterMatchingReplay|RejectsIdentityChangesAndNonMatchingReplay|RejectsPreviousAndFutureSchemaBeforeChangedIdentity|RejectsEntryCapacityOverflowBeforeOpeningCases|RejectsCaseWithChangedEnvironment|RejectsMalformedAndNoncanonicalCurrentSchema|AllowsOnlyOneWriter|CasesShareOneTarget|KeepsItsTargetUntilNoCaseSharesIt|ByteCapCountsTheSharedTargetOnce|ReadSnapshotPreservesResultsAndErrorOrder|ValidateEntryPreservesResultsAndErrorOrder|ValidationFailureDoesNotPublish|CanonicalSnapshotBaseline)$'",
+    "go test -count=1 -tags test_dep -v . -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$'",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./runner/internal/corpus",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./runner/internal/corpus",
+    "gofmt -d runner/internal/corpus/corpus.go runner/internal/corpus/corpus_test.go",
+    "go env GOOS GOARCH GOVERSION GOROOT GOMOD GOWORK GOENV GOTOOLCHAIN GOPROXY GOFLAGS",
+    "python3 /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/source_audit.py"
+  ],
+  "baseline": "red configured lint: six errcheck findings; package20/20, focused10/10, boundaries5/5, errortype and gofmt green",
+  "preproduction_controls": "controls-focused and preservation-focused14/14; production SHA matches BASE throughout both phases",
+  "final": "package24/24, focused14/14, boundaries5/5, lint0, errortype/gofmt/source-audit green",
+  "receipts": [
+    "baseline-package.receipt.json", "baseline-focused.receipt.json", "baseline-boundaries.receipt.json", "baseline-lint.receipt.json", "baseline-errortype.receipt.json", "baseline-gofmt.receipt.json",
+    "controls-focused.receipt.json", "preservation-focused.receipt.json",
+    "final-package.receipt.json", "final-focused.receipt.json", "final-boundaries.receipt.json", "final-lint.receipt.json", "final-errortype.receipt.json", "final-gofmt.receipt.json",
+    "audit-environment.receipt.json", "audit-source.receipt.json"
+  ],
+  "audit": "source-check.json",
+  "diagnostics_delta": "lint-delta.json",
+  "protected_inputs": "1043 unchanged admitted hashes; whole original source/test reconstruction matches both BASE hashes",
+  "generator_validation": "inputs inspected and unaffected; validate not run",
+  "review": "host-deferred; conductor owns review; no verdict claimed",
+  "gaps": ["genuine first-Close and simultaneous cleanup-fault execution", "original R3/R13/R18/R19 and sharedfn108/task12/predecessors/task21", "matched original first-baseline fixed identities", "full/completion/formal/affected-consumer and both native platform qualification"],
+  "command_handles": "all terminal",
+  "delegate_handles": []
+}

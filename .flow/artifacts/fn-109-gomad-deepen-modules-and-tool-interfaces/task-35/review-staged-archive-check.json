@@ -1,0 +1,122 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.35",
+  "scope": "NARROW_STAGED_ARCHIVE_METADATA_RECHECK",
+  "verdict": "SOURCE_PROGRESS_COMMIT_ONLY",
+  "findings": {
+    "critical": [],
+    "important": [],
+    "minor": []
+  },
+  "checks": {
+    "root_source_checks_provisional_sha256": "3e02a72fcf0e5c0fbb650a45f962757a057ca2a6336a8e53e85d1dec2dac2f06",
+    "root_scope_gate_sha256": "f37d3793deda86cf35675fee8a605cf23cb0c1c7b1e3c1e5e791c16b1c381e6b",
+    "archive_sha256": "ecc5d80c8f231082f3eec8d2705ed3d3ac9c9b6c7b813c310e6cc39b332d6b35",
+    "archive_lines": {
+      "GOOS": "linux",
+      "GOARCH": "arm64",
+      "GOVERSION": "go1.27.1",
+      "GOROOT": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64",
+      "GOMOD": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/go.mod",
+      "GOWORK": "off",
+      "GOENV": "",
+      "GOTOOLCHAIN": "local",
+      "GOPROXY": "off",
+      "GOFLAGS": ""
+    },
+    "effective_goenv": "off",
+    "effective_gowork": "off",
+    "full_staged_exit_code": 2,
+    "full_staged_stdout": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/audit-environment.log:10: new blank line at EOF.\n",
+    "all_other_admitted_paths_exit_code": 0,
+    "staged_paths": 73,
+    "staged_equals_allowed_and_worktree": true,
+    "immutable_proof_count": 64,
+    "document_sha256": {
+      ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md": "f7e2d68b74212fe42a07f824bc9812cf1a23f90cf49c83d2fb1847823fb49333",
+      ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.json": "0fabc9bcac5608df7bfad09da8541c4226f17679bd8c169247d5699ff5e917c1",
+      ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.json": "4390efef4d354283f4a1fa5a75d2d3f05a6f8249119ce3cc41efdf2cf3185609",
+      ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.35.md": "f640e17eed94b5ad750bf99a2ab37a4b263cb9c7ce32762e715a95b6487d5176",
+      ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.35.json": "3aafb61d3f74cc13ade890aecac579d612addfbeba18e9cfaa618e9ec943e94f",
+      "MILESTONES.md": "1357da2f3790a8442d24cc61fce5b29e2af59d6161c159813adf0a27f606ccbb"
+    },
+    "source_sha256": {
+      "tools/gomad3/runner/internal/corpus/corpus.go": "7dafa70ff15f0bf46438d57689f6a7b7386d5f7e6c542d1fab75f816b75a7076",
+      "tools/gomad3/runner/internal/corpus/corpus_test.go": "25ed9196f323f18ed5b427ea558c3ff45c370f2861726cb46fda6094687bbf0e"
+    },
+    "whole_parent_and_milestones_preserve_base": true,
+    "original_task_prefix_sha256": "269465a7ceb94eb7cfb24b27ded959335fb61f907deec327b4f42ea836013d89",
+    "task_status": "blocked",
+    "status_source": "flow-state",
+    "task21_status": "blocked",
+    "task21_depends_on_35": true,
+    "parent_status": "open",
+    "parent_done": 2,
+    "parent_total": 35,
+    "completion_review_status": "unknown",
+    "metadata_review_pending": true,
+    "diff_checks": {
+      "all_other_scoped_paths_exit_code": 0,
+      "full_scope_exit_code": 2,
+      "archive_path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/audit-environment.log",
+      "archive_sha256": "ecc5d80c8f231082f3eec8d2705ed3d3ac9c9b6c7b813c310e6cc39b332d6b35",
+      "full_scope_output": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/audit-environment.log:10: new blank line at EOF.\n",
+      "reason": "Exact raw go env output retains its final empty GOFLAGS value. Worker log/receipt/freeze remain byte-identical. Every other admitted path must remain diff-clean; no full-index clean claim."
+    }
+  },
+  "guard_assessment": {
+    "fixed_archive_path": true,
+    "archive_hash_must_match": true,
+    "full_exit_must_equal_2": true,
+    "full_stdout_exact_single_fixed_line_warning": true,
+    "stderr_must_be_empty": true,
+    "all_other_72_paths_must_be_clean": true,
+    "source_protected_proof_document_and_index_checks_retained": true,
+    "broad_skip": false,
+    "note": "The helper captures full-scope rc/stdout/stderr and accepts only the fixed audit-environment.log line-10 warning; the second diff invocation must succeed for every other allowed path. Source, protected hashes, proof/document bindings, Flow states, exact staged set and index byte equality remain asserted."
+  },
+  "preflights": [
+    {
+      "result": "Resolved before verdict",
+      "reference": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.35.json",
+      "detail": "First read-only index comparison found only updated_at stale in index (21:58:16.519372Z versus current 22:07:39.227310Z). Root restaged exactly that JSON; repeated comparison verifies all 73 paths equal current bytes."
+    },
+    {
+      "result": "Corrected reviewer assumption",
+      "detail": "An initial raw-log assertion transposed GOENV/GOWORK output semantics. Actual log has GOWORK=off on line 6, GOENV empty on line 7, GOFLAGS empty on line 10. Effective receipt environment has GOENV=off and GOWORK=off. No archive or durable root claim needed modification."
+    }
+  ],
+  "historical_metadata_reports_unchanged": true,
+  "model": {
+    "reviewer_requested": "gpt-6.1-sol",
+    "reviewer_effort_requested": "high",
+    "reviewer_actual": null,
+    "reviewer_effort_actual": null,
+    "writer_requested": "gpt-6.1-sol",
+    "writer_effort_requested": "high",
+    "writer_actual": null,
+    "same_family_requested": true,
+    "same_family_actual": null,
+    "judge": {
+      "available": false,
+      "reason": "no_key",
+      "spawn": null,
+      "implementer": "gpt-6.1-sol"
+    },
+    "note": "Preserved explicit native pin. Actual executing model metadata unavailable. No additional judge, reroute or bridge."
+  },
+  "limits": [
+    "Full staged diff-check exits 2; no full-index clean claim.",
+    "Original source-progress review and test receipts stay frozen; no product/tests/cache or full gate reruns.",
+    "Genuine first-Close and simultaneous fault execution remain unproved; original R3/R13/R18/R19, shared fn108 retention/assessment, task12/predecessors/task21, original first-baseline fixed identities, full/completion/formal/affected-consumer and both native platforms remain required and open.",
+    "Root map remains metadata_review_pending=true with 73 staged paths at this observation. Root must bind these two new reports, clear pending and perform final scope/staged guard checks. Future final map/index not claimed frozen."
+  ],
+  "writes": [
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-staged-archive-check.md",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-staged-archive-check.json"
+  ],
+  "handles": "all terminal; no delegates",
+  "mutations": "Only two new reviewer-owned reports via apply_patch. No archive/source/index/Flow/config/evidence-map writes by reviewer.",
+  "formal_impl_review": false,
+  "ship": false,
+  "task_done": false
+}

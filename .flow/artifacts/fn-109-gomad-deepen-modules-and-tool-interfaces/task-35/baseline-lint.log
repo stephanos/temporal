@@ -1,0 +1,20 @@
+tools/gomad3/runner/internal/corpus/corpus.go:274:18: Error return value of `file.Close` is not checked (errcheck)
+	defer file.Close()
+	                ^
+tools/gomad3/runner/internal/corpus/corpus.go:345:20: Error return value of `opened.Close` is not checked (errcheck)
+	defer opened.Close()
+	                  ^
+tools/gomad3/runner/internal/corpus/corpus_test.go:57:22: Error return value of `reopened.Close` is not checked (errcheck)
+	defer reopened.Close()
+	                    ^
+tools/gomad3/runner/internal/corpus/corpus_test.go:293:20: Error return value of `corpus.Close` is not checked (errcheck)
+	defer corpus.Close()
+	                  ^
+tools/gomad3/runner/internal/corpus/corpus_test.go:392:22: Error return value of `reopened.Close` is not checked (errcheck)
+	defer reopened.Close()
+	                    ^
+tools/gomad3/runner/internal/corpus/corpus_test.go:444:22: Error return value of `reopened.Close` is not checked (errcheck)
+	defer reopened.Close()
+	                    ^
+6 issues:
+* errcheck: 6

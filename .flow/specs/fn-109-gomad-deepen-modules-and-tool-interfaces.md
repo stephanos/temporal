@@ -591,6 +591,25 @@ R6/R18/R19, task 4/task 5/predecessors, matched first-baseline identities and
 complete/full/formal/both-native/affected-consumer qualification remain required
 and open. Root commits reviewed source progress before another source writer.
 
+Task 35's independently reviewed corpus cleanup checks the two original production
+releases and four fixture releases at their existing lifetime boundaries. Nil
+Close preserves original results and concrete errors; a genuine cleanup failure
+returns zero result with the raw sole error or primary-first joined errors and
+prevents validation-dependent publication. Original operations, comments and fixture assertions stay intact outside the
+admitted signatures and cleanup wrappers; 1,043 protected inputs remain unchanged. Four real-file controls retain exact
+error order, publication state and a nonempty BASE canonical snapshot vector.
+Corpus package 24/24, focused 14/14, five actual boundaries, errortype and
+formatting pass on developmental linux/arm64. Actual unfiltered corpus lint
+falls from six findings to zero with none introduced. Fresh source review
+permits SOURCE_PROGRESS_COMMIT_ONLY. Genuine first-Close and simultaneous
+operation/cleanup failure execution remain unproved. Task 21 consumes the
+evidence; original R3/R13/R18/R19, shared fn108 assessment/retention,
+task12/relevant predecessors, matched first-baseline identities and complete/
+full/completion/formal/both-native/affected-consumer qualification remain
+required and open. Root commits reviewed source progress before another writer.
+Product/document diff checks pass; full staged diff-check retains only the raw
+Go-env log's empty-GOFLAGS EOF warning (exit 2). Its archived bytes stay intact.
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.

@@ -1,0 +1,56 @@
+{
+  "baseline_count": 6,
+  "final_count": 0,
+  "introduced": [],
+  "residual": [],
+  "resolved": [
+    {
+      "path": "tools/gomad3/runner/internal/corpus/corpus.go",
+      "line": 274,
+      "column": 18,
+      "message": "Error return value of `file.Close` is not checked",
+      "analyzer": "errcheck",
+      "repair": "conditional named-result cleanup"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/corpus/corpus.go",
+      "line": 345,
+      "column": 20,
+      "message": "Error return value of `opened.Close` is not checked",
+      "analyzer": "errcheck",
+      "repair": "conditional named-result cleanup"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/corpus/corpus_test.go",
+      "line": 57,
+      "column": 22,
+      "message": "Error return value of `reopened.Close` is not checked",
+      "analyzer": "errcheck",
+      "repair": "same-position deferred nonfatal fixture cleanup"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/corpus/corpus_test.go",
+      "line": 293,
+      "column": 20,
+      "message": "Error return value of `corpus.Close` is not checked",
+      "analyzer": "errcheck",
+      "repair": "same-position deferred nonfatal fixture cleanup"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/corpus/corpus_test.go",
+      "line": 392,
+      "column": 22,
+      "message": "Error return value of `reopened.Close` is not checked",
+      "analyzer": "errcheck",
+      "repair": "same-position deferred nonfatal fixture cleanup"
+    },
+    {
+      "path": "tools/gomad3/runner/internal/corpus/corpus_test.go",
+      "line": 444,
+      "column": 22,
+      "message": "Error return value of `reopened.Close` is not checked",
+      "analyzer": "errcheck",
+      "repair": "same-position deferred nonfatal fixture cleanup"
+    }
+  ]
+}

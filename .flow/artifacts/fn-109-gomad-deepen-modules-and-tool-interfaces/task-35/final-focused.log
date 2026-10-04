@@ -1,0 +1,74 @@
+=== RUN   TestCorpusPublishesCanonicalSnapshotOnlyAfterMatchingReplay
+--- PASS: TestCorpusPublishesCanonicalSnapshotOnlyAfterMatchingReplay (0.10s)
+=== RUN   TestCorpusRejectsIdentityChangesAndNonMatchingReplay
+--- PASS: TestCorpusRejectsIdentityChangesAndNonMatchingReplay (0.12s)
+=== RUN   TestCorpusAllowsOnlyOneWriter
+--- PASS: TestCorpusAllowsOnlyOneWriter (0.01s)
+=== RUN   TestCorpusRejectsEntryCapacityOverflowBeforeOpeningCases
+--- PASS: TestCorpusRejectsEntryCapacityOverflowBeforeOpeningCases (0.24s)
+=== RUN   TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity
+=== RUN   TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v1
+=== RUN   TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v999
+--- PASS: TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity (0.00s)
+    --- PASS: TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v1 (0.00s)
+    --- PASS: TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity/gomad3.guide-corpus/v999 (0.00s)
+=== RUN   TestCorpusRejectsCaseWithChangedEnvironment
+--- PASS: TestCorpusRejectsCaseWithChangedEnvironment (0.04s)
+=== RUN   TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema
+=== RUN   TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/malformed
+=== RUN   TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/noncanonical
+=== RUN   TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/unknown_field
+=== RUN   TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/duplicate_schema
+--- PASS: TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema (0.00s)
+    --- PASS: TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/malformed (0.00s)
+    --- PASS: TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/noncanonical (0.00s)
+    --- PASS: TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/unknown_field (0.00s)
+    --- PASS: TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema/duplicate_schema (0.00s)
+=== RUN   TestCorpusCasesShareOneTarget
+--- PASS: TestCorpusCasesShareOneTarget (0.08s)
+=== RUN   TestCorpusKeepsItsTargetUntilNoCaseSharesIt
+--- PASS: TestCorpusKeepsItsTargetUntilNoCaseSharesIt (0.04s)
+=== RUN   TestCorpusByteCapCountsTheSharedTargetOnce
+=== RUN   TestCorpusByteCapCountsTheSharedTargetOnce/private_copies
+=== RUN   TestCorpusByteCapCountsTheSharedTargetOnce/one_shared_target
+=== RUN   TestCorpusByteCapCountsTheSharedTargetOnce/fewer_cases_than_the_cap
+--- PASS: TestCorpusByteCapCountsTheSharedTargetOnce (0.00s)
+    --- PASS: TestCorpusByteCapCountsTheSharedTargetOnce/private_copies (0.00s)
+    --- PASS: TestCorpusByteCapCountsTheSharedTargetOnce/one_shared_target (0.00s)
+    --- PASS: TestCorpusByteCapCountsTheSharedTargetOnce/fewer_cases_than_the_cap (0.00s)
+=== RUN   TestCorpusReadSnapshotPreservesResultsAndErrorOrder
+=== RUN   TestCorpusReadSnapshotPreservesResultsAndErrorOrder/success
+=== RUN   TestCorpusReadSnapshotPreservesResultsAndErrorOrder/mode_before_malformed
+=== RUN   TestCorpusReadSnapshotPreservesResultsAndErrorOrder/malformed
+=== RUN   TestCorpusReadSnapshotPreservesResultsAndErrorOrder/schema_before_identity
+=== RUN   TestCorpusReadSnapshotPreservesResultsAndErrorOrder/identity
+=== RUN   TestCorpusReadSnapshotPreservesResultsAndErrorOrder/digest_before_identity
+--- PASS: TestCorpusReadSnapshotPreservesResultsAndErrorOrder (0.00s)
+    --- PASS: TestCorpusReadSnapshotPreservesResultsAndErrorOrder/success (0.00s)
+    --- PASS: TestCorpusReadSnapshotPreservesResultsAndErrorOrder/mode_before_malformed (0.00s)
+    --- PASS: TestCorpusReadSnapshotPreservesResultsAndErrorOrder/malformed (0.00s)
+    --- PASS: TestCorpusReadSnapshotPreservesResultsAndErrorOrder/schema_before_identity (0.00s)
+    --- PASS: TestCorpusReadSnapshotPreservesResultsAndErrorOrder/identity (0.00s)
+    --- PASS: TestCorpusReadSnapshotPreservesResultsAndErrorOrder/digest_before_identity (0.00s)
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder/entry_before_coverage
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder/coverage_before_features
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder/features_before_case
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder/case_before_payload
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder/payload_before_captured_inputs
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder/captured_inputs_before_mounts
+=== RUN   TestCorpusValidateEntryPreservesResultsAndErrorOrder/mounts
+--- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder (0.03s)
+    --- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder/entry_before_coverage (0.00s)
+    --- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder/coverage_before_features (0.00s)
+    --- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder/features_before_case (0.00s)
+    --- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder/case_before_payload (0.00s)
+    --- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder/payload_before_captured_inputs (0.00s)
+    --- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder/captured_inputs_before_mounts (0.00s)
+    --- PASS: TestCorpusValidateEntryPreservesResultsAndErrorOrder/mounts (0.00s)
+=== RUN   TestCorpusValidationFailureDoesNotPublish
+--- PASS: TestCorpusValidationFailureDoesNotPublish (0.01s)
+=== RUN   TestCorpusCanonicalSnapshotBaseline
+--- PASS: TestCorpusCanonicalSnapshotBaseline (0.02s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/corpus	0.725s

@@ -1,0 +1,160 @@
+{
+  "base_commit": "a80ad9b9d1a4195c4aeb2fe135557f71e6e6552a",
+  "sources": {
+    "tools/gomad3/runner/internal/corpus/corpus.go": {
+      "sha256": "7dafa70ff15f0bf46438d57689f6a7b7386d5f7e6c542d1fab75f816b75a7076",
+      "original_reconstruction_sha256": "e572135656847c7292395d00c1922f5c505dc38d4c4eff023cd9cd9fe985b020",
+      "original_reconstruction_matches_base": true,
+      "whitespace_check": "pass"
+    },
+    "tools/gomad3/runner/internal/corpus/corpus_test.go": {
+      "sha256": "25ed9196f323f18ed5b427ea558c3ff45c370f2861726cb46fda6094687bbf0e",
+      "original_reconstruction_sha256": "867a896ca3586b6298ac6cf844e5117a3b6bdc403aa1a6937aea3cab2296f9da",
+      "original_reconstruction_matches_base": true,
+      "whitespace_check": "pass"
+    }
+  },
+  "protected_count": 1043,
+  "protected_unchanged": true,
+  "canonical_oracle": {
+    "capture_log": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/controls-focused.log",
+    "captured_with_base_production": true,
+    "literal_verified_before_production_edit": true,
+    "bytes_sha256": "sha256:e243d461e78c4a4a1a7f9832091709dc8bd2f8ade34e61d318914b8269fecf2f",
+    "snapshot_sha256": "sha256:b465cb3046d07998b31810e6a10167507ead9c68d33cade81d212552d9f57833",
+    "entries": 1
+  },
+  "generator_inspection": {
+    "affected": false,
+    "inspected": [
+      "tools/gomad3/Makefile:6-11",
+      "tools/gomad3/internal/gomadtool/generation/protocol/protocol.go",
+      "tools/gomad3/internal/gomadtool/generation/boundary/boundary_manifest.go",
+      "tools/gomad3/toolchain/version/version.json"
+    ],
+    "reason": "The two corpus files are outside descriptor, schema/template, boundary, compatibility-request and qualification-generator inputs. No generated source or identity definition changes.",
+    "validate": "not run; generator inputs unaffected"
+  },
+  "receipts": [
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/audit-environment.receipt.json",
+      "sha256": "e0f9a13d7725b75fde38b401b5f1b3a783c01e7688f956eb30b6854da15f2cd7",
+      "command": "go env GOOS GOARCH GOVERSION GOROOT GOMOD GOWORK GOENV GOTOOLCHAIN GOPROXY GOFLAGS",
+      "exit_code": 0,
+      "elapsed_seconds": 0.184,
+      "top_level_pass_count": null
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/baseline-boundaries.receipt.json",
+      "sha256": "c3a9eb7ffbb503220abd94c290f9426e6aaa2eb6334888ded5fc7d55f29f9ba1",
+      "command": "go test -count=1 -tags test_dep -v . -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$'",
+      "exit_code": 0,
+      "elapsed_seconds": 8.773,
+      "top_level_pass_count": 5
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/baseline-errortype.receipt.json",
+      "sha256": "a7892b847127a7cdda65b7b7efbad8d9cd99dfeacddb691b993043b47b8490cb",
+      "command": "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./runner/internal/corpus",
+      "exit_code": 0,
+      "elapsed_seconds": 0.631,
+      "top_level_pass_count": null
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/baseline-focused.receipt.json",
+      "sha256": "dd40a23eb55c0c8d66245856f4bc67e28d69696f1ee64c948a21dd89225a973c",
+      "command": "go test -count=1 -tags test_dep -v ./runner/internal/corpus -run '^TestCorpus(PublishesCanonicalSnapshotOnlyAfterMatchingReplay|RejectsIdentityChangesAndNonMatchingReplay|RejectsPreviousAndFutureSchemaBeforeChangedIdentity|RejectsEntryCapacityOverflowBeforeOpeningCases|RejectsCaseWithChangedEnvironment|RejectsMalformedAndNoncanonicalCurrentSchema|AllowsOnlyOneWriter|CasesShareOneTarget|KeepsItsTargetUntilNoCaseSharesIt|ByteCapCountsTheSharedTargetOnce|ReadSnapshotPreservesResultsAndErrorOrder|ValidateEntryPreservesResultsAndErrorOrder|ValidationFailureDoesNotPublish|CanonicalSnapshotBaseline)$'",
+      "exit_code": 0,
+      "elapsed_seconds": 0.888,
+      "top_level_pass_count": 10
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/baseline-gofmt.receipt.json",
+      "sha256": "bb33eb36b1f9cd08d6064fd5fed4a23f47f70266d5ce4e65a8f9b5b600953627",
+      "command": "gofmt -d runner/internal/corpus/corpus.go runner/internal/corpus/corpus_test.go",
+      "exit_code": 0,
+      "elapsed_seconds": 0.177,
+      "top_level_pass_count": null
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/baseline-lint.receipt.json",
+      "sha256": "961b245aed51edbaf63b565eddca622408f86a2beffa972e99ed4f14d7672343",
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./runner/internal/corpus",
+      "exit_code": 1,
+      "elapsed_seconds": 3.898,
+      "top_level_pass_count": null
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/baseline-package.receipt.json",
+      "sha256": "3bafd1474b36a1306a12d6c5c8ce91ef8c02c09e3891be139b4f3dacb1df9e01",
+      "command": "go test -count=1 -tags test_dep -v ./runner/internal/corpus",
+      "exit_code": 0,
+      "elapsed_seconds": 1.612,
+      "top_level_pass_count": 20
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/controls-focused.receipt.json",
+      "sha256": "77727bffd50616c44c596d2c9991e3b34249260bceb41ab0318f5af9cfdac06f",
+      "command": "go test -count=1 -tags test_dep -v ./runner/internal/corpus -run '^TestCorpus(PublishesCanonicalSnapshotOnlyAfterMatchingReplay|RejectsIdentityChangesAndNonMatchingReplay|RejectsPreviousAndFutureSchemaBeforeChangedIdentity|RejectsEntryCapacityOverflowBeforeOpeningCases|RejectsCaseWithChangedEnvironment|RejectsMalformedAndNoncanonicalCurrentSchema|AllowsOnlyOneWriter|CasesShareOneTarget|KeepsItsTargetUntilNoCaseSharesIt|ByteCapCountsTheSharedTargetOnce|ReadSnapshotPreservesResultsAndErrorOrder|ValidateEntryPreservesResultsAndErrorOrder|ValidationFailureDoesNotPublish|CanonicalSnapshotBaseline)$'",
+      "exit_code": 0,
+      "elapsed_seconds": 2.524,
+      "top_level_pass_count": 14
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/final-boundaries.receipt.json",
+      "sha256": "0998da31ef56e9bb7a96848f9f4db0d141a6c9ea83659c82c9fd9201756bcf49",
+      "command": "go test -count=1 -tags test_dep -v . -run '^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$'",
+      "exit_code": 0,
+      "elapsed_seconds": 25.21,
+      "top_level_pass_count": 5
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/final-errortype.receipt.json",
+      "sha256": "80107f04c4eb5ffdd77cd0266847c8cb177823594e5579d8fcd7099caf0aa161",
+      "command": "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./runner/internal/corpus",
+      "exit_code": 0,
+      "elapsed_seconds": 3.119,
+      "top_level_pass_count": null
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/final-focused.receipt.json",
+      "sha256": "fe246f5c11688d647660536b6958e2815732d07aaa79494e4b260c60deef528f",
+      "command": "go test -count=1 -tags test_dep -v ./runner/internal/corpus -run '^TestCorpus(PublishesCanonicalSnapshotOnlyAfterMatchingReplay|RejectsIdentityChangesAndNonMatchingReplay|RejectsPreviousAndFutureSchemaBeforeChangedIdentity|RejectsEntryCapacityOverflowBeforeOpeningCases|RejectsCaseWithChangedEnvironment|RejectsMalformedAndNoncanonicalCurrentSchema|AllowsOnlyOneWriter|CasesShareOneTarget|KeepsItsTargetUntilNoCaseSharesIt|ByteCapCountsTheSharedTargetOnce|ReadSnapshotPreservesResultsAndErrorOrder|ValidateEntryPreservesResultsAndErrorOrder|ValidationFailureDoesNotPublish|CanonicalSnapshotBaseline)$'",
+      "exit_code": 0,
+      "elapsed_seconds": 1.949,
+      "top_level_pass_count": 14
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/final-gofmt.receipt.json",
+      "sha256": "3d1d65c4b9878834692a6768a648289acb7d9e138327fcadad1bf6638119d820",
+      "command": "gofmt -d runner/internal/corpus/corpus.go runner/internal/corpus/corpus_test.go",
+      "exit_code": 0,
+      "elapsed_seconds": 0.589,
+      "top_level_pass_count": null
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/final-lint.receipt.json",
+      "sha256": "f4f60061ea78196158262a633f61fecc1d901d32c4a429549ce33920ca0fcb55",
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./runner/internal/corpus",
+      "exit_code": 0,
+      "elapsed_seconds": 8.383,
+      "top_level_pass_count": null
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/final-package.receipt.json",
+      "sha256": "dd606da8dd3572f2f71c08f8378ed9e251ff4aa5fdd26b1b8f3c97f8d4d6afe3",
+      "command": "go test -count=1 -tags test_dep -v ./runner/internal/corpus",
+      "exit_code": 0,
+      "elapsed_seconds": 1.604,
+      "top_level_pass_count": 24
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/preservation-focused.receipt.json",
+      "sha256": "2886855544e3df6e45ed9d23b4f7c5bc59d11f200d7e19597afc3957e3515245",
+      "command": "go test -count=1 -tags test_dep -v ./runner/internal/corpus -run '^TestCorpus(PublishesCanonicalSnapshotOnlyAfterMatchingReplay|RejectsIdentityChangesAndNonMatchingReplay|RejectsPreviousAndFutureSchemaBeforeChangedIdentity|RejectsEntryCapacityOverflowBeforeOpeningCases|RejectsCaseWithChangedEnvironment|RejectsMalformedAndNoncanonicalCurrentSchema|AllowsOnlyOneWriter|CasesShareOneTarget|KeepsItsTargetUntilNoCaseSharesIt|ByteCapCountsTheSharedTargetOnce|ReadSnapshotPreservesResultsAndErrorOrder|ValidateEntryPreservesResultsAndErrorOrder|ValidationFailureDoesNotPublish|CanonicalSnapshotBaseline)$'",
+      "exit_code": 0,
+      "elapsed_seconds": 1.966,
+      "top_level_pass_count": 14
+    }
+  ]
+}

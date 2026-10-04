@@ -1,0 +1,59 @@
+{
+  "command": "go test -count=1 -tags test_dep -v ./runner/internal/corpus -run '^TestCorpus(PublishesCanonicalSnapshotOnlyAfterMatchingReplay|RejectsIdentityChangesAndNonMatchingReplay|RejectsPreviousAndFutureSchemaBeforeChangedIdentity|RejectsEntryCapacityOverflowBeforeOpeningCases|RejectsCaseWithChangedEnvironment|RejectsMalformedAndNoncanonicalCurrentSchema|AllowsOnlyOneWriter|CasesShareOneTarget|KeepsItsTargetUntilNoCaseSharesIt|ByteCapCountsTheSharedTargetOnce|ReadSnapshotPreservesResultsAndErrorOrder|ValidateEntryPreservesResultsAndErrorOrder|ValidationFailureDoesNotPublish|CanonicalSnapshotBaseline)$'",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "environment": {
+    "set": {
+      "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+      "GOENV": "off",
+      "GOFLAGS": "",
+      "GOWORK": "off",
+      "GOTOOLCHAIN": "local",
+      "GOPROXY": "off",
+      "GOMAXPROCS": "2"
+    },
+    "unset": [
+      "GOROOT",
+      "GOMADSEED",
+      "GOMAD3_CHILD_SEED",
+      "GOMAD3_SEED",
+      "LINT_TEST_BASE_REV"
+    ]
+  },
+  "source_before": {
+    "admission_sha256": "bfabfc58cf175a79a8a3033c6a708dbb57147272e8d71b9de1645afb1ca5e1b2",
+    "protected_count": 1043,
+    "protected_unchanged": true,
+    "sources": {
+      "tools/gomad3/runner/internal/corpus/corpus.go": "e572135656847c7292395d00c1922f5c505dc38d4c4eff023cd9cd9fe985b020",
+      "tools/gomad3/runner/internal/corpus/corpus_test.go": "e9158b9e34ec6150e6bbba0a6870b50b80f4e49a47fccd1a6f7d675a82e5db81"
+    },
+    "tools": {
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+      "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43"
+    }
+  },
+  "source_after": {
+    "admission_sha256": "bfabfc58cf175a79a8a3033c6a708dbb57147272e8d71b9de1645afb1ca5e1b2",
+    "protected_count": 1043,
+    "protected_unchanged": true,
+    "sources": {
+      "tools/gomad3/runner/internal/corpus/corpus.go": "e572135656847c7292395d00c1922f5c505dc38d4c4eff023cd9cd9fe985b020",
+      "tools/gomad3/runner/internal/corpus/corpus_test.go": "e9158b9e34ec6150e6bbba0a6870b50b80f4e49a47fccd1a6f7d675a82e5db81"
+    },
+    "tools": {
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+      "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+      "/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43"
+    }
+  },
+  "stability": true,
+  "start": "2026-10-04T21:39:57.457467+00:00",
+  "end": "2026-10-04T21:39:59.980369+00:00",
+  "elapsed_seconds": 2.524,
+  "exit_code": 0,
+  "log": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/controls-focused.log",
+  "log_sha256": "ac10a6b653a8fe428c30303bbf15b5ef5788d7b3ee4611efcf08987d23243848"
+}

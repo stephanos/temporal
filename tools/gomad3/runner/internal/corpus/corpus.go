@@ -261,7 +261,7 @@ func (corpus *Corpus) entryFor(published artifact.Artifact, coverage determinist
 	return entry, nil
 }
 
-func (corpus *Corpus) readSnapshot() (Snapshot, error) {
+func (corpus *Corpus) readSnapshot() (result Snapshot, retErr error) {
 	path := filepath.Join(corpus.path, "corpus.json")
 	file, info, err := hostfs.OpenPath(path)
 	if os.IsNotExist(err) {
@@ -271,7 +271,16 @@ func (corpus *Corpus) readSnapshot() (Snapshot, error) {
 	if err != nil {
 		return Snapshot{}, fmt.Errorf("open guided corpus snapshot: %w", err)
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil {
+			result = Snapshot{}
+			if retErr == nil {
+				retErr = closeErr
+			} else {
+				retErr = errors.Join(retErr, closeErr)
+			}
+		}
+	}()
 	if info.Mode().Perm() != 0o600 || info.Size() > maximumCorpusJSONBytes {
 		return Snapshot{}, errors.New("guided corpus snapshot mode or size is invalid")
 	}
@@ -321,7 +330,7 @@ func (corpus *Corpus) readSnapshot() (Snapshot, error) {
 
 // validateEntry checks an entry against its case on disk and returns the
 // target that case shares with the corpus.
-func (corpus *Corpus) validateEntry(entry Entry) (artifact.SharedTarget, error) {
+func (corpus *Corpus) validateEntry(entry Entry) (result artifact.SharedTarget, retErr error) {
 	if _, err := record.ParseSHA256(string(entry.RecordHash)); err != nil || !validCaseReference(entry.Artifact) || entry.StoredBytes == 0 || entry.PayloadBytes == 0 || !entry.Replay.Verified || !entry.Replay.Match || entry.Replay.Divergence != "" {
 		return artifact.SharedTarget{}, errors.New("guided corpus entry identity is invalid")
 	}
@@ -342,7 +351,16 @@ func (corpus *Corpus) validateEntry(entry Entry) (artifact.SharedTarget, error) 
 	if err != nil {
 		return artifact.SharedTarget{}, fmt.Errorf("open guided corpus case: %w", err)
 	}
-	defer opened.Close()
+	defer func() {
+		if closeErr := opened.Close(); closeErr != nil {
+			result = artifact.SharedTarget{}
+			if retErr == nil {
+				retErr = closeErr
+			} else {
+				retErr = errors.Join(retErr, closeErr)
+			}
+		}
+	}()
 	manifest := opened.Manifest()
 	if manifest.RecordHash != entry.RecordHash || manifest.Seed != entry.Seed || opened.StoredBytes() != uint64(entry.StoredBytes) {
 		return artifact.SharedTarget{}, errors.New("guided corpus case identity does not match its entry")

@@ -1,0 +1,108 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.35",
+  "scope": "METADATA_ONLY_RECHECK",
+  "verdict": "SOURCE_PROGRESS_COMMIT_ONLY",
+  "findings": {
+    "critical": [],
+    "important": [],
+    "minor": []
+  },
+  "base_commit": "a80ad9b9d1a4195c4aeb2fe135557f71e6e6552a",
+  "source_review_retained": true,
+  "test_or_cache_reruns": 0,
+  "formal_impl_review": false,
+  "ship": false,
+  "task_done": false,
+  "source_sha256": {
+    "tools/gomad3/runner/internal/corpus/corpus.go": "7dafa70ff15f0bf46438d57689f6a7b7386d5f7e6c542d1fab75f816b75a7076",
+    "tools/gomad3/runner/internal/corpus/corpus_test.go": "25ed9196f323f18ed5b427ea558c3ff45c370f2861726cb46fda6094687bbf0e"
+  },
+  "hash_bindings": {
+    "root_source_checks_provisional_sha256": "09c1bda478355761bb94f2b1ab7e28839f5dc3101b19dd5af5c57e0901d087b0",
+    "immutable_proof_count": 62,
+    "immutable_proofs_all_match": true,
+    "document_count": 6,
+    "documents_all_match": true,
+    "allowed_paths_provisional_count": 71,
+    "original_task_prefix_sha256": "269465a7ceb94eb7cfb24b27ded959335fb61f907deec327b4f42ea836013d89",
+    "parent_addition_sha256": "e2e91c98f31b75216c2295df61d2d17356c240e8191edda1a81cd978a4aa0699",
+    "milestones_addition_sha256": "067d09a62b263b3a62f848a470d5620f878c63c616be263bacbf9e61bc281427",
+    "document_sha256": {
+      ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md": "00175f0eb9d62460a82bb23c7559e8f2c02dd21ab5c7b10fd4f2e5685c7a7b71",
+      ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.json": "49b3b2ea65edf313ad3efdcb056a03d85eb8e1e311269ea7141efd453a460327",
+      ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.json": "4390efef4d354283f4a1fa5a75d2d3f05a6f8249119ce3cc41efdf2cf3185609",
+      ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.35.md": "269414694e4f46fef06b604f46172bd4c4e9aaa61e8401baac752b2721e31ada",
+      ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.35.json": "809400edc43af8908b4bdc3511af21da852a2351c53a1b9fb32c371f45878704",
+      "MILESTONES.md": "3bc81185cc747d13e6f124e7a3b254deb87a29a4b0d178844e640fec3513cb8d"
+    }
+  },
+  "checks": {
+    "original_task_prefix": "exact unchanged bytes, compared to original prefix and fixed SHA",
+    "parent_restoration": "complete current parent minus sole task35 insertion equals complete Git BASE",
+    "milestones_restoration": "complete current MILESTONES minus sole task35 insertion and reversal of stated row edits equals complete Git BASE",
+    "task21_json": "only task35 dependency and updated_at differ from BASE",
+    "parent_json": "only updated_at differs from BASE",
+    "stage_lines": {
+      "impl_review": "stage: impl-review - skipped(policy: conductor-deferred; fresh source review passed, full/native qualification remains red)",
+      "plan_sync": "stage: plan-sync - skipped(config: disabled; task remains blocked rather than done)",
+      "exactly_once": true
+    },
+    "new_links_resolve": true,
+    "task35_runtime_status": "blocked",
+    "task21_runtime_status": "blocked",
+    "task_status_source": "flow-state",
+    "tracked_task35_fallback": "todo",
+    "parent": {
+      "status": "open",
+      "done": 2,
+      "total": 35,
+      "completion_review_status": "unknown"
+    },
+    "flow_validation": {
+      "command": "flowctl validate --spec fn-109-gomad-deepen-modules-and-tool-interfaces --json",
+      "exit_code": 0,
+      "valid": true,
+      "task_count": 35,
+      "errors": [],
+      "warnings": []
+    },
+    "root_reaudit": "read corrected script and bound JSON; capture-before-review-loop fix addresses disclosed environment preflight; original 16 writer and seven reviewer serial receipt evidence preserved; no rerun needed",
+    "source_progress_summary_and_evidence": "reviewed in task35.md Done summary/Evidence; worker handover/evidence remain original",
+    "metadata_review_pending": true,
+    "provisional_pending_state_accurate": true
+  },
+  "limits": [
+    "Genuine first-Close and simultaneous fault execution remain unproved.",
+    "Original R3/R13/R18/R19, shared fn108 retention/assessment, task12/predecessors/task21, original first-baseline fixed identities, full/completion/formal/affected-consumer and both qualified native hosts remain required and open.",
+    "No task completion, SHIP, full-green or native qualification claim.",
+    "Root must append these two reports to proof/allowed maps, set metadata_review_pending false and perform final scope freeze after this return. Final map not reviewed or claimed frozen."
+  ],
+  "model": {
+    "reviewer_requested": "gpt-6.1-sol",
+    "reviewer_effort_requested": "high",
+    "reviewer_actual": null,
+    "reviewer_effort_actual": null,
+    "writer_requested": "gpt-6.1-sol",
+    "writer_effort_requested": "high",
+    "writer_actual": null,
+    "same_family_requested": true,
+    "same_family_actual": null,
+    "judge": {
+      "available": false,
+      "reason": "no_key",
+      "spawn": null,
+      "implementer": "gpt-6.1-sol"
+    },
+    "note": "Preserved explicit native pin. Actual executing model metadata unavailable. No additional judge, reroute or bridge."
+  },
+  "preflights": [
+    "Guessed standalone source-progress-summary/evidence filenames did not exist; actual summary/Evidence are in task35.md.",
+    "Initial read-only flowctl validate --json returned 'Must specify --spec or --all'; corrected explicit --spec invocation passed. No state changed."
+  ],
+  "writes": [
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-metadata-check.md",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/review-metadata-check.json"
+  ],
+  "handles": "all terminal; no delegates",
+  "mutations": "Only two new reviewer-owned metadata reports via apply_patch. No source/archive, index/Git, Flow state, config or evidence-map writes."
+}

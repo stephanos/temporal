@@ -1,0 +1,30 @@
+{
+  "result": "PASS",
+  "source_sha256": {
+    "tools/gomad3/runner/internal/corpus/corpus.go": "7dafa70ff15f0bf46438d57689f6a7b7386d5f7e6c542d1fab75f816b75a7076",
+    "tools/gomad3/runner/internal/corpus/corpus_test.go": "25ed9196f323f18ed5b427ea558c3ff45c370f2861726cb46fda6094687bbf0e"
+  },
+  "protected_inputs": 1043,
+  "worker_frozen_files": 39,
+  "writer_receipts": 16,
+  "review_receipts": 7,
+  "archived_audit_receipts": 15,
+  "serial": true,
+  "counts": {
+    "baseline-package": 20,
+    "baseline-focused": 10,
+    "baseline-boundaries": 5,
+    "controls-focused": 14,
+    "preservation-focused": 14,
+    "final-package": 24,
+    "final-focused": 14,
+    "final-boundaries": 5
+  },
+  "lint": "6 -> 0",
+  "writes": 0,
+  "audit_adaptation": "Compare two generated JSON outputs and select original 15 audit receipts; audit-source receipt is checked separately.",
+  "command": "python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/root-reaudit.py",
+  "exit_code": 0,
+  "chunk_id": "1dfb9f",
+  "preflight": "First combined receipt audit exit1 KeyError(environment): a timing-only reviewer entry replaced the last writer receipt. A one-line reproduction failed identically. Capturing the writer environment before appending reviewer timing records fixes the root audit; product/archived proof unchanged."
+}

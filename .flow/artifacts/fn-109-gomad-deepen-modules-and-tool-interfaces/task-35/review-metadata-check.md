@@ -1,0 +1,15 @@
+# Task 35 metadata recheck
+
+Permit SOURCE_PROGRESS_COMMIT_ONLY. Critical, Important and Minor findings are empty. The source verdict remains valid for its frozen candidate. Task 35 and task 21 stay blocked in authoritative Flow state; the parent stays open with 2/35 done and completion review unknown.
+
+The complete parent document restores exactly to Git BASE a80ad9b9d1a4195c4aeb2fe135557f71e6e6552a after removing the sole task-35 outcome insertion. Complete MILESTONES restores exactly after removing its task-35 paragraph and reversing only the 23–34 to 23–35 row update and newly clean corpus-lint wording. These checks compare whole BASE files independently of root's expected scratch documents. Original requirements, full scope, platforms, fixed first-baseline identities and dependencies remain intact.
+
+Task 35's complete original Description/Acceptance prefix retains SHA256 269465a7ceb94eb7cfb24b27ded959335fb61f907deec327b4f42ea836013d89. Its source-progress summary and Evidence retain the source-only bound. The impl-review and disabled plan-sync stage lines occur exactly once. Task 21's tracked JSON changes only by adding task 35 to dependencies and updating its timestamp. Parent JSON changes only its timestamp. The tracked todo fallbacks do not supersede flowctl show's blocked status with status_source flow-state.
+
+acceptance-open.md, the appended task summary/Evidence and parent/MILESTONES additions accurately retain genuine first-Close and simultaneous-fault execution gaps, stock linux/arm64 developmental limits, and original R3/R13/R18/R19, shared fn108, task12/predecessors/task21, matched first-baseline and complete/full/completion/formal/affected-consumer/both-native gates. The five new Markdown links resolve. Explicit Flow validation passes all 35 tasks with no errors or warnings.
+
+The provisional root-source-checks.json SHA256 is 09c1bda478355761bb94f2b1ab7e28839f5dc3101b19dd5af5c57e0901d087b0. All 62 immutable proof bindings, six document hashes and both frozen product hashes verify. metadata_review_pending=true accurately describes this pre-return map of 71 allowed paths. Root will add these two reports, clear pending and perform its final scope freeze after this verdict. That later map is not yet claimed frozen. No root-scope-gate or test/cache command was rerun.
+
+The corrected root-reaudit script captures the writer environment before adding timing-only reviewer entries, addressing its disclosed KeyError preflight. Its retained PASS binds 16 writer and seven reviewer receipts. Original source/proof remains unchanged. Read-only filename and validate-flag preflights in this recheck changed no state; the corrected explicit --spec validation passed.
+
+Requested reviewer and writer were gpt-6.1-sol/high, same requested family; actual model/effort metadata remains unavailable/null. This uses the existing reviewer assignment with no additional judge, bridge or routing. All reads are terminal. The only writes are review-metadata-check.md/json via apply_patch. No source, archive, index, Flow or evidence-map bytes changed.
