@@ -52,16 +52,7 @@ type frameworkAllowance struct {
 // frameworkAllowances are the mentions that stay for now. Each one moves out of the framework with
 // the task its reason names, which removes its entry; a generic use that no rewording can serve may
 // be added with its reason.
-var frameworkAllowances = []frameworkAllowance{
-	{
-		path:   "model/umpire/Capabilities.scala",
-		reason: "the capability vocabulary moves to model/temporal in fn-122-capabilities-and-their-laws.8, which removes this entry",
-	},
-	{
-		path:   "model/umpire/laws/",
-		reason: "the laws over the capabilities move to model/temporal in fn-122-capabilities-and-their-laws.8, which removes this entry",
-	},
-}
+var frameworkAllowances = []frameworkAllowance{}
 
 func (a frameworkAllowance) covers(rel string) bool {
 	if strings.HasSuffix(a.path, "/") {

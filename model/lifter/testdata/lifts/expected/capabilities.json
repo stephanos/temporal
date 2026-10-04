@@ -1750,8 +1750,8 @@
   }, {
     "name": "job.property.job.cancelIsRequested",
     "position": {
-      "file": "model/temporal/laws/Cancel.scala",
-      "line": 26
+      "file": "model/temporal/capabilities/Cancel.scala",
+      "line": 25
     },
     "params": [ {
       "name": "step",
@@ -1761,8 +1761,8 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/laws/Cancel.scala",
-        "line": 26
+        "file": "model/temporal/capabilities/Cancel.scala",
+        "line": 25
       },
       "binary": {
         "op": "OP_CONTAINS",
@@ -1780,14 +1780,14 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/laws/Cancel.scala",
-            "line": 26
+            "file": "model/temporal/capabilities/Cancel.scala",
+            "line": 25
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/laws/Cancel.scala",
-                "line": 26
+                "file": "model/temporal/capabilities/Cancel.scala",
+                "line": 25
               },
               "var": "step"
             },
@@ -1799,7 +1799,7 @@
   }, {
     "name": "job.property.job.closedIsRejectedUniformly",
     "position": {
-      "file": "model/umpire/laws/Laws.scala",
+      "file": "model/temporal/capabilities/Close.scala",
       "line": 59
     },
     "params": [ {
@@ -1815,35 +1815,35 @@
     } ],
     "body": {
       "position": {
-        "file": "model/umpire/laws/Laws.scala",
+        "file": "model/temporal/capabilities/Close.scala",
         "line": 60
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/umpire/laws/Laws.scala",
+            "file": "model/temporal/capabilities/Close.scala",
             "line": 60
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/umpire/laws/Laws.scala",
+                "file": "model/temporal/capabilities/Close.scala",
                 "line": 60
               },
               "call": {
                 "function": "fixture.capabilities.Jobs$.terminal",
                 "args": [ {
                   "position": {
-                    "file": "model/umpire/laws/Laws.scala",
+                    "file": "model/temporal/capabilities/Close.scala",
                     "line": 60
                   },
                   "call": {
                     "function": "fixture.capabilities.Jobs$.phase",
                     "args": [ {
                       "position": {
-                        "file": "model/umpire/laws/Laws.scala",
+                        "file": "model/temporal/capabilities/Close.scala",
                         "line": 60
                       },
                       "var": "before"
@@ -1856,27 +1856,27 @@
         },
         "right": {
           "position": {
-            "file": "model/umpire/laws/Laws.scala",
+            "file": "model/temporal/capabilities/Close.scala",
             "line": 60
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
-                "file": "model/umpire/laws/Laws.scala",
+                "file": "model/temporal/capabilities/Close.scala",
                 "line": 60
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/umpire/laws/Laws.scala",
+                    "file": "model/temporal/capabilities/Close.scala",
                     "line": 60
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/umpire/laws/Laws.scala",
+                        "file": "model/temporal/capabilities/Close.scala",
                         "line": 60
                       },
                       "var": "after"
@@ -1886,7 +1886,7 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/umpire/laws/Laws.scala",
+                    "file": "model/temporal/capabilities/Close.scala",
                     "line": 60
                   },
                   "var": "before"
@@ -1895,20 +1895,20 @@
             },
             "right": {
               "position": {
-                "file": "model/umpire/laws/Laws.scala",
+                "file": "model/temporal/capabilities/Close.scala",
                 "line": 60
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/umpire/laws/Laws.scala",
+                    "file": "model/temporal/capabilities/Close.scala",
                     "line": 60
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/umpire/laws/Laws.scala",
+                        "file": "model/temporal/capabilities/Close.scala",
                         "line": 60
                       },
                       "var": "after"
@@ -1937,8 +1937,8 @@
   }, {
     "name": "job.property.job.pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
+      "file": "model/temporal/capabilities/Pause.scala",
+      "line": 24
     },
     "params": [ {
       "name": "before",
@@ -1953,29 +1953,29 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/laws/Pause.scala",
-        "line": 25
+        "file": "model/temporal/capabilities/Pause.scala",
+        "line": 24
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/laws/Pause.scala",
-            "line": 25
+            "file": "model/temporal/capabilities/Pause.scala",
+            "line": 24
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/laws/Pause.scala",
-                "line": 25
+                "file": "model/temporal/capabilities/Pause.scala",
+                "line": 24
               },
               "call": {
                 "function": "fixture.capabilities.Jobs$.paused",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/laws/Pause.scala",
-                    "line": 25
+                    "file": "model/temporal/capabilities/Pause.scala",
+                    "line": 24
                   },
                   "var": "before"
                 } ]
@@ -1985,22 +1985,22 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/laws/Pause.scala",
-            "line": 25
+            "file": "model/temporal/capabilities/Pause.scala",
+            "line": 24
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/laws/Pause.scala",
-                "line": 25
+                "file": "model/temporal/capabilities/Pause.scala",
+                "line": 24
               },
               "call": {
                 "function": "job.property.job.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/laws/Pause.scala",
-                    "line": 25
+                    "file": "model/temporal/capabilities/Pause.scala",
+                    "line": 24
                   },
                   "var": "after"
                 } ]
@@ -2013,8 +2013,8 @@
   }, {
     "name": "job.property.job.pausedIsNotDispatched.never",
     "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
+      "file": "model/temporal/capabilities/Pause.scala",
+      "line": 24
     },
     "params": [ {
       "name": "s",
@@ -2024,21 +2024,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/laws/Pause.scala",
-        "line": 25
+        "file": "model/temporal/capabilities/Pause.scala",
+        "line": 24
       },
       "call": {
         "function": "fixture.capabilities.Jobs$.running",
         "args": [ {
           "position": {
-            "file": "model/temporal/laws/Pause.scala",
-            "line": 25
+            "file": "model/temporal/capabilities/Pause.scala",
+            "line": 24
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/laws/Pause.scala",
-                "line": 25
+                "file": "model/temporal/capabilities/Pause.scala",
+                "line": 24
               },
               "var": "s"
             },
@@ -2050,7 +2050,7 @@
   }, {
     "name": "job.property.job.terminalStatesAreFinal",
     "position": {
-      "file": "model/umpire/laws/Laws.scala",
+      "file": "model/temporal/capabilities/Close.scala",
       "line": 31
     },
     "params": [ {
@@ -2066,35 +2066,35 @@
     } ],
     "body": {
       "position": {
-        "file": "model/umpire/laws/Laws.scala",
+        "file": "model/temporal/capabilities/Close.scala",
         "line": 32
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/umpire/laws/Laws.scala",
+            "file": "model/temporal/capabilities/Close.scala",
             "line": 32
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/umpire/laws/Laws.scala",
+                "file": "model/temporal/capabilities/Close.scala",
                 "line": 32
               },
               "call": {
                 "function": "fixture.capabilities.Jobs$.terminal",
                 "args": [ {
                   "position": {
-                    "file": "model/umpire/laws/Laws.scala",
+                    "file": "model/temporal/capabilities/Close.scala",
                     "line": 32
                   },
                   "call": {
                     "function": "fixture.capabilities.Jobs$.phase",
                     "args": [ {
                       "position": {
-                        "file": "model/umpire/laws/Laws.scala",
+                        "file": "model/temporal/capabilities/Close.scala",
                         "line": 32
                       },
                       "var": "before"
@@ -2107,27 +2107,27 @@
         },
         "right": {
           "position": {
-            "file": "model/umpire/laws/Laws.scala",
+            "file": "model/temporal/capabilities/Close.scala",
             "line": 32
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/umpire/laws/Laws.scala",
+                "file": "model/temporal/capabilities/Close.scala",
                 "line": 32
               },
               "call": {
                 "function": "fixture.capabilities.Jobs$.phase",
                 "args": [ {
                   "position": {
-                    "file": "model/umpire/laws/Laws.scala",
+                    "file": "model/temporal/capabilities/Close.scala",
                     "line": 32
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/umpire/laws/Laws.scala",
+                        "file": "model/temporal/capabilities/Close.scala",
                         "line": 32
                       },
                       "var": "after"
@@ -2139,14 +2139,14 @@
             },
             "right": {
               "position": {
-                "file": "model/umpire/laws/Laws.scala",
+                "file": "model/temporal/capabilities/Close.scala",
                 "line": 32
               },
               "call": {
                 "function": "fixture.capabilities.Jobs$.phase",
                 "args": [ {
                   "position": {
-                    "file": "model/umpire/laws/Laws.scala",
+                    "file": "model/temporal/capabilities/Close.scala",
                     "line": 32
                   },
                   "var": "before"
@@ -2160,8 +2160,8 @@
   }, {
     "name": "job.property.job.terminateSettles",
     "position": {
-      "file": "model/temporal/laws/Terminate.scala",
-      "line": 29
+      "file": "model/temporal/capabilities/Terminate.scala",
+      "line": 28
     },
     "params": [ {
       "name": "step",
@@ -2171,8 +2171,8 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/laws/Terminate.scala",
-        "line": 29
+        "file": "model/temporal/capabilities/Terminate.scala",
+        "line": 28
       },
       "binary": {
         "op": "OP_CONTAINS",
@@ -2190,14 +2190,14 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/laws/Terminate.scala",
-            "line": 29
+            "file": "model/temporal/capabilities/Terminate.scala",
+            "line": 28
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/laws/Terminate.scala",
-                "line": 29
+                "file": "model/temporal/capabilities/Terminate.scala",
+                "line": 28
               },
               "var": "step"
             },
@@ -2711,8 +2711,8 @@
   }, {
     "name": "pair.property.pair.pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
+      "file": "model/temporal/capabilities/Pause.scala",
+      "line": 24
     },
     "params": [ {
       "name": "before",
@@ -2727,29 +2727,29 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/laws/Pause.scala",
-        "line": 25
+        "file": "model/temporal/capabilities/Pause.scala",
+        "line": 24
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/laws/Pause.scala",
-            "line": 25
+            "file": "model/temporal/capabilities/Pause.scala",
+            "line": 24
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/laws/Pause.scala",
-                "line": 25
+                "file": "model/temporal/capabilities/Pause.scala",
+                "line": 24
               },
               "call": {
                 "function": "fixture.capabilities.Pairs$.paused",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/laws/Pause.scala",
-                    "line": 25
+                    "file": "model/temporal/capabilities/Pause.scala",
+                    "line": 24
                   },
                   "var": "before"
                 } ]
@@ -2759,22 +2759,22 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/laws/Pause.scala",
-            "line": 25
+            "file": "model/temporal/capabilities/Pause.scala",
+            "line": 24
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/laws/Pause.scala",
-                "line": 25
+                "file": "model/temporal/capabilities/Pause.scala",
+                "line": 24
               },
               "call": {
                 "function": "pair.property.pair.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/laws/Pause.scala",
-                    "line": 25
+                    "file": "model/temporal/capabilities/Pause.scala",
+                    "line": 24
                   },
                   "var": "after"
                 } ]
@@ -2787,8 +2787,8 @@
   }, {
     "name": "pair.property.pair.pausedIsNotDispatched.never",
     "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
+      "file": "model/temporal/capabilities/Pause.scala",
+      "line": 24
     },
     "params": [ {
       "name": "s",
@@ -2798,21 +2798,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/laws/Pause.scala",
-        "line": 25
+        "file": "model/temporal/capabilities/Pause.scala",
+        "line": 24
       },
       "call": {
         "function": "fixture.capabilities.Pairs$.running",
         "args": [ {
           "position": {
-            "file": "model/temporal/laws/Pause.scala",
-            "line": 25
+            "file": "model/temporal/capabilities/Pause.scala",
+            "line": 24
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/laws/Pause.scala",
-                "line": 25
+                "file": "model/temporal/capabilities/Pause.scala",
+                "line": 24
               },
               "var": "s"
             },
@@ -2960,8 +2960,8 @@
   }, {
     "name": "rogueJob.property.rogueJob.pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
+      "file": "model/temporal/capabilities/Pause.scala",
+      "line": 24
     },
     "params": [ {
       "name": "before",
@@ -2976,29 +2976,29 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/laws/Pause.scala",
-        "line": 25
+        "file": "model/temporal/capabilities/Pause.scala",
+        "line": 24
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/laws/Pause.scala",
-            "line": 25
+            "file": "model/temporal/capabilities/Pause.scala",
+            "line": 24
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/laws/Pause.scala",
-                "line": 25
+                "file": "model/temporal/capabilities/Pause.scala",
+                "line": 24
               },
               "call": {
                 "function": "fixture.capabilities.Jobs$.paused",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/laws/Pause.scala",
-                    "line": 25
+                    "file": "model/temporal/capabilities/Pause.scala",
+                    "line": 24
                   },
                   "var": "before"
                 } ]
@@ -3008,22 +3008,22 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/laws/Pause.scala",
-            "line": 25
+            "file": "model/temporal/capabilities/Pause.scala",
+            "line": 24
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/laws/Pause.scala",
-                "line": 25
+                "file": "model/temporal/capabilities/Pause.scala",
+                "line": 24
               },
               "call": {
                 "function": "rogueJob.property.rogueJob.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/laws/Pause.scala",
-                    "line": 25
+                    "file": "model/temporal/capabilities/Pause.scala",
+                    "line": 24
                   },
                   "var": "after"
                 } ]
@@ -3036,8 +3036,8 @@
   }, {
     "name": "rogueJob.property.rogueJob.pausedIsNotDispatched.never",
     "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
+      "file": "model/temporal/capabilities/Pause.scala",
+      "line": 24
     },
     "params": [ {
       "name": "s",
@@ -3047,21 +3047,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/laws/Pause.scala",
-        "line": 25
+        "file": "model/temporal/capabilities/Pause.scala",
+        "line": 24
       },
       "call": {
         "function": "fixture.capabilities.Jobs$.running",
         "args": [ {
           "position": {
-            "file": "model/temporal/laws/Pause.scala",
-            "line": 25
+            "file": "model/temporal/capabilities/Pause.scala",
+            "line": 24
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/laws/Pause.scala",
-                "line": 25
+                "file": "model/temporal/capabilities/Pause.scala",
+                "line": 24
               },
               "var": "s"
             },
@@ -3528,8 +3528,8 @@
     "machine": "job",
     "name": "job.cancelIsRequested",
     "position": {
-      "file": "model/temporal/laws/Cancel.scala",
-      "line": 26
+      "file": "model/temporal/capabilities/Cancel.scala",
+      "line": 25
     },
     "whenClass": {
       "action": "fixture.capabilities.Capabilities$package$.cancel"
@@ -3539,7 +3539,7 @@
     "machine": "job",
     "name": "job.closedIsRejectedUniformly",
     "position": {
-      "file": "model/umpire/laws/Laws.scala",
+      "file": "model/temporal/capabilities/Close.scala",
       "line": 59
     },
     "holds": "job.property.job.closedIsRejectedUniformly",
@@ -3548,8 +3548,8 @@
     "machine": "job",
     "name": "job.pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
+      "file": "model/temporal/capabilities/Pause.scala",
+      "line": 24
     },
     "holds": "job.property.job.pausedIsNotDispatched",
     "transition": true
@@ -3557,7 +3557,7 @@
     "machine": "job",
     "name": "job.terminalStatesAreFinal",
     "position": {
-      "file": "model/umpire/laws/Laws.scala",
+      "file": "model/temporal/capabilities/Close.scala",
       "line": 31
     },
     "holds": "job.property.job.terminalStatesAreFinal",
@@ -3566,8 +3566,8 @@
     "machine": "job",
     "name": "job.terminateSettles",
     "position": {
-      "file": "model/temporal/laws/Terminate.scala",
-      "line": 29
+      "file": "model/temporal/capabilities/Terminate.scala",
+      "line": 28
     },
     "whenClass": {
       "action": "fixture.capabilities.Capabilities$package$.kill"
@@ -3595,8 +3595,8 @@
     "machine": "pair",
     "name": "pair.pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
+      "file": "model/temporal/capabilities/Pause.scala",
+      "line": 24
     },
     "holds": "pair.property.pair.pausedIsNotDispatched",
     "transition": true
@@ -3604,8 +3604,8 @@
     "machine": "rogueJob",
     "name": "rogueJob.pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
+      "file": "model/temporal/capabilities/Pause.scala",
+      "line": 24
     },
     "holds": "rogueJob.property.rogueJob.pausedIsNotDispatched",
     "transition": true

@@ -25,7 +25,7 @@ import umpire.*
 // generates it from its capabilities as `activityProduct.pausedIsNotDispatched`; the specimen keeps
 // the reviewed name by declaring the law's instance itself.
 val pausedIsNotDispatched =
-  temporal.laws.pausedIsNotDispatched(activityProduct)(Product.paused, Product.running)
+  temporal.capabilities.pausedIsNotDispatched(activityProduct)(Product.paused, Product.running)
 
 given Family = Family("temporal.activity.standalone.admission")
 

@@ -1,8 +1,7 @@
-package temporal.laws
+package temporal.capabilities
 // The two-entity rule of the catalog, run as Scala.
 
-import umpire.laws.{Capability, Catalog, Law}
-import umpire.laws.Capability.*
+import umpire.{CapabilityKind, Catalog, Law}
 
 /**
  * Every law of the catalog has at least two instantiating entities: machines, each with its own
@@ -16,7 +15,7 @@ import umpire.laws.Capability.*
  */
 class CatalogTest extends munit.FunSuite:
   /** A machine that declares capabilities: its name, the state type it owns, what it declares. */
-  final case class Declaring(machine: String, state: String, capabilities: Set[Capability])
+  final case class Declaring(machine: String, state: String, capabilities: Set[CapabilityKind])
 
   val declared: Seq[Declaring] = Seq(
     Declaring("activityProduct", "ProductState", Set(Closable, Pausable, Pollable)),
@@ -35,7 +34,7 @@ class CatalogTest extends munit.FunSuite:
   )
 
   /** The state types of the machines that instantiate a law brought by `by`. */
-  def instantiating(by: Set[Capability], declared: Seq[Declaring]): Seq[String] =
+  def instantiating(by: Set[CapabilityKind], declared: Seq[Declaring]): Seq[String] =
     declared.filter(d => by.subsetOf(d.capabilities)).map(_.state).distinct
 
   /** Each law of `catalog` with fewer than two instantiating entities, by name. */

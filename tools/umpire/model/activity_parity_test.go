@@ -40,15 +40,15 @@ func TestActivityEvidenceIsInCatalogOrder(t *testing.T) {
 	}
 }
 
-// The activity's claims are declared in Properties.scala and Queries.scala, beside the system
-// contract's that are written there once: the scheduleToClose deadline's, the competing timers', and
-// the promises each admission design and composition declares. Every declaration there is lifted,
+// The activity's claims are declared in Properties.scala, Queries.scala and Capabilities.scala,
+// beside the system contract's that are written there once: the scheduleToClose deadline's, the
+// competing timers', and the promises each admission design and composition declares. Every declaration there is lifted,
 // into the activity root or the system contract's, and every claim the activity root lifts is
 // declared there. A capability declaration declares, for each law of the catalog whose capabilities
 // it names, the law's Property, Scenario and Query, each named `<machine>.<law>`.
 func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 	dir := filepath.Join("..", "..", "..", "model", "temporal", "standaloneactivity")
-	files := []string{"Properties.scala", "Queries.scala"}
+	files := []string{"Properties.scala", "Queries.scala", "Capabilities.scala"}
 	var source []byte
 	at := map[string]bool{}
 	for _, file := range files {
@@ -68,8 +68,8 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 	// A law's instance is named after the val that declares its call: `val terminalIsFinal =
 	// terminalStatesAreFinal(activityProduct)(…)`.
 	laws := []string{}
-	for _, file := range []string{"umpire/laws/Laws.scala", "temporal/laws/Pause.scala", "temporal/laws/Terminate.scala", "temporal/laws/Cancel.scala"} {
-		text, err := os.ReadFile(filepath.Join("..", "..", "..", "model", file))
+	for _, file := range []string{"Close.scala", "Pause.scala", "Terminate.scala", "Cancel.scala"} {
+		text, err := os.ReadFile(filepath.Join("..", "..", "..", "model", "temporal", "capabilities", file))
 		require.NoError(t, err)
 		for _, match := range regexp.MustCompile(`(?m)^object (\w+)\b`).FindAllStringSubmatch(string(text), -1) {
 			laws = append(laws, match[1])
