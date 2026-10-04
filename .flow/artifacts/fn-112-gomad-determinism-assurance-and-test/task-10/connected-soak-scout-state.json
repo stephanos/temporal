@@ -1,0 +1,8 @@
+{
+  "task_title": "Inspect retained historical native soak reports through the connected GitHub interface",
+  "task_body": "Read-only bounded follow-up to connected native CI discovery. Inspect second-page jobs and small soak artifacts for completed workflow_dispatch run 36968858553 and, if needed, 37027023410. Retain actual report/ledger contents and exact source/platform/cohort/load/repetition/failure identities if accessible. No dispatch, publication, Flow lifecycle mutation, current-source qualification or native-bound claim without opened reports. Reports are historical source-bound evidence only.",
+  "acceptance": "A source-bound report of what actual soak evidence exists, or a precise verified retrieval blocker; no inferred completion from artifact/job metadata.",
+  "touches_count": 1,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}
