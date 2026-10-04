@@ -197,6 +197,118 @@ control, and the queue's `delivers`/`committedStays`/`storageLossDrops`, which b
 own laws under R20. Settlement tables (`completes`, `syncSucceeds`, `completionSucceeds`…) could be one
 table-driven law but read better as the feature's own content; not proposed.
 
+### Inventory: every claim of `model/temporal`, classified (fn-122 task 1)
+
+The table above is the design-time estimate. This is the classification fn-122 counts by. It covers
+every Property, monitor and progress claim under `model/temporal/**` at fn-122 task 1: 60
+Properties, 6 monitors and 10 progress claims, 76 in all. Each falls in one of three classes. A
+single-capability law or an interaction law names its law. A feature-specific claim names why it
+stays authored. No claim is left unclassified. `Pollable` is the spec's name for this document's
+`Dispatchable`.
+
+**The catalog.** The defs live in `model/umpire/laws/Laws.scala` (entity-neutral) and
+`model/temporal/laws/{Terminate,Cancel,Pause}.scala`. The one `given Catalog` is in
+`model/temporal/laws/Catalog.scala`.
+
+| Law | Brought by | Instantiating machines (planned) | Today's instances |
+| --- | --- | --- | --- |
+| `terminalStatesAreFinal` | Closable | `activityProduct`, the admission record (`AdmissionState`), `nexusOperation` | `terminalIsFinal` (activity product), `terminalStays` (admission bundle; 7 machines, 1 entity) |
+| `closedIsRejectedUniformly` | Closable | same | none: a new claim (the activity product's `control` arm on a closed phase states it inside the step function) |
+| `pausedIsNotDispatched` | Pausable × Pollable | `activityProduct`, the admission record | `pausedIsNotDispatched` (activity product), `notAdmittedWhilePaused` (admission bundle; 7 machines, 1 entity) |
+| `terminateSettles` | Terminable | `activityProtocol`, `nexusOperation` | `terminated` (activity protocol) |
+| `cancelIsRequested` | Cancelable | `activityProtocol`, `nexusOperation` | `cancelRequestedWhileStarted` (activity protocol) |
+
+**Planned capability declarations** (the set the catalog test counts until task 3 declares them).
+An instantiating entity is a machine with its own state type that declares the capability.
+`staleAdmission` is derived from `currentAdmission`. The compositions read the record through their
+`activity` member. `heldAdmission` shares `AdmissionState`. None of these counts again.
+
+| Machine | State type | Declares | Task |
+| --- | --- | --- | --- |
+| `activityProduct` | `ProductState` | Closable, Pausable, Pollable | 3 |
+| `currentAdmission`, `staleAdmission` and the composition families | `AdmissionState` | Closable, Pausable, Pollable | 3 |
+| `activityProtocol` | `ProtocolState` | Terminable, Cancelable, Describable | 3 |
+| `nexusOperation` | its own | Closable, Terminable, Cancelable, Describable | 4 |
+
+**Classification.** Machines are listed by the declarations that carry each claim. "The 7" are
+`currentAdmission`, `staleAdmission`, `currentOverQueue`, `staleOverQueue`, `currentOverMatching`,
+`staleOverMatching` and `currentOverLossyMatching`. They instantiate the admission bundles
+(`AdmissionClaims`, `OverQueueClaims`, `OverMatchingClaims`), all over the one record entity.
+
+| Claim | Kind | Machine(s) | File | Class | Law or reason |
+| --- | --- | --- | --- | --- | --- |
+| `terminalIsFinal` | Property | activityProduct | standaloneactivity/Properties.scala | single-capability law | `terminalStatesAreFinal` |
+| `pausedIsNotDispatched` | Property | activityProduct | standaloneactivity/Properties.scala | interaction law | `pausedIsNotDispatched` |
+| `terminalStays` | Property | the 7 | admission/, compositions/Properties.scala | single-capability law | `terminalStatesAreFinal` |
+| `notAdmittedWhilePaused` | Property | the 7 | admission/, compositions/Properties.scala | interaction law | `pausedIsNotDispatched` |
+| `terminated` | Property | activityProtocol | standaloneactivity/Properties.scala | single-capability law | `terminateSettles`; it also fixes the phase, so retiring it waits for the Case-equality test of R5 |
+| `cancelRequestedWhileStarted` | Property | activityProtocol | standaloneactivity/Properties.scala | single-capability law | `cancelIsRequested`; also fixes the phase, as above |
+| `terminalFinality` | monitor | currentAdmission, staleAdmission, heldAdmission | admission/Model.scala | single-capability law | `terminalStatesAreFinal` in monitor form; weaker than `terminalStays` (it does not keep the phase), so the generated Property subsumes it. It stays as the Run monitor the realization reads |
+| `atMostOneActive` | Property | the 7 | standaloneactivity/Properties.scala | feature-specific | one instantiating entity: only the record counts active attempts |
+| `atMostOneActiveAttempt` | monitor | currentAdmission, staleAdmission, heldAdmission | admission/Model.scala | feature-specific | the record's active count, as above |
+| `startedByPollingWorker` | Property | standaloneActivity | standaloneactivity/Properties.scala | feature-specific | cross-entity worker claim; its twin `repliedByPollingWorker` is in the Nexus caller, which declares no capability here |
+| `completes`, `canceledByWorker` | Property ×2 | activityProtocol | standaloneactivity/Properties.scala | feature-specific | settlement table (Boundaries); the canceled-answer law would need an Attempted capability |
+| `nonRetryableFails`, `retryCompletes` | Property ×2 | activityProtocol | standaloneactivity/Properties.scala | feature-specific | retry: no Retryable capability in the pilot |
+| `scheduleToStartFires`, `scheduleToCloseFires`, `startToCloseFires` | Property ×3 | activityProtocol | standaloneactivity/Properties.scala | feature-specific | deadline: no Deadlined capability in the pilot |
+| `scheduleToStartTimesOut`, `scheduleToCloseTimesOut` | Property ×2 | currentAdmission, staleAdmission | admission/Properties.scala | feature-specific | deadline, as above |
+| `staleDeliveryRejected` | Property | heldAdmission | admission/Properties.scala | feature-specific | the held-delivery race's Run claim |
+| `committedDespiteLostResponse` | Property | admissionResponseLoss | admission/Properties.scala | feature-specific | response-loss fault |
+| `failedCommitKeepsTheMessage` | Property | currentOverQueue, staleOverQueue | compositions/Properties.scala | feature-specific | durable-commit fault over the queue |
+| `delivers`, `committedStays` | Property ×2 | matchingQueue and its three derived providers | taskqueue/Properties.scala | feature-specific | the queue entity's own laws (`queueLaws`, fn-112 R20) |
+| `storageLossDrops` | Property | lossyMatchingQueue | taskqueue/Properties.scala | feature-specific | storage-loss fault of one provider |
+| `terminalIsFinal` | Property | nexusProduct | nexuscaller/Claims.scala | single-capability law (not declared) | `terminalStatesAreFinal`; fn-114 owns the Nexus caller, which declares no capability in this spec |
+| `syncSucceeds`, `completionSucceeds`, `completionFails` | Property ×3 | nexusProtocol | nexuscaller/Claims.scala | feature-specific | settlement table |
+| `asyncStarts` | Property | nexusProtocol | nexuscaller/Claims.scala | feature-specific | async start, a Nexus-only phase |
+| `handlerErrorFails`, `retrySucceeds` | Property ×2 | nexusProtocol | nexuscaller/Claims.scala | feature-specific | retry |
+| `scheduleToStartFires`, `startToCloseFires` | Property ×2 | nexusProtocol | nexuscaller/Claims.scala | feature-specific | deadline |
+| `repliedByPollingWorker` | Property | nexusCaller | nexuscaller/Claims.scala | feature-specific | cross-entity worker claim (fn-114) |
+| `forgedSuccess` | Property | Control.forged | nexuscaller/Control.scala | feature-specific | the deliberately faulty negative control |
+| 16 design Properties (`outcomePreserved` … `routedToSuccessor`) and `completionSucceeds`, `completionFails` | Property ×18 | the five `designQueries` designs | closepolicy/Claims.scala | feature-specific | close-policy design claims; the two completions are the baseline's settlement table |
+| `outcomePreserved`, `ackOnlyWhenKept` | Property ×2 | retainAndRouteBoundedRetry | closepolicy/Claims.scala | feature-specific | close-policy design claims |
+| `outcomePreserved`, `ackOnlyWhenKept`, `noUnnecessaryWait`, `expiresWithNothingOwed`, `expiresWhileOwed`, `lateCompletionIsDropped` | Property ×6 | the three WithDeadline designs | closepolicy/Claims.scala | feature-specific | close-policy design claims (deadline variant) |
+| `retainedOutcome`, `ownerAcknowledgment`, `singleOutcome`, `cancelPrincipal` | monitor ×4 | all nine designs | closepolicy/Model.scala | feature-specific | close-policy design claims |
+| seven `outcomeReachesOwner` claims and `retainedReachesOwner`, `retainedWaitsWithoutRecovery`, `retainedReachesOwnerBoundedRetry` | progress ×10 | one or two designs each | closepolicy/Claims.scala | feature-specific | close-policy design claims |
+
+Totals: 8 claims are law instances. They are `terminalIsFinal` ×2, `terminalStays`,
+`terminalFinality`, `pausedIsNotDispatched`, `notAdmittedWhilePaused`, `terminated` and
+`cancelRequestedWhileStarted`. The other 68 are feature-specific: 38 close-policy, 7 settlement, 7
+deadline, 4 retry, 5 run/fault/control, 3 queue, 2 active count and 2 cross-entity worker.
+
+**For the owner.** No claim is unclassified. These are the borderline calls, each decided above:
+
+- `terminated` and `cancelRequestedWhileStarted` fix the phase as well as the recorded fact, so they
+  are stronger than `terminateSettles` and `cancelIsRequested`. R5 keeps them until a generated
+  Case equals theirs byte for byte.
+- `terminalFinality` is the Close law in monitor form. It is weaker than `terminalStays` on the
+  same machines. As a Run monitor it is not a Property the catalog can generate.
+- `requestedButUnreceived` (closepolicy) looks like `cancelIsRequested`. It tracks intent in the
+  state rather than as a fact, and its point is the receipt gap.
+- `lateCompletionIsDropped` resembles `closedIsRejectedUniformly`. It covers one action and records a
+  fact, so it is not a rejecting stutter.
+
+**Findings of task 1** (the early proof point):
+
+- `terminalStatesAreFinal` and `pausedIsNotDispatched` lift through the existing fold. Their two
+  instances each, product and record, carry the frozen names, IDs and answers.
+- The bodies of `closedIsRejectedUniformly`, `terminateSettles` and `cancelIsRequested` lift only
+  once the fold binds value arguments, not just function-valued and integer ones: an outcome, an
+  action class and a fact. A throwaway probe lifted each one on the activity. The first was refused
+  at the outcome `Outcome.notFound`, the other two at the class `control(Control.terminate)`. That
+  binding belongs with task 2's capability fields (R2, R3). The approach stands: these laws are
+  ordinary defs, and the refusal is the missing binding, not the law's shape.
+- Close, Poll and Describe bring no Temporal law of their own:
+  - Close's laws are entity-neutral (`umpire/laws`).
+  - Pollable alone has no law with two instantiating machines: `atMostOneActive` and
+    `startedByPollingWorker` have one each.
+  - Describable's field is the realization's status table, which no Property of a machine reads.
+    Its law is the await that generated Cases derive from it (task 3). A Describe law stated over
+    a describe action ("a describe changes nothing") would need a transition Property with `when`.
+    That is a finding for a reader spec, not written here.
+- The framework's TASTy was not lifted at all. The lifter now reads `umpire/laws` beside the
+  Models, so an entity-neutral law folds like a Model's own def. A def's body takes the name of
+  the val that declares its call, so a law's instance is named by its val
+  (`val terminalStays = terminalStatesAreFinal(m)(…)`).
+
 **Realization.** The activity realization's four `controlBinding` performs and five `awaitStatus`
 items (about 85 of 860 lines) become one `Describable` table plus the kit's `perform(control(c) ->
 rpc(…))` lines fn-112.9 already plans; the protocol spec adds the derived await, not the performs.

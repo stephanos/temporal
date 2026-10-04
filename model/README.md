@@ -337,7 +337,9 @@ The lifter reads what an author wrote, as written:
   lifter binds where the function is called, as it binds a machine argument; a type parameter
   reads as the type the call applies it to. A case class whose every field is a Property, Scenario
   or Query bundles claims: built by its constructor in such a function, it lifts as its claims, and
-  `x.field` reads one back.
+  `x.field` reads one back. The laws such functions state once for every entity are lifted sources
+  too: `model/temporal/laws`, and of the framework `model/umpire/laws` alone, whose TASTy the lifter
+  reads beside the Models'.
 - **Types:** enums with and without case fields, case classes, and bounded counters `UpTo[N]`: a
   field `attempts: UpTo[2]` has the values 0, 1 and 2, lifted as the IR int range 0..2, and a step
   writes one with `UpTo(n)`. It replaces integer fields bounded by the per-record
@@ -403,7 +405,9 @@ and for `Party()`, `Entity(key = …)` and `Observation(on = …, read = …)`, 
 The explicit forms, such as `machine[S, O, F](family, name)`, `action(name, party)` and
 `property("…")`, name a declaration whose name differs from its `val`'s. A Property or Scenario
 with no `val`, built in a list or in a function over a machine argument, keeps `property("…")` or
-`scenario("…")`. A Query that neither a `val` nor `query("…")` names is named
+`scenario("…")`, except where the function's body ends in it and a `val` declares the function's
+call: it then takes that `val`'s name, as a law's instance does
+(`val terminalStays = terminalStatesAreFinal(m)(Admission.phase, Admission.terminal)`). A Query that neither a `val` nor `query("…")` names is named
 `<machine>.<scenario>.<property>`, after the machine its Scenario is declared on, its Scenario and
 its Property: `query verify notPaused in any` over a design `m` is `m.any.notAdmittedWhilePaused`.
 Any other captured form with no `val`, or with a name the compiler made up such as an anonymous
@@ -513,13 +517,15 @@ keep the family, Definition IDs and type names they had in the standalone activi
 contract, through the pin and the type-name rule above.
 
 A claim over several designs is one function over `Declares[S]` whose state-dependent parts are
-parameters, and each call passes defs of the lifted sources:
+parameters, and each call passes defs of the lifted sources. A law is such a function, written once
+for every entity in `model/temporal/laws` or `model/umpire/laws`, and each instance is named by the
+`val` that declares its call:
 
 ```scala
-def notAdmittedWhilePaused[S](m: Declares[S])(paused: S => Boolean, running: S => Boolean) =
-  m.property("notAdmittedWhilePaused").never(s => running(s.state)).from(paused)
+def pausedIsNotDispatched[S](m: Declares[S])(paused: S => Boolean, running: S => Boolean) =
+  m.property.never(s => running(s.state)).from(paused)
 
-val onRecord = notAdmittedWhilePaused(currentRecord)(Admission.paused, Admission.running)
+val notAdmittedWhilePaused = pausedIsNotDispatched(m)(Admission.paused, Admission.running)
 ```
 
 A lambda passed for such a parameter is refused at its line, naming the def to write, and so is a

@@ -5,10 +5,11 @@ package temporal
 package standaloneactivity
 
 import umpire.*
+import umpire.laws.terminalStatesAreFinal
 import worker.Phase as WorkerPhase
 
 /** Declared on the product machine and read on the protocol machine through the map. */
-val terminalIsFinal = activityProduct.property.once(Product.terminal).keeps(_.phase)
+val terminalIsFinal = terminalStatesAreFinal(activityProduct)(Product.phase, Product.terminal)
 
 /**
  * Nothing moves a paused activity straight to started. The predicate fixes no state, outcome or
@@ -16,7 +17,7 @@ val terminalIsFinal = activityProduct.property.once(Product.terminal).keeps(_.ph
  * which is the regression it guards.
  */
 val pausedIsNotDispatched =
-  activityProduct.property.never(s => Product.running(s.state)).from(Product.paused)
+  temporal.laws.pausedIsNotDispatched(activityProduct)(Product.paused, Product.running)
 
 val completes = activityProtocol.property when attemptResult(AttemptResult.completed) holds { s =>
   s.state.phase == Phase.completed && s.records(ProtocolFact.statusCompleted)
@@ -77,18 +78,11 @@ val startedByPollingWorker = standaloneActivity.property
   .holds(_.state.worker.phase == WorkerPhase.polling)
 
 // The system contract's promises are declared on each admission design and each composition with
-// the record. Each takes the states it speaks of as predicates, so one definition serves the record
-// and a composition, which reads the record through its `activity` member.
-
-def notAdmittedWhilePaused[S](m: Declares[S])(
-    paused: S => Boolean,
-    running: S => Boolean
-): Property[S] =
-  m.property("notAdmittedWhilePaused").never(s => running(s.state)).from(paused)
+// the record. `terminalStatesAreFinal` and `pausedIsNotDispatched` are laws (model/umpire/laws,
+// model/temporal/laws); the third is the record's own, since only the record counts active attempts.
+// Each takes the states it speaks of as predicates, so one definition serves the record and a
+// composition, which reads the record through its `activity` member.
 
 /** No step leaves two admitted attempts active. */
 def atMostOneActive[S](m: Declares[S])(twoActive: S => Boolean): Property[S] =
   m.property("atMostOneActive").never(s => twoActive(s.state))
-
-def terminalStays[S, P](m: Declares[S])(terminal: S => Boolean, phase: S => P): Property[S] =
-  m.property("terminalStays").once(terminal).keeps(phase)

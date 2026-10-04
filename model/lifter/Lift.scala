@@ -95,8 +95,9 @@ class Lifter(roots: Seq[String], prefixes: Map[String, String]) extends Inspecto
  */
 // `lift <jar=prefix>,... <classpath file> <out.json> <root>...` reads several jars, each with the
 // prefix of its own sources. Either way a root may also name a composition, a Query, a list of Queries
-// or a progress claim; every jar's TASTy but the framework's is read; and every root is lifted and
-// every refusal reported before anything is written.
+// or a progress claim; every jar's TASTy but the framework's is read, apart from the framework's
+// entity-neutral laws (umpire/laws), whose bodies a Model's claims fold like its own defs; and every
+// root is lifted and every refusal reported before anything is written.
 @main def lift(args: String*): Unit =
   val (specs, classpathFile, out, roots) = args.toList match
     case jars :: classpath :: out :: roots if jars.contains("=") =>
@@ -116,7 +117,7 @@ class Lifter(roots: Seq[String], prefixes: Map[String, String]) extends Inspecto
   val tastys = specs.zipWithIndex.flatMap { case ((jar, prefix), i) =>
     val zip = ZipFile(jar)
     zip.entries.asScala
-      .filter(e => !e.getName.startsWith("umpire/") && e.getName.endsWith(".tasty"))
+      .filter(e => lifted(e.getName) && e.getName.endsWith(".tasty"))
       .map { e =>
         val entry = s"$i/${e.getName}"
         val p = scratch.resolve(entry)
@@ -147,6 +148,10 @@ class Lifter(roots: Seq[String], prefixes: Map[String, String]) extends Inspecto
       Printer().toJson(lifter.models.headOption.getOrElse(sys.error("lift: nothing was lifted")))
     )
   Files.writeString(Paths.get(out), json + "\n")
+
+/** Whether a jar entry is of the lifted sources: a Model's, or a law of the framework's. */
+private def lifted(entry: String): Boolean =
+  !entry.startsWith("umpire/") || entry.startsWith("umpire/laws/")
 
 /** Jackson's indented layout, with a field's value after `": "` as ProtoJSON is usually written. */
 final private class Pretty extends DefaultPrettyPrinter:

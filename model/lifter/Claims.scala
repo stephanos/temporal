@@ -420,7 +420,7 @@ private[lift] trait Claims:
               "Property, Scenario or Query: a case class bundles the claims a shared def declares " +
               "together when its every field holds one"
           )
-        case d: DefDef if d.rhs.nonEmpty => declaring(d, t, env)
+        case d: DefDef if d.rhs.nonEmpty => declaring(d, t, env, named)
         case _ => fail(t, s"${fn.symbol.fullName} is not a function of the lifted sources")
     case other => fail(other, s"not a declaration the IR carries: ${other.show}")
 
@@ -483,9 +483,10 @@ private[lift] trait Claims:
    * The body of a declaring function `d` at its call `t`, its arguments bound: each value folded, each
    * function-valued argument to the def of the lifted sources it names, and each type parameter to
    * the type the call applies it to, so a claim written once over `Declares[S]` and its predicates
-   * reads the machine's own.
+   * reads the machine's own. A declaration the body ends in takes its name from `named`, the val
+   * that declares the call, as a law's instance does: `val terminalStays = terminalStatesAreFinal(…)`.
    */
-  def declaring(d: DefDef, t: Term, env: Map[Symbol, Decl]): Decl =
+  def declaring(d: DefDef, t: Term, env: Map[Symbol, Decl], named: Option[Symbol]): Decl =
     def parts(t: Term): (List[TypeTree], List[Term]) = t match
       case Apply(fn, args) =>
         parts(fn) match
@@ -508,7 +509,7 @@ private[lift] trait Claims:
         .fold(argument(p, d, a, env))(f => Decl.FunctionRef(f.fullName))
     }
     val types = typeParams.zip(targs.map(a => instantiated(a.tpe))).toMap
-    binding(functions, types)(fold(d.rhs.get, bound.toMap))
+    binding(functions, types)(fold(d.rhs.get, bound.toMap, named))
 
   /**
    * The value argument `a` of the parameter `p` of `d`, folded: an integer parameter, such as the

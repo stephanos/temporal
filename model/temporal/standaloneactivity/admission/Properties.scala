@@ -3,6 +3,8 @@ package standaloneactivity
 package admission
 
 import umpire.*
+import umpire.laws.terminalStatesAreFinal
+import temporal.laws.pausedIsNotDispatched
 
 /**
  * The claims every admission design is held to: the three promises of the system contract over the
@@ -17,6 +19,8 @@ final case class AdmissionClaims(
 )
 
 def admissionClaims(m: Machine[AdmissionState, Outcome, AdmissionFact]): AdmissionClaims =
+  val notAdmittedWhilePaused = pausedIsNotDispatched(m)(Admission.paused, Admission.running)
+  val terminalStays = terminalStatesAreFinal(m)(Admission.phase, Admission.terminal)
   val scheduleToStartTimesOut = m.property when scheduleToStart holds (after =>
     after.records(AdmissionFact.statusTimedOut(TimeoutType.scheduleToStart))
   )
@@ -24,9 +28,9 @@ def admissionClaims(m: Machine[AdmissionState, Outcome, AdmissionFact]): Admissi
     after.records(AdmissionFact.statusTimedOut(TimeoutType.scheduleToClose))
   )
   AdmissionClaims(
-    notAdmittedWhilePaused(m)(Admission.paused, Admission.running),
+    notAdmittedWhilePaused,
     atMostOneActive(m)(Admission.twoActive),
-    terminalStays(m)(Admission.terminal, Admission.phase),
+    terminalStays,
     scheduleToStartTimesOut,
     scheduleToCloseTimesOut
   )

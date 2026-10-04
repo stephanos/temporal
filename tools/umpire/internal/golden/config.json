@@ -240,6 +240,14 @@
     {
       "old": "model/temporal/standaloneactivity/",
       "new": "model/temporal/standaloneactivity"
+    },
+    {
+      "old": "model/temporal/laws/",
+      "new": "model/temporal/standaloneactivity"
+    },
+    {
+      "old": "model/umpire/laws/",
+      "new": "model/temporal/standaloneactivity"
     }
   ],
   "source_label_substitutions": [
