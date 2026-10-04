@@ -554,7 +554,7 @@ class GateSuite extends munit.FunSuite:
     assert(answer.err.contains("model/cases/a.json is stale"), answer.err)
     // The lifts beside it ended and were reported before the Cases.
     assert(
-      answer.out.indexOf("== lift the Nexus caller Model") <
+      answer.out.indexOf("== lift every IR file the Models declare") <
         answer.out.indexOf("== check every lowered Case"),
       answer.out
     )

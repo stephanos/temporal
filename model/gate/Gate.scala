@@ -430,9 +430,7 @@ final class Gate(tools: Tools, log: PrintStream):
         .orFail()
       ""
     val lifted = scratch("ir")
-    val modelLifts = beside(
-      "lift the Nexus caller Model, the activity Models and the Nexus close designs"
-    ):
+    val modelLifts = beside("lift every IR file the Models declare"):
       // One lifter run reads the Models' TASTy once and writes every IR file they declare with
       // `irFile`, each lifted apart; its refusals name the file they were lifting.
       val arguments = Seq(
