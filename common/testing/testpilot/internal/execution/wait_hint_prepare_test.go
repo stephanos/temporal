@@ -219,3 +219,16 @@ func TestPrepareLeavesUnhintedCasesUnscaled(t *testing.T) {
 		})
 	}
 }
+
+// A scale widens only a hinted bound's ceiling: an unhinted timeout above the declared ceiling is
+// refused under every scale, so whether a Case admits never depends on the scale.
+func TestPrepareAdmitsUnhintedTimeoutsUnderTheDeclaredCeiling(t *testing.T) {
+	for _, scale := range []contract.BoundScale{0, 150} {
+		source, catalog, policy := evidenceFixture(t)
+		policy.BoundScale = scale
+		poll := source.Program.Entrypoints[0].Instructions[2]
+		poll.Limits = &testpilotspb.InstructionLimits{Timeout: &testpilotspb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: policy.Limits.MaxTotalDurationMilliseconds + 1}, Attempts: &testpilotspb.InstructionLimits_MaxAttempts{MaxAttempts: 1}}
+		_, err := Prepare(source, catalog, policy)
+		require.ErrorContains(t, err, "instruction bounds exceed Profile ceilings", "scale %d", scale)
+	}
+}

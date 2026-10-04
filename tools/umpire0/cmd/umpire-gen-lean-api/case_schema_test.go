@@ -132,6 +132,7 @@ func TestCaseSchemaExcludesConcreteDriverAuthorityFields(t *testing.T) {
 		"temporal/server/api/testpilot/v1/event.proto",
 		"temporal/server/api/testpilot/v1/run.proto",
 		"temporal/server/api/testpilot/v1/case.proto",
+		"temporal/server/api/testpilot/v1/source.proto",
 	} {
 		file, err := protoregistry.GlobalFiles.FindFileByPath(path)
 		require.NoError(t, err)

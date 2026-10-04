@@ -679,7 +679,7 @@ func decodeArtifactRequest(source, target proto.Message) error {
 // PollRPC answers the scheduled-event poll once, from the history as it stands when the poll is
 // issued: one round satisfies the predicate or the poll is rejected.
 func (s *scriptedSession) PollRPC(ctx context.Context, coordinate testpilot.Coordinate, role string, method protoreflect.MethodDescriptor, request proto.Message, interval time.Duration, satisfied testpilot.PollPredicate) (testpilot.EffectHandle, error) {
-	if coordinate.InstructionID != "await-scheduled" || interval <= 0 || satisfied == nil {
+	if coordinate.InstructionID != "await-scheduled" || interval < 0 || satisfied == nil {
 		return nil, temporal.ErrInvalid
 	}
 	handle, err := s.InvokeRPC(ctx, coordinate, role, method, request)

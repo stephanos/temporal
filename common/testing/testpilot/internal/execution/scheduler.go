@@ -851,12 +851,8 @@ func (s *scheduler) acceptRPC(ctx context.Context, _ scheduledNode, c contract.C
 }
 func (s *scheduler) acceptReadEvidence(ctx context.Context, task scheduledNode, c contract.Coordinate, n *node, request proto.Message) (contract.EffectHandle, contract.HandleBridge, error) {
 	a := task.activation.values
-	interval := time.Duration(n.pollIntervalMilliseconds) * time.Millisecond
-	if n.once {
-		// A zero interval is the Driver contract's read once.
-		interval = 0
-	}
-	effect, err := s.session.PollRPC(ctx, c, n.source.Instruction.GetReadEvidence().EndpointRoleId, n.method, request, interval, func(ctx context.Context, response proto.Message) (bool, error) {
+	// A read once was admitted with interval 0, which the Driver contract reads once.
+	effect, err := s.session.PollRPC(ctx, c, n.source.Instruction.GetReadEvidence().EndpointRoleId, n.method, request, time.Duration(n.pollIntervalMilliseconds)*time.Millisecond, func(ctx context.Context, response proto.Message) (bool, error) {
 		satisfied, _, err := a.readSatisfied(ctx, c, response, a.workLimit())
 		return satisfied, err
 	})

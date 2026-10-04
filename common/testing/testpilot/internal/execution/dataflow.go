@@ -253,18 +253,24 @@ func (a *admission) bindNodeBounds(g *graph, n *node) error {
 	if (bounds.GetTimeout() == nil && n.timeoutMilliseconds == 0) || (bounds.GetAttempts() == nil && n.maxAttempts == 0) {
 		return ir.Invalid(ir.Malformed, nodePath(g, n), "instruction writes no limit the Profile has no default for")
 	}
-	if n.timeoutMilliseconds <= 0 || n.timeoutMilliseconds > a.durationCeiling(g) || n.maxAttempts <= 0 || n.maxAttempts > a.prepared.limits.MaxAttempts {
+	// A hinted timeout is scaled, so it is checked against the scaled ceiling; every other one is
+	// unscaled and checked against the declared ceiling, so a scale admits no Case it would refuse.
+	ceiling := a.durationCeiling(g, a.declaredLimits)
+	if len(n.source.GetWaitHints()) > 0 {
+		ceiling = a.durationCeiling(g, a.prepared.limits)
+	}
+	if n.timeoutMilliseconds <= 0 || n.timeoutMilliseconds > ceiling || n.maxAttempts <= 0 || n.maxAttempts > a.prepared.limits.MaxAttempts {
 		return ir.Invalid(ir.LimitExceeded, nodePath(g, n), "instruction bounds exceed Profile ceilings")
 	}
 	return nil
 }
 
-// durationCeiling is the Profile's duration ceiling for an instruction of g, already scaled.
-func (a *admission) durationCeiling(g *graph) int64 {
+// durationCeiling is the duration ceiling of limits for an instruction of g.
+func (a *admission) durationCeiling(g *graph, limits *testpilotspb.ProgramLimits) int64 {
 	if g.cleanup {
-		return a.prepared.limits.MaxCleanupDurationMilliseconds
+		return limits.MaxCleanupDurationMilliseconds
 	}
-	return a.prepared.limits.MaxTotalDurationMilliseconds
+	return limits.MaxTotalDurationMilliseconds
 }
 
 // bindWaitHints admits the hints a polling ReadEvidence waits within. The node writes its own
@@ -313,7 +319,7 @@ func (a *admission) bindWaitHints(g *graph, n *node) error {
 	if g.cleanup {
 		ceilingKind = "cleanup"
 	}
-	if ceiling := a.durationCeiling(g); n.timeoutMilliseconds > ceiling {
+	if ceiling := a.durationCeiling(g, a.prepared.limits); n.timeoutMilliseconds > ceiling {
 		if scale.Scaled() {
 			return ir.Invalid(ir.LimitExceeded, timeoutPath, fmt.Sprintf("scaled wait bound %d ms (%d ms declared, scaled by %d%%) exceeds the scaled Profile %s duration ceiling %d ms", n.timeoutMilliseconds, declared, scale.Percent(), ceilingKind, ceiling))
 		}

@@ -217,7 +217,7 @@ func (a *admission) checkDuration(message proto.Message, path string) error {
 	if !ok || duration.CheckValid() != nil || duration.AsDuration() <= 0 {
 		return ir.Invalid(ir.Malformed, path, "invalid duration")
 	}
-	if duration.AsDuration().Milliseconds() > a.prepared.limits.MaxTotalDurationMilliseconds {
+	if duration.AsDuration().Milliseconds() > a.declaredLimits.MaxTotalDurationMilliseconds {
 		return ir.Invalid(ir.LimitExceeded, path, "duration exceeds the Profile's total duration ceiling")
 	}
 	return nil

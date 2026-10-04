@@ -42,6 +42,9 @@ input_file testpilotProgramProto where
 input_file testpilotRunProto where
   path := "../../proto/internal/temporal/server/api/testpilot/v1/run.proto"
 
+input_file testpilotSourceProto where
+  path := "../../proto/internal/temporal/server/api/testpilot/v1/source.proto"
+
 input_file testpilotValueProto where
   path := "../../proto/internal/temporal/server/api/testpilot/v1/value.proto"
 
@@ -60,6 +63,7 @@ target testpilotProtocolSchemas (pkg : NPackage __name__) : FilePath := do
     testpilotInstructionProto,
     testpilotProgramProto,
     testpilotRunProto,
+    testpilotSourceProto,
     testpilotValueProto,
     apiDescriptorSet
   ] do

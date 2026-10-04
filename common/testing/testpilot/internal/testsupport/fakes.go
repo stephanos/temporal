@@ -194,8 +194,8 @@ func (s *Session) PollRPC(ctx context.Context, coordinate contract.Coordinate, r
 	if s.OnInvokeRPC == nil {
 		return nil, ErrUnscripted
 	}
-	if interval <= 0 || satisfied == nil {
-		return nil, errors.New("testsupport: a poll requires an interval and a predicate")
+	if interval < 0 || satisfied == nil {
+		return nil, errors.New("testsupport: a poll requires a non-negative interval and a predicate")
 	}
 	handle, err := s.OnInvokeRPC(ctx, coordinate, role, method, request)
 	if err != nil {

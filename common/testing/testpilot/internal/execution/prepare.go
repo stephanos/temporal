@@ -38,6 +38,9 @@ type admission struct {
 	evidenceSources map[string]contract.Coordinate
 	graphIndex      map[string]*graph
 	work            int64
+	// declaredLimits are the Profile's ceilings before its bound scale. Every admission check but a
+	// hinted bound's reads them, so whether a Case admits never depends on the scale.
+	declaredLimits *testpilotspb.ProgramLimits
 }
 
 func (a *admission) charge(count int64) error {
@@ -183,8 +186,9 @@ func (a *admission) bindPolicy(policy Profile) error {
 		}
 		a.commandTypes[commandType] = true
 	}
-	// Every later reader of the ceilings, preparation's checks and the Run alike, sees them scaled,
-	// so a hinted bound is checked against the ceiling it runs under.
+	// The Run and the Driver read the ceilings scaled, so a hinted bound is never cut short of the
+	// scaled bound a failure reports.
+	a.declaredLimits = policy.Limits
 	a.prepared.limits = policy.BoundScale.Ceilings(policy.Limits)
 	a.prepared.boundScale = policy.BoundScale
 	a.prepared.instructionDefaults = policy.InstructionDefaults
