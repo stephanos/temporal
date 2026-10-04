@@ -151,6 +151,16 @@ func (c Config) RenameSources(encoded []byte) []byte {
 	return encoded
 }
 
+// UnsplitSources applies Splits to the source paths a lowered Case, Program or Contract of the current
+// IR names: each is a JSON string equal to a split file, which becomes the file its declarations came
+// from. A Case names its Query's file, so a Query split out of a file compares as Unsplit compares it.
+func (c Config) UnsplitSources(encoded []byte) []byte {
+	for _, s := range c.Splits {
+		encoded = bytes.ReplaceAll(encoded, []byte(strconv.Quote(s.Old)), []byte(strconv.Quote(s.New)))
+	}
+	return encoded
+}
+
 // MergeSources applies Merges to the source paths a lowered Case, Program or Contract names: each is a
 // JSON string that is a path under a merged directory, which becomes the directory's name.
 func (c Config) MergeSources(encoded []byte) []byte {
