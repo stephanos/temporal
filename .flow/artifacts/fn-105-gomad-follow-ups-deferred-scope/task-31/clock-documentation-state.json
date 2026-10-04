@@ -1,0 +1,8 @@
+{
+  "task_title": "Reconcile D26 forward-clock documentation with the integrated shared clock",
+  "task_body": "Prepare isolated documentation-only corrections for CLI.md, TUTORIAL.md and the clock-policy paragraph of ARCHITECTURE.md. They still describe the removed separate offset and negative monotonic durations; actual gomadTimeNow advances faketime and nanotime/timers share it. README already describes the shared clock. Preserve task19 World prose and qualify source semantics separately from missing native runtime evidence.",
+  "acceptance": "Use committed HEAD preimages in isolated scratch; change only stale clock paragraphs, retain strict behavior, synctest/private clock precedence, independent seeded draw stream, next timer-check delivery, coarse timestamp ties and identity/replay policy. Return exact patch and source-bound review; no shared source, Git/index or Flow mutation or native qualification claim.",
+  "touches_count": 3,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

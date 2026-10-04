@@ -1,0 +1,54 @@
+{
+  "task": "fn-105-gomad-follow-ups-deferred-scope.31 / R26 documentation reconciliation",
+  "predecessor_commit": "5350185a3601921c0a5f9ba07e1f05bdad7df81f",
+  "scratch": "/tmp/gomad-d26-clock-docs.7Fci06",
+  "patch": "clock-documentation.patch",
+  "patch_sha256": "e4092bec3e8218c849e4498b880b75ac7479d0e198a75c416494bd2531dfabb4",
+  "predecessor_source": "predecessor-source.tar",
+  "predecessor_source_sha256": "9d2613270decb71e235d6eb5554b0a1a03c69cc600a190d3a3f153a9cad85355",
+  "final_source": "final-source.tar",
+  "final_source_sha256": "4b179f3688e730ad177b2aaeb429d7b851edfb8a53df3c0c0b33b0bc3c81622f",
+  "source_digest_definition": "SHA-256 of retained deterministic ustar containing exactly the three regular documentation files in CLI, TUTORIAL, ARCHITECTURE order; mtime 1970-01-01, uid/gid 0, mode 0644. No other repository sources are included.",
+  "files": [
+    {
+      "path": "tools/gomad3/CLI.md",
+      "preimage_sha256": "e65d94ff604c6a40a5ef660bcae00a13543a3a358387264a2a4009bee91e3965",
+      "final_sha256": "736d52b83da427c3771b69794a9892483d7a69bb82f6297f492ce1f8c6a4c3d9",
+      "hunks": ["@@ -144,7 +144,7 @@"],
+      "scope": "Replace the stale clock-policy paragraph only."
+    },
+    {
+      "path": "tools/gomad3/TUTORIAL.md",
+      "preimage_sha256": "99c2b8fbbc3402dffb8c1cf8442794a43ae92bed1cfc93fb996300d858de5e53",
+      "final_sha256": "9129eb3b63114aa4b32c70b33f23503474aa84979cea9cb0c646ebdbe2764e48",
+      "hunks": ["@@ -257,18 +257,25 @@"],
+      "scope": "Replace the stale clock-policy paragraph and qualify the adjacent busy-loop statement."
+    },
+    {
+      "path": "tools/gomad3/ARCHITECTURE.md",
+      "preimage_sha256": "2769ff82f50c4669d4e6f1b8f0985b7bed99d5536e790e2c647b41042ab46357",
+      "final_sha256": "4611652e45cc57c2b7337f87b6f5ff283aa578a1674aeabae029de99c42a1aef",
+      "hunks": ["@@ -207,24 +207,20 @@", "@@ -233,8 +229,11 @@"],
+      "scope": "Replace the stale clock-policy paragraph and qualify the adjacent runnable-work statement; the World section and all following text are byte-identical to HEAD."
+    }
+  ],
+  "semantic_basis": [
+    "Committed runtime/overlay/src/runtime/gomad.go:168-213 defines the independent seed-derived 1-1024 ns draw and adds it directly to faketime in gomadTimeNow.",
+    "Committed runtime/go1.27.1.patch:601-606 routes time_runtimeNow through gomadTimeNow; :678-683 routes nanotime through faketime.",
+    "Committed runtime/overlay/src/runtime/gomad.go:1475-1481 returns faketime from gomadSimulationTimeCurrent when simulation time is enabled.",
+    "tools/gomad3/README.md:778-807 already documents shared time, synctest precedence, next-check timer delivery, coarse ties, identity/replay policy, and remaining qualification."
+  ],
+  "manual_document_checks": [
+    "Verified all three preimages byte-for-byte against git show of the exact predecessor commit; git ls-tree reports each as mode 100644.",
+    "Read all four unified diff hunks: only three clock-policy paragraphs and two adjacent clock qualifiers change; no World or broad formatting changes.",
+    "Checked preservation of strict idle advancement, synctest private-clock precedence, separate tick draws without scheduling-draw consumption, shared timer eligibility, next timer-check delivery, no runnable skipping, non-ticking runtime reads, coarse ties, and recorded identity/replay.",
+    "Searched the three final files for offset/negative-duration/late-deadline wording; the sole remaining match is unrelated wire-codec offsets.",
+    "Compared ARCHITECTURE.md from its World heading through EOF; bytes equal the archived HEAD source, excluding the concurrent task19 World delta.",
+    "git apply --check from the isolated before directory exits 0.",
+    "git diff --no-index --check before final emits no whitespace diagnostics; exit 1 reports the expected documentation differences.",
+    "Both retained source archives contain exactly the three regular files; per-file and archive hashes are recorded above."
+  ],
+  "qualification": "Source semantics inspected only. No native runtime, generator, workload, or big-test rerun was performed. Repeatability, traced exact replay, and native darwin/arm64 and linux/amd64 acceptance remain open under R26.",
+  "ownership": "Wrote only isolated scratch and this new clock-documentation artifact directory. Did not modify shared documentation/source, Git/index, Flow task state, or the existing judged clock-documentation-state.json. Root reviews; sole authorized architecture writer applies these hunks to the working tree and stages this HEAD+D26 snapshot separately from task19 World changes.",
+  "judgment": "Existing once-only no_key result retained; requested gpt-6.1-sol/high, actual model and effort metadata unknown; no rejudgment."
+}

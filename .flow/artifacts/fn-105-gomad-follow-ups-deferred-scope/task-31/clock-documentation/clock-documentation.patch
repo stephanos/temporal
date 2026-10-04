@@ -1,0 +1,102 @@
+--- a/tools/gomad3/CLI.md
++++ b/tools/gomad3/CLI.md
+@@ -144,7 +144,7 @@
+ 
+ Choice recording defaults to 8 MiB and accepts at most `--choice-bytes=64MiB`; overflow fails visibly. Output retention defaults to 8 MiB per stream, adjustable with `--output-limit`. Deterministic I/O transcript capacity defaults to 64 MiB and accepts `--io-transcript-bytes` from 64 MiB through 1 GiB in whole MiB increments. A larger transcript does not increase choice capacity.
+ 
+-With the default `--clock-tick=strict` policy, virtual time stands still while work is runnable, so repeated `time.Now` reads can tie. A test that orders records by timestamp may fail on those ties. Add `--clock-tick=forward` to `explore` or `qualify` to add a cumulative seeded offset of 1 to 1024 nanoseconds per `time.Now` read. The native timer clock still advances only when work cannot proceed, and `time.Since` and `time.Until` read that clock for a reading that still carries its monotonic value: an elapsed time measured from such a reading can be short or negative, a deadline computed from it can expire later than a timer set for the same duration, and timestamps truncated above nanosecond resolution can still tie. A reading stripped of its monotonic value, as by serialization or parsing, is compared against a fresh ticked `time.Now` instead. The policy is part of the Campaign and Artifact identity, and replay restores it.
++With the default `--clock-tick=strict` policy, virtual time stands still while work is runnable, so repeated `time.Now` reads can tie; the runtime jumps to the earliest native timer deadline only when no goroutine is runnable. A test that orders records by timestamp may fail on those ties. Add `--clock-tick=forward` to `explore` or `qualify` to advance the process virtual clock by 1 to 1024 nanoseconds per `time.Now` read, using a separate seed-derived stream that consumes no scheduling draws. `time.Now`, monotonic elapsed time, timers, sleeps, context deadlines, and simulation time observe that shared clock. A draw can make a timer due while work is runnable; delivery occurs at the runtime's next timer check without skipping runnable work. Runtime-internal clock reads do not tick. Explicit `testing/synctest` bubbles keep their private clocks and take precedence over the process clock, and timestamps truncated above nanosecond resolution can still tie. The recorded environment binds the policy into Campaign, Artifact, and plan identity, and replay restores it. These source semantics do not establish workload repeatability or exact replay; the remaining qualification is recorded in the [milestones](../../MILESTONES.md#open-findings).
+ 
+ To run a module that lives elsewhere, such as one that depends on the server through a local `replace`, pass `--working-dir=/absolute/module/root` instead of changing directories.
+ 
+--- a/tools/gomad3/TUTORIAL.md
++++ b/tools/gomad3/TUTORIAL.md
+@@ -257,18 +257,25 @@
+ This is the default `--clock-tick=strict` policy: `time.Now` returns the same
+ instant throughout a busy stretch. If a test needs successive reads to differ,
+ `--clock-tick=forward` on `explore` or `qualify` adds a seeded 1 to 1024
+-nanoseconds per read. The offset leaves the native timer clock, scheduler, and
+-simulation time unchanged, but application durations or deadlines derived from
+-`time.Now` can observe it: `time.Since` on a reading that still carries its
+-monotonic value can come out short or negative, and a deadline computed from
+-such a reading can expire later than a
+-timer set for the same duration. Readings differ only at nanosecond
+-resolution, so coarser timestamps can still tie. The policy is part of the
+-recorded execution identity, and replay restores it.
++nanoseconds per read to the process virtual clock, using a separate
++seed-derived stream that consumes no scheduling draws. `time.Now`, monotonic
++elapsed time, timers, sleeps, context deadlines, and simulation time observe
++that shared clock. A draw can make a timer due while work is runnable; the
++runtime delivers it at its next timer check without skipping runnable work.
++Runtime-internal clock reads do not tick. Explicit `testing/synctest` bubbles
++keep their private clocks and take precedence over the process clock.
++Readings differ only at nanosecond resolution, so coarser timestamps can still
++tie. The recorded environment binds the policy into execution identity, and
++replay restores it. These source semantics do not establish workload
++repeatability or exact replay; the remaining qualification is recorded in the
++[milestones](../../MILESTONES.md#open-findings).
+ 
+ Virtual time does not bulldoze runnable work. A busy loop or a goroutine
+-repeatedly polling a `select` remains runnable, so the clock cannot advance.
+-That is when the supervisor's real wall-time watchdog steps in. A watchdog
++repeatedly polling a `select` remains runnable, so it prevents an idle jump to a
++future timer deadline. Without forward `time.Now` draws, the clock cannot
++advance; even with those draws, timer delivery requires the next timer check
++at a cooperative scheduling point. The supervisor's real wall-time watchdog
++bounds work that never reaches such a point. A watchdog
+ observation is kept separate from a deterministic target failure because host
+ elapsed time is a safety bound, not part of the virtual schedule.
+ 
+--- a/tools/gomad3/ARCHITECTURE.md
++++ b/tools/gomad3/ARCHITECTURE.md
+@@ -207,24 +207,20 @@
+ over the process clock.
+ 
+ The default `strict` clock-tick policy leaves `time.Now` unchanged while work is
+-runnable. The optional `forward` policy adds a cumulative 1–1024 nanosecond
+-increment at each `time.Now` read, using a separate seed-derived stream. Only
+-`time.Now` observes that offset; the native timer clock, scheduler clock reads,
+-and simulation time retain the idle-driven clock. Application calculations
+-that derive deadlines or durations from `time.Now` can still observe the
+-offset. For a reading that still carries its monotonic value, `time.Since`
+-and `time.Until` read the idle-driven clock rather than the ticked one, so an
+-elapsed time measured against such a reading is short by that reading's offset
+-and negative within one busy stretch, and a deadline derived from it expires
+-later than a native timer armed for the same duration. A reading stripped of
+-its monotonic value, as by `Round(0)`, serialization, or parsing, is compared
+-against a fresh ticked `time.Now` instead. Distinct readings are a
+-nanosecond-resolution property of process
++runnable. The optional `forward` policy advances the process virtual clock by
++1–1024 nanoseconds at each `time.Now` read, using a separate seed-derived stream
++that consumes no scheduling draws. `gomadTimeNow` adds each draw directly to
++`faketime`; `time.Now`, monotonic elapsed time, native timers, sleeps, context
++deadlines, and simulation time observe that shared clock. A draw can make a
++timer due while work is runnable; the runtime delivers it at its next timer
++check without skipping runnable work. Runtime-internal clock reads do not
++tick. Distinct readings are a nanosecond-resolution property of process
+ `time.Now`; a `testing/synctest` bubble keeps its own clock, and timestamps
+ truncated to a coarser unit can still tie. The recorded environment binds the
+-policy into Campaign, Artifact,
+-and portable-plan identity, and replay restores it. Separating the offset
+-keeps timestamp ticking out of native timer-clock advancement.
++policy into Campaign, Artifact, and portable-plan identity, and replay
++restores it. These source semantics do not establish workload repeatability
++or exact replay; the remaining qualification is recorded in the
++[milestones](../../MILESTONES.md#open-findings).
+ 
+ ### Quiescence and native timers
+ 
+@@ -233,8 +229,11 @@
+ earliest deadline only after its deadlock accounting proves that no goroutine is
+ runnable. All timers at that instant become eligible before scheduling resumes.
+ 
+-A runnable goroutine, including a busy loop or polling `select`, prevents time
+-advancement. Unsupported blocking host I/O also cannot be converted into a
++A runnable goroutine, including a busy loop or polling `select`, prevents an
++idle jump to a future timer deadline. Without forward `time.Now` draws, it also
++prevents clock advancement; even with those draws, timer delivery requires the
++next timer check at a cooperative scheduling point. Unsupported blocking host
++I/O also cannot be converted into a
+ logical clock event. Runner's wall watchdog bounds both cases without letting
+ host elapsed time affect supported timer delivery.
+ 

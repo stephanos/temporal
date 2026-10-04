@@ -1,0 +1,28 @@
+{
+  "task": "fn-105-gomad-follow-ups-deferred-scope.31",
+  "predecessor_commit": "5350185a3601921c0a5f9ba07e1f05bdad7df81f",
+  "observed_head": "230ffb0d8fafb7c2cd8b4341d56ccf4413c83e96",
+  "patch_sha256": "e4092bec3e8218c849e4498b880b75ac7479d0e198a75c416494bd2531dfabb4",
+  "source_basis": {
+    "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go": "9055744a08fa24cbc376edd6ca261b3a6fa401bdc407725809066d64962126e9",
+    "tools/gomad3/toolchain/runtime/go1.27.1.patch": "8497f8855011f13fb46ad36a02448d165d4bd65688ef00eed6ae09822306a90b"
+  },
+  "checks": {
+    "patch_and_all_archive_file_hashes_match_handover": true,
+    "three_preimages_match_predecessor_and_observed_head": true,
+    "final_files_match_handover": true,
+    "world_through_eof_matches_predecessor": true,
+    "isolated_git_apply_check_exit": 0,
+    "isolated_diff_check_exit_expected_differences": 1,
+    "isolated_diff_whitespace_diagnostics": 0,
+    "working_tree_three_file_diff_check_exit": 0,
+    "flow_spec_valid": true,
+    "flow_spec_task_count": 32
+  },
+  "manual_source_review": "Inspected the four patch hunks, gomadTimeNow/draw implementation, nanotime/time_runtimeNow patch, simulation current/observation and README contract. Independent-source-review.md separately verifies identity, replay and timer/synctest source chains.",
+  "ownership": "Stage isolated HEAD-plus-D26 Architecture bytes, leaving concurrent task19 World prose in the working tree. Archives remain local; exact hashes and patch remain committed.",
+  "native_qualification": false,
+  "formal_ship_verdict": false,
+  "task_status": "in_progress",
+  "push": false
+}
