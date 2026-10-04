@@ -28,43 +28,42 @@ caller Model is in `model/temporal/nexuscaller`, and its machine `nexusProtocol`
 `Model.scala`.
 
 A **Property** is one promise a machine makes: a condition its steps must meet. This is the
-example's Property (`model/temporal/nexuscaller/Claims.scala`, line 25):
+example's Property (`model/temporal/nexuscaller/Properties.scala`, line 22), named after its
+`val`:
 
 ```scala
 /** A synchronous reply settles the operation as succeeded, and the completed event records it. */
-val syncSucceeds: Property[ProtocolState] =
-  nexusProtocol.property("syncSucceeds") when handlerReply(Reply.syncSuccess) holds { s =>
-    s.state.phase == Phase.succeeded && s.facts.contains(ProtocolFact.nexusOperationCompleted)
-  }
+val syncSucceeds = nexusProtocol.property when handlerReply(Reply.syncSuccess) holds { s =>
+  s.state.phase == Phase.succeeded && s.records(ProtocolFact.nexusOperationCompleted)
+}
 ```
 
 A **Scenario** is a path through a machine: a start state and a sequence of actions. Here the
-caller schedules the operation and the handler replies synchronously (line 101):
+caller schedules the operation and the handler replies synchronously
+(`model/temporal/nexuscaller/Queries.scala`, line 28):
 
 ```scala
-val syncReplied: Scenario[ProtocolState] = nexusProtocol
-  .scenario("syncReplied")
-  .starts(unscheduled)
-  .actions(schedule(unset, unset, unset), handlerReply(Reply.syncSuccess))
+val syncReplied = nexusProtocol.scenario.actions(schedule(), handlerReply(Reply.syncSuccess))
 ```
 
-`unscheduled` is the state before the operation exists. The three `unset` arguments are the
-operation's three optional timeouts, none of them set.
+The path starts where the machine does, in `unscheduled`, the state before the operation exists.
+`schedule()` leaves each of the operation's three optional timeouts at its first value, `unset`;
+`schedule(Inputs.scheduleToStart := expires)` sets one by name.
 
 A **Query** is a bounded question that joins the two: find a path of this Scenario on which the
-Property is put to work, or verify that the Property holds on every path of it (line 171, without
+Property is put to work, or verify that the Property holds on every path of it (line 106, without
 its exploration settings):
 
 ```scala
-val syncCompletion: Query =
-  (query("syncCompletion") find syncSucceeds in syncReplied limits two total 384)
-    .expect(RunExpectation(Conformance.conformant, Outcome.satisfied))
+val syncCompletion = (query find syncSucceeds in syncReplied limits two total 384)
+  .expect(satisfied)
 ```
 
 The path a `find` Query returns is its witness. `limits two` bounds the search to two steps.
 `total 384` is the author's count of the Query's static combinations, which the reader checks; see
 [Counting a Query's total](#counting-a-querys-total).
-`.expect(...)` states what a real run of this path should be judged as; see
+`.expect(...)` states what a real run of this path should be judged as, here `satisfied`, the
+Model's `RunExpectation(Conformance.conformant, Outcome.satisfied)`; see
 [Following the example to a Verdict](#following-the-example-to-a-verdict).
 
 A **realization** says how to act a path out on a real server: which API calls perform each
@@ -158,7 +157,7 @@ Each file of `model/ir` is declared once, in Scala, beside the Models it holds (
 
 ```scala
 val nexusControlFile =
-  irFile("nexus-control")(Control.forgedCompletion, NexusRealization.forgedCompletion)
+  irFile("nexus-control")(forgedCompletion, NexusRealization.forgedCompletion)
 ```
 
 A root is a machine, a composition, a Query, a list of Queries, a progress claim or a realization;
@@ -191,8 +190,8 @@ entry there, without the `exploration` field:
 {
   "name": "syncCompletion",
   "position": {
-    "file": "model/temporal/nexuscaller/Claims.scala",
-    "line": 171
+    "file": "model/temporal/nexuscaller/Queries.scala",
+    "line": 106
   },
   "form": "FORM_FIND",
   "property": {
@@ -783,6 +782,6 @@ Runs reproduce the same failure again. An incomplete or unreproduced failure pro
 `TestTestpilotNexusControlReplaysThroughTheCommand` run both against an in-process server; set
 `UMPIRE_EXPLORATION_DIR` to keep their Cases, Runs, reports and HTML traces.
 
-`model/temporal/nexuscaller/Control.scala` deliberately admits a forged success beside the real
-failed callback. It is a negative control that shows a violated Verdict being found and replayed,
+The control machine `Control.forgedCompletion` (`model/temporal/nexuscaller/Model.scala`)
+deliberately admits a forged success beside the real failed callback. It is a negative control that shows a violated Verdict being found and replayed,
 not a server defect.

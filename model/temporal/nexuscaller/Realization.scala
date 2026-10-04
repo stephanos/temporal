@@ -50,6 +50,7 @@ import io.temporal.api.failure.v1.{ApplicationFailureInfo, Failure as ApiFailure
 import io.temporal.api.nexus.v1.{Failure as NexusFailure, HandlerError, StartOperationResponse}
 import io.grpc.MethodDescriptor
 import scalapb.GeneratedMessage
+import worker.workerStop
 
 import Timeout.{expires, unset}
 
@@ -620,12 +621,12 @@ object NexusRealization:
     evidence = sources,
     learned = Vector(Learned(completionAuthority, LearnedKind.handle)),
     observations = Vector(Observed[HistoryEvent](historyObservation), correlated)
-  )(using nexuscaller.Family)
+  )(using CallerFamily.family)
 
   val asyncNexus: Realization = realization(nexusProtocol, Vector.empty)
 
   val forgedCompletion: Realization = realization(
-    temporal.nexuscaller.Control.forged,
+    temporal.nexuscaller.Control.forgedCompletion,
     Vector(
       Item(performs =
         Vector(

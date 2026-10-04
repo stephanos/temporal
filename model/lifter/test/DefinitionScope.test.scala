@@ -61,7 +61,7 @@ class DefinitionScope extends munit.FunSuite:
   )
   // A realization fixture root that is not moved.
   private val unmoved = Map(
-    "realizations" -> Seq("temporal.nexuscaller.Claims$package$.syncCompletion")
+    "realizations" -> Seq("temporal.nexuscaller.Queries$package$.syncCompletion")
   )
   private val kinds = Seq("actions", "monitors", "assumptions", "holes", "channels", "realizations")
 

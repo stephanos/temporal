@@ -70,18 +70,23 @@ func walk(x *umpirespb.Expr, visit func(*umpirespb.Expr)) {
 
 func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
 	m := proto.Clone(load(t)).(*umpirespb.Model)
-	// Rename the helper every protocol step calls, and drop a type a function constructs.
-	walk(function(m, "Protocol$.handlerReplyStep").GetBody(), func(x *umpirespb.Expr) {
-		if c := x.GetCall(); c != nil && strings.HasSuffix(c.GetFunction(), "Protocol$.moves") {
-			c.Function = "temporal.nexuscaller.Protocol$.move"
+	// Rename the two helpers the retrying protocol steps call, in their bodies and preconditions.
+	for _, f := range m.GetFunctions() {
+		for _, x := range []*umpirespb.Expr{f.GetBody(), f.GetRequires()} {
+			walk(x, func(x *umpirespb.Expr) {
+				if c := x.GetCall(); c != nil && (strings.HasSuffix(c.GetFunction(), "Protocol$.saturatingSucc") ||
+					strings.HasSuffix(c.GetFunction(), "Protocol$.validAttempts")) {
+					c.Function = "temporal.nexuscaller.Protocol$.move"
+				}
+			})
 		}
-	})
+	}
 	err := Validate(m)
 	require.Error(t, err)
 	lines := strings.Split(err.Error(), "\n")
 	require.GreaterOrEqual(t, len(lines), 5, "every renamed call is reported, not only the first")
 	for _, l := range lines {
-		require.Regexp(t, `^model/temporal/nexuscaller/Nexus\.scala:\d+: no function temporal\.nexuscaller\.Protocol\$\.move$`, l)
+		require.Regexp(t, `^model/temporal/nexuscaller/Model\.scala:\d+: no function temporal\.nexuscaller\.Protocol\$\.move$`, l)
 	}
 }
 
@@ -94,7 +99,7 @@ func TestValidateRejectsAStepWithTheWrongArity(t *testing.T) {
 			}
 		}
 	}
-	require.ErrorContains(t, Validate(m), "model/temporal/nexuscaller/Model.scala:143: temporal.nexuscaller.Protocol$.backoffStep "+
+	require.ErrorContains(t, Validate(m), "model/temporal/nexuscaller/Model.scala:421: temporal.nexuscaller.Protocol$.backoffStep "+
 		"steps handlerReply, which has 1 inputs, so it takes the state and 1 arguments, not 0")
 }
 

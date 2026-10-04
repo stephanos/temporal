@@ -128,7 +128,7 @@ class Fixtures extends munit.FunSuite:
     ),
     "realizations" -> Seq(
       "fixture.realizations.Realizations$package$.learnedRun",
-      "temporal.nexuscaller.Claims$package$.syncCompletion",
+      "temporal.nexuscaller.Queries$package$.syncCompletion",
       "fixture.realizations.Realizations$package$.pauseRace",
       "fixture.realizations.Realizations$package$.pauseRaceQuery",
       "fixture.realizations.Realizations$package$.doorRealization",

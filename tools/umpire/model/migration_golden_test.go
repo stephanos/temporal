@@ -453,8 +453,13 @@ func locationProjection(cfg golden.Config) func(string) string {
 	for i := range files {
 		files[i] = regexp.QuoteMeta(files[i])
 	}
+	// A merged directory names every file under it; a merged file names itself, listed or not.
 	for _, merge := range cfg.Merges {
-		files = append(files, regexp.QuoteMeta(merge.Old)+`[\w./-]*\w`)
+		if strings.HasSuffix(merge.Old, "/") {
+			files = append(files, regexp.QuoteMeta(merge.Old)+`[\w./-]*\w`)
+		} else {
+			files = append(files, regexp.QuoteMeta(merge.Old))
+		}
 	}
 	located := regexp.MustCompile(`(` + strings.Join(files, "|") + `)(?::[0-9]+)*`)
 	return func(s string) string {
@@ -612,7 +617,7 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 		})
 	}
 	t.Run("position in an unlisted file", func(t *testing.T) {
-		changed := migrationRewrite(t, admitted, rename("model/temporal/nexuscaller/Claims.scala", "model/temporal/nexuscaller/Claim.scala"))
+		changed := migrationRewrite(t, admitted, rename("model/temporal/nexuscaller/Queries.scala", "model/temporal/nexuscaller/Query.scala"))
 		_, err := cfg.Match(original, changed)
 		require.Error(t, err)
 	})
