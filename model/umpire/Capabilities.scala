@@ -20,8 +20,7 @@ package umpire
  * an action class as an action the machine must bind, a list of them as the path to a live state a
  * functional law's find starts from, and a `RunExpectation` as the Run that find expects.
  */
-trait CapabilityOf[S, +O, +F]:
-  def kind: CapabilityKind
+trait CapabilityOf[S, +O, +F]
 
 /** A law a declaration waives, with the reason: lifted not at all, or as the entity's own def. */
 enum Waiver:

@@ -79,7 +79,16 @@ val lambdaQuery =
   query verify lambdaArgument in job.scenario("lambdaAny").free limits three total 90
 
 /** A binding whose companion is no capability kind, which no catalog keys a law by. */
-final case class Unkinded[S](running: S => Boolean) extends CapabilityOf[S, Nothing, Nothing]:
-  def kind: CapabilityKind = Pollable
+final case class Unkinded[S](running: S => Boolean) extends CapabilityOf[S, Nothing, Nothing]
 
 val unkinded = capabilities(job, limits = three)(Unkinded(running = Jobs.running))
+
+/** Another kit's kind that shares Temporal's name, which Temporal's catalog brings no law. */
+object otherKit:
+  final case class Closable[S, P, O](status: S => P, terminal: P => Boolean, rejected: O)
+      extends CapabilityOf[S, O, Nothing]
+  object Closable extends CapabilityKind
+
+val sameName = capabilities(job, limits = three)(
+  otherKit.Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone)
+).except(terminalStatesAreFinal, because = "another kit's Closable brings no Temporal law")

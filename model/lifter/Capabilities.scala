@@ -109,9 +109,19 @@ private[lift] trait Capabilities:
       at: Term
   )
 
-  /** A declared capability: its kind, each field's argument and type, and its type arguments. */
+  /**
+   * A capability kind: `key`, its companion's full name, is what the catalog and a declaration
+   * match by, so two kits' same-named kinds stay apart; `name` is what messages and the sidecar say.
+   */
+  final private case class Kind(key: String, name: String)
+
+  /**
+   * A declared capability: its kind's name and key, each field's argument and type, and its type
+   * arguments.
+   */
   final private case class Declared(
       kind: String,
+      key: String,
       fields: Map[String, Term],
       fieldTypes: Map[String, TypeRepr],
       types: Map[String, TypeRepr],
@@ -212,13 +222,13 @@ private[lift] trait Capabilities:
       case other          => fail(limits, s"expected Limits, got $other")
     val catalog = catalogOf(catalogTerm)
     val declared = items.map(declaredOf)
-    for (kind, twice) <- declared.groupBy(_.kind) if twice.size > 1 do
+    for (_, twice) <- declared.groupBy(_.key) if twice.size > 1 do
       fail(
         twice(1).at,
-        s"$machine declares $kind twice: a machine declares each capability once, with one binding"
+        s"$machine declares ${twice(1).kind} twice: a machine declares each capability once, with one binding"
       )
     for d <- declared do
-      for other <- capabilityKinds.get(machine -> d.kind) if other != where(d.at) do
+      for other <- capabilityKinds.get(machine -> d.key) if other != where(d.at) do
         fail(
           d.at,
           s"$machine declares ${d.kind} here and at $other: a machine declares each capability " +
@@ -226,12 +236,19 @@ private[lift] trait Capabilities:
         )
       checked(machine, d, env)
 
-    val held = declared.map(_.kind).toSet
-    val brought = catalog.filter((by, _) => by.subsetOf(held))
+    val held = declared.map(_.key).toSet
+    val brought = catalog.filter((by, _) => by.map(_.key).subsetOf(held))
     for (by, law) <- brought do
       val entry = lawCatalog.getOrElseUpdate(
         law.name,
-        LawEntry(law.name, by.toSeq.sorted, law.cites, law.promises, law.doesNotPromise, Vector())
+        LawEntry(
+          law.name,
+          by.toSeq.map(_.name).sorted,
+          law.cites,
+          law.promises,
+          law.doesNotPromise,
+          Vector()
+        )
       )
       // An instantiating entity is a machine with its own state type: a composition reading its
       // members' capabilities through their projections is not one again.
@@ -246,7 +263,7 @@ private[lift] trait Capabilities:
       if !brought.exists(_._2.name == law.name) then
         fail(
           w.law,
-          s"$machine is brought no law ${law.name} to waive: for ${held.toSeq.sorted.mkString(", ")} " +
+          s"$machine is brought no law ${law.name} to waive: for ${declared.map(_.kind).sorted.mkString(", ")} " +
             s"the catalog brings it ${Some(brought.map(_._2.name)).filter(_.nonEmpty).fold("none")(_.mkString(", "))}"
         )
       if excepted(law.name) || overridden.contains(law.name) then
@@ -284,11 +301,11 @@ private[lift] trait Capabilities:
         m,
         bounds,
         law,
-        declared.filter(d => by(d.kind)),
+        declared.filter(d => by.exists(_.key == d.key)),
         overridden.get(law.name),
         env
       )
-    for d <- declared do capabilityKinds(machine -> d.kind) = where(d.at)
+    for d <- declared do capabilityKinds(machine -> d.key) = where(d.at)
     Decl.Capable(machine)
 
   /** The waivers chained onto a declaration, in the order written, and the declaration under them. */
@@ -323,6 +340,7 @@ private[lift] trait Capabilities:
     val typeParams = cls.primaryConstructor.paramSymss.headOption.toList.flatten.filter(_.isType)
     Declared(
       cls.name,
+      cls.companionModule.fullName,
       names.zip(args).toMap,
       fieldTypes(cls).toMap,
       typeParams.map(_.name).zip(term.tpe.widen.dealias.typeArgs).toMap,
@@ -348,7 +366,11 @@ private[lift] trait Capabilities:
 
   private def reached(a: Term): List[Term] = call(plain(a)) match
     case Some((_, args)) if args.nonEmpty => args.last.flatMap(varargs).map(plain)
-    case _ => fail(a, s"reach lists the classes that reach a live state, `Seq(...)`, not ${a.show}")
+    case _                                =>
+      fail(
+        a,
+        s"a path field lists the classes that reach a live state, `Seq(...)`, not ${a.show}"
+      )
 
   /** Refuses an action a capability names that `machine`, or a member of the composition, does not bind. */
   private def boundAction(machine: String, a: Term, what: String, env: Map[Symbol, Decl]): Unit =
@@ -376,7 +398,7 @@ private[lift] trait Capabilities:
    * A catalog as data: `Catalog.single(capability)(law, ...)`, `Catalog.pair(c, d)(law, ...)`, their
    * `++`, and the vals and givens of the lifted sources that hold one.
    */
-  private def catalogOf(t: Term): Vector[(Set[String], LawRef)] = arguments(plain(t)) match
+  private def catalogOf(t: Term): Vector[(Set[Kind], LawRef)] = arguments(plain(t)) match
     case Apply(Select(a, "++"), List(b)) => catalogOf(a) ++ catalogOf(b)
     case c @ Apply(Apply(Select(_, "single" | "pair"), capabilities), laws)
         if c.symbol.maybeOwner.fullName == "umpire.Catalog$" =>
@@ -393,9 +415,10 @@ private[lift] trait Capabilities:
         s"a catalog is built with Catalog.single, Catalog.pair and ++, not ${other.show}"
       )
 
-  private def kindOf(t: Term): String = plain(t) match
-    case r: Ref if r.symbol.flags.is(Flags.Module) && capabilityKind(r.symbol) => r.symbol.name
-    case other                                                                 =>
+  private def kindOf(t: Term): Kind = plain(t) match
+    case r: Ref if r.symbol.flags.is(Flags.Module) && capabilityKind(r.symbol) =>
+      Kind(r.symbol.fullName, r.symbol.name)
+    case other =>
       fail(other, s"expected a capability kind, an umpire.CapabilityKind, not ${other.show}")
 
   /** A law, from the object that is one: its `apply` and what its `Law` arguments say. */
@@ -469,8 +492,8 @@ private[lift] trait Capabilities:
    * One law expanded on `machine`: its Property, folded from the law's `apply` (or the def that
    * overrides it) with the model and the fields of the capabilities that bring it bound by name;
    * a Scenario and a Query, `verify` over the free Scenario from the declared start under `bounds`,
-   * or for a law of one action class, `find` from the start through `reach` and that class; each
-   * named `<machine>.<law>`, the Query with its static combination total.
+   * or for a law of one action class, `find` from the start through the capability's path field
+   * and that class; each named `<machine>.<law>`, the Query with its static combination total.
    */
   private def expand(
       machine: String,
@@ -546,7 +569,7 @@ private[lift] trait Capabilities:
     val form = if scenario.free then ir.Query.Form.FORM_VERIFY else ir.Query.Form.FORM_FIND
     query(Some(name), form, claim(machine, name), claim(machine, name), bounds, at): Unit
     queries(name) = queries(name).withTotal(staticTotal(machine, scenario, bounds, at))
-    // A find expects of a server the Run its capability's `expect` names.
+    // A find expects of a server the Run its capability's RunExpectation field names.
     if !scenario.free then
       for expected <- bringing.flatMap(fieldOf(_, expectationType)).headOption do
         expectedRun(name, expected)
