@@ -135,7 +135,7 @@ func Of(file string, ir *umpirespb.Model, lowering Lowering, options Options) (*
 	if err != nil {
 		return nil, err
 	}
-	verify := proto.Clone(ir).(*umpirespb.Model)
+	verify := proto.CloneOf(ir)
 	verify.Queries = slices.DeleteFunc(verify.Queries, func(q *umpirespb.Query) bool { return q.GetForm() != umpirespb.Query_FORM_VERIFY })
 	verify.Progress = nil
 	m := &Model{File: file, IR: ir, Verified: model.Check(verify, model.DefaultScope), Machines: machines, In: model.NewInterpreter(ir),

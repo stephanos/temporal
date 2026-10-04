@@ -130,57 +130,55 @@ func (m *Model) apiTests(r *umpirespb.Realization) ([]apiTest, error) {
 		evidence[e.GetId()] = e
 	}
 	var out []apiTest
-	scan := func(e *umpirespb.Evidence, at *umpirespb.Position, condition *umpirespb.Operand) error {
-		// A history kind lifts one member of the attributes oneof, and no condition of it is counted.
-		if condition == nil || e.GetHistory() != "" {
-			return nil
+	for _, c := range commands(r) {
+		poll := c.GetPoll()
+		if poll == nil {
+			continue
 		}
-		if m.lowering.Element == nil || m.lowering.Field == nil {
-			return fmt.Errorf("evidence %s: lint reads its fields through lowering's descriptors, and was given none", e.GetId())
+		e := evidence[poll.GetEvidence()]
+		if e == nil {
+			return nil, fmt.Errorf("command %s polls evidence %s, which the realization does not declare", c.GetId(), poll.GetEvidence())
 		}
-		element, err := m.lowering.Element(e)
+		tests, err := m.apiScanOf(e, c.GetPosition(), poll.GetUntil(), facts[e.GetRecords()])
 		if err != nil {
-			return fmt.Errorf("evidence %s: %w", e.GetId(), err)
-		}
-		s := &apiScan{field: m.lowering.Field, element: element, maps: facts[e.GetRecords()]}
-		// A Run Event is the run's own record of a command, whose payload's vocabulary is the driver's:
-		// a guard counts a value of the realized system's messages it carries, never of the record's own.
-		if e.GetRunEvent() != nil {
-			s.own = element.ParentFile().Package()
-		}
-		if err := s.operand(at, condition); err != nil {
-			return fmt.Errorf("evidence %s: %w", e.GetId(), err)
-		}
-		out = append(out, s.tests...)
-		return nil
-	}
-	for _, script := range r.GetScripts() {
-		for _, item := range script.GetItems() {
-			commands := []*umpirespb.Command{item.GetCommand()}
-			for _, p := range item.GetPerforms() {
-				commands = append(commands, p.GetCommand())
-			}
-			for _, c := range commands {
-				poll := c.GetPoll()
-				if poll == nil {
-					continue
-				}
-				e := evidence[poll.GetEvidence()]
-				if e == nil {
-					return nil, fmt.Errorf("command %s polls evidence %s, which the realization does not declare", c.GetId(), poll.GetEvidence())
-				}
-				if err := scan(e, c.GetPosition(), poll.GetUntil()); err != nil {
-					return nil, err
-				}
-			}
-		}
-	}
-	for _, e := range r.GetEvidence() {
-		if err := scan(e, e.GetPosition(), e.GetRunEvent().GetGuard()); err != nil {
 			return nil, err
 		}
+		out = append(out, tests...)
+	}
+	for _, e := range r.GetEvidence() {
+		tests, err := m.apiScanOf(e, e.GetPosition(), e.GetRunEvent().GetGuard(), facts[e.GetRecords()])
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, tests...)
 	}
 	return out, nil
+}
+
+// apiScanOf is the tests one condition over a kind of evidence makes; records is whether the kind
+// records a fact.
+func (m *Model) apiScanOf(e *umpirespb.Evidence, at *umpirespb.Position, condition *umpirespb.Operand, records bool) ([]apiTest, error) {
+	// A history kind lifts one member of the attributes oneof, and no condition of it is counted.
+	if condition == nil || e.GetHistory() != "" {
+		return nil, nil
+	}
+	if m.lowering.Element == nil || m.lowering.Field == nil {
+		return nil, fmt.Errorf("evidence %s: lint reads its fields through lowering's descriptors, and was given none", e.GetId())
+	}
+	element, err := m.lowering.Element(e)
+	if err != nil {
+		return nil, fmt.Errorf("evidence %s: %w", e.GetId(), err)
+	}
+	s := &apiScan{field: m.lowering.Field, element: element, maps: records}
+	// A Run Event is the run's own record of a command, whose payload's vocabulary is the driver's:
+	// a guard counts a value of the realized system's messages it carries, never of the record's own.
+	if e.GetRunEvent() != nil {
+		s.own = element.ParentFile().Package()
+	}
+	if err := s.operand(at, condition); err != nil {
+		return nil, fmt.Errorf("evidence %s: %w", e.GetId(), err)
+	}
+	return s.tests, nil
 }
 
 // apiScan reads the tests of one condition over one evidence element.

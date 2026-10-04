@@ -285,25 +285,11 @@ func (in *Interpreter) eval(x *umpirespb.Expr, e *env) (Value, error) {
 	case *umpirespb.Expr_Literal:
 		return in.literal(k.Literal), nil
 	case *umpirespb.Expr_Var:
-		b := e.find(k.Var)
-		if b == nil {
-			return Value{}, errorAt(x.GetPosition(), "unbound name %s", k.Var)
-		}
-		if b.state && in.trace != nil {
-			in.trace.reads++
-		}
-		return b.value, nil
+		return in.variable(x, k.Var, e)
 	case *umpirespb.Expr_Field:
 		return in.field(x, k.Field, e)
 	case *umpirespb.Expr_Call:
-		if in.trace != nil {
-			return in.tracedCall(x, k.Call, e)
-		}
-		args, err := in.evalAll(k.Call.GetArgs(), e)
-		if err != nil {
-			return Value{}, err
-		}
-		return in.Call(k.Call.GetFunction(), args, x.GetPosition())
+		return in.callOf(x, k.Call, e)
 	case *umpirespb.Expr_Construct:
 		return in.construct(x, k.Construct, e)
 	case *umpirespb.Expr_Copy:
@@ -351,6 +337,29 @@ func (in *Interpreter) eval(x *umpirespb.Expr, e *env) (Value, error) {
 	default:
 		return Value{}, errorAt(x.GetPosition(), "unknown expression %T", k)
 	}
+}
+
+// variable is the value a name is bound to; a traced evaluation counts a read of the state.
+func (in *Interpreter) variable(x *umpirespb.Expr, name string, e *env) (Value, error) {
+	b := e.find(name)
+	if b == nil {
+		return Value{}, errorAt(x.GetPosition(), "unbound name %s", name)
+	}
+	if b.state && in.trace != nil {
+		in.trace.reads++
+	}
+	return b.value, nil
+}
+
+func (in *Interpreter) callOf(x *umpirespb.Expr, c *umpirespb.Call, e *env) (Value, error) {
+	if in.trace != nil {
+		return in.tracedCall(x, c, e)
+	}
+	args, err := in.evalAll(c.GetArgs(), e)
+	if err != nil {
+		return Value{}, err
+	}
+	return in.Call(c.GetFunction(), args, x.GetPosition())
 }
 
 func (in *Interpreter) evalAll(xs []*umpirespb.Expr, e *env) ([]Value, error) {

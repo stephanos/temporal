@@ -174,26 +174,17 @@ func (m *Model) view(name string, views map[string]*view) (*view, error) {
 // stateField finds the field rules group by: the state record's first field of an enum type, or the
 // state itself where its type is an enum.
 func (v *view) stateField() {
-	decl := v.m.typeNamed(v.mm.Decl.GetStateType())
+	decl := v.m.declared(v.mm.Decl.GetStateType())
 	if decl.GetEnum() != nil {
 		v.fieldName = short(decl.GetName())
 		return
 	}
 	for i, f := range decl.GetRecord().GetFields() {
-		if v.m.typeNamed(f.GetType().GetNamed()).GetEnum() != nil {
+		if v.m.declared(f.GetType().GetNamed()).GetEnum() != nil {
 			v.field, v.fieldName = i, f.GetName()
 			return
 		}
 	}
-}
-
-func (m *Model) typeNamed(name string) *umpirespb.Type {
-	for _, t := range m.IR.GetTypes() {
-		if t.GetName() == name {
-			return t
-		}
-	}
-	return nil
 }
 
 // phase is the value of the grouping field at a state, or "" where the machine has none.
@@ -237,22 +228,31 @@ func (v *view) claims() error {
 		if p.GetMachine() != v.name {
 			continue
 		}
-		to := map[string]bool{}
-		for _, s := range v.reachable {
-			value, _ := v.mm.State(s)
-			b, err := v.m.In.Call(p.GetTo(), []model.Value{value}, p.GetPosition())
-			if err != nil && !model.Unknown(err) {
-				return err
-			}
-			to[s] = err == nil && b.Bool
+		if err := v.reaches(p); err != nil {
+			return err
 		}
-		for _, r := range v.mm.Table.Rows {
-			if !v.reach[r.Source] || to[r.Source] || slices.Contains(v.reaching[r.Action], p.GetName()) {
-				continue
-			}
-			if slices.ContainsFunc(r.Results, func(res model.Result) bool { return to[res.State] }) {
-				v.reaching[r.Action] = append(v.reaching[r.Action], p.GetName())
-			}
+	}
+	return nil
+}
+
+// reaches notes a progress claim against each class a reachable row of which steps into its target
+// from outside it.
+func (v *view) reaches(p *umpirespb.Progress) error {
+	to := map[string]bool{}
+	for _, s := range v.reachable {
+		value, _ := v.mm.State(s)
+		b, err := v.m.In.Call(p.GetTo(), []model.Value{value}, p.GetPosition())
+		if err != nil && !model.Unknown(err) {
+			return err
+		}
+		to[s] = err == nil && b.Bool
+	}
+	for _, r := range v.mm.Table.Rows {
+		if !v.reach[r.Source] || to[r.Source] || slices.Contains(v.reaching[r.Action], p.GetName()) {
+			continue
+		}
+		if slices.ContainsFunc(r.Results, func(res model.Result) bool { return to[res.State] }) {
+			v.reaching[r.Action] = append(v.reaching[r.Action], p.GetName())
 		}
 	}
 	return nil
@@ -290,29 +290,36 @@ func (v *view) named(p *umpirespb.Property, classes map[string][]string) ([]stri
 			action = v.m.actions[p.GetWhenClass().GetAction()].GetName()
 		}
 		for _, member := range c.GetMembers() {
-			if member.GetMachine() != v.name {
-				continue
-			}
-			if action == "" {
-				for _, keys := range classes {
-					out = append(out, keys...)
-				}
-				continue
-			}
-			if own, ok := strings.CutPrefix(action, member.GetField()+"_"); ok {
-				out = append(out, classes[own]...)
-			}
-			for _, s := range c.GetSyncs() {
-				for _, move := range []*umpirespb.SyncMove{s.GetFirst(), s.GetSecond()} {
-					if s.GetName() == action && move.GetMember() == member.GetField() {
-						out = append(out, classes[move.GetAction()]...)
-					}
-				}
+			if member.GetMachine() == v.name {
+				out = append(out, v.memberClasses(c, member, action, classes)...)
 			}
 		}
 	}
 	slices.Sort(out)
 	return slices.Compact(out), nil
+}
+
+// memberClasses is the classes of a composition's member that a composed action names: every class
+// for no action, the member's own action `<field>_<action>`, or its move of a sync.
+func (v *view) memberClasses(c *umpirespb.Composition, member *umpirespb.Member, action string, classes map[string][]string) []string {
+	var out []string
+	if action == "" {
+		for _, keys := range classes {
+			out = append(out, keys...)
+		}
+		return out
+	}
+	if own, ok := strings.CutPrefix(action, member.GetField()+"_"); ok {
+		out = append(out, classes[own]...)
+	}
+	for _, s := range c.GetSyncs() {
+		for _, move := range []*umpirespb.SyncMove{s.GetFirst(), s.GetSecond()} {
+			if s.GetName() == action && move.GetMember() == member.GetField() {
+				out = append(out, classes[move.GetAction()]...)
+			}
+		}
+	}
+	return out
 }
 
 // classKey keys an IR action class as the reader keys its classes: the action's name, then each
@@ -622,99 +629,121 @@ func (v *view) label(states []string, total map[string]int) string {
 // the grouping field its triggering pairs are in, never a state: H1, H2 and H5 count the classes with
 // disabled pairs, H3 the classes with enabled ones.
 func (v *view) tallies(t *Table) []Tally {
-	type hole struct {
-		phases   []string
-		position string
-		guards   []string
-	}
-	holes := map[Kind]map[string]*hole{}
-	population := map[Kind]map[string]bool{}
-	note := func(k Kind, c Cell, triggered bool) {
-		if population[k] == nil {
-			population[k], holes[k] = map[string]bool{}, map[string]*hole{}
-		}
-		population[k][c.Class] = true
-		if !triggered {
-			return
-		}
-		h, ok := holes[k][c.Class]
-		if !ok {
-			h = &hole{position: c.Position}
-			holes[k][c.Class] = h
-		}
-		if p := v.phase(c.State); !slices.Contains(h.phases, p) {
-			h.phases = append(h.phases, p)
-		}
-		if !slices.Contains(h.guards, c.Guard) {
-			h.guards = append(h.guards, c.Guard)
-		}
-	}
-	enabled := map[string][]string{}
-	pinned := map[string]bool{}
-	var classes []string
-	for _, c := range t.Cells {
-		if !slices.Contains(classes, c.Class) {
-			classes = append(classes, c.Class)
-		}
-		switch c.Modality {
-		case May:
-			if p := v.phase(c.State); !slices.Contains(enabled[c.Class], p) {
-				enabled[c.Class] = append(enabled[c.Class], p)
-			}
-			pinned[c.Class] = pinned[c.Class] || len(c.Pinned) > 0
-			continue
-		case HoleRow:
-			continue
-		default:
-		}
-		note(DisabledByDefault, c, slices.Contains(c.Holes, DisabledByDefault))
-		if v.ends[c.State] {
-			continue
-		}
-		note(SilentRejection, c, slices.Contains(c.Holes, SilentRejection))
-		if v.m.options.MustNotPinned && !slices.Contains(c.Holes, SilentRejection) {
-			note(MustNotPinned, c, slices.Contains(c.Holes, MustNotPinned))
-		}
-	}
-	messages := map[Kind]string{
-		DisabledByDefault: "disabled by a default arm, which no author decided",
-		SilentRejection:   "disabled where a party may send it, so the Model is silent on what it is answered",
-		MustNotPinned:     "disabled, and no transition claim pins it",
-	}
 	kinds := []Kind{DisabledByDefault, SilentRejection}
 	if v.m.options.MustNotPinned {
 		kinds = append(kinds, MustNotPinned)
 	}
-	var out []Tally
-	for _, k := range kinds {
-		tally := Tally{Kind: k, Owner: v.name, Population: len(population[k])}
-		for _, class := range classes {
-			h, ok := holes[k][class]
-			if !ok {
-				continue
-			}
-			subject := class
-			if v.fieldName != "" {
-				subject += " in " + strings.Join(h.phases, ", ")
-			}
-			tally.Findings = append(tally.Findings, Finding{Kind: k, Owner: v.name, Subject: subject,
-				Message: fmt.Sprintf("%s: %s (%s)", subject, messages[k], strings.Join(h.guards, "; ")), Position: h.position})
-		}
-		out = append(out, tally)
-	}
-	unconstrained := Tally{Kind: UnconstrainedResult, Owner: v.name}
-	for _, class := range classes {
-		if len(enabled[class]) == 0 {
+	h := holeCount{v: v, population: map[Kind]map[string]bool{}, holes: map[Kind]map[string]*classHole{}}
+	for _, c := range t.Cells {
+		if c.Modality == May || c.Modality == HoleRow {
 			continue
 		}
-		unconstrained.Population++
+		h.note(DisabledByDefault, c)
+		if v.ends[c.State] {
+			continue
+		}
+		h.note(SilentRejection, c)
+		if v.m.options.MustNotPinned && !slices.Contains(c.Holes, SilentRejection) {
+			h.note(MustNotPinned, c)
+		}
+	}
+	var out []Tally
+	for _, k := range kinds {
+		out = append(out, h.tally(k, t.Cells))
+	}
+	return append(out, v.unconstrained(t.Cells))
+}
+
+// classHole is one class's pairs of a hole kind: the field values they are in, the position of the
+// first, and their guards.
+type classHole struct {
+	phases   []string
+	position string
+	guards   []string
+}
+
+// holeCount counts the classes of each hole kind's population and collects its findings' pairs.
+type holeCount struct {
+	v          *view
+	population map[Kind]map[string]bool
+	holes      map[Kind]map[string]*classHole
+}
+
+var holeMessages = map[Kind]string{
+	DisabledByDefault: "disabled by a default arm, which no author decided",
+	SilentRejection:   "disabled where a party may send it, so the Model is silent on what it is answered",
+	MustNotPinned:     "disabled, and no transition claim pins it",
+}
+
+// note counts a disabled cell in a kind's population, and among its findings when it has the hole.
+func (h holeCount) note(k Kind, c Cell) {
+	if h.population[k] == nil {
+		h.population[k], h.holes[k] = map[string]bool{}, map[string]*classHole{}
+	}
+	h.population[k][c.Class] = true
+	if !slices.Contains(c.Holes, k) {
+		return
+	}
+	hole, ok := h.holes[k][c.Class]
+	if !ok {
+		hole = &classHole{position: c.Position}
+		h.holes[k][c.Class] = hole
+	}
+	if p := h.v.phase(c.State); !slices.Contains(hole.phases, p) {
+		hole.phases = append(hole.phases, p)
+	}
+	if !slices.Contains(hole.guards, c.Guard) {
+		hole.guards = append(hole.guards, c.Guard)
+	}
+}
+
+// tally is a kind's findings, one per class in the table's class order.
+func (h holeCount) tally(k Kind, cells []Cell) Tally {
+	t := Tally{Kind: k, Owner: h.v.name, Population: len(h.population[k])}
+	seen := map[string]bool{}
+	for _, c := range cells {
+		hole, ok := h.holes[k][c.Class]
+		if !ok || seen[c.Class] {
+			continue
+		}
+		seen[c.Class] = true
+		subject := c.Class
+		if h.v.fieldName != "" {
+			subject += " in " + strings.Join(hole.phases, ", ")
+		}
+		t.Findings = append(t.Findings, Finding{Kind: k, Owner: h.v.name, Subject: subject,
+			Message: fmt.Sprintf("%s: %s (%s)", subject, holeMessages[k], strings.Join(hole.guards, "; ")), Position: hole.position})
+	}
+	return t
+}
+
+// unconstrained is H3: each class with enabled pairs none of which a claim pins.
+func (v *view) unconstrained(cells []Cell) Tally {
+	t := Tally{Kind: UnconstrainedResult, Owner: v.name}
+	enabled := map[string][]string{}
+	pinned := map[string]bool{}
+	var classes []string
+	for _, c := range cells {
+		if c.Modality != May {
+			continue
+		}
+		if len(enabled[c.Class]) == 0 {
+			classes = append(classes, c.Class)
+		}
+		if p := v.phase(c.State); !slices.Contains(enabled[c.Class], p) {
+			enabled[c.Class] = append(enabled[c.Class], p)
+		}
+		pinned[c.Class] = pinned[c.Class] || len(c.Pinned) > 0
+	}
+	t.Population = len(classes)
+	for _, class := range classes {
 		if !pinned[class] {
-			unconstrained.Findings = append(unconstrained.Findings, Finding{Kind: UnconstrainedResult, Owner: v.name, Subject: class,
+			t.Findings = append(t.Findings, Finding{Kind: UnconstrainedResult, Owner: v.name, Subject: class,
 				Message:  fmt.Sprintf("%s: MAY in %s, and no claim constrains its results", class, strings.Join(enabled[class], ", ")),
 				Position: where(v.at[v.actionOf(class)])})
 		}
 	}
-	return append(out, unconstrained)
+	return t
 }
 
 // actionOf is the name of the action a class key belongs to.
@@ -768,6 +797,21 @@ func (m *Model) witnessOnly() ([]Tally, error) {
 	return out, nil
 }
 
+// notes is a rule's hole kinds, the claims that pin it and the predicates it was decided by.
+func (r Rule) notes() string {
+	var notes []string
+	for _, h := range r.Holes {
+		notes = append(notes, string(h))
+	}
+	if len(r.Pinned) > 0 {
+		notes = append(notes, "pinned: "+strings.Join(r.Pinned, ", "))
+	}
+	if len(r.Predicates) > 0 {
+		notes = append(notes, "by: "+strings.Join(r.Predicates, ", "))
+	}
+	return strings.Join(notes, "  ")
+}
+
 // WriteTables writes each machine's per-operation modality table: a block per machine, a line per
 // rule, class by class.
 func WriteTables(w io.Writer, r *Result) error {
@@ -788,18 +832,8 @@ func WriteTables(w io.Writer, r *Result) error {
 					return err
 				}
 			}
-			var notes []string
-			for _, h := range rule.Holes {
-				notes = append(notes, string(h))
-			}
-			if len(rule.Pinned) > 0 {
-				notes = append(notes, "pinned: "+strings.Join(rule.Pinned, ", "))
-			}
-			if len(rule.Predicates) > 0 {
-				notes = append(notes, "by: "+strings.Join(rule.Predicates, ", "))
-			}
 			if _, err := fmt.Fprintf(tw, "    %s\t%s\t%s\t%s\t%s\n", rule.Label, rule.Modality, rule.Text, rule.Position,
-				strings.Join(notes, "  ")); err != nil {
+				rule.notes()); err != nil {
 				return err
 			}
 		}

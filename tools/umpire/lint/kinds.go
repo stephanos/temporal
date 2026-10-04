@@ -333,24 +333,32 @@ func (m *Model) scenario(q *umpirespb.Query) (*umpirespb.Scenario, error) {
 	return m.IR.GetScenarios()[i], nil
 }
 
+// commands is every command of a realization's scripts: each item's own, and each performance's.
+func commands(r *umpirespb.Realization) []*umpirespb.Command {
+	var out []*umpirespb.Command
+	for _, s := range r.GetScripts() {
+		for _, item := range s.GetItems() {
+			if item.GetCommand() != nil {
+				out = append(out, item.GetCommand())
+			}
+			for _, p := range item.GetPerforms() {
+				out = append(out, p.GetCommand())
+			}
+		}
+	}
+	return out
+}
+
 // unreadObservations is each observation of a realization that neither its correlation names nor a
 // read of one of its commands observes a value into or lifts evidence into.
 func unreadObservations(m *Model) ([]Tally, error) {
 	t := tally(UnreadObservation)
 	for _, r := range m.IR.GetRealizations() {
 		read := map[string]bool{r.GetCorrelation().GetObservation(): true}
-		for _, s := range r.GetScripts() {
-			for _, item := range s.GetItems() {
-				commands := []*umpirespb.Command{item.GetCommand()}
-				for _, p := range item.GetPerforms() {
-					commands = append(commands, p.GetCommand())
-				}
-				for _, c := range commands {
-					for _, rd := range c.GetRpc().GetReads() {
-						for _, tg := range rd.GetTargets() {
-							read[tg.GetObserve()], read[tg.GetLift()] = true, true
-						}
-					}
+		for _, c := range commands(r) {
+			for _, rd := range c.GetRpc().GetReads() {
+				for _, tg := range rd.GetTargets() {
+					read[tg.GetObserve()], read[tg.GetLift()] = true, true
 				}
 			}
 		}
@@ -381,59 +389,79 @@ func unreachableValues(m *Model) ([]Tally, error) {
 			}
 			reached = append(reached, v)
 		}
-		// A field is read down to its leaves: the cases of an enum, apart from what they carry, and
-		// the values of a Boolean or an integer range. A record is its fields, and a channel's
-		// contents, like a record, are a combination, which is never reported.
-		var visit func(path string, ref *umpirespb.TypeRef, of func(model.Value) model.Value) error
-		visit = func(path string, ref *umpirespb.TypeRef, of func(model.Value) model.Value) error {
-			held := map[string]bool{}
-			var values []string
-			switch {
-			case ref.GetNamed() != "" && m.declared(ref.GetNamed()).GetRecord() != nil:
-				for i, f := range m.declared(ref.GetNamed()).GetRecord().GetFields() {
-					if err := visit(path+"."+f.GetName(), f.GetType(), func(v model.Value) model.Value { return of(v).Fields[i] }); err != nil {
-						return err
-					}
-				}
-				return nil
-			case ref.GetNamed() != "":
-				for _, c := range m.declared(ref.GetNamed()).GetEnum().GetCases() {
-					values = append(values, c.GetName())
-				}
-				for _, v := range reached {
-					held[of(v).Case] = true
-				}
-			case ref.GetBool() != nil || ref.GetIntRange() != nil:
-				catalog, err := m.In.Members(ref)
-				if err != nil {
-					return fmt.Errorf("%s: field %s: %w", decl.GetName(), path, err)
-				}
-				for _, v := range catalog {
-					values = append(values, v.Key())
-				}
-				for _, v := range reached {
-					held[of(v).Key()] = true
-				}
-			default:
-				return nil
-			}
-			for _, v := range values {
-				t.add(decl.GetName(), held[v], path+"="+v, state.GetPosition(), "%s %s is held by no reachable state", path, v)
-			}
-			return nil
-		}
-		root := &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Named{Named: decl.GetStateType()}}
+		l := stateLeaves{m: m, t: t, machine: decl.GetName(), at: state.GetPosition(), reached: reached}
 		if state.GetRecord() != nil {
 			for i, f := range state.GetRecord().GetFields() {
-				if err := visit(f.GetName(), f.GetType(), func(v model.Value) model.Value { return v.Fields[i] }); err != nil {
+				if err := l.visit(f.GetName(), f.GetType(), func(v model.Value) model.Value { return v.Fields[i] }); err != nil {
 					return nil, err
 				}
 			}
-		} else if err := visit(decl.GetStateType()[strings.LastIndex(decl.GetStateType(), ".")+1:], root, func(v model.Value) model.Value { return v }); err != nil {
+			continue
+		}
+		root := &umpirespb.TypeRef{Ref: &umpirespb.TypeRef_Named{Named: decl.GetStateType()}}
+		if err := l.visit(decl.GetStateType()[strings.LastIndex(decl.GetStateType(), ".")+1:], root, func(v model.Value) model.Value { return v }); err != nil {
 			return nil, err
 		}
 	}
 	return t.list(), nil
+}
+
+// stateLeaves reads one machine's state field by field, down to its leaves: the cases of an enum,
+// apart from what they carry, and the values of a Boolean or an integer range. A record is its fields,
+// and a channel's contents, like a record, are a combination, which is never reported.
+type stateLeaves struct {
+	m       *Model
+	t       tallies
+	machine string
+	at      *umpirespb.Position
+	reached []model.Value
+}
+
+func (l stateLeaves) visit(path string, ref *umpirespb.TypeRef, of func(model.Value) model.Value) error {
+	if record := l.m.declared(ref.GetNamed()).GetRecord(); ref.GetNamed() != "" && record != nil {
+		for i, f := range record.GetFields() {
+			if err := l.visit(path+"."+f.GetName(), f.GetType(), func(v model.Value) model.Value { return of(v).Fields[i] }); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	values, key, err := l.values(path, ref)
+	if err != nil || key == nil {
+		return err
+	}
+	held := map[string]bool{}
+	for _, v := range l.reached {
+		held[key(of(v))] = true
+	}
+	for _, v := range values {
+		l.t.add(l.machine, held[v], path+"="+v, l.at, "%s %s is held by no reachable state", path, v)
+	}
+	return nil
+}
+
+// values is a leaf's values and how a value of the field is keyed among them, or none for a field
+// that is a combination.
+func (l stateLeaves) values(path string, ref *umpirespb.TypeRef) ([]string, func(model.Value) string, error) {
+	var values []string
+	switch {
+	case ref.GetNamed() != "":
+		for _, c := range l.m.declared(ref.GetNamed()).GetEnum().GetCases() {
+			values = append(values, c.GetName())
+		}
+		return values, func(v model.Value) string { return v.Case }, nil
+	case ref.GetBool() != nil || ref.GetIntRange() != nil:
+		catalog, err := l.m.In.Members(ref)
+		if err != nil {
+			return nil, nil, fmt.Errorf("%s: field %s: %w", l.machine, path, err)
+		}
+		for _, v := range catalog {
+			values = append(values, v.Key())
+		}
+		return values, model.Value.Key, nil
+	default:
+		return nil, nil, nil
+	}
 }
 
 // neverEnabled is each action class of a machine that no row of a reachable state enables.
