@@ -356,35 +356,13 @@ private[lift] trait Claims:
    * def itself, eta-expanded or called with the lambda's parameters, or the def a parameter of the
    * declaring function around it is bound to. A lambda with a body of its own has no def to bind.
    */
-  def boundDef(p: ValDef, d: DefDef, arg: Term): Symbol = arg match
-    case Typed(e, _)                                 => boundDef(p, d, e)
-    case Inlined(_, Nil, e)                          => boundDef(p, d, e)
-    case Block(Nil, e)                               => boundDef(p, d, e)
-    case r: Ref if boundFunctions.contains(r.symbol) => boundFunctions(r.symbol)
-    case r: Ref if isFunction(r.symbol)              => r.symbol
-    case Block(
-          List(DefDef("$anonfun", List(TermParamClause(params)), _, Some(Apply(target, args)))),
-          _: Closure
-        ) if args.map(_.symbol) == params.map(_.symbol) && isFunction(target.symbol) =>
-      target.symbol
-    case Block(
-          List(
-            DefDef(
-              "$anonfun",
-              List(TermParamClause(params)),
-              _,
-              Some(Apply(Select(f: Ref, "apply"), args))
-            )
-          ),
-          _: Closure
-        ) if args.map(_.symbol) == params.map(_.symbol) && boundFunctions.contains(f.symbol) =>
-      boundFunctions(f.symbol)
-    case other =>
-      fail(
-        other,
-        s"${p.name} of ${d.name} names a def of the lifted sources, which the lifter binds, not " +
-          s"${other.show}: declare it as `def ${p.name}(...)` and pass that"
-      )
+  def boundDef(p: ValDef, d: DefDef, arg: Term): Symbol = forwardedDef(arg).getOrElse(
+    fail(
+      arg,
+      s"${p.name} of ${d.name} names a def of the lifted sources, which the lifter binds, not " +
+        s"${arg.show}: declare it as `def ${p.name}(...)` and pass that"
+    )
+  )
 
   def scenario(d: Decl, at: Tree)(f: ir.Scenario => ir.Scenario): Decl = d match
     case Decl.ScenarioOn(m, name, start) =>

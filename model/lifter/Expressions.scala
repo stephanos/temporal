@@ -111,6 +111,29 @@ private[lift] trait Expressions:
     case _ => None
 
   /**
+   * The def of the lifted sources a function value names: the def, eta-expanded or called with a
+   * lambda's own parameters, or a function-valued parameter bound to one, also called so.
+   */
+  def forwardedDef(t: Term): Option[Symbol] = t match
+    case Typed(e, _)                                 => forwardedDef(e)
+    case Inlined(_, Nil, e)                          => forwardedDef(e)
+    case Block(Nil, e)                               => forwardedDef(e)
+    case r: Ref if boundFunctions.contains(r.symbol) => Some(boundFunctions(r.symbol))
+    case r: Ref if isFunction(r.symbol)              => Some(r.symbol)
+    case _                                           =>
+      lambda(t).flatMap { (params, body) =>
+        def forwards(args: List[Term]) = args.map(_.symbol) == params.map(_.symbol)
+        body match
+          case Apply(target, args)
+              if forwards(args) && isFunction(target.symbol) && !sugared(target) =>
+            Some(target.symbol)
+          case Apply(Select(f: Ref, "apply"), args)
+              if forwards(args) && boundFunctions.contains(f.symbol) =>
+            Some(boundFunctions(f.symbol))
+          case _ => None
+      }
+
+  /**
    * The fields a lambda's body reads off its one parameter, outermost first: `List("activity",
    * "phase")` for `_.activity.phase`, `Nil` for the parameter itself. Anything else reads no path.
    */
@@ -378,7 +401,8 @@ private[lift] trait Expressions:
     case Apply(fn, args) if isFunction(fn.symbol) => call(fn.symbol, args, t)
     case Apply(Select(f: Ref, "apply"), args) if boundFunctions.contains(f.symbol) =>
       call(f.symbol, args, t)
-    case Apply(Select(f: Ref, "apply"), _) if f.symbol.flags.is(Flags.Param) =>
+    case Apply(Select(f: Ref, "apply"), _)
+        if f.symbol.flags.is(Flags.Param) && f.tpe.widen.dealias.isFunctionType =>
       fail(
         t,
         s"${f.symbol.name} is a function parameter, which names a def only where a declaring " +

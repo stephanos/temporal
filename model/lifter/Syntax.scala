@@ -87,7 +87,7 @@ private[lift] trait Syntax:
         fail(
           at,
           "records reads the facts of the member one field of the composed state names, such as " +
-            s"`_.activity`, not ${member.show}"
+            s"`_.activity`, not ${written(member)}"
         )
       )
     val value = literalValue(fact)
@@ -108,6 +108,12 @@ private[lift] trait Syntax:
             s"${m.machine} records $records facts"
         )
     s"${field}_${valueKey(value)}"
+
+  // A selector as it was written: the compiler names the parameter of `_.field`.
+  private def written(selector: Term): String = lambda(selector)
+    .collect { case (List(p), body) => fieldPath(p, body) }
+    .flatten
+    .fold(selector.show)(path => ("_" +: path).mkString("`", ".", "`"))
 
   // The claim patterns: the words that begin one on a PropertyBuilder, and the word that finishes
   // each, a method of the class the beginning returns.
@@ -234,24 +240,10 @@ private[lift] trait Syntax:
     def defPath(sym: Symbol): Option[List[String]] = defs.get(sym) match
       case Some(DefDef(_, List(TermParamClause(List(p))), _, Some(body))) => fieldPath(p, body)
       case _                                                              => None
-    x match
-      case Typed(e, _)                                 => keptPath(e)
-      case Inlined(_, Nil, e)                          => keptPath(e)
-      case r: Ref if boundFunctions.contains(r.symbol) => defPath(boundFunctions(r.symbol))
-      case r: Ref if isFunction(r.symbol)              => defPath(r.symbol)
-      case _                                           =>
-        lambda(x).flatMap {
-          case (List(p), body) =>
-            fieldPath(p, body).orElse(body match
-              case Apply(target, List(a: Ident))
-                  if a.symbol == p.symbol && isFunction(target.symbol) =>
-                defPath(target.symbol)
-              case Apply(Select(f: Ref, "apply"), List(a: Ident))
-                  if a.symbol == p.symbol && boundFunctions.contains(f.symbol) =>
-                defPath(boundFunctions(f.symbol))
-              case _ => None)
-          case _ => None
-        }
+    lambda(x)
+      .collect { case (List(p), body) => fieldPath(p, body) }
+      .flatten
+      .orElse(forwardedDef(x).flatMap(defPath))
 
   /** The outcome a `given Accepted[O] = Accepted(o)` names: `o`. */
   private def outcomeOf(accepted: Term, form: String): ir.Expr =

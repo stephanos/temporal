@@ -68,29 +68,23 @@ private[lift] trait Declarations:
       ir.Value.Kind.Enum(ir.EnumValue(enumOf(cls).fullName, cls.name, args.map(literalValue)))
     case other => fail(other, s"an example is a constant value, not ${other.show}"))
 
-  /** A step binding's function: the one an eta-expanded lambda forwards to, or the lambda itself. */
+  /**
+   * A step binding's function: the def an eta-expanded lambda or a bound function-valued parameter
+   * names, or the lambda itself.
+   */
   def stepFunction(fn: Term, machine: String, actionName: String): String = fn match
-    // A lambda written as a block, `holds { s => ... }`.
+    // A lambda written as a block, `holds { s => ... }`, is positioned at the lambda.
     case Block(Nil, e)      => stepFunction(e, machine, actionName)
     case Typed(e, _)        => stepFunction(e, machine, actionName)
     case Inlined(_, Nil, e) => stepFunction(e, machine, actionName)
-    // A function-valued parameter of a declaring function: the def its call binds it to.
-    case r: Ref if boundFunctions.contains(r.symbol) => callee(r.symbol, fn)
-    case Block(
-          List(DefDef("$anonfun", List(TermParamClause(params)), _, Some(Apply(target, args)))),
-          _: Closure
-        )
-        if args.map(_.symbol) == params.map(_.symbol) && isFunction(target.symbol) &&
-          !sugared(target) =>
-      callee(target.symbol, fn)
-    case Block(
-          List(DefDef("$anonfun", List(TermParamClause(params)), _, Some(body))),
-          _: Closure
-        ) =>
-      val name = s"$machine.$actionName"
-      functions(name) = function(name, params, body, fn)
-      name
-    case other => fail(other, "a step binds a function")
+    case _                  =>
+      (forwardedDef(fn), lambda(fn)) match
+        case (Some(target), _)            => callee(target, fn)
+        case (None, Some((params, body))) =>
+          val name = s"$machine.$actionName"
+          functions(name) = function(name, params, body, fn)
+          name
+        case _ => fail(fn, "a step binds a function")
 
   /** A machine, from the right-hand side of `sym`, the val that declares it. */
   def machine(sym: Symbol, rhs: Term): ir.Machine =

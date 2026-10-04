@@ -157,6 +157,21 @@ val doneStaysInline = job.property.stays(_.phase == Phase.done)
 val activeStaysInline =
   job.property.stays(_.active != Active.none).unless(_.records(Fact.released))
 
+val doneKeepsInlineCore = job.property holdsAcross { (before, after) =>
+  !(before.phase == Phase.done) || after.state.phase == before.phase
+}
+val noTwoInlineCore = job.property holds (after => !(after.state.active == Active.two))
+val notStartedInlineCore = job.property holdsAcross { (before, after) =>
+  !(before.phase == Phase.paused) || !(after.state.phase == Phase.running)
+}
+val doneStaysInlineCore = job.property holdsAcross { (before, after) =>
+  !(before.phase == Phase.done) || after.state.phase == Phase.done
+}
+val activeStaysInlineCore = job.property holdsAcross { (before, after) =>
+  !(before.active != Active.none) || after.state.active != Active.none ||
+  after.records(Fact.released)
+}
+
 // ### Claims written once over `Declares[S]`, on the machine and on the composition
 
 def notAdmittedWhilePaused[S](m: Declares[S])(
@@ -215,10 +230,15 @@ val claims: Vector[Query] = Vector(
   onJob("activeStays", activeStays),
   onJob("activeStaysCore", activeStaysCore),
   onJob("doneKeepsInline", doneKeepsInline),
+  onJob("doneKeepsInlineCore", doneKeepsInlineCore),
   onJob("noTwoInline", noTwoInline),
+  onJob("noTwoInlineCore", noTwoInlineCore),
   onJob("notStartedInline", notStartedInline),
+  onJob("notStartedInlineCore", notStartedInlineCore),
   onJob("doneStaysInline", doneStaysInline),
+  onJob("doneStaysInlineCore", doneStaysInlineCore),
   onJob("activeStaysInline", activeStaysInline),
+  onJob("activeStaysInlineCore", activeStaysInlineCore),
   onJob("jobNotAdmitted", jobNotAdmitted),
   onJob("jobNotAdmittedCore", jobNotAdmittedCore),
   onJob("jobOneActive", jobOneActive),

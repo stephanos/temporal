@@ -634,6 +634,13 @@ val dimmedHigh = flipPair.property.whenAction(flipPair.own(_.right, dim(Dim.high
   (after => after.state.right.lit)
 val whenClassInputs: Query = query verify dimmedHigh in flipPairFree limits one
 
+/** A typed replacement of a field no member fills. */
+val replacesSpare = compose[Trio](_.left -> flagLamp, _.right -> oneStart).replaces(_.spare, first)
+
+/** Two compositions derived from each other. */
+val loopPair: Composition[Lamps] = loopPairBack.withMember(_.left -> oneStart)
+val loopPairBack: Composition[Lamps] = loopPair.withMember(_.right -> oneStart)
+
 // ### Claim patterns, records over a member and function-valued arguments (fn-112.4)
 
 def lampLit(l: Lamp): Boolean = l.lit
@@ -664,6 +671,13 @@ val leftLitRecorded = patternLamps.property holds (after => after.records(_.left
 val recordsNoMember: Query = query verify leftLitRecorded in patternLampsFree limits one
 val leftPinged = patternLamps.property holds (after => after.records(_.left, Note.ping))
 val recordsForeignFact: Query = query verify leftPinged in patternLampsFree limits one
+
+/** A composition's records of a field no member fills. */
+final case class Spared(left: Lamp, spare: Lamp)
+val spared = compose[Spared](_.left -> oneStart)
+val sparedFree = spared.scenario.starts(Spared(Lamp(false), Lamp(false))).free
+val sparePinged = spared.property holds (after => after.records(_.spare, Note.ping))
+val recordsUnfilled: Query = query verify sparePinged in sparedFree limits one
 
 /** A call of a function parameter in a function no declaring function binds it in. */
 def litBy(after: Step[Lamp, Outcome, Nothing], lit: Lamp => Boolean): Boolean = lit(after.state)

@@ -156,7 +156,9 @@ class Fixtures extends munit.FunSuite:
     "ownSpelledAlike",
     "mixedSchedule",
     "bareInputs",
-    "whenClassInputs"
+    "whenClassInputs",
+    "replacesSpare",
+    "loopPair"
   )
   // The refusals of fn-112.4's claim patterns, records over a member and function-valued arguments.
   private val patternRejects: Seq[String] = Seq(
@@ -166,6 +168,7 @@ class Fixtures extends munit.FunSuite:
     "sharedLambda",
     "recordsNoMember",
     "recordsForeignFact",
+    "recordsUnfilled",
     "paramCalled"
   )
 
@@ -841,7 +844,9 @@ class Fixtures extends munit.FunSuite:
         "doneStaysInline" -> true,
         "activeStaysInline" -> true
       )
-    do assertEquals(found("job", name).path("transition").asBoolean, transition, name)
+    do
+      assertEquals(property("job", name), property("job", s"${name}Core"), name)
+      assertEquals(found("job", name).path("transition").asBoolean, transition, name)
     val names = functions.keys.toList.sorted
     assert(
       names.forall(!_.startsWith("umpire.")),
