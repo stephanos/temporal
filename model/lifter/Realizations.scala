@@ -1005,6 +1005,11 @@ private[lift] trait Realizations:
     def argument(i: Int): Bound = Bound(args(i), call.env)
     val m = Message(d)
     m.set(irField(d, "position", t), pos(t).toPMessage)
+    // A method that is no generated constant is refused at the hint, naming which side it is.
+    def hintMethod(b: Bound, side: String): String = reduce(b).term match
+      case r: Ref if r.symbol.name.startsWith("METHOD_") => methodName(b)
+      case other                                         =>
+        fail(t, s"the $side of a visibility is a generated gRPC method constant, not ${other.show}")
     def cause(b: Bound, field: String): String =
       reduce(b).term match
         case r: Ref if isEnumCase(r.symbol) =>
@@ -1016,11 +1021,11 @@ private[lift] trait Realizations:
         val write = argument(0)
         val written =
           if isNamed(reduce(write).term.tpe, "io.grpc.MethodDescriptor") then
-            val method = methodName(write)
+            val method = hintMethod(write, "write")
             m.set(irField(d, "method", t), PString(method))
             idPart(method)
           else cause(write, "cause")
-        val read = methodName(argument(1))
+        val read = hintMethod(argument(1), "read")
         m.set(irField(d, "read", t), PString(read))
         m.set(irField(d, "id", t), PString(s"visibility.$written.${idPart(read)}"))
         val when = reduce(argument(2))

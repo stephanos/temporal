@@ -5562,13 +5562,13 @@
         "id": "cause.activityAnswer",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 79
+          "line": 81
         },
         "kind": "CAUSE_KIND_ACTIVITY_ANSWER",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 79
+            "line": 81
           },
           "intervalMs": "250",
           "atMostMs": "2000"
@@ -5577,24 +5577,9 @@
         "id": "cause.workflowTask",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
-          "line": 82
-        },
-        "kind": "CAUSE_KIND_WORKFLOW_TASK",
-        "bound": {
-          "position": {
-            "file": "model/temporal/realize/Behavior.scala",
-            "line": 82
-          },
-          "intervalMs": "250",
-          "atMostMs": "5000"
-        }
-      }, {
-        "id": "cause.handlerReply",
-        "position": {
-          "file": "model/temporal/realize/Behavior.scala",
           "line": 84
         },
-        "kind": "CAUSE_KIND_HANDLER_REPLY",
+        "kind": "CAUSE_KIND_WORKFLOW_TASK",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
@@ -5604,16 +5589,31 @@
           "atMostMs": "5000"
         }
       }, {
-        "id": "cause.timer",
+        "id": "cause.handlerReply",
         "position": {
           "file": "model/temporal/realize/Behavior.scala",
           "line": 89
+        },
+        "kind": "CAUSE_KIND_HANDLER_REPLY",
+        "bound": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 89
+          },
+          "intervalMs": "250",
+          "atMostMs": "5000"
+        }
+      }, {
+        "id": "cause.timer",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 94
         },
         "kind": "CAUSE_KIND_TIMER",
         "bound": {
           "position": {
             "file": "model/temporal/realize/Behavior.scala",
-            "line": 89
+            "line": 94
           },
           "intervalMs": "250",
           "atMostMs": "3000"

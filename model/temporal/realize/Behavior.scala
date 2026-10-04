@@ -75,12 +75,17 @@ val temporalBehavior: ApiBehavior = ApiBehavior(
     // chasm/lib/activity/tasks.go:67-102, attempt.go:75-82, common/backoff/retry.go:198-209,
     // common/retrypolicy/retry_policy.go:76-81.
     CauseKind.delivery.boundedBy(WaitBound(intervalMs = 250, atMostMs = 3000)),
-    // The Case's own worker answers an attempt it is delivered at once.
+    // The Case's own worker answers an attempt as soon as it is delivered, with nothing to wait for
+    // (common/testing/testpilot/temporal/worker/interpreter.go:240-300), and the respond applies the
+    // answer in its transaction (service/history/handler.go:425-429): the bound is the round trip.
     CauseKind.activityAnswer.boundedBy(WaitBound(intervalMs = 250, atMostMs = 2000)),
     // A workflow task is dispatched to the Case's worker and completed by it:
     // service/matching/matching_engine.go:586, :717.
     CauseKind.workflowTask.boundedBy(WaitBound(intervalMs = 250, atMostMs = 5000)),
-    // A Nexus task is dispatched to the handler's worker and answered by it.
+    // Matching dispatches a Nexus task to the handler worker's poll, the Case's handler answers it
+    // at once, and matching hands the reply to the waiting dispatch:
+    // service/matching/matching_engine.go:2721-2802, :2884-2909,
+    // common/testing/testpilot/temporal/worker/interpreter.go:326-430.
     CauseKind.handlerReply.boundedBy(WaitBound(intervalMs = 250, atMostMs = 5000)),
     // A timer fires at or after its deadline from the timer queue, and one closer than the queue's
     // maximum time shift (1 s) is pushed out to it: chasm/lib/activity/tasks.go:154-168,

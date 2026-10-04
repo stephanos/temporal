@@ -55,7 +55,8 @@ func (a *realizing) visibilities() {
 		case h.GetRead() == "":
 		default:
 			pair := write + " " + h.GetRead()
-			if other, ok := pairs[pair]; ok {
+			// Two hints of one derived id are one pair, which the id's refusal already names.
+			if other, ok := pairs[pair]; ok && other != id {
 				a.report(at, "visibility %s and %s both declare when %s is visible to %s; one hint declares a pair", other, id, write, h.GetRead())
 			} else {
 				pairs[pair] = id
