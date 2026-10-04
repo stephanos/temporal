@@ -1,0 +1,145 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.14",
+  "status": "blocked",
+  "commits": [],
+  "base_commit": "0dd05b313acd0986312da7fd3159520e6a21f1bf",
+  "prs": [],
+  "host": {
+    "go": "go1.27.1",
+    "os": "linux",
+    "arch": "arm64",
+    "native_acceptance": false,
+    "pinned_go_available": false
+  },
+  "tier": "Tier: session(jev-unavailable(no_key)); explicit model pin wins.",
+  "baseline": {
+    "validation": "green",
+    "log": "baseline-validate.log",
+    "sources": "baseline-source.sha256",
+    "snapshot": "/tmp/gomad-task14.UFfeZq/baseline-overlay",
+    "vectors": "baseline-vectors.json",
+    "vectors_sha256": "adf815e906f66690a448d329f266099973f5c2df1c27ee47cedc2682ba258545",
+    "network_operations": 13,
+    "volume_operations": 28,
+    "capture_source": "capture-vectors.go",
+    "capture_command": "GOROOT=/tmp/gomad-task14.UFfeZq/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task14.UFfeZq/go/bin/go run cmd/gomad-vector-capture",
+    "capture_exit_code": 0,
+    "provenance": "Captured before production edits using the unchanged overlay gomadmodelwire codec copied into an external stock GOROOT. Inputs are explicit old generic-slot layouts; expected bytes never use the new domain codec. Responses include partial EOF reads/writes and an explicit wrapped-ESTALE message."
+  },
+  "tests": [
+    "make -C tools/gomad3 validate (pre-edit, exit 0)",
+    "go -C tools/gomad3 test -count=1 -tags test_dep -run '^TestProcessCommandsOwnModelWireTranslation$' . (pre-implementation expected red, exit 1)",
+    "make -C tools/gomad3 generate (exit 0)",
+    "make -C tools/gomad3 validate (final, exit 0)",
+    "go -C tools/gomad3 test -count=1 -tags test_dep -run 'TestPackageArchitecture|TestProcessCommandsOwnModelWireTranslation' . (exit 0)",
+    "go -C tools/gomad3 test -count=1 -tags test_dep ./internal/gomadtool/generation/protocol ./toolchain/version (exit 0)",
+    "GOROOT=/tmp/gomad-task14.UFfeZq/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task14.UFfeZq/go/bin/go test -v -count=1 -tags test_dep internal/gomadio internal/gomadfs internal/gomadmodelwire (developmental, exit 0, 42 cases)",
+    "GOROOT=/tmp/gomad-task14.UFfeZq/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task14.UFfeZq/go/bin/go vet -tags test_dep internal/gomadio internal/gomadfs internal/gomadmodelwire (exit 1, unchanged unsafe.Pointer findings)",
+    "GOROOT=/tmp/gomad-task14.UFfeZq/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task14.UFfeZq/go/bin/go vet -tags test_dep internal/gomadfs internal/gomadmodelwire (exit 0)",
+    "go -C tools/gomad3 vet -tags test_dep . ./internal/gomadtool/generation/protocol ./toolchain/version (exit 0)",
+    "git diff --check (exit 0)",
+    "sha256sum -c .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-14/final-source.sha256 (exit 0)"
+  ],
+  "observations": [
+    {
+      "command": "make -C tools/gomad3 validate",
+      "phase": "baseline",
+      "exit_code": 0,
+      "log": "baseline-validate.log"
+    },
+    {
+      "command": "go -C tools/gomad3 test -count=1 -tags test_dep -run '^TestProcessCommandsOwnModelWireTranslation$' .",
+      "phase": "red",
+      "exit_code": 1,
+      "log": "ownership-red.log",
+      "reason": "Existing adapters import gomadmodelwire and access generic slots outside the domain codec."
+    },
+    {
+      "command": "make -C tools/gomad3 generate",
+      "exit_code": 0,
+      "log": "generate.log",
+      "note": "Make printed a clock-skew warning. Final validation separately verified generated artifacts."
+    },
+    {
+      "command": "make -C tools/gomad3 validate",
+      "phase": "final",
+      "exit_code": 0,
+      "log": "final-validate.log"
+    },
+    {
+      "command": "go -C tools/gomad3 test -count=1 -tags test_dep -run 'TestPackageArchitecture|TestProcessCommandsOwnModelWireTranslation' .",
+      "exit_code": 0,
+      "log": "architecture.log"
+    },
+    {
+      "command": "go -C tools/gomad3 test -count=1 -tags test_dep ./internal/gomadtool/generation/protocol ./toolchain/version",
+      "exit_code": 0,
+      "log": "generation-tests.log"
+    },
+    {
+      "command": "GOROOT=/tmp/gomad-task14.UFfeZq/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task14.UFfeZq/go/bin/go test -v -count=1 -tags test_dep internal/gomadio internal/gomadfs internal/gomadmodelwire",
+      "exit_code": 0,
+      "log": "developmental-overlay.log",
+      "test_cases": 42,
+      "classification": "developmental"
+    },
+    {
+      "command": "GOROOT=/tmp/gomad-task14.UFfeZq/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task14.UFfeZq/go/bin/go vet -tags test_dep internal/gomadio internal/gomadfs internal/gomadmodelwire",
+      "exit_code": 1,
+      "log": "developmental-vet.log",
+      "findings": [
+        "gomadio/libc.go:272 possible misuse of unsafe.Pointer",
+        "gomadio/anonymous_test.go:27 possible misuse of unsafe.Pointer"
+      ],
+      "baseline_comparison": "Both files compare byte-identical with the captured pre-task overlay (cmp exits 0). No gate suppression was added."
+    },
+    {
+      "command": "GOROOT=/tmp/gomad-task14.UFfeZq/go GOTOOLCHAIN=local GOWORK=off /tmp/gomad-task14.UFfeZq/go/bin/go vet -tags test_dep internal/gomadfs internal/gomadmodelwire",
+      "exit_code": 0,
+      "log": "developmental-volume-wire-vet.log"
+    },
+    {
+      "command": "go -C tools/gomad3 vet -tags test_dep . ./internal/gomadtool/generation/protocol ./toolchain/version",
+      "exit_code": 0,
+      "log": "vet.log"
+    }
+  ],
+  "developmental_runtime": {
+    "root": "/tmp/gomad-task14.UFfeZq/go",
+    "source": "/tmp/gomad-task14.UFfeZq/go/src/runtime/gomad_task14_development.go",
+    "source_sha256": "8630de3ebb792517ccd2051a16bf1daab70aaf44e204326c6e04fc0cda404af6",
+    "semantics": "External stock Go copy contains actual gomadio/gomadfs/gomadmodelwire and their overlay dependencies. Runtime stand-ins disable I/O profile, return no control environment, carry one local domain token, use stock nanotime, return unavailable blocking/trace I/O, and implement inert arrival hooks. No stand-in is in the checkout or module cache.",
+    "limits": "Executes codec, pure filesystem, direct host volume dispatch, resource classification and local zero-length network tests. Does not exercise seeded scheduling, patched os/net interception, real model IPC, per-goroutine domains, quiescence, native time or process-faithfulness acceptance.",
+    "excluded": "Runner process transport and gomad3sim toolchain suites were not run with the stand-ins."
+  },
+  "source_hashes": "final-source.sha256",
+  "ownership_search": "ownership-search.log",
+  "incomplete": [
+    {
+      "command": "cd tools/gomad3 && .toolchain/bin/go test -count=1 -tags test_dep internal/gomadio internal/gomadfs internal/gomadmodelwire",
+      "reason": "Pinned patched go executable absent; required on darwin/arm64 and linux/amd64."
+    },
+    {
+      "command": "cd tools/gomad3 && make toolchain && make overlay-test",
+      "reason": "Current linux/arm64 host is unsupported by the unchanged builder; supported-host rebuild and overlay acceptance remain open."
+    },
+    {
+      "command": "tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim",
+      "reason": "Requires patched runtime on a supported native host."
+    },
+    {
+      "command": "make -C tools/gomad3 test-simulation",
+      "reason": "Real process transport and seeded simulation require the supported patched runtime."
+    },
+    {
+      "command": "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host",
+      "reason": "Full frozen host gate requires the supported patched runtime."
+    },
+    {
+      "command": "flow-next implementation review",
+      "reason": "Conductor's two fresh actual-source audits are retained in source-audit.md. Completion acceptance is not claimed while native gates remain missing; a committed-range CLI was not used to represent review of the dirty candidate."
+    }
+  ],
+  "stage": "Two fresh actual-source audits found no concrete defects; conductor source-hash/copy comparisons, focused architecture/ownership/protocol tests, complete generator/version tests, make validate and developmental overlay suite exited 0. Native acceptance remains open. See source-audit.md.",
+  "live_commands": []
+}

@@ -1,0 +1,14 @@
+make: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3'
+make: Warning: File 'toolchain/version/version.json' has modification time 0.021 s in the future
+GOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate
+GOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate
+GOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate
+GOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool compatibility-pack generate --root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3
+generated compatibility packs
+make tests-qualification-generate
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3'
+GOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool qualification-manifest-generate --root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/../.. --spec=tools/gomad3integration/qualification/tests.generator.json --output=tools/gomad3integration/qualification/tests.json
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3'
+make: warning:  Clock skew detected.  Your build may be incomplete.
+make: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3'

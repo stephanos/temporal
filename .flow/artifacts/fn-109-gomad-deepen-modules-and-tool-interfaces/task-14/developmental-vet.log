@@ -1,0 +1,2 @@
+/tmp/gomad-task14.UFfeZq/go/src/internal/gomadio/libc.go:272:30: possible misuse of unsafe.Pointer
+/tmp/gomad-task14.UFfeZq/go/src/internal/gomadio/anonymous_test.go:27:49: possible misuse of unsafe.Pointer

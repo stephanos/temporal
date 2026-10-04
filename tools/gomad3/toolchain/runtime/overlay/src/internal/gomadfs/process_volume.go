@@ -6,103 +6,73 @@ package gomadfs
 
 import (
 	"errors"
-	"io"
 	"syscall"
 
-	"internal/gomadmodelwire"
 	"internal/gomadsim"
-)
-
-const (
-	processOpenRead uint64 = 1 << iota
-	processOpenWrite
-	processOpenAppend
-	processOpenCreate
-	processOpenExclusive
-	processOpenTruncate
 )
 
 var processFilesystem = &FS{process: true}
 
 func processResolve(name string) (string, string, error) {
-	response, err := exchangeProcessVolume(gomadmodelwire.Request{Model: gomadmodelwire.ModelVolume, Operation: gomadmodelwire.VolumeResolve, String1: name})
-	return response.String1, response.String2, err
+	response, err := exchangeProcessVolume(processVolumeCommand{Operation: processVolumeResolveOp, Path: name})
+	return response.Path, response.Base, err
 }
 
 func processMkdir(name string, perm uint32, all bool) error {
-	operation := gomadmodelwire.VolumeMkdir
+	operation := processVolumeMkdirOp
 	if all {
-		operation = gomadmodelwire.VolumeMkdirAll
+		operation = processVolumeMkdirAllOp
 	}
-	_, err := exchangeProcessVolume(gomadmodelwire.Request{Model: gomadmodelwire.ModelVolume, Operation: operation, String1: name, Uint1: uint64(perm)})
+	_, err := exchangeProcessVolume(processVolumeCommand{Operation: operation, Path: name, Mode: perm})
 	return err
 }
 
 func processStat(name string) (Entry, error) {
-	response, err := exchangeProcessVolume(gomadmodelwire.Request{Model: gomadmodelwire.ModelVolume, Operation: gomadmodelwire.VolumeStat, String1: name})
+	response, err := exchangeProcessVolume(processVolumeCommand{Operation: processVolumeStatOp, Path: name})
 	if err != nil {
 		return Entry{}, err
 	}
 	if len(response.Entries) != 1 {
 		return Entry{}, syscall.EIO
 	}
-	return processEntry(response.Entries[0]), nil
+	return response.Entries[0], nil
 }
 
 func processOpen(name string, flags OpenFlags, perm uint32) (*Handle, error) {
-	var encodedFlags uint64
-	if flags.Read {
-		encodedFlags |= processOpenRead
-	}
-	if flags.Write {
-		encodedFlags |= processOpenWrite
-	}
-	if flags.Append {
-		encodedFlags |= processOpenAppend
-	}
-	if flags.Create {
-		encodedFlags |= processOpenCreate
-	}
-	if flags.Exclusive {
-		encodedFlags |= processOpenExclusive
-	}
-	if flags.Truncate {
-		encodedFlags |= processOpenTruncate
-	}
-	response, err := exchangeProcessVolume(gomadmodelwire.Request{Model: gomadmodelwire.ModelVolume, Operation: gomadmodelwire.VolumeOpen, String1: name, Uint1: uint64(perm), Flags: encodedFlags})
+	response, err := exchangeProcessVolume(processVolumeCommand{Operation: processVolumeOpenOp, Path: name, Mode: perm, OpenFlags: flags})
 	if err != nil {
 		return nil, err
 	}
-	if response.Handle == 0 || response.String1 == "" {
+	if response.Handle == 0 || response.Path == "" {
 		return nil, syscall.EIO
 	}
-	return &Handle{fs: processFilesystem, processHandle: response.Handle, name: response.String1}, nil
+	return &Handle{fs: processFilesystem, processHandle: response.Handle, name: response.Path}, nil
 }
 
-func processPathOperation(operation gomadmodelwire.Operation, first, second string, integer int64, unsigned uint64) error {
-	_, err := exchangeProcessVolume(gomadmodelwire.Request{Model: gomadmodelwire.ModelVolume, Operation: operation, String1: first, String2: second, Int1: integer, Uint1: unsigned})
+func processPathOperation(command processVolumeCommand) error {
+	_, err := exchangeProcessVolume(command)
 	return err
 }
 
 func processGetwd() string {
-	response, err := exchangeProcessVolume(gomadmodelwire.Request{Model: gomadmodelwire.ModelVolume, Operation: gomadmodelwire.VolumeGetwd})
+	response, err := exchangeProcessVolume(processVolumeCommand{Operation: processVolumeGetwdOp})
 	if err != nil {
 		return ""
 	}
-	return response.String1
+	return response.Path
 }
 
 func processHandleRead(handle *Handle, destination []byte, offset int64, at bool) (int, error) {
 	if handle.closed {
 		return 0, ErrClosed
 	}
-	operation := gomadmodelwire.VolumeHandleRead
+	operation := processVolumeHandleReadOp
 	if at {
-		operation = gomadmodelwire.VolumeHandleReadAt
+		operation = processVolumeHandleReadAtOp
 	}
-	response, err := exchangeProcessVolume(gomadmodelwire.Request{Model: gomadmodelwire.ModelVolume, Operation: operation, Handle: handle.processHandle, Int1: offset, Uint1: uint64(len(destination))})
+	response, err := exchangeProcessVolume(processVolumeCommand{Operation: operation, Handle: handle.processHandle, Offset: offset, ReadLength: uint64(len(destination))})
 	read := copy(destination, response.Data)
-	if read != len(response.Data) || uint64(read) != response.Uint1 {
+	if read != len(response.Data) || uint64(read) != response.BytesTransferred {
 		return 0, syscall.EIO
 	}
 	return read, err
@@ -112,42 +82,42 @@ func processHandleWrite(handle *Handle, source []byte, offset int64, at bool) (i
 	if handle.closed {
 		return 0, ErrClosed
 	}
-	operation := gomadmodelwire.VolumeHandleWrite
+	operation := processVolumeHandleWriteOp
 	if at {
-		operation = gomadmodelwire.VolumeHandleWriteAt
+		operation = processVolumeHandleWriteAtOp
 	}
-	response, err := exchangeProcessVolume(gomadmodelwire.Request{Model: gomadmodelwire.ModelVolume, Operation: operation, Handle: handle.processHandle, Int1: offset, Data: append([]byte(nil), source...)})
-	if response.Uint1 > uint64(len(source)) {
+	response, err := exchangeProcessVolume(processVolumeCommand{Operation: operation, Handle: handle.processHandle, Offset: offset, Data: append([]byte(nil), source...)})
+	if response.BytesTransferred > uint64(len(source)) {
 		return 0, syscall.EIO
 	}
-	return int(response.Uint1), err
+	return int(response.BytesTransferred), err
 }
 
-func processHandleOperation(handle *Handle, operation gomadmodelwire.Operation, first, second int64, unsigned uint64) (gomadmodelwire.Response, error) {
+func processHandleOperation(handle *Handle, command processVolumeCommand) (processVolumeResult, error) {
 	if handle.closed {
-		return gomadmodelwire.Response{}, ErrClosed
+		return processVolumeResult{}, ErrClosed
 	}
-	return exchangeProcessVolume(gomadmodelwire.Request{Model: gomadmodelwire.ModelVolume, Operation: operation, Handle: handle.processHandle, Int1: first, Int2: second, Uint1: unsigned})
+	command.Handle = handle.processHandle
+	return exchangeProcessVolume(command)
 }
 
 func processHandleStat(handle *Handle) (Entry, error) {
-	response, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleStat, 0, 0, 0)
+	response, err := processHandleOperation(handle, processVolumeCommand{Operation: processVolumeHandleStatOp})
 	if err != nil {
 		return Entry{}, err
 	}
 	if len(response.Entries) != 1 {
 		return Entry{}, syscall.EIO
 	}
-	return processEntry(response.Entries[0]), nil
+	return response.Entries[0], nil
 }
 
 func processHandleReadDir(handle *Handle, count int) ([]Entry, error) {
-	response, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleReadDir, int64(count), 0, 0)
-	entries := make([]Entry, len(response.Entries))
-	for index := range response.Entries {
-		entries[index] = processEntry(response.Entries[index])
+	response, err := processHandleOperation(handle, processVolumeCommand{Operation: processVolumeHandleReadDirOp, DirectoryCount: int64(count)})
+	if response.Entries == nil {
+		response.Entries = []Entry{}
 	}
-	return entries, err
+	return response.Entries, err
 }
 
 func processHandleMap(handle *Handle, offset int64, length uint64, writable bool) (*Mapping, error) {
@@ -157,7 +127,7 @@ func processHandleMap(handle *Handle, offset int64, length uint64, writable bool
 	if writable {
 		return nil, syscall.ENOTSUP
 	}
-	response, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleMap, offset, 0, length)
+	response, err := processHandleOperation(handle, processVolumeCommand{Operation: processVolumeHandleMapOp, Offset: offset, MapLength: length})
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +142,7 @@ func processMappingBytes(mapping *Mapping) ([]byte, error) {
 		return nil, syscall.EINVAL
 	}
 	if mapping.data == nil {
-		response, err := exchangeProcessVolume(gomadmodelwire.Request{Model: gomadmodelwire.ModelVolume, Operation: gomadmodelwire.VolumeMappingBytes, Handle: mapping.processHandle})
+		response, err := exchangeProcessVolume(processVolumeCommand{Operation: processVolumeMappingBytesOp, Handle: mapping.processHandle})
 		if err != nil {
 			return nil, err
 		}
@@ -185,7 +155,7 @@ func processMappingClose(mapping *Mapping) error {
 	if mapping.closed {
 		return syscall.EINVAL
 	}
-	_, err := exchangeProcessVolume(gomadmodelwire.Request{Model: gomadmodelwire.ModelVolume, Operation: gomadmodelwire.VolumeMappingClose, Handle: mapping.processHandle})
+	_, err := exchangeProcessVolume(processVolumeCommand{Operation: processVolumeMappingCloseOp, Handle: mapping.processHandle})
 	if err == nil {
 		mapping.closed = true
 		mapping.data = nil
@@ -193,80 +163,28 @@ func processMappingClose(mapping *Mapping) error {
 	return err
 }
 
-func exchangeProcessVolume(request gomadmodelwire.Request) (gomadmodelwire.Response, error) {
+func exchangeProcessVolume(request processVolumeCommand) (processVolumeResult, error) {
 	domain, err, handled := gomadsim.CurrentNetworkDomain()
 	if !handled || err != nil {
 		if err == nil {
 			err = syscall.ESTALE
 		}
-		return gomadmodelwire.Response{}, err
+		return processVolumeResult{}, err
 	}
-	encoded, err := gomadmodelwire.EncodeRequest(request)
+	encoded, err := encodeProcessVolumeCommand(request)
 	if err != nil {
-		return gomadmodelwire.Response{}, err
+		return processVolumeResult{}, err
 	}
-	responseBytes, remoteErr, ok := gomadsim.ProcessModelExchange(domain.Node, domain.Incarnation, encoded, gomadmodelwire.MaximumFrameBytes)
+	responseBytes, remoteErr, ok := gomadsim.ProcessModelExchange(domain.Node, domain.Incarnation, encoded, maximumProcessVolumeFrameBytes)
 	if !ok {
-		return gomadmodelwire.Response{}, syscall.EIO
+		return processVolumeResult{}, syscall.EIO
 	}
 	if remoteErr != "" {
-		return gomadmodelwire.Response{}, errors.New(remoteErr)
+		return processVolumeResult{}, errors.New(remoteErr)
 	}
-	response, err := gomadmodelwire.DecodeResponse(responseBytes)
+	response, err := decodeProcessVolumeResult(responseBytes)
 	if err != nil {
-		return gomadmodelwire.Response{}, err
+		return processVolumeResult{}, err
 	}
-	return response, decodeProcessVolumeError(response.Error)
-}
-
-func processEntry(entry gomadmodelwire.Entry) Entry {
-	return Entry{Name: entry.Name, Mode: entry.Mode, Kind: Kind(entry.Kind), ModTime: entry.ModTime, Data: append([]byte(nil), entry.Data...)}
-}
-
-func decodeProcessVolumeError(source gomadmodelwire.WireError) error {
-	switch source.Code {
-	case gomadmodelwire.ErrorNone:
-		return nil
-	case gomadmodelwire.ErrorEOF:
-		return io.EOF
-	case gomadmodelwire.ErrorUnsupported:
-		return syscall.ENOTSUP
-	case gomadmodelwire.ErrorEINVAL:
-		return syscall.EINVAL
-	case gomadmodelwire.ErrorEEXIST:
-		return syscall.EEXIST
-	case gomadmodelwire.ErrorENOENT:
-		return syscall.ENOENT
-	case gomadmodelwire.ErrorENOTDIR:
-		return syscall.ENOTDIR
-	case gomadmodelwire.ErrorEISDIR:
-		return syscall.EISDIR
-	case gomadmodelwire.ErrorEROFS:
-		return syscall.EROFS
-	case gomadmodelwire.ErrorENOSPC:
-		return syscall.ENOSPC
-	case gomadmodelwire.ErrorEBADF:
-		return syscall.EBADF
-	case gomadmodelwire.ErrorENODEV:
-		return syscall.ENODEV
-	case gomadmodelwire.ErrorESTALE:
-		return syscall.ESTALE
-	case gomadmodelwire.ErrorENOTEMPTY:
-		return syscall.ENOTEMPTY
-	case gomadmodelwire.ErrorCapacity:
-		return &VolumeCapacityError{Resource: source.Resource, Required: source.Required, Maximum: source.Maximum}
-	}
-	switch source.Message {
-	case syscall.EBUSY.Error():
-		return syscall.EBUSY
-	case syscall.EFBIG.Error():
-		return syscall.EFBIG
-	case syscall.EMFILE.Error():
-		return syscall.EMFILE
-	case syscall.EPROTO.Error():
-		return syscall.EPROTO
-	case syscall.EXDEV.Error():
-		return syscall.EXDEV
-	}
-	return errors.New(source.Message)
+	return response, response.Err
 }

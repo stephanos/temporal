@@ -1,0 +1,22 @@
+# Task 14 source handover
+
+Status: blocked on native acceptance, not source implementation. The frozen source candidate supplies typed network and volume commands/results to the process adapters. Two fresh conductor-owned source audits found no concrete defect; source-audit.md records their scope and independent frozen-batch reruns. Supported-host acceptance remains open. The user owns commits; commits are empty.
+
+Each domain's process_commands.go owns operation translation, all generic model-wire fields, wire errors, and volume flags/entry conversion. Client helpers and their callers in network.go/fs.go use domain fields. Host execution uses domain fields and retains resource-kind checks, close/cleanup ordering, clamping and integer casts. Wire framing and its generated sources remain unchanged.
+
+Before production edits, capture-vectors.go encoded 13 network and 28 volume request/response pairs using the unchanged overlay codec in an external stock GOROOT. baseline-vectors.json has SHA-256 adf815e906f66690a448d329f266099973f5c2df1c27ee47cedc2682ba258545. Tests contain those literal hex values. Partial reads/writes retain count, data and EOF. The explicit stale-error message is represented by an ESTALE wrapper when encoding; decoding independently checks the domain sentinel. The fixtures capture representative envelope shapes and old slot layouts; they do not claim pre-refactor native host execution.
+
+The ownership regression failed before production changes and passes after extraction. Tests also cover all permissive operation shapes with nonzero unused fields, unknown flag bits, zero handles, negative integers, large read/map lengths and uint32 mode truncation. Independent error-code cases cover network deadline/unsupported differences, error precedence, volume capacity details and errno-message fallback. Direct volume dispatch covers partial ReadAt, wrong domain/kind, negative truncate, read-only mapping, detached mapping bytes and successful-close resource removal. Entry conversion omits children and copies data. Existing overlay tests remain intact.
+
+Six new overlay files are registered in the sorted version descriptor allowlist. make generate refreshed the four existing generated identity mirrors; version_generated.mk remains unchanged. This is the only mechanical extension to task 13's frozen descriptor/generated surface.
+
+Pre-edit make validate passed. Final generation, validation, package architecture, the ownership check, protocol/version tests and touched host vet passed. The final developmental stock-GOROOT run passed all 42 cases in internal/gomadio, internal/gomadfs and internal/gomadmodelwire. Broad developmental overlay vet returned exit 1 for existing unsafe-pointer findings in gomadio/libc.go:272 and anonymous_test.go:27. Both files compare byte-identical with the pre-task snapshot. Volume/wire vet passed. Exact commands, exit codes and logs are in evidence.json.
+
+The scratch GOROOT is /tmp/gomad-task14.UFfeZq/go. Its external runtime stand-in source and SHA-256 are recorded in evidence.json. The stand-ins disable the profile/control environment, use stock nanotime and inert arrival hooks, carry a single local domain token, and make blocking/trace I/O unavailable. The run exercises codecs and direct local domain logic. It does not establish patched interception, model IPC, seeded scheduling, process isolation or native acceptance. No tracked or module-cache shim was added.
+
+This host is linux/arm64 with stock Go go1.27.1 and no tools/gomad3/.toolchain/bin/go. The task's stale darwin host text is superseded by that observation. Pinned focused tests, supported-host toolchain rebuild/overlay tests, real process transport, gomad3sim toolchain tests and the full host gate remain incomplete on both darwin/arm64 and linux/amd64. Builder support, dependencies, D12/D14 dispositions and existing process coverage were preserved. No CLI review or Flow lifecycle mutation ran.
+
+Baseline HEAD is 0dd05b313acd0986312da7fd3159520e6a21f1bf. baseline-source.sha256 and /tmp/gomad-task14.UFfeZq/baseline-overlay retain the pre-task source; final-source.sha256 binds the candidate and its generated identity mirrors. All commands exited before handover. The conductor can audit the actual dirty candidate from those pointers.
+
+Tier: session(jev-unavailable(no_key)); explicit model pin wins.
+stage: impl-review - two fresh actual-source audits found no concrete defects; native acceptance remains open

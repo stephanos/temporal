@@ -11,7 +11,6 @@ import (
 	"sync"
 	"syscall"
 
-	"internal/gomadmodelwire"
 	"internal/gomadwire"
 )
 
@@ -460,7 +459,7 @@ func (fs *FS) Open(name string, flags OpenFlags, perm uint32) (*Handle, error) {
 
 func (fs *FS) Rename(oldName, newName string) error {
 	if fs.process {
-		return processPathOperation(gomadmodelwire.VolumeRename, oldName, newName, 0, 0)
+		return processPathOperation(processVolumeCommand{Operation: processVolumeRenameOp, Path: oldName, Destination: newName})
 	}
 	oldPath, _, err := fs.normalize(oldName)
 	if err != nil {
@@ -583,7 +582,7 @@ func (fs *FS) Rename(oldName, newName string) error {
 
 func (fs *FS) Remove(name string) error {
 	if fs.process {
-		return processPathOperation(gomadmodelwire.VolumeRemove, name, "", 0, 0)
+		return processPathOperation(processVolumeCommand{Operation: processVolumeRemoveOp, Path: name})
 	}
 	path, _, err := fs.normalize(name)
 	if err != nil || path == "/" {
@@ -630,7 +629,7 @@ func (fs *FS) Remove(name string) error {
 
 func (fs *FS) RemoveAll(name string) error {
 	if fs.process {
-		return processPathOperation(gomadmodelwire.VolumeRemoveAll, name, "", 0, 0)
+		return processPathOperation(processVolumeCommand{Operation: processVolumeRemoveAllOp, Path: name})
 	}
 	path, _, err := fs.normalize(name)
 	if err != nil || path == "/" {
@@ -691,7 +690,7 @@ func (fs *FS) RemoveAll(name string) error {
 
 func (fs *FS) Chmod(name string, mode uint32) error {
 	if fs.process {
-		return processPathOperation(gomadmodelwire.VolumeChmod, name, "", 0, uint64(mode))
+		return processPathOperation(processVolumeCommand{Operation: processVolumeChmodOp, Path: name, Mode: mode})
 	}
 	path, _, err := fs.normalize(name)
 	if err != nil {
@@ -721,7 +720,7 @@ func (fs *FS) Chmod(name string, mode uint32) error {
 
 func (fs *FS) Chtimes(name string, modTime int64) error {
 	if fs.process {
-		return processPathOperation(gomadmodelwire.VolumeChtimes, name, "", modTime, 0)
+		return processPathOperation(processVolumeCommand{Operation: processVolumeChtimesOp, Path: name, ModTime: modTime})
 	}
 	path, _, err := fs.normalize(name)
 	if err != nil {
@@ -748,7 +747,7 @@ func (fs *FS) Chtimes(name string, modTime int64) error {
 
 func (fs *FS) Chdir(name string) error {
 	if fs.process {
-		return processPathOperation(gomadmodelwire.VolumeChdir, name, "", 0, 0)
+		return processPathOperation(processVolumeCommand{Operation: processVolumeChdirOp, Path: name})
 	}
 	path, _, err := fs.normalize(name)
 	if err != nil {
@@ -964,7 +963,7 @@ func (handle *Handle) WriteAt(source []byte, offset int64) (int, error) {
 
 func (handle *Handle) Truncate(size int64) error {
 	if handle.fs.process {
-		_, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleTruncate, size, 0, 0)
+		_, err := processHandleOperation(handle, processVolumeCommand{Operation: processVolumeHandleTruncateOp, Size: size})
 		return err
 	}
 	handle.fs.mu.Lock()
@@ -1012,7 +1011,7 @@ func (handle *Handle) Truncate(size int64) error {
 
 func (handle *Handle) Chmod(mode uint32) error {
 	if handle.fs.process {
-		_, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleChmod, 0, 0, uint64(mode))
+		_, err := processHandleOperation(handle, processVolumeCommand{Operation: processVolumeHandleChmodOp, Mode: mode})
 		return err
 	}
 	handle.fs.mu.Lock()
@@ -1038,7 +1037,7 @@ func (handle *Handle) Chmod(mode uint32) error {
 
 func (handle *Handle) Chtimes(modTime int64) error {
 	if handle.fs.process {
-		_, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleChtimes, modTime, 0, 0)
+		_, err := processHandleOperation(handle, processVolumeCommand{Operation: processVolumeHandleChtimesOp, ModTime: modTime})
 		return err
 	}
 	handle.fs.mu.Lock()
@@ -1061,7 +1060,7 @@ func (handle *Handle) Chtimes(modTime int64) error {
 
 func (handle *Handle) Chdir() error {
 	if handle.fs.process {
-		_, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleChdir, 0, 0, 0)
+		_, err := processHandleOperation(handle, processVolumeCommand{Operation: processVolumeHandleChdirOp})
 		return err
 	}
 	handle.fs.mu.Lock()
@@ -1086,8 +1085,8 @@ func (handle *Handle) Chdir() error {
 
 func (handle *Handle) Seek(offset int64, whence int) (int64, error) {
 	if handle.fs.process {
-		response, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleSeek, offset, int64(whence), 0)
-		return response.Int1, err
+		response, err := processHandleOperation(handle, processVolumeCommand{Operation: processVolumeHandleSeekOp, Offset: offset, Whence: int64(whence)})
+		return response.Offset, err
 	}
 	handle.fs.mu.Lock()
 	defer handle.fs.mu.Unlock()
@@ -1181,7 +1180,7 @@ func (handle *Handle) ReadDir(count int) ([]Entry, error) {
 
 func (handle *Handle) Close() error {
 	if handle.fs.process {
-		_, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleClose, 0, 0, 0)
+		_, err := processHandleOperation(handle, processVolumeCommand{Operation: processVolumeHandleCloseOp})
 		if err == nil {
 			handle.closed = true
 		}
@@ -1202,7 +1201,7 @@ func (handle *Handle) Close() error {
 
 func (handle *Handle) Sync() error {
 	if handle.fs.process {
-		_, err := processHandleOperation(handle, gomadmodelwire.VolumeHandleSync, 0, 0, 0)
+		_, err := processHandleOperation(handle, processVolumeCommand{Operation: processVolumeHandleSyncOp})
 		return err
 	}
 	handle.fs.mu.Lock()

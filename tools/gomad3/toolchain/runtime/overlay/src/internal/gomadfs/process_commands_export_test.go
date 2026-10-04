@@ -1,0 +1,15 @@
+package gomadfs
+
+type ProcessVolumeOperationForTest = processVolumeOperation
+type ProcessVolumeCommandForTest = processVolumeCommand
+type ProcessVolumeResultForTest = processVolumeResult
+
+var EncodeProcessVolumeCommandForTest = encodeProcessVolumeCommand
+var DecodeProcessVolumeCommandForTest = decodeProcessVolumeCommand
+var EncodeProcessVolumeResultForTest = encodeProcessVolumeResponse
+var DecodeProcessVolumeResultForTest = decodeProcessVolumeResult
+
+var EncodeProcessVolumeErrorForTest = encodeProcessVolumeError
+var DecodeProcessVolumeErrorForTest = decodeProcessVolumeError
+var ApplyProcessVolumeOperationForTest = applyProcessVolumeOperation
+var RemoveProcessVolumeResourceForTest = removeProcessVolumeResource

@@ -1,0 +1,8 @@
+{
+  "task_title": "Reconstruct and verify exact task 14 source checkpoint after committed task 13",
+  "task_body": "Archive the committed task13 predecessor in isolated scratch. Overlay only task14's 17 source manifest entries using seven exclusive current sources, six full-hash-verified historical preimages, and four unchanged task13 identity mirrors. Run focused checkpoint source checks and record provenance without changing shared production, index, Git history or Flow state.",
+  "acceptance": "All 17 retained full-file identities match; only 13 changed source paths differ from the committed predecessor; source gates and independent original audit scope remain explicit, native acceptance stays open. Return a reusable reconstruction helper and exact scratch source/evidence suitable for conductor-only per-task staging.",
+  "touches_count": 17,
+  "has_quick_commands": true,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

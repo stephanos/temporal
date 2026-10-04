@@ -1,0 +1,11 @@
+# internal/gomadfs_test [internal/gomadfs.test]
+/tmp/gomad-task14.UFfeZq/go/src/internal/gomadfs/process_commands_test.go:10:2: "syscall" imported and not used
+# internal/gomadio.test
+internal/gomadtrace.Init: relocation target runtime.gomadTraceMap not defined
+internal/gomadtrace.Record: relocation target runtime.gomadTraceExit not defined
+internal/gomadtrace.finalize: relocation target runtime.gomadTraceWrite not defined
+internal/gomadio.init.0: relocation target runtime.gomadIOProfileEnabled not defined
+internal/gomadio.init.0: relocation target runtime.gomadIOConfigFrame not defined
+FAIL	internal/gomadio [build failed]
+FAIL	internal/gomadfs [build failed]
+FAIL

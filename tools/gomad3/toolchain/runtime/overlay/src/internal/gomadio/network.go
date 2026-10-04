@@ -12,7 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"internal/gomadmodelwire"
 	"internal/gomadsim"
 	"internal/poll"
 )
@@ -484,7 +483,7 @@ func (connection *Conn) Write(source []byte) (int, error) {
 
 func (connection *Conn) Close() error {
 	if connection.processHandle != 0 {
-		return processNetworkConnOperation(connection, gomadmodelwire.NetworkConnClose, time.Time{})
+		return processNetworkConnOperation(connection, processNetworkConnCloseOp, time.Time{})
 	}
 	if connection.network != nil {
 		if err := validateSimulationEndpoint(connection.network, connection.owner); err != nil {
@@ -522,7 +521,7 @@ func (connection *Conn) Close() error {
 
 func (connection *Conn) CloseRead() error {
 	if connection.processHandle != 0 {
-		return processNetworkConnOperation(connection, gomadmodelwire.NetworkConnCloseRead, time.Time{})
+		return processNetworkConnOperation(connection, processNetworkConnCloseReadOp, time.Time{})
 	}
 	if connection.network != nil {
 		if err := validateSimulationEndpoint(connection.network, connection.owner); err != nil {
@@ -541,7 +540,7 @@ func (connection *Conn) CloseRead() error {
 
 func (connection *Conn) CloseWrite() error {
 	if connection.processHandle != 0 {
-		return processNetworkConnOperation(connection, gomadmodelwire.NetworkConnCloseWrite, time.Time{})
+		return processNetworkConnOperation(connection, processNetworkConnCloseWriteOp, time.Time{})
 	}
 	if connection.network != nil {
 		if err := validateSimulationEndpoint(connection.network, connection.owner); err != nil {
@@ -568,7 +567,7 @@ func (connection *Conn) RemoteAddress() Address {
 
 func (connection *Conn) SetDeadline(deadline time.Time) error {
 	if connection.processHandle != 0 {
-		return processNetworkConnOperation(connection, gomadmodelwire.NetworkConnSetDeadline, deadline)
+		return processNetworkConnOperation(connection, processNetworkConnSetDeadlineOp, deadline)
 	}
 	if connection.network != nil {
 		if err := validateSimulationEndpoint(connection.network, connection.owner); err != nil {
@@ -585,7 +584,7 @@ func (connection *Conn) SetDeadline(deadline time.Time) error {
 
 func (connection *Conn) SetReadDeadline(deadline time.Time) error {
 	if connection.processHandle != 0 {
-		return processNetworkConnOperation(connection, gomadmodelwire.NetworkConnSetReadDeadline, deadline)
+		return processNetworkConnOperation(connection, processNetworkConnSetReadDeadlineOp, deadline)
 	}
 	if connection.network != nil {
 		if err := validateSimulationEndpoint(connection.network, connection.owner); err != nil {
@@ -601,7 +600,7 @@ func (connection *Conn) SetReadDeadline(deadline time.Time) error {
 
 func (connection *Conn) SetWriteDeadline(deadline time.Time) error {
 	if connection.processHandle != 0 {
-		return processNetworkConnOperation(connection, gomadmodelwire.NetworkConnSetWriteDeadline, deadline)
+		return processNetworkConnOperation(connection, processNetworkConnSetWriteDeadlineOp, deadline)
 	}
 	if connection.network != nil {
 		if err := validateSimulationEndpoint(connection.network, connection.owner); err != nil {

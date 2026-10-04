@@ -1,0 +1,10 @@
+# internal/gomadio
+/tmp/gomad-task14.UFfeZq/go/src/internal/gomadfs/simulation_volume.go:15:2: package internal/gomadchoicewire is not in std (/tmp/gomad-task14.UFfeZq/go/src/internal/gomadchoicewire)
+# internal/gomadio
+/tmp/gomad-task14.UFfeZq/go/src/internal/gomadio/transcript.go:12:2: package internal/gomadtrace is not in std (/tmp/gomad-task14.UFfeZq/go/src/internal/gomadtrace)
+FAIL	internal/gomadio [setup failed]
+# internal/gomadfs
+/tmp/gomad-task14.UFfeZq/go/src/internal/gomadfs/simulation_volume.go:15:2: package internal/gomadchoicewire is not in std (/tmp/gomad-task14.UFfeZq/go/src/internal/gomadchoicewire)
+FAIL	internal/gomadfs [setup failed]
+ok  	internal/gomadmodelwire	0.001s [no tests to run]
+FAIL

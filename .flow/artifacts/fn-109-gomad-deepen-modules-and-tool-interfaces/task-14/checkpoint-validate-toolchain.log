@@ -1,0 +1,8 @@
+GOCACHE=/tmp/fn109-task14-checkpoint.bbwhljjn/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
+GOCACHE=/tmp/fn109-task14-checkpoint.bbwhljjn/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
+GOCACHE=/tmp/fn109-task14-checkpoint.bbwhljjn/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
+GOCACHE=/tmp/fn109-task14-checkpoint.bbwhljjn/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
+GOCACHE=/tmp/fn109-task14-checkpoint.bbwhljjn/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/tmp/fn109-task14-checkpoint.bbwhljjn/tools/gomad3
+gomad3 patch and overlay inputs are valid
+GOCACHE=/tmp/fn109-task14-checkpoint.bbwhljjn/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/tmp/fn109-task14-checkpoint.bbwhljjn/tools/gomad3
+gomad3 script ownership is valid

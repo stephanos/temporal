@@ -38,10 +38,10 @@ cd ../.. && tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_t
 ```
 
 ### Constraints
-- No `git add`, commit, stash or worktree: the user owns commits. Record `"commits": []` in the `flowctl done` evidence and say so in the summary.
+- The conductor commits each verified task separately under MILESTONES item 5, preserving unrelated changes. Older user-only commit instructions are superseded; unavailable native gates remain incomplete and Flow acceptance stays open. Push only when authorized.
 - No new third-party dependency. `tools/gomad3/go.mod` requires only `golang.org/x/mod`, so testify is unavailable inside `tools/gomad3`: follow the existing `t.Fatalf` style with whole-value comparisons there. In the root module (`tools/gomad3sim`, `tools/gomad3integration`) use `require` with `Equal`/`EqualValues`.
 - Preserve existing comments with their owning code, CLI grammar/defaults, canonical bytes for fixed supplied identities, and error precedence/classification.
-- This host is `darwin/arm64`. `linux/amd64` gates cannot run here: list them as incomplete in the done summary, never claim them.
+- Actual host is linux/arm64 with stock Go. Native darwin/arm64 and linux/amd64 qualification remain incomplete; source checks and developmental stand-ins do not qualify either platform.
 - fn-105 D12/D14 replay-divergence dispositions stay unchanged. Attribute a failure to those owners with retained evidence instead of relaxing an expectation.
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
@@ -53,8 +53,39 @@ cd ../.. && tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_t
 - [ ] Overlay inventories are regenerated and validated; overlay and gomad3sim process tests pass on darwin/arm64, with linux/amd64 recorded as incomplete.
 
 ## Done summary
-TBD
+Blocked:
+# Task 14 acceptance remains open
 
+The typed-command source candidate, pre-edit byte fixtures, red/green ownership
+check, generation/validation and developmental tests are retained in handover.md
+and evidence.json. Two fresh independent source audits found no concrete defect;
+the conductor reran the bounded frozen-batch checks (source-audit.md).
+
+This linux/arm64 host has no patched `.toolchain/bin/go`. Acceptance still needs
+the supported darwin/arm64 and linux/amd64 rebuild, pinned focused tests, overlay
+suite and real process/simulation conformance. External stock-runtime stand-ins
+do not supply those results. Existing broad developmental vet findings are
+retained in unchanged files without suppressing a gate.
+
+Keep R14 and task 14 open. The user owns commits. MILESTONES.md permits the
+next source task to advance after this reviewed candidate, while native adoption
+and the final qualification tasks remain open.
+
+Blocked:
+# Task 14 acceptance remains open after source checkpoint
+
+The exact task-14 source boundary and task-owned evidence are verified for a
+separate progress commit. See source-checkpoint.md, checkpoint-reconstruction.json
+and the original source-audit.md. Source checks are not supported-host acceptance.
+
+Both native darwin/arm64 and linux/amd64 still require the patched toolchain,
+overlay focused/full tests, real process/simulation conformance, gomad3sim toolchain
+tests and full host gates listed in evidence.json. This linux/arm64 host cannot
+provide those results; external stock-runtime stand-ins remain developmental.
+
+Keep task 14 and R14 open until all required gates pass. The conductor commits
+verified progress under MILESTONES item 5, preserving successor working-tree bytes
+and unrelated changes. The older user-only commit instructions are superseded.
 ## Evidence
 - Commits:
 - Tests:

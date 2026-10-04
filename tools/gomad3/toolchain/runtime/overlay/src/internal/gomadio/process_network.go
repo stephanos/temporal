@@ -8,13 +8,11 @@ import (
 	"context"
 	"errors"
 	"io"
-	"os"
 	"sync"
 	"syscall"
 	"time"
 	_ "unsafe"
 
-	"internal/gomadmodelwire"
 	"internal/gomadsim"
 )
 
@@ -33,11 +31,11 @@ var processNetworkResources = struct {
 }{values: make(map[uint64]processNetworkResource)}
 
 func processNetworkListen(network, host string, port int) (*Listener, error) {
-	response, err := exchangeProcessNetwork(gomadmodelwire.Request{Model: gomadmodelwire.ModelNetwork, Operation: gomadmodelwire.NetworkListen, String1: network, String2: host, Int1: int64(port)})
+	response, err := exchangeProcessNetwork(processNetworkCommand{Operation: processNetworkListenOp, Network: network, Host: host, Port: int64(port)})
 	if err != nil {
 		return nil, err
 	}
-	return &Listener{processHandle: response.Handle, address: Address{IP: response.String1, Port: int(response.Int1)}}, nil
+	return &Listener{processHandle: response.Handle, address: response.Local}, nil
 }
 
 func processNetworkDial(ctx context.Context, network, host string, port int) (*Conn, error) {
@@ -45,7 +43,7 @@ func processNetworkDial(ctx context.Context, network, host string, port int) (*C
 	if value, ok := ctx.Deadline(); ok {
 		deadline = value.UnixNano()
 	}
-	response, err := exchangeProcessNetwork(gomadmodelwire.Request{Model: gomadmodelwire.ModelNetwork, Operation: gomadmodelwire.NetworkDial, String1: network, String2: host, Int1: int64(port), Int2: deadline})
+	response, err := exchangeProcessNetwork(processNetworkCommand{Operation: processNetworkDialOp, Network: network, Host: host, Port: int64(port), DeadlineNanos: deadline})
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +51,7 @@ func processNetworkDial(ctx context.Context, network, host string, port int) (*C
 }
 
 func processNetworkAccept(listener *Listener) (*Conn, error) {
-	response, err := exchangeProcessNetwork(gomadmodelwire.Request{Model: gomadmodelwire.ModelNetwork, Operation: gomadmodelwire.NetworkAccept, Handle: listener.processHandle})
+	response, err := exchangeProcessNetwork(processNetworkCommand{Operation: processNetworkAcceptOp, Handle: listener.processHandle})
 	if err != nil {
 		return nil, err
 	}
@@ -61,12 +59,12 @@ func processNetworkAccept(listener *Listener) (*Conn, error) {
 }
 
 func processNetworkListenerClose(listener *Listener) error {
-	_, err := exchangeProcessNetwork(gomadmodelwire.Request{Model: gomadmodelwire.ModelNetwork, Operation: gomadmodelwire.NetworkListenerClose, Handle: listener.processHandle})
+	_, err := exchangeProcessNetwork(processNetworkCommand{Operation: processNetworkListenerCloseOp, Handle: listener.processHandle})
 	return err
 }
 
 func processNetworkListenerSetDeadline(listener *Listener, deadline time.Time) error {
-	_, err := exchangeProcessNetwork(gomadmodelwire.Request{Model: gomadmodelwire.ModelNetwork, Operation: gomadmodelwire.NetworkListenerSetDeadline, Handle: listener.processHandle, Int1: processNetworkDeadline(deadline)})
+	_, err := exchangeProcessNetwork(processNetworkCommand{Operation: processNetworkListenerSetDeadlineOp, Handle: listener.processHandle, DeadlineNanos: processNetworkDeadline(deadline)})
 	return err
 }
 
@@ -74,9 +72,9 @@ func processNetworkConnRead(connection *Conn, destination []byte) (int, error) {
 	if len(destination) == 0 {
 		return 0, nil
 	}
-	response, err := exchangeProcessNetwork(gomadmodelwire.Request{Model: gomadmodelwire.ModelNetwork, Operation: gomadmodelwire.NetworkConnRead, Handle: connection.processHandle, Uint1: uint64(len(destination))})
+	response, err := exchangeProcessNetwork(processNetworkCommand{Operation: processNetworkConnReadOp, Handle: connection.processHandle, ReadLength: uint64(len(destination))})
 	read := copy(destination, response.Data)
-	if read != len(response.Data) || uint64(read) != response.Uint1 {
+	if read != len(response.Data) || uint64(read) != response.BytesTransferred {
 		return 0, syscall.EIO
 	}
 	return read, err
@@ -86,32 +84,32 @@ func processNetworkConnWrite(connection *Conn, source []byte) (int, error) {
 	written := 0
 	for len(source) != 0 {
 		length := min(len(source), maximumChunkBytes)
-		response, err := exchangeProcessNetwork(gomadmodelwire.Request{Model: gomadmodelwire.ModelNetwork, Operation: gomadmodelwire.NetworkConnWrite, Handle: connection.processHandle, Data: append([]byte(nil), source[:length]...)})
-		if response.Uint1 > uint64(length) {
+		response, err := exchangeProcessNetwork(processNetworkCommand{Operation: processNetworkConnWriteOp, Handle: connection.processHandle, Data: append([]byte(nil), source[:length]...)})
+		if response.BytesTransferred > uint64(length) {
 			return written, syscall.EIO
 		}
-		written += int(response.Uint1)
-		source = source[response.Uint1:]
+		written += int(response.BytesTransferred)
+		source = source[response.BytesTransferred:]
 		if err != nil {
 			return written, err
 		}
-		if response.Uint1 == 0 {
+		if response.BytesTransferred == 0 {
 			return written, io.ErrShortWrite
 		}
 	}
 	return written, nil
 }
 
-func processNetworkConnOperation(connection *Conn, operation gomadmodelwire.Operation, deadline time.Time) error {
-	_, err := exchangeProcessNetwork(gomadmodelwire.Request{Model: gomadmodelwire.ModelNetwork, Operation: operation, Handle: connection.processHandle, Int1: processNetworkDeadline(deadline)})
+func processNetworkConnOperation(connection *Conn, operation processNetworkOperation, deadline time.Time) error {
+	_, err := exchangeProcessNetwork(processNetworkCommand{Operation: operation, Handle: connection.processHandle, DeadlineNanos: processNetworkDeadline(deadline)})
 	return err
 }
 
-func processNetworkConn(response gomadmodelwire.Response) *Conn {
+func processNetworkConn(response processNetworkResult) *Conn {
 	return &Conn{
 		processHandle: response.Handle,
-		local:         Address{IP: response.String1, Port: int(response.Int1)},
-		remote:        Address{IP: response.String2, Port: int(response.Int2)},
+		local:         response.Local,
+		remote:        response.Remote,
 	}
 }
 
@@ -122,148 +120,147 @@ func processNetworkDeadline(deadline time.Time) int64 {
 	return deadline.UnixNano()
 }
 
-func exchangeProcessNetwork(request gomadmodelwire.Request) (gomadmodelwire.Response, error) {
+func exchangeProcessNetwork(request processNetworkCommand) (processNetworkResult, error) {
 	domain, err, handled := gomadsim.CurrentNetworkDomain()
 	if !handled || err != nil {
 		if err == nil {
 			err = syscall.ESTALE
 		}
-		return gomadmodelwire.Response{}, err
+		return processNetworkResult{}, err
 	}
-	encoded, err := gomadmodelwire.EncodeRequest(request)
+	encoded, err := encodeProcessNetworkCommand(request)
 	if err != nil {
-		return gomadmodelwire.Response{}, err
+		return processNetworkResult{}, err
 	}
-	responseBytes, remoteErr, ok := gomadsim.ProcessModelExchange(domain.Node, domain.Incarnation, encoded, gomadmodelwire.MaximumFrameBytes)
+	responseBytes, remoteErr, ok := gomadsim.ProcessModelExchange(domain.Node, domain.Incarnation, encoded, maximumProcessNetworkFrameBytes)
 	if !ok {
-		return gomadmodelwire.Response{}, syscall.EIO
+		return processNetworkResult{}, syscall.EIO
 	}
 	if remoteErr != "" {
-		return gomadmodelwire.Response{}, errors.New(remoteErr)
+		return processNetworkResult{}, errors.New(remoteErr)
 	}
-	response, err := gomadmodelwire.DecodeResponse(responseBytes)
+	response, err := decodeProcessNetworkResult(responseBytes)
 	if err != nil {
-		return gomadmodelwire.Response{}, err
+		return processNetworkResult{}, err
 	}
-	return response, decodeProcessNetworkError(response.Error)
+	return response, response.Err
 }
 
 //go:linkname ProcessSimulationNetworkOperation
 func ProcessSimulationNetworkOperation(domainToken uint64, encoded []byte) ([]byte, bool) {
-	request, err := gomadmodelwire.DecodeRequest(encoded)
-	if err != nil || request.Model != gomadmodelwire.ModelNetwork {
+	request, err := decodeProcessNetworkCommand(encoded)
+	if err != nil {
 		return nil, false
 	}
 	domain, ok := gomadsim.DescribeNetworkDomain(domainToken)
 	if !ok {
-		return encodeProcessNetworkResponse(gomadmodelwire.Response{Error: encodeProcessNetworkError(syscall.ESTALE)})
+		return encodeProcessNetworkResponse(processNetworkResult{Err: syscall.ESTALE})
 	}
 	response := applyProcessNetworkOperation(domain, request)
 	return encodeProcessNetworkResponse(response)
 }
 
-func applyProcessNetworkOperation(domain gomadsim.NetworkDomain, request gomadmodelwire.Request) gomadmodelwire.Response {
+func applyProcessNetworkOperation(domain gomadsim.NetworkDomain, request processNetworkCommand) processNetworkResult {
 	switch request.Operation {
-	case gomadmodelwire.NetworkListen:
-		listener, err := ListenTCP(request.String1, request.String2, int(request.Int1))
+	case processNetworkListenOp:
+		listener, err := ListenTCP(request.Network, request.Host, int(request.Port))
 		if err != nil {
-			return gomadmodelwire.Response{Error: encodeProcessNetworkError(err)}
+			return processNetworkResult{Err: err}
 		}
 		handle, err := registerProcessNetworkResource(processNetworkResource{domain: domain.Token, listener: listener})
 		if err != nil {
-			return gomadmodelwire.Response{Error: encodeProcessNetworkError(errors.Join(err, listener.Close()))}
+			return processNetworkResult{Err: errors.Join(err, listener.Close())}
 		}
-		return gomadmodelwire.Response{Handle: handle, String1: listener.address.IP, Int1: int64(listener.address.Port)}
-	case gomadmodelwire.NetworkDial:
+		return processNetworkResult{Handle: handle, Local: listener.address}
+	case processNetworkDialOp:
 		ctx := context.Background()
 		cancel := func() {}
-		if request.Int2 != 0 {
-			ctx, cancel = context.WithDeadline(ctx, time.Unix(0, request.Int2))
+		if request.DeadlineNanos != 0 {
+			ctx, cancel = context.WithDeadline(ctx, time.Unix(0, request.DeadlineNanos))
 		}
-		connection, err := DialTCP(ctx, request.String1, request.String2, int(request.Int1))
+		connection, err := DialTCP(ctx, request.Network, request.Host, int(request.Port))
 		cancel()
 		if err != nil {
-			return gomadmodelwire.Response{Error: encodeProcessNetworkError(err)}
+			return processNetworkResult{Err: err}
 		}
 		return registerProcessNetworkConn(domain.Token, connection)
-	case gomadmodelwire.NetworkAccept:
+	case processNetworkAcceptOp:
 		resource, ok := processNetworkResourceFor(domain.Token, request.Handle, true)
 		if !ok {
-			return gomadmodelwire.Response{Error: encodeProcessNetworkError(syscall.ESTALE)}
+			return processNetworkResult{Err: syscall.ESTALE}
 		}
 		connection, err := resource.listener.Accept()
 		if err != nil {
-			return gomadmodelwire.Response{Error: encodeProcessNetworkError(err)}
+			return processNetworkResult{Err: err}
 		}
 		return registerProcessNetworkConn(domain.Token, connection)
-	case gomadmodelwire.NetworkListenerClose:
+	case processNetworkListenerCloseOp:
 		resource, ok := processNetworkResourceFor(domain.Token, request.Handle, true)
 		if !ok {
-			return gomadmodelwire.Response{Error: encodeProcessNetworkError(syscall.ESTALE)}
+			return processNetworkResult{Err: syscall.ESTALE}
 		}
 		err := resource.listener.Close()
 		if err == nil {
 			removeProcessNetworkResource(request.Handle)
 		}
-		return gomadmodelwire.Response{Error: encodeProcessNetworkError(err)}
-	case gomadmodelwire.NetworkListenerSetDeadline:
+		return processNetworkResult{Err: err}
+	case processNetworkListenerSetDeadlineOp:
 		resource, ok := processNetworkResourceFor(domain.Token, request.Handle, true)
 		if !ok {
-			return gomadmodelwire.Response{Error: encodeProcessNetworkError(syscall.ESTALE)}
+			return processNetworkResult{Err: syscall.ESTALE}
 		}
-		return gomadmodelwire.Response{Error: encodeProcessNetworkError(resource.listener.SetDeadline(processNetworkTime(request.Int1)))}
-	case gomadmodelwire.NetworkConnRead:
+		return processNetworkResult{Err: resource.listener.SetDeadline(processNetworkTime(request.DeadlineNanos))}
+	case processNetworkConnReadOp:
 		resource, ok := processNetworkResourceFor(domain.Token, request.Handle, false)
 		if !ok {
-			return gomadmodelwire.Response{Error: encodeProcessNetworkError(syscall.ESTALE)}
+			return processNetworkResult{Err: syscall.ESTALE}
 		}
-		buffer := make([]byte, min(request.Uint1, uint64(maximumChunkBytes)))
+		buffer := make([]byte, min(request.ReadLength, uint64(maximumChunkBytes)))
 		read, err := resource.conn.Read(buffer)
-		return gomadmodelwire.Response{Uint1: uint64(read), Data: buffer[:read], Error: encodeProcessNetworkError(err)}
-	case gomadmodelwire.NetworkConnWrite:
+		return processNetworkResult{BytesTransferred: uint64(read), Data: buffer[:read], Err: err}
+	case processNetworkConnWriteOp:
 		resource, ok := processNetworkResourceFor(domain.Token, request.Handle, false)
 		if !ok {
-			return gomadmodelwire.Response{Error: encodeProcessNetworkError(syscall.ESTALE)}
+			return processNetworkResult{Err: syscall.ESTALE}
 		}
 		written, err := resource.conn.Write(request.Data)
-		return gomadmodelwire.Response{Uint1: uint64(written), Error: encodeProcessNetworkError(err)}
-	case gomadmodelwire.NetworkConnClose, gomadmodelwire.NetworkConnCloseRead, gomadmodelwire.NetworkConnCloseWrite, gomadmodelwire.NetworkConnSetDeadline, gomadmodelwire.NetworkConnSetReadDeadline, gomadmodelwire.NetworkConnSetWriteDeadline:
+		return processNetworkResult{BytesTransferred: uint64(written), Err: err}
+	case processNetworkConnCloseOp, processNetworkConnCloseReadOp, processNetworkConnCloseWriteOp, processNetworkConnSetDeadlineOp, processNetworkConnSetReadDeadlineOp, processNetworkConnSetWriteDeadlineOp:
 		resource, ok := processNetworkResourceFor(domain.Token, request.Handle, false)
 		if !ok {
-			return gomadmodelwire.Response{Error: encodeProcessNetworkError(syscall.ESTALE)}
+			return processNetworkResult{Err: syscall.ESTALE}
 		}
 		var err error
 		switch request.Operation {
-		case gomadmodelwire.NetworkConnClose:
+		case processNetworkConnCloseOp:
 			err = resource.conn.Close()
 			if err == nil {
 				removeProcessNetworkResource(request.Handle)
 			}
-		case gomadmodelwire.NetworkConnCloseRead:
+		case processNetworkConnCloseReadOp:
 			err = resource.conn.CloseRead()
-		case gomadmodelwire.NetworkConnCloseWrite:
+		case processNetworkConnCloseWriteOp:
 			err = resource.conn.CloseWrite()
-		case gomadmodelwire.NetworkConnSetDeadline:
-			err = resource.conn.SetDeadline(processNetworkTime(request.Int1))
-		case gomadmodelwire.NetworkConnSetReadDeadline:
-			err = resource.conn.SetReadDeadline(processNetworkTime(request.Int1))
-		case gomadmodelwire.NetworkConnSetWriteDeadline:
-			err = resource.conn.SetWriteDeadline(processNetworkTime(request.Int1))
+		case processNetworkConnSetDeadlineOp:
+			err = resource.conn.SetDeadline(processNetworkTime(request.DeadlineNanos))
+		case processNetworkConnSetReadDeadlineOp:
+			err = resource.conn.SetReadDeadline(processNetworkTime(request.DeadlineNanos))
+		case processNetworkConnSetWriteDeadlineOp:
+			err = resource.conn.SetWriteDeadline(processNetworkTime(request.DeadlineNanos))
 		}
-		return gomadmodelwire.Response{Error: encodeProcessNetworkError(err)}
+		return processNetworkResult{Err: err}
 	default:
-		return gomadmodelwire.Response{Error: encodeProcessNetworkError(ErrUnsupported)}
+		return processNetworkResult{Err: ErrUnsupported}
 	}
 }
 
-func registerProcessNetworkConn(domain uint64, connection *Conn) gomadmodelwire.Response {
+func registerProcessNetworkConn(domain uint64, connection *Conn) processNetworkResult {
 	handle, err := registerProcessNetworkResource(processNetworkResource{domain: domain, conn: connection})
 	if err != nil {
-		return gomadmodelwire.Response{Error: encodeProcessNetworkError(errors.Join(err, connection.Close()))}
+		return processNetworkResult{Err: errors.Join(err, connection.Close())}
 	}
-	return gomadmodelwire.Response{
-		Handle: handle, String1: connection.local.IP, Int1: int64(connection.local.Port),
-		String2: connection.remote.IP, Int2: int64(connection.remote.Port),
+	return processNetworkResult{
+		Handle: handle, Local: connection.local, Remote: connection.remote,
 	}
 }
 
@@ -305,66 +302,6 @@ func revokeProcessNetworkResources(domain uint64) {
 		}
 	}
 	processNetworkResources.Unlock()
-}
-
-func encodeProcessNetworkResponse(response gomadmodelwire.Response) ([]byte, bool) {
-	encoded, err := gomadmodelwire.EncodeResponse(response)
-	return encoded, err == nil
-}
-
-func encodeProcessNetworkError(err error) gomadmodelwire.WireError {
-	if err == nil {
-		return gomadmodelwire.WireError{}
-	}
-	result := gomadmodelwire.WireError{Code: gomadmodelwire.ErrorGeneric, Message: err.Error()}
-	switch {
-	case errors.Is(err, io.EOF):
-		result.Code = gomadmodelwire.ErrorEOF
-	case errors.Is(err, os.ErrDeadlineExceeded), errors.Is(err, context.DeadlineExceeded):
-		result.Code = gomadmodelwire.ErrorDeadline
-	case errors.Is(err, context.Canceled):
-		result.Code = gomadmodelwire.ErrorCanceled
-	case errors.Is(err, ErrAddressInUse):
-		result.Code = gomadmodelwire.ErrorAddressInUse
-	case errors.Is(err, ErrClosed):
-		result.Code = gomadmodelwire.ErrorClosed
-	case errors.Is(err, ErrConnectionRefused):
-		result.Code = gomadmodelwire.ErrorConnectionRefused
-	case errors.Is(err, ErrResourceExhausted):
-		result.Code = gomadmodelwire.ErrorResourceExhausted
-	case errors.Is(err, ErrUnsupported):
-		result.Code = gomadmodelwire.ErrorUnsupported
-	case errors.Is(err, syscall.ESTALE):
-		result.Code = gomadmodelwire.ErrorESTALE
-	}
-	return result
-}
-
-func decodeProcessNetworkError(source gomadmodelwire.WireError) error {
-	switch source.Code {
-	case gomadmodelwire.ErrorNone:
-		return nil
-	case gomadmodelwire.ErrorEOF:
-		return io.EOF
-	case gomadmodelwire.ErrorDeadline:
-		return os.ErrDeadlineExceeded
-	case gomadmodelwire.ErrorCanceled:
-		return context.Canceled
-	case gomadmodelwire.ErrorAddressInUse:
-		return ErrAddressInUse
-	case gomadmodelwire.ErrorClosed:
-		return ErrClosed
-	case gomadmodelwire.ErrorConnectionRefused:
-		return ErrConnectionRefused
-	case gomadmodelwire.ErrorResourceExhausted:
-		return ErrResourceExhausted
-	case gomadmodelwire.ErrorUnsupported:
-		return ErrUnsupported
-	case gomadmodelwire.ErrorESTALE:
-		return syscall.ESTALE
-	default:
-		return errors.New(source.Message)
-	}
 }
 
 func processNetworkTime(nanos int64) time.Time {
