@@ -1,6 +1,7 @@
 // Spelled.scala's Model with every name taken from its val: the family is a given, the machines state
-// their types once, the Scenarios start where their machines do, the evidence lists only the fact
-// whose evidence is not its name, the refined read needs no given, and one DefinitionScope keeps every
+// their types once, the composition names its members, syncs and Scenario classes by field
+// selectors, the Scenarios start where their machines do, the evidence lists only the fact whose
+// evidence is not its name, the refined read needs no given, and one DefinitionScope keeps every
 // symbol-based Definition ID Spelled.scala's owner gives. The lifter's tests lift both and require one
 // IR of the two, but for positions and the owner of the types and functions each file declares.
 package fixture.captured
@@ -98,9 +99,9 @@ val putOnly = disk.restrict(put)
 final case class DetailedPair(front: Store, back: Disk)
 
 val detailedPair =
-  compose[DetailedPair]("front" -> store, "back" -> disk)
-    .sync("putBoth", "front" -> put, "back" -> put)
-    .replaces("back", store)
+  compose[DetailedPair](_.front -> store, _.back -> disk)
+    .sync("putBoth", _.front -> put, _.back -> put)
+    .replaces(_.back, store)
     .ends(p => p.front.kept == Kept.held)
 
 val putStores = store.property when put holds (after => after.facts.contains(Fact.stored))
@@ -112,7 +113,7 @@ val frontHeld = detailedPair.property holds (after => after.state.front.kept == 
 // Each starts in its machine's declared start, or in its members' starts.
 val putOnce = store.scenario.actions(put)
 val putThenFlush = disk.scenario.actions(put, flush)
-val bothPut = detailedPair.scenario.actionKeys("putBoth")
+val bothPut = detailedPair.scenario.actions(detailedPair.synced(_.back -> put))
 
 val two = Limits(steps = 2, actions = 2, search = 64)
 

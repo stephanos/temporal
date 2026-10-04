@@ -319,7 +319,15 @@ The lifter reads what an author wrote, as written:
   `rebind`, `extend`, `refining`, `assuming` and `unmonitored`; action chains
   (`action`, `timer`, `internal`, `on`, `creates`, `input[T]`, `schema`, `results`, `example`);
   Properties, Scenarios, Queries, Limits, monitors, assumptions, holes, channels, compositions,
-  progress claims and realizations.
+  progress claims and realizations. A composition names its members by field selector
+  (`_.activity -> currentRecord`), and so do its `sync`, `replaces` and `withMember`; a Scenario
+  or `whenAction` of it names a sync by one member action it pairs, `c.synced(_.activity ->
+  dispatch)`, and a member's own action by `c.own(_.activity, control(Control.pause))`.
+- **Shared claims:** `property` and `scenario` are declared on `Declares[S]`, the supertype of a
+  machine and a composition, so one function over `m: Declares[S]` declares a Property on either.
+  A function-valued argument of such a function names a def of the lifted sources, which the
+  lifter binds where the function is called, as it binds a machine argument; a type parameter
+  reads as the type the call applies it to.
 - **Types:** enums with and without case fields, case classes, and integer fields bounded by the
   `given Finite[Int] = Finite.upTo(…)` beside the state's `Finite`.
 - **Step functions:** `if`, `match` with case, alternative, binding and wildcard patterns, local
@@ -332,7 +340,16 @@ The lifter reads what an author wrote, as written:
   `List(Step(accepted, s))`, `Nil`, `List(a, b, …).contains(x)`, `!a || b` and
   `after.facts.contains(fact)`. `accept` and `stay` answer the outcome one
   `given Accepted[Outcome] = Accepted(Outcome.accepted)` names; `in` is written dotted and takes at
-  least one member; `implies` reads its right side only where its left side holds.
+  least one member; `implies` reads its right side only where its left side holds. A composition's
+  `after.records(_.member, fact)` lifts as `after.facts.contains("member_fact")`, the composed key
+  it records.
+- **Claim patterns** (sugar, the same files): `once(over).keeps(_.x)`, `never(to)`,
+  `never(to).from(before)`, `stays(p)` and `stays(p).unless(release)` on a Property builder, each
+  lifted to the Property its lambda declares: `holdsAcross((before, after) => !over(before) ||
+  after.state.x == before.x)`, `holds(after => !to(after))`, `holdsAcross((before, after) =>
+  !before(before) || !to(after))`, `holdsAcross((before, after) => !p(before) || p(after.state))`
+  and the same with `|| release(after)`. Each predicate is lifted as `holds` lifts its lambda and
+  called from the Property's function; `keeps` takes a field path, or a def whose body is one.
 
 A declaration takes its name from the `val` that declares it, and its family from the
 `given Family` in scope. A machine states its three types once, in `machine[S, O, F]` or as the
@@ -386,12 +403,50 @@ bind, extending by one it binds, binding one action twice, an assumption named t
 refinement the source does not declare or by a machine of other state, outcome or fact types, and
 a machine derived from or aliased to itself.
 
+A composition is written with field selectors, and one derives from another by replacing a member:
+
+```scala
+val currentOverQueue = compose[OverQueue](_.activity -> currentRecord, _.queue -> dispatchQueue)
+  .sync("dispatch", _.activity -> dispatch, _.queue -> enqueue)
+  .ends(s => admissionEnds(s.activity))
+val staleOverQueue = currentOverQueue.withMember(_.activity -> staleRecord)
+val stale = currentOverQueue.scenario.actions(
+  currentOverQueue.synced(_.activity -> dispatch),
+  currentOverQueue.own(_.activity, control(Control.pause))
+)
+```
+
+`->` pairs a member with its value; it never means a transition. A selector, a sync and a
+member's action are resolved by the field and the action's declaration, not by the strings the IR
+keys them with: `synced` finds the one sync that pairs that member's action, and `own` an action
+that member binds and no sync pairs. `withMember` keeps the syncs, ends and member order and names
+the derived composition after its `val`; a member that replaces a machine replaces, in the derived
+one, the machine its new machine declares it refines. The lifter refuses a selector that names no
+field or no member, a member of another state type, a sync of an action the member does not bind,
+a `synced` that matches no sync or several, an `own` of a paired or foreign action, and a
+replacement of a replacing member by a machine that refines nothing.
+
+A claim over several designs is one function over `Declares[S]` whose state-dependent parts are
+parameters, and each call passes defs of the lifted sources:
+
+```scala
+def notAdmittedWhilePaused[S](m: Declares[S])(paused: S => Boolean, running: S => Boolean) =
+  m.property("notAdmittedWhilePaused").never(s => running(s.state)).from(paused)
+
+val onRecord = notAdmittedWhilePaused(currentRecord)(Admission.paused, Admission.running)
+```
+
+A lambda passed for such a parameter is refused at its line, naming the def to write, and so is a
+claim pattern after `when` (a pattern reads every step) and a `keeps` projection that is not a field
+path.
+
 Sugar is kept apart from the core declarations: framework sugar in `umpire/Syntax.scala`, its
 lifting in `lifter/Syntax.scala`, each definition documented with `Core form:` and the core
 spelling it stands for. No core file of the framework or the lifter uses a `Syntax.scala`, and a
-sugar word (`accept`, `stay`, `disabled`, `in`, `implies`, `records`, and later the claim patterns
-and `:=`) is defined in no other file; `make lint-model` checks all three. The lifter's tests lift
-each sugar form beside its core spelling and require the same IR.
+sugar word (`accept`, `stay`, `disabled`, `in`, `implies`, `records`, the claim patterns `once`,
+`keeps`, `never`, `from`, `stays` and `unless`, and later `:=`) is defined in no other file;
+`make lint-model` checks all three. The lifter's tests lift each sugar form beside its core
+spelling and require the same IR.
 
 A Scenario without `starts` starts in its machine's one declared start, and a composition's in the
 record of its members' starts; where there is not exactly one, it is refused. Evidence is optional.

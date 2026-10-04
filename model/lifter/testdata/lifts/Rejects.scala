@@ -543,3 +543,129 @@ object ComputedAccepted:
     ends(_ => true)
     steps(flip ~> computedStep)
   }
+
+// ### Typed composition selectors (fn-112.4)
+
+final case class Trio(left: Lamp, right: Lamp, spare: Lamp)
+
+enum Dim derives Finite:
+  case low, high
+
+val dim = action(Party("fixture")).input[Dim]("level")
+def dimStep(l: Lamp, level: Dim): List[Step[Lamp, Outcome, Nothing]] = List(
+  Step(Outcome.accepted, Lamp(true))
+)
+
+/** A lamp that flips, dims and is pushed, and one that taps TapA's action spelled as TapB's. */
+val dimmer = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> lampStep, dim ~> dimStep, push ~> lampStep)
+}
+val tapLamp = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(TapA.tap ~> lampStep)
+}
+
+/** A member named by a selector of a field's field. */
+val memberNoField = compose[Lamps](_.left.lit -> oneStart, _.right -> oneStart)
+
+/** A sync whose selector names a field no member fills. */
+val syncNoMember = compose[Trio](_.left -> oneStart, _.right -> dimmer)
+  .sync("flipSpare", _.left -> flip, _.spare -> flip)
+
+/** A member whose machine is of another state type than its field. */
+val memberIncompatible = compose[Lamps](_.left -> oneStart, _.right -> first)
+
+/** A sync of an action spelled as the one its member binds, of another declaration. */
+val syncUnbound = compose[Lamps](_.left -> tapLamp, _.right -> oneStart)
+  .sync("tapFlip", _.left -> TapB.tap, _.right -> flip)
+
+/** A member replaced where no member fills the field, or by a machine of another state type. */
+val spareless = compose[Trio](_.left -> oneStart, _.right -> dimmer)
+val withNoMember = spareless.withMember(_.spare -> oneStart)
+val withIncompatible = spareless.withMember(_.left -> first)
+
+/** A member that stands in for a machine, replaced by a machine that refines none. */
+val standIn = compose[Lamps](_.left -> flagLamp, _.right -> oneStart).replaces(_.left, first)
+val withUnrefined = standIn.withMember(_.left -> oneStart)
+
+/** A member a sync pairs, replaced by a machine that binds none of the actions it pairs. */
+val flipPair = compose[Lamps](_.left -> oneStart, _.right -> dimmer)
+  .sync("flipBoth", _.left -> flip, _.right -> flip)
+val withUnsynced = flipPair.withMember(_.left -> tapLamp)
+
+val flipPairLit = flipPair.property holds (after => after.state.left.lit)
+val flipPairFree = flipPair.scenario.free
+
+/** `synced` of a member action no sync pairs. */
+val unsyncedPush = flipPair.scenario.actions(flipPair.synced(_.right -> push))
+val syncedNone: Query = query verify flipPairLit in unsyncedPush limits one
+
+/** `synced` of a member action two syncs pair. */
+val flipTrio = compose[Trio](_.left -> oneStart, _.right -> oneStart, _.spare -> oneStart)
+  .sync("flipRight", _.left -> flip, _.right -> flip)
+  .sync("flipSpare", _.left -> flip, _.spare -> flip)
+val flipTrioLit = flipTrio.property holds (after => after.state.left.lit)
+val eitherFlip = flipTrio.scenario.actions(flipTrio.synced(_.left -> flip))
+val syncedTwice: Query = query verify flipTrioLit in eitherFlip limits one
+
+/** `own` of a member action a sync pairs. */
+val ownFlip = flipPair.scenario.actions(flipPair.own(_.left, flip))
+val ownSynced: Query = query verify flipPairLit in ownFlip limits one
+
+/** `own` of an action spelled as the one its member binds, of another declaration. */
+val tapPair = compose[Lamps](_.left -> tapLamp, _.right -> oneStart)
+val tapPairLit = tapPair.property holds (after => after.state.left.lit)
+val tapOther = tapPair.scenario.actions(tapPair.own(_.left, TapB.tap))
+val ownSpelledAlike: Query = query verify tapPairLit in tapOther limits one
+
+/** A composition's Scenario that lists a machine's class beside its composed classes. */
+val mixedFlips = flipPair.scenario.actions(flipPair.synced(_.left -> flip), push)
+val mixedSchedule: Query = query verify flipPairLit in mixedFlips limits one
+
+/** A composition's Scenario that lists an action that takes inputs, not a class of it. */
+val bareDim = flipPair.scenario.actions(flipPair.own(_.right, dim))
+val bareInputs: Query = query verify flipPairLit in bareDim limits one
+
+/** `whenAction` of a class, with its inputs, where it names every class of an action. */
+val dimmedHigh = flipPair.property.whenAction(flipPair.own(_.right, dim(Dim.high))) holds
+  (after => after.state.right.lit)
+val whenClassInputs: Query = query verify dimmedHigh in flipPairFree limits one
+
+// ### Claim patterns, records over a member and function-valued arguments (fn-112.4)
+
+def lampLit(l: Lamp): Boolean = l.lit
+def lampStepLit(after: Step[Lamp, Outcome, Nothing]): Boolean = after.state.lit
+
+/** A claim pattern after `when`: a transition Property is about every step. */
+val litAfterFlip = oneStart.property.when(flip).stays(lampLit)
+val whenStays: Query = query verify litAfterFlip in lampFlips limits one
+
+/** A `keeps` projection that computes a value rather than reading a field. */
+val litKept = oneStart.property.once(lampLit).keeps(l => !l.lit)
+val keptComputed: Query = query verify litKept in lampFlips limits one
+
+/** `from` on a `never` kept in a val, not written directly after it. */
+val neverLit = oneStart.property.never(lampStepLit)
+val fromKept = neverLit.from(lampLit)
+val fromVal: Query = query verify fromKept in lampFlips limits one
+
+/** A lambda literal where a claim written once takes a predicate, which names no def to bind. */
+def litStays[S](m: Declares[S])(lit: S => Boolean): Property[S] = m.property("litStays").stays(lit)
+val litStaysLambda = litStays(oneStart)(l => l.lit)
+val sharedLambda: Query = query verify litStaysLambda in lampFlips limits one
+
+/** A composition's records whose selector names no member, and a fact its member does not record. */
+val patternLamps = compose[Lamps]("left" -> oneStart, "right" -> oneStart)
+val patternLampsFree = patternLamps.scenario.free
+val leftLitRecorded = patternLamps.property holds (after => after.records(_.left.lit, Note.ping))
+val recordsNoMember: Query = query verify leftLitRecorded in patternLampsFree limits one
+val leftPinged = patternLamps.property holds (after => after.records(_.left, Note.ping))
+val recordsForeignFact: Query = query verify leftPinged in patternLampsFree limits one
+
+/** A call of a function parameter in a function no declaring function binds it in. */
+def litBy(after: Step[Lamp, Outcome, Nothing], lit: Lamp => Boolean): Boolean = lit(after.state)
+val litByParam = oneStart.property holds (after => litBy(after, lampLit))
+val paramCalled: Query = query verify litByParam in lampFlips limits one

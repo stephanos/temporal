@@ -19,6 +19,27 @@ extension [S, O, F](steps: List[Step[S, O, F]])
 trait Model:
   def name: String
 
+/**
+ * What a claim is declared on, by its state type `S`: a machine or a composition. A claim written once
+ * over `Declares[S]`, such as a function over `m: Declares[S]` and the predicates it reads, declares
+ * the same Property on either. `Outcome` and `Fact` are the types a step of it answers and records:
+ * the machine's own, or for a composition the strings of its composed keys.
+ */
+trait Declares[S] extends Model:
+  type Outcome
+  type Fact
+
+  /**
+   * A Property or a Scenario is named after the `val` that declares it (`val completes =
+   * activityProduct.property holds ...`), or by the name it is given where it is declared without
+   * one, such as in a list or inside a function over a machine. A Scenario that names no start starts
+   * in its machine's one declared start, or for a composition in its members' starts.
+   */
+  def property: PropertyBuilder[S, Outcome, Fact] = PropertyBuilder("", this, None)
+  def property(name: String): PropertyBuilder[S, Outcome, Fact] = PropertyBuilder(name, this, None)
+  def scenario: ScenarioBuilder[S] = ScenarioBuilder("", this, None)
+  def scenario(name: String): ScenarioBuilder[S] = ScenarioBuilder(name, this, None)
+
 /** An action bound to its step function. */
 final case class StepBinding[S, O, F](decl: ActionDecl, function: AnyRef)
 
@@ -165,7 +186,10 @@ final class Machine[S, O, F] private[umpire] (
     private[umpire] val fs: Finite[S],
     private[umpire] val fo: Finite[O],
     private[umpire] val ff: Finite[F]
-) extends Model:
+) extends Declares[S]:
+  type Outcome = O
+  type Fact = F
+
   /**
    * A machine that keeps the rows of the named actions and drops the rest.
    * It keeps the state type, starts and ends, owns its own name

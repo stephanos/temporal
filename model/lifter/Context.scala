@@ -91,6 +91,26 @@ final private[lift] class Context(using val quotes: Quotes)(
   val folded = mutable.Map.empty[Symbol, Decl]
   // The functions whose bodies are being lifted, so a function that calls itself is refused.
   val lifting = mutable.Set.empty[String]
+  // While a declaring function's body is folded: the def of the lifted sources each of its
+  // function-valued parameters is bound to, and the type each of its type parameters is applied to.
+  var boundFunctions = Map.empty[Symbol, Symbol] // scalafix:ok DisableSyntax.var
+  var boundTypes = Map.empty[Symbol, TypeRepr] // scalafix:ok DisableSyntax.var
+
+  /** `body`, with the bindings of one call of a declaring function added to those around it. */
+  def binding[A](functions: Map[Symbol, Symbol], types: Map[Symbol, TypeRepr])(body: => A): A =
+    val (fs, ts) = (boundFunctions, boundTypes)
+    boundFunctions = fs ++ functions
+    boundTypes = ts ++ types
+    try body
+    finally
+      boundFunctions = fs
+      boundTypes = ts
+
+  /** A type with the type parameters of the declaring functions being folded applied. */
+  def instantiated(tpe: TypeRepr): TypeRepr =
+    if boundTypes.isEmpty then tpe
+    else tpe.substituteTypes(boundTypes.keys.toList, boundTypes.values.toList)
+
   // The name each parameter with a compiler-synthesized name is lifted with, by its symbol.
   val renamed = mutable.Map.empty[Symbol, String]
   def nameOf(sym: Symbol): String = renamed.getOrElse(sym, sym.name)

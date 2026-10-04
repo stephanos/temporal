@@ -9,20 +9,23 @@ final class PropertyDecl private[umpire] (
     val name: String,
     val machine: Model,
     /** The action class, or under `whenAction` the action, the Property is about. */
-    private[umpire] val when: Option[ClassRef | String],
+    private[umpire] val when: Option[ClassRef | Composed | String],
     private[umpire] val holds: Option[Nothing => Boolean],
     private[umpire] val holds2: Option[(Nothing, Nothing) => Boolean]
 )
 
-/** A Property over a machine whose state type is `S`. */
-final class Property[S] private[umpire] (val decl: PropertyDecl):
+/**
+ * A Property over a machine whose state type is `S`. The claim patterns of model/umpire/Syntax.scala
+ * are Properties of their own kinds.
+ */
+class Property[S] private[umpire] (val decl: PropertyDecl):
   def name: String = decl.name
 
 /** Declares a Property on a machine whose steps are `Step[S, O, F]`. */
 final class PropertyBuilder[S, O, F] private[umpire] (
-    name: String,
-    m: Model,
-    when: Option[ClassRef | String]
+    private[umpire] val name: String,
+    private[umpire] val m: Model,
+    private[umpire] val when: Option[ClassRef | Composed | String]
 ):
   /** Restricts the Property to the step of one action class. */
   infix def when(c: ClassRef): PropertyBuilder[S, O, F] = PropertyBuilder(name, m, Some(c))
@@ -32,6 +35,14 @@ final class PropertyBuilder[S, O, F] private[umpire] (
    * step of that name.
    */
   def whenAction(action: String): PropertyBuilder[S, O, F] = PropertyBuilder(name, m, Some(action))
+
+  /**
+   * Restricts a composition's Property to every class of one composed action: a sync,
+   * `whenAction(c.synced(_.member -> action))`, or a member's own action,
+   * `whenAction(c.own(_.member, action))`.
+   */
+  def whenAction(action: Composed): PropertyBuilder[S, O, F] =
+    PropertyBuilder(name, m, Some(action))
 
   /** Finishes a same-step Property. */
   infix def holds(f: Step[S, O, F] => Boolean): Property[S] =
@@ -49,8 +60,8 @@ final class ScenarioDecl private[umpire] (
     val name: String,
     val machine: Model,
     val start: Option[Any],
-    /** The declared classes, or for a composition the keys that name its members' classes. */
-    val actions: Vector[ClassRef | String],
+    /** The declared classes, or for a composition its composed classes or the keys that name them. */
+    val actions: Vector[ClassRef | Composed | String],
     val free: Boolean
 )
 
@@ -63,8 +74,11 @@ final class ScenarioBuilder[S] private[umpire] (name: String, m: Model, start: O
   /** The state the Scenario starts in. */
   infix def starts(s: S): ScenarioBuilder[S] = ScenarioBuilder(name, m, Some(s))
 
-  /** Pins the schedule to exactly these classes, in order. */
-  def actions(cs: ClassRef*): Scenario[S] =
+  /**
+   * Pins the schedule to exactly these classes, in order: a machine's classes, or a composition's as
+   * `c.synced(_.member -> action)` and `c.own(_.member, action)` select them.
+   */
+  def actions(cs: (ClassRef | Composed)*): Scenario[S] =
     Scenario(ScenarioDecl(name, m, start, cs.toVector, free = false))
 
   /** Pins the schedule to these keys, for a composition whose keys name members. */
@@ -73,24 +87,6 @@ final class ScenarioBuilder[S] private[umpire] (name: String, m: Model, start: O
 
   /** Admits any action at every step, within the Query's step limit. */
   def free: Scenario[S] = Scenario(ScenarioDecl(name, m, start, Vector.empty, free = true))
-
-/**
- * A Property or a Scenario is named after the `val` that declares it (`val completes =
- * activityProduct.property holds ...`), or by the name it is given where it is declared without one,
- * such as in a list or inside a function over a machine. A Scenario that names no start starts in
- * its machine's one declared start, or for a composition in its members' starts.
- */
-extension [S, O, F](m: Machine[S, O, F])
-  def property: PropertyBuilder[S, O, F] = PropertyBuilder("", m, None)
-  def property(name: String): PropertyBuilder[S, O, F] = PropertyBuilder(name, m, None)
-  def scenario: ScenarioBuilder[S] = ScenarioBuilder("", m, None)
-  def scenario(name: String): ScenarioBuilder[S] = ScenarioBuilder(name, m, None)
-
-extension [S <: Product](c: Composition[S])
-  def property: PropertyBuilder[S, String, String] = PropertyBuilder("", c, None)
-  def property(name: String): PropertyBuilder[S, String, String] = PropertyBuilder(name, c, None)
-  def scenario: ScenarioBuilder[S] = ScenarioBuilder("", c, None)
-  def scenario(name: String): ScenarioBuilder[S] = ScenarioBuilder(name, c, None)
 
 /**
  * Bounds a Query: `steps` is the depth bound, `actions` the schedule length, and `search` the

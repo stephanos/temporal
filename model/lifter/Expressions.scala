@@ -70,7 +70,7 @@ private[lift] trait Expressions:
       "super then throw trait true try type val var while with yield").split(' ').toSet
 
   def typeName(t: TypeRepr): String =
-    val n = t.widen.typeSymbol.name
+    val n = instantiated(t).widen.typeSymbol.name
     val lower = n.take(1).toLowerCase + n.drop(1)
     if n.matches("[A-Za-z][A-Za-z0-9]*") && !keywords(lower) then lower else "it"
 
@@ -97,6 +97,44 @@ private[lift] trait Expressions:
       collect.foldTree(Set.empty, t)(Symbol.spliceOwner)
     val outermost = around.lastOption.flatMap(defs.get).getOrElse(body)
     names(outermost, s => around.contains(s.maybeOwner)) ++ names(body, _ => true)
+
+  /** The parameters and body of the lambda a term is, through the wrappers an argument arrives in. */
+  def lambda(t: Term): Option[(List[ValDef], Term)] = t match
+    case Typed(e, _)        => lambda(e)
+    case Inlined(_, Nil, e) => lambda(e)
+    case Block(Nil, e)      => lambda(e)
+    case Block(
+          List(DefDef("$anonfun", List(TermParamClause(params)), _, Some(body))),
+          _: Closure
+        ) =>
+      Some((params, body))
+    case _ => None
+
+  /**
+   * The fields a lambda's body reads off its one parameter, outermost first: `List("activity",
+   * "phase")` for `_.activity.phase`, `Nil` for the parameter itself. Anything else reads no path.
+   */
+  def fieldPath(param: ValDef, body: Term): Option[List[String]] = body match
+    case Typed(e, _)                          => fieldPath(param, e)
+    case Inlined(_, Nil, e)                   => fieldPath(param, e)
+    case r: Ident if r.symbol == param.symbol => Some(Nil)
+    case Select(recv, field)
+        if recv.tpe.widen.dealias.typeSymbol.caseFields.exists(_.name == field) =>
+      fieldPath(param, recv).map(_ :+ field)
+    case _ => None
+
+  /**
+   * A constant value's key, as Umpire keys it (tools/umpire/model's `Value.Key`): a case by its name
+   * followed by its fields, all joined by "-".
+   */
+  def valueKey(v: ir.Value): String = v.kind match
+    case ir.Value.Kind.Bool(b)   => b.toString
+    case ir.Value.Kind.Int(i)    => i.toString
+    case ir.Value.Kind.Text(s)   => s
+    case ir.Value.Kind.Enum(e)   => (e.`case` +: e.fields.map(valueKey)).mkString("-")
+    case ir.Value.Kind.Record(r) => r.fields.map(valueKey).mkString("-")
+    case ir.Value.Kind.List(l)   => l.items.map(valueKey).mkString("[", ",", "]")
+    case ir.Value.Kind.Empty     => ""
 
   def varargs(t: Term): List[Term] = t match
     case Typed(Repeated(items, _), _) => items
@@ -128,8 +166,12 @@ private[lift] trait Expressions:
       )
     )
 
-  /** The function a reference names, lifting its body on first use. */
-  def callee(sym: Symbol, at: Tree): String =
+  /**
+   * The function a reference names, lifting its body on first use. A function-valued parameter of a
+   * declaring function being folded names the def its call binds it to.
+   */
+  def callee(named: Symbol, at: Tree): String =
+    val sym = boundFunctions.getOrElse(named, named)
     if lifting(sym.fullName) then
       fail(
         at,
@@ -140,6 +182,14 @@ private[lift] trait Expressions:
       val d = defs.get(sym) match
         case Some(d: DefDef) => d
         case _               => fail(at, s"${sym.fullName} is not a function of the lifted sources")
+      // A function-valued parameter names a def only where a declaring function's call binds it;
+      // a function's IR parameters are values.
+      for p <- d.termParamss.flatMap(_.params) if p.tpt.tpe.dealias.isFunctionType do
+        fail(
+          p,
+          s"${p.name} of ${sym.name} is a function parameter, which names a def only where a " +
+            "declaring function of the lifted sources is called with one: call the def itself"
+        )
       functions(sym.fullName) = ir.Function.defaultInstance
       lifting += sym.fullName
       functions(sym.fullName) =
@@ -323,13 +373,17 @@ private[lift] trait Expressions:
           ir.Construct(`type` = cls.fullName, args = lifted)
       expr(t)(E.Construct(c))
 
-    // A call of another function of the lifted sources.
-    case Apply(fn, args) if isFunction(fn.symbol) =>
-      val name = callee(fn.symbol, t)
-      val params = defs(fn.symbol) match
-        case d: DefDef => d.termParamss.flatMap(_.params).map(_.tpt.tpe)
-        case _         => Nil
-      expr(t)(E.Call(ir.Call(name, args.zipWithIndex.map((a, i) => lift(a, params.lift(i))))))
+    // A call of another function of the lifted sources, or of a function-valued parameter bound to
+    // one.
+    case Apply(fn, args) if isFunction(fn.symbol) => call(fn.symbol, args, t)
+    case Apply(Select(f: Ref, "apply"), args) if boundFunctions.contains(f.symbol) =>
+      call(f.symbol, args, t)
+    case Apply(Select(f: Ref, "apply"), _) if f.symbol.flags.is(Flags.Param) =>
+      fail(
+        t,
+        s"${f.symbol.name} is a function parameter, which names a def only where a declaring " +
+          "function of the lifted sources is called with one: call the def itself"
+      )
 
     case r: Ref if isEnumCase(r.symbol) => enumLiteral(r.symbol, t)
     // A parameter, a local `val` or a pattern-bound name: every name a function's own scope owns.
@@ -354,6 +408,13 @@ private[lift] trait Expressions:
       expr(lambda)(E.Lambda(ir.Lambda(ps, Some(lift(body)))))
 
     case other => fail(other, s"outside the liftable subset: ${other.show}")
+
+  def call(fn: Symbol, args: List[Term], at: Tree): ir.Expr =
+    val name = callee(fn, at)
+    val params = defs(boundFunctions.getOrElse(fn, fn)) match
+      case d: DefDef => d.termParamss.flatMap(_.params).map(_.tpt.tpe)
+      case _         => Nil
+    expr(at)(E.Call(ir.Call(name, args.zipWithIndex.map((a, i) => lift(a, params.lift(i))))))
 
   /** Steps written out as a list and not explained yet, each with `reason` as its explanation. */
   def because(steps: ir.Expr, reason: String, at: Tree): ir.Expr =

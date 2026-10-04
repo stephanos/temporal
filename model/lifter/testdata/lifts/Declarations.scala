@@ -7,7 +7,7 @@ package fixture.declarations
 
 import umpire.*
 
-val Family: umpire.Family = umpire.Family("fixture.declarations")
+given Family: umpire.Family = umpire.Family("fixture.declarations")
 
 enum Kept derives Finite:
   case nothing, held
@@ -120,14 +120,14 @@ final case class Pair(front: Store, back: Store)
 final case class DetailedPair(front: Store, back: Disk)
 
 val pair: Composition[Pair] =
-  compose[Pair](Family, "pair")("front" -> store, "back" -> store)
-    .sync("putBoth", "front" -> put, "back" -> put)
+  compose[Pair](_.front -> store, _.back -> store)
+    .sync("putBoth", _.front -> put, _.back -> put)
     .ends(p => p.front.kept == p.back.kept)
 
 val detailedPair: Composition[DetailedPair] =
-  compose[DetailedPair](Family, "detailedPair")("front" -> store, "back" -> disk)
-    .sync("putBoth", "front" -> put, "back" -> put)
-    .replaces("back", store)
+  compose[DetailedPair](_.front -> store, _.back -> disk)
+    .sync("putBoth", _.front -> put, _.back -> put)
+    .replaces(_.back, store)
     .ends(p => p.front.kept == Kept.held)
 
 val durableStays: Property[Disk] = disk.property("durableStays") holdsAcross { (before, after) =>
@@ -152,7 +152,7 @@ val bothPut: Scenario[DetailedPair] =
   detailedPair
     .scenario("bothPut")
     .starts(DetailedPair(Store(Kept.nothing), Disk(Stage.empty)))
-    .actionKeys("putBoth")
+    .actions(detailedPair.synced(_.front -> put))
 
 val two: Limits = Limits("two", steps = 2, actions = 2, search = 64)
 

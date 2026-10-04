@@ -25,7 +25,9 @@ private[lift] trait Types:
   def range(low: Long, high: Long): ir.TypeRef =
     ir.TypeRef(ir.TypeRef.Ref.IntRange(ir.IntRange(low = low, high = high)))
 
-  def typeRef(tpe: TypeRepr, at: Tree, owner: String = ""): ir.TypeRef =
+  def typeRef(declared: TypeRepr, at: Tree, owner: String = ""): ir.TypeRef =
+    // A type parameter of a declaring function reads as the type its call applies it to.
+    val tpe = instantiated(declared)
     // An opaque type is read before its alias is resolved: its range is its own.
     val opaque = tpe.widen.typeSymbol
     if opaque.flags.is(Flags.Opaque) then

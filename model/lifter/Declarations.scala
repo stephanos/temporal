@@ -74,6 +74,8 @@ private[lift] trait Declarations:
     case Block(Nil, e)      => stepFunction(e, machine, actionName)
     case Typed(e, _)        => stepFunction(e, machine, actionName)
     case Inlined(_, Nil, e) => stepFunction(e, machine, actionName)
+    // A function-valued parameter of a declaring function: the def its call binds it to.
+    case r: Ref if boundFunctions.contains(r.symbol) => callee(r.symbol, fn)
     case Block(
           List(DefDef("$anonfun", List(TermParamClause(params)), _, Some(Apply(target, args)))),
           _: Closure

@@ -26,6 +26,9 @@ private enum Decl:
   /** A declared Query or progress claim. */
   case Declared(name: String)
 
+  /** A function-valued argument: the def of the lifted sources it names, by its full name. */
+  case FunctionRef(name: String)
+
 private[lift] trait Claims:
   self: Lifting =>
   import ctx.*
@@ -156,6 +159,13 @@ private[lift] trait Claims:
             s"declare it with a val, or name it with $form"
         )
 
+  /** Whether a type is one a claim is declared on: a machine, a composition, or `Declares[S]`. */
+  def declares(tpe: TypeRepr): Boolean =
+    Seq("umpire.Machine", "umpire.Composition", "umpire.Declares").exists(isNamed(tpe, _))
+
+  /** Whether a call is one of `Declares`'s, `property` or `scenario`, which every model inherits. */
+  def declared(t: Term): Boolean = t.symbol.maybeOwner.fullName == "umpire.Declares"
+
   /**
    * What a declaration of the lifted sources folds to, with the helper function parameters bound
    * in `env`. `named` is the name of the val whose right-hand side `t` is: a declaration that takes
@@ -180,15 +190,13 @@ private[lift] trait Claims:
         if sc.symbol.fullName == "scala.StringContext" =>
       val texts = varargs(args).map(a => textOf(fold(a, env), a))
       Decl.Text(varargs(parts).map(constString).zipAll(texts, "", "").map(_ + _).mkString)
-    case Select(m, "name")
-        if isNamed(m.tpe, "umpire.Machine") || isNamed(m.tpe, "umpire.Composition") =>
-      Decl.Text(modelName(fold(m, env), m))
+    case Select(m, "name") if declares(m.tpe) => Decl.Text(modelName(fold(m, env), m))
     case Apply(TypeApply(Select(Ident("Vector" | "List"), "apply"), _), List(items)) =>
       Decl.Items(varargs(items).map(fold(_, env)))
 
-    case Apply(Apply(TypeApply(Ident("property"), _), List(m)), List(name)) =>
+    case Apply(Select(m, "property"), List(name)) if declared(t) =>
       Decl.PropertyOn(modelName(fold(m, env), m), textOf(fold(name, env), name), None)
-    case Apply(TypeApply(Ident("property"), _), List(m)) =>
+    case Select(m, "property") if declared(t) =>
       val machine = modelName(fold(m, env), m)
       Decl.PropertyOn(machine, captured(named, "a Property", "`.property(\"...\")`", t), None)
     case Apply(Select(b, "when"), List(c)) =>
@@ -197,8 +205,10 @@ private[lift] trait Claims:
         case other              => fail(t, s"when restricts a Property, not $other")
     case Apply(Select(b, "whenAction"), List(a)) =>
       fold(b, env, named) match
-        case p: Decl.PropertyOn => p.copy(when = Some(Right(constString(a))))
-        case other              => fail(t, s"whenAction restricts a Property, not $other")
+        case p: Decl.PropertyOn =>
+          val action = if composed(a) then composedAction(a, p.machine, env) else constString(a)
+          p.copy(when = Some(Right(action)))
+        case other => fail(t, s"whenAction restricts a Property, not $other")
     case Apply(Select(b, op @ ("holds" | "holdsAcross")), List(f)) =>
       fold(b, env, named) match
         case Decl.PropertyOn(m, name, when) =>
@@ -215,10 +225,13 @@ private[lift] trait Claims:
           register(properties, (m, name), p, t, s"Property $name of $m")
           Decl.Claim(claim(m, name))
         case other => fail(t, s"$op finishes a Property, not $other")
+    // `once(...).keeps(...)`, `never(...)`, `never(...).from(...)`, `stays(...)` and
+    // `stays(...).unless(...)`, as the Properties they stand for.
+    case _ if patterned(t) => pattern(t, env, named)
 
-    case Apply(Apply(TypeApply(Ident("scenario"), _), List(m)), List(name)) =>
+    case Apply(Select(m, "scenario"), List(name)) if declared(t) =>
       Decl.ScenarioOn(modelName(fold(m, env), m), textOf(fold(name, env), name), None)
-    case Apply(TypeApply(Ident("scenario"), _), List(m)) =>
+    case Select(m, "scenario") if declared(t) =>
       val machine = modelName(fold(m, env), m)
       Decl.ScenarioOn(machine, captured(named, "a Scenario", "`.scenario(\"...\")`", t), None)
     case Apply(Select(b, "starts"), List(s)) =>
@@ -227,7 +240,7 @@ private[lift] trait Claims:
         case other               => fail(t, s"starts begins a Scenario, not $other")
     case Apply(Select(b, op @ ("actions" | "actionKeys")), List(items)) =>
       scenario(fold(b, env, named), t) { s =>
-        if op == "actions" then s.addAllActions(varargs(items).map(classOf))
+        if op == "actions" then scheduled(s, varargs(items), env)
         else s.addAllKeys(varargs(items).map(constString))
       }
     case Select(b, "free") => scenario(fold(b, env, named), t)(_.withFree(true))
@@ -303,13 +316,75 @@ private[lift] trait Claims:
           case d => fold(d.rhs.get, Map.empty, Some(sym))
       )
     // A helper function of the lifted sources that declares: its body, with its arguments bound.
-    case Apply(fn, args) if isFunction(fn.symbol) =>
+    case Apply(fn, _) if isFunction(fn.symbol) =>
       defs(fn.symbol) match
-        case d: DefDef =>
-          val params = d.termParamss.flatMap(_.params).map(_.symbol)
-          fold(d.rhs.get, params.zip(args.map(fold(_, env))).toMap)
-        case _ => fail(t, s"${fn.symbol.fullName} is not a function of the lifted sources")
+        case d: DefDef => declaring(d, t, env)
+        case _         => fail(t, s"${fn.symbol.fullName} is not a function of the lifted sources")
     case other => fail(other, s"not a declaration the IR carries: ${other.show}")
+
+  /**
+   * The body of a declaring function `d` at its call `t`, its arguments bound: each value folded, each
+   * function-valued argument to the def of the lifted sources it names, and each type parameter to
+   * the type the call applies it to, so a claim written once over `Declares[S]` and its predicates
+   * reads the machine's own.
+   */
+  def declaring(d: DefDef, t: Term, env: Map[Symbol, Decl]): Decl =
+    def parts(t: Term): (List[TypeTree], List[Term]) = t match
+      case Apply(fn, args) =>
+        parts(fn) match
+          case (ts, as) => (ts, as ++ args)
+      case TypeApply(_, targs) => (targs, Nil)
+      case Inlined(_, Nil, e)  => parts(e)
+      case _                   => (Nil, Nil)
+    val (targs, args) = parts(t)
+    val params = d.termParamss.flatMap(_.params)
+    val typeParams = d.leadingTypeParams.map(_.symbol)
+    val functions = params
+      .zip(args)
+      .collect {
+        case (p, a) if p.tpt.tpe.dealias.isFunctionType => p.symbol -> boundDef(p, d, a)
+      }
+      .toMap
+    val bound = params.zip(args).map { (p, a) =>
+      p.symbol -> functions.get(p.symbol).fold(fold(a, env))(f => Decl.FunctionRef(f.fullName))
+    }
+    val types = typeParams.zip(targs.map(a => instantiated(a.tpe))).toMap
+    binding(functions, types)(fold(d.rhs.get, bound.toMap))
+
+  /**
+   * The def of the lifted sources an argument for the function-valued parameter `p` of `d` names: the
+   * def itself, eta-expanded or called with the lambda's parameters, or the def a parameter of the
+   * declaring function around it is bound to. A lambda with a body of its own has no def to bind.
+   */
+  def boundDef(p: ValDef, d: DefDef, arg: Term): Symbol = arg match
+    case Typed(e, _)                                 => boundDef(p, d, e)
+    case Inlined(_, Nil, e)                          => boundDef(p, d, e)
+    case Block(Nil, e)                               => boundDef(p, d, e)
+    case r: Ref if boundFunctions.contains(r.symbol) => boundFunctions(r.symbol)
+    case r: Ref if isFunction(r.symbol)              => r.symbol
+    case Block(
+          List(DefDef("$anonfun", List(TermParamClause(params)), _, Some(Apply(target, args)))),
+          _: Closure
+        ) if args.map(_.symbol) == params.map(_.symbol) && isFunction(target.symbol) =>
+      target.symbol
+    case Block(
+          List(
+            DefDef(
+              "$anonfun",
+              List(TermParamClause(params)),
+              _,
+              Some(Apply(Select(f: Ref, "apply"), args))
+            )
+          ),
+          _: Closure
+        ) if args.map(_.symbol) == params.map(_.symbol) && boundFunctions.contains(f.symbol) =>
+      boundFunctions(f.symbol)
+    case other =>
+      fail(
+        other,
+        s"${p.name} of ${d.name} names a def of the lifted sources, which the lifter binds, not " +
+          s"${other.show}: declare it as `def ${p.name}(...)` and pass that"
+      )
 
   def scenario(d: Decl, at: Tree)(f: ir.Scenario => ir.Scenario): Decl = d match
     case Decl.ScenarioOn(m, name, start) =>

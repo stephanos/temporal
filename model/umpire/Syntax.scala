@@ -4,6 +4,8 @@
  */
 package umpire
 
+import scala.annotation.unused
+
 /**
  * The outcome `accept` and `stay` answer for a machine whose outcomes are `O`, declared once beside
  * the outcome type: `given Accepted[Outcome] = Accepted(Outcome.accepted)`. Core form: the outcome
@@ -42,3 +44,111 @@ extension (a: Boolean) infix def implies(b: => Boolean): Boolean = !a || b
 
 /** `after.records(fact)`: whether the step records the fact. Core form: `after.facts.contains(fact)`. */
 extension [S, O, F](step: Step[S, O, F]) def records(fact: F): Boolean = step.facts.contains(fact)
+
+/**
+ * `after.records(_.member, fact)`: whether a composition's step records the fact of the member the
+ * selector names, the composition form of `after.records(fact)`. Core form:
+ * `after.facts.contains("member_fact")`, the composed key `<field>_<fact>` a composition records.
+ */
+extension [S, O](step: Step[S, O, String])
+  def records[M](@unused member: S => M, fact: Any): Boolean =
+    step.facts.exists(_.endsWith(s"_$fact"))
+
+/**
+ * `m.property("terminalIsFinal").once(terminal).keeps(_.phase)`: once `over` holds of the state
+ * before a step, the step keeps the value the projection selects. Core form:
+ * `holdsAcross((before, after) => !over(before) || after.state.phase == before.phase)`.
+ */
+extension [S, O, F](b: PropertyBuilder[S, O, F])
+  def once(over: S => Boolean): Once[S, O, F] = Once(b, over)
+
+  /**
+   * `never(to)`: no step is one `to` holds of, the same-step invariant. Core form:
+   * `holds(after => !to(after))`. `never(to).from(before)` says it of the steps from a state `before`
+   * holds of only.
+   */
+  def never(to: Step[S, O, F] => Boolean): Never[S, O, F] = Never(b, to)
+
+  /**
+   * `stays(p)`: a step from a state `p` holds of keeps it holding. Core form:
+   * `holdsAcross((before, after) => !p(before) || p(after.state))`. `stays(p).unless(release)` also
+   * lets a step `release` holds of leave it.
+   */
+  def stays(p: S => Boolean): Stays[S, O, F] = Stays(b, p)
+
+/**
+ * What `once(over)` leaves to say: the value it keeps. Core form: the `holdsAcross` lambda `keeps`
+ * finishes.
+ */
+final class Once[S, O, F] private[umpire] (b: PropertyBuilder[S, O, F], over: S => Boolean):
+  /**
+   * The value a step from a state `over` holds of keeps, a field path such as `_.phase` or
+   * `_.activity.phase`. Core form:
+   * `holdsAcross((before, after) => !over(before) || after.state.phase == before.phase)`.
+   */
+  def keeps[V](projection: S => V): Property[S] =
+    Property(
+      PropertyDecl(
+        b.name,
+        b.m,
+        b.when,
+        None,
+        Some((before: S, after: Step[S, O, F]) =>
+          !over(before) || projection(after.state) == projection(before)
+        )
+      )
+    )
+
+/**
+ * `never(to)`, a same-step Property, which `from` turns into a transition one. Core form:
+ * `holds(after => !to(after))`.
+ */
+final class Never[S, O, F] private[umpire] (
+    b: PropertyBuilder[S, O, F],
+    to: Step[S, O, F] => Boolean
+) extends Property[S](
+      PropertyDecl(b.name, b.m, b.when, Some((after: Step[S, O, F]) => !to(after)), None)
+    ):
+  /**
+   * No step from a state `before` holds of is one `to` holds of. Core form:
+   * `holdsAcross((before, after) => !before(before) || !to(after))`.
+   */
+  def from(before: S => Boolean): Property[S] =
+    Property(
+      PropertyDecl(
+        b.name,
+        b.m,
+        b.when,
+        None,
+        Some((s: S, after: Step[S, O, F]) => !before(s) || !to(after))
+      )
+    )
+
+/**
+ * `stays(p)`, a transition Property, which `unless` releases. Core form:
+ * `holdsAcross((before, after) => !p(before) || p(after.state))`.
+ */
+final class Stays[S, O, F] private[umpire] (b: PropertyBuilder[S, O, F], p: S => Boolean)
+    extends Property[S](
+      PropertyDecl(
+        b.name,
+        b.m,
+        b.when,
+        None,
+        Some((before: S, after: Step[S, O, F]) => !p(before) || p(after.state))
+      )
+    ):
+  /**
+   * A step `release` holds of may leave `p`. Core form:
+   * `holdsAcross((before, after) => !p(before) || p(after.state) || release(after))`.
+   */
+  def unless(release: Step[S, O, F] => Boolean): Property[S] =
+    Property(
+      PropertyDecl(
+        b.name,
+        b.m,
+        b.when,
+        None,
+        Some((before: S, after: Step[S, O, F]) => !p(before) || p(after.state) || release(after))
+      )
+    )

@@ -140,6 +140,35 @@ class Fixtures extends munit.FunSuite:
       "fixture.realizations.Realizations$package$.tallyOpens"
     )
   )
+  // The refusals of fn-112.4's typed composition selectors, in lifts/Rejects.scala.
+  private val selectorRejects: Seq[String] = Seq(
+    "memberNoField",
+    "syncNoMember",
+    "memberIncompatible",
+    "syncUnbound",
+    "withNoMember",
+    "withIncompatible",
+    "withUnrefined",
+    "withUnsynced",
+    "syncedNone",
+    "syncedTwice",
+    "ownSynced",
+    "ownSpelledAlike",
+    "mixedSchedule",
+    "bareInputs",
+    "whenClassInputs"
+  )
+  // The refusals of fn-112.4's claim patterns, records over a member and function-valued arguments.
+  private val patternRejects: Seq[String] = Seq(
+    "whenStays",
+    "keptComputed",
+    "fromVal",
+    "sharedLambda",
+    "recordsNoMember",
+    "recordsForeignFact",
+    "paramCalled"
+  )
+
   private val rejected = Seq(
     "unbounded",
     "waiting",
@@ -183,7 +212,9 @@ class Fixtures extends munit.FunSuite:
     "aliased",
     "splatted",
     "explained"
-  ).map("fixture.rejects.Rejects$package$." + _) ++ Seq(
+  ).map("fixture.rejects.Rejects$package$." + _) ++ (selectorRejects ++ patternRejects).map(
+    "fixture.rejects.Rejects$package$." + _
+  ) ++ Seq(
     // DefinitionScope pins, a name the compiler made up and a computed accepted outcome, refused in
     // objects of their own.
     "PinnedTwice$.pinnedTwice",
@@ -528,7 +559,8 @@ class Fixtures extends munit.FunSuite:
   /**
    * The machines and Properties of one lift of `roots` of the lifts fixture `fixture`, by name, each
    * as a pair compares it: without its name, its machine and positions, and with each function it
-   * refers to in place of the function's name, so two spellings may name their functions apart.
+   * refers to in place of the function's name, so two spellings may name their functions apart. A
+   * root of the Temporal Models is named in full.
    */
   private def declarations(
       fixture: String,
@@ -539,8 +571,8 @@ class Fixtures extends munit.FunSuite:
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val pkg = s"fixture.$fixture.${fixture.capitalize}$$package$$"
     val out = lifted(s"$fixture-pairs")
-    val result =
-      lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots.map(s"$pkg." + _))*)
+    val named = roots.map(r => if r.startsWith("temporal.") then r else s"$pkg.$r")
+    val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ named)*)
     assert(!result.failed, result.diagnostics)
     val model = mapper.readTree(Files.readString(out))
     def strip(n: JsonNode): Unit =
@@ -647,6 +679,173 @@ class Fixtures extends munit.FunSuite:
       resume.at("/body/match/cases/1/pattern").toString,
       """{"wildcard":{}}""",
       "a wildcard arm lifts as a wildcard"
+    )
+
+  // fn-112.4: typed composition selectors (lifts/Members.scala).
+  // Each composition of temporal/standaloneactivity beside its typed twin, the later designs derived
+  // by `withMember`; the Scenarios and the `whenAction` whose keys `synced` and `own` select; and the
+  // keys of names that carry separators, over two members that bind actions spelled alike.
+  concurrently("typed members, syncs, replaces, withMember, synced and own lift as strings do"):
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val system = "temporal.standaloneactivity.System$package$."
+    val queried = Seq(
+      "currentOverQueue",
+      "staleOverQueue",
+      "currentOverMatching",
+      "staleOverMatching",
+      "currentOverLossyMatching"
+    )
+    val unqueried = Seq("currentOverForgetful", "currentOverVolatile")
+    val roots = queried.flatMap(d => Seq(s"${d}TypedQueries", s"$system${d}Queries")) ++
+      unqueried.flatMap(d => Seq(s"${d}Typed", s"$system$d")) ++ Seq(
+        "stoppedWorkerStartsNothingTyped",
+        "temporal.standaloneactivity.Claims$package$.stoppedWorkerStartsNothing",
+        "switchQueries"
+      )
+    val (model, _, property) = declarations("members", roots)
+    def strip(n: JsonNode): Unit =
+      n match
+        case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
+        case _             => ()
+      n.elements().asScala.foreach(strip)
+    def all(kind: String) = model.path(kind).elements().asScala.toList
+    def of(kind: String, matches: JsonNode => Boolean, without: String*): String =
+      val found = all(kind)
+        .find(matches)
+        .getOrElse(fail(s"the members fixture lifted no such $kind"))
+        .deepCopy[ObjectNode]()
+      found.remove(without.asJava)
+      strip(found)
+      found.toPrettyString
+    def named(name: String)(n: JsonNode) = n.path("name").asText() == name
+    def composition(name: String) = of("compositions", named(name), "name")
+    for d <- queried ++ unqueried do assertEquals(composition(s"${d}Typed"), composition(d), d)
+    def replaces(name: String) =
+      all("compositions").find(named(name)).get.path("members").get(1).path("replaces").asText()
+    assertEquals(replaces("currentOverForgetfulTyped"), "dispatchQueue")
+    assertEquals(replaces("currentOverLossyMatchingTyped"), "dispatchQueueUnderStorageLoss")
+    def scenario(machine: String, name: String) =
+      of("scenarios", s => s.path("machine").asText() == machine && named(name)(s), "machine")
+    val typed = all("scenarios")
+      .map(s => s.path("machine").asText() -> s.path("name").asText())
+      .filter(_._1.endsWith("Typed"))
+    assertEquals(typed.size, 2 * 3 + 3 * 4, "a typed twin of every keyed Scenario")
+    for (machine, name) <- typed do
+      assertEquals(scenario(machine, name), scenario(machine.stripSuffix("Typed"), name), name)
+    assertEquals(property("startedByPollingWorkerTyped"), property("startedByPollingWorker"))
+    def keys(name: String) =
+      all("scenarios").find(named(name)).get.path("keys").elements().asScala.map(_.asText()).toList
+    assertEquals(
+      keys("switchSchedule"),
+      List("tap_both-ways", "left_side_turn-on-high", "left_side_flick", "right_side_flick")
+    )
+    def whenAction(name: String) =
+      all("properties").find(named(name)).get.path("whenAction").asText()
+    assertEquals(whenAction("turnedOn"), "left_side_turn-on")
+    assertEquals(whenAction("tappedBoth"), "tap_both-ways")
+    def bound(machine: String) = all("machines")
+      .find(named(machine))
+      .get
+      .path("steps")
+      .elements()
+      .asScala
+      .map(_.path("action").asText().stripPrefix("fixture.members."))
+      .toList
+    assertEquals(bound("leftSwitch"), List("Left$.tap", "Left$.flick", "Members$package$.turnOn"))
+    assertEquals(bound("rightSwitch"), List("Right$.tap", "Right$.flick"))
+
+  // fn-112.4: claim patterns and shared claims (lifts/Patterns.scala).
+  // Each claim pattern beside its lambda spelling, on the machine and on the composition, and each
+  // claim written once over `Declares[S]` beside the lambda it stands for on either.
+  concurrently(
+    "once/keeps, never, never/from, stays, stays/unless and records over a member lift as their lambdas do"
+  ):
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.{ArrayNode, ObjectNode}
+    val (model, _, _) = declarations("patterns", Seq("claims"))
+    val functions =
+      model.path("functions").elements().asScala.map(f => f.path("name").asText() -> f).toMap
+    // Each child of a tree rewritten, the tree itself kept unless `f` replaces it.
+    def rewrite(n: JsonNode)(f: PartialFunction[JsonNode, JsonNode]): JsonNode =
+      f.applyOrElse(
+        n,
+        {
+          case o: ObjectNode =>
+            for k <- o.fieldNames().asScala.toList do o.set(k, rewrite(o.get(k))(f)): Unit
+            o
+          case a: ArrayNode =>
+            for i <- 0 until a.size do a.set(i, rewrite(a.get(i))(f)): Unit
+            a
+          case other => other
+        }
+      )
+    // A pattern lifts a lambda of its own as a function named after the Property's and the word that
+    // takes it, `<holds>.never`, as `holds` lifts one; such a call is read as the lambda's body, so a
+    // claim written with one compares with the lambda that calls the def inside it.
+    def inlined(n: JsonNode, holds: String): JsonNode = rewrite(n) {
+      case o: ObjectNode if o.path("call").path("function").asText().startsWith(s"$holds.") =>
+        val f = functions(o.path("call").path("function").asText())
+        val param = f.path("params").get(0).path("name").asText()
+        val arg = inlined(o.path("call").path("args").get(0), holds)
+        rewrite(f.path("body").deepCopy[JsonNode]()) {
+          case v: ObjectNode if v.path("var").asText() == param => arg.deepCopy[JsonNode]()
+        }
+    }
+    def strip(n: JsonNode): Unit =
+      n match
+        case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
+        case _             => ()
+      n.elements().asScala.foreach(strip)
+    def found(machine: String, name: String): JsonNode =
+      model
+        .path("properties")
+        .elements()
+        .asScala
+        .find(p => p.path("machine").asText() == machine && p.path("name").asText() == name)
+        .getOrElse(fail(s"the patterns fixture lifted no Property $name of $machine"))
+    def property(machine: String, name: String): String =
+      val p = found(machine, name).deepCopy[ObjectNode]()
+      val holds = p.path("holds").asText()
+      val f = functions(holds).deepCopy[ObjectNode]()
+      f.remove("name")
+      p.set("holds", inlined(f, holds)): Unit
+      p.remove(java.util.List.of("name", "machine"))
+      strip(p)
+      p.toPrettyString
+    // Each form by its Property on the job and on the pair, and whether it is a transition one.
+    val forms = Seq(
+      ("doneKeeps", "pairDoneKeeps", true),
+      ("noTwo", "pairNoTwo", false),
+      ("notStartedWhilePaused", "pairNotStartedWhilePaused", true),
+      ("doneStays", "pairDoneStays", true),
+      ("activeStays", "pairActiveStays", true)
+    )
+    val shared =
+      Seq("notAdmittedWhilePaused" -> true, "atMostOneActive" -> false, "terminalStays" -> true)
+    for
+      (onJob, onPair, transition) <- forms
+      (machine, name) <- Seq("job" -> onJob, "pair" -> onPair)
+    do
+      assertEquals(property(machine, name), property(machine, s"${name}Core"), name)
+      assertEquals(found(machine, name).path("transition").asBoolean, transition, name)
+    for name <- Seq("pairStarted", "lampFlipped") do
+      assertEquals(property("pair", name), property("pair", s"${name}Core"), name)
+    for (name, transition) <- shared; machine <- Seq("job", "pair") do
+      assertEquals(property(machine, name), property(machine, s"${name}Core"), s"$machine.$name")
+      assertEquals(found(machine, name).path("transition").asBoolean, transition, name)
+    for (name, transition) <- Seq(
+        "doneKeepsInline" -> true,
+        "noTwoInline" -> false,
+        "notStartedInline" -> true,
+        "doneStaysInline" -> true,
+        "activeStaysInline" -> true
+      )
+    do assertEquals(found("job", name).path("transition").asBoolean, transition, name)
+    val names = functions.keys.toList.sorted
+    assert(
+      names.forall(!_.startsWith("umpire.")),
+      s"a framework definition was lifted as a function: ${names.mkString(", ")}"
     )
 
   concurrently("the lifter refuses unrelated machines with one state type, at the Query line"):
