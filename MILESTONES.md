@@ -56,6 +56,10 @@ that IR, lower it to Testpilot Cases, and run those Cases as functional tests an
 Umpire IR and the Testpilot IR are what connect the parts. See [SCALA.md](.plans/SCALA.md) and
 [UMPIRE4_SPEC.md](.plans/UMPIRE4_SPEC.md).
 
+The DSL framework (`model/umpire`) stays Temporal-agnostic as far as is realistic: Temporal's capability
+vocabulary, laws, realization vocabulary and kit live under `model/temporal/`, and the lifter and Testpilot IR
+are the parts that are Temporal's driver tooling by design (fn-114.12, fn-122.8).
+
 The planned work below continues that direction: the Scala layer first, then the Models.
 
 ## Planned
@@ -109,7 +113,8 @@ Split out of fn-113 so the specs run in a line. Rolls fn-112's constructs out to
 fixtures, and removes the string-named forms from the framework. Realizations refer to their own
 ids by value, identity evidence lines go, and the contents of each IR file are declared in Scala
 with one lifter run writing all of them. Every Model folder gets the same file names as the
-activity, and no `Claims.scala` remains. Type annotations the compiler and lifter do not need are dropped from the Models (fn-114.11), lifter fixtures that copy live Model text shrink to minimal fixture-local Models (fn-114.10), and a final rename (fn-114.9, owner request 2026-10-04) gives the tool folders
+activity, and no `Claims.scala` remains. The Temporal realization vocabulary leaves the framework for `model/temporal/realize` behind a guard test
+(fn-114.12), type annotations the compiler and lifter do not need are dropped from the Models (fn-114.11), lifter fixtures that copy live Model text shrink to minimal fixture-local Models (fn-114.10), and a final rename (fn-114.9, owner request 2026-10-04) gives the tool folders
 names that say what they hold: `model/lifter` becomes `model/irgen`, `model/gate` becomes `model/check`
 (absorbing `model/metrics`), and the `model/gen` build cache becomes `model/build`.
 
@@ -126,6 +131,7 @@ literals, from 148). Task 6 is done: the worker Model is `Model.scala`
 with captured names and pinned IDs, and the lifter fixtures use captured names and named choices. Task 7
 (retire the string-named forms) is next, then 11, 10, 9 and 8. `leadsTo` has no captured-name form yet,
 which leaves two literals in the close policy.
+
 ### fn-118: Declare how Temporal APIs behave once, and let the generated tests use it
 
 Task 1 is done: the inventory (16 Cases, 17 polls, 52 waits, 440 s declared wait budget) and the
