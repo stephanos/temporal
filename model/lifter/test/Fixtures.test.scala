@@ -383,7 +383,8 @@ class Fixtures extends munit.FunSuite:
         "Sugar.scala:10:27",
         "Sugar.scala:13:76",
         "Sugar.scala:16:73",
-        "Sugar.scala:19:68"
+        "Sugar.scala:19:68",
+        "Sugar.scala:23:69"
       )
     )
 
@@ -836,12 +837,49 @@ class Fixtures extends munit.FunSuite:
 
   // Each sugar form beside its core spelling (lifts/Sugar.scala).
   concurrently(
-    "accept, stay, disabled, because, in, implies and records lift as their core forms do"
+    "accept, stay, disabled, because, in, implies, records and sticky lift as their core forms do"
   ):
-    val (model, machine, property) = declarations("sugar", Seq("sugared", "cored", "claims"))
+    val (model, machine, property) =
+      declarations("sugar", Seq("sugared", "cored", "claims", "watched"))
     assertEquals(machine("sugared"), machine("cored"))
     for form <- Seq("records", "implies", "paused") do
       assertEquals(property(s"${form}Sugar"), property(s"${form}Core"), form)
+    // Each sticky monitor beside its `monitor` spelling: one monitor but for its ID, name, position
+    // and the names of its functions, whose bodies are compared in their place.
+    def monitor(name: String): String =
+      import com.fasterxml.jackson.databind.node.ObjectNode
+      val m = model
+        .path("monitors")
+        .elements()
+        .asScala
+        .find(_.path("name").asText() == name)
+        .getOrElse(fail(s"the sugar fixture lifted no monitor named $name"))
+        .deepCopy[ObjectNode]()
+      m.remove(java.util.List.of("id", "name", "position"))
+      m.path("initial") match
+        case i: ObjectNode => i.remove("position"): Unit
+        case _             => ()
+      for field <- Seq("next", "violated") do
+        val f = model
+          .path("functions")
+          .elements()
+          .asScala
+          .find(_.path("name").asText() == m.path(field).asText())
+          .get
+          .deepCopy[ObjectNode]()
+        f.remove(java.util.List.of("name", "position"))
+        f.findParents("position").asScala.foreach {
+          case o: ObjectNode => o.remove("position"): Unit
+          case _             => ()
+        }
+        m.set(field, f): Unit
+      m.toPrettyString
+    for (sugar, spelled) <- Seq(
+        "refusedOnce" -> "refusedOnceSpelled",
+        "retriedLost" -> "retriedLostSpelled"
+      )
+    do assertEquals(monitor(sugar), monitor(spelled), sugar)
+    assert(monitor("refusedOnce").contains("neverRefused"), monitor("refusedOnce"))
     val functions = model.path("functions").elements().asScala.map(_.path("name").asText()).toList
     assert(
       functions.forall(!_.startsWith("umpire.")),

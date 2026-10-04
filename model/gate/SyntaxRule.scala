@@ -43,6 +43,7 @@ private[gate] object SyntaxRule:
     "stays",
     "unless",
     "sticky",
+    "stickyAcross",
     ":=",
     "field"
   )

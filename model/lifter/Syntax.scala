@@ -324,6 +324,56 @@ private[lift] trait Syntax:
     register(properties, (m, name), p, t, s"Property $name of $m")
     Decl.Claim(claim(m, name))
 
+  /**
+   * Hook: a monitor declared with `sticky(p)` or `stickyAcross(p)`, lowered to the monitor its core
+   * form declares, or None for a term that is neither; `monitorOf` gives it the Definition ID `id`,
+   * its name and its position, as it does the core form's. Core form: `sticky(p)` lifts as
+   * `monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !p(after))(broken => broken)`
+   * and `stickyAcross(p)` as the same monitor with `!p(before, after)`.
+   */
+  def stickyMonitor(t: Term, id: String): Option[ir.Monitor] = sugarCall(t) match
+    case Some((word @ ("sticky" | "stickyAcross"), List(List(promise)))) =>
+      val state = typeArgs(t).head
+      val bool = ir.TypeRef(ir.TypeRef.Ref.Bool(ir.Empty()))
+      def variable(n: String) = expr(t)(E.Var(n))
+      // The author's predicate, by the def it names, or as a function of its own named after the word.
+      val kept = stepFunction(promise, id, word)
+      val read =
+        (if word == "stickyAcross" then Seq(variable("before")) else Nil) :+ variable("after")
+      val broken = ir.Param("broken", Some(bool))
+      val (next, violated) = (s"$id.next", s"$id.violated")
+      functions(next) = ir.Function(
+        name = next,
+        position = Some(pos(t)),
+        params = Seq(broken, ir.Param("before", Some(typeRef(state, t))), stepParam),
+        body = Some(
+          binary(
+            ir.Binary.Op.OP_OR,
+            variable("broken"),
+            expr(t)(
+              E.Unary(ir.Unary(ir.Unary.Op.OP_NOT, Some(expr(t)(E.Call(ir.Call(kept, read))))))
+            ),
+            t
+          )
+        )
+      )
+      functions(violated) = ir.Function(
+        name = violated,
+        position = Some(pos(t)),
+        params = Seq(broken),
+        body = Some(variable("broken"))
+      )
+      Some(
+        ir.Monitor(
+          state = Some(bool),
+          initial = Some(lit(ir.Value.Kind.Bool(false), t)),
+          next = next,
+          violated = violated,
+          evaluate = ir.Monitor.Evaluate.EveryStep(ir.Empty())
+        )
+      )
+    case _ => None
+
   // The step a Property's function reads, its parameter `after`.
   private def stepParam = ir.Param("after", Some(named(stepType)))
 

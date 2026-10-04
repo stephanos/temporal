@@ -1,7 +1,8 @@
 // Each sugar form of model/umpire/Syntax.scala beside its core form: `sugared` binds and claims with
-// the sugar, `cored` with the core spelling, action by action and Property by Property. The lifter's
-// tests lift both and require one IR of the two, but for names, positions and the names of the
-// functions the declarations refer to.
+// the sugar, `cored` with the core spelling, action by action and Property by Property, and `watched`
+// is watched by each sticky monitor and its `monitor` spelling. The lifter's tests lift both and
+// require one IR of the two, but for names, positions and the names of the functions the declarations
+// refer to.
 package fixture.sugar
 
 import umpire.*
@@ -151,3 +152,25 @@ val claims: Vector[Query] = Vector(
   query("pausedSugarStart") verify pausedSugar in sugaredStart limits run total 8,
   query("pausedCoreStart") verify pausedCore in coredStart limits run total 8
 )
+
+// sticky and stickyAcross: a promise that once broken stays broken, each beside the monitor it stands
+// for, all four watching one machine.
+def neverRefused(after: JobStep): Boolean = after.outcome != Outcome.refused
+def retriedStays(before: Job, after: JobStep): Boolean = !before.retried || after.state.retried
+
+val refusedOnce = sticky(neverRefused)
+val refusedOnceSpelled = monitor[Job, Outcome, Fact, Boolean](false)((broken, before, after) =>
+  broken || !neverRefused(after)
+)(broken => broken)
+
+val retriedLost = stickyAcross(retriedStays)
+val retriedLostSpelled = monitor[Job, Outcome, Fact, Boolean](false)((broken, before, after) =>
+  broken || !retriedStays(before, after)
+)(broken => broken)
+
+val watched = machine[Job, Outcome, Fact] {
+  monitors(refusedOnce, refusedOnceSpelled, retriedLost, retriedLostSpelled)
+  starts(Job(Phase.idle, false))
+  ends(j => j.phase == Phase.done)
+  steps(start ~> startSugar, retry ~> retrySugar)
+}

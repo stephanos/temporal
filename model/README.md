@@ -395,6 +395,13 @@ The lifter reads what an author wrote, as written:
   !before(before) || !to(after))`, `holdsAcross((before, after) => !p(before) || p(after.state))`
   and the same with `|| release(after)`. Each predicate is lifted as `holds` lifts its lambda and
   called from the Property's function; `keeps` takes a field path, or a def whose body is one.
+- **The monitor pattern** (sugar, the same files): `val retainedOutcome = sticky(outcomePreserved)`
+  and `val ownerAcknowledgment = stickyAcross(ackOnlyWhenKept)` declare a monitor of a promise that,
+  once a step breaks it, stays broken, named after its `val`. Each lifts as the monitor
+  `monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !p(after))(broken =>
+  broken)`, with `!p(before, after)` for `stickyAcross`, read after every step. A promise about
+  another state type than the monitor's does not compile. A monitor that needs history, such as
+  one counting the outcomes recorded, is written with `monitor`.
 
 A declaration takes its name from the `val` that declares it, and its family from the
 `given Family` in scope. A machine states its three types once, in `machine[S, O, F]` or as the
@@ -567,7 +574,8 @@ with `sync` (named or after its first member's action), `synced`, `own` and `wit
 `poll`, `perform`, `onPath`, `always`, `script`, `command` and `statusTable`, `Actuator`,
 `MonitorExpectation` and the kit's roles and bindings. Sugar is a form whose meaning a core form
 already says: `implies`, `in`, `records`, `accept`, `stay`, `disabled`, the claim patterns (`once`,
-`keeps`, `never`, `from`, `stays`, `unless`) and both spellings of `:=`, named inputs and request
+`keeps`, `never`, `from`, `stays`, `unless`), the monitor pattern (`sticky`, `stickyAcross`) and
+both spellings of `:=`, named inputs and request
 fields. It lives in the `Syntax.scala` files of the DSL (`umpire/Syntax.scala`), the kit
 (`temporal/realize/Syntax.scala`) and the lifter (`lifter/Syntax.scala`). Each form is documented
 with `Core form:` and the core spelling it stands for, and a lifter fixture lifts it beside that
