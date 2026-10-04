@@ -164,7 +164,7 @@ thinking scout: claude-opus-5-5 at high
 
 reviewer: gpt-6-sol at high
 
-implementer: gpt-6-luna at high; gpt-6-sol at high for demanding tasks
+implementer: gpt-6-sol at high
 
 fast scout: gpt-6-luna at low
 
