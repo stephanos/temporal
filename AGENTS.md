@@ -169,6 +169,8 @@ fast scout: claude-opus-5-5 at low
 
 thinking scout: claude-opus-5-5 at high
 
+research: claude-fable-5-1 at high
+
 ### Codex
 
 reviewer: gpt-6.1-sol at high
@@ -178,6 +180,13 @@ implementer: gpt-6.1-sol at high
 fast scout: gpt-6-luna at low
 
 thinking scout: gpt-6.1-sol at high
+
+research: gpt-6-astra at high
+
+`research` includes codebase surveys, audits, tool and literature evaluations, and
+web research, including investigations supporting implementation or design. Always
+use the matching research model above for research tasks. Spec writing, task
+breakdown, and design decisions use the thinking scout.
 
 Demanding tasks include ambiguous work or changes with a large blast radius.
 Explicit invocation instructions take precedence over the matching section,
