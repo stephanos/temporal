@@ -3,7 +3,7 @@
  * through DescribeNexusOperationExecution. No handler answers the operation, so it stays running
  * until a control settles it. A handler's answer to a standalone operation is not realized: the
  * Driver reserves a Nexus handler only through a workflow's or an activity's start
- * (.flow/tmp/fn122-4/findings.md).
+ * (.plans/SEMANTIC_PROTOCOLS.md).
  */
 package temporal
 package nexusoperation
