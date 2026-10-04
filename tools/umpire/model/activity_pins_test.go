@@ -28,7 +28,7 @@ func TestActivityProductTable(t *testing.T) {
 			require.NotEqual(t, "started", res.State, r.Key)
 		}
 	}
-	require.Empty(t, tb.Stuck)
+	require.Empty(t, stuck(tb))
 }
 
 func TestActivityProtocolTable(t *testing.T) {
@@ -66,19 +66,20 @@ func TestActivityProtocolTable(t *testing.T) {
 	require.True(t, protocol.Disabled("scheduled-0-unset-unset-expires", "startToClose"))
 	require.Equal(t, "timedOut", phase("pauseRequested-1-unset-unset-expires-startToClose"))
 	require.Equal(t, []string{"statusTimedOut-scheduleToStart"}, results("backingOff-1-unset-expires-unset-scheduleToStart")[0].Facts)
-	require.Empty(t, tb.Stuck)
+	require.Empty(t, stuck(tb))
 }
 
 func TestActivityRefinement(t *testing.T) {
 	protocol := built(t, activityModel(t))["activityProtocol"]
-	require.NoError(t, protocol.Rejected)
+	refinement, err := refinementOf(t, activityModel(t), "activityProtocol")
+	require.NoError(t, err)
 	results := 0
 	for _, r := range protocol.Table.Rows {
 		results += len(r.Results)
 	}
-	require.Len(t, protocol.Refinement, results)
+	require.Len(t, refinement, results)
 	lookup := map[string]string{}
-	for _, r := range protocol.Refinement {
+	for _, r := range refinement {
 		lookup[r.Key] = ""
 		if r.Product != nil {
 			lookup[r.Key] = *r.Product

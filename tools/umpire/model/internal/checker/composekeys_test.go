@@ -359,7 +359,7 @@ func TestComposeTablesEndsErrorKeepsItsType(t *testing.T) {
 	require.Nil(t, tb)
 }
 
-func TestAComposedStepNamesItsMemberMoves(t *testing.T) {
+func TestAComposedStepNamesItsMemberStates(t *testing.T) {
 	tb, err := umpire.ComposeTables(houseOf(doorTable("door"), umpire.ComposeMember{Table: keyholderTable("keyholder")}))
 	require.NoError(t, err)
 	parts, ok := tb.Parts("closed-false_holding")
@@ -373,18 +373,15 @@ func TestAComposedStepNamesItsMemberMoves(t *testing.T) {
 		steps[r.Action] = r.Results[0].Step
 	}
 	require.Equal(t, map[string]any{
-		"door_turn-right-true": umpire.ComposedStep{Parts: []string{"open-false", "holding"},
-			Moves: []umpire.MemberMove{{Member: 0, Row: "closed-false-turn-right-true"}}},
-		"key_loseKey": umpire.ComposedStep{Parts: []string{"closed-false", "lost"},
-			Moves: []umpire.MemberMove{{Member: 1, Row: "holding-loseKey"}}},
-		"lock": umpire.ComposedStep{Parts: []string{"locked-false", "holding"},
-			Moves: []umpire.MemberMove{{Member: 0, Row: "closed-false-lock"}, {Member: 1, Row: "holding-useKey"}}},
+		"door_turn-right-true": umpire.ComposedStep{Parts: []string{"open-false", "holding"}},
+		"key_loseKey":          umpire.ComposedStep{Parts: []string{"closed-false", "lost"}},
+		"lock":                 umpire.ComposedStep{Parts: []string{"locked-false", "holding"}},
 	}, steps)
 
 	locksWithTheKey := umpire.KeyProperty(tb, "locksWithTheKey", func(a string) bool { return a == "lock" }, "lock",
 		func(s umpire.Result) (bool, error) {
 			step, isComposed := s.Step.(umpire.ComposedStep)
-			return isComposed && len(step.Moves) == 2 && step.Parts[1] == "holding", nil
+			return isComposed && step.Parts[1] == "holding", nil
 		})
 	q := umpire.KeyVerify("q", locksWithTheKey, umpire.KeyFreeScenario(tb, "anything", "closed-false_holding"), four)
 	a, err := q.Answer()

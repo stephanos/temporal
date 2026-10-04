@@ -95,26 +95,11 @@ type steps interface {
 	observed(credited Credited) error
 }
 
-// noSteps is the path with no coordinator listening.
-type noSteps struct{}
-
-func (noSteps) rejected() error         { return nil }
-func (noSteps) prepared() error         { return nil }
-func (noSteps) ran(int) error           { return nil }
-func (noSteps) observed(Credited) error { return nil }
-func (noSteps) runContext(ctx context.Context) (context.Context, context.CancelFunc) {
-	return context.WithCancel(ctx)
-}
-
-// RunCandidate takes one outstanding candidate through the serial path: decode its Case, bind it
+// runCandidate takes one outstanding candidate through the serial path: decode its Case, bind it
 // (preparation first, before any Driver opens), run it once, observe its cleanup, and hand the
 // closed Run back to the bridge. Exactly one Prepare or Run is in flight, and the bridge is told
 // only what happened: a preparation rejection or the Run itself. A binding or execution failure
 // leaves the candidate outstanding, because nothing honest can be observed for it.
-func RunCandidate(ctx context.Context, bridge *Bridge, binder Binder, candidate *Candidate) (Outcome, error) {
-	return runCandidate(ctx, bridge, binder, candidate, noSteps{})
-}
-
 func runCandidate(ctx context.Context, bridge *Bridge, binder Binder, candidate *Candidate, listener steps) (Outcome, error) {
 	if bridge == nil || binder == nil || candidate == nil {
 		return Outcome{}, errors.New("bridge, binder and candidate are required")

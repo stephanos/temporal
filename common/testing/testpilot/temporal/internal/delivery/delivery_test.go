@@ -26,6 +26,7 @@ type fixture struct {
 	binding  WorkflowBinding
 	workflow *testsupport.Reservation
 	handler  *testsupport.Reservation
+	handles  []testpilot.ReservationHandle
 	bundle   Bundle
 }
 
@@ -53,9 +54,10 @@ func newFixture(t *testing.T, runID, sessionID string) *fixture {
 	require.NoError(t, err)
 	retainedWorkflow, err := ledger.RetainReservation(context.Background(), workflow)
 	require.NoError(t, err)
-	bundle, err := ledger.CreateBundle(context.Background(), origin, plan, WorkflowBinding{Namespace: "namespace", WorkflowID: "workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}, []testpilot.ReservationHandle{retainedHandler, retainedWorkflow})
+	handles := []testpilot.ReservationHandle{retainedHandler, retainedWorkflow}
+	bundle, err := ledger.CreateBundle(context.Background(), origin, plan, WorkflowBinding{Namespace: "namespace", WorkflowID: "workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}, handles)
 	require.NoError(t, err)
-	return &fixture{ledger: ledger, origin: origin, plan: plan, binding: WorkflowBinding{Namespace: "namespace", WorkflowID: "workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}, workflow: workflow, handler: handler, bundle: bundle}
+	return &fixture{ledger: ledger, origin: origin, plan: plan, binding: WorkflowBinding{Namespace: "namespace", WorkflowID: "workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}, workflow: workflow, handler: handler, handles: handles, bundle: bundle}
 }
 
 func startMethod(t *testing.T) protoreflect.MethodDescriptor {

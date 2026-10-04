@@ -52,18 +52,9 @@ type ComposeSpec struct {
 }
 
 // ComposedStep is what a result of a table ComposeTables builds carries as its Step: the member
-// state keys of the state it reaches, and the member rows and results it takes, in move order.
+// state keys of the state it reaches.
 type ComposedStep struct {
 	Parts []string
-	Moves []MemberMove
-}
-
-// MemberMove is one member's part of a composed step: the member's index, the key of the row it
-// takes, and the index of the result within that row.
-type MemberMove struct {
-	Member int
-	Row    string
-	Result int
 }
 
 // ComposeLimitError is a composition that does not fit its ceiling: the resource, "states",

@@ -387,7 +387,7 @@ func TestPreparationRejectionIsObservedWithoutARunAndReleasesNothing(t *testing.
 	fake.nextRequest(t)
 	binder := &fakeBinder{bindErr: &testpilot.PreparationError{Category: testpilot.PreparationUnsupported, Path: "program", Detail: "opcode outside the Profile"}}
 
-	outcome, err := RunCandidate(t.Context(), bridge, binder, next.Candidate)
+	outcome, err := runCandidate(t.Context(), bridge, binder, next.Candidate, noSteps{})
 	require.NoError(t, err)
 	require.Equal(t, OutcomePrepareRejected, outcome.Kind)
 	require.Equal(t, firstIdentity, outcome.Identity)
@@ -412,7 +412,7 @@ func TestABindingFailureThatIsNotTheCasesLeavesTheCandidateOutstanding(t *testin
 	fake.nextRequest(t)
 	binder := &fakeBinder{bindErr: errors.New("open SDK client: connection refused")}
 
-	outcome, err := RunCandidate(t.Context(), bridge, binder, next.Candidate)
+	outcome, err := runCandidate(t.Context(), bridge, binder, next.Candidate, noSteps{})
 	require.ErrorContains(t, err, "connection refused")
 	require.Equal(t, OutcomeBindFailed, outcome.Kind)
 	fake.requireNoRequest(t)
@@ -430,7 +430,7 @@ func TestAClosedRunReturnedBesideAnErrorIsStillObserved(t *testing.T) {
 	run, verdict := closedRun(testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR, testpilotspb.CLEANUP_STATUS_SUCCEEDED, testpilotspb.VERDICT_STATUS_VIOLATED)
 	binder := &fakeBinder{run: run, verdict: verdict, runErr: errors.New("recorder: closure capacity")}
 
-	outcome, err := RunCandidate(t.Context(), bridge, binder, next.Candidate)
+	outcome, err := runCandidate(t.Context(), bridge, binder, next.Candidate, noSteps{})
 	require.NoError(t, err)
 	require.Equal(t, OutcomeCompleted, outcome.Kind)
 	require.ErrorContains(t, outcome.RunError, "closure capacity")
@@ -454,7 +454,7 @@ func TestARunWithoutAnObservedCleanupIsNotObserved(t *testing.T) {
 	run := &testpilotspb.Run{RunId: "run-1", Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Verdict: &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_SATISFIED}}
 	binder := &fakeBinder{run: run, verdict: run.Verdict}
 
-	outcome, err := RunCandidate(t.Context(), bridge, binder, next.Candidate)
+	outcome, err := runCandidate(t.Context(), bridge, binder, next.Candidate, noSteps{})
 	require.ErrorContains(t, err, "without an observed cleanup")
 	require.Equal(t, OutcomeRunFailed, outcome.Kind)
 	require.NotNil(t, outcome.Run, "the Run the facade returned travels with the outcome")
@@ -470,7 +470,7 @@ func TestARunThatCouldNotExecuteReleasesAndLeavesTheCandidateOutstanding(t *test
 	fake.nextRequest(t)
 	binder := &fakeBinder{runErr: errors.New("driver is unavailable")}
 
-	outcome, err := RunCandidate(t.Context(), bridge, binder, next.Candidate)
+	outcome, err := runCandidate(t.Context(), bridge, binder, next.Candidate, noSteps{})
 	require.ErrorContains(t, err, "driver is unavailable")
 	require.Equal(t, OutcomeRunFailed, outcome.Kind)
 	require.Equal(t, 1, binder.runs)
@@ -501,7 +501,7 @@ func TestADecisiveRunIsObservedAfterCleanupAndCreditedAlongItsPath(t *testing.T)
 			run, verdict := closedRun(probe.disposition, probe.cleanup, probe.verdict)
 			binder := &fakeBinder{run: run, verdict: verdict, bridge: fake}
 
-			outcome, err := RunCandidate(t.Context(), bridge, binder, next.Candidate)
+			outcome, err := runCandidate(t.Context(), bridge, binder, next.Candidate, noSteps{})
 			require.NoError(t, err)
 			require.Equal(t, OutcomeCompleted, outcome.Kind)
 			require.Equal(t, 1, binder.runs)
@@ -538,7 +538,7 @@ func TestExactlyOneCandidateFlowsThroughTheWholeCampaign(t *testing.T) {
 		require.NotNil(t, next.Candidate)
 		identities = append(identities, next.Candidate.Identity)
 		binder.run = &testpilotspb.Run{RunId: "run", Disposition: testpilotspb.RUN_DISPOSITION_COMPLETED, Cleanup: &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}, Verdict: verdict}
-		outcome, err := RunCandidate(t.Context(), bridge, binder, next.Candidate)
+		outcome, err := runCandidate(t.Context(), bridge, binder, next.Candidate, noSteps{})
 		require.NoError(t, err)
 		fake.nextRequest(t)
 		require.Equal(t, OutcomeCompleted, outcome.Kind)
@@ -668,7 +668,7 @@ func TestACandidateWhoseCaseNamesAnotherCaseIsNotBound(t *testing.T) {
 	require.NoError(t, err)
 	fake.nextRequest(t)
 	binder := &fakeBinder{}
-	outcome, err := RunCandidate(t.Context(), bridge, binder, next.Candidate)
+	outcome, err := runCandidate(t.Context(), bridge, binder, next.Candidate, noSteps{})
 	var protocol *ProtocolError
 	require.ErrorAs(t, err, &protocol)
 	require.Equal(t, OutcomeBindFailed, outcome.Kind)
@@ -679,7 +679,7 @@ func TestACandidateWhoseCaseNamesAnotherCaseIsNotBound(t *testing.T) {
 func TestRunCandidateRefusesACandidateThatIsNotOutstanding(t *testing.T) {
 	bridge, fake := initialized(t, sampleCandidates()...)
 	candidates := sampleCandidates()
-	_, err := RunCandidate(t.Context(), bridge, &fakeBinder{}, &candidates[0])
+	_, err := runCandidate(t.Context(), bridge, &fakeBinder{}, &candidates[0], noSteps{})
 	require.ErrorIs(t, err, ErrCrossedCandidate)
 	fake.requireNoRequest(t)
 }
@@ -747,4 +747,15 @@ func TestAContextThatEndsWhileWaitingOnTheBridgeReturns(t *testing.T) {
 	_, err = bridge.Initialize(t.Context(), "set", "profile")
 	require.ErrorIs(t, err, ErrBroken)
 	require.ErrorIs(t, err, context.DeadlineExceeded)
+}
+
+// noSteps is the path with no coordinator listening.
+type noSteps struct{}
+
+func (noSteps) rejected() error         { return nil }
+func (noSteps) prepared() error         { return nil }
+func (noSteps) ran(int) error           { return nil }
+func (noSteps) observed(Credited) error { return nil }
+func (noSteps) runContext(ctx context.Context) (context.Context, context.CancelFunc) {
+	return context.WithCancel(ctx)
 }

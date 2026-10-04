@@ -671,9 +671,8 @@ func TestCreateBundleAdmitsOnlyTheReservationsItsStartActivates(t *testing.T) {
 			}
 			plan, bound := activityPlan(), binding
 			test.mutate(&plan, &bound)
-			bundle, err := ledger.CreateActivityBundle(context.Background(), origin, plan, bound, handles)
+			_, err = ledger.CreateActivityBundle(context.Background(), origin, plan, bound, handles)
 			require.ErrorIs(t, err, ErrInvalid)
-			require.Len(t, bundle.Handles(), len(handles))
 		})
 	}
 

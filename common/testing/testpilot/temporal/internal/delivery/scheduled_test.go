@@ -51,7 +51,7 @@ func newScheduledFixture(t *testing.T) *scheduledFixture {
 	binding := WorkflowBinding{Namespace: "namespace", WorkflowID: "workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
 	bundle, err := ledger.CreateBundle(context.Background(), origin, plan, binding, handles)
 	require.NoError(t, err)
-	return &scheduledFixture{fixture: &fixture{ledger: ledger, origin: origin, plan: plan, binding: binding, workflow: workflow, bundle: bundle}, attempts: attempts}
+	return &scheduledFixture{fixture: &fixture{ledger: ledger, origin: origin, plan: plan, binding: binding, workflow: workflow, handles: handles, bundle: bundle}, attempts: attempts}
 }
 
 func scheduledAttempt(header *commonpb.Header, workflowRunID, activityID string, attempt int32) ActivityDelivery {
@@ -159,8 +159,8 @@ func TestAdmitScheduledActivityAfterAnEarlierAttemptSettled(t *testing.T) {
 	first, err := f.ledger.AdmitScheduledActivity(context.Background(), scheduledAttempt(header, "workflow-run", "7", 1))
 	require.NoError(t, err)
 	f.attempts[0].Complete()
-	for _, handle := range f.bundle.Handles() {
-		if handle.(testpilot.ReservationHandle).Identity().ID == first.Reservation().ID {
+	for _, handle := range f.handles {
+		if handle.Identity().ID == first.Reservation().ID {
 			_, err := handle.Wait(context.Background())
 			require.NoError(t, err)
 		}

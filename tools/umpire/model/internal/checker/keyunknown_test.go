@@ -330,11 +330,24 @@ func resultless(tb *umpire.Table, pairs ...[2]string) *umpire.Table {
 	return umpire.NewTable(spec)
 }
 
+// stuckState is the first reachable state that is not an end and has no row with a result, or "".
+func stuckState(tb *umpire.Table) string {
+	for _, s := range tb.Reachable {
+		if slices.Contains(tb.Ends, s) {
+			continue
+		}
+		if !slices.ContainsFunc(tb.RowsFrom(s), func(r umpire.Row) bool { return len(r.Results) > 0 }) {
+			return s
+		}
+	}
+	return ""
+}
+
 func TestARowWithNoResultIsADisabledPair(t *testing.T) {
 	stalls := resultless(keyTable("stalls", []string{"waiting"},
 		[3]string{"waiting", "fail", "stuck"}, [3]string{"waiting", "finish", "done"}), [2]string{"stuck", "retry"})
 	t.Run("a state whose only row has no result is stuck", func(t *testing.T) {
-		require.Equal(t, "stuck", stalls.Stuck)
+		require.Equal(t, "stuck", stuckState(stalls))
 	})
 	t.Run("and is a deadlock", func(t *testing.T) {
 		finishes := umpire.KeyProgress("finishes", is("waiting"), is("done"), 3)

@@ -15,14 +15,12 @@ import (
 // who declares each total writes it.
 func withSourceTotals(t *testing.T, m *umpirespb.Model) *umpirespb.Model {
 	t.Helper()
-	out := proto.CloneOf(m)
-	for _, q := range out.GetQueries() {
-		total, err := umpiremodel.QueryTotal(out, q)
-		require.NoError(t, err, q.GetName())
-		n, ok := total.N()
-		require.True(t, ok, q.GetName())
-		q.Total = wrapperspb.Int64(n)
+	declared := proto.CloneOf(m)
+	for _, q := range declared.GetQueries() {
+		q.Total = wrapperspb.Int64(0)
 	}
+	out, err := umpiremodel.WithTotals(declared)
+	require.NoError(t, err)
 	require.NoError(t, umpiremodel.Validate(out))
 	return out
 }
@@ -45,10 +43,9 @@ func requireRecounted(t *testing.T, plan *Plan, c *Candidate) int64 {
 	require.NotEmpty(t, c.Bytes, c.Key)
 	q := queryNamed(t, c.Model, plan.Query)
 	require.NotNil(t, q.GetTotal(), c.Key)
-	total, err := umpiremodel.QueryTotal(c.Model, q)
+	recounted, err := umpiremodel.WithTotals(c.Model)
 	require.NoError(t, err, c.Key)
-	n, ok := total.N()
-	require.True(t, ok, c.Key)
+	n := queryNamed(t, recounted, plan.Query).GetTotal().GetValue()
 	require.Equal(t, n, q.GetTotal().GetValue(), c.Key)
 	require.NoError(t, umpiremodel.Validate(c.Model), c.Key)
 	return n

@@ -46,7 +46,7 @@ type tableSide struct {
 // sideOf reads a table as a tableSide. A pair is disabled when the table has no row for it; the rows
 // of a table are states-major, so the pairs are listed in that order too.
 func sideOf(t *Table) tableSide {
-	side := tableSide{Machine: t.Machine, Owner: t.OwnerName(), Entity: t.Entity, Stuck: t.Stuck, Family: t.Family,
+	side := tableSide{Machine: t.Machine, Owner: t.OwnerName(), Entity: t.Entity, Stuck: stuck(t), Family: t.Family,
 		States: t.States, Actions: t.Actions, Outcomes: t.Outcomes, Facts: t.Facts, Starts: t.Starts, Ends: t.Ends,
 		Reachable: t.Reachable, StateFields: t.StateFields, Unknown: len(t.Unknown), Evidence: [][2]string{},
 		IDs: t.IDs(), Fingerprint: t.TargetFingerprint(), Assumptions: t.Assumptions,
@@ -73,6 +73,17 @@ func sideOf(t *Table) tableSide {
 	}
 	side.DisabledPairs = len(side.Disabled)
 	return side
+}
+
+// stuck is the first reachable state that is not an end and has no row with a result, or "". It reads
+// the rows themselves, not the table's index of them, which a test that edits the rows leaves stale.
+func stuck(t *Table) string {
+	for _, s := range t.Reachable {
+		if !slices.Contains(t.Ends, s) && !slices.ContainsFunc(t.Rows, func(r Row) bool { return r.Source == s && len(r.Results) > 0 }) {
+			return s
+		}
+	}
+	return ""
 }
 
 func rowIndex(t *testing.T, table *Table, key string) int {

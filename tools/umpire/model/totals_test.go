@@ -62,7 +62,7 @@ func totalOf(t *testing.T, m *umpirespb.Model, query string) Total {
 	t.Helper()
 	q := admQuery(m, query)
 	require.NotNil(t, q, query)
-	total, err := QueryTotal(m, q)
+	total, err := queryTotal(m, q)
 	require.NoError(t, err, query)
 	return total
 }

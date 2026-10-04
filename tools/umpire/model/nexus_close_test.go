@@ -40,8 +40,8 @@ var nexusClose = sync.OnceValues(func() (*checkedModel, error) {
 // checkedOnce is Check within the default scope, with the interpretation its checks read kept beside
 // the report: a test that reads rows then interprets the Model no further time, which for a Model of
 // large catalogs is most of what a test costs. It is check's own sequence, receipt for receipt, and
-// TestCheckedOnceIsCheck holds it to Check. A machine that has no table, or whose refinement could not
-// be evaluated, is an error here as it is of Build.
+// TestCheckedOnceIsCheck holds it to Check. A machine that has no table is an error here as it is of
+// Build.
 func checkedOnce(m *umpirespb.Model) (*checkedModel, error) {
 	if err := Validate(m); err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func checkedOnce(m *umpirespb.Model) (*checkedModel, error) {
 	c := newChecker(m, DefaultScope, m)
 	r := &Report{Scope: DefaultScope}
 	for _, mm := range m.GetMachines() {
-		if err := cmp.Or(c.first.failed[mm.GetName()], c.first.unevaluated[mm.GetName()]); err != nil {
+		if err := c.first.failed[mm.GetName()]; err != nil {
 			return nil, err
 		}
 		if mm.GetRefines() != nil {
@@ -295,7 +295,7 @@ func TestNexusCloseRejectionAfterCloseLosesTheOutcome(t *testing.T) {
 	require.Equal(t, closeLost, last(t, n1reset.Witness).State.Value)
 	require.Equal(t, []string{"workflowReset"}, factsOf(last(t, n1reset.Witness)))
 	table := c.built["rejectAfterClose"].Table
-	require.Equal(t, closeLost, table.Stuck)
+	require.Equal(t, closeLost, stuck(table))
 	require.Contains(t, closeStuck(table), closeLost)
 
 	// The free search returns the same shape, with failed as the outcome.
@@ -333,7 +333,7 @@ func TestNexusCloseRetainedOutcomeIsReapplied(t *testing.T) {
 	require.Equal(t, "resetOpen-none-done-succeeded-none-none-successor-succeeded", last(t, n1.Witness).State.Value)
 	require.Equal(t, []string{"workflowReset", "outcomeReapplied", "nexusOperationCompleted"}, factsOf(last(t, n1.Witness)))
 	require.True(t, closeQuery(t, c, "retainAndRoute", "closedThenFinished").Exercised)
-	require.Empty(t, c.built["retainAndRoute"].Table.Stuck)
+	require.Empty(t, stuck(c.built["retainAndRoute"].Table))
 }
 
 // N2, pinned control 2, and N2' with N6's reset before retention: a completion that arrives after the
@@ -355,7 +355,7 @@ func TestNexusCloseAcknowledgmentByTheOriginalRun(t *testing.T) {
 	}
 	// The state it leaves has no step and is no end, as N1's: the table reports that one for both designs.
 	require.Contains(t, closeStuck(c.built["ackByOriginal"].Table), "resetOpen-none-done-failed-none-none-none")
-	require.Equal(t, closeLost, c.built["ackByOriginal"].Table.Stuck)
+	require.Equal(t, closeLost, stuck(c.built["ackByOriginal"].Table))
 	// Both monitors read the acknowledgment the same way.
 	require.Equal(t, []MonitorVerdict{
 		{Name: "retainedOutcome", State: "true", Verdict: umpire.MonitorViolated},
@@ -556,7 +556,7 @@ func TestNexusCloseTimeoutResolvesTheLostOutcome(t *testing.T) {
 		require.Equal(t, lost.path, taken(expired.Witness), design)
 		require.Equal(t, lost.state, last(t, expired.Witness).State.Value, design)
 		require.Equal(t, []string{"nexusOperationTimedOut"}, factsOf(last(t, expired.Witness)), design)
-		require.Empty(t, c.built[design].Table.Stuck, design)
+		require.Empty(t, stuck(c.built[design].Table), design)
 		for _, part := range []ProgressKind{umpire.DeadlockKind, umpire.CycleKind, umpire.DeadlineKind} {
 			r := closeProgress(t, c.report, design, "outcomeReachesOwner", part)
 			require.Equal(t, Verified, r.Kind, "%s %s", design, part)

@@ -57,9 +57,6 @@ type Table struct {
 	// reports the ones it explores and takes none; no identity, reachability or fingerprint reads them.
 	Unknown []UnknownPair `json:"-"`
 
-	// Stuck is the first reachable state that is not an end and has no row, or "".
-	Stuck string `json:"-"`
-
 	// Owner is the name Definition IDs hang off: the machine's name, or "compose-<name>".
 	Owner        string   `json:"-"`
 	Family       Family   `json:"-"`
@@ -247,7 +244,7 @@ func (t *Table) owner() string {
 	return t.Machine
 }
 
-// finish indexes the rows and computes reachability and the stuck state.
+// finish indexes the rows and computes reachability.
 func (t *Table) finish() {
 	t.rowsFrom = map[string][]int{}
 	for i, r := range t.Rows {
@@ -261,17 +258,6 @@ func (t *Table) finish() {
 	}
 	t.model = &tableModel{table: t}
 	t.Reachable = reachable(t.Starts, t.Rows)
-	ends := map[string]bool{}
-	for _, e := range t.Ends {
-		ends[e] = true
-	}
-	t.Stuck = ""
-	for _, s := range t.Reachable {
-		if !ends[s] && t.steps(s) != pairEnabled {
-			t.Stuck = s
-			break
-		}
-	}
 }
 
 // reachable is `Umpire.Command.reachableFrom`: sweep the rows in table order, appending each newly
@@ -359,8 +345,7 @@ type TableSpec struct {
 	Claims []Claim
 }
 
-// NewTable builds a table from keys, indexing its rows and computing reachability and the stuck
-// state.
+// NewTable builds a table from keys, indexing its rows and computing reachability.
 // A spec that does not fit together (see checkSpec) still builds a table, whose Err every check of
 // it reports.
 func NewTable(spec TableSpec) *Table {

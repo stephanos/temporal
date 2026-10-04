@@ -55,7 +55,7 @@ func newFakeReplayBridge(t testing.TB, caseJSON json.RawMessage, caseID string, 
 		_ = fromClient.Close()
 		_ = toClient.Close()
 	})
-	return NewBridge(fromClient, toClient, 1<<20), fake
+	return &Bridge{conn: campaign.NewConn(fromClient, toClient, 1<<20)}, fake
 }
 
 func (f *fakeReplayBridge) serve(input io.Reader) {
@@ -241,7 +241,7 @@ func TestBridgeClientBreaksOnAMismatchedReply(t *testing.T) {
 			_, _ = io.WriteString(fromBridge, `{"frame":"admitted","seq":7,"set":"set","profile":"profile","edits":[]}`+"\n")
 		}
 	}()
-	bridge := NewBridge(fromClient, toClient, 1<<20)
+	bridge := &Bridge{conn: campaign.NewConn(fromClient, toClient, 1<<20)}
 	_, err := bridge.Admit(t.Context(), "set", "profile", Named{Query: "q"}, "identity")
 	var protocol *campaign.ProtocolError
 	require.ErrorAs(t, err, &protocol)

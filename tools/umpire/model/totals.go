@@ -43,11 +43,6 @@ func (c count) String() string {
 	return fmt.Sprint(c.n)
 }
 
-// QueryTotal is the static combination count of one Query of a Model Validate admits.
-func QueryTotal(m *umpirespb.Model, q *umpirespb.Query) (Total, error) {
-	return newValidator(m).total(m, q)
-}
-
 // RequireTotals refuses each Query of an admitted Model that asserts no total, with the count it
 // would assert. IR lifted before the assertion existed omits it; the lifter requires it of every
 // Query a current Model declares, and so does whoever generates Cases from that Model.

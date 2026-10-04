@@ -12,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/campaign"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	"go.temporal.io/server/common/testing/testpilot/temporal/binding"
@@ -19,6 +20,7 @@ import (
 	"go.temporal.io/server/tools/umpire/explore"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 func writeExplorationArtifact(t *testing.T, name string, data []byte) {
@@ -97,39 +99,72 @@ func TestTestpilotExplorationDiscoversUnpinnedExecution(t *testing.T) {
 	initialized, err := bridge.Initialize(ctx, "nexusDeadlines", "scala-discovery")
 	require.NoError(t, err)
 	require.Equal(t, []string{"startDeadline", "scheduleDeadline", "unbounded"}, initialized.Targets)
-	next, err := bridge.Next(ctx)
+	binder := &keptRunBinder{binder: campaign.CampaignBinder{Campaign: opened}}
+	report, err := campaign.Drive(ctx, bridge, binder, campaign.Caps{}, nil)
 	require.NoError(t, err)
-	require.NotNil(t, next.Candidate)
-	require.Equal(t, chosen.Bytes, next.Candidate.Case)
-	outcome, err := campaign.RunCandidate(ctx, bridge, campaign.CampaignBinder{Campaign: opened}, next.Candidate)
-	require.NoError(t, err)
-	require.NoError(t, outcome.ReleaseError)
-	require.NoError(t, outcome.RunError)
-	require.Equal(t, []string{"startDeadline"}, outcome.Credited.Credited)
-	next, err = bridge.Next(ctx)
-	require.NoError(t, err)
-	require.True(t, next.Exhausted, "the declared one-Run budget applies")
-	finished, err := bridge.Finish(ctx, "")
-	require.NoError(t, err)
+	require.Equal(t, campaign.StatusExhausted, report.Terminal.Status, "the declared one-Run budget applies")
+	require.Len(t, report.Outcomes, 1)
+	require.Equal(t, campaign.OutcomeCompleted, report.Outcomes[0].Kind)
+	require.Equal(t, []string{"startDeadline"}, report.Outcomes[0].Credited)
+	require.True(t, proto.Equal(chosen.Case, binder.source), "the bridge hands out the enumerated Case")
+	require.NoError(t, binder.releaseErr)
+	require.NoError(t, binder.runErr)
+	require.NotNil(t, report.Finished)
+	finished := *report.Finished
 	require.Equal(t, "limit-reached", finished.Status)
 	require.Equal(t, campaign.Summary{Targets: 3, Selected: 1, Covered: 1, Pending: 2}, finished.Summary)
 	require.Empty(t, finished.Counterexamples, "discovery never promotes a single Run")
 	sourceRoot, err := filepath.Abs("..")
 	require.NoError(t, err)
-	trace, err := explore.RenderTrace(chosen, plan.Query, outcome.Run, nil, sourceRoot)
+	trace, err := explore.RenderTrace(chosen, plan.Query, binder.run, nil, sourceRoot)
 	require.NoError(t, err)
 	recordPath := filepath.Join(t.TempDir(), "run.json")
-	require.NoError(t, recordedrun.Write(recordPath, chosen.Bytes, outcome.Driver, outcome.Run))
+	require.NoError(t, recordedrun.Write(recordPath, chosen.Bytes, binder.driver, binder.run))
 	record, err := os.ReadFile(recordPath)
 	require.NoError(t, err)
-	report, err := json.MarshalIndent(struct {
+	coverage, err := json.MarshalIndent(struct {
 		Enumeration *explore.Plan     `json:"exactFiniteEnumeration"`
 		Runtime     campaign.Finished `json:"sampledRuntimeCoverage"`
 		Schedule    string            `json:"scheduleGuarantee"`
 	}{plan, finished, "black-box repetition; no fixed runtime schedule"}, "", "  ")
 	require.NoError(t, err)
-	writeExplorationArtifact(t, "coverage.json", report)
+	writeExplorationArtifact(t, "coverage.json", coverage)
 	writeExplorationArtifact(t, "discovered-case.json", chosen.Bytes)
 	writeExplorationArtifact(t, "discovered-run.json", record)
 	writeExplorationArtifact(t, "discovered-trace.html", trace)
+}
+
+// keptRunBinder keeps the one Run a campaign drives, which the campaign's report does not retain.
+type keptRunBinder struct {
+	binder     campaign.Binder
+	source     *testpilotspb.Case
+	driver     testpilot.DriverIdentity
+	run        *testpilotspb.Run
+	runErr     error
+	releaseErr error
+}
+
+func (b *keptRunBinder) Bind(ctx context.Context, identity string, source *testpilotspb.Case) (campaign.Bound, error) {
+	b.source = source
+	bound, err := b.binder.Bind(ctx, identity, source)
+	if err != nil {
+		return nil, err
+	}
+	return &keptRun{Bound: bound, kept: b}, nil
+}
+
+type keptRun struct {
+	campaign.Bound
+	kept *keptRunBinder
+}
+
+func (r *keptRun) Run(ctx context.Context) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
+	run, verdict, err := r.Bound.Run(ctx)
+	r.kept.driver, r.kept.run, r.kept.runErr = r.Bound.Identity(), run, err
+	return run, verdict, err
+}
+
+func (r *keptRun) Release(ctx context.Context) error {
+	r.kept.releaseErr = r.Bound.Release(ctx)
+	return r.kept.releaseErr
 }

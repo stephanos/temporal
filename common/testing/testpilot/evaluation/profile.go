@@ -64,20 +64,6 @@ type Profile struct {
 	Identity string `json:"-"`
 }
 
-// ProfileNames lists the embedded Profiles' names, sorted.
-func ProfileNames() ([]string, error) {
-	entries, err := fs.ReadDir(embeddedProfiles, "profiles")
-	if err != nil {
-		return nil, err
-	}
-	var names []string
-	for _, entry := range entries {
-		names = append(names, strings.TrimSuffix(entry.Name(), ".json"))
-	}
-	slices.Sort(names)
-	return names, nil
-}
-
 // LoadProfile selects an embedded Profile by its exact name, never a path, and validates it.
 func LoadProfile(name string) (*Profile, error) {
 	return LoadProfileIn(embeddedProfiles, name)

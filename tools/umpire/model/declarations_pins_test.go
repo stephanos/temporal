@@ -95,7 +95,9 @@ func TestWithoutAVisibleProjectionAStuttersFactsAreNotRead(t *testing.T) {
 	})
 	require.Equal(t, Verified, receiptOf(t, checked(t, unprojected), "refinement disk store").Kind)
 	put := "put"
-	require.Equal(t, []RefinementRow{{Key: "empty-put", Product: &put}, {Key: "staged-flush"}}, built(t, unprojected)["disk"].Refinement)
+	rows, err := refinementOf(t, unprojected, "disk")
+	require.NoError(t, err)
+	require.Equal(t, []RefinementRow{{Key: "empty-put", Product: &put}, {Key: "staged-flush"}}, rows)
 
 	projected := receiptOf(t, checked(t, mutated(t, "declarations", noCrash, flushRecordsStored)), "refinement disk store")
 	require.Equal(t, []any{RefinementRejected, RefinementVisibleStutter}, []any{projected.Kind, projected.Failure})

@@ -59,12 +59,6 @@ func TestSyntheticCaseStrictDecodeAndNoIOAdmission(t *testing.T) {
 	require.Equal(t, []byte{8, 1, 16, 2}, message.GetValue())
 	require.True(t, proto.Equal(&testpilotspb.CaseProvenance{ProducerId: "standalone.lean.testpilot", ProducerVersion: "1"}, source.GetProvenance()))
 
-	wire, err := testpilot.PackCaseProtoJSON(encoded)
-	require.NoError(t, err)
-	roundTrip := new(testpilotspb.Case)
-	require.NoError(t, proto.Unmarshal(wire, roundTrip))
-	require.True(t, proto.Equal(source, roundTrip))
-
 	location := &testpilotspb.SourceLocation{Path: "A.lean", Line: 2147483647, Provenance: "authored"}
 	typed := proto.CloneOf(source)
 	typed.Provenance.Definitions = []*testpilotspb.DefinitionBinding{{DefinitionId: "p", BehaviorFingerprint: "f", Kind: testpilotspb.DEFINITION_KIND_PROPERTY}}

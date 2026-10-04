@@ -37,7 +37,6 @@ type migrationSubject struct {
 	Error      string
 	Table      *migrationTable
 	Refinement []RefinementRow
-	Rejected   string
 }
 
 type migrationPropertyRow struct {
@@ -121,6 +120,17 @@ func migrationError(err error) string {
 	return err.Error()
 }
 
+// migrationRefinement is the rows of a refinement over the machine's own rows: the ones RefineTables
+// pairs with the product's steps where the rows refine, even when a reachable hole leaves the
+// refinement itself unknown, and none where they do not. Why a refinement does not hold is its
+// receipt's.
+func migrationRefinement(r *refined) []RefinementRow {
+	if r.ref == nil || r.err != nil && r.incomplete == nil {
+		return nil
+	}
+	return r.ref.Rows
+}
+
 func migrationTableOf(table *Table) *migrationTable {
 	out := &migrationTable{Table: sideOf(table), Evidence: table.Evidence, Claims: table.Claims(), Fields: map[string][]Atom{}}
 	for _, state := range table.States {
@@ -194,7 +204,9 @@ func migrationMeaningParts(b *binding, subjectOf func(migrationSubject), propert
 		entry := migrationSubject{Name: name, Error: migrationError(subject.err)}
 		table := subject.table
 		if mm := b.machines[name]; mm != nil {
-			entry.Refinement, entry.Rejected = mm.Refinement, migrationError(mm.Rejected)
+			if mm.Decl.GetRefines() != nil && subject.err == nil {
+				entry.Refinement = migrationRefinement(b.refinement(subject))
+			}
 			if table == nil {
 				table = mm.Table
 			}
@@ -838,7 +850,7 @@ func migrateSemanticLocations(s *migrationSemantics, replace func(string) string
 }
 
 func migrateSubjectLocations(subject *migrationSubject, replace func(string) string) {
-	subject.Error, subject.Rejected = replace(subject.Error), replace(subject.Rejected)
+	subject.Error = replace(subject.Error)
 	if subject.Table != nil {
 		for j := range subject.Table.Unknown {
 			subject.Table.Unknown[j] = replace(subject.Table.Unknown[j])
@@ -1087,7 +1099,7 @@ func migrationDefinitionsOf(t *testing.T, b *binding) []migrationDefinition {
 				propertyTable, tableErr := bound.q.Property.Machine.Table()
 				require.NoError(t, tableErr)
 				fingerprint := umpire.Fingerprint(propertyTable.PropertySemantic(bound.q.Property.PropertyID(propertyTable), groups))
-				entry.Canonical = bound.q.QueryCanonical(bound.table, fingerprint)
+				entry.Canonical = bound.q.QueryCanonicalOf(bound.table, fingerprint, bound.table.TargetFingerprint())
 				entry.Fingerprint = umpire.Fingerprint(entry.Canonical)
 			}
 		}

@@ -20,7 +20,7 @@ import (
 func TestCapabilitiesGeneratedClaims(t *testing.T) {
 	m := lifted(t, "capabilities")
 	for _, q := range m.GetQueries() {
-		total, err := QueryTotal(m, q)
+		total, err := queryTotal(m, q)
 		require.NoError(t, err, q.GetName())
 		n, ok := total.N()
 		require.True(t, ok, q.GetName())
