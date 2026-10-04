@@ -1,8 +1,7 @@
 /* Cancel: a cancel is a request, recorded on the entity while its work is in flight. */
-package temporal.laws
+package temporal.capabilities
 
 import umpire.*
-import umpire.laws.Law
 
 /**
  * A cancel request is recorded in its own step: that step records `requested`. A functional law,

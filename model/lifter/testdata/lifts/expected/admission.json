@@ -422,8 +422,8 @@
   }, {
     "name": "activityProduct.property.pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
+      "file": "model/temporal/capabilities/Pause.scala",
+      "line": 24
     },
     "params": [ {
       "name": "before",
@@ -438,29 +438,29 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/laws/Pause.scala",
-        "line": 25
+        "file": "model/temporal/capabilities/Pause.scala",
+        "line": 24
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/laws/Pause.scala",
-            "line": 25
+            "file": "model/temporal/capabilities/Pause.scala",
+            "line": 24
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/laws/Pause.scala",
-                "line": 25
+                "file": "model/temporal/capabilities/Pause.scala",
+                "line": 24
               },
               "call": {
                 "function": "temporal.standaloneactivity.Product$.paused",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/laws/Pause.scala",
-                    "line": 25
+                    "file": "model/temporal/capabilities/Pause.scala",
+                    "line": 24
                   },
                   "var": "before"
                 } ]
@@ -470,22 +470,22 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/laws/Pause.scala",
-            "line": 25
+            "file": "model/temporal/capabilities/Pause.scala",
+            "line": 24
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/laws/Pause.scala",
-                "line": 25
+                "file": "model/temporal/capabilities/Pause.scala",
+                "line": 24
               },
               "call": {
                 "function": "activityProduct.property.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/laws/Pause.scala",
-                    "line": 25
+                    "file": "model/temporal/capabilities/Pause.scala",
+                    "line": 24
                   },
                   "var": "after"
                 } ]
@@ -498,8 +498,8 @@
   }, {
     "name": "activityProduct.property.pausedIsNotDispatched.never",
     "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
+      "file": "model/temporal/capabilities/Pause.scala",
+      "line": 24
     },
     "params": [ {
       "name": "s",
@@ -509,21 +509,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/laws/Pause.scala",
-        "line": 25
+        "file": "model/temporal/capabilities/Pause.scala",
+        "line": 24
       },
       "call": {
         "function": "temporal.standaloneactivity.Product$.running",
         "args": [ {
           "position": {
-            "file": "model/temporal/laws/Pause.scala",
-            "line": 25
+            "file": "model/temporal/capabilities/Pause.scala",
+            "line": 24
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/laws/Pause.scala",
-                "line": 25
+                "file": "model/temporal/capabilities/Pause.scala",
+                "line": 24
               },
               "var": "s"
             },
@@ -5564,8 +5564,8 @@
     "machine": "activityProduct",
     "name": "pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
+      "file": "model/temporal/capabilities/Pause.scala",
+      "line": 24
     },
     "holds": "activityProduct.property.pausedIsNotDispatched",
     "transition": true

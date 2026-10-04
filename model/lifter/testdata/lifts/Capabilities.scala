@@ -12,9 +12,9 @@
 package fixture.capabilities
 
 import umpire.*
-import umpire.laws.{closedIsRejectedUniformly, terminalStatesAreFinal, Capability, Catalog, Law}
+import temporal.capabilities.{closedIsRejectedUniformly, terminalStatesAreFinal}
 import umpire.realize.statusTable
-import temporal.laws.{terminateSettles, given}
+import temporal.capabilities.{given, *}
 
 given Family = Family("fixture.capabilities")
 
@@ -168,7 +168,7 @@ object statusStaysClosed
   def apply[S, P](m: Declares[S])(status: S => P, terminal: P => Boolean): Property[S] =
     m.property.once(s => terminal(status(s))).keeps(status)
 
-val keptCatalog: Catalog = Catalog.single(Capability.Closable)(statusStaysClosed)
+val keptCatalog: Catalog = Catalog.single(Closable)(statusStaysClosed)
 
 // Another twin, which declares Closable under the fixture's catalog.
 val keptJob = machine[Job, Answer, Note] {

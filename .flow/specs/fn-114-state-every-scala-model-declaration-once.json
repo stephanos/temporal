@@ -13,6 +13,7 @@
   "impl_review_rounds": {
     "fn-114-state-every-scala-model-declaration-once.1": 0,
     "fn-114-state-every-scala-model-declaration-once.11": 0,
+    "fn-114-state-every-scala-model-declaration-once.12": 0,
     "fn-114-state-every-scala-model-declaration-once.2": 0,
     "fn-114-state-every-scala-model-declaration-once.3": 0,
     "fn-114-state-every-scala-model-declaration-once.4": 0,
@@ -581,11 +582,64 @@
       "task": "fn-114-state-every-scala-model-declaration-once.11",
       "timestamp": "2026-10-04T18:43:10.217605Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "0245da15d3ed46d7ba35883f243ac5937c5771b614fba7743f08112dbffb34d9",
+      "backend": "claude",
+      "base_sha": "49306f67dceed5404f196729200ed8647ec62b97",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-0359ba43301e4ffeb3f12b195bb0bc8f",
+            "classification": "introduced",
+            "findingId": "finding-0359ba43301e4ffeb3f12b195bb0bc8f",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-15d4e613f33be329ef37c3440ded793b",
+            "classification": "pre_existing",
+            "findingId": "finding-15d4e613f33be329ef37c3440ded793b",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8294e77c9ebd36437f3e8488418707430730b3df",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 5258,
+      "output_sha256": "03a0bd451ff1a6092fee556795cb3e22b222898a70810b5b794f011099a27e3f",
+      "reservation_id": "8bb0201776724e378c4aecb4813eb330",
+      "round_consumed": true,
+      "scope": "impl:fn-114-state-every-scala-model-declaration-once.12",
+      "superseded_by": null,
+      "task": "fn-114-state-every-scala-model-declaration-once.12",
+      "timestamp": "2026-10-04T19:32:09.077611Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-114-state-every-scala-model-declaration-once.1": 1,
     "impl:fn-114-state-every-scala-model-declaration-once.11": 1,
+    "impl:fn-114-state-every-scala-model-declaration-once.12": 1,
     "impl:fn-114-state-every-scala-model-declaration-once.2": 1,
     "impl:fn-114-state-every-scala-model-declaration-once.3": 1,
     "impl:fn-114-state-every-scala-model-declaration-once.4": 1,
@@ -600,6 +654,7 @@
   "review_transport_failures": {
     "impl:fn-114-state-every-scala-model-declaration-once.1": 0,
     "impl:fn-114-state-every-scala-model-declaration-once.11": 0,
+    "impl:fn-114-state-every-scala-model-declaration-once.12": 0,
     "impl:fn-114-state-every-scala-model-declaration-once.2": 0,
     "impl:fn-114-state-every-scala-model-declaration-once.3": 0,
     "impl:fn-114-state-every-scala-model-declaration-once.4": 0,
@@ -622,5 +677,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T18:43:10.222332Z"
+  "updated_at": "2026-10-04T19:32:09.084900Z"
 }

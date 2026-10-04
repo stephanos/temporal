@@ -1,5 +1,5 @@
 {
-  "source": "model: temporal.standaloneactivity.ActivityRealization$.standalone, temporal.standaloneactivity.Functional$.all, temporal.standaloneactivity.Model$package$.activityProduct, temporal.standaloneactivity.Model$package$.standaloneActivity, temporal.standaloneactivity.Properties$package$.productCapabilities, temporal.standaloneactivity.Properties$package$.protocolCapabilities, temporal.standaloneactivity.Queries$package$.cancelRequest, temporal.standaloneactivity.Queries$package$.stoppedWorkerStartsNothing",
+  "source": "model: temporal.standaloneactivity.ActivityRealization$.standalone, temporal.standaloneactivity.Capabilities$package$.productCapabilities, temporal.standaloneactivity.Capabilities$package$.protocolCapabilities, temporal.standaloneactivity.Functional$.all, temporal.standaloneactivity.Model$package$.activityProduct, temporal.standaloneactivity.Model$package$.standaloneActivity, temporal.standaloneactivity.Queries$package$.cancelRequest, temporal.standaloneactivity.Queries$package$.stoppedWorkerStartsNothing",
   "types": [ {
     "name": "temporal.standaloneactivity.AttemptResult",
     "position": {
@@ -502,7 +502,7 @@
   }, {
     "name": "activityProduct.property.activityProduct.closedIsRejectedUniformly",
     "position": {
-      "file": "model/umpire/laws/Laws.scala",
+      "file": "model/temporal/capabilities/Close.scala",
       "line": 59
     },
     "params": [ {
@@ -518,35 +518,35 @@
     } ],
     "body": {
       "position": {
-        "file": "model/umpire/laws/Laws.scala",
+        "file": "model/temporal/capabilities/Close.scala",
         "line": 60
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/umpire/laws/Laws.scala",
+            "file": "model/temporal/capabilities/Close.scala",
             "line": 60
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/umpire/laws/Laws.scala",
+                "file": "model/temporal/capabilities/Close.scala",
                 "line": 60
               },
               "call": {
                 "function": "temporal.standaloneactivity.Product$.terminal",
                 "args": [ {
                   "position": {
-                    "file": "model/umpire/laws/Laws.scala",
+                    "file": "model/temporal/capabilities/Close.scala",
                     "line": 60
                   },
                   "call": {
                     "function": "temporal.standaloneactivity.Product$.phase",
                     "args": [ {
                       "position": {
-                        "file": "model/umpire/laws/Laws.scala",
+                        "file": "model/temporal/capabilities/Close.scala",
                         "line": 60
                       },
                       "var": "before"
@@ -559,27 +559,27 @@
         },
         "right": {
           "position": {
-            "file": "model/umpire/laws/Laws.scala",
+            "file": "model/temporal/capabilities/Close.scala",
             "line": 60
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
-                "file": "model/umpire/laws/Laws.scala",
+                "file": "model/temporal/capabilities/Close.scala",
                 "line": 60
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/umpire/laws/Laws.scala",
+                    "file": "model/temporal/capabilities/Close.scala",
                     "line": 60
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/umpire/laws/Laws.scala",
+                        "file": "model/temporal/capabilities/Close.scala",
                         "line": 60
                       },
                       "var": "after"
@@ -589,7 +589,7 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/umpire/laws/Laws.scala",
+                    "file": "model/temporal/capabilities/Close.scala",
                     "line": 60
                   },
                   "var": "before"
@@ -598,20 +598,20 @@
             },
             "right": {
               "position": {
-                "file": "model/umpire/laws/Laws.scala",
+                "file": "model/temporal/capabilities/Close.scala",
                 "line": 60
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
-                    "file": "model/umpire/laws/Laws.scala",
+                    "file": "model/temporal/capabilities/Close.scala",
                     "line": 60
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/umpire/laws/Laws.scala",
+                        "file": "model/temporal/capabilities/Close.scala",
                         "line": 60
                       },
                       "var": "after"
@@ -621,8 +621,8 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 20
+                    "file": "model/temporal/standaloneactivity/Capabilities.scala",
+                    "line": 19
                   },
                   "literal": {
                     "enum": {
@@ -640,8 +640,8 @@
   }, {
     "name": "activityProduct.property.activityProduct.pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
+      "file": "model/temporal/capabilities/Pause.scala",
+      "line": 24
     },
     "params": [ {
       "name": "before",
@@ -656,29 +656,29 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/laws/Pause.scala",
-        "line": 25
+        "file": "model/temporal/capabilities/Pause.scala",
+        "line": 24
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/laws/Pause.scala",
-            "line": 25
+            "file": "model/temporal/capabilities/Pause.scala",
+            "line": 24
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/laws/Pause.scala",
-                "line": 25
+                "file": "model/temporal/capabilities/Pause.scala",
+                "line": 24
               },
               "call": {
                 "function": "temporal.standaloneactivity.Product$.paused",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/laws/Pause.scala",
-                    "line": 25
+                    "file": "model/temporal/capabilities/Pause.scala",
+                    "line": 24
                   },
                   "var": "before"
                 } ]
@@ -688,22 +688,22 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/laws/Pause.scala",
-            "line": 25
+            "file": "model/temporal/capabilities/Pause.scala",
+            "line": 24
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/laws/Pause.scala",
-                "line": 25
+                "file": "model/temporal/capabilities/Pause.scala",
+                "line": 24
               },
               "call": {
                 "function": "activityProduct.property.activityProduct.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/laws/Pause.scala",
-                    "line": 25
+                    "file": "model/temporal/capabilities/Pause.scala",
+                    "line": 24
                   },
                   "var": "after"
                 } ]
@@ -716,8 +716,8 @@
   }, {
     "name": "activityProduct.property.activityProduct.pausedIsNotDispatched.never",
     "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
+      "file": "model/temporal/capabilities/Pause.scala",
+      "line": 24
     },
     "params": [ {
       "name": "s",
@@ -727,21 +727,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/laws/Pause.scala",
-        "line": 25
+        "file": "model/temporal/capabilities/Pause.scala",
+        "line": 24
       },
       "call": {
         "function": "temporal.standaloneactivity.Product$.running",
         "args": [ {
           "position": {
-            "file": "model/temporal/laws/Pause.scala",
-            "line": 25
+            "file": "model/temporal/capabilities/Pause.scala",
+            "line": 24
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/laws/Pause.scala",
-                "line": 25
+                "file": "model/temporal/capabilities/Pause.scala",
+                "line": 24
               },
               "var": "s"
             },
@@ -753,7 +753,7 @@
   }, {
     "name": "activityProduct.property.activityProduct.terminalStatesAreFinal",
     "position": {
-      "file": "model/umpire/laws/Laws.scala",
+      "file": "model/temporal/capabilities/Close.scala",
       "line": 31
     },
     "params": [ {
@@ -769,35 +769,35 @@
     } ],
     "body": {
       "position": {
-        "file": "model/umpire/laws/Laws.scala",
+        "file": "model/temporal/capabilities/Close.scala",
         "line": 32
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/umpire/laws/Laws.scala",
+            "file": "model/temporal/capabilities/Close.scala",
             "line": 32
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/umpire/laws/Laws.scala",
+                "file": "model/temporal/capabilities/Close.scala",
                 "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.Product$.terminal",
                 "args": [ {
                   "position": {
-                    "file": "model/umpire/laws/Laws.scala",
+                    "file": "model/temporal/capabilities/Close.scala",
                     "line": 32
                   },
                   "call": {
                     "function": "temporal.standaloneactivity.Product$.phase",
                     "args": [ {
                       "position": {
-                        "file": "model/umpire/laws/Laws.scala",
+                        "file": "model/temporal/capabilities/Close.scala",
                         "line": 32
                       },
                       "var": "before"
@@ -810,27 +810,27 @@
         },
         "right": {
           "position": {
-            "file": "model/umpire/laws/Laws.scala",
+            "file": "model/temporal/capabilities/Close.scala",
             "line": 32
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/umpire/laws/Laws.scala",
+                "file": "model/temporal/capabilities/Close.scala",
                 "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.Product$.phase",
                 "args": [ {
                   "position": {
-                    "file": "model/umpire/laws/Laws.scala",
+                    "file": "model/temporal/capabilities/Close.scala",
                     "line": 32
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/umpire/laws/Laws.scala",
+                        "file": "model/temporal/capabilities/Close.scala",
                         "line": 32
                       },
                       "var": "after"
@@ -842,14 +842,14 @@
             },
             "right": {
               "position": {
-                "file": "model/umpire/laws/Laws.scala",
+                "file": "model/temporal/capabilities/Close.scala",
                 "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.Product$.phase",
                 "args": [ {
                   "position": {
-                    "file": "model/umpire/laws/Laws.scala",
+                    "file": "model/temporal/capabilities/Close.scala",
                     "line": 32
                   },
                   "var": "before"
@@ -1072,8 +1072,8 @@
   }, {
     "name": "activityProtocol.property.activityProtocol.cancelIsRequested",
     "position": {
-      "file": "model/temporal/laws/Cancel.scala",
-      "line": 26
+      "file": "model/temporal/capabilities/Cancel.scala",
+      "line": 25
     },
     "params": [ {
       "name": "step",
@@ -1083,15 +1083,15 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/laws/Cancel.scala",
-        "line": 26
+        "file": "model/temporal/capabilities/Cancel.scala",
+        "line": 25
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
-            "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 46
+            "file": "model/temporal/standaloneactivity/Capabilities.scala",
+            "line": 45
           },
           "literal": {
             "enum": {
@@ -1102,14 +1102,14 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/laws/Cancel.scala",
-            "line": 26
+            "file": "model/temporal/capabilities/Cancel.scala",
+            "line": 25
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/laws/Cancel.scala",
-                "line": 26
+                "file": "model/temporal/capabilities/Cancel.scala",
+                "line": 25
               },
               "var": "step"
             },
@@ -1121,8 +1121,8 @@
   }, {
     "name": "activityProtocol.property.activityProtocol.terminateSettles",
     "position": {
-      "file": "model/temporal/laws/Terminate.scala",
-      "line": 29
+      "file": "model/temporal/capabilities/Terminate.scala",
+      "line": 28
     },
     "params": [ {
       "name": "step",
@@ -1132,15 +1132,15 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/laws/Terminate.scala",
-        "line": 29
+        "file": "model/temporal/capabilities/Terminate.scala",
+        "line": 28
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
-            "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 40
+            "file": "model/temporal/standaloneactivity/Capabilities.scala",
+            "line": 39
           },
           "literal": {
             "enum": {
@@ -1151,14 +1151,14 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/laws/Terminate.scala",
-            "line": 29
+            "file": "model/temporal/capabilities/Terminate.scala",
+            "line": 28
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/laws/Terminate.scala",
-                "line": 29
+                "file": "model/temporal/capabilities/Terminate.scala",
+                "line": 28
               },
               "var": "step"
             },
@@ -1171,7 +1171,7 @@
     "name": "activityProtocol.property.cancelRequestedWhileStarted",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 76
+      "line": 35
     },
     "params": [ {
       "name": "s",
@@ -1182,33 +1182,33 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 77
+        "line": 36
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 77
+            "line": 36
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 77
+                "line": 36
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 77
+                    "line": 36
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Properties.scala",
-                        "line": 77
+                        "line": 36
                       },
                       "var": "s"
                     },
@@ -1221,7 +1221,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 77
+                "line": 36
               },
               "literal": {
                 "enum": {
@@ -1235,14 +1235,14 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 77
+            "line": 36
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 77
+                "line": 36
               },
               "literal": {
                 "enum": {
@@ -1254,13 +1254,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 77
+                "line": 36
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 77
+                    "line": 36
                   },
                   "var": "s"
                 },
@@ -1275,7 +1275,7 @@
     "name": "activityProtocol.property.canceledByWorker",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 81
+      "line": 40
     },
     "params": [ {
       "name": "s",
@@ -1286,33 +1286,33 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 82
+        "line": 41
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 82
+            "line": 41
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 82
+                "line": 41
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 82
+                    "line": 41
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Properties.scala",
-                        "line": 82
+                        "line": 41
                       },
                       "var": "s"
                     },
@@ -1325,7 +1325,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 82
+                "line": 41
               },
               "literal": {
                 "enum": {
@@ -1339,14 +1339,14 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 82
+            "line": 41
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 82
+                "line": 41
               },
               "literal": {
                 "enum": {
@@ -1358,13 +1358,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 82
+                "line": 41
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 82
+                    "line": 41
                   },
                   "var": "s"
                 },
@@ -1379,7 +1379,7 @@
     "name": "activityProtocol.property.completes",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 53
+      "line": 12
     },
     "params": [ {
       "name": "s",
@@ -1390,33 +1390,33 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 54
+        "line": 13
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 54
+            "line": 13
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 54
+                "line": 13
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 54
+                    "line": 13
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Properties.scala",
-                        "line": 54
+                        "line": 13
                       },
                       "var": "s"
                     },
@@ -1429,7 +1429,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 54
+                "line": 13
               },
               "literal": {
                 "enum": {
@@ -1443,14 +1443,14 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 54
+            "line": 13
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 54
+                "line": 13
               },
               "literal": {
                 "enum": {
@@ -1462,13 +1462,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 54
+                "line": 13
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 54
+                    "line": 13
                   },
                   "var": "s"
                 },
@@ -1483,7 +1483,7 @@
     "name": "activityProtocol.property.nonRetryableFails",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 58
+      "line": 17
     },
     "params": [ {
       "name": "s",
@@ -1494,33 +1494,33 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 59
+        "line": 18
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 59
+            "line": 18
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 59
+                "line": 18
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 59
+                    "line": 18
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Properties.scala",
-                        "line": 59
+                        "line": 18
                       },
                       "var": "s"
                     },
@@ -1533,7 +1533,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 59
+                "line": 18
               },
               "literal": {
                 "enum": {
@@ -1547,14 +1547,14 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 59
+            "line": 18
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 59
+                "line": 18
               },
               "literal": {
                 "enum": {
@@ -1566,13 +1566,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 59
+                "line": 18
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 59
+                    "line": 18
                   },
                   "var": "s"
                 },
@@ -1587,7 +1587,7 @@
     "name": "activityProtocol.property.retryCompletes",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 71
+      "line": 30
     },
     "params": [ {
       "name": "s",
@@ -1598,27 +1598,27 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 72
+        "line": 31
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 72
+            "line": 31
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 72
+                "line": 31
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 72
+                    "line": 31
                   },
                   "var": "s"
                 },
@@ -1628,14 +1628,14 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 64
+                "line": 23
               },
               "construct": {
                 "type": "temporal.standaloneactivity.ProtocolState",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 64
+                    "line": 23
                   },
                   "literal": {
                     "enum": {
@@ -1654,7 +1654,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 64
+                    "line": 23
                   },
                   "literal": {
                     "enum": {
@@ -1665,7 +1665,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 64
+                    "line": 23
                   },
                   "literal": {
                     "enum": {
@@ -1676,7 +1676,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 64
+                    "line": 23
                   },
                   "literal": {
                     "enum": {
@@ -1692,14 +1692,14 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 72
+            "line": 31
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 72
+                "line": 31
               },
               "literal": {
                 "enum": {
@@ -1711,13 +1711,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 72
+                "line": 31
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 72
+                    "line": 31
                   },
                   "var": "s"
                 },
@@ -1732,7 +1732,7 @@
     "name": "activityProtocol.property.scheduleToStartFires",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 91
+      "line": 50
     },
     "params": [ {
       "name": "s",
@@ -1743,33 +1743,33 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 92
+        "line": 51
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 92
+            "line": 51
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 92
+                "line": 51
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 92
+                    "line": 51
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Properties.scala",
-                        "line": 92
+                        "line": 51
                       },
                       "var": "s"
                     },
@@ -1782,7 +1782,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 92
+                "line": 51
               },
               "literal": {
                 "enum": {
@@ -1796,14 +1796,14 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 93
+            "line": 52
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 93
+                "line": 52
               },
               "construct": {
                 "type": "temporal.standaloneactivity.ProtocolFact",
@@ -1811,7 +1811,7 @@
                 "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 93
+                    "line": 52
                   },
                   "literal": {
                     "enum": {
@@ -1825,13 +1825,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 93
+                "line": 52
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 93
+                    "line": 52
                   },
                   "var": "s"
                 },
@@ -1846,7 +1846,7 @@
     "name": "activityProtocol.property.startToCloseFires",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 101
+      "line": 60
     },
     "params": [ {
       "name": "s",
@@ -1857,33 +1857,33 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 102
+        "line": 61
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 102
+            "line": 61
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 102
+                "line": 61
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 102
+                    "line": 61
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Properties.scala",
-                        "line": 102
+                        "line": 61
                       },
                       "var": "s"
                     },
@@ -1896,7 +1896,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 102
+                "line": 61
               },
               "literal": {
                 "enum": {
@@ -1910,14 +1910,14 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 103
+            "line": 62
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 103
+                "line": 62
               },
               "construct": {
                 "type": "temporal.standaloneactivity.ProtocolFact",
@@ -1925,7 +1925,7 @@
                 "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 103
+                    "line": 62
                   },
                   "literal": {
                     "enum": {
@@ -1939,13 +1939,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 103
+                "line": 62
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 103
+                    "line": 62
                   },
                   "var": "s"
                 },
@@ -1960,7 +1960,7 @@
     "name": "activityProtocol.property.terminated",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 85
+      "line": 44
     },
     "params": [ {
       "name": "s",
@@ -1971,33 +1971,33 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 86
+        "line": 45
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 86
+            "line": 45
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 86
+                "line": 45
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 86
+                    "line": 45
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Properties.scala",
-                        "line": 86
+                        "line": 45
                       },
                       "var": "s"
                     },
@@ -2010,7 +2010,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 86
+                "line": 45
               },
               "literal": {
                 "enum": {
@@ -2024,14 +2024,14 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 86
+            "line": 45
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 86
+                "line": 45
               },
               "literal": {
                 "enum": {
@@ -2043,13 +2043,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 86
+                "line": 45
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 86
+                    "line": 45
                   },
                   "var": "s"
                 },
@@ -2064,7 +2064,7 @@
     "name": "standaloneActivity.property.startedByPollingWorker",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 109
+      "line": 68
     },
     "params": [ {
       "name": "step",
@@ -2075,32 +2075,32 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 109
+        "line": 68
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 109
+            "line": 68
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 109
+                "line": 68
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 109
+                    "line": 68
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Properties.scala",
-                        "line": 109
+                        "line": 68
                       },
                       "var": "step"
                     },
@@ -2116,7 +2116,7 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 109
+            "line": 68
           },
           "literal": {
             "enum": {
@@ -8694,7 +8694,7 @@
     "machine": "activityProduct",
     "name": "activityProduct.closedIsRejectedUniformly",
     "position": {
-      "file": "model/umpire/laws/Laws.scala",
+      "file": "model/temporal/capabilities/Close.scala",
       "line": 59
     },
     "holds": "activityProduct.property.activityProduct.closedIsRejectedUniformly",
@@ -8703,8 +8703,8 @@
     "machine": "activityProduct",
     "name": "activityProduct.pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
+      "file": "model/temporal/capabilities/Pause.scala",
+      "line": 24
     },
     "holds": "activityProduct.property.activityProduct.pausedIsNotDispatched",
     "transition": true
@@ -8712,7 +8712,7 @@
     "machine": "activityProduct",
     "name": "activityProduct.terminalStatesAreFinal",
     "position": {
-      "file": "model/umpire/laws/Laws.scala",
+      "file": "model/temporal/capabilities/Close.scala",
       "line": 31
     },
     "holds": "activityProduct.property.activityProduct.terminalStatesAreFinal",
@@ -8721,8 +8721,8 @@
     "machine": "activityProtocol",
     "name": "activityProtocol.cancelIsRequested",
     "position": {
-      "file": "model/temporal/laws/Cancel.scala",
-      "line": 26
+      "file": "model/temporal/capabilities/Cancel.scala",
+      "line": 25
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.control",
@@ -8738,8 +8738,8 @@
     "machine": "activityProtocol",
     "name": "activityProtocol.terminateSettles",
     "position": {
-      "file": "model/temporal/laws/Terminate.scala",
-      "line": 29
+      "file": "model/temporal/capabilities/Terminate.scala",
+      "line": 28
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.control",
@@ -8756,7 +8756,7 @@
     "name": "cancelRequestedWhileStarted",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 76
+      "line": 35
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.control",
@@ -8773,7 +8773,7 @@
     "name": "canceledByWorker",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 81
+      "line": 40
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.attemptResult",
@@ -8790,7 +8790,7 @@
     "name": "completes",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 53
+      "line": 12
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.attemptResult",
@@ -8807,7 +8807,7 @@
     "name": "nonRetryableFails",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 58
+      "line": 17
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.attemptResult",
@@ -8827,7 +8827,7 @@
     "name": "retryCompletes",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 71
+      "line": 30
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.attemptResult",
@@ -8844,7 +8844,7 @@
     "name": "scheduleToStartFires",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 91
+      "line": 50
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.scheduleToStart"
@@ -8855,7 +8855,7 @@
     "name": "startToCloseFires",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 101
+      "line": 60
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.startToClose"
@@ -8866,7 +8866,7 @@
     "name": "terminated",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 85
+      "line": 44
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.control",
@@ -8883,7 +8883,7 @@
     "name": "startedByPollingWorker",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 107
+      "line": 66
     },
     "whenAction": "attemptStart",
     "holds": "standaloneActivity.property.startedByPollingWorker"
@@ -8892,8 +8892,8 @@
     "machine": "activityProduct",
     "name": "activityProduct.closedIsRejectedUniformly",
     "position": {
-      "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 20
+      "file": "model/temporal/standaloneactivity/Capabilities.scala",
+      "line": 19
     },
     "start": {
       "position": {
@@ -8921,8 +8921,8 @@
     "machine": "activityProduct",
     "name": "activityProduct.pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 21
+      "file": "model/temporal/standaloneactivity/Capabilities.scala",
+      "line": 20
     },
     "start": {
       "position": {
@@ -8950,8 +8950,8 @@
     "machine": "activityProduct",
     "name": "activityProduct.terminalStatesAreFinal",
     "position": {
-      "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 20
+      "file": "model/temporal/standaloneactivity/Capabilities.scala",
+      "line": 19
     },
     "start": {
       "position": {
@@ -8979,8 +8979,8 @@
     "machine": "activityProtocol",
     "name": "activityProtocol.cancelIsRequested",
     "position": {
-      "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 44
+      "file": "model/temporal/standaloneactivity/Capabilities.scala",
+      "line": 43
     },
     "start": {
       "position": {
@@ -9077,8 +9077,8 @@
     "machine": "activityProtocol",
     "name": "activityProtocol.terminateSettles",
     "position": {
-      "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 38
+      "file": "model/temporal/standaloneactivity/Capabilities.scala",
+      "line": 37
     },
     "start": {
       "position": {
@@ -10088,8 +10088,8 @@
   "queries": [ {
     "name": "activityProduct.closedIsRejectedUniformly",
     "position": {
-      "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 20
+      "file": "model/temporal/standaloneactivity/Capabilities.scala",
+      "line": 19
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -10110,8 +10110,8 @@
   }, {
     "name": "activityProduct.pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 21
+      "file": "model/temporal/standaloneactivity/Capabilities.scala",
+      "line": 20
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -10132,8 +10132,8 @@
   }, {
     "name": "activityProduct.terminalStatesAreFinal",
     "position": {
-      "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 20
+      "file": "model/temporal/standaloneactivity/Capabilities.scala",
+      "line": 19
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -10154,8 +10154,8 @@
   }, {
     "name": "activityProtocol.cancelIsRequested",
     "position": {
-      "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 44
+      "file": "model/temporal/standaloneactivity/Capabilities.scala",
+      "line": 43
     },
     "form": "FORM_FIND",
     "property": {
@@ -10181,8 +10181,8 @@
   }, {
     "name": "activityProtocol.terminateSettles",
     "position": {
-      "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 38
+      "file": "model/temporal/standaloneactivity/Capabilities.scala",
+      "line": 37
     },
     "form": "FORM_FIND",
     "property": {

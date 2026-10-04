@@ -1,15 +1,15 @@
-/* The entity-neutral laws: what any entity with a terminal status set is held to, whatever it is.
+/* Close: what any entity with a terminal status set is held to, the laws Closable brings.
  *
  * Each law is an object named after the law: its `apply` takes the model and the capability's fields
  * and returns a Property of that model, and its `Law` arguments say what it promises, what it leaves
  * to other laws and which server code it rests on. The Property takes its name from the val that
  * declares the call (`val terminalStays = terminalStatesAreFinal(m)(…)`), or under a capability
- * declaration `<machine>.<law>`. The framework's files name no sugar, so each body is the core form
- * of the claim pattern its scaladoc names (model/umpire/Syntax.scala).
+ * declaration `<machine>.<law>`. Each body is the core form of the claim pattern its scaladoc names
+ * (model/umpire/Syntax.scala), as the laws were first lifted.
  */
-package umpire.laws
+package temporal.capabilities
 
-import umpire.{Declares, Property}
+import umpire.{Declares, Law, Property}
 
 /**
  * No step leaves the terminal set: from a state whose `status` is `terminal`, every step keeps the

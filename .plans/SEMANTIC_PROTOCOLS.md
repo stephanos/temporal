@@ -206,9 +206,11 @@ single-capability law or an interaction law names its law. A feature-specific cl
 stays authored. No claim is left unclassified. `Pollable` is the spec's name for this document's
 `Dispatchable`.
 
-**The catalog.** The defs live in `model/umpire/laws/Laws.scala` (entity-neutral) and
-`model/temporal/laws/{Terminate,Cancel,Pause}.scala`. The one `given Catalog` is in
-`model/temporal/laws/Catalog.scala`.
+**The catalog.** The defs live in `model/temporal/capabilities/{Close,Terminate,Cancel,Pause}.scala`
+(fn-122 task 8 moved the two formerly entity-neutral Close laws there from `model/umpire/laws`). The
+one `given Catalog` is in `model/temporal/capabilities/Catalog.scala`, beside the six capability
+kinds (`Capabilities.scala`); the framework keeps only `CapabilityOf`, `CapabilityKind`, `Law` and
+`Catalog`.
 
 | Law | Brought by | Instantiating machines (planned) | Today's instances |
 | --- | --- | --- | --- |

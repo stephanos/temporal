@@ -13,7 +13,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -53,16 +52,7 @@ type frameworkAllowance struct {
 // frameworkAllowances are the mentions that stay for now. Each one moves out of the framework with
 // the task its reason names, which removes its entry; a generic use that no rewording can serve may
 // be added with its reason.
-var frameworkAllowances = []frameworkAllowance{
-	{
-		path:   "model/umpire/Capabilities.scala",
-		reason: "the capability vocabulary moves to model/temporal in fn-122-capabilities-and-their-laws.8, which removes this entry",
-	},
-	{
-		path:   "model/umpire/laws/",
-		reason: "the laws over the capabilities move to model/temporal in fn-122-capabilities-and-their-laws.8, which removes this entry",
-	},
-}
+var frameworkAllowances = []frameworkAllowance{}
 
 func (a frameworkAllowance) covers(rel string) bool {
 	if strings.HasSuffix(a.path, "/") {
@@ -157,7 +147,7 @@ func TestFrameworkNamesNoTemporal(t *testing.T) {
 		mentions = append(mentions, found...)
 	}))
 	require.Greater(t, scanned, 10, "the walk reaches the framework's sources")
-	assert.Empty(t, mentions, "the framework names no Temporal concept: reword these with a neutral example, keeping the rule each explains")
+	require.Empty(t, mentions, "the framework names no Temporal concept: reword these with a neutral example, keeping the rule each explains")
 
 	var stale []string
 	for _, a := range frameworkAllowances {
@@ -165,7 +155,7 @@ func TestFrameworkNamesNoTemporal(t *testing.T) {
 			stale = append(stale, a.path)
 		}
 	}
-	assert.Empty(t, stale, "these allowances keep no mention any more: remove them")
+	require.Empty(t, stale, "these allowances keep no mention any more: remove them")
 }
 
 func TestTemporalTermsAreFound(t *testing.T) {

@@ -9,7 +9,7 @@
       "terminal": "temporal.standaloneactivity.Product$.terminal",
       "rejected": "temporal.standaloneactivity.Outcome.notFound"
     },
-    "position": "model/temporal/standaloneactivity/Properties.scala:20"
+    "position": "model/temporal/standaloneactivity/Capabilities.scala:19"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.pausedIsNotDispatched",
@@ -19,7 +19,7 @@
       "paused": "temporal.standaloneactivity.Product$.paused",
       "running": "temporal.standaloneactivity.Product$.running"
     },
-    "position": "model/temporal/standaloneactivity/Properties.scala:21"
+    "position": "model/temporal/standaloneactivity/Capabilities.scala:20"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.terminalStatesAreFinal",
@@ -29,7 +29,7 @@
       "status": "temporal.standaloneactivity.Product$.phase",
       "terminal": "temporal.standaloneactivity.Product$.terminal"
     },
-    "position": "model/temporal/standaloneactivity/Properties.scala:20"
+    "position": "model/temporal/standaloneactivity/Capabilities.scala:19"
   }, {
     "machine": "activityProtocol",
     "name": "activityProtocol.cancelIsRequested",
@@ -39,7 +39,7 @@
       "requestCancel": "temporal.standaloneactivity.Model$package.control.apply(temporal.standaloneactivity.Control.requestCancel)",
       "requested": "temporal.standaloneactivity.ProtocolFact.statusCancelRequested"
     },
-    "position": "model/temporal/standaloneactivity/Properties.scala:44"
+    "position": "model/temporal/standaloneactivity/Capabilities.scala:43"
   }, {
     "machine": "activityProtocol",
     "name": "activityProtocol.terminateSettles",
@@ -49,7 +49,7 @@
       "terminate": "temporal.standaloneactivity.Model$package.control.apply(temporal.standaloneactivity.Control.terminate)",
       "settled": "temporal.standaloneactivity.ProtocolFact.statusTerminated"
     },
-    "position": "model/temporal/standaloneactivity/Properties.scala:38"
+    "position": "model/temporal/standaloneactivity/Capabilities.scala:37"
   } ],
   "waivers": [ ],
   "catalog": [ {

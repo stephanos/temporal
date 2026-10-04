@@ -374,8 +374,7 @@ The lifter reads what an author wrote, as written:
   reads as the type the call applies it to. A case class whose every field is a Property, Scenario
   or Query bundles claims: built by its constructor in such a function, it lifts as its claims, and
   `x.field` reads one back. The laws such functions state once for every entity are lifted sources
-  too: `model/temporal/laws`, and of the framework `model/umpire/laws` alone, whose TASTy the lifter
-  reads beside the Models'.
+  too, in `model/temporal/capabilities`; the framework holds none.
 - **Types:** enums with and without case fields, case classes, and bounded counters `UpTo[N]`: a
   field `attempts: UpTo[2]` has the values 0, 1 and 2, lifted as the IR int range 0..2, and a step
   writes one with `UpTo(n)`. It replaces integer fields bounded by the per-record
@@ -568,7 +567,7 @@ contract, through the pin and the type-name rule above.
 
 A claim over several designs is one function over `Declares[S]` whose state-dependent parts are
 parameters, and each call passes defs of the lifted sources. A law is such a function, written once
-for every entity in `model/temporal/laws` or `model/umpire/laws`, and each instance is named by the
+for every entity in `model/temporal/capabilities`, and each instance is named by the
 `val` that declares its call:
 
 ```scala
@@ -588,10 +587,14 @@ expression, a class or `when` reads `rejected` as `Outcome.notFound`.
 
 A machine declares its capabilities, each binding a protocol's parameters to its own vocabulary,
 and receives the laws the given `Catalog` brings for each capability and for each pair it declares
-both of, without listing them (model/umpire/Capabilities.scala, model/umpire/laws):
+both of, without listing them. The framework keeps the mechanism (model/umpire/Capabilities.scala,
+model/umpire/Catalog.scala: `CapabilityOf`, `CapabilityKind`, `Law`, `Catalog`, `capabilities`,
+`except`, `overriding`) and names no capability; Temporal's kinds, their bindings, every law with its
+server citations and the one `given Catalog` live in `model/temporal/capabilities`. Each Model folder
+that adopts capabilities declares them in its own `Capabilities.scala`:
 
 ```scala
-import temporal.laws.given
+import temporal.capabilities.{given, *}
 
 val jobCapabilities = capabilities(job, limits = three)(
   Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone),
@@ -604,10 +607,13 @@ val jobCapabilities = capabilities(job, limits = three)(
 Each law is lifted as a Property, a Scenario and a Query, all named `<machine>.<law>`: the law's
 `apply` (or the def an `overriding(law -> def, because = …)` names, which takes the law's
 parameters) folded with the model and the fields of the capabilities that bring it, bound by
-parameter name. A law of one action class (`when`) is asked by a `find` from the start through
-`reach` and that class; any other is verified over the free Scenario from the start under `limits`.
-The Query's total is computed as below; a find expects of a server the Run its capability's
-`expect` names (Terminable and Cancelable carry one). `except` lifts nothing for its law. A Query of
+parameter name. A law of one action class (`when`) is asked by a `find` from the start through the
+capability's path to a live state (its field that lists action classes, Terminable's `reach`) and
+that class; any other is verified over the free Scenario from the start under `limits`. The Query's
+total is computed as below; a find expects of a server the Run its capability's `RunExpectation`
+field names (Terminable and Cancelable carry one). A field of an action class names an action the
+machine must bind. A capability is a case class extending `CapabilityOf` whose companion extends
+`CapabilityKind`, which the catalog keys its laws by; the lifter refuses any other. `except` lifts nothing for its law. A Query of
 the entity's own reads a generated Property by its law, `declared.claim(pausedIsNotDispatched)`, as
 the activity's pinned paths do; a law the declaration waives has none. The lifter writes what
 it expanded beside the IR file, as `<file>.laws.json`: each generated claim with its law and

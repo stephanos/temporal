@@ -1,8 +1,7 @@
 /* Terminate: what a terminate does to a live entity, wherever the entity is. */
-package temporal.laws
+package temporal.capabilities
 
 import umpire.*
-import umpire.laws.Law
 
 /**
  * A terminate settles the entity in its own step: that step records `settled`. A functional law,
