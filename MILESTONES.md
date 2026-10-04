@@ -67,7 +67,7 @@ production dispatch fails closed.
 | Order | Spec | In one line | Waits for |
 | --- | --- | --- | --- |
 | 1 | fn-112 foundations | Settle declaration, step, composition and author-computed Query-total contracts | — |
-| 2 | fn-120 choices | Build named choices against the settled step surface, before branching Models are rewritten | fn-112 foundations |
+| 2 | fn-120 choices | Named choices done (fn-120.1); the rollout and the refusal of unnamed branches (fn-120.2) wait for fn-114 | fn-112 foundations |
 | 3 | fn-112 showcase | Rewrite the standalone activity Model, extract the shared task queue and build the realization kit | fn-120 choices |
 | 4 | fn-114 | Roll the final showcase constructs, including choices, out to every other Model | fn-112 showcase |
 | alongside 3 | fn-118 interface | Settle hint-aware realization helpers with the shared kit; no waiting-behavior changes yet | done in fn-118.1 |
@@ -118,7 +118,8 @@ derivations (`rebind`, `extend`, `refining`, `assuming`, `unmonitored`; `restric
 check that compares derived outputs and Case bytes rather than IR function bodies. Task 4 is done: typed
 composition selectors, `Declares[S]` and the claim patterns. Task 5 is done: input tokens, named inputs
 with `:=` and `UpTo` counters. Task 11 is done: every Query carries an author-written total (largest 887,040)
-that Go recomputes and refuses when wrong. fn-120.1 (named choices) is merging onto it; task 6 follows. Before tasks 6 and 7 change a
+that Go recomputes and refuses when wrong. fn-120.1 (named choices: `choose` with named alternatives, inert in the IR and
+exported to Quint) is merged, so task 6 converts branching steps with `choose`. Task 6 is next. Before tasks 6 and 7 change a
 production function body, they extend or re-capture the fn-115 migration golden (`TestMigrationGoldens`), which
 still compares function bodies. Task 6 also makes the 168
 state/action pairs disabled only by a default arm explicit; two Properties that are false on 120
