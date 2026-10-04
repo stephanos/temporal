@@ -1,0 +1,132 @@
+ M tools/gomad3/ARCHITECTURE.md
+ M tools/gomad3/CLI.md
+ M tools/gomad3/Makefile
+ M tools/gomad3/README.md
+ M tools/gomad3/TUTORIAL.md
+ M tools/gomad3/architecture_test.go
+ M tools/gomad3/cmd/gomadtool/compatibility_pack_refresh.go
+ M tools/gomad3/internal/compatibilitypack/schema.go
+ M tools/gomad3/internal/gomadtool/conformance/testdata/runner_external/consumer.go
+ M tools/gomad3/record/validation.go
+ M tools/gomad3/runner/inspect.go
+ M tools/gomad3/runner/internal/execution/simulation_root_integration_test.go
+ M tools/gomad3/target/capability.go
+ M tools/gomad3/target/capability_evaluation.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/export_test.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/volume.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_commands_export_test.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_network.go
+ M tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go
+ M tools/gomad3/toolchain/version/version.json
+ M tools/gomad3/upgrade/pinimpact/pinimpact.go
+ M tools/gomad3/world/codec.go
+ M tools/gomad3/world/errors.go
+ M tools/gomad3/world/process/session.go
+ M tools/gomad3/world/recording.go
+ M tools/gomad3/world/replay.go
+ M tools/gomad3/world/snapshot.go
+ M tools/gomad3/world/world.go
+?? tools/gomad3/filesystem_handles_ownership_test.go
+?? tools/gomad3/internal/compatibilitypack/schema_timezone_test.go
+?? tools/gomad3/internal/gomadtool/architecture/architecture.go
+?? tools/gomad3/internal/gomadtool/architecture/architecture_test.go
+?? tools/gomad3/internal/gomadtool/architecture/edges.go
+?? tools/gomad3/internal/gomadtool/architecture/effects.go
+?? tools/gomad3/internal/gomadtool/architecture/effects_test.go
+?? tools/gomad3/internal/gomadtool/architecture/initialization.go
+?? tools/gomad3/internal/gomadtool/architecture/initialization_test.go
+?? tools/gomad3/internal/gomadtool/architecture/memory_sources.go
+?? tools/gomad3/internal/gomadtool/architecture/mutation_test.go
+?? tools/gomad3/internal/gomadtool/architecture/program.go
+?? tools/gomad3/internal/gomadtool/architecture/signature_test.go
+?? tools/gomad3/internal/gomadtool/architecture/standard.go
+?? tools/gomad3/internal/gomadtool/architecture/startup_sources.go
+?? tools/gomad3/network_handles_ownership_test.go
+?? tools/gomad3/record/validation_timestamp_test.go
+?? tools/gomad3/record/world_terminal_identity_test.go
+?? tools/gomad3/runner/inspect_capacity.go
+?? tools/gomad3/runner/inspect_projection_test.go
+?? tools/gomad3/simulation_gate_selection_test.go
+?? tools/gomad3/target/capability_projection_test.go
+?? tools/gomad3/testdata/architecture/effects.json
+?? tools/gomad3/testdata/architecture/effects/audit-regressions/blank-import-init.go.txt
+?? tools/gomad3/testdata/architecture/effects/audit-regressions/clone-callback.go.txt
+?? tools/gomad3/testdata/architecture/effects/audit-regressions/copy-callback.go.txt
+?? tools/gomad3/testdata/architecture/effects/audit-regressions/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/audit-regressions/initializer.go.txt
+?? tools/gomad3/testdata/architecture/effects/audit-regressions/insert-callback.go.txt
+?? tools/gomad3/testdata/architecture/effects/audit-regressions/pointer-callback.go.txt
+?? tools/gomad3/testdata/architecture/effects/audit-regressions/range-iterator.go.txt
+?? tools/gomad3/testdata/architecture/effects/audit-regressions/slice-pointer-json.go.txt
+?? tools/gomad3/testdata/architecture/effects/effectful-unrelated-sibling/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/effectful-unrelated-sibling/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/entropy/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/entropy/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/environment/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/environment/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/filesystem/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/filesystem/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/fmt-formatter/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/fmt-formatter/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/fmt-gostring/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/fmt-gostring/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/fmt-stringer/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/fmt-stringer/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/generic-callback/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/generic-callback/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/goroutine/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/goroutine/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/indirect-clock/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/indirect-clock/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/json-file-reader/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/json-file-reader/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/json-file-writer/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/json-file-writer/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/local-location/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/local-location/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/method-value/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/method-value/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/nested-json/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/nested-json/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/nested-text/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/nested-text/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/network/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/network/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/process/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/process/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/pure-callback/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/pure-callback/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/pure-fmt-type/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/pure-fmt-type/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/pure-memory-stream/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/pure-memory-stream/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/pure-nested-json/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/pure-nested-json/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/pure-recursive-cycle/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/pure-recursive-cycle/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/recursive-cycle/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/recursive-cycle/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/stored-callback/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/stored-callback/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/timer/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/timer/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/unknown-callback/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/unknown-callback/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/unknown-location/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/unknown-location/record.go.txt
+?? tools/gomad3/testdata/architecture/effects/utc-location/helper.go.txt
+?? tools/gomad3/testdata/architecture/effects/utc-location/record.go.txt
+?? tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles.go
+?? tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles_test.go
+?? tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/local_handles.go
+?? tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_handles_test.go
+?? tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go
+?? tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go
+?? tools/gomad3/upgrade/pinimpact/packs_directory_test.go
+?? tools/gomad3/world/process/session_terminal_test.go
+?? tools/gomad3/world/recording_terminal_test.go
+edc9690d6d8d0a6aeb574f1e4a878aa6bd0eea0e
+2026-10-04T07:03:07Z

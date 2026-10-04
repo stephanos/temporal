@@ -1,0 +1,4 @@
+# go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture [go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.test]
+internal/gomadtool/architecture/standard.go:511:22: undefined: slices
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture [build failed]
+FAIL

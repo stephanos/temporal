@@ -81,7 +81,7 @@ func preflightSnapshotJSON(data []byte) error {
 		return fmt.Errorf("config: %w", err)
 	}
 	if err := validateConfig(config); err != nil {
-		return fmt.Errorf("config: %w", err)
+		return modelContextError("config", err)
 	}
 	maximumString := uint64(config.Limits.MaxStringBytes)
 	encodedPayload := config.Limits.MaxPayloadBytes

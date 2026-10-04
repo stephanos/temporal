@@ -1,0 +1,29 @@
+2026-10-04T06:55:00Z
+=== RUN   TestDependencyInitialization
+=== RUN   TestDependencyInitialization/called-dependency
+=== RUN   TestDependencyInitialization/blank-import
+=== RUN   TestDependencyInitialization/variable-initializer
+=== RUN   TestDependencyInitialization/second-init
+=== RUN   TestDependencyInitialization/transitive-import
+=== RUN   TestDependencyInitialization/pure-initializers
+=== RUN   TestDependencyInitialization/standard-startup
+--- PASS: TestDependencyInitialization (3.79s)
+    --- PASS: TestDependencyInitialization/called-dependency (0.56s)
+    --- PASS: TestDependencyInitialization/blank-import (0.49s)
+    --- PASS: TestDependencyInitialization/variable-initializer (0.50s)
+    --- PASS: TestDependencyInitialization/second-init (0.59s)
+    --- PASS: TestDependencyInitialization/transitive-import (0.63s)
+    --- PASS: TestDependencyInitialization/pure-initializers (0.02s)
+    --- PASS: TestDependencyInitialization/standard-startup (1.00s)
+=== RUN   TestThirdPartyInitialization
+=== RUN   TestThirdPartyInitialization/clock
+=== RUN   TestThirdPartyInitialization/pure
+--- PASS: TestThirdPartyInitialization (0.60s)
+    --- PASS: TestThirdPartyInitialization/clock (0.58s)
+    --- PASS: TestThirdPartyInitialization/pure (0.02s)
+=== RUN   TestStandardStartupIdentity
+--- PASS: TestStandardStartupIdentity (0.33s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	4.726s
+2026-10-04T06:55:05Z
+suite_rc=0

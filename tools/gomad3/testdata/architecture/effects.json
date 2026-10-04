@@ -1,0 +1,326 @@
+[
+  {
+    "name": "indirect-clock",
+    "category": "host-effect",
+    "detail": "time.Now",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/indirect-clock/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/indirect-clock/helper.go.txt"
+    }
+  },
+  {
+    "name": "environment",
+    "category": "host-effect",
+    "detail": "os.Getenv",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/environment/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/environment/helper.go.txt"
+    }
+  },
+  {
+    "name": "filesystem",
+    "category": "host-effect",
+    "detail": "os.ReadFile",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/filesystem/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/filesystem/helper.go.txt"
+    }
+  },
+  {
+    "name": "process",
+    "category": "host-effect",
+    "detail": "os/exec",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/process/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/process/helper.go.txt"
+    }
+  },
+  {
+    "name": "network",
+    "category": "host-effect",
+    "detail": "net",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/network/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/network/helper.go.txt"
+    }
+  },
+  {
+    "name": "timer",
+    "category": "host-effect",
+    "detail": "time.NewTimer",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/timer/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/timer/helper.go.txt"
+    }
+  },
+  {
+    "name": "entropy",
+    "category": "host-effect",
+    "detail": "crypto/rand",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/entropy/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/entropy/helper.go.txt"
+    }
+  },
+  {
+    "name": "goroutine",
+    "category": "host-effect",
+    "detail": "goroutine start",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/goroutine/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/goroutine/helper.go.txt"
+    }
+  },
+  {
+    "name": "stored-callback",
+    "category": "host-effect",
+    "detail": "time.Now",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/stored-callback/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/stored-callback/helper.go.txt"
+    }
+  },
+  {
+    "name": "method-value",
+    "category": "host-effect",
+    "detail": "time.Now",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/method-value/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/method-value/helper.go.txt"
+    }
+  },
+  {
+    "name": "generic-callback",
+    "category": "host-effect",
+    "detail": "time.Now",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/generic-callback/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/generic-callback/helper.go.txt"
+    }
+  },
+  {
+    "name": "recursive-cycle",
+    "category": "host-effect",
+    "detail": "time.Now",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/recursive-cycle/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/recursive-cycle/helper.go.txt"
+    }
+  },
+  {
+    "name": "nested-json",
+    "category": "host-effect",
+    "detail": "time.Now",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/nested-json/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/nested-json/helper.go.txt"
+    }
+  },
+  {
+    "name": "nested-text",
+    "category": "host-effect",
+    "detail": "os.Getenv",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/nested-text/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/nested-text/helper.go.txt"
+    }
+  },
+  {
+    "name": "json-file-writer",
+    "category": "host-effect",
+    "detail": "os.*File.Write",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/json-file-writer/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/json-file-writer/helper.go.txt"
+    }
+  },
+  {
+    "name": "json-file-reader",
+    "category": "host-effect",
+    "detail": "os.*File.Read",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/json-file-reader/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/json-file-reader/helper.go.txt"
+    }
+  },
+  {
+    "name": "fmt-stringer",
+    "category": "host-effect",
+    "detail": "time.Now",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/fmt-stringer/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/fmt-stringer/helper.go.txt"
+    }
+  },
+  {
+    "name": "fmt-formatter",
+    "category": "host-effect",
+    "detail": "time.Now",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/fmt-formatter/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/fmt-formatter/helper.go.txt"
+    }
+  },
+  {
+    "name": "fmt-gostring",
+    "category": "host-effect",
+    "detail": "time.Now",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/fmt-gostring/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/fmt-gostring/helper.go.txt"
+    }
+  },
+  {
+    "name": "unknown-callback",
+    "category": "unresolved-effect",
+    "detail": "callback",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/unknown-callback/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/unknown-callback/helper.go.txt"
+    }
+  },
+  {
+    "name": "unknown-location",
+    "category": "host-effect",
+    "detail": "proven time.UTC",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/unknown-location/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/unknown-location/helper.go.txt"
+    }
+  },
+  {
+    "name": "local-location",
+    "category": "host-effect",
+    "detail": "proven time.UTC",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/local-location/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/local-location/helper.go.txt"
+    }
+  },
+  {
+    "name": "utc-location",
+    "category": "",
+    "detail": "",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/utc-location/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/utc-location/helper.go.txt"
+    }
+  },
+  {
+    "name": "pure-callback",
+    "category": "",
+    "detail": "",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/pure-callback/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/pure-callback/helper.go.txt"
+    }
+  },
+  {
+    "name": "pure-recursive-cycle",
+    "category": "",
+    "detail": "",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/pure-recursive-cycle/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/pure-recursive-cycle/helper.go.txt"
+    }
+  },
+  {
+    "name": "pure-nested-json",
+    "category": "",
+    "detail": "",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/pure-nested-json/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/pure-nested-json/helper.go.txt"
+    }
+  },
+  {
+    "name": "pure-memory-stream",
+    "category": "",
+    "detail": "",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/pure-memory-stream/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/pure-memory-stream/helper.go.txt"
+    }
+  },
+  {
+    "name": "pure-fmt-type",
+    "category": "",
+    "detail": "",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/pure-fmt-type/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/pure-fmt-type/helper.go.txt"
+    }
+  },
+  {
+    "name": "effectful-unrelated-sibling",
+    "category": "",
+    "detail": "",
+    "files": {
+      "record/pure.go": "testdata/architecture/effects/effectful-unrelated-sibling/record.go.txt",
+      "helper/helper.go": "testdata/architecture/effects/effectful-unrelated-sibling/helper.go.txt"
+    }
+  },
+  {
+    "Name": "copy-callback",
+    "Category": "host-effect",
+    "Detail": "time.Now",
+    "Files": {
+      "record/record.go": "testdata/architecture/effects/audit-regressions/copy-callback.go.txt",
+      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
+    }
+  },
+  {
+    "Name": "insert-callback",
+    "Category": "host-effect",
+    "Detail": "time.Now",
+    "Files": {
+      "record/record.go": "testdata/architecture/effects/audit-regressions/insert-callback.go.txt",
+      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
+    }
+  },
+  {
+    "Name": "clone-callback",
+    "Category": "host-effect",
+    "Detail": "time.Now",
+    "Files": {
+      "record/record.go": "testdata/architecture/effects/audit-regressions/clone-callback.go.txt",
+      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
+    }
+  },
+  {
+    "Name": "pointer-callback",
+    "Category": "host-effect",
+    "Detail": "time.Now",
+    "Files": {
+      "record/record.go": "testdata/architecture/effects/audit-regressions/pointer-callback.go.txt",
+      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
+    }
+  },
+  {
+    "Name": "range-iterator",
+    "Category": "host-effect",
+    "Detail": "time.Now",
+    "Files": {
+      "record/record.go": "testdata/architecture/effects/audit-regressions/range-iterator.go.txt",
+      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
+    }
+  },
+  {
+    "Name": "slice-pointer-json",
+    "Category": "host-effect",
+    "Detail": "time.Now",
+    "Files": {
+      "record/record.go": "testdata/architecture/effects/audit-regressions/slice-pointer-json.go.txt",
+      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
+    }
+  },
+  {
+    "Name": "blank-import-init",
+    "Category": "host-effect",
+    "Detail": "time.Now",
+    "Files": {
+      "record/record.go": "testdata/architecture/effects/audit-regressions/blank-import-init.go.txt",
+      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/initializer.go.txt"
+    }
+  }
+]

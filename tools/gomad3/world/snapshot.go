@@ -191,7 +191,7 @@ func replaySnapshotTransition(w *Model, transition Transition) error {
 }
 
 func invalidSnapshot(field string) error {
-	return fmt.Errorf("%w: %s", ErrInvalidSnapshot, field)
+	return classifiedError(invalidSnapshotSentinel, fmt.Sprintf("%s", field))
 }
 
 func stateDigest(snapshot Snapshot) Digest {

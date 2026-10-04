@@ -1,0 +1,65 @@
+# Task 19 frozen source audit
+
+This bounded independent audit found six actionable gaps in the new host-effect checker. Each permits a demonstrated `time.Now` call to escape through an architecturally allowed dependency on both qualified source sets. The findings apply to the original frozen source, and require correction before its source acceptance. This report is a source audit, not a formal backend verdict or native qualification.
+
+The assignment's already-resolved routing remains `no_key`, requested `gpt-6.1-sol/high`, actual execution metadata unknown, and writer/auditor from the same family. No routing rejudgment occurred. The auditor changed only this report and isolated temporary test artifacts, and made no Git, index, task, spec, state, or old-evidence changes.
+
+## Reproduction and source identity
+
+The original nine checker files were copied into `/tmp/task19-source-audit.JuNWcd/architecture` before concurrent corrections. Their hashes match `final-source.sha256` and `task-owned-source.sha256`. The two finding-bearing files are:
+
+- `effects.go`: `3dd692a6958c9250bd6a131a8e6b37b02fcf5bceee6a18c7a08b25949715d935`
+- `standard.go`: `418f36f43308bd19ea39beacde91ed2074b220c71183ccd197fd8d6c44bf0aad`
+
+The complete independent fixture is `/tmp/task19-source-audit.JuNWcd/architecture/independent_audit_test.go`, SHA-256 `d68f33e906c4e2de679290ee4eda683098aeaae6a51afb11822c627e89044f60`. Its final log is `/tmp/task19-source-audit.JuNWcd/frozen-owned-native-callbacks.log`, SHA-256 `59a3481a08e03b7bf5239af2b793543da467fdfea1b465527c6bd2bc9b8ea489`.
+
+Reproduce all findings with:
+
+```sh
+cd /tmp/task19-source-audit.JuNWcd
+GOWORK=off go test -count=1 -tags test_dep ./architecture -run '^TestIndependentCallbackMutation$' -v
+```
+
+The command exits 1. Nine negative subtests return `findings=[]` on both `linux/amd64` and `darwin/arm64`; four controls pass. Each subtest also runs its tiny fixture under stock Go on the actual Linux/arm64 host and verifies that the effectful callback executes, or remains unused for the pure control. That stock execution establishes the reproducer's ordinary Go behavior only.
+
+The fixture uses `record -> internal/canonicaljson`, which is an allowed owner edge. The dependency has package name `helper`, with `Clean`, `Dirty`, `Set`, `Iter`, and `Value`. `Dirty`, `Iter`, and `(*Value).MarshalJSON` each call `time.Now` and increment an observable counter. Every subtest independently checks `PackageEdges` and rejects an unrelated ownership/edge failure. These escapes do not depend on an ownerless helper package.
+
+## Actionable findings
+
+1. **P1. Builtin copy loses destination callback provenance.** `tools/gomad3/internal/gomadtool/architecture/effects.go:736` handles `copy` through the builtin fallback and returns only its scalar result. It does not propagate source elements into the destination. The exact root is `dst := []func(){helper.Clean}; copy(dst, []func(){helper.Dirty}); dst[0]()`. Native behavior invokes `Dirty`; the checker retains only `Clean` and produces no finding. The `copy-slice` subtest reproduces it. Model the destination mutation, including aliases, or fail closed for effect-bearing element copies. Keep the existing pure-copy positive control.
+
+2. **P1. Memory summaries lose slice transformation values and mutations.** `tools/gomad3/internal/gomadtool/architecture/standard.go:143` accepts `slices.Insert` and `slices.Clone` with type-only results. For `dst := []func(){helper.Clean}; dst = slices.Insert(dst, 0, helper.Dirty); dst[0]()`, the later assignment joins that empty summary into the known-pure destination and hides `Dirty`. Replacing `Insert` with `Clone([]func(){helper.Dirty})` also escapes when `dst` already has a known-pure value. The `slices-insert`, `slices-clone-existing`, and `slices-insert-alias` subtests reproduce these cases. The alias case deliberately gives `dst` spare capacity so insertion actually mutates storage visible through the alias. A freshly declared `dst := slices.Clone(...)` correctly fails closed with `unresolved-effect`, demonstrating why the reassignment cases matter. Preserve callback/value graphs in transform results and model possible destination storage mutation, or conservatively reject the unsupported transforms.
+
+3. **P1. Indirect stores update a pointer wrapper instead of its pointee.** `tools/gomad3/internal/gomadtool/architecture/effects.go:968` merges `*p = value` into the abstract pointer object without updating the original cell retained in `$pointee`. The exact root is `f := helper.Clean; p := &f; *p = helper.Dirty; f()`. The cross-function form `f := helper.Clean; helper.Set(&f); f()`, with `Set(p *func()) { *p = Dirty }`, also escapes. Both native fixtures execute `Dirty`, while `pointer-callback-store` and `pointer-callback-helper-store` produce no finding. Propagate indirect writes to the pointee shared by the caller and its aliases.
+
+4. **P1. Range-over-function never invokes its iterator in the effect graph.** `tools/gomad3/internal/gomadtool/architecture/effects.go:999` evaluates `RangeStmt.X` as a value and handles element bindings, but does not model the implicit iterator call. `for range helper.Iter {}` executes `Iter(yield func(int) bool) { _ = time.Now(); yield(1) }` under Go, yet `range-function` produces no finding. Model the iterator invocation and yield/body values, or fail closed when a function range cannot be analyzed.
+
+5. **P1. JSON traversal omits pointer callbacks on addressable values.** `tools/gomad3/internal/gomadtool/architecture/standard.go:483` checks only the value type's method set; slice recursion at line 524 retains that value type. `json.Marshal([]helper.Value{{}})` invokes an effectful `func (*Value) MarshalJSON() ([]byte, error)` because slice elements are addressable. The checker reports no effect in `json-slice-pointer-marshaler`. The direct-pointer control `json.Marshal(&helper.Value{})` correctly reports `host-effect`. The pinned standard source `encoding/json/encode.go:425` explicitly selects the pointer marshaler through its conditional-address encoder. Track addressability when modeling JSON's MarshalJSON/MarshalText and decode callback selection, retaining legal non-addressable value behavior.
+
+6. **P1. Imported dependency initialization is omitted.** `tools/gomad3/internal/gomadtool/architecture/effects.go:258` selects function roots only from pure files, and line 296 applies the same restriction to initializer expressions. Import initialization creates no transitive effect edges. In `dependency-initializer`, `record.Check` calls only `helper.Clean`, while the allowed dependency has `func init() { _ = time.Now(); Calls++ }`. Stock execution proves that importing the dependency calls the clock; both qualified-source analyses return no finding. Include reachable dependency initialization in the pure owner's graph, with an explicit justified boundary for foundational standard-library initialization rather than an unrestricted exemption for dependency initializers.
+
+These findings concern task 19's newly introduced checker. They demonstrate unmet targeted-effect/fail-closed requirements even though the original suite passes. They do not establish that existing World or Record production operations currently execute any of these exact reproducers.
+
+## Other inspected contracts
+
+The inventory source independently walks Go files and nested modules. Its exact `Within` matching distinguishes prefix lookalikes, hidden/underscore roots, unexpected nested modules inside excluded fixture trees, and generated roots. Required exclusions and classified nested modules must retain matching source; `.toolchain` and `.bin` remain optional. Included `Error` and `DepsErrors` records become findings. `PackageEdges` runs separately for each platform, so required direct edges cannot be satisfied by combining platform inventories. The preserved inventories contain 55 host packages, 738 source files and 13 nested modules on each of darwin/arm64, linux/amd64 and the actual Linux/arm64 source set, with no included package errors.
+
+The root inventory/signature/effect fixtures execute the checker and assert categories; the effect fixtures also assert diagnostic details. The retained negative controls cover ownerless roots, hidden source, missing dependencies, owner edges, required facade edges, inaccessible internal identities, transitive effects, and unknown callbacks. The gaps above require additional fixtures.
+
+The public-signature walker follows Gomad-owned named/alias/underlying/embedding/method graphs, containers, type parameters, and foreign generic arguments. `CanImport` checks every internal path segment with exact parent boundaries. Importable foreign named public boundaries preserve the publisher's sealed API graph. Runner's journal/artifact report values and target's complete evidence projection map all inspected fields in declaration/tag order. Target copies nested mutable storage, retaining nil/empty containers and present-zero pointers. The inspected migration inventory accurately names the detached public graphs, `pinimpact.Spec.PacksDirectory`, and `Recorder.FinishTerminal`, including the intentional direct-custom-error and sentinel-rebinding behavior change. No additional introduced public-signature or projection defect was demonstrated in this bounded audit.
+
+The four timestamp repairs retain their layouts and validation positions while using explicit UTC. Record tests compare complete parse errors and original timestamp strings, fixed canonical-byte/record/failure hashes, and decode round trips. Governance tests retain trailing-Z admission, independent complete pack bytes, timestamp spelling, and owner/justification/time/workload/platform/approval precedence.
+
+World's original sentinels are closed private identities with fixed messages. Core `FinishError` recognizes only those sentinels, concrete capacity/replay errors and private model-produced wrappers, rejecting arbitrary inputs without callbacks or closing the recorder. Known wrapper cause/type behavior, recording bytes and canonical identities have independent preimage coverage. `Session.finish` validates its session before invoking `Error`, captures detail before ordered `errors.Is`, preserves unknown-error wrapping, and closes its descriptor at the existing failure position. No additional introduced World terminal defect was demonstrated.
+
+## Verification and open gates
+
+The auditor ran only focused checks. Existing frozen checker inventory/signature/effect/context controls passed in 9.242s. Focused World/core/process, timestamp, governance, target projection, Runner projection and explicit pack-directory preservation tests passed. The narrowly selected root public-signature and external-consumer compilation checks passed in 2.878s. A preliminary regex matched no pinimpact/refresh tests; it contributes no evidence. The auditor subsequently ran the two exact pinimpact directory/load-order tests successfully. No broad root, Runner, generated validation, patched-toolchain or native qualification suite was rerun.
+
+The preserved Quick logs report root test, complete host-inventory vet, and validate success, and the reference Quick retains D4's blocked status. Vet source forwards every discovered import path on each of the three source sets. The earlier broad-vet failures are confined to additive GOROOT overlay inputs, consistent with the retained exact exclusion and baseline logs. Passing Quick logs do not resolve the demonstrated checker gaps.
+
+At initial and mid-audit checkpoints, all 964 original task-19 source hashes and all 14 task-18 pins verified. At 2026-10-04 06:35:34 UTC, the original task-19 manifest reported three concurrent authorized changes in `architecture/signature_test.go`, `target/internal/capabilitypolicy/policy_test.go`, and `target/internal/capabilitypolicy/simulation_bridge.go`. The auditor did not make them. Task 18's 14 pins subsequently verified again. The original manifest itself remains unchanged, SHA-256 `de79de4ccd0a4b013e51b745bb61d4784970d1b7e5fa2d0e9b93aabb1d0fad11`. Findings and frozen unit controls remain bound to the preserved checker copy. Corrections need separate source identities and review evidence.
+
+The pre-task source at `0dd05b313acd0986312da7fd3159520e6a21f1bf` had the fixed-root/import/alias checks and no private architecture checker. The retained World preimage receipt explicitly identifies that baseline and original byte oracle. Task 13-18 source changes are outside these findings. The stale first-party D26 bridge pin is inherited from that baseline; its old `runtime_time_toolchain.go` digest is present there, and the conductor is repairing it separately. It is not a task-19 introduced defect.
+
+Linux/arm64 is developmental and unsupported for patched Runner qualification. Static inspection, cross-vet, external stock compilation, and these small stock-Go behavior fixtures do not supply native darwin/arm64 or linux/amd64 acceptance. D4 closure, native qualification, and formal implementation acceptance remain conductor-owned open gates.

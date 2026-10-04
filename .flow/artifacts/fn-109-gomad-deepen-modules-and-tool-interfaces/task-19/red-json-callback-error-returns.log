@@ -1,0 +1,32 @@
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/json-marshaler-error-return
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+    effects_test.go:75: callback clock escaped actual root: [{host-effect  /home/agent/.cache/codex-build/tmp/TestEffectCallbackContextsAndUnwrapReturnsjson-marshaler-error-4275379755/001/record/pure.go:1:190 example.invalid/architecture/record.dirty -> example.invalid/architecture/record.dirty -> time.Now}]
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/json-writer-error-return
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+    effects_test.go:75: callback clock escaped actual root: [{host-effect  /home/agent/.cache/codex-build/tmp/TestEffectCallbackContextsAndUnwrapReturnsjson-writer-error-ret3530862255/001/record/pure.go:1:190 example.invalid/architecture/record.dirty -> example.invalid/architecture/record.dirty -> time.Now}]
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/json-reader-error-return
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+    effects_test.go:75: callback clock escaped actual root: [{host-effect  /home/agent/.cache/codex-build/tmp/TestEffectCallbackContextsAndUnwrapReturnsjson-reader-error-ret3708850283/001/record/pure.go:1:190 example.invalid/architecture/record.dirty -> example.invalid/architecture/record.dirty -> time.Now}]
+--- FAIL: TestEffectCallbackContextsAndUnwrapReturns (1.15s)
+    --- FAIL: TestEffectCallbackContextsAndUnwrapReturns/json-marshaler-error-return (0.40s)
+    --- FAIL: TestEffectCallbackContextsAndUnwrapReturns/json-writer-error-return (0.38s)
+    --- FAIL: TestEffectCallbackContextsAndUnwrapReturns/json-reader-error-return (0.37s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	1.158s
+FAIL

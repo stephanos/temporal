@@ -1,0 +1,5 @@
+# go.temporal.io/server/tools/gomad3/record [go.temporal.io/server/tools/gomad3/record.test]
+record/world_terminal_identity_test.go:18:58: recording.Transitions undefined (type world.Recording has no field or method Transitions)
+record/world_terminal_identity_test.go:22:166: recording.Transitions undefined (type world.Recording has no field or method Transitions)
+FAIL	go.temporal.io/server/tools/gomad3/record [build failed]
+FAIL

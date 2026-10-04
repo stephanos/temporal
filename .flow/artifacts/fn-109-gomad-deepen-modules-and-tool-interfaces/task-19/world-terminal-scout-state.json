@@ -1,0 +1,8 @@
+{
+  "task_title": "World terminal purity and preservation contract decision",
+  "task_body": "Read-only codebase question: Recorder.FinishError(error) calls arbitrary Error/Is/Unwrap callbacks despite World purity guidance. Identify actual supported terminal-error constructions/callers, preservation obligations, and the smallest sound repair that does not exempt unknown callbacks or remove supported behavior.",
+  "acceptance": "Source-grounded alternatives and recommended precise scope, explicit incompatible obligations if any, real regression/preservation cases. No writes/tests/build/generation/package loading/Flow/Git/bridges; task19 source changes are outside this scout.",
+  "touches_count": 0,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

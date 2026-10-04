@@ -1,0 +1,8 @@
+{
+  "task_title": "Independently audit task 19 frozen architecture and public boundary source",
+  "task_body": "Read the task and frozen handover, inspect checker code and scoped public boundary repairs, verify evidence and targeted regressions. Audit package inventory, exact required graph edges, signature traversal, host-effect call/callback/alias/recursive summaries, UTC and World terminal identity handling against actual source. Do not write source or Git/Flow state, and distinguish source audit from formal backend SHIP or native acceptance.",
+  "acceptance": "Return actionable source-backed introduced findings with exact paths and lines, or a bounded no-findings report. Verify frozen source hash and Quick logs, preserve inherited D26 bridge-pin failure and missing native qualification as separately owned open gates. No broad suite rerun or acceptance closure.",
+  "touches_count": 55,
+  "has_quick_commands": true,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

@@ -72,9 +72,9 @@ type Spec struct {
 	Baseline  ModuleFiles
 	Candidate ModuleFiles
 	Resolver  Resolver
-	// Packs loads the compatibility packs whose rules are judged. Nil loads
-	// the packs the build selects from (compatibility.LoadPacks).
-	Packs func() ([]compatibility.ValidatedPack, error)
+	// PacksDirectory contains explicitly authored pack files. Empty uses the
+	// packs selected by the build, including its normal environment configuration.
+	PacksDirectory string
 	// IncludeAll retains unaffected and unselected entries for callers that
 	// need the complete pin inventory rather than the actionable subset.
 	IncludeAll bool
@@ -160,11 +160,13 @@ func Evaluate(ctx context.Context, spec Spec) (Report, error) {
 	}
 	evaluation := evaluation{baseline: baseline, candidate: candidate, adapters: deterministicio.Default().Adapters(), includeAll: spec.IncludeAll}
 	evaluation.evaluateAdapters()
-	loadPacks := spec.Packs
-	if loadPacks == nil {
-		loadPacks = compatibility.LoadPacks
+	var packs []compatibility.ValidatedPack
+	var packErr error
+	if spec.PacksDirectory == "" {
+		packs, packErr = compatibility.LoadPacks()
+	} else {
+		packs, packErr = compatibility.LoadPackDirectory(spec.PacksDirectory)
 	}
-	packs, packErr := loadPacks()
 	evaluation.evaluatePacks(packs, packErr)
 	toolchainReason := candidate.toolchainReason()
 	evaluation.evaluateInterceptions(spec.Root, toolchainReason)

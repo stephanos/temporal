@@ -1,0 +1,9 @@
+start=2026-10-04T06:17:02Z
+Task: fn-105-gomad-follow-ups-deferred-scope.4
+Spec: fn-105-gomad-follow-ups-deferred-scope
+Title: D4: architecture fitness checks for package coverage, purity, and signature visibility
+Status: blocked
+Depends on: none
+Spec: .flow/tasks/fn-105-gomad-follow-ups-deferred-scope.4.md
+end=2026-10-04T06:17:03Z
+exit=0

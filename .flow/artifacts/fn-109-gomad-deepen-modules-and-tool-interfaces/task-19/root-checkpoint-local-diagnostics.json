@@ -1,0 +1,198 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.19",
+  "reason": "MILESTONES keep handoffs small; preserve original files locally without normalizing or deleting; no omitted log is treated as acceptance",
+  "omitted_local_artifacts": [
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/effect-unit-progress-12.log",
+      "bytes": 79,
+      "sha256": "8b4780698bf0b4bc4c352ea06f62f81ecb33761dfa24ac89cef5cb884d0394ec",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/effect-unit-progress-15.log",
+      "bytes": 79,
+      "sha256": "0070f014b1c9cb8914e51674a4084a8089075a707159398a33e31a1e2d696216",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/effect-unit-progress-17.log",
+      "bytes": 79,
+      "sha256": "78376a4f9e5bd082d7f24604e3a7f75d009388467828a18adda6f2daf04d3bd4",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/effect-unit-progress-18.log",
+      "bytes": 7351,
+      "sha256": "97305f6d2f661af5008e8968cbc8ba55d2009135d246cc0af5bfb8c4d93139e2",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/effect-unit-progress-19.log",
+      "bytes": 79,
+      "sha256": "5f58e003ae50362e5a95da97d5b19e7bd6ab3a878564828c1f07f773c10bbe5c",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/effect-unit-progress-20.log",
+      "bytes": 79,
+      "sha256": "c68a71e49b78f0759c09c9eea86ac092af09e63b9d9af15429b9964774e047f1",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/effect-unit-progress-21.log",
+      "bytes": 2402,
+      "sha256": "44f7fdf308e1c763cef1662b4acf11afd466627e4ffa29bfd44ed837f1ef56db",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/effect-unit-progress-22.log",
+      "bytes": 79,
+      "sha256": "9819e18b207db15cab913ae52893456a113cd30d4637319f9268db1c1445d3db",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/effect-unit-progress-23.log",
+      "bytes": 79,
+      "sha256": "856d843b78dc90a7b73edd1c3fa765bf400db9afba4acf2632fe9edc1c7f2569",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/effect-unit-progress-24.log",
+      "bytes": 79,
+      "sha256": "162316c2b416ffec8bac1f7430e009df9c6d34ad527ea5981ceac9d7995f8c95",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-diagnostic-24.log",
+      "bytes": 56423,
+      "sha256": "46aaa0d06254bedffe7287b568d5570b1c3b03c1618a3653803732a77db65b1b",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-diagnostic-25.log",
+      "bytes": 83524,
+      "sha256": "aa2a5038a705b00c6b9fb6251940c0a2070430a608063dfe676c3b9b6914e84d",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-diagnostic-26.log",
+      "bytes": 61656,
+      "sha256": "608adcad7a271ac986d3a7e4cded78970051a9bdec932f01dea032ff02f491de",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-diagnostic-27.log",
+      "bytes": 61030,
+      "sha256": "63e914d4006132713b61394e54bf387b9ef88b6fb327758ffb4b3b84f4676127",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-diagnostic-28.log",
+      "bytes": 61030,
+      "sha256": "1b460c12a5bdcfdf0d6fd72ba7a1b9f6a0554d8360c0da27ca06f46998e41e44",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-10.log",
+      "bytes": 69,
+      "sha256": "3429b037cbcbe3f960353d7bf87696d619d62db1e02f4f6ac85da99e1cd9d3b0",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-11.log",
+      "bytes": 1180262,
+      "sha256": "4633a67dc6a4a52ee150a3cd3d06944bacf69156a567f59146d7c97812723b40",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-12.log",
+      "bytes": 1193352,
+      "sha256": "686ba063ba2e593f80ace61244df524285cc548ddf3f5ea46225c211993b1de4",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-13.log",
+      "bytes": 1193364,
+      "sha256": "54984479bc5e2ca28978a9ba79a23226d4137e6cdbf7359670a9a94396b8aa7c",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-14.log",
+      "bytes": 247645,
+      "sha256": "8caea3cd3fc165eaa212515bc1352ee2237110f36efad772d331734c1a619fc2",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-15.log",
+      "bytes": 234628,
+      "sha256": "8d83cde1820d159e477824e0a54440ae351f0accd452fae9efd0855276ae0e52",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-16.log",
+      "bytes": 34232,
+      "sha256": "8c999d5a6c5fb7e5e96bacd97a31d1f7139b5f739287563178246fda2eb9a1ed",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-18.log",
+      "bytes": 2873,
+      "sha256": "ec11c9f1f0243900f156af5f8811a75819b2d52e6357c4df67c252534ace5b31",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-19.log",
+      "bytes": 160462,
+      "sha256": "8b01b0b48468b6a662740b0de15b59a6620b72a09ecaaeb2acbcdfe232aeb5e9",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-20.log",
+      "bytes": 51240,
+      "sha256": "86e92b42fb677e0dd88b12a3a5ff57ee2c5d9274ee725674738d94272034004c",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-21.log",
+      "bytes": 50293,
+      "sha256": "dd8c8d242324f67141b362f34a720f7d7aa046fd8cbe842ccf71e148ef47ecd5",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-22.log",
+      "bytes": 45872,
+      "sha256": "d575c6ff6d4002c94b921e67893cbbc6427e4337fea54f38a857f710067b40f3",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-23.log",
+      "bytes": 47256,
+      "sha256": "62a74f4fdba66e8d8fbc5146b01a35cf87e4a5a57579c190c5a25528286397d5",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-7.log",
+      "bytes": 21415,
+      "sha256": "f1ae39d9868e30d4081323f7a3f5edd48f463cf395af8e8d1511703ef6527b56",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-8.log",
+      "bytes": 1265068,
+      "sha256": "370bf1a99771101d9dc0421d37dc39abeab30a2e170b6857c5ec876de526129b",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/host-effects-progress-9.log",
+      "bytes": 1180262,
+      "sha256": "a90e6c22dc24cc41b82237c5cf13be1e9fb0f1c65183a03649c3d16f3319dc51",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    },
+    {
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/red-host-effects-6.log",
+      "bytes": 5980391,
+      "sha256": "aea6766a4046c81297f928cb8553c1d4ef625e60c42a0834d805f758a8ca983c",
+      "disposition": "unchanged local intermediate diagnostic; omitted from commit; meaningful regression and final gates retained separately"
+    }
+  ]
+}

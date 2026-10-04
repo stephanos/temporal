@@ -1,0 +1,7 @@
+2026-10-04T06:57:26Z
+=== RUN   TestPureModulesHaveNoHostEffects
+--- PASS: TestPureModulesHaveNoHostEffects (23.52s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3	23.542s
+2026-10-04T06:57:50Z
+suite_rc=0

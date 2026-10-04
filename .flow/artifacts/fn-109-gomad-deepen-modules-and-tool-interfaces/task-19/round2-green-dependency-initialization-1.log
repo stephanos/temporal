@@ -1,0 +1,65 @@
+2026-10-04T06:53:10Z
+=== RUN   TestDependencyInitialization
+=== RUN   TestDependencyInitialization/called-dependency
+=== RUN   TestDependencyInitialization/blank-import
+=== RUN   TestDependencyInitialization/variable-initializer
+=== RUN   TestDependencyInitialization/second-init
+=== RUN   TestDependencyInitialization/transitive-import
+=== RUN   TestDependencyInitialization/pure-initializers
+=== RUN   TestDependencyInitialization/standard-startup
+--- PASS: TestDependencyInitialization (4.23s)
+    --- PASS: TestDependencyInitialization/called-dependency (0.70s)
+    --- PASS: TestDependencyInitialization/blank-import (0.57s)
+    --- PASS: TestDependencyInitialization/variable-initializer (0.61s)
+    --- PASS: TestDependencyInitialization/second-init (0.61s)
+    --- PASS: TestDependencyInitialization/transitive-import (0.70s)
+    --- PASS: TestDependencyInitialization/pure-initializers (0.02s)
+    --- PASS: TestDependencyInitialization/standard-startup (1.02s)
+=== RUN   TestCallbackContainerMutations
+=== RUN   TestCallbackContainerMutations/copy-slice
+=== RUN   TestCallbackContainerMutations/copy-alias
+=== RUN   TestCallbackContainerMutations/insert
+=== RUN   TestCallbackContainerMutations/insert-ellipsis
+=== RUN   TestCallbackContainerMutations/insert-alias
+=== RUN   TestCallbackContainerMutations/clone-assignment
+=== RUN   TestCallbackContainerMutations/pointer-store
+=== RUN   TestCallbackContainerMutations/pointer-helper
+=== RUN   TestCallbackContainerMutations/range-function
+=== RUN   TestCallbackContainerMutations/range-yield-callback
+=== RUN   TestCallbackContainerMutations/slice-pointer-marshaler
+=== RUN   TestCallbackContainerMutations/addressable-array-marshaler
+=== RUN   TestCallbackContainerMutations/addressable-field-marshaler
+=== RUN   TestCallbackContainerMutations/map-nonaddressable
+=== RUN   TestCallbackContainerMutations/array-nonaddressable
+=== RUN   TestCallbackContainerMutations/field-nonaddressable
+=== RUN   TestCallbackContainerMutations/pure-copy
+=== RUN   TestCallbackContainerMutations/pure-insert
+=== RUN   TestCallbackContainerMutations/pure-clone
+=== RUN   TestCallbackContainerMutations/pure-pointer
+=== RUN   TestCallbackContainerMutations/pure-iterator
+--- PASS: TestCallbackContainerMutations (15.32s)
+    --- PASS: TestCallbackContainerMutations/copy-slice (0.86s)
+    --- PASS: TestCallbackContainerMutations/copy-alias (0.80s)
+    --- PASS: TestCallbackContainerMutations/insert (0.79s)
+    --- PASS: TestCallbackContainerMutations/insert-ellipsis (0.70s)
+    --- PASS: TestCallbackContainerMutations/insert-alias (0.72s)
+    --- PASS: TestCallbackContainerMutations/clone-assignment (0.73s)
+    --- PASS: TestCallbackContainerMutations/pointer-store (0.72s)
+    --- PASS: TestCallbackContainerMutations/pointer-helper (0.72s)
+    --- PASS: TestCallbackContainerMutations/range-function (0.74s)
+    --- PASS: TestCallbackContainerMutations/range-yield-callback (0.74s)
+    --- PASS: TestCallbackContainerMutations/slice-pointer-marshaler (0.72s)
+    --- PASS: TestCallbackContainerMutations/addressable-array-marshaler (0.69s)
+    --- PASS: TestCallbackContainerMutations/addressable-field-marshaler (0.74s)
+    --- PASS: TestCallbackContainerMutations/map-nonaddressable (0.76s)
+    --- PASS: TestCallbackContainerMutations/array-nonaddressable (0.70s)
+    --- PASS: TestCallbackContainerMutations/field-nonaddressable (0.70s)
+    --- PASS: TestCallbackContainerMutations/pure-copy (0.69s)
+    --- PASS: TestCallbackContainerMutations/pure-insert (0.71s)
+    --- PASS: TestCallbackContainerMutations/pure-clone (0.72s)
+    --- PASS: TestCallbackContainerMutations/pure-pointer (0.69s)
+    --- PASS: TestCallbackContainerMutations/pure-iterator (0.68s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	19.561s
+2026-10-04T06:53:30Z
+suite_rc=0

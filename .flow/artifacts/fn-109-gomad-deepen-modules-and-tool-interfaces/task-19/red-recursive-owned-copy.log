@@ -1,0 +1,24 @@
+=== RUN   TestImplicitCallbackPrecedence
+=== RUN   TestImplicitCallbackPrecedence/recursive-owned-copy
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic round: example.invalid/architecture/record.Check 16 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 32 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 48 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 64 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 80 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 96 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 112 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 128 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 144 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 160 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 176 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 192 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 208 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 224 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 240 contexts=3
+    effects_test.go:136: unused callback incorrectly invoked: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestImplicitCallbackPrecedencerecursive-owned-copy2423856082/001/record/pure.go:1:121 example.invalid/architecture/record.Check ->  -> recursive effect summaries did not converge}]
+--- FAIL: TestImplicitCallbackPrecedence (0.81s)
+    --- FAIL: TestImplicitCallbackPrecedence/recursive-owned-copy (0.81s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	0.816s
+FAIL

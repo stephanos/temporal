@@ -1,0 +1,34 @@
+=== RUN   TestRecorderRejectsExternalCallbacksWithoutMutation
+=== RUN   TestRecorderRejectsExternalCallbacksWithoutMutation/error
+    recording_terminal_test.go:23: external callbacks invoked 10 times
+=== RUN   TestRecorderRejectsExternalCallbacksWithoutMutation/is
+    recording_terminal_test.go:23: external terminal accepted
+    recording_terminal_test.go:23: external callbacks invoked 2 times
+    recording_terminal_test.go:25: rejected input closed recorder: World recorder is not active
+=== RUN   TestRecorderRejectsExternalCallbacksWithoutMutation/single
+    recording_terminal_test.go:23: external terminal accepted
+    recording_terminal_test.go:23: external callbacks invoked 3 times
+    recording_terminal_test.go:25: rejected input closed recorder: World recorder is not active
+=== RUN   TestRecorderRejectsExternalCallbacksWithoutMutation/multi
+    recording_terminal_test.go:23: external terminal accepted
+    recording_terminal_test.go:23: external callbacks invoked 3 times
+    recording_terminal_test.go:25: rejected input closed recorder: World recorder is not active
+=== RUN   TestRecorderRejectsExternalCallbacksWithoutMutation/wrapper
+    recording_terminal_test.go:23: external terminal accepted
+    recording_terminal_test.go:25: rejected input closed recorder: World recorder is not active
+=== RUN   TestRecorderRejectsExternalCallbacksWithoutMutation/unknown
+--- FAIL: TestRecorderRejectsExternalCallbacksWithoutMutation (0.00s)
+    --- FAIL: TestRecorderRejectsExternalCallbacksWithoutMutation/error (0.00s)
+    --- FAIL: TestRecorderRejectsExternalCallbacksWithoutMutation/is (0.00s)
+    --- FAIL: TestRecorderRejectsExternalCallbacksWithoutMutation/single (0.00s)
+    --- FAIL: TestRecorderRejectsExternalCallbacksWithoutMutation/multi (0.00s)
+    --- FAIL: TestRecorderRejectsExternalCallbacksWithoutMutation/wrapper (0.00s)
+    --- PASS: TestRecorderRejectsExternalCallbacksWithoutMutation/unknown (0.00s)
+=== RUN   TestRecorderAndModelIgnoreSentinelRebinding
+    recording_terminal_test.go:33: model detail followed rebound sentinel: external terminal: every limit must be nonzero
+    recording_terminal_test.go:34: model invoked rebound sentinel 1 times
+    recording_terminal_test.go:37: original sentinel lost recognition: terminal={Kind: Detail:} err=unsupported World terminal error: invalid World config
+--- FAIL: TestRecorderAndModelIgnoreSentinelRebinding (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/world	0.002s
+FAIL

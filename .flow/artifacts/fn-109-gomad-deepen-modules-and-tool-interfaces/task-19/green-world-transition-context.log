@@ -1,0 +1,4 @@
+=== RUN   TestModelGeneratedTransitionContextRemainsRecordable
+--- PASS: TestModelGeneratedTransitionContextRemainsRecordable (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/world	0.001s

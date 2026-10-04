@@ -1,0 +1,24 @@
+=== RUN   TestRound4UnsupportedAssignmentDefault
+--- PASS: TestRound4UnsupportedAssignmentDefault (0.00s)
+=== RUN   TestRound4NarrowControls
+=== RUN   TestRound4NarrowControls/keyed-struct-field
+    round4_boundary_test.go:36: native: === RUN   TestBehavior
+            pure_test.go:1: effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/controls/record	0.001s
+    round4_boundary_test.go:41: platform={linux amd64} findings=[]
+    round4_boundary_test.go:41: platform={darwin arm64} findings=[]
+=== RUN   TestRound4NarrowControls/uninvoked-index-destination
+    round4_boundary_test.go:36: native: === RUN   TestBehavior
+            pure_test.go:1: effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/controls/record	0.001s
+    round4_boundary_test.go:41: platform={linux amd64} findings=[]
+    round4_boundary_test.go:41: platform={darwin arm64} findings=[]
+--- PASS: TestRound4NarrowControls (1.11s)
+    --- PASS: TestRound4NarrowControls/keyed-struct-field (0.57s)
+    --- PASS: TestRound4NarrowControls/uninvoked-index-destination (0.54s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/architecture	1.111s

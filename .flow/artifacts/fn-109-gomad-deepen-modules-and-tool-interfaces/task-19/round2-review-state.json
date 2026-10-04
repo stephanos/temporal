@@ -1,0 +1,20 @@
+{
+  "task_title": "Independently audit task 19 corrected round-two frozen checker source",
+  "task_body": "Verify the 977-file freeze and replay the earlier nine effect escapes and four controls against an isolated copy. Inspect initialization reachability, callback mutation provenance, range iterator/yield handling and JSON addressability. Audit the pinned platform-selected standard startup boundary and fail-closed behavior without source changes, agents or bridges.",
+  "acceptance": "Return actionable source-backed findings with isolated real-Go reproducers, or a bounded no-findings source audit. Preserve round-one source and evidence. No formal backend verdict or native acceptance.",
+  "touches_count": 13,
+  "has_quick_commands": true,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "routing": {
+    "judged_once": true,
+    "available": false,
+    "reason": "no_key",
+    "tier_line": "Tier: session (jev-unavailable(no_key))",
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning_effort": "high",
+    "selection_retained": true,
+    "actual_backend_metadata": "unknown",
+    "writer_auditor_family": "same-family",
+    "formal_backend_verdict": false
+  }
+}

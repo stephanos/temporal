@@ -137,7 +137,7 @@ func (w *Model) Ready(readiness Readiness) (EventID, error) {
 		return 0, err
 	}
 	if readiness.At < w.now {
-		return 0, fmt.Errorf("%w: readiness.at", ErrTimeRegression)
+		return 0, classifiedError(timeRegression, "readiness.at")
 	}
 	if w.nextEventID == 0 || w.nextEventID == EventID(math.MaxUint64) {
 		return 0, capacity("event-ids", math.MaxUint64, math.MaxUint64, 1)
@@ -185,7 +185,7 @@ func (w *Model) Cancel(requestID RequestID) (Cancellation, error) {
 	defer w.mu.Unlock()
 	request, found := w.requests[requestID]
 	if requestID == 0 || !found {
-		return Cancellation{}, fmt.Errorf("%w: requestId", ErrUnknownRequest)
+		return Cancellation{}, classifiedError(unknownRequest, "requestId")
 	}
 	if err := w.checkTransition(); err != nil {
 		return Cancellation{}, err
@@ -297,23 +297,23 @@ func (w *Model) ReplayProgress() ReplayProgress {
 func validateConfig(config Config) error {
 	limits := config.Limits
 	if limits.MaxRequests == 0 || limits.MaxEvents == 0 || limits.MaxQueuedEvents == 0 || limits.MaxTransitions == 0 || limits.MaxPayloadBytes == 0 || limits.MaxStringBytes == 0 {
-		return fmt.Errorf("%w: every limit must be nonzero", ErrInvalidConfig)
+		return classifiedError(invalidConfig, "every limit must be nonzero")
 	}
 	if limits.MaxQueuedEvents > limits.MaxEvents {
-		return fmt.Errorf("%w: maxQueuedEvents exceeds maxEvents", ErrInvalidConfig)
+		return classifiedError(invalidConfig, "maxQueuedEvents exceeds maxEvents")
 	}
 	return nil
 }
 
 func validateRequest(limits Limits, request Request) error {
 	if err := validateString(limits, "request.kind", request.Kind, false); err != nil {
-		return fmt.Errorf("%w: %v", ErrInvalidRequest, err)
+		return classifiedError(invalidRequest, fmt.Sprintf("%v", err))
 	}
 	if !resourceComponentPattern.MatchString(request.Resource.Adapter) || !resourceComponentPattern.MatchString(request.Resource.Kind) || uint64(len(request.Resource.Adapter)) > uint64(limits.MaxStringBytes) || uint64(len(request.Resource.Kind)) > uint64(limits.MaxStringBytes) {
-		return fmt.Errorf("%w: request.resource", ErrInvalidRequest)
+		return classifiedError(invalidRequest, "request.resource")
 	}
 	if err := validateString(limits, "request.resource.key", request.Resource.Key, true); err != nil {
-		return fmt.Errorf("%w: %v", ErrInvalidRequest, err)
+		return classifiedError(invalidRequest, fmt.Sprintf("%v", err))
 	}
 	if uint64(len(request.Payload)) > limits.MaxPayloadBytes {
 		return capacity("payload-bytes", limits.MaxPayloadBytes, 0, uint64(len(request.Payload)))
@@ -323,13 +323,13 @@ func validateRequest(limits Limits, request Request) error {
 
 func validateReadiness(limits Limits, readiness Readiness) error {
 	if readiness.RequestID == 0 {
-		return fmt.Errorf("%w: readiness.requestId", ErrUnknownRequest)
+		return classifiedError(unknownRequest, "readiness.requestId")
 	}
 	if err := validateString(limits, "readiness.kind", readiness.Kind, false); err != nil {
-		return fmt.Errorf("%w: %v", ErrInvalidRequest, err)
+		return classifiedError(invalidRequest, fmt.Sprintf("%v", err))
 	}
 	if err := validateString(limits, "readiness.equivalenceClass", readiness.EquivalenceClass, true); err != nil {
-		return fmt.Errorf("%w: %v", ErrInvalidRequest, err)
+		return classifiedError(invalidRequest, fmt.Sprintf("%v", err))
 	}
 	return nil
 }
@@ -344,10 +344,10 @@ func validateString(limits Limits, field, value string, emptyAllowed bool) error
 func (w *Model) lookupPending(id RequestID) (*requestState, error) {
 	request, found := w.requests[id]
 	if id == 0 || !found {
-		return nil, fmt.Errorf("%w: requestId", ErrUnknownRequest)
+		return nil, classifiedError(unknownRequest, "requestId")
 	}
 	if request.state != RequestPending {
-		return nil, fmt.Errorf("%w: request %d is %s", ErrRequestState, id, request.state)
+		return nil, classifiedError(invalidRequestState, fmt.Sprintf("request %d is %s", id, request.state))
 	}
 	return request, nil
 }

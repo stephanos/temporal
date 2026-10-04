@@ -1,0 +1,23 @@
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/cross-argument-alias
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+    effects_test.go:67: callback clock escaped actual root: [{host-effect  /home/agent/.cache/codex-build/tmp/TestEffectCallbackContextsAndUnwrapReturnscross-argument-alias3076009705/001/record/pure.go:1:155 example.invalid/architecture/record.dirty -> example.invalid/architecture/record.dirty -> time.Now}]
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/cached-mutation
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+    effects_test.go:67: callback clock escaped actual root: [{host-effect  /home/agent/.cache/codex-build/tmp/TestEffectCallbackContextsAndUnwrapReturnscached-mutation3204630610/001/record/pure.go:1:155 example.invalid/architecture/record.dirty -> example.invalid/architecture/record.dirty -> time.Now}]
+--- FAIL: TestEffectCallbackContextsAndUnwrapReturns (0.70s)
+    --- FAIL: TestEffectCallbackContextsAndUnwrapReturns/cross-argument-alias (0.37s)
+    --- FAIL: TestEffectCallbackContextsAndUnwrapReturns/cached-mutation (0.33s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	0.704s
+FAIL

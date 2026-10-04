@@ -1,0 +1,157 @@
+2026-10-04T07:05:33Z
+=== RUN   TestDiscoveryRejectsOmittedSource
+--- PASS: TestDiscoveryRejectsOmittedSource (0.00s)
+=== RUN   TestRequiredModuleNeedsItsOwnSource
+--- PASS: TestRequiredModuleNeedsItsOwnSource (0.00s)
+=== RUN   TestDiscoveryRejectsDirectorySymlink
+--- PASS: TestDiscoveryRejectsDirectorySymlink (0.00s)
+=== RUN   TestEffectThroughHelper
+--- PASS: TestEffectThroughHelper (0.27s)
+=== RUN   TestMemorySummarySourceIdentity
+=== RUN   TestMemorySummarySourceIdentity/foreign-inspected-body
+=== RUN   TestMemorySummarySourceIdentity/changed-source
+--- PASS: TestMemorySummarySourceIdentity (0.29s)
+    --- PASS: TestMemorySummarySourceIdentity/foreign-inspected-body (0.01s)
+    --- PASS: TestMemorySummarySourceIdentity/changed-source (0.02s)
+=== RUN   TestPureRootStoredClosureIsChecked
+--- PASS: TestPureRootStoredClosureIsChecked (0.23s)
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/argument-order
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/captured-order
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/single-unwrap
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/joined-unwrap
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/wrapped-is
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/interface-return
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/multi-unwrap
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/unwrap-return
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/recursive-wrapper
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/recursive-returned-callback
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/global-callback-tuple
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/cross-argument-alias
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/cached-mutation
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/json-marshaler-error-return
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/json-writer-error-return
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/json-reader-error-return
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/json-distinct-receivers
+--- PASS: TestEffectCallbackContextsAndUnwrapReturns (6.56s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/argument-order (0.46s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/captured-order (0.45s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/single-unwrap (0.39s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/joined-unwrap (0.37s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/wrapped-is (0.38s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/interface-return (0.43s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/multi-unwrap (0.38s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/unwrap-return (0.42s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/recursive-wrapper (0.35s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/recursive-returned-callback (0.36s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/global-callback-tuple (0.36s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/cross-argument-alias (0.38s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/cached-mutation (0.36s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/json-marshaler-error-return (0.37s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/json-writer-error-return (0.39s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/json-reader-error-return (0.35s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/json-distinct-receivers (0.36s)
+=== RUN   TestPureMemoryFormattingAndJSON
+--- PASS: TestPureMemoryFormattingAndJSON (0.44s)
+=== RUN   TestPureJSONHelperRetainsConcreteArgument
+--- PASS: TestPureJSONHelperRetainsConcreteArgument (0.38s)
+=== RUN   TestImplicitCallbackPrecedence
+=== RUN   TestImplicitCallbackPrecedence/formatter-precedence
+=== RUN   TestImplicitCallbackPrecedence/gostring-not-v
+=== RUN   TestImplicitCallbackPrecedence/marshal-precedence
+=== RUN   TestImplicitCallbackPrecedence/recursive-owned-copy
+=== RUN   TestImplicitCallbackPrecedence/recursive-returned-closure
+=== RUN   TestImplicitCallbackPrecedence/known-pure-closure-factory
+=== RUN   TestImplicitCallbackPrecedence/unwrap-does-not-call-multi
+--- PASS: TestImplicitCallbackPrecedence (2.60s)
+    --- PASS: TestImplicitCallbackPrecedence/formatter-precedence (0.38s)
+    --- PASS: TestImplicitCallbackPrecedence/gostring-not-v (0.36s)
+    --- PASS: TestImplicitCallbackPrecedence/marshal-precedence (0.37s)
+    --- PASS: TestImplicitCallbackPrecedence/recursive-owned-copy (0.38s)
+    --- PASS: TestImplicitCallbackPrecedence/recursive-returned-closure (0.37s)
+    --- PASS: TestImplicitCallbackPrecedence/known-pure-closure-factory (0.38s)
+    --- PASS: TestImplicitCallbackPrecedence/unwrap-does-not-call-multi (0.36s)
+=== RUN   TestPureCanonicalJSONConcreteArgument
+--- PASS: TestPureCanonicalJSONConcreteArgument (0.42s)
+=== RUN   TestDependencyInitialization
+=== RUN   TestDependencyInitialization/called-dependency
+=== RUN   TestDependencyInitialization/blank-import
+=== RUN   TestDependencyInitialization/variable-initializer
+=== RUN   TestDependencyInitialization/second-init
+=== RUN   TestDependencyInitialization/transitive-import
+=== RUN   TestDependencyInitialization/pure-initializers
+=== RUN   TestDependencyInitialization/once-callback
+=== RUN   TestDependencyInitialization/pure-once
+=== RUN   TestDependencyInitialization/standard-startup
+--- PASS: TestDependencyInitialization (4.45s)
+    --- PASS: TestDependencyInitialization/called-dependency (0.47s)
+    --- PASS: TestDependencyInitialization/blank-import (0.47s)
+    --- PASS: TestDependencyInitialization/variable-initializer (0.45s)
+    --- PASS: TestDependencyInitialization/second-init (0.52s)
+    --- PASS: TestDependencyInitialization/transitive-import (0.45s)
+    --- PASS: TestDependencyInitialization/pure-initializers (0.01s)
+    --- PASS: TestDependencyInitialization/once-callback (0.51s)
+    --- PASS: TestDependencyInitialization/pure-once (0.49s)
+    --- PASS: TestDependencyInitialization/standard-startup (1.08s)
+=== RUN   TestThirdPartyInitialization
+=== RUN   TestThirdPartyInitialization/clock
+=== RUN   TestThirdPartyInitialization/pure
+--- PASS: TestThirdPartyInitialization (0.64s)
+    --- PASS: TestThirdPartyInitialization/clock (0.63s)
+    --- PASS: TestThirdPartyInitialization/pure (0.01s)
+=== RUN   TestStandardStartupIdentity
+--- PASS: TestStandardStartupIdentity (0.26s)
+=== RUN   TestCallbackContainerMutations
+=== RUN   TestCallbackContainerMutations/copy-slice
+=== RUN   TestCallbackContainerMutations/copy-alias
+=== RUN   TestCallbackContainerMutations/insert
+=== RUN   TestCallbackContainerMutations/insert-ellipsis
+=== RUN   TestCallbackContainerMutations/insert-alias
+=== RUN   TestCallbackContainerMutations/clone-assignment
+=== RUN   TestCallbackContainerMutations/pointer-store
+=== RUN   TestCallbackContainerMutations/pointer-helper
+=== RUN   TestCallbackContainerMutations/range-function
+=== RUN   TestCallbackContainerMutations/range-yield-callback
+=== RUN   TestCallbackContainerMutations/slice-pointer-marshaler
+=== RUN   TestCallbackContainerMutations/addressable-array-marshaler
+=== RUN   TestCallbackContainerMutations/addressable-field-marshaler
+=== RUN   TestCallbackContainerMutations/map-nonaddressable
+=== RUN   TestCallbackContainerMutations/array-nonaddressable
+=== RUN   TestCallbackContainerMutations/field-nonaddressable
+=== RUN   TestCallbackContainerMutations/pure-copy
+=== RUN   TestCallbackContainerMutations/pure-insert
+=== RUN   TestCallbackContainerMutations/pure-clone
+=== RUN   TestCallbackContainerMutations/pure-pointer
+=== RUN   TestCallbackContainerMutations/pure-iterator
+--- PASS: TestCallbackContainerMutations (16.97s)
+    --- PASS: TestCallbackContainerMutations/copy-slice (1.17s)
+    --- PASS: TestCallbackContainerMutations/copy-alias (0.83s)
+    --- PASS: TestCallbackContainerMutations/insert (0.80s)
+    --- PASS: TestCallbackContainerMutations/insert-ellipsis (0.78s)
+    --- PASS: TestCallbackContainerMutations/insert-alias (0.79s)
+    --- PASS: TestCallbackContainerMutations/clone-assignment (0.80s)
+    --- PASS: TestCallbackContainerMutations/pointer-store (0.75s)
+    --- PASS: TestCallbackContainerMutations/pointer-helper (0.72s)
+    --- PASS: TestCallbackContainerMutations/range-function (0.77s)
+    --- PASS: TestCallbackContainerMutations/range-yield-callback (0.77s)
+    --- PASS: TestCallbackContainerMutations/slice-pointer-marshaler (0.81s)
+    --- PASS: TestCallbackContainerMutations/addressable-array-marshaler (0.74s)
+    --- PASS: TestCallbackContainerMutations/addressable-field-marshaler (0.77s)
+    --- PASS: TestCallbackContainerMutations/map-nonaddressable (0.83s)
+    --- PASS: TestCallbackContainerMutations/array-nonaddressable (0.83s)
+    --- PASS: TestCallbackContainerMutations/field-nonaddressable (0.85s)
+    --- PASS: TestCallbackContainerMutations/pure-copy (0.78s)
+    --- PASS: TestCallbackContainerMutations/pure-insert (0.76s)
+    --- PASS: TestCallbackContainerMutations/pure-clone (0.77s)
+    --- PASS: TestCallbackContainerMutations/pure-pointer (0.80s)
+    --- PASS: TestCallbackContainerMutations/pure-iterator (0.83s)
+=== RUN   TestSignatureNestedInternalIdentity
+--- PASS: TestSignatureNestedInternalIdentity (0.00s)
+=== RUN   TestImportableForeignNamedBoundary
+--- PASS: TestImportableForeignNamedBoundary (0.00s)
+=== RUN   TestInternalVisibilityChecksEveryParent
+--- PASS: TestInternalVisibilityChecksEveryParent (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	33.536s
+2026-10-04T07:06:07Z
+suite_rc=0

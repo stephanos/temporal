@@ -1,0 +1,393 @@
+=== RUN   TestIndependentCallbackMutation
+=== RUN   TestIndependentCallbackMutation/copy-slice
+    independent_audit_test.go:41: native behavior: === RUN   TestBehavior
+            pure_test.go:1: effect callbacks=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.002s
+    independent_audit_test.go:46: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationcopy-slice2752741805/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+    independent_audit_test.go:46: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationcopy-slice2752741805/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestIndependentCallbackMutation/slices-insert
+    independent_audit_test.go:41: native behavior: === RUN   TestBehavior
+            pure_test.go:1: effect callbacks=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.002s
+    independent_audit_test.go:46: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationslices-insert1722253063/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+    independent_audit_test.go:46: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationslices-insert1722253063/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestIndependentCallbackMutation/slices-clone
+    independent_audit_test.go:41: native behavior: === RUN   TestBehavior
+            pure_test.go:1: effect callbacks=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.001s
+    independent_audit_test.go:46: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationslices-clone266906327/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+    independent_audit_test.go:46: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationslices-clone266906327/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestIndependentCallbackMutation/slices-clone-existing
+    independent_audit_test.go:41: native behavior: === RUN   TestBehavior
+            pure_test.go:1: effect callbacks=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.002s
+    independent_audit_test.go:46: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationslices-clone-existing3464453561/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+    independent_audit_test.go:46: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationslices-clone-existing3464453561/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestIndependentCallbackMutation/slices-insert-alias
+    independent_audit_test.go:41: native behavior: === RUN   TestBehavior
+            pure_test.go:1: effect callbacks=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.001s
+    independent_audit_test.go:46: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationslices-insert-alias1039626547/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+    independent_audit_test.go:46: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationslices-insert-alias1039626547/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestIndependentCallbackMutation/direct-clock-control
+    independent_audit_test.go:41: native behavior: === RUN   TestBehavior
+            pure_test.go:1: effect callbacks=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.004s
+    independent_audit_test.go:46: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationdirect-clock-control457428227/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+    independent_audit_test.go:46: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationdirect-clock-control457428227/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestIndependentCallbackMutation/copy-pure-control
+    independent_audit_test.go:41: native behavior: === RUN   TestBehavior
+            pure_test.go:1: effect callbacks=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.002s
+    independent_audit_test.go:46: platform={linux amd64} findings=[]
+    independent_audit_test.go:46: platform={darwin arm64} findings=[]
+=== RUN   TestIndependentCallbackMutation/pointer-callback-store
+    independent_audit_test.go:41: native behavior: === RUN   TestBehavior
+            pure_test.go:1: effect callbacks=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.002s
+    independent_audit_test.go:46: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationpointer-callback-store4179801801/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+    independent_audit_test.go:46: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationpointer-callback-store4179801801/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestIndependentCallbackMutation/pointer-callback-helper-store
+    independent_audit_test.go:41: native behavior: === RUN   TestBehavior
+            pure_test.go:1: effect callbacks=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.001s
+    independent_audit_test.go:46: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationpointer-callback-helper-store3583264692/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+    independent_audit_test.go:46: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationpointer-callback-helper-store3583264692/001/internal/canonicaljson/helper.go:1:76 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestIndependentCallbackMutation/range-function
+    independent_audit_test.go:41: native behavior: === RUN   TestBehavior
+            pure_test.go:1: effect callbacks=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.002s
+    independent_audit_test.go:46: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationrange-function1657216768/001/internal/canonicaljson/helper.go:1:161 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Iter -> time.Now}]
+    independent_audit_test.go:46: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationrange-function1657216768/001/internal/canonicaljson/helper.go:1:161 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Iter -> time.Now}]
+=== RUN   TestIndependentCallbackMutation/json-slice-pointer-marshaler
+    independent_audit_test.go:41: native behavior: === RUN   TestBehavior
+            pure_test.go:1: effect callbacks=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.002s
+    independent_audit_test.go:46: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationjson-slice-pointer-marshaler3169449212/001/internal/canonicaljson/helper.go:1:254 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.*Value.MarshalJSON -> time.Now}]
+    independent_audit_test.go:46: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationjson-slice-pointer-marshaler3169449212/001/internal/canonicaljson/helper.go:1:254 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.*Value.MarshalJSON -> time.Now}]
+=== RUN   TestIndependentCallbackMutation/json-pointer-marshaler-control
+    independent_audit_test.go:41: native behavior: === RUN   TestBehavior
+            pure_test.go:1: effect callbacks=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.003s
+    independent_audit_test.go:46: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationjson-pointer-marshaler-control727484438/001/internal/canonicaljson/helper.go:1:254 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.*Value.MarshalJSON -> time.Now}]
+    independent_audit_test.go:46: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationjson-pointer-marshaler-control727484438/001/internal/canonicaljson/helper.go:1:254 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.*Value.MarshalJSON -> time.Now}]
+=== RUN   TestIndependentCallbackMutation/dependency-initializer
+    independent_audit_test.go:41: native behavior: === RUN   TestBehavior
+            pure_test.go:1: effect callbacks=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.008s
+    independent_audit_test.go:46: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationdependency-initializer2819239529/001/internal/canonicaljson/helper.go:1:316 example.invalid/independent/internal/canonicaljson:initializer -> example.invalid/independent/internal/canonicaljson.init -> time.Now}]
+    independent_audit_test.go:46: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestIndependentCallbackMutationdependency-initializer2819239529/001/internal/canonicaljson/helper.go:1:316 example.invalid/independent/internal/canonicaljson:initializer -> example.invalid/independent/internal/canonicaljson.init -> time.Now}]
+--- PASS: TestIndependentCallbackMutation (21.29s)
+    --- PASS: TestIndependentCallbackMutation/copy-slice (1.43s)
+    --- PASS: TestIndependentCallbackMutation/slices-insert (1.33s)
+    --- PASS: TestIndependentCallbackMutation/slices-clone (1.42s)
+    --- PASS: TestIndependentCallbackMutation/slices-clone-existing (1.32s)
+    --- PASS: TestIndependentCallbackMutation/slices-insert-alias (1.32s)
+    --- PASS: TestIndependentCallbackMutation/direct-clock-control (1.30s)
+    --- PASS: TestIndependentCallbackMutation/copy-pure-control (1.29s)
+    --- PASS: TestIndependentCallbackMutation/pointer-callback-store (1.34s)
+    --- PASS: TestIndependentCallbackMutation/pointer-callback-helper-store (1.13s)
+    --- PASS: TestIndependentCallbackMutation/range-function (1.29s)
+    --- PASS: TestIndependentCallbackMutation/json-slice-pointer-marshaler (1.49s)
+    --- PASS: TestIndependentCallbackMutation/json-pointer-marshaler-control (2.68s)
+    --- PASS: TestIndependentCallbackMutation/dependency-initializer (3.96s)
+=== RUN   TestRangeAssignmentSlots
+=== RUN   TestRangeAssignmentSlots/existing
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.002s
+=== RUN   TestRangeAssignmentSlots/field
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.002s
+=== RUN   TestRangeAssignmentSlots/index
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/dereference
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/captured-existing
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/declared-capture
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/two-values
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/slice-existing-capture
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/slice-field
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/map-index
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/clean-existing
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/clean-field
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/clean-capture
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/noninvoked
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/paren-existing
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/paren-field
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/paren-index
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/paren-dereference
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/effect-index
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/ordinary-paren
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/ordinary-index
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/slice-max
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/map-key
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/clean-paren
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/clean-index
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/clean-slice-max
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/clean-map-key
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/noninvoked-map-key
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/noninvoked-slice-max
+    range_test.go:73: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+--- PASS: TestRangeAssignmentSlots (16.55s)
+    --- PASS: TestRangeAssignmentSlots/existing (0.79s)
+    --- PASS: TestRangeAssignmentSlots/field (0.67s)
+    --- PASS: TestRangeAssignmentSlots/index (0.55s)
+    --- PASS: TestRangeAssignmentSlots/dereference (0.56s)
+    --- PASS: TestRangeAssignmentSlots/captured-existing (0.54s)
+    --- PASS: TestRangeAssignmentSlots/declared-capture (0.56s)
+    --- PASS: TestRangeAssignmentSlots/two-values (0.57s)
+    --- PASS: TestRangeAssignmentSlots/slice-existing-capture (0.56s)
+    --- PASS: TestRangeAssignmentSlots/slice-field (0.57s)
+    --- PASS: TestRangeAssignmentSlots/map-index (0.56s)
+    --- PASS: TestRangeAssignmentSlots/clean-existing (0.56s)
+    --- PASS: TestRangeAssignmentSlots/clean-field (0.57s)
+    --- PASS: TestRangeAssignmentSlots/clean-capture (0.55s)
+    --- PASS: TestRangeAssignmentSlots/noninvoked (0.56s)
+    --- PASS: TestRangeAssignmentSlots/paren-existing (0.56s)
+    --- PASS: TestRangeAssignmentSlots/paren-field (0.57s)
+    --- PASS: TestRangeAssignmentSlots/paren-index (0.56s)
+    --- PASS: TestRangeAssignmentSlots/paren-dereference (0.57s)
+    --- PASS: TestRangeAssignmentSlots/effect-index (0.56s)
+    --- PASS: TestRangeAssignmentSlots/ordinary-paren (0.56s)
+    --- PASS: TestRangeAssignmentSlots/ordinary-index (0.55s)
+    --- PASS: TestRangeAssignmentSlots/slice-max (0.55s)
+    --- PASS: TestRangeAssignmentSlots/map-key (0.55s)
+    --- PASS: TestRangeAssignmentSlots/clean-paren (0.55s)
+    --- PASS: TestRangeAssignmentSlots/clean-index (0.55s)
+    --- PASS: TestRangeAssignmentSlots/clean-slice-max (0.56s)
+    --- PASS: TestRangeAssignmentSlots/clean-map-key (0.56s)
+    --- PASS: TestRangeAssignmentSlots/noninvoked-map-key (0.56s)
+    --- PASS: TestRangeAssignmentSlots/noninvoked-slice-max (0.56s)
+=== RUN   TestRound2IndependentProbes
+=== RUN   TestRound2IndependentProbes/range-existing-slot
+    round2_probe_test.go:27: native: === RUN   TestBehavior
+            pure_test.go:1: effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.001s
+    round2_probe_test.go:32: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestRound2IndependentProbesrange-existing-slot211858600/001/internal/canonicaljson/helper.go:1:74 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+    round2_probe_test.go:32: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestRound2IndependentProbesrange-existing-slot211858600/001/internal/canonicaljson/helper.go:1:74 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestRound2IndependentProbes/range-field-slot
+    round2_probe_test.go:27: native: === RUN   TestBehavior
+            pure_test.go:1: effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.001s
+    round2_probe_test.go:32: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestRound2IndependentProbesrange-field-slot2421447688/001/internal/canonicaljson/helper.go:1:74 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+    round2_probe_test.go:32: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestRound2IndependentProbesrange-field-slot2421447688/001/internal/canonicaljson/helper.go:1:74 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestRound2IndependentProbes/pointer-field-slot
+    round2_probe_test.go:27: native: === RUN   TestBehavior
+            pure_test.go:1: effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.001s
+    round2_probe_test.go:32: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestRound2IndependentProbespointer-field-slot1327476538/001/internal/canonicaljson/helper.go:1:74 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+    round2_probe_test.go:32: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestRound2IndependentProbespointer-field-slot1327476538/001/internal/canonicaljson/helper.go:1:74 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestRound2IndependentProbes/json-mixed-addressability
+    round2_probe_test.go:27: native: === RUN   TestBehavior
+            pure_test.go:1: effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.001s
+    round2_probe_test.go:32: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestRound2IndependentProbesjson-mixed-addressability873895659/001/internal/canonicaljson/helper.go:1:74 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.*Value.MarshalJSON -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+    round2_probe_test.go:32: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestRound2IndependentProbesjson-mixed-addressability873895659/001/internal/canonicaljson/helper.go:1:74 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.*Value.MarshalJSON -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+--- PASS: TestRound2IndependentProbes (3.36s)
+    --- PASS: TestRound2IndependentProbes/range-existing-slot (0.84s)
+    --- PASS: TestRound2IndependentProbes/range-field-slot (0.80s)
+    --- PASS: TestRound2IndependentProbes/pointer-field-slot (0.89s)
+    --- PASS: TestRound2IndependentProbes/json-mixed-addressability (0.83s)
+=== RUN   TestRound3AssignmentEdges
+=== RUN   TestRound3AssignmentEdges/parenthesized-ident
+    round3_assignment_probe_test.go:26: native: === RUN   TestBehavior
+            pure_test.go:1: effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.001s
+    round3_assignment_probe_test.go:31: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestRound3AssignmentEdgesparenthesized-ident1178604000/001/internal/canonicaljson/helper.go:1:74 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+    round3_assignment_probe_test.go:31: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestRound3AssignmentEdgesparenthesized-ident1178604000/001/internal/canonicaljson/helper.go:1:74 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestRound3AssignmentEdges/parenthesized-field
+    round3_assignment_probe_test.go:26: native: === RUN   TestBehavior
+            pure_test.go:1: effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.001s
+    round3_assignment_probe_test.go:31: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestRound3AssignmentEdgesparenthesized-field234662562/001/internal/canonicaljson/helper.go:1:74 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+    round3_assignment_probe_test.go:31: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestRound3AssignmentEdgesparenthesized-field234662562/001/internal/canonicaljson/helper.go:1:74 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+=== RUN   TestRound3AssignmentEdges/index-expression-effect
+    round3_assignment_probe_test.go:26: native: === RUN   TestBehavior
+            pure_test.go:1: effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/independent/record	0.001s
+    round3_assignment_probe_test.go:31: platform={linux amd64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestRound3AssignmentEdgesindex-expression-effect1167924170/001/internal/canonicaljson/helper.go:1:74 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.PureCallbacks -> /home/agent/.cache/codex-build/tmp/TestRound3AssignmentEdgesindex-expression-effect1167924170/001/record/pure.go:1:115 -> example.invalid/independent/internal/canonicaljson.Index -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+    round3_assignment_probe_test.go:31: platform={darwin arm64} findings=[{host-effect  /home/agent/.cache/codex-build/tmp/TestRound3AssignmentEdgesindex-expression-effect1167924170/001/internal/canonicaljson/helper.go:1:74 example.invalid/independent/record.Check -> example.invalid/independent/record.Check -> example.invalid/independent/internal/canonicaljson.PureCallbacks -> /home/agent/.cache/codex-build/tmp/TestRound3AssignmentEdgesindex-expression-effect1167924170/001/record/pure.go:1:115 -> example.invalid/independent/internal/canonicaljson.Index -> example.invalid/independent/internal/canonicaljson.Dirty -> time.Now}]
+--- PASS: TestRound3AssignmentEdges (1.66s)
+    --- PASS: TestRound3AssignmentEdges/parenthesized-ident (0.54s)
+    --- PASS: TestRound3AssignmentEdges/parenthesized-field (0.56s)
+    --- PASS: TestRound3AssignmentEdges/index-expression-effect (0.56s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/architecture	42.877s

@@ -1,0 +1,92 @@
+=== RUN   TestArchitectureEffectFixtures
+=== RUN   TestArchitectureEffectFixtures/indirect-clock
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesindirect-clock890579179/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/environment
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesenvironment2945336215/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/filesystem
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesfilesystem2799794910/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/process
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesprocess3514447923/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/network
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesnetwork3662942426/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/timer
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturestimer2326673296/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/entropy
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesentropy1604404594/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/goroutine
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesgoroutine2719437267/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/stored-callback
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesstored-callback517586402/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/method-value
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesmethod-value111393146/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/generic-callback
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesgeneric-callback1830865398/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/recursive-cycle
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesrecursive-cycle1304628230/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/nested-json
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesnested-json2003039893/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/nested-text
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesnested-text2824156670/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/json-file-writer
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesjson-file-writer612033032/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/json-file-reader
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesjson-file-reader1154730408/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/fmt-stringer
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesfmt-stringer1075218438/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/fmt-formatter
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesfmt-formatter1066133100/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/fmt-gostring
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesfmt-gostring692387204/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/unknown-callback
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesunknown-callback3906642971/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/unknown-location
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesunknown-location3767048028/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/local-location
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixtureslocal-location3780885989/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/utc-location
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesutc-location397474816/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/pure-callback
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturespure-callback851796349/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/pure-recursive-cycle
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturespure-recursive-cycle3094711573/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/pure-nested-json
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturespure-nested-json2151502628/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/pure-memory-stream
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturespure-memory-stream718627243/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/pure-fmt-type
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturespure-fmt-type2473040413/001/helper/helper.go:3:1: imports must appear before other declarations
+=== RUN   TestArchitectureEffectFixtures/effectful-unrelated-sibling
+    architecture_test.go:26: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixtureseffectful-unrelated-sibling2891951143/001/helper/helper.go:3:1: imports must appear before other declarations
+--- FAIL: TestArchitectureEffectFixtures (0.15s)
+    --- FAIL: TestArchitectureEffectFixtures/indirect-clock (0.01s)
+    --- FAIL: TestArchitectureEffectFixtures/environment (0.01s)
+    --- FAIL: TestArchitectureEffectFixtures/filesystem (0.01s)
+    --- FAIL: TestArchitectureEffectFixtures/process (0.01s)
+    --- FAIL: TestArchitectureEffectFixtures/network (0.00s)
+    --- FAIL: TestArchitectureEffectFixtures/timer (0.01s)
+    --- FAIL: TestArchitectureEffectFixtures/entropy (0.00s)
+    --- FAIL: TestArchitectureEffectFixtures/goroutine (0.00s)
+    --- FAIL: TestArchitectureEffectFixtures/stored-callback (0.00s)
+    --- FAIL: TestArchitectureEffectFixtures/method-value (0.01s)
+    --- FAIL: TestArchitectureEffectFixtures/generic-callback (0.01s)
+    --- FAIL: TestArchitectureEffectFixtures/recursive-cycle (0.01s)
+    --- FAIL: TestArchitectureEffectFixtures/nested-json (0.01s)
+    --- FAIL: TestArchitectureEffectFixtures/nested-text (0.00s)
+    --- FAIL: TestArchitectureEffectFixtures/json-file-writer (0.00s)
+    --- FAIL: TestArchitectureEffectFixtures/json-file-reader (0.01s)
+    --- FAIL: TestArchitectureEffectFixtures/fmt-stringer (0.00s)
+    --- FAIL: TestArchitectureEffectFixtures/fmt-formatter (0.01s)
+    --- FAIL: TestArchitectureEffectFixtures/fmt-gostring (0.01s)
+    --- FAIL: TestArchitectureEffectFixtures/unknown-callback (0.00s)
+    --- FAIL: TestArchitectureEffectFixtures/unknown-location (0.00s)
+    --- FAIL: TestArchitectureEffectFixtures/local-location (0.01s)
+    --- FAIL: TestArchitectureEffectFixtures/utc-location (0.00s)
+    --- FAIL: TestArchitectureEffectFixtures/pure-callback (0.00s)
+    --- FAIL: TestArchitectureEffectFixtures/pure-recursive-cycle (0.01s)
+    --- FAIL: TestArchitectureEffectFixtures/pure-nested-json (0.00s)
+    --- FAIL: TestArchitectureEffectFixtures/pure-memory-stream (0.01s)
+    --- FAIL: TestArchitectureEffectFixtures/pure-fmt-type (0.00s)
+    --- FAIL: TestArchitectureEffectFixtures/effectful-unrelated-sibling (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3	0.153s
+FAIL

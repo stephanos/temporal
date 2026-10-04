@@ -1,0 +1,40 @@
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05Z
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+00:00
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05-00:00
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+01:30
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05-08:00
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05.123456789Z
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05,25Z
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T3:04:05Z
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+24:00
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+00:60
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T25:04:05Z
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-02-30T03:04:05Z
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05Z_trailing
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/#00
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/not-a-time
+--- PASS: TestTimestampValidationPreservesGrammarAndParseErrors (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05Z (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+00:00 (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05-00:00 (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+01:30 (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05-08:00 (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05.123456789Z (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05,25Z (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T3:04:05Z (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+24:00 (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+00:60 (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T25:04:05Z (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-02-30T03:04:05Z (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05Z_trailing (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/#00 (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/not-a-time (0.00s)
+=== RUN   TestTimestampFinalizeRetainsOriginalStringsAndIdentities
+--- PASS: TestTimestampFinalizeRetainsOriginalStringsAndIdentities (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/record	0.004s
+=== RUN   TestGovernanceReviewTimePreservesGrammarAndPrecedence
+--- PASS: TestGovernanceReviewTimePreservesGrammarAndPrecedence (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	0.002s

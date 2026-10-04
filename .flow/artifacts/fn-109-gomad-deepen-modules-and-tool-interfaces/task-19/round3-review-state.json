@@ -1,0 +1,20 @@
+{
+  "task_title": "Bounded independent review of round-three range-assignment correction",
+  "task_body": "Verify 978 frozen files and 109 owned files. Inspect the shared assignment helper and implicit iterator yield assignments. Replay independent existing-variable and field-slot regressions plus original callback regressions against an isolated frozen copy, checking real stock Go behavior and both qualified source sets.",
+  "acceptance": "Return source-backed actionable findings or a bounded no-findings correction review. Preserve all prior artifacts and shared source. No formal backend verdict or native acceptance.",
+  "touches_count": 2,
+  "has_quick_commands": true,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "routing": {
+    "judged_once": true,
+    "available": false,
+    "reason": "no_key",
+    "tier_line": "Tier: session (jev-unavailable(no_key))",
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning_effort": "high",
+    "selection_retained": true,
+    "actual_backend_metadata": "unknown",
+    "writer_auditor_family": "same-family",
+    "formal_backend_verdict": false
+  }
+}

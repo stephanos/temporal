@@ -1,0 +1,6 @@
+--- FAIL: TestMemorySummaryRejectsUnqualifiedSource (0.35s)
+    --- FAIL: TestMemorySummaryRejectsUnqualifiedSource/foreign (0.01s)
+        effects_test.go:73: unqualified memory summary escaped
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	13.594s
+FAIL

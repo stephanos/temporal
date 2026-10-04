@@ -1,0 +1,14 @@
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/argument-order
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/captured-order
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/single-unwrap
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/joined-unwrap
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/wrapped-is
+--- PASS: TestEffectCallbackContextsAndUnwrapReturns (1.49s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/argument-order (0.33s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/captured-order (0.30s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/single-unwrap (0.29s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/joined-unwrap (0.29s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/wrapped-is (0.29s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	1.496s

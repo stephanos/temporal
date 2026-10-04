@@ -1,0 +1,92 @@
+=== RUN   TestArchitectureEffectFixtures
+=== RUN   TestArchitectureEffectFixtures/indirect-clock
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesindirect-clock160789134/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/environment
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesenvironment3350829632/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/filesystem
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesfilesystem1067687329/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/process
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesprocess2203024700/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/network
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesnetwork3153325873/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/timer
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturestimer2775781497/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/entropy
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesentropy3308120915/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/goroutine
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesgoroutine2511065684/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/stored-callback
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesstored-callback2006825110/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/method-value
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesmethod-value1888042198/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/generic-callback
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesgeneric-callback3288418971/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/recursive-cycle
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesrecursive-cycle1034323087/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/nested-json
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesnested-json1534098870/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/nested-text
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesnested-text1690440300/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/json-file-writer
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesjson-file-writer1461984201/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/json-file-reader
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesjson-file-reader1104638234/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/fmt-stringer
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesfmt-stringer1117303106/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/fmt-formatter
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesfmt-formatter2372452031/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/fmt-gostring
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesfmt-gostring2754082824/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/unknown-callback
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesunknown-callback3794912511/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/unknown-location
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesunknown-location1825182685/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/local-location
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixtureslocal-location2946673802/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/utc-location
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturesutc-location1831499985/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/pure-callback
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturespure-callback609678570/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/pure-recursive-cycle
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturespure-recursive-cycle2532485057/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/pure-nested-json
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturespure-nested-json2472322291/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/pure-memory-stream
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturespure-memory-stream2294824034/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/pure-fmt-type
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixturespure-fmt-type1496435550/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+=== RUN   TestArchitectureEffectFixtures/effectful-unrelated-sibling
+    architecture_test.go:26: type-check example.invalid/fitness/helper: /home/agent/.cache/codex-build/tmp/TestArchitectureEffectFixtureseffectful-unrelated-sibling3654916254/001/helper/helper.go:2:64: could not import net (type-check net: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/net/cgo_linux.go:12:8: could not import C (package C has no source metadata))
+--- FAIL: TestArchitectureEffectFixtures (9.95s)
+    --- FAIL: TestArchitectureEffectFixtures/indirect-clock (0.42s)
+    --- FAIL: TestArchitectureEffectFixtures/environment (0.35s)
+    --- FAIL: TestArchitectureEffectFixtures/filesystem (0.35s)
+    --- FAIL: TestArchitectureEffectFixtures/process (0.37s)
+    --- FAIL: TestArchitectureEffectFixtures/network (0.34s)
+    --- FAIL: TestArchitectureEffectFixtures/timer (0.35s)
+    --- FAIL: TestArchitectureEffectFixtures/entropy (0.36s)
+    --- FAIL: TestArchitectureEffectFixtures/goroutine (0.34s)
+    --- FAIL: TestArchitectureEffectFixtures/stored-callback (0.33s)
+    --- FAIL: TestArchitectureEffectFixtures/method-value (0.34s)
+    --- FAIL: TestArchitectureEffectFixtures/generic-callback (0.33s)
+    --- FAIL: TestArchitectureEffectFixtures/recursive-cycle (0.34s)
+    --- FAIL: TestArchitectureEffectFixtures/nested-json (0.32s)
+    --- FAIL: TestArchitectureEffectFixtures/nested-text (0.34s)
+    --- FAIL: TestArchitectureEffectFixtures/json-file-writer (0.33s)
+    --- FAIL: TestArchitectureEffectFixtures/json-file-reader (0.33s)
+    --- FAIL: TestArchitectureEffectFixtures/fmt-stringer (0.33s)
+    --- FAIL: TestArchitectureEffectFixtures/fmt-formatter (0.35s)
+    --- FAIL: TestArchitectureEffectFixtures/fmt-gostring (0.34s)
+    --- FAIL: TestArchitectureEffectFixtures/unknown-callback (0.33s)
+    --- FAIL: TestArchitectureEffectFixtures/unknown-location (0.34s)
+    --- FAIL: TestArchitectureEffectFixtures/local-location (0.34s)
+    --- FAIL: TestArchitectureEffectFixtures/utc-location (0.35s)
+    --- FAIL: TestArchitectureEffectFixtures/pure-callback (0.34s)
+    --- FAIL: TestArchitectureEffectFixtures/pure-recursive-cycle (0.34s)
+    --- FAIL: TestArchitectureEffectFixtures/pure-nested-json (0.33s)
+    --- FAIL: TestArchitectureEffectFixtures/pure-memory-stream (0.33s)
+    --- FAIL: TestArchitectureEffectFixtures/pure-fmt-type (0.35s)
+    --- FAIL: TestArchitectureEffectFixtures/effectful-unrelated-sibling (0.34s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3	9.953s
+FAIL

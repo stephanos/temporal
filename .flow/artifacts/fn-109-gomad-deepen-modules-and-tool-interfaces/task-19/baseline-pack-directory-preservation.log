@@ -1,0 +1,6 @@
+=== RUN   TestExplicitPackRootOverridesEnvironmentAndRetainsReports
+--- PASS: TestExplicitPackRootOverridesEnvironmentAndRetainsReports (0.07s)
+=== RUN   TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport
+--- PASS: TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport (0.03s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	0.101s

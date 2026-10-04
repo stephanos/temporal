@@ -1,0 +1,27 @@
+2026-10-04T06:49:12Z
+=== RUN   TestDependencyInitialization
+=== RUN   TestDependencyInitialization/called-dependency
+    initialization_test.go:73: dependency clock escaped {linux amd64}: []
+=== RUN   TestDependencyInitialization/blank-import
+    initialization_test.go:73: dependency clock escaped {linux amd64}: []
+=== RUN   TestDependencyInitialization/variable-initializer
+    initialization_test.go:73: dependency clock escaped {linux amd64}: []
+=== RUN   TestDependencyInitialization/second-init
+    initialization_test.go:73: dependency clock escaped {linux amd64}: []
+=== RUN   TestDependencyInitialization/transitive-import
+    initialization_test.go:57: invalid fixture edges: [{ownerless  example.invalid/initialization/internal/canonicaljson example.invalid/initialization/internal/runidentity}]
+=== RUN   TestDependencyInitialization/pure-initializers
+=== RUN   TestDependencyInitialization/standard-startup
+--- FAIL: TestDependencyInitialization (1.94s)
+    --- FAIL: TestDependencyInitialization/called-dependency (0.25s)
+    --- FAIL: TestDependencyInitialization/blank-import (0.24s)
+    --- FAIL: TestDependencyInitialization/variable-initializer (0.22s)
+    --- FAIL: TestDependencyInitialization/second-init (0.23s)
+    --- FAIL: TestDependencyInitialization/transitive-import (0.21s)
+    --- PASS: TestDependencyInitialization/pure-initializers (0.01s)
+    --- PASS: TestDependencyInitialization/standard-startup (0.77s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	1.959s
+FAIL
+2026-10-04T06:49:14Z
+suite_rc=1

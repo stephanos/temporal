@@ -1,0 +1,20 @@
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/argument-order
+    effects_test.go:32: callback clock escaped actual root: [{host-effect  /home/agent/.cache/codex-build/tmp/TestEffectCallbackContextsAndUnwrapReturnsargument-order3185957473/001/record/pure.go:1:155 example.invalid/architecture/record.dirty -> example.invalid/architecture/record.dirty -> time.Now}]
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/captured-order
+    effects_test.go:32: callback clock escaped actual root: [{host-effect  /home/agent/.cache/codex-build/tmp/TestEffectCallbackContextsAndUnwrapReturnscaptured-order2862380734/001/record/pure.go:1:155 example.invalid/architecture/record.dirty -> example.invalid/architecture/record.dirty -> time.Now}]
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/single-unwrap
+    effects_test.go:32: callback clock escaped actual root: [{host-effect  /home/agent/.cache/codex-build/tmp/TestEffectCallbackContextsAndUnwrapReturnssingle-unwrap4287896704/001/record/pure.go:1:155 example.invalid/architecture/record.dirty -> example.invalid/architecture/record.dirty -> time.Now}]
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/joined-unwrap
+    effects_test.go:32: callback clock escaped actual root: [{host-effect  /home/agent/.cache/codex-build/tmp/TestEffectCallbackContextsAndUnwrapReturnsjoined-unwrap804510346/001/record/pure.go:1:155 example.invalid/architecture/record.dirty -> example.invalid/architecture/record.dirty -> time.Now}]
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/wrapped-is
+    effects_test.go:32: callback clock escaped actual root: [{host-effect  /home/agent/.cache/codex-build/tmp/TestEffectCallbackContextsAndUnwrapReturnswrapped-is240995528/001/record/pure.go:1:155 example.invalid/architecture/record.dirty -> example.invalid/architecture/record.dirty -> time.Now}]
+--- FAIL: TestEffectCallbackContextsAndUnwrapReturns (1.70s)
+    --- FAIL: TestEffectCallbackContextsAndUnwrapReturns/argument-order (0.42s)
+    --- FAIL: TestEffectCallbackContextsAndUnwrapReturns/captured-order (0.32s)
+    --- FAIL: TestEffectCallbackContextsAndUnwrapReturns/single-unwrap (0.34s)
+    --- FAIL: TestEffectCallbackContextsAndUnwrapReturns/joined-unwrap (0.29s)
+    --- FAIL: TestEffectCallbackContextsAndUnwrapReturns/wrapped-is (0.33s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	1.701s
+FAIL

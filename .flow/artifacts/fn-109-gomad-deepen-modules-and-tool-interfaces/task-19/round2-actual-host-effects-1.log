@@ -1,0 +1,6 @@
+2026-10-04T06:53:54Z
+testing: warning: no tests to run
+PASS
+ok  	go.temporal.io/server/tools/gomad3	0.001s [no tests to run]
+2026-10-04T06:53:54Z
+suite_rc=0

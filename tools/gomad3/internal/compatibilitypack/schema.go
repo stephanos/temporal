@@ -193,7 +193,7 @@ func validatePackGovernance(governance PackGovernance) error {
 	if err := validateText("justification", governance.Justification, 1, maximumPackStringBytes); err != nil {
 		return fmt.Errorf("compatibility pack governance: %w", err)
 	}
-	reviewedAt, err := time.Parse(time.RFC3339, governance.ReviewedAt)
+	reviewedAt, err := time.ParseInLocation(time.RFC3339, governance.ReviewedAt, time.UTC)
 	if err != nil || !strings.HasSuffix(governance.ReviewedAt, "Z") || reviewedAt.Location() != time.UTC {
 		return errors.New("compatibility pack governance review time is invalid")
 	}

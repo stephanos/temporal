@@ -1,0 +1,5 @@
+package helper
+import("time";"os";"fmt";"encoding/json";"bytes";"errors";"io";"net";"os/exec";"crypto/rand")
+var FixtureMarker = 0
+var _ = time.Now;var _ = os.Getenv;var _ = fmt.Sprintf;var _ = json.Marshal;var _ = bytes.NewBuffer;var _ = errors.New;var _ io.Writer;var _ = net.Dial;var _ = exec.Command;var _ = rand.Read
+var Unknown func()

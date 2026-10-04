@@ -1,0 +1,14 @@
+=== RUN   TestImplicitCallbackPrecedence
+=== RUN   TestImplicitCallbackPrecedence/formatter-precedence
+    effects_test.go:61: unused callback incorrectly invoked: [{host-effect  /home/agent/.cache/codex-build/tmp/TestImplicitCallbackPrecedenceformatter-precedence705640608/001/helper/helper.go:1:154 example.invalid/architecture/record.Check -> example.invalid/architecture/record.Check -> example.invalid/architecture/helper.Value.String -> time.Now}]
+=== RUN   TestImplicitCallbackPrecedence/gostring-not-v
+    effects_test.go:61: unused callback incorrectly invoked: [{host-effect  /home/agent/.cache/codex-build/tmp/TestImplicitCallbackPrecedencegostring-not-v302600375/001/helper/helper.go:1:161 example.invalid/architecture/record.Check -> example.invalid/architecture/record.Check -> example.invalid/architecture/helper.Value.GoString -> time.Now}]
+=== RUN   TestImplicitCallbackPrecedence/marshal-precedence
+    effects_test.go:61: unused callback incorrectly invoked: [{host-effect  /home/agent/.cache/codex-build/tmp/TestImplicitCallbackPrecedencemarshal-precedence4258963230/001/helper/helper.go:1:228 example.invalid/architecture/record.Check -> example.invalid/architecture/record.Check -> example.invalid/architecture/helper.Inner.MarshalJSON -> time.Now}]
+--- FAIL: TestImplicitCallbackPrecedence (1.19s)
+    --- FAIL: TestImplicitCallbackPrecedence/formatter-precedence (0.48s)
+    --- FAIL: TestImplicitCallbackPrecedence/gostring-not-v (0.37s)
+    --- FAIL: TestImplicitCallbackPrecedence/marshal-precedence (0.35s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	1.202s
+FAIL

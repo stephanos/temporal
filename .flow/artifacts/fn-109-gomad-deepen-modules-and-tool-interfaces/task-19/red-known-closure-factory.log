@@ -1,0 +1,9 @@
+=== RUN   TestImplicitCallbackPrecedence
+=== RUN   TestImplicitCallbackPrecedence/known-pure-closure-factory
+diagnostic root: example.invalid/architecture/record.Check
+    effects_test.go:147: unused callback incorrectly invoked: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestImplicitCallbackPrecedenceknown-pure-closure-factory579652008/001/record/pure.go:1:179 example.invalid/architecture/record.Check -> example.invalid/architecture/record.Check -> /home/agent/.cache/codex-build/tmp/TestImplicitCallbackPrecedenceknown-pure-closure-factory579652008/001/record/pure.go:1:144 -> /home/agent/.cache/codex-build/tmp/TestImplicitCallbackPrecedenceknown-pure-closure-factory579652008/001/record/pure.go:1:172 -> unresolved callback}]
+--- FAIL: TestImplicitCallbackPrecedence (0.39s)
+    --- FAIL: TestImplicitCallbackPrecedence/known-pure-closure-factory (0.39s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	0.396s
+FAIL

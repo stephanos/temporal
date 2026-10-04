@@ -1,0 +1,25 @@
+toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go:16:2: package cmd/internal/gomadcap is not in std (/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/cmd/internal/gomadcap)
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard
+	toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go:12:2: use of internal package cmd/compile/internal/base not allowed
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept
+	toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/intercept.go:20:2: use of internal package cmd/compile/internal/base not allowed
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/cmd/link/internal/ld
+	toolchain/runtime/overlay/src/cmd/link/internal/ld/gomadcap.go:11:2: use of internal package cmd/link/internal/loader not allowed
+toolchain/runtime/overlay/src/crypto/rand/gomad.go:9:2: package internal/gomadio is not in std (/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/internal/gomadio)
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/crypto/rand
+	toolchain/runtime/overlay/src/crypto/rand/gomad.go:8:2: use of internal package crypto/internal/rand not allowed
+toolchain/runtime/overlay/src/internal/gomadfs/simulation_volume.go:15:2: package internal/gomadchoicewire is not in std (/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/internal/gomadchoicewire)
+toolchain/runtime/overlay/src/internal/gomadfs/process_commands.go:12:2: package internal/gomadmodelwire is not in std (/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/internal/gomadmodelwire)
+toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go:11:2: package internal/gomadsim is not in std (/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/internal/gomadsim)
+toolchain/runtime/overlay/src/internal/gomadfs/fs.go:13:2: package internal/gomadwire is not in std (/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/internal/gomadwire)
+toolchain/runtime/overlay/src/internal/gomadio/libc.go:16:2: package internal/gomadfs is not in std (/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/internal/gomadfs)
+toolchain/runtime/overlay/src/internal/gomadio/transcript.go:12:2: package internal/gomadtrace is not in std (/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/internal/gomadtrace)
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio
+	toolchain/runtime/overlay/src/internal/gomadio/network.go:16:2: use of internal package internal/poll not allowed
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/internal/gomadtrace
+	toolchain/runtime/overlay/src/internal/gomadtrace/trace.go:13:2: use of internal package internal/runtime/exithook not allowed
+toolchain/runtime/overlay/src/os/gomad.go:18:2: package internal/gomadio/mount is not in std (/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/internal/gomadio/mount)
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/os
+	toolchain/runtime/overlay/src/os/gomad.go:21:2: use of internal package internal/poll not allowed
+package go.temporal.io/server/tools/gomad3/toolchain/runtime/overlay/src/runtime
+	toolchain/runtime/overlay/src/runtime/gomad.go:10:2: use of internal package internal/chacha8rand not allowed

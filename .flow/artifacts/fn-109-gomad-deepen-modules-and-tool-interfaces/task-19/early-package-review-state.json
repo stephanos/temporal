@@ -1,0 +1,8 @@
+{
+  "task_title": "Early package inventory and typed public-signature correctness review",
+  "task_body": "Read-only review of task19's current architecture.go/program.go and root integration, confined to implemented package coverage/type visibility and TestHostPackageVet. Source is evolving; effect analysis and production repairs remain writer-owned and outside this early assignment.",
+  "acceptance": "Concrete Critical/Important/Minor findings with paths and source identities, covering exact exclusions/hidden/nested inventory, included errors, every internal segment, aliases/underlying/promoted/generic signatures and private storage. No writes/tests/build/generation/Flow/Git/bridge; report source movement and no final SHIP/native readiness.",
+  "touches_count": 0,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

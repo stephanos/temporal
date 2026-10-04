@@ -1,0 +1,12 @@
+package helper
+
+import "time"
+
+func Clean()                    {}
+func Dirty()                    { _ = time.Now() }
+func Set(p *func())             { *p = Dirty }
+func Iter(yield func(int) bool) { _ = time.Now(); yield(1) }
+
+type Value struct{}
+
+func (*Value) MarshalJSON() ([]byte, error) { _ = time.Now(); return []byte("null"), nil }

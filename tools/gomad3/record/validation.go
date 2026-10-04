@@ -24,7 +24,7 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	if manifest.CreatedAt == "" || manifest.CampaignID == "" {
 		return fmt.Errorf("manifest creation time and batch ID are required")
 	}
-	if _, err := time.Parse(time.RFC3339Nano, manifest.CreatedAt); err != nil {
+	if _, err := time.ParseInLocation(time.RFC3339Nano, manifest.CreatedAt, time.UTC); err != nil {
 		return fmt.Errorf("invalid manifest creation time: %w", err)
 	}
 	if requireIdentities {
@@ -143,10 +143,10 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	if err := validateFileReference(files, manifest.World.Final.File, manifest.World.Final.RawSHA256, files[manifest.World.Final.File].Size); err != nil {
 		return fmt.Errorf("final World file: %w", err)
 	}
-	if _, err := time.Parse(time.RFC3339Nano, manifest.Host.StartedAt); err != nil {
+	if _, err := time.ParseInLocation(time.RFC3339Nano, manifest.Host.StartedAt, time.UTC); err != nil {
 		return fmt.Errorf("invalid host start time: %w", err)
 	}
-	if _, err := time.Parse(time.RFC3339Nano, manifest.Host.FinishedAt); err != nil {
+	if _, err := time.ParseInLocation(time.RFC3339Nano, manifest.Host.FinishedAt, time.UTC); err != nil {
 		return fmt.Errorf("invalid host finish time: %w", err)
 	}
 	return nil

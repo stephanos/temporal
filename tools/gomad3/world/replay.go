@@ -98,11 +98,11 @@ func DecodeReplayPlan(data []byte) (ReplayPlan, error) {
 
 func validateReplayPlanIdentity(plan ReplayPlan) error {
 	if plan.SchemaVersion != SchemaVersion || !validDigest(plan.InitialDigest) || !validDigest(plan.FinalDigest) {
-		return fmt.Errorf("%w: replay plan identity", ErrInvalidSnapshot)
+		return classifiedError(invalidSnapshotSentinel, "replay plan identity")
 	}
 	for index, transition := range plan.Transitions {
 		if err := validateTransitionShape(transition); err != nil {
-			return fmt.Errorf("%w: replay transition %d", ErrInvalidSnapshot, index)
+			return classifiedError(invalidSnapshotSentinel, fmt.Sprintf("replay transition %d", index))
 		}
 	}
 	return nil
@@ -153,16 +153,16 @@ func validateTransitionShape(transition Transition) error {
 
 func (w *Model) attachReplay(snapshot Snapshot, plan ReplayPlan) error {
 	if plan.SchemaVersion != SchemaVersion || plan.InitialDigest != snapshot.StateDigest || !validDigest(plan.FinalDigest) {
-		return fmt.Errorf("%w: replay plan identity", ErrInvalidSnapshot)
+		return classifiedError(invalidSnapshotSentinel, "replay plan identity")
 	}
 	if uint64(len(plan.Transitions)) > w.config.Limits.MaxTransitions {
-		return fmt.Errorf("%w: replay transition count", ErrInvalidSnapshot)
+		return classifiedError(invalidSnapshotSentinel, "replay transition count")
 	}
 	previous := w.transcript
 	sequence := w.nextTransition
 	for index, transition := range plan.Transitions {
 		if err := validateTransitionShape(transition); err != nil || transition.Sequence != sequence || transition.PreviousDigest != previous {
-			return fmt.Errorf("%w: replay transition %d", ErrInvalidSnapshot, index)
+			return classifiedError(invalidSnapshotSentinel, fmt.Sprintf("replay transition %d", index))
 		}
 		previous = transition.Digest
 		sequence++
@@ -173,29 +173,29 @@ func (w *Model) attachReplay(snapshot Snapshot, plan ReplayPlan) error {
 	}
 	for index, transition := range plan.Transitions {
 		if err := replaySnapshotTransition(verifier, transition); err != nil {
-			return fmt.Errorf("%w: replay transition %d result", ErrInvalidSnapshot, index)
+			return classifiedError(invalidSnapshotSentinel, fmt.Sprintf("replay transition %d result", index))
 		}
 		actual := verifier.history[len(verifier.history)-1]
 		if string(transitionBytes(actual, true)) != string(transitionBytes(transition, true)) {
-			return fmt.Errorf("%w: replay transition %d identity", ErrInvalidSnapshot, index)
+			return classifiedError(invalidSnapshotSentinel, fmt.Sprintf("replay transition %d identity", index))
 		}
 	}
 	if verifier.Snapshot().StateDigest != plan.FinalDigest {
-		return fmt.Errorf("%w: replay final digest", ErrInvalidSnapshot)
+		return classifiedError(invalidSnapshotSentinel, "replay final digest")
 	}
 	var replayPayloadBytes uint64
 	for _, transition := range plan.Transitions {
 		delta, ok := checkedTransitionPayloadSize(transition)
 		if !ok {
-			return fmt.Errorf("%w: replay payload capacity", ErrInvalidSnapshot)
+			return classifiedError(invalidSnapshotSentinel, "replay payload capacity")
 		}
 		if delta > w.config.Limits.MaxPayloadBytes-replayPayloadBytes {
-			return fmt.Errorf("%w: replay payload capacity", ErrInvalidSnapshot)
+			return classifiedError(invalidSnapshotSentinel, "replay payload capacity")
 		}
 		replayPayloadBytes += delta
 	}
 	if w.payloadBytes > w.config.Limits.MaxPayloadBytes-replayPayloadBytes {
-		return fmt.Errorf("%w: replay payload capacity", ErrInvalidSnapshot)
+		return classifiedError(invalidSnapshotSentinel, "replay payload capacity")
 	}
 	w.replay = &replayState{plan: ReplayPlan{SchemaVersion: plan.SchemaVersion, InitialDigest: plan.InitialDigest, Transitions: copyTransitions(plan.Transitions), FinalDigest: plan.FinalDigest}}
 	w.replayPayloadBytes = replayPayloadBytes
@@ -375,11 +375,11 @@ func EncodeTransitions(transitions []Transition) ([]byte, error) {
 	var output bytes.Buffer
 	for index, transition := range transitions {
 		if err := validateTransitionShape(transition); err != nil {
-			return nil, fmt.Errorf("transition %d: %w", index, err)
+			return nil, modelContextError(fmt.Sprintf("transition %d", index), err)
 		}
 		encoded, err := canonicaljson.CanonicalJSON(transition)
 		if err != nil {
-			return nil, fmt.Errorf("transition %d: %w", index, err)
+			return nil, modelContextError(fmt.Sprintf("transition %d", index), err)
 		}
 		output.Write(encoded)
 		output.WriteByte('\n')

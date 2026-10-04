@@ -1,0 +1,13 @@
+=== RUN   TestHostPackageVet
+=== RUN   TestHostPackageVet/darwin/arm64
+    architecture_test.go:89: vetted 55 complete host packages
+=== RUN   TestHostPackageVet/linux/amd64
+    architecture_test.go:89: vetted 55 complete host packages
+=== RUN   TestHostPackageVet/linux/arm64
+    architecture_test.go:89: vetted 55 complete host packages
+--- PASS: TestHostPackageVet (13.77s)
+    --- PASS: TestHostPackageVet/darwin/arm64 (5.98s)
+    --- PASS: TestHostPackageVet/linux/amd64 (6.18s)
+    --- PASS: TestHostPackageVet/linux/arm64 (1.61s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3	13.776s

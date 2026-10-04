@@ -1,0 +1,6 @@
+--- FAIL: TestMemorySummarySourceIdentity (0.23s)
+    --- FAIL: TestMemorySummarySourceIdentity/foreign-pure-body (0.00s)
+        effects_test.go:72: typed pure foreign body rejected: [{unresolved-effect  /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/internal/stringslite/strings.go:25:9 example.invalid/architecture/record.Check -> example.invalid/architecture/record.Check -> strings.Contains -> strings.Index -> internal/stringslite.Index -> internal/stringslite.IndexByte -> bodyless call internal/bytealg.IndexByteString} {unresolved-effect  /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/internal/stringslite/strings.go:39:10 example.invalid/architecture/record.Check -> example.invalid/architecture/record.Check -> strings.Contains -> strings.Index -> internal/stringslite.Index -> bodyless call internal/bytealg.IndexString} {unresolved-effect  /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/internal/stringslite/strings.go:63:9 example.invalid/architecture/record.Check -> example.invalid/architecture/record.Check -> strings.Contains -> strings.Index -> internal/stringslite.Index -> bodyless call internal/bytealg.IndexString}]
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	9.860s
+FAIL

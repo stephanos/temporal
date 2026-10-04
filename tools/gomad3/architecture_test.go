@@ -1,7 +1,6 @@
 package gomad3_test
 
 import (
-	"bytes"
 	"encoding/json"
 	"go/ast"
 	"go/parser"
@@ -10,12 +9,163 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
+
+	"go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture"
 )
 
 const modulePath = "go.temporal.io/server/tools/gomad3"
+
+func TestArchitectureInventoryFixtures(t *testing.T) {
+	for _, fixture := range []struct{ name, category, path, source string }{
+		{"root-production", "ownerless", "main.go", "package fitness\n"},
+		{"hidden-production", "uncovered-source", ".hidden/source.go", "package hidden\n"},
+		{"underscore-production", "uncovered-source", "_hidden/source.go", "package hidden\n"},
+		{"unclassified-testdata", "uncovered-source", "record/testdata/source.go", "package hidden\n"},
+		{"overlay-prefix", "package-error", "toolchain/runtime/overlayextra/source.go", "package overlayextra\nimport _ \"example.invalid/missing\"\n"},
+		{"hidden-module", "unclassified-module", ".hidden/go.mod", "module example.invalid/hidden\n\ngo 1.27.1\n"},
+		{"excluded-root-module", "unclassified-module", "deterministicio/testdata/extra/go.mod", "module example.invalid/extra\n\ngo 1.27.1\n"},
+		{"included-list-error", "package-error", "record/source.go", "package record\nimport _ \"example.invalid/missing\"\n"},
+		{"owner-edge", "owner-edge", "record/source.go", "package record\nimport _ \"example.invalid/fitness/runner\"\n"},
+		{"required-facade-edge", "required-edge", "target/source.go", "package target\n"},
+	} {
+		t.Run(fixture.name, func(t *testing.T) {
+			root := t.TempDir()
+			files := map[string]string{"go.mod": "module example.invalid/fitness\n\ngo 1.27.1\n", "runner/source.go": "package runner\n", fixture.path: fixture.source}
+			for _, path := range []string{"toolchain/runtime/overlay", "cmd/gomad/testdata", "deterministicio/testdata", "internal/compatibilitypack/testdata", "internal/gomadtool/conformance/testdata", "testdata", "qualification/corpus"} {
+				files[path+"/fixture.go"] = "package fixture\n"
+			}
+			for _, path := range []string{"deterministicio/testdata/cactusstatsd", "deterministicio/testdata/hashicorpmetrics", "deterministicio/testdata/memberlist", "deterministicio/testdata/pebble", "deterministicio/testdata/sentry", "deterministicio/testdata/sockaddr", "deterministicio/testdata/sprig", "deterministicio/testdata/validator", "internal/compatibilitypack/testdata/xsys", "internal/gomadtool/conformance/testdata", "internal/gomadtool/conformance/testdata/libc_adapter", "internal/gomadtool/conformance/testdata/sqlite_adapter", "qualification/corpus"} {
+				files[path+"/go.mod"] = "module example.invalid/fixture\n\ngo 1.27.1\n"
+				files[path+"/fixture.go"] = "package fixture\n"
+			}
+			for name, source := range files {
+				path := filepath.Join(root, name)
+				if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(path, []byte(source), 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			_, findings, err := architecture.Discover(root, "go", architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, finding := range findings {
+				if finding.Category == fixture.category {
+					return
+				}
+			}
+			t.Fatalf("missing %s for %s: %v", fixture.category, fixture.path, findings)
+		})
+	}
+}
+
+func TestArchitecturePublicSignatureFixtures(t *testing.T) {
+	for _, fixture := range []struct {
+		name, source string
+		leaks        bool
+	}{
+		{"nested-container", "type Report struct{ Values map[string][]*leaf.Value }", true},
+		{"alias", "type Report = leaf.Value", true},
+		{"defined-rhs", "type Report leaf.Value", true},
+		{"interface-result", "type Report interface{ Value() leaf.Value }", true},
+		{"generic-constraint", "type Report[T interface{~[]leaf.Value}] struct{ Value T }", true},
+		{"foreign-generic-argument", "type Report struct{ Value atomic.Pointer[leaf.Value] }", true},
+		{"promoted-method", "type hidden struct{};func(hidden)Value()leaf.Value{return leaf.Value{}};type Report struct{hidden}", true},
+		{"private-storage", "type Report struct{value leaf.Value}", false},
+		{"private-defined-graph", "type hidden struct{Text string};type Report hidden", false},
+		{"recursive-public-graph", "type Report struct{Next *Report;Values []string}", false},
+	} {
+		t.Run(fixture.name, func(t *testing.T) {
+			root := t.TempDir()
+			files := map[string]string{
+				"go.mod":                 "module example.invalid/fitness\n\ngo 1.27.1\n",
+				"internal/leaf/value.go": "package leaf\ntype Value struct{Child Child};type Child struct{Text string}\n",
+				"report/value.go":        "package report\nimport(\"example.invalid/fitness/internal/leaf\";\"sync/atomic\");var _ leaf.Value;var _ atomic.Pointer[int]\n" + fixture.source,
+			}
+			for name, source := range files {
+				path := filepath.Join(root, name)
+				if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(path, []byte(source), 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			program, err := architecture.Load(root, "go", architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})
+			if err != nil {
+				t.Fatal(err)
+			}
+			findings := program.PublicSignatures("example.invalid/outside-consumer")
+			if (len(findings) != 0) != fixture.leaks {
+				t.Fatalf("leaks=%t findings=%v", fixture.leaks, findings)
+			}
+			if legal := program.PublicSignatures("example.invalid/fitness/consumer"); len(legal) != 0 {
+				t.Fatalf("same-parent consumer rejected: %v", legal)
+			}
+		})
+	}
+}
+
+func TestArchitectureEffectFixtures(t *testing.T) {
+	data, err := os.ReadFile("testdata/architecture/effects.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var fixtures []struct {
+		Name, Category, Detail string
+		Files                  map[string]string
+	}
+	if err := json.Unmarshal(data, &fixtures); err != nil {
+		t.Fatal(err)
+	}
+	if len(fixtures) == 0 {
+		t.Fatal("no effect fixtures")
+	}
+	for _, fixture := range fixtures {
+		t.Run(fixture.Name, func(t *testing.T) {
+			root := t.TempDir()
+			if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.invalid/fitness\n\ngo 1.27.1\n"), 0600); err != nil {
+				t.Fatal(err)
+			}
+			for name, path := range fixture.Files {
+				source, err := os.ReadFile(path)
+				if err != nil {
+					t.Fatal(err)
+				}
+				target := filepath.Join(root, name)
+				if err := os.MkdirAll(filepath.Dir(target), 0700); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(target, source, 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			program, err := architecture.Load(root, "go", architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})
+			if err != nil {
+				t.Fatal(err)
+			}
+			findings := program.Effects()
+			if fixture.Category == "" {
+				if len(findings) != 0 {
+					t.Fatalf("pure fixture rejected: %v", findings)
+				}
+				return
+			}
+			for _, finding := range findings {
+				if finding.Category == fixture.Category && strings.Contains(finding.Detail, fixture.Detail) {
+					return
+				}
+			}
+			t.Fatalf("missing %s (%s): %v", fixture.Category, fixture.Detail, findings)
+		})
+	}
+}
 
 type listedPackage struct {
 	ImportPath string
@@ -57,34 +207,80 @@ func TestPackageArchitecture(t *testing.T) {
 }
 
 func TestPublicPackagesDoNotExportTypeAliases(t *testing.T) {
-	for _, directory := range []string{"artifact", "choice", "deterministicio", "qualification", "record", "runner", "target", "toolchain", "upgrade", "world"} {
-		entries, err := os.ReadDir(directory)
+	root, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, platform := range qualifiedSourcePlatforms() {
+		program, err := architecture.Load(root, "go", platform)
 		if err != nil {
-			t.Fatalf("read package directory %s: %v", directory, err)
+			t.Fatal(err)
 		}
-		files := token.NewFileSet()
-		for _, entry := range entries {
-			if entry.IsDir() || filepath.Ext(entry.Name()) != ".go" || strings.HasSuffix(entry.Name(), "_test.go") {
-				continue
-			}
-			path := filepath.Join(directory, entry.Name())
-			file, err := parser.ParseFile(files, path, nil, 0)
+		for _, finding := range program.PublicSignatures("example.com/gomad-runner-consumer") {
+			t.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)
+		}
+	}
+}
+
+func qualifiedSourcePlatforms() []architecture.Platform {
+	return []architecture.Platform{{OS: "darwin", Arch: "arm64"}, {OS: "linux", Arch: "amd64"}}
+}
+
+func TestPureModulesHaveNoHostEffects(t *testing.T) {
+	root, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, platform := range qualifiedSourcePlatforms() {
+		program, err := architecture.Load(root, "go", platform)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, finding := range program.Effects() {
+			t.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)
+		}
+	}
+}
+
+func TestHostPackageVet(t *testing.T) {
+	root, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	platforms := qualifiedSourcePlatforms()
+	host := architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH}
+	if !slices.Contains(platforms, host) {
+		platforms = append(platforms, host)
+	}
+	for _, platform := range platforms {
+		t.Run(platform.OS+"/"+platform.Arch, func(t *testing.T) {
+			inventory, findings, err := architecture.Discover(root, "go", platform)
 			if err != nil {
-				t.Fatalf("parse %s: %v", path, err)
+				t.Fatal(err)
 			}
-			for _, declaration := range file.Decls {
-				generic, ok := declaration.(*ast.GenDecl)
-				if !ok {
-					continue
-				}
-				for _, specification := range generic.Specs {
-					typeSpec, ok := specification.(*ast.TypeSpec)
-					if ok && typeSpec.Name.IsExported() && typeSpec.Assign.IsValid() {
-						t.Errorf("public package %s exports forwarding alias %s", directory, typeSpec.Name.Name)
-					}
-				}
+			if len(findings) != 0 {
+				t.Fatalf("invalid host inventory: %+v", findings)
 			}
-		}
+			arguments := []string{"vet", "-tags", "test_dep"}
+			for _, pkg := range inventory.Packages {
+				arguments = append(arguments, pkg.ImportPath)
+			}
+			if len(inventory.Packages) == 0 {
+				t.Fatal("empty host inventory")
+			}
+			encoded, err := json.Marshal(inventory)
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Logf("validated source inventory: %s", encoded)
+			command := exec.Command("go", arguments...)
+			command.Dir, command.Env = root, architecture.Environment(platform)
+			output, err := command.CombinedOutput()
+			if err != nil {
+				t.Fatalf("vet %d host packages: %v\n%s", len(inventory.Packages), err, output)
+			}
+			t.Logf("vetted %d complete host packages", len(inventory.Packages))
+		})
 	}
 }
 
@@ -262,140 +458,6 @@ func TestExactModuleEdges(t *testing.T) {
 	}
 }
 
-// TestCapabilityEvaluationHasNoHostEffect keeps capability policy evaluation
-// pure: collection loads the compatibility packs and reads sources, while the
-// evaluator and the review projection it feeds see only that evidence.
-func TestCapabilityEvaluationHasNoHostEffect(t *testing.T) {
-	policyPackage := modulePath + "/target/internal/capabilitypolicy"
-	compatibilityPackage := modulePath + "/internal/compatibilitypack"
-	found := false
-	for _, pkg := range listHostPackages(t) {
-		if pkg.ImportPath != policyPackage {
-			continue
-		}
-		found = true
-		for _, imported := range pkg.Imports {
-			if !slices.Contains([]string{"slices", "sort", "strings", compatibilityPackage}, imported) {
-				t.Errorf("%s imports %s", policyPackage, imported)
-			}
-		}
-	}
-	if !found {
-		t.Fatalf("%s is not listed", policyPackage)
-	}
-	// Policy data types and constants; LoadPacks, Select and VerifyIdentities
-	// read the environment and pack files, so neither evaluator names them.
-	compatibilityData := []string{
-		"AdapterEvidence", "Decision", "Fact", "FactCapability", "FactLinkname", "FactMalformedLinkname", "FactNoReviewedGoSource",
-		"ForeignSource", "Identity", "Module", "PackEvidence", "Package", "Selection", "Source", "ValidatedPack",
-	}
-	entries, err := os.ReadDir(filepath.Join("target", "internal", "capabilitypolicy"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, entry := range entries {
-		if filepath.Ext(entry.Name()) != ".go" || strings.HasSuffix(entry.Name(), "_test.go") {
-			continue
-		}
-		checkPureFile(t, filepath.Join("target", "internal", "capabilitypolicy", entry.Name()), map[string][]string{
-			"slices": nil, "sort": nil, "strings": nil, compatibilityPackage: append(compatibilityData, "SelectPacksForPlatform"),
-		}, nil)
-	}
-	checkPureFile(t, filepath.Join("target", "capability_evaluation.go"), map[string][]string{
-		"errors": nil, "slices": nil, "sort": nil, "strings": nil, "fmt": {"Errorf"}, "path/filepath": {"Base"},
-		modulePath + "/record": {"ParseSHA256"}, compatibilityPackage: append(compatibilityData, "DigestSources"),
-		policyPackage: {"Evaluate", "Evaluation", "Finding", "Package", "Policy", "Source"},
-	}, packageFunctions(t, "target"))
-}
-
-// checkPureFile rejects an import outside allowed and a reference through an
-// import to an identifier outside its listed ones (nil allows the whole
-// package), whether called, converted to or taken as a value. With local, it
-// also rejects references to package-level functions declared in another file
-// of the package; a local name that shadows such a function is reported too.
-func checkPureFile(t *testing.T, path string, allowed map[string][]string, local map[string]string) {
-	t.Helper()
-	file, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
-	if err != nil {
-		t.Fatalf("parse %s: %v", path, err)
-	}
-	importsByName := map[string]string{}
-	for _, specification := range file.Imports {
-		importPath := strings.Trim(specification.Path.Value, `"`)
-		if _, ok := allowed[importPath]; !ok {
-			t.Errorf("%s imports %s", path, importPath)
-			continue
-		}
-		name := filepath.Base(importPath)
-		if specification.Name != nil {
-			name = specification.Name.Name
-		} else if importPath == modulePath+"/internal/compatibilitypack" {
-			name = "compatibility"
-		}
-		importsByName[name] = importPath
-	}
-	var inspect func(ast.Node) bool
-	inspect = func(node ast.Node) bool {
-		switch node := node.(type) {
-		case *ast.SelectorExpr:
-			if receiver, ok := node.X.(*ast.Ident); ok {
-				if importPath, imported := importsByName[receiver.Name]; imported {
-					if allowed[importPath] != nil && !slices.Contains(allowed[importPath], node.Sel.Name) {
-						t.Errorf("%s references %s.%s", path, importPath, node.Sel.Name)
-					}
-					return false
-				}
-			}
-			ast.Inspect(node.X, inspect)
-			return false
-		case *ast.KeyValueExpr:
-			if _, field := node.Key.(*ast.Ident); field {
-				ast.Inspect(node.Value, inspect)
-				return false
-			}
-		case *ast.FuncDecl:
-			if node.Body != nil {
-				ast.Inspect(node.Type, inspect)
-				ast.Inspect(node.Body, inspect)
-			}
-			return false
-		case *ast.Ident:
-			if declaredIn, declared := local[node.Name]; declared && declaredIn != filepath.Base(path) {
-				t.Errorf("%s references %s from %s", path, node.Name, declaredIn)
-			}
-		default:
-		}
-		return true
-	}
-	ast.Inspect(file, inspect)
-}
-
-// packageFunctions maps each package-level function of a package directory to
-// the file that declares it.
-func packageFunctions(t *testing.T, directory string) map[string]string {
-	t.Helper()
-	entries, err := os.ReadDir(directory)
-	if err != nil {
-		t.Fatalf("read package directory %s: %v", directory, err)
-	}
-	functions := map[string]string{}
-	for _, entry := range entries {
-		if entry.IsDir() || filepath.Ext(entry.Name()) != ".go" || strings.HasSuffix(entry.Name(), "_test.go") {
-			continue
-		}
-		file, err := parser.ParseFile(token.NewFileSet(), filepath.Join(directory, entry.Name()), nil, 0)
-		if err != nil {
-			t.Fatalf("parse %s/%s: %v", directory, entry.Name(), err)
-		}
-		for _, declaration := range file.Decls {
-			if function, ok := declaration.(*ast.FuncDecl); ok && function.Recv == nil {
-				functions[function.Name.Name] = entry.Name()
-			}
-		}
-	}
-	return functions
-}
-
 func TestDomainModulesDoNotExportWireFraming(t *testing.T) {
 	for directory, forbidden := range map[string][]string{
 		"choice": {
@@ -465,140 +527,32 @@ func packageExports(t *testing.T, directory string) map[string]bool {
 
 func listHostPackages(t *testing.T) []listedPackage {
 	t.Helper()
-	arguments := []string{
-		"list", "-json", "-tags", "test_dep",
-		"./cmd/...", "./runner/...", "./qualification/...", "./target/...",
-		"./record/...", "./artifact/...", "./choice/...", "./deterministicio/...", "./world/...",
-		"./upgrade/...",
-		"./toolchain", "./toolchain/version", "./toolchain/installation", "./internal/...",
-	}
-	command := exec.Command("go", arguments...)
-	command.Env = append(command.Environ(), "GOWORK=off")
-	output, err := command.CombinedOutput()
+	root, err := os.Getwd()
 	if err != nil {
-		t.Fatalf("list Gomad v3 host packages: %v\n%s", err, output)
+		t.Fatal(err)
 	}
-	decoder := json.NewDecoder(bytes.NewReader(output))
-	packages := []listedPackage{}
-	for decoder.More() {
-		var pkg listedPackage
-		if err := decoder.Decode(&pkg); err != nil {
-			t.Fatalf("decode listed package: %v", err)
+	var packages []listedPackage
+	for _, platform := range qualifiedSourcePlatforms() {
+		inventory, findings, err := architecture.Discover(root, "go", platform)
+		if err != nil {
+			t.Fatal(err)
 		}
-		packages = append(packages, pkg)
+		for _, finding := range findings {
+			t.Errorf("%s %s %s: %s", finding.Platform, finding.Category, finding.Path, finding.Detail)
+		}
+		for _, pkg := range inventory.Packages {
+			packages = append(packages, listedPackage{pkg.ImportPath, pkg.Imports})
+		}
 	}
 	return packages
 }
 
-func packageOwner(importPath string) string {
-	relative := strings.TrimPrefix(importPath, modulePath+"/")
-	switch {
-	case relative == "cmd/gomad" || strings.HasPrefix(relative, "cmd/gomad/internal/cli"):
-		return "cli"
-	case relative == "cmd/gomadtool" || strings.HasPrefix(relative, "cmd/gomadtool/") || relative == "internal/gomadtool" || strings.HasPrefix(relative, "internal/gomadtool/"):
-		return "developer"
-	case relative == "internal/compatibilitypack" || strings.HasPrefix(relative, "internal/compatibilitypack/"):
-		return "compatibility"
-	case relative == "upgrade" || strings.HasPrefix(relative, "upgrade/"):
-		return "upgrade"
-	case relative == "runner" || strings.HasPrefix(relative, "runner/"):
-		return "runner"
-	case relative == "qualification" || strings.HasPrefix(relative, "qualification/"):
-		return "qualification"
-	case relative == "target" || strings.HasPrefix(relative, "target/"):
-		return "target"
-	case relative == "record" || strings.HasPrefix(relative, "record/"):
-		return "record"
-	case relative == "artifact" || strings.HasPrefix(relative, "artifact/"):
-		return "artifact"
-	case relative == "choice" || strings.HasPrefix(relative, "choice/"):
-		return "choice"
-	case relative == "deterministicio" || strings.HasPrefix(relative, "deterministicio/"):
-		return "deterministicio"
-	case relative == "world" || strings.HasPrefix(relative, "world/"):
-		return "world"
-	case relative == "simulation" || strings.HasPrefix(relative, "simulation/"):
-		return "simulation"
-	case relative == "toolchain" || strings.HasPrefix(relative, "toolchain/"):
-		return "toolchain"
-	case relative == "internal/canonicaljson" || strings.HasPrefix(relative, "internal/canonicaljson/"):
-		return "canonicaljson"
-	case relative == "internal/hostexec" || strings.HasPrefix(relative, "internal/hostexec/"):
-		return "hostexec"
-	case relative == "internal/hostfs" || strings.HasPrefix(relative, "internal/hostfs/"):
-		return "hostfs"
-	case relative == "internal/preparation" || strings.HasPrefix(relative, "internal/preparation/"):
-		return "preparation"
-	case relative == "internal/sourceinventory" || strings.HasPrefix(relative, "internal/sourceinventory/"):
-		return "sourceinventory"
-	default:
-		return ""
-	}
-}
+func packageOwner(importPath string) string { return architecture.Owner(modulePath, importPath) }
 
 func ownerMayImport(owner, importedOwner, importing, imported string) bool {
-	if owner == importedOwner {
-		return true
-	}
-	allowed := map[string][]string{
-		"cli":             {"runner", "qualification", "target", "record", "artifact", "deterministicio", "preparation", "toolchain", "canonicaljson"},
-		"developer":       {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs"},
-		"runner":          {"target", "record", "artifact", "choice", "deterministicio", "preparation", "world", "canonicaljson", "hostexec", "hostfs"},
-		"qualification":   {"runner", "target", "record", "artifact", "choice", "deterministicio", "preparation", "canonicaljson", "hostexec", "hostfs"},
-		"target":          {"compatibility", "record", "toolchain", "canonicaljson", "hostexec", "hostfs", "sourceinventory"},
-		"record":          {"canonicaljson"},
-		"artifact":        {"choice", "deterministicio", "target", "record", "hostfs"},
-		"compatibility":   {"target", "record", "canonicaljson", "hostfs"},
-		"deterministicio": {"target", "record", "toolchain", "canonicaljson", "hostfs", "sourceinventory"},
-		"preparation":     {"target", "deterministicio", "record"},
-		"world":           {"canonicaljson"},
-		"simulation":      {"record", "canonicaljson"},
-		"toolchain":       {"canonicaljson", "hostexec", "hostfs"},
-		"upgrade":         {"qualification", "toolchain", "deterministicio", "compatibility", "canonicaljson", "hostexec", "hostfs"},
-		"sourceinventory": {"hostfs"},
-	}
-	if !slices.Contains(allowed[owner], importedOwner) {
-		return false
-	}
-	// Target preparation and deterministic I/O read the pinned version and the
-	// validated installation layout; the builder stays out of their reach.
-	if (owner == "target" || owner == "deterministicio") && importedOwner == "toolchain" {
-		return imported == modulePath+"/toolchain/version" || imported == modulePath+"/toolchain/installation"
-	}
-	// Only the maintenance engines read adapters and compatibility packs.
-	// The public compatibility facade also serializes its report as JSON.
-	if owner == "upgrade" && (importedOwner == "compatibility" || importedOwner == "deterministicio" || importedOwner == "canonicaljson") {
-		return importing == modulePath+"/upgrade/pinimpact" || importing == modulePath+"/upgrade/adapterregen" ||
-			(importing == modulePath+"/upgrade" && importedOwner == "canonicaljson")
-	}
-	return true
+	return architecture.OwnerMayImport(modulePath, owner, importedOwner, importing, imported)
 }
 
 func moduleMayImport(importing, imported string) bool {
-	if !strings.HasPrefix(imported, modulePath+"/") {
-		return true
-	}
-	forbidden := map[string][]string{
-		modulePath + "/artifact": {modulePath + "/runner"},
-		modulePath + "/record":   {modulePath + "/runner"},
-		modulePath + "/runner/internal/campaign": {
-			modulePath + "/runner/internal/execution", modulePath + "/runner/internal/corpus", modulePath + "/runner/internal/minimizer",
-		},
-		modulePath + "/runner/internal/execution": {
-			modulePath + "/runner/internal/campaign", modulePath + "/runner/internal/corpus", modulePath + "/runner/internal/exploration",
-		},
-		modulePath + "/runner/internal/corpus": {
-			modulePath + "/runner/internal/campaign", modulePath + "/runner/internal/execution", modulePath + "/runner/internal/exploration",
-		},
-	}
-	for module, denied := range forbidden {
-		if importing == module || strings.HasPrefix(importing, module+"/") {
-			for _, prefix := range denied {
-				if imported == prefix || strings.HasPrefix(imported, prefix+"/") {
-					return false
-				}
-			}
-		}
-	}
-	return true
+	return architecture.ModuleMayImport(modulePath, importing, imported)
 }

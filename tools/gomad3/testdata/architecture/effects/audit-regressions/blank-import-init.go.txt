@@ -1,0 +1,5 @@
+package record
+
+import _ "example.invalid/fitness/internal/canonicaljson"
+
+func Check() {}

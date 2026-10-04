@@ -1,0 +1,570 @@
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	9.220s
+ok  	go.temporal.io/server/tools/gomad3/record	0.067s
+ok  	go.temporal.io/server/tools/gomad3/world	0.229s
+ok  	go.temporal.io/server/tools/gomad3/world/process	0.012s
+--- FAIL: TestReviewCapabilitiesClassifiesRealReadonlyModuleFailureAsInvalidInput (0.02s)
+    capability_review_test.go:356: ReviewCapabilities() error = *fmt.wrapError inspect target capability closure: start command "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go": fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestReviewCapabilitiesLinkedModeBuildsAndProjectsManifest (0.01s)
+    capability_review_test.go:393: inspect target capability closure: start command "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go": fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestReviewCapabilitiesLinkedModeReturnsActiveFindings (0.01s)
+    capability_review_test.go:410: inspect target capability closure: start command "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go": fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestReviewCapabilitiesGuardedModeReturnsGuardedFindings (0.00s)
+    capability_review_test.go:424: inspect target capability closure: start command "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go": fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestReviewCapabilitiesLinkedModeRejectsLiveDeniedBoundary (0.00s)
+    capability_review_test.go:441: inspect target capability closure: start command "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go": fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestReviewCapabilitiesGuardedModeGuardsLiveDeniedBoundary (0.00s)
+    capability_review_test.go:455: inspect target capability closure: start command "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go": fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestClosureReviewSupportsSimulationFixtureAndRefusesHarnessTests (0.01s)
+    capability_review_test.go:506: inspect target capability closure: start command "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go": fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestBuiltInSimulationLinknamesPinCurrentFirstPartySources (0.01s)
+    capability_test.go:72: runtime_time_toolchain.go is sha256:211c01f57125ba62115b1ffce5d2479d3c22116d51a41aefcfb1a576e8b393a9 with directives ["gomadSimulationTimeAdvance runtime.gomadSimulationTimeAdvance" "gomadSimulationTimeCurrent runtime.gomadSimulationTimeCurrent" "gomadSimulationTimeTakeArrivals runtime.gomadSimulationTimeTakeArrivals"], which no pinned bridge source matches
+--- FAIL: TestPinnedCoverageBuildSettingsRejectInstrumentation (0.00s)
+    coverage_test.go:25: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareWithGoCommandAdapterPreservesFreshAndCachedTarget (0.00s)
+    go_command_test.go:27: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestBuildGoTargetReleasesCacheAfterCommandFailure (0.00s)
+    go_command_test.go:73: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareRestoresCachedTargetForIdenticalInputs (0.00s)
+    prepared_cache_test.go:19: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareRebuildsWhenAnyBuildInputChanges (0.00s)
+    prepared_cache_test.go:51: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareRebuildsWhenADependencyLanguageVersionChanges (0.00s)
+    prepared_cache_test.go:95: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareStampsNoRepositoryState (0.01s)
+    prepared_cache_test.go:114: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareDiscardsCachedTargetThatDoesNotHashToItsRecord (0.00s)
+    prepared_cache_test.go:128: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPreparedTargetCacheEvictsLeastRecentlyUsedEntriesPastTheByteBound (0.00s)
+    prepared_cache_test.go:152: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareGoRunBuildsOnceWithPinnedToolchain (0.00s)
+    target_test.go:60: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareGoRunUsesBuildOverlay (0.00s)
+    target_test.go:124: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareRejectsLinknameInBuildOverlay (0.00s)
+    target_test.go:164: Prepare() error = stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReadModuleCacheUsesPinnedToolchain (0.00s)
+    target_test.go:171: query pinned module cache: start command "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go": fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestDownloadModuleFetchesPinnedModuleIntoCleanCache (0.00s)
+    --- FAIL: TestDownloadModuleFetchesPinnedModuleIntoCleanCache/pinned (0.00s)
+        target_test.go:233: download pinned module example.com/pinned@v1.0.0: start command "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go": fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+            unexpected end of JSON input: 
+    --- FAIL: TestDownloadModuleFetchesPinnedModuleIntoCleanCache/checksum_mismatch (0.00s)
+        target_test.go:228: DownloadModule() error = download pinned module example.com/pinned@v1.0.0: start command "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go": fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+            unexpected end of JSON input: , want "checksum mismatch"
+--- FAIL: TestPrepareGoTestWithoutBuildTagsRemainsTagNeutral (0.00s)
+    target_test.go:269: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareGoTestPreservesExplicitTestDependencyTag (0.00s)
+    target_test.go:305: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareRejectsEscapeCapabilityClosure (0.00s)
+    --- FAIL: TestPrepareRejectsEscapeCapabilityClosure/raw_syscall (0.00s)
+        target_test.go:402: Prepare() error = stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestPrepareRejectsEscapeCapabilityClosure/plugin (0.00s)
+        target_test.go:402: Prepare() error = stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestPrepareRejectsEscapeCapabilityClosure/test_process (0.00s)
+        target_test.go:402: Prepare() error = stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestPrepareRejectsEscapeCapabilityClosure/assembly (0.00s)
+        target_test.go:402: Prepare() error = stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestPrepareRejectsEscapeCapabilityClosure/process (0.00s)
+        target_test.go:402: Prepare() error = stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestPrepareRejectsEscapeCapabilityClosure/signal (0.00s)
+        target_test.go:402: Prepare() error = stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestPrepareRejectsEscapeCapabilityClosure/host_user (0.00s)
+        target_test.go:402: Prepare() error = stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareLinkedModeEliminatesOnlyDeadForbiddenImports (0.00s)
+    target_test.go:424: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareScrubsDeterministicActivationFromBuild (0.00s)
+    target_test.go:468: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareResolvesFilesystemPackageToNestedModule (0.00s)
+    target_test.go:488: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPreparedVerifyRejectsMutation (0.00s)
+    target_test.go:508: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareExecRequiresMatchingProvenance (0.00s)
+    target_test.go:538: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareExecRequiresMatchingLinkedProvenance (0.00s)
+    target_test.go:716: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestPrepareRejectsOptionLikeGoPackage (0.00s)
+    target_test.go:880: Prepare() error = stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/target	1.164s
+--- FAIL: TestFixtureBumpMatchesBuildRejections (0.01s)
+    pinimpact_test.go:259: adapter build check error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want rejection containing "unsupported github.com/getsentry/sentry-go version"
+--- FAIL: TestSameVersionWithChangedSum (0.01s)
+    pinimpact_test.go:304: adapter build check error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want rejection containing "module sum"
+--- FAIL: TestReplacedModules (0.03s)
+    pinimpact_test.go:358: adapter build check error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want rejection containing "already replaces github.com/getsentry/sentry-go"
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	0.355s
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	0.449s
+--- FAIL: TestRunChoiceExplorationDivergencePoliciesAndInspection (0.01s)
+    --- FAIL: TestRunChoiceExplorationDivergencePoliciesAndInspection/first (0.01s)
+        choice_exploration_divergence_test.go:71: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRunChoiceExplorationDivergencePoliciesAndInspection/budget (0.00s)
+        choice_exploration_divergence_test.go:71: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRunChoiceExplorationDivergencePoliciesAndInspection/all (0.00s)
+        choice_exploration_divergence_test.go:71: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors (0.06s)
+    --- FAIL: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/normal_error (0.00s)
+        choice_exploration_divergence_test.go:146: error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want target_supervision
+    --- FAIL: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/cancelled (0.00s)
+        choice_exploration_divergence_test.go:146: error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want runner_cancelled
+    --- FAIL: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/typed_cancelled (0.00s)
+        choice_exploration_divergence_test.go:146: error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want target_supervision
+    --- FAIL: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/overflow (0.00s)
+        choice_exploration_divergence_test.go:146: error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want choice_trace_overflow
+    --- FAIL: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/malformed_trace (0.00s)
+        choice_exploration_divergence_test.go:146: error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want choice_trace_malformed
+    --- FAIL: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/unterminated_trace (0.00s)
+        choice_exploration_divergence_test.go:146: error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want choice_trace_unterminated
+    --- FAIL: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/missing_identity (0.00s)
+        choice_exploration_divergence_test.go:146: error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want target_supervision
+    --- FAIL: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/duplicate_identity (0.01s)
+        choice_exploration_divergence_test.go:146: error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want target_supervision
+    --- FAIL: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/alternative_capacity (0.00s)
+        choice_exploration_divergence_test.go:146: error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want target_supervision
+    --- FAIL: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/tape_exhaustion (0.01s)
+        choice_exploration_divergence_test.go:146: error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want target_supervision
+    --- FAIL: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/typed_watchdog (0.00s)
+        choice_exploration_divergence_test.go:146: error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want target_supervision
+    --- FAIL: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/wrong_prefix (0.00s)
+        choice_exploration_divergence_test.go:146: error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want target_supervision
+    --- FAIL: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/malformed_observed (0.00s)
+        choice_exploration_divergence_test.go:146: error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want target_supervision
+    --- FAIL: TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors/joined_failure (0.01s)
+        choice_exploration_divergence_test.go:146: error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want target_supervision
+--- FAIL: TestRunChoiceExplorationResumePreservesDivergenceIdentity (0.00s)
+    choice_exploration_divergence_test.go:192: partial = runner.CampaignResult{CampaignPath:"/home/agent/.cache/codex-build/tmp/TestRunChoiceExplorationResumePreservesDivergenceIdentity1974060661/002/v1/campaign-20261004T060233.495500122Z-6fab1147289cea67ed60ccf38a13717f", SelectionCount:0x1, Attempted:0x0, Succeeded:0x0, Failures:0x0, Watchdogs:0x0, ReplayDivergences:0x0, Cancelled:0x0, DistinctFailures:0x0, StopReason:"", Artifacts:[]string(nil), RetainedSuccesses:0x0, RetainedSuccessBytes:0x0, SuccessArtifacts:[]string(nil), SemanticCoverage:(*deterministicio.SemanticCoverage)(nil), ExecutionEvidence:(*runner.ExecutionEvidence)(nil), ExecutionElapsedNanos:0x0, Diagnostics:(*runner.DiagnosticTraceReference)(nil), CorpusPath:"", CorpusEntries:0x0, CorpusAdded:0x0, Guidance:(*runner.GuidanceSummary)(nil), ChoiceTrace:(*runner.ChoiceTraceSummary)(nil), ChoiceExploration:(*runner.ChoiceExplorationSummary)(nil), SimulationExploration:(*runner.SimulationExplorationSummary)(nil), RecoveryExecutions:0x0, failureArtifactBytes:0x0}, err=deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons (0.04s)
+    --- FAIL: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/kind (0.00s)
+        choice_exploration_divergence_test.go:250: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/site (0.01s)
+        choice_exploration_divergence_test.go:250: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/alternatives (0.01s)
+        choice_exploration_divergence_test.go:250: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/selected (0.00s)
+        choice_exploration_divergence_test.go:250: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/alternative_set (0.01s)
+        choice_exploration_divergence_test.go:250: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/tape_unconsumed (0.00s)
+        choice_exploration_divergence_test.go:250: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons/observation (0.00s)
+        choice_exploration_divergence_test.go:250: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRunChoiceExplorationKilledAfterDivergenceResumesSameState (0.00s)
+    choice_exploration_divergence_unix_test.go:99: crash helper failed: exit status 1: 
+--- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence (0.16s)
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e442b0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e44cf0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e45730)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e8a270)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e8acd0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/World_seed_mismatch/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e8b710)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5c1a260)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5c1aca0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5c1b6e0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5b70380)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5b70dd0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_choice_trace/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5b71830)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5d365b0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5d36ff0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/choice_trace_rejected_by_supervision/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5d37a30)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/seed (0.01s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda6160570)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda6160fb0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/unterminated_choice_trace_rejected_by_supervision/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda6161a00)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5ce8540)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5ce8f80)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/missing_terminal_choice_frame/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5ce99e0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5dd0520)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5dd0f60)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5dd19a0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e4c4e0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e4cf20)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e4d960)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5ea44a0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5ea4ee0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_World,_semantic_coverage_and_choice_trace/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5ea5920)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5ed2460)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5ed2ea0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/malformed_semantic_coverage_and_choice_trace/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5ed38e0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5f16420)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5f16e60)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_World/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda601c630)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda601d070)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda601dab0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_semantic_coverage/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5f165f0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5f17060)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5f17aa0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/watchdog_and_malformed_choice_trace/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5eba5f0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5ebb030)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/choice-exploration (0.01s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5ebba70)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_World/simulation-exploration (0.01s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e8a6d0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e8b130)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e8bb70)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/cancelled_execution_and_malformed_semantic_coverage/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5c1a6c0)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/seed (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5c1b100)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/choice-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5c1bb40)}, want a host failure
+    --- FAIL: TestCompletionFaultsKeepReasonPrecedenceAndEvidence/supervision_failure_and_World_seed_mismatch/simulation-exploration (0.00s)
+        completion_characterization_test.go:340: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5b707f0)}, want a host failure
+--- FAIL: TestCancellationIsAHostFailure (0.01s)
+    --- FAIL: TestCancellationIsAHostFailure/seed (0.00s)
+        completion_characterization_test.go:378: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5b712c0)}
+    --- FAIL: TestCancellationIsAHostFailure/choice-exploration (0.00s)
+        completion_characterization_test.go:367: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5b71d20)}, want a host failure
+    --- FAIL: TestCancellationIsAHostFailure/simulation-exploration (0.01s)
+        completion_characterization_test.go:367: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5d36ac0)}, want a host failure
+--- FAIL: TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy (0.02s)
+    --- FAIL: TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/seed (0.01s)
+        completion_characterization_test.go:423: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/choice-exploration (0.00s)
+        completion_characterization_test.go:423: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy/simulation-exploration (0.01s)
+        completion_characterization_test.go:423: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestIsolatedRunnerExecutesSeedStrategyWithSuppliedLimits (0.00s)
+    coordinator_transport_test.go:211: isolated Explore() error = gomad3 Runner/host failure: coordinator_run: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestIsolatedRunnerExecutesChoiceStrategyWithSuppliedLimits (0.01s)
+    coordinator_transport_test.go:249: isolated Explore() error = gomad3 Runner/host failure: coordinator_run: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestIsolatedRunnerCompletesSimulationStrategyWithSuppliedLimits (0.00s)
+    coordinator_transport_test.go:296: isolated Explore() error = gomad3 Runner/host failure: coordinator_run: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestReplayAndMinimizeRejectRetainedCoverageBinary (0.00s)
+    coverage_replay_test.go:46: build covered target: fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+--- FAIL: TestDiagnosticsRetainedWhenSuccessArtifactsAreDiscarded (0.01s)
+    diagnostics_test.go:59: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestDiagnosticsPlanShardAndGuidanceKeepTheProfile (0.00s)
+    diagnostics_test.go:96: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestDiagnosticArtifactReplaysWithoutCollectingSidecar (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestDiagnosticsResumeRestoresTheRecordedProfile (0.00s)
+    diagnostics_test.go:167: interruption {CampaignPath:/home/agent/.cache/codex-build/tmp/TestDiagnosticsResumeRestoresTheRecordedProfile2506716323/002/v1/campaign-20261004T060233.792010247Z-01005aa5536d96beaa27b4ac93f79524 SelectionCount:2 Attempted:0 Succeeded:0 Failures:0 Watchdogs:0 ReplayDivergences:0 Cancelled:0 DistinctFailures:0 StopReason: Artifacts:[] RetainedSuccesses:0 RetainedSuccessBytes:0 SuccessArtifacts:[] SemanticCoverage:<nil> ExecutionEvidence:<nil> ExecutionElapsedNanos:0 Diagnostics:<nil> CorpusPath: CorpusEntries:0 CorpusAdded:0 Guidance:<nil> ChoiceTrace:<nil> ChoiceExploration:<nil> SimulationExploration:<nil> RecoveryExecutions:0 failureArtifactBytes:0}: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays (0.01s)
+    --- FAIL: TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays/empty (0.00s)
+        environment_integration_test.go:31: isolated Explore() error = gomad3 Runner/host failure: coordinator_run: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays/explicit (0.01s)
+        environment_integration_test.go:31: isolated Explore() error = gomad3 Runner/host failure: coordinator_run: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestDirectTargetEnvironmentPreservesSeededScrubbingAndDisabledBehavior (0.00s)
+    environment_integration_test.go:61: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestInjectionCharacterizationReplayRequiresSupervisorOnlyForTheProcessExecutor (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestInjectionCharacterizationMinimizeRequiresSupervisorOnlyForTheProcessExecutor (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestInjectionCharacterizationMinimizeDefaultReplayerUsesItsExecutor (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestInjectionCharacterizationShardChecksToolchainOnlyForTheProcessExecutor (0.00s)
+    executor_injection_characterization_test.go:104: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestInjectionCharacterizationResumeChecksToolchainAndSupervisorOnlyForTheProcessExecutor (0.00s)
+    executor_injection_characterization_test.go:134: resume without supervisor or executor error = campaign lifecycle "recoverable-failure" is not resumable
+--- FAIL: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy (0.02s)
+    --- FAIL: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/same_configuration_across_seeds (0.00s)
+        guidance_identity_test.go:54: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/changed_environment (0.00s)
+        guidance_identity_test.go:54: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/strict_to_forward (0.00s)
+        guidance_identity_test.go:54: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/semantic/forward_to_strict (0.00s)
+        guidance_identity_test.go:54: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/same_configuration_across_seeds (0.00s)
+        guidance_identity_test.go:54: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/changed_environment (0.00s)
+        guidance_identity_test.go:54: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/strict_to_forward (0.00s)
+        guidance_identity_test.go:54: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy/choice/forward_to_strict (0.00s)
+        guidance_identity_test.go:54: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestGuidedCorpusSeedReproducesRetainedExecution (0.01s)
+    guided_selection_test.go:26: isolated Explore() error = gomad3 Runner/host failure: coordinator_run: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestGuidedSelectionExcludesAnsweredRequestedSeeds (0.01s)
+    --- FAIL: TestGuidedSelectionExcludesAnsweredRequestedSeeds/partial (0.00s)
+        guided_selection_test.go:68: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestGuidedSelectionExcludesAnsweredRequestedSeeds/all (0.00s)
+        guided_selection_test.go:68: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestGuidedSelectionExcludesAnsweredRequestedSeeds/outside (0.00s)
+        guided_selection_test.go:68: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus (0.00s)
+    --- FAIL: TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus/new (0.00s)
+        guided_selection_test.go:111: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus/regression (0.00s)
+        guided_selection_test.go:111: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestGuidedResumeRejectsChangedRegressionModeAndCountsNewExecutions (0.00s)
+    guided_selection_test.go:180: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestGuidedRegressionEarlyFailureCountsOnlyAttemptedNewExecutions (0.00s)
+    guided_selection_test.go:221: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestFullyAnsweredGuidedPlanExecutesEmptyShardsAndMerges (0.01s)
+    guided_selection_test.go:277: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestGuidanceRegressionModeChangesPortablePlanIdentity (0.00s)
+    guided_selection_test.go:349: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestOpenReportsSimulationExplorationEvidence (0.00s)
+    inspect_test.go:59: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestOpenReportsMinimizationLineageAndBounds (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestOpenReportsSimulationExplorationBoundsAndRemainingWork (0.00s)
+    inspect_test.go:157: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestMinimizePublishesLinkedExactScheduleAndFaultReduction (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeRejectsSimulationArtifactWithoutExactChoiceTape (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeResumeContinuesAfterAcceptedReductionWithoutRepeatingAttempts (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeKeepsStatePerParentArtifactInOneOutputRoot (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeResumeRejectsStateOfAnotherRun (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeResumeFailsClosedOnDamagedAcceptedArtifact (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeExcludesConcurrentRunsOfOneParentOnOneOutputRoot (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeResumeAfterFinalPublicationValidatesWithoutPublishingAgain (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestMinimizeResumeAfterUnrecordedFinalPublicationDoesNotPublishAgain (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestCreateCampaignPlanPublishesCanonicalPreparedTargetBundle (0.00s)
+    portable_plan_test.go:22: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRunCampaignShardRejectsChangedReadOnlyMountBeforeExecution (0.00s)
+    portable_plan_test.go:108: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestCreateCampaignPlanReadOnlyMountsArePortableAndDetachedFromTheirSource (0.00s)
+    portable_plan_test.go:148: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRunCampaignShardExecutesOnlyItsGlobalOrdinalPartition (0.00s)
+    portable_plan_test.go:188: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRunCampaignShardResumePreservesItsPlanAndAssignment (0.00s)
+    portable_plan_test.go:219: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestMergeCampaignShardsIsOrderIndependentAndRequiresCompleteness (0.00s)
+    portable_plan_test.go:260: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestMergeCampaignShardsDeduplicatesSharedFailureEvidence (0.00s)
+    portable_plan_test.go:339: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists (0.00s)
+    preparation_owner_test.go:24: pre-bundle adapter preparation error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestIOProfileFailureArtifactReplaysExactly (0.00s)
+    replay_io_integration_test.go:30: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestLinkedCapabilityArtifactRevalidatesRetainedExecutableBeforeReplay (0.00s)
+    replay_io_integration_test.go:112: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval (0.00s)
+    replay_io_integration_test.go:172: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayVerifiesThenRunsStoredTargetWithoutRebuilding (0.00s)
+    replay_operation_test.go:591: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayAutomaticallySuppliesExactChoiceTape (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayAutomaticallySuppliesExactSimulationExplorationTape (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayReportsChangedSimulationExplorationRecord (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayReportsTypedChoiceDivergenceBeforeOrdinaryComparison (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayPreservesInfrastructureErrorJoinedWithChoiceDivergence (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayDoesNotStartTarget (0.01s)
+    --- FAIL: TestReplayDoesNotStartTarget/verify_only (0.00s)
+        replay_operation_test.go:591: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/unavailable_compatibility_pack (0.00s)
+        replay_operation_test.go:591: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/changed_payload (0.00s)
+        replay_operation_test.go:591: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/damaged_shared_target/altered/verify-only=false (0.00s)
+        replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/damaged_shared_target/altered/verify-only=true (0.00s)
+        replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/damaged_shared_target/truncated/verify-only=false (0.00s)
+        replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/damaged_shared_target/truncated/verify-only=true (0.00s)
+        replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/damaged_shared_target/missing/verify-only=false (0.00s)
+        replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+    --- FAIL: TestReplayDoesNotStartTarget/damaged_shared_target/missing/verify-only=true (0.00s)
+        replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayRunsAnArtifactCopiedOutOfItsStore (0.00s)
+    replay_operation_test.go:607: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayRejectsFirstDivergentWorldTransitionBeforeTargetMutation (0.01s)
+    replay_operation_test.go:309: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestReplayExecutesMatchingWorldPlanThroughChildTransport (0.01s)
+    replay_operation_test.go:343: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestReplayReportsFirstObservableDivergence (0.00s)
+    replay_operation_test.go:591: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayRejectsUnexpectedWorldRecord (0.00s)
+    replay_operation_test.go:591: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestReplayPreflightValidatesConnectedWorldRecord (0.00s)
+    replay_operation_test.go:591: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation
+--- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy (0.06s)
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/discard/seed (0.01s)
+        retention_characterization_test.go:489: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e8a5f0)}, want a host failure
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/discard/choice-exploration (0.00s)
+        retention_characterization_test.go:481: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/discard/simulation-exploration (0.00s)
+        retention_characterization_test.go:481: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/all/seed (0.00s)
+        retention_characterization_test.go:489: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5b70810)}, want a host failure
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/all/choice-exploration (0.00s)
+        retention_characterization_test.go:481: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/all/simulation-exploration (0.00s)
+        retention_characterization_test.go:481: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_after_a_known_one/seed (0.00s)
+        retention_characterization_test.go:489: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5d37740)}, want a host failure
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_after_a_known_one/choice-exploration (0.00s)
+        retention_characterization_test.go:481: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_after_a_known_one/simulation-exploration (0.01s)
+        retention_characterization_test.go:481: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_ahead_of_its_repeat/seed (0.00s)
+        retention_characterization_test.go:489: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5d3f7b0)}, want a host failure
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_ahead_of_its_repeat/choice-exploration (0.00s)
+        retention_characterization_test.go:481: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_probe_ahead_of_its_repeat/simulation-exploration (0.00s)
+        retention_characterization_test.go:481: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_choices/seed (0.00s)
+        retention_characterization_test.go:489: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5d83820)}, want a host failure
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_choices/choice-exploration (0.00s)
+        retention_characterization_test.go:481: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/novel_choices/simulation-exploration (0.00s)
+        retention_characterization_test.go:481: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/failures/seed (0.00s)
+        retention_characterization_test.go:489: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5ddd890)}, want a host failure
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/failures/choice-exploration (0.01s)
+        retention_characterization_test.go:481: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionKeepsTheSameRunsAndArtifactsForEveryStrategy/failures/simulation-exploration (0.00s)
+        retention_characterization_test.go:481: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy (0.02s)
+    --- FAIL: TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count/seed (0.00s)
+        retention_characterization_test.go:525: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e17950)}, want a host failure
+    --- FAIL: TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count_inside_a_round/seed (0.00s)
+        retention_characterization_test.go:538: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e30480)}, want a host failure
+    --- FAIL: TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/bytes/seed (0.00s)
+        retention_characterization_test.go:552: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5e30eb0)}, want a host failure
+    --- FAIL: TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count/choice-exploration (0.00s)
+        retention_characterization_test.go:525: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count_inside_a_round/choice-exploration (0.00s)
+        retention_characterization_test.go:538: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/bytes/choice-exploration (0.00s)
+        retention_characterization_test.go:552: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count/simulation-exploration (0.00s)
+        retention_characterization_test.go:525: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/count_inside_a_round/simulation-exploration (0.00s)
+        retention_characterization_test.go:538: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionCapacityExhaustionFailsVisiblyForEveryStrategy/bytes/simulation-exploration (0.00s)
+        retention_characterization_test.go:552: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState (0.04s)
+    --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_behind_a_kept_success/seed (0.00s)
+        retention_characterization_test.go:712: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5f3f260)}, want a host failure
+    --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_behind_a_kept_success/choice-exploration (0.00s)
+        retention_characterization_test.go:678: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_behind_a_kept_success/simulation-exploration (0.01s)
+        retention_characterization_test.go:678: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_ahead_of_its_repeat/seed (0.01s)
+        retention_characterization_test.go:712: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda5fc32e0)}, want a host failure
+    --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_ahead_of_its_repeat/choice-exploration (0.00s)
+        retention_characterization_test.go:678: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/incomplete_transcript_ahead_of_its_repeat/simulation-exploration (0.00s)
+        retention_characterization_test.go:678: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/unusable_success_store/seed (0.00s)
+        retention_characterization_test.go:712: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda6026470)}, want a host failure
+    --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/unusable_success_store/choice-exploration (0.00s)
+        retention_characterization_test.go:678: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/unusable_success_store/simulation-exploration (0.00s)
+        retention_characterization_test.go:678: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/seed (0.00s)
+        retention_characterization_test.go:712: exploreWith() error = &preparation.stageError{stage:"validation", err:(*errors.errorString)(0x44eda607e4f0)}, want a host failure
+    --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/choice-exploration (0.00s)
+        retention_characterization_test.go:678: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState/cancellation/simulation-exploration (0.00s)
+        retention_characterization_test.go:678: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances (0.01s)
+    --- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/exact_replay (0.00s)
+        retention_characterization_test.go:802: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/diverged_replay (0.00s)
+        retention_characterization_test.go:802: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/unverified_replay (0.00s)
+        retention_characterization_test.go:802: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/failed_replay (0.00s)
+        retention_characterization_test.go:802: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+    --- FAIL: TestGuidedAdmissionReplaysBeforeTheCorpusAdvances/incomplete_transcript (0.00s)
+        retention_characterization_test.go:802: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs (0.00s)
+    retention_characterization_test.go:897: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit (0.00s)
+    retention_test.go:111: summary = runner.CampaignResult{CampaignPath:"/home/agent/.cache/codex-build/tmp/TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit3984274097/002/v1/campaign-20261004T060234.123800038Z-9598673c9356dceff1c8bf3fe25eab14", SelectionCount:0x2, Attempted:0x0, Succeeded:0x0, Failures:0x0, Watchdogs:0x0, ReplayDivergences:0x0, Cancelled:0x0, DistinctFailures:0x0, StopReason:"", Artifacts:[]string(nil), RetainedSuccesses:0x0, RetainedSuccessBytes:0x0, SuccessArtifacts:[]string(nil), SemanticCoverage:(*deterministicio.SemanticCoverage)(nil), ExecutionEvidence:(*runner.ExecutionEvidence)(nil), ExecutionElapsedNanos:0x0, Diagnostics:(*runner.DiagnosticTraceReference)(nil), CorpusPath:"", CorpusEntries:0x0, CorpusAdded:0x0, Guidance:(*runner.GuidanceSummary)(nil), ChoiceTrace:(*runner.ChoiceTraceSummary)(nil), ChoiceExploration:(*runner.ChoiceExplorationSummary)(nil), SimulationExploration:(*runner.SimulationExplorationSummary)(nil), RecoveryExecutions:0x0, failureArtifactBytes:0x0}, error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want two success artifacts
+--- FAIL: TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts (0.01s)
+    retention_test.go:140: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRunEnforcesBatchModesIndependentOfUmask (0.00s)
+    runner_mode_unix_test.go:20: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures (0.00s)
+    runner_test.go:52: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+--- FAIL: TestRunReportsPreparationProgressAndCompletedCounts (0.00s)
+    runner_test.go:110: deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64
+panic: test timed out after 10m0s
+	running tests:
+		TestRunReportsPeriodicProgressWhileTargetIsRunning (9m59s)
+
+goroutine 682 [running]:
+testing.(*M).startAlarm.func1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2959 +0x2c4
+created by time.goFunc
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/time/sleep.go:182 +0x38
+
+goroutine 1 [chan receive, 9 minutes]:
+testing.(*T).Run(0x44eda5d486c8, {0x4afd26?, 0x44eda5ddfa28?}, 0xa275a8)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2266 +0x3cc
+testing.runTests.func1(0x44eda5d486c8)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2742 +0x38
+testing.tRunner(0x44eda5d486c8, 0x44eda5ddfb58)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2193 +0xc4
+testing.runTests({0x49b45d, 0x22}, {0x4a4f5c, 0x29}, 0x44eda5b48240, {0xa64838, 0xd2, 0xd2}, {0x6?, 0x0?, ...})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2740 +0x400
+testing.(*M).Run(0x44eda5bef680)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2600 +0x578
+go.temporal.io/server/tools/gomad3/runner.TestMain(0x44eda5bef680?)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/runner/coordinator_transport_test.go:38 +0x188
+main.main()
+	_testmain.go:466 +0x88
+
+goroutine 630 [chan receive, 9 minutes]:
+go.temporal.io/server/tools/gomad3/runner.TestRunReportsPeriodicProgressWhileTargetIsRunning(0x44eda5f1fd48)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/runner/runner_test.go:144 +0x2f4
+testing.tRunner(0x44eda5f1fd48, 0xa275a8)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2193 +0xc4
+created by testing.(*T).Run in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2258 +0x3b8
+FAIL	go.temporal.io/server/tools/gomad3/runner	600.028s
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.520s
+FAIL

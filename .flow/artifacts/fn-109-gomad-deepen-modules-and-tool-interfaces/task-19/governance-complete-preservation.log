@@ -1,0 +1,20 @@
+=== RUN   TestGovernanceReviewTimePreservesGrammarAndPrecedence
+--- PASS: TestGovernanceReviewTimePreservesGrammarAndPrecedence (0.00s)
+=== RUN   TestGovernanceFullPackPreservesCanonicalBytesAndTimestampSpelling
+--- PASS: TestGovernanceFullPackPreservesCanonicalBytesAndTimestampSpelling (0.00s)
+=== RUN   TestGovernanceValidationRetainsCompleteErrorPrecedence
+=== RUN   TestGovernanceValidationRetainsCompleteErrorPrecedence/owner
+=== RUN   TestGovernanceValidationRetainsCompleteErrorPrecedence/justification
+=== RUN   TestGovernanceValidationRetainsCompleteErrorPrecedence/time
+=== RUN   TestGovernanceValidationRetainsCompleteErrorPrecedence/workloads
+=== RUN   TestGovernanceValidationRetainsCompleteErrorPrecedence/platforms
+=== RUN   TestGovernanceValidationRetainsCompleteErrorPrecedence/approval
+--- PASS: TestGovernanceValidationRetainsCompleteErrorPrecedence (0.00s)
+    --- PASS: TestGovernanceValidationRetainsCompleteErrorPrecedence/owner (0.00s)
+    --- PASS: TestGovernanceValidationRetainsCompleteErrorPrecedence/justification (0.00s)
+    --- PASS: TestGovernanceValidationRetainsCompleteErrorPrecedence/time (0.00s)
+    --- PASS: TestGovernanceValidationRetainsCompleteErrorPrecedence/workloads (0.00s)
+    --- PASS: TestGovernanceValidationRetainsCompleteErrorPrecedence/platforms (0.00s)
+    --- PASS: TestGovernanceValidationRetainsCompleteErrorPrecedence/approval (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/compatibilitypack	0.002s

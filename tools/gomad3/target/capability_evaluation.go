@@ -370,7 +370,82 @@ func internalCompatibilityIdentities(values []CompatibilityIdentity) []compatibi
 func projectCompatibilityPackEvidence(values []compatibility.PackEvidence) []CompatibilityPackEvidence {
 	result := make([]CompatibilityPackEvidence, len(values))
 	for index, value := range values {
-		result[index] = CompatibilityPackEvidence(value)
+		projected := CompatibilityPackEvidence{
+			ID:            value.ID,
+			SHA256:        value.SHA256,
+			RequestSHA256: value.RequestSHA256,
+		}
+		if value.Governance != nil {
+			g := value.Governance
+			projected.Governance = &CompatibilityPackGovernance{
+				Owner:          g.Owner,
+				ReviewedAt:     g.ReviewedAt,
+				Justification:  g.Justification,
+				Workloads:      slices.Clone(g.Workloads),
+				Platforms:      slices.Clone(g.Platforms),
+				ApprovalSHA256: g.ApprovalSHA256,
+			}
+		}
+		if value.Activation != nil {
+			projected.Activation = make([]CompatibilityModuleEvidence, len(value.Activation))
+			for i, module := range value.Activation {
+				projected.Activation[i] = projectCompatibilityModuleEvidence(module)
+			}
+		}
+		if value.Rules != nil {
+			projected.Rules = make([]CompatibilityPackageRuleEvidence, len(value.Rules))
+			for i, rule := range value.Rules {
+				r := CompatibilityPackageRuleEvidence{
+					ImportPath:      rule.ImportPath,
+					Module:          projectCompatibilityModuleEvidence(rule.Module),
+					SourceSetSHA256: rule.SourceSetSHA256,
+					Capabilities:    slices.Clone(rule.Capabilities),
+				}
+				if rule.GoSources != nil {
+					r.GoSources = make([]CompatibilityPackSource, len(rule.GoSources))
+					for j, s := range rule.GoSources {
+						r.GoSources[j] = CompatibilityPackSource{Name: s.Name, SHA256: s.SHA256}
+					}
+				}
+				if rule.ForeignSources != nil {
+					r.ForeignSources = make([]CompatibilityPackForeignSource, len(rule.ForeignSources))
+					for j, s := range rule.ForeignSources {
+						r.ForeignSources[j] = CompatibilityPackForeignSource{Kind: s.Kind, Name: s.Name, SHA256: s.SHA256}
+					}
+				}
+				if rule.Linknames != nil {
+					r.Linknames = make([]CompatibilityLinknameEvidence, len(rule.Linknames))
+					for j, l := range rule.Linknames {
+						r.Linknames[j] = CompatibilityLinknameEvidence{Source: l.Source, SHA256: l.SHA256, Directives: slices.Clone(l.Directives)}
+					}
+				}
+				projected.Rules[i] = r
+			}
+		}
+		result[index] = projected
+	}
+	return result
+}
+
+func projectCompatibilityModuleEvidence(value compatibility.ModuleEvidence) CompatibilityModuleEvidence {
+	result := CompatibilityModuleEvidence{
+		Path:        value.Path,
+		Version:     value.Version,
+		Sum:         value.Sum,
+		Replacement: value.Replacement,
+	}
+	if value.Adapter != nil {
+		a := value.Adapter
+		result.Adapter = &CompatibilityPackAdapter{
+			ProfileName:                      a.ProfileName,
+			ProfileImplementationSHA256:      a.ProfileImplementationSHA256,
+			Module:                           a.Module,
+			Version:                          a.Version,
+			Sum:                              a.Sum,
+			OriginalSourceInventorySHA256:    a.OriginalSourceInventorySHA256,
+			ReplacementSourceInventorySHA256: a.ReplacementSourceInventorySHA256,
+			PreparedSourceSetSHA256:          a.PreparedSourceSetSHA256,
+		}
 	}
 	return result
 }

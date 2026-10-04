@@ -1,0 +1,8 @@
+{
+  "task_title": "Resolve callback bindings for task19 transitive purity checks",
+  "task_body": "Read-only inspect actual bindings/call chains for SeedController.Next, explorationNextRound and SumBytes clone/size callbacks in existing pure roots; propose argument/receiver-sensitive analysis with concrete production call-site evidence, no broad exemptions. Do not duplicate package-discovery/timezone investigation; no edits/tests/builds/Flow/history/CLI bridges.",
+  "acceptance": "Every named callback resolved to actual repository bindings with source lines and effect status or explicitly unresolved; minimal precise checker controls recommended.",
+  "touches_count": 0,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

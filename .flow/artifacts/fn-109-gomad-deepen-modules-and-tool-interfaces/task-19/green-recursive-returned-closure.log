@@ -1,0 +1,7 @@
+=== RUN   TestImplicitCallbackPrecedence
+=== RUN   TestImplicitCallbackPrecedence/recursive-returned-closure
+diagnostic root: example.invalid/architecture/record.Check
+--- PASS: TestImplicitCallbackPrecedence (0.40s)
+    --- PASS: TestImplicitCallbackPrecedence/recursive-returned-closure (0.40s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	0.401s

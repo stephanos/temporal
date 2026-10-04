@@ -1,0 +1,14 @@
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/json-distinct-receivers
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+    effects_test.go:76: callback clock escaped actual root: [{host-effect  /home/agent/.cache/codex-build/tmp/TestEffectCallbackContextsAndUnwrapReturnsjson-distinct-receive2276411098/001/record/pure.go:1:190 example.invalid/architecture/record.dirty -> example.invalid/architecture/record.dirty -> time.Now}]
+--- FAIL: TestEffectCallbackContextsAndUnwrapReturns (0.41s)
+    --- FAIL: TestEffectCallbackContextsAndUnwrapReturns/json-distinct-receivers (0.41s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	0.409s
+FAIL

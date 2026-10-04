@@ -1,0 +1,8 @@
+{
+  "task_title": "Source review of completed public report, pack-directory and UTC parser corrections",
+  "task_body": "Review the stable task19 Runner report/Target evidence projections, pinimpact pack-directory intent and refresh consumer, record/governance explicit-UTC parsing and their old/new preservation tests. Source-only admission assessment, not formal review or native qualification; sole writer remains active on separate analyzer and World surfaces.",
+  "acceptance": "Preserve all public data, JSON order/tags, pointer presence, nil/empty distinctions, authoring override and load/validation/error precedence, timestamp grammar/full errors/original strings/fixed canonical identities; report concrete findings and source hashes; no writes/tests/builds/package loading/Flow or Git mutation/bridges/subagents.",
+  "touches_count": 13,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

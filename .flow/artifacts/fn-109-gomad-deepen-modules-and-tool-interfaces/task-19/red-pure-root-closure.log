@@ -1,0 +1,7 @@
+=== RUN   TestPureRootStoredClosureIsChecked
+diagnostic root: example.invalid/architecture/record.Callback
+    effects_test.go:33: stored pure-root closure escaped
+--- FAIL: TestPureRootStoredClosureIsChecked (0.26s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	0.267s
+FAIL

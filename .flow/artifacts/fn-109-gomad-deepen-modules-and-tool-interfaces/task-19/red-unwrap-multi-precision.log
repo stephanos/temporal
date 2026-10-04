@@ -1,0 +1,6 @@
+--- FAIL: TestImplicitCallbackPrecedence (0.41s)
+    --- FAIL: TestImplicitCallbackPrecedence/unwrap-does-not-call-multi (0.41s)
+        effects_test.go:166: unused callback incorrectly invoked: [{host-effect  /home/agent/.cache/codex-build/tmp/TestImplicitCallbackPrecedenceunwrap-does-not-call-multi1808693725/001/helper/helper.go:1:160 example.invalid/architecture/record.Check -> example.invalid/architecture/record.Check -> example.invalid/architecture/helper.Value.Unwrap -> time.Now}]
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	0.413s
+FAIL

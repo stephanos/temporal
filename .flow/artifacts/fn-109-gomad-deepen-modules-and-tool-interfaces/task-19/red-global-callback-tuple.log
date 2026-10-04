@@ -1,0 +1,6 @@
+--- FAIL: TestEffectCallbackContextsAndUnwrapReturns (0.98s)
+    --- FAIL: TestEffectCallbackContextsAndUnwrapReturns/global-callback-tuple (0.47s)
+        effects_test.go:143: callback clock escaped actual root: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestEffectCallbackContextsAndUnwrapReturnsglobal-callback-tuple610413598/001/helper/helper.go:1:179 example.invalid/architecture/record.Check -> example.invalid/architecture/record.Check -> example.invalid/architecture/helper.First -> unresolved callback} {host-effect  /home/agent/.cache/codex-build/tmp/TestEffectCallbackContextsAndUnwrapReturnsglobal-callback-tuple610413598/001/record/pure.go:1:190 example.invalid/architecture/record.dirty -> example.invalid/architecture/record.dirty -> time.Now}]
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	0.986s
+FAIL

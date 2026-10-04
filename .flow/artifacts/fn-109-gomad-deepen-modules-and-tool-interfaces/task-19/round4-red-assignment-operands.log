@@ -1,0 +1,215 @@
+2026-10-04T07:25:06Z
+=== RUN   TestRangeAssignmentSlots
+=== RUN   TestRangeAssignmentSlots/existing
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/field
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/index
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/dereference
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/captured-existing
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/declared-capture
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/two-values
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/slice-existing-capture
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.011s
+=== RUN   TestRangeAssignmentSlots/slice-field
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/map-index
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/clean-existing
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/clean-field
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/clean-capture
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.022s
+=== RUN   TestRangeAssignmentSlots/noninvoked
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/paren-existing
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+    range_test.go:98: yielded effect escaped {linux amd64}: []
+    range_test.go:98: yielded effect escaped {darwin arm64}: []
+=== RUN   TestRangeAssignmentSlots/paren-field
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.008s
+    range_test.go:98: yielded effect escaped {linux amd64}: []
+    range_test.go:98: yielded effect escaped {darwin arm64}: []
+=== RUN   TestRangeAssignmentSlots/paren-index
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+    range_test.go:98: yielded effect escaped {linux amd64}: []
+    range_test.go:98: yielded effect escaped {darwin arm64}: []
+=== RUN   TestRangeAssignmentSlots/paren-dereference
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+    range_test.go:98: yielded effect escaped {linux amd64}: []
+    range_test.go:98: yielded effect escaped {darwin arm64}: []
+=== RUN   TestRangeAssignmentSlots/effect-index
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+    range_test.go:98: yielded effect escaped {linux amd64}: []
+    range_test.go:98: yielded effect escaped {darwin arm64}: []
+=== RUN   TestRangeAssignmentSlots/ordinary-paren
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+    range_test.go:98: yielded effect escaped {linux amd64}: []
+    range_test.go:98: yielded effect escaped {darwin arm64}: []
+=== RUN   TestRangeAssignmentSlots/ordinary-index
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+    range_test.go:98: yielded effect escaped {linux amd64}: []
+    range_test.go:98: yielded effect escaped {darwin arm64}: []
+=== RUN   TestRangeAssignmentSlots/slice-max
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+    range_test.go:98: yielded effect escaped {linux amd64}: []
+    range_test.go:98: yielded effect escaped {darwin arm64}: []
+=== RUN   TestRangeAssignmentSlots/map-key
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=1
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.004s
+    range_test.go:98: yielded effect escaped {linux amd64}: []
+    range_test.go:98: yielded effect escaped {darwin arm64}: []
+=== RUN   TestRangeAssignmentSlots/clean-paren
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/clean-index
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/clean-slice-max
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+=== RUN   TestRangeAssignmentSlots/clean-map-key
+    range_test.go:71: stock native causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual effects=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/rangeslots/record	0.001s
+--- FAIL: TestRangeAssignmentSlots (16.96s)
+    --- PASS: TestRangeAssignmentSlots/existing (0.63s)
+    --- PASS: TestRangeAssignmentSlots/field (0.59s)
+    --- PASS: TestRangeAssignmentSlots/index (0.58s)
+    --- PASS: TestRangeAssignmentSlots/dereference (0.62s)
+    --- PASS: TestRangeAssignmentSlots/captured-existing (0.59s)
+    --- PASS: TestRangeAssignmentSlots/declared-capture (0.60s)
+    --- PASS: TestRangeAssignmentSlots/two-values (0.61s)
+    --- PASS: TestRangeAssignmentSlots/slice-existing-capture (0.61s)
+    --- PASS: TestRangeAssignmentSlots/slice-field (0.64s)
+    --- PASS: TestRangeAssignmentSlots/map-index (0.67s)
+    --- PASS: TestRangeAssignmentSlots/clean-existing (0.66s)
+    --- PASS: TestRangeAssignmentSlots/clean-field (0.59s)
+    --- PASS: TestRangeAssignmentSlots/clean-capture (0.64s)
+    --- PASS: TestRangeAssignmentSlots/noninvoked (0.61s)
+    --- FAIL: TestRangeAssignmentSlots/paren-existing (0.63s)
+    --- FAIL: TestRangeAssignmentSlots/paren-field (0.64s)
+    --- FAIL: TestRangeAssignmentSlots/paren-index (0.72s)
+    --- FAIL: TestRangeAssignmentSlots/paren-dereference (0.61s)
+    --- FAIL: TestRangeAssignmentSlots/effect-index (0.63s)
+    --- FAIL: TestRangeAssignmentSlots/ordinary-paren (0.69s)
+    --- FAIL: TestRangeAssignmentSlots/ordinary-index (0.63s)
+    --- FAIL: TestRangeAssignmentSlots/slice-max (0.57s)
+    --- FAIL: TestRangeAssignmentSlots/map-key (0.62s)
+    --- PASS: TestRangeAssignmentSlots/clean-paren (0.62s)
+    --- PASS: TestRangeAssignmentSlots/clean-index (0.64s)
+    --- PASS: TestRangeAssignmentSlots/clean-slice-max (0.68s)
+    --- PASS: TestRangeAssignmentSlots/clean-map-key (0.64s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	16.968s
+FAIL
+2026-10-04T07:25:24Z
+suite_rc=1

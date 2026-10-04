@@ -1,0 +1,8 @@
+package record
+
+import (
+	"example.invalid/fitness/internal/canonicaljson"
+	"slices"
+)
+
+func Check() { dst := []func(){helper.Clean}; dst = slices.Insert(dst, 0, helper.Dirty); dst[0]() }

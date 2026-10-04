@@ -1,0 +1,4 @@
+=== RUN   TestPureCanonicalJSONConcreteArgument
+--- PASS: TestPureCanonicalJSONConcreteArgument (0.52s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	0.524s

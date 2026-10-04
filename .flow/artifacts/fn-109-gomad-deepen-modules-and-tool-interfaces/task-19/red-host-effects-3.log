@@ -1,0 +1,506 @@
+SIGQUIT: quit
+PC=0x40078 m=0 sigcode=0
+
+goroutine 0 gp=0x5590e0 m=0 mp=0x559b20 [idle]:
+runtime.tryDeferToSpanScan(0xffffe25b3278?, 0x2721457ec260?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgcmark_greenteagc.go:283 +0x88 fp=0xffffe25b3240 sp=0xffffe25b3210 pc=0x40078
+runtime.scanObjectsSmall(0x27228c718000, 0x50, 0x63, 0x2721457ec260, 0xffffe25b3328)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgcmark_greenteagc.go:1055 +0x1ec fp=0xffffe25b32e0 sp=0xffffe25b3240 pc=0x417ac
+runtime.scanSpan(0x2721457ec260?, 0x2721457ec260)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgcmark_greenteagc.go:897 +0x204 fp=0xffffe25b33c0 sp=0xffffe25b32e0 pc=0x41264
+runtime.gcDrain(0x2721457ec260, 0x2)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgcmark.go:1347 +0x288 fp=0xffffe25b3430 sp=0xffffe25b33c0 pc=0x3e9e8
+runtime.gcDrainMarkWorkerDedicated(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgcmark.go:1192
+runtime.gcBgMarkWorker.func2()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1893 +0x140 fp=0xffffe25b3480 sp=0xffffe25b3430 pc=0x89f90
+runtime.systemstack(0xffffe25a34c0)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:379 +0x68 fp=0xffffe25b3490 sp=0xffffe25b3480 pc=0x978e8
+
+goroutine 14 gp=0x272145c785a0 m=0 mp=0x559b20 [GC worker (active)]:
+runtime.systemstack_switch()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:327 +0x8 fp=0x272145c76720 sp=0x272145c76710 pc=0x97868
+runtime.gcBgMarkWorker(0x272145c66230)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1863 +0x1b8 fp=0x272145c767b0 sp=0x272145c76720 pc=0x3a948
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x20 fp=0x272145c767d0 sp=0x272145c767b0 pc=0x89e30
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x272145c767d0 sp=0x272145c767d0 pc=0x997f4
+created by runtime.gcBgMarkStartWorkers in goroutine 19
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x130
+
+goroutine 1 gp=0x2721457b21e0 m=nil [chan receive, 1 minutes]:
+runtime.gopark(0x1458ed928?, 0xc9ef4?, 0xe0?, 0xb?, 0x80?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x2721458ed8c0 sp=0x2721458ed8a0 pc=0x93028
+runtime.chanrecv(0x2721458e2180, 0x2721458ed9c7, 0x1)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/chan.go:667 +0x470 fp=0x2721458ed940 sp=0x2721458ed8c0 pc=0x24b20
+runtime.chanrecv1(0x18?, 0x5064e0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/chan.go:509 +0x14 fp=0x2721458ed970 sp=0x2721458ed940 pc=0x246a4
+testing.(*T).Run(0x2721458da488, {0x28ca57?, 0x2721458eda88?}, 0x5280e8)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2266 +0x3cc fp=0x2721458eda50 sp=0x2721458ed970 pc=0x11284c
+testing.runTests.func1(0x2721458da488)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2742 +0x38 fp=0x2721458eda90 sp=0x2721458eda50 pc=0x117988
+testing.tRunner(0x2721458da488, 0x2721458edbb8)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2193 +0xc4 fp=0x2721458edae0 sp=0x2721458eda90 pc=0x112414
+testing.runTests({0x28dd67, 0x22}, {0x28dd67, 0x22}, 0x2721458b00d8, {0x5529f0, 0x10, 0x10}, {0x2721458edc58?, 0x2721458b6500?, ...})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2740 +0x400 fp=0x2721458edbe0 sp=0x2721458edae0 pc=0x1142f0
+testing.(*M).Run(0x27214589e8c0)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2600 +0x578 fp=0x2721458ede20 sp=0x2721458edbe0 pc=0x113338
+main.main()
+	_testmain.go:76 +0x80 fp=0x2721458edea0 sp=0x2721458ede20 pc=0x270560
+runtime.main()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:302 +0x380 fp=0x2721458edfd0 sp=0x2721458edea0 pc=0x5bfc0
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x2721458edfd0 sp=0x2721458edfd0 pc=0x997f4
+
+goroutine 2 gp=0x2721457b2780 m=nil [force gc (idle), 1 minutes]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x272145812f90 sp=0x272145812f70 pc=0x93028
+runtime.goparkunlock(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:480
+runtime.forcegchelper()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:387 +0xb4 fp=0x272145812fd0 sp=0x272145812f90 pc=0x5c2a4
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x272145812fd0 sp=0x272145812fd0 pc=0x997f4
+created by runtime.init.7 in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:375 +0x24
+
+goroutine 3 gp=0x2721457b2d20 m=nil [GC sweep wait]:
+runtime.gopark(0x1?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x272145813770 sp=0x272145813750 pc=0x93028
+runtime.goparkunlock(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:480
+runtime.bgsweep(0x272145832000)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgcsweep.go:324 +0x178 fp=0x2721458137b0 sp=0x272145813770 pc=0x46468
+runtime.gcenable.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:214 +0x20 fp=0x2721458137d0 sp=0x2721458137b0 pc=0x89900
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x2721458137d0 sp=0x2721458137d0 pc=0x997f4
+created by runtime.gcenable in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:214 +0x6c
+
+goroutine 4 gp=0x2721457b2f00 m=nil [GC scavenge wait]:
+runtime.gopark(0x10000?, 0x29adf0?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x272145813f60 sp=0x272145813f40 pc=0x93028
+runtime.goparkunlock(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:480
+runtime.(*scavengerState).park(0x558c40)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgcscavenge.go:425 +0x5c fp=0x272145813f90 sp=0x272145813f60 pc=0x43ffc
+runtime.bgscavenge(0x272145832000)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgcscavenge.go:658 +0xac fp=0x272145813fb0 sp=0x272145813f90 pc=0x4456c
+runtime.gcenable.gowrap2()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:215 +0x20 fp=0x272145813fd0 sp=0x272145813fb0 pc=0x898c0
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x272145813fd0 sp=0x272145813fd0 pc=0x997f4
+created by runtime.gcenable in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:215 +0xac
+
+goroutine 17 gp=0x2721458843c0 m=nil [GOMAXPROCS updater (idle), 1 minutes]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x27214580e770 sp=0x27214580e750 pc=0x93028
+runtime.goparkunlock(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:480
+runtime.updateMaxProcsGoroutine()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:7146 +0xf4 fp=0x27214580e7d0 sp=0x27214580e770 pc=0x69c84
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x27214580e7d0 sp=0x27214580e7d0 pc=0x997f4
+created by runtime.defaultGOMAXPROCSUpdateEnable in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:7134 +0x48
+
+goroutine 18 gp=0x2721458845a0 m=nil [finalizer wait, 1 minutes]:
+runtime.gopark(0x0?, 0x0?, 0x0?, 0x0?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x27214580ed80 sp=0x27214580ed60 pc=0x93028
+runtime.runFinalizers()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mfinal.go:210 +0x100 fp=0x27214580efd0 sp=0x27214580ed80 pc=0x37630
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x27214580efd0 sp=0x27214580efd0 pc=0x997f4
+created by runtime.createfing in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mfinal.go:172 +0x78
+
+goroutine 19 gp=0x272145884780 m=nil [runnable]:
+runtime.memhash128(0x2722d71f2dc8?, 0xc56311e0e3155fc5?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/alg.go:46 +0x38 fp=0x2722d4f4d620 sp=0x2722d4f4d620 pc=0x22718
+internal/runtime/maps.(*table).split(0x2722d7205720, 0x4d3720, 0x2722d69e6210)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/internal/runtime/maps/table.go:1271 +0x12c fp=0x2722d4f4d6a0 sp=0x2722d4f4d620 pc=0x16acc
+internal/runtime/maps.(*table).rehash(0x2722d4f4d738?, 0x2e300?, 0x272145884780?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/internal/runtime/maps/table.go:1230 +0x40 fp=0x2722d4f4d6d0 sp=0x2722d4f4d6a0 pc=0x16970
+runtime.mapassign(0x4d3720, 0x2722d69e6210, 0x2722d4f4d848)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/internal/runtime/maps/runtime.go:293 +0x138 fp=0x2722d4f4d7a0 sp=0x2722d4f4d6d0 pc=0x17178
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179fce7d0, 0x2721a987d040, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:47 +0xf4 fp=0x2722d4f4d900 sp=0x2722d4f4d7a0 pc=0x258644
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179fce640, 0x2721a9792410, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4da60 sp=0x2722d4f4d900 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179fce5a0, 0x2721a9774f50, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4dbc0 sp=0x2722d4f4da60 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179fce550, 0x2721a9774f00, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4dd20 sp=0x2722d4f4dbc0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179fce460, 0x2721a9774eb0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4de80 sp=0x2722d4f4dd20 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179fce9b0, 0x2721a9774e60, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4dfe0 sp=0x2722d4f4de80 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f7cf50, 0x2721a9774dc0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4e140 sp=0x2722d4f4dfe0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f6dbd0, 0x2721a9774c80, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4e2a0 sp=0x2722d4f4e140 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179fce3c0, 0x2721a9774be0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4e400 sp=0x2722d4f4e2a0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179fce410, 0x2721a9774b90, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4e560 sp=0x2722d4f4e400 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f6db80, 0x2721a9774b40, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4e6c0 sp=0x2722d4f4e560 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f7c5f0, 0x2721a9793310, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4e820 sp=0x2722d4f4e6c0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f7c5a0, 0x2721a97930e0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4e980 sp=0x2722d4f4e820 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f7cbe0, 0x2721a97936d0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4eae0 sp=0x2722d4f4e980 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f7caf0, 0x2721a9793630, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4ec40 sp=0x2722d4f4eae0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f7ca50, 0x2721a9793810, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4eda0 sp=0x2722d4f4ec40 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f7ca00, 0x2721a9793590, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4ef00 sp=0x2722d4f4eda0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f7c370, 0x2721a9792f50, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4f060 sp=0x2722d4f4ef00 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f7c2d0, 0x2721a9792f00, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4f1c0 sp=0x2722d4f4f060 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f7c280, 0x2721a9792eb0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4f320 sp=0x2722d4f4f1c0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x27217a04c000, 0x2721a9792e60, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4f480 sp=0x2722d4f4f320 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x27217a03b360, 0x2721a9792dc0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4f5e0 sp=0x2722d4f4f480 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x27217a03b2c0, 0x2721a9792cd0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4f740 sp=0x2722d4f4f5e0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x27217a03b220, 0x2721a9792c30, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4f8a0 sp=0x2722d4f4f740 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x27217a03b1d0, 0x2721a9792be0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4fa00 sp=0x2722d4f4f8a0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x27217a03b180, 0x2721a9792b90, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4fb60 sp=0x2722d4f4fa00 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x27217a08dd60, 0x2721a97e61e0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4fcc0 sp=0x2722d4f4fb60 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f1d720, 0x2721a97e6050, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4fe20 sp=0x2722d4f4fcc0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f6cc30, 0x2721a9774500, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f4ff80 sp=0x2722d4f4fe20 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f6cbe0, 0x2721a97743c0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f500e0 sp=0x2722d4f4ff80 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f6c870, 0x2721a9774370, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f50240 sp=0x2722d4f500e0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f6ca50, 0x2721a97b4640, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f503a0 sp=0x2722d4f50240 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f6ca00, 0x2721a97b45a0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f50500 sp=0x2722d4f503a0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f6c9b0, 0x2721a97b4550, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f50660 sp=0x2722d4f50500 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f6cdc0, 0x2721a97b4500, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f507c0 sp=0x2722d4f50660 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f6cd70, 0x2721a97b44b0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f50920 sp=0x2722d4f507c0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x27217a08dea0, 0x2721a987de50, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f50a80 sp=0x2722d4f50920 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x27217a08de00, 0x2721a987de00, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f50be0 sp=0x2722d4f50a80 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f099f0, 0x2721a987ddb0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f50d40 sp=0x2722d4f50be0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f099a0, 0x2721a987dcc0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f50ea0 sp=0x2722d4f50d40 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f09950, 0x2721a9774280, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f51000 sp=0x2722d4f50ea0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f09900, 0x2721a9774230, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f51160 sp=0x2722d4f51000 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179fce870, 0x2721a97e6780, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f512c0 sp=0x2722d4f51160 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f09860, 0x2721a9774190, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f51420 sp=0x2722d4f512c0 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f085f0, 0x2721a9750d20, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f51580 sp=0x2722d4f51420 pc=0x258bc8
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.joinValues(0x272179f08500, 0x2721a9750cd0, 0x2722d69e6210)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:51 +0x678 fp=0x2722d4f516e0 sp=0x2722d4f51580 pc=0x258bc8
+...79362 frames elided...
+go/ast.walkList[...](...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:21
+go/ast.Walk({0x524710?, 0x272157d1e390?}, {0x525518, 0x272146171b90})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:211 +0x18ec fp=0x2722d69f93c0 sp=0x2722d69f9250 pc=0x12322c
+go/ast.Walk({0x524710?, 0x272157d1e390?}, {0x525568, 0x272146171bc0})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:234 +0x16b8 fp=0x2722d69f9530 sp=0x2722d69f93c0 pc=0x122ff8
+go/ast.walkList[...](...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:21
+go/ast.Walk({0x524710?, 0x272157d1e390?}, {0x525518, 0x272146171ec0})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:211 +0x18ec fp=0x2722d69f96a0 sp=0x2722d69f9530 pc=0x12322c
+go/ast.Inspect(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:377
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).call(0x2721644670a0, 0x272157d1e120, {0x27216a7f9a90, 0x2, 0x4}, 0x4725fe)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:173 +0x698 fp=0x2722d69f9860 sp=0x2722d69f96a0 pc=0x25c378
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).evaluateCall(0x2721644670a0, 0x27214a5219e0, 0x27214ab6de40, 0x2721602e2090)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:150 +0x534 fp=0x2722d69f9bb0 sp=0x2722d69f9860 pc=0x25b9f4
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).eval(0x2721644670a0, 0x27214a5219e0, {0x5265f8, 0x27214ab6de40}, 0x2721602e2090)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:134 +0x4b0 fp=0x2722d69f9f40 sp=0x2722d69f9bb0 pc=0x25acf0
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).call.func2({0x525a90?, 0x27214ab6de40})
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:184 +0x88 fp=0x2722d69fa4f0 sp=0x2722d69f9f40 pc=0x263c08
+go/ast.inspector.Visit(0x2721602e20c0, {0x525a90?, 0x27214ab6de40?})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:361 +0x38 fp=0x2722d69fa510 sp=0x2722d69fa4f0 pc=0x124978
+go/ast.Walk({0x524710?, 0x2721602e20c0?}, {0x525a90, 0x27214ab6de40})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:34 +0x44 fp=0x2722d69fa680 sp=0x2722d69fa510 pc=0x121984
+go/ast.Walk({0x524710?, 0x2721602e20c0?}, {0x525c98, 0x27214beae020})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:183 +0x115c fp=0x2722d69fa7f0 sp=0x2722d69fa680 pc=0x122a9c
+go/ast.walkList[...](...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:21
+go/ast.Walk({0x524710?, 0x2721602e20c0?}, {0x525518, 0x27214adb7200})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:211 +0x18ec fp=0x2722d69fa960 sp=0x2722d69fa7f0 pc=0x12322c
+go/ast.Inspect(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:377
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).call(0x2721644670a0, 0x272157847860, {0x27216a7fad50, 0x2, 0x4}, 0x472375)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:173 +0x698 fp=0x2722d69fab20 sp=0x2722d69fa960 pc=0x25c378
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).evaluateCall(0x2721644670a0, 0x27214a5219e0, 0x27214ab6d640, 0x27215779c810)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:150 +0x534 fp=0x2722d69fae70 sp=0x2722d69fab20 pc=0x25b9f4
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).eval(0x2721644670a0, 0x27214a5219e0, {0x5265f8, 0x27214ab6d640}, 0x27215779c810)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:134 +0x4b0 fp=0x2722d69fb200 sp=0x2722d69fae70 pc=0x25acf0
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).call.func2({0x525d88?, 0x27214adaebe0})
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:183 +0xb38 fp=0x2722d69fb7b0 sp=0x2722d69fb200 pc=0x2646b8
+go/ast.inspector.Visit(0x27215779c930, {0x525d88?, 0x27214adaebe0?})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:361 +0x38 fp=0x2722d69fb7d0 sp=0x2722d69fb7b0 pc=0x124978
+go/ast.Walk({0x524710?, 0x27215779c930?}, {0x525d88, 0x27214adaebe0})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:34 +0x44 fp=0x2722d69fb940 sp=0x2722d69fb7d0 pc=0x121984
+go/ast.walkList[...](...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:21
+go/ast.Walk({0x524710?, 0x27215779c930?}, {0x525518, 0x27214adb6e40})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:211 +0x18ec fp=0x2722d69fbab0 sp=0x2722d69fb940 pc=0x12322c
+go/ast.Inspect(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:377
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).call(0x2721644670a0, 0x272157774c00, {0x27216a7fbea0, 0x1, 0x4}, 0x46b7c7)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:173 +0x698 fp=0x2722d69fbc70 sp=0x2722d69fbab0 pc=0x25c378
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).evaluateCall(0x2721644670a0, 0x27214a5219e0, 0x27214aa75340, 0x27215776f020)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:150 +0x534 fp=0x2722d69fbfc0 sp=0x2722d69fbc70 pc=0x25b9f4
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).eval(0x2721644670a0, 0x27214a5219e0, {0x5265f8, 0x27214aa75340}, 0x27215776f020)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:134 +0x4b0 fp=0x2722d69fc350 sp=0x2722d69fbfc0 pc=0x25acf0
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).call.func2({0x525d88?, 0x27214ac96aa0})
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:183 +0xb38 fp=0x2722d69fc900 sp=0x2722d69fc350 pc=0x2646b8
+go/ast.inspector.Visit(0x27215776f050, {0x525d88?, 0x27214ac96aa0?})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:361 +0x38 fp=0x2722d69fc920 sp=0x2722d69fc900 pc=0x124978
+go/ast.Walk({0x524710?, 0x27215776f050?}, {0x525d88, 0x27214ac96aa0})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:34 +0x44 fp=0x2722d69fca90 sp=0x2722d69fc920 pc=0x121984
+go/ast.walkList[...](...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:21
+go/ast.Walk({0x524710?, 0x27215776f050?}, {0x525518, 0x27214ac95740})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:211 +0x18ec fp=0x2722d69fcc00 sp=0x2722d69fca90 pc=0x12322c
+go/ast.Inspect(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/go/ast/walk.go:377
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).call(0x2721644670a0, 0x27215776ef60, {0x27216a7fcff0, 0x1, 0x4}, 0x71881a)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:173 +0x698 fp=0x2722d69fcdc0 sp=0x2722d69fcc00 pc=0x25c378
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).evaluateCall(0x2721644670a0, 0x2721522c37a0, 0x272152504040, 0x27216a7fd710)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:150 +0x534 fp=0x2722d69fd110 sp=0x2722d69fcdc0 pc=0x25b9f4
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).eval(0x2721644670a0, 0x2721522c37a0, {0x5265f8, 0x272152504040}, 0x27216a7fd710)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:134 +0x4b0 fp=0x2722d69fd4a0 sp=0x2722d69fd110 pc=0x25acf0
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).resolve(0x2721644670a0, {0x527848, 0x27214ade52c0})
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:99 +0x3fc fp=0x2722d69fdbf0 sp=0x2722d69fd4a0 pc=0x25a31c
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).eval(0x2721644670a0, 0x2721522c37a0, {0x5264a8, 0x272152506560}, 0x27216a7fe8d0)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:113 +0x70c fp=0x2722d69fdf80 sp=0x2722d69fdbf0 pc=0x25af4c
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).evaluateCall(0x2721644670a0, 0x2721522c37a0, 0x272152504380, 0x2722d69fe8d0)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:142 +0xa8 fp=0x2722d69fe2d0 sp=0x2722d69fdf80 pc=0x25b568
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).eval(0x2721644670a0, 0x2721522c37a0, {0x5265f8, 0x272152504380}, 0x27216a7fe8d0)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:134 +0x4b0 fp=0x2722d69fe660 sp=0x2722d69fe2d0 pc=0x25acf0
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).resolve(0x2721644670a0, {0x527848, 0x27214b080600})
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:99 +0x3fc fp=0x2722d69fedb0 sp=0x2722d69fe660 pc=0x25a31c
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).eval(0x2721644670a0, 0x2721522c37a0, {0x5264a8, 0x2721521a8160}, 0x27216a7ff660)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:113 +0x70c fp=0x2722d69ff140 sp=0x2722d69fedb0 pc=0x25af4c
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).resolve(0x2721644670a0, {0x527848, 0x27214d3f8660})
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:104 +0x740 fp=0x2722d69ff890 sp=0x2722d69ff140 pc=0x25a660
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*effectAnalysis).call(0x2721644670a0, 0x27215776ee70, {0x0, 0x0, 0x0}, 0x5c0e52)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:170 +0x504 fp=0x2722d69ffa50 sp=0x2722d69ff890 pc=0x25c1e4
+go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture.(*Program).Effects(0x2721458488d0)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/internal/gomadtool/architecture/effects.go:73 +0x434 fp=0x2722d69ffdd0 sp=0x2722d69ffa50 pc=0x2590b4
+go.temporal.io/server/tools/gomad3_test.TestPureModulesHaveNoHostEffects(0x2721458da6c8)
+	/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/architecture_test.go:76 +0x130 fp=0x2722d69fff60 sp=0x2722d69ffdd0 pc=0x266880
+testing.tRunner(0x2721458da6c8, 0x5280e8)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2193 +0xc4 fp=0x2722d69fffb0 sp=0x2722d69fff60 pc=0x112414
+testing.(*T).Run.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2258 +0x20 fp=0x2722d69fffd0 sp=0x2722d69fffb0 pc=0x117740
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x2722d69fffd0 sp=0x2722d69fffd0 pc=0x997f4
+created by testing.(*T).Run in goroutine 1
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/testing/testing.go:2258 +0x3b8
+
+goroutine 20 gp=0x272145884960 m=nil [cleanup wait, 1 minutes]:
+runtime.gopark(0x27214580f7a8?, 0x117740?, 0xc8?, 0xa6?, 0x300000000000000?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x27214580f750 sp=0x27214580f730 pc=0x93028
+runtime.goparkunlock(...)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:480
+runtime.(*cleanupQueue).dequeue(0x558f20)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mcleanup.go:522 +0x160 fp=0x27214580f790 sp=0x27214580f750 pc=0x341f0
+runtime.runCleanups()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mcleanup.go:718 +0x40 fp=0x27214580f7d0 sp=0x27214580f790 pc=0x348e0
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x27214580f7d0 sp=0x27214580f7d0 pc=0x997f4
+created by runtime.(*cleanupQueue).createGs in goroutine 19
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mcleanup.go:672 +0x108
+
+goroutine 5 gp=0x272145884d20 m=nil [GC worker (idle)]:
+runtime.gopark(0x581100?, 0x3?, 0x87?, 0x2d?, 0x8ba00?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x272145812720 sp=0x272145812700 pc=0x93028
+runtime.gcBgMarkWorker(0x272145c66230)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1807 +0xe0 fp=0x2721458127b0 sp=0x272145812720 pc=0x3a870
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x20 fp=0x2721458127d0 sp=0x2721458127b0 pc=0x89e30
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x2721458127d0 sp=0x2721458127d0 pc=0x997f4
+created by runtime.gcBgMarkStartWorkers in goroutine 19
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x130
+
+goroutine 6 gp=0x2721457b34a0 m=nil [GC worker (idle)]:
+runtime.gopark(0x581100?, 0x3?, 0x9?, 0x75?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x272145814720 sp=0x272145814700 pc=0x93028
+runtime.gcBgMarkWorker(0x272145c66230)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1807 +0xe0 fp=0x2721458147b0 sp=0x272145814720 pc=0x3a870
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x20 fp=0x2721458147d0 sp=0x2721458147b0 pc=0x89e30
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x2721458147d0 sp=0x2721458147d0 pc=0x997f4
+created by runtime.gcBgMarkStartWorkers in goroutine 19
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x130
+
+goroutine 7 gp=0x2721457b3680 m=nil [GC worker (idle)]:
+runtime.gopark(0x581100?, 0x3?, 0x5e?, 0x15?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x272145814f20 sp=0x272145814f00 pc=0x93028
+runtime.gcBgMarkWorker(0x272145c66230)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1807 +0xe0 fp=0x272145814fb0 sp=0x272145814f20 pc=0x3a870
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x20 fp=0x272145814fd0 sp=0x272145814fb0 pc=0x89e30
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x272145814fd0 sp=0x272145814fd0 pc=0x997f4
+created by runtime.gcBgMarkStartWorkers in goroutine 19
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x130
+
+goroutine 8 gp=0x2721457b3860 m=nil [GC worker (idle)]:
+runtime.gopark(0x581100?, 0x3?, 0x2?, 0x45?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x27216b484f20 sp=0x27216b484f00 pc=0x93028
+runtime.gcBgMarkWorker(0x272145c66230)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1807 +0xe0 fp=0x27216b484fb0 sp=0x27216b484f20 pc=0x3a870
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x20 fp=0x27216b484fd0 sp=0x27216b484fb0 pc=0x89e30
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x27216b484fd0 sp=0x27216b484fd0 pc=0x997f4
+created by runtime.gcBgMarkStartWorkers in goroutine 19
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x130
+
+goroutine 9 gp=0x2721457b3a40 m=nil [GC worker (idle)]:
+runtime.gopark(0x581100?, 0x3?, 0x17?, 0x62?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x272145815f20 sp=0x272145815f00 pc=0x93028
+runtime.gcBgMarkWorker(0x272145c66230)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1807 +0xe0 fp=0x272145815fb0 sp=0x272145815f20 pc=0x3a870
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x20 fp=0x272145815fd0 sp=0x272145815fb0 pc=0x89e30
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x272145815fd0 sp=0x272145815fd0 pc=0x997f4
+created by runtime.gcBgMarkStartWorkers in goroutine 19
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x130
+
+goroutine 10 gp=0x2721457b3c20 m=nil [GC worker (idle)]:
+runtime.gopark(0x581100?, 0x3?, 0xa1?, 0x71?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x272145c74720 sp=0x272145c74700 pc=0x93028
+runtime.gcBgMarkWorker(0x272145c66230)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1807 +0xe0 fp=0x272145c747b0 sp=0x272145c74720 pc=0x3a870
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x20 fp=0x272145c747d0 sp=0x272145c747b0 pc=0x89e30
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x272145c747d0 sp=0x272145c747d0 pc=0x997f4
+created by runtime.gcBgMarkStartWorkers in goroutine 19
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x130
+
+goroutine 11 gp=0x272145c78000 m=nil [GC worker (idle)]:
+runtime.gopark(0x581100?, 0x3?, 0xca?, 0x2b?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x272145c74f20 sp=0x272145c74f00 pc=0x93028
+runtime.gcBgMarkWorker(0x272145c66230)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1807 +0xe0 fp=0x272145c74fb0 sp=0x272145c74f20 pc=0x3a870
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x20 fp=0x272145c74fd0 sp=0x272145c74fb0 pc=0x89e30
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x272145c74fd0 sp=0x272145c74fd0 pc=0x997f4
+created by runtime.gcBgMarkStartWorkers in goroutine 19
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x130
+
+goroutine 12 gp=0x272145c781e0 m=nil [GC worker (idle)]:
+runtime.gopark(0x581100?, 0x1?, 0xe6?, 0xb4?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x272145c75720 sp=0x272145c75700 pc=0x93028
+runtime.gcBgMarkWorker(0x272145c66230)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1807 +0xe0 fp=0x272145c757b0 sp=0x272145c75720 pc=0x3a870
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x20 fp=0x272145c757d0 sp=0x272145c757b0 pc=0x89e30
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x272145c757d0 sp=0x272145c757d0 pc=0x997f4
+created by runtime.gcBgMarkStartWorkers in goroutine 19
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x130
+
+goroutine 13 gp=0x272145c783c0 m=nil [GC worker (idle)]:
+runtime.gopark(0x581100?, 0x3?, 0xaa?, 0xcc?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x272145c75f20 sp=0x272145c75f00 pc=0x93028
+runtime.gcBgMarkWorker(0x272145c66230)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1807 +0xe0 fp=0x272145c75fb0 sp=0x272145c75f20 pc=0x3a870
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x20 fp=0x272145c75fd0 sp=0x272145c75fb0 pc=0x89e30
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x272145c75fd0 sp=0x272145c75fd0 pc=0x997f4
+created by runtime.gcBgMarkStartWorkers in goroutine 19
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x130
+
+goroutine 15 gp=0x272145c78780 m=nil [GC worker (idle)]:
+runtime.gopark(0x581100?, 0x1?, 0x1a?, 0x64?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x272145c76f20 sp=0x272145c76f00 pc=0x93028
+runtime.gcBgMarkWorker(0x272145c66230)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1807 +0xe0 fp=0x272145c76fb0 sp=0x272145c76f20 pc=0x3a870
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x20 fp=0x272145c76fd0 sp=0x272145c76fb0 pc=0x89e30
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x272145c76fd0 sp=0x272145c76fd0 pc=0x997f4
+created by runtime.gcBgMarkStartWorkers in goroutine 19
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x130
+
+goroutine 16 gp=0x272145c78960 m=nil [GC worker (idle)]:
+runtime.gopark(0x581100?, 0x3?, 0x72?, 0xa?, 0x0?)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/proc.go:474 +0xb8 fp=0x272145c77720 sp=0x272145c77700 pc=0x93028
+runtime.gcBgMarkWorker(0x272145c66230)
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1807 +0xe0 fp=0x272145c777b0 sp=0x272145c77720 pc=0x3a870
+runtime.gcBgMarkStartWorkers.gowrap1()
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x20 fp=0x272145c777d0 sp=0x272145c777b0 pc=0x89e30
+runtime.goexit({})
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/asm_arm64.s:1039 +0x4 fp=0x272145c777d0 sp=0x272145c777d0 pc=0x997f4
+created by runtime.gcBgMarkStartWorkers in goroutine 19
+	/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/runtime/mgc.go:1711 +0x130
+
+r0      0x2722750e29f0
+r1      0x2721457ec260
+r2      0x2722750e2000
+r3      0x2722750e3f80
+r4      0x2
+r5      0x1
+r6      0x10c00
+r7      0xd4
+r8      0x0
+r9      0x1
+r10     0x80
+r11     0x0
+r12     0xffffade9c200
+r13     0x2723eb100378
+r14     0x27215c140338
+r15     0x27215c140378
+r16     0xffffe25a3860
+r17     0xffffe25b32c0
+r18     0x0
+r19     0x4e50
+r20     0xffffae7ec000
+r21     0x4e48
+r22     0x2721457b4000
+r23     0x1
+r24     0x0
+r25     0x0
+r26     0x528700
+r27     0x0
+r28     0x5590e0
+r29     0xffffe25b3208
+lr      0x417ac
+sp      0xffffe25b3210
+pc      0x40078
+fault   0x0
+FAIL	go.temporal.io/server/tools/gomad3	91.196s
+FAIL

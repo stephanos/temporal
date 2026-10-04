@@ -1,0 +1,10 @@
+package record
+
+import (
+	"example.invalid/fitness/internal/canonicaljson"
+)
+
+func Check() {
+	for range helper.Iter {
+	}
+}

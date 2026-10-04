@@ -1,0 +1,36 @@
+{
+  "task_title": "Bounded independent round-four corrective source audit",
+  "task_body": "Verify frozen source and audit only round-three to round-four effects.go and range_test.go corrections: parenthesized destinations, index operands, slice maximum, composite keys and fail-closed assignment handling. Replay unchanged native-backed independent probes and writer 29 cases on an isolated checker copy, retaining terminal command evidence.",
+  "acceptance": "Report attributable actionable introduced defects or bounded no findings. Preserve shared source and all round-one through round-three artifacts. No broad suites, agents, bridges, formal SHIP or task completion.",
+  "touches_count": 2,
+  "has_quick_commands": true,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "routing": {
+    "judged_once": true,
+    "available": false,
+    "reason": "no_key",
+    "tier_line": "Tier: session (jev-unavailable(no_key))",
+    "requested_model": "gpt-6.1-sol",
+    "requested_reasoning_effort": "high",
+    "selection_retained": true,
+    "actual_backend_metadata": "unknown",
+    "writer_auditor_family": "same-family",
+    "formal_backend_verdict": false
+  },
+  "audit": {
+    "outcome": "bounded corrective audit found no actionable introduced defects",
+    "scratch": "/tmp/task19-round4-audit.e1lzg5",
+    "full_source_entries_verified": 978,
+    "owned_source_entries_verified": 109,
+    "task18_source_entries_verified": 14,
+    "commands": [
+      {"command": "sha256sum -c --quiet .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/round4-final-source.sha256", "cwd": "repository root", "exit_code": 0},
+      {"command": "sha256sum -c --quiet .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/round4-task-owned-source.sha256", "cwd": "repository root", "exit_code": 0},
+      {"command": "sha256sum -c --quiet .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-18/final-source.sha256", "cwd": "repository root", "exit_code": 0},
+      {"command": "flowctl judge --preset tier --state-file .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/round4-review-state.json --explicit-model gpt-6.1-sol --json", "cwd": "repository root", "exit_code": 0, "result": "no_key"},
+      {"command": "GOWORK=off go test -tags test_dep ./architecture -list '^Test(IndependentCallbackMutation|Round2IndependentProbes|Round3AssignmentEdges|RangeAssignmentSlots)$'", "cwd": "/tmp/task19-round4-audit.e1lzg5", "exit_code": 0},
+      {"command": "GOWORK=off go test -count=1 -tags test_dep ./architecture -run '^Test(IndependentCallbackMutation|Round2IndependentProbes|Round3AssignmentEdges|RangeAssignmentSlots)$' -v", "cwd": "/tmp/task19-round4-audit.e1lzg5", "exit_code": 0, "package_seconds": 42.877, "cases": 49, "log": "round4-independent-replays.log"},
+      {"command": "GOWORK=off go test -count=1 -tags test_dep ./architecture -run '^TestRound4(UnsupportedAssignmentDefault|NarrowControls)$' -v", "cwd": "/tmp/task19-round4-audit.e1lzg5", "exit_code": 0, "package_seconds": 1.111, "log": "round4-independent-controls.log"}
+    ]
+  }
+}

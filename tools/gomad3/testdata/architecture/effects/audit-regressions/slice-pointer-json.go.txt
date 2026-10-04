@@ -1,0 +1,8 @@
+package record
+
+import (
+	"encoding/json"
+	"example.invalid/fitness/internal/canonicaljson"
+)
+
+func Check() { _, _ = json.Marshal([]helper.Value{{}}) }

@@ -1,0 +1,8 @@
+=== RUN   TestArchitectureInventoryFixtures
+=== RUN   TestArchitectureInventoryFixtures/required-facade-edge
+    architecture_test.go:63: missing required-edge for target/source.go: []
+--- FAIL: TestArchitectureInventoryFixtures (0.01s)
+    --- FAIL: TestArchitectureInventoryFixtures/required-facade-edge (0.01s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3	0.008s
+FAIL

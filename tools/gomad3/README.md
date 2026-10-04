@@ -1235,7 +1235,15 @@ Runner's raw process record while keeping those identities separate. A target co
 its World with `world/process.Open`, takes the session-owned World returned by
 `Session.Model()`, performs all modeled work, and calls
 `Session.Finish` after that work has stopped, or `Session.FinishError` for a
-typed World error. The trusted bootstrap validates replay input before target
+World error. General `Error`, `Is`, and `Unwrap` callbacks are normalized at
+this process boundary, with detail captured before classification. Direct
+`Recorder.FinishError` accepts original World sentinels and concrete model-owned
+errors only; it rejects custom errors and external wrappers without invoking
+callbacks or closing the recorder. Callers that normalize errors themselves
+use `Recorder.FinishTerminal` with detached capacity, replay-divergence, or
+invalid-input data. `Finish` retains quiescence inference. Rebinding public
+sentinel variables does not change the pure model's identities or messages.
+The trusted bootstrap validates replay input before target
 activation; `Open` installs that recorded initial World rather than accepting a
 target-created substitute and returns it through `Session.Model()` before modeled work.
 The session writes one bounded record with a structured idle, deadlock,

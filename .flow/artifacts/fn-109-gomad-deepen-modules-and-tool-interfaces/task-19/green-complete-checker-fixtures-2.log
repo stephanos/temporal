@@ -1,0 +1,135 @@
+=== RUN   TestArchitectureInventoryFixtures
+=== RUN   TestArchitectureInventoryFixtures/root-production
+=== RUN   TestArchitectureInventoryFixtures/hidden-production
+=== RUN   TestArchitectureInventoryFixtures/underscore-production
+=== RUN   TestArchitectureInventoryFixtures/unclassified-testdata
+=== RUN   TestArchitectureInventoryFixtures/overlay-prefix
+=== RUN   TestArchitectureInventoryFixtures/hidden-module
+=== RUN   TestArchitectureInventoryFixtures/excluded-root-module
+=== RUN   TestArchitectureInventoryFixtures/included-list-error
+=== RUN   TestArchitectureInventoryFixtures/owner-edge
+=== RUN   TestArchitectureInventoryFixtures/required-facade-edge
+--- PASS: TestArchitectureInventoryFixtures (0.05s)
+    --- PASS: TestArchitectureInventoryFixtures/root-production (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/hidden-production (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/underscore-production (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/unclassified-testdata (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/overlay-prefix (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/hidden-module (0.00s)
+    --- PASS: TestArchitectureInventoryFixtures/excluded-root-module (0.00s)
+    --- PASS: TestArchitectureInventoryFixtures/included-list-error (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/owner-edge (0.00s)
+    --- PASS: TestArchitectureInventoryFixtures/required-facade-edge (0.00s)
+=== RUN   TestArchitecturePublicSignatureFixtures
+=== RUN   TestArchitecturePublicSignatureFixtures/nested-container
+=== RUN   TestArchitecturePublicSignatureFixtures/alias
+=== RUN   TestArchitecturePublicSignatureFixtures/defined-rhs
+=== RUN   TestArchitecturePublicSignatureFixtures/interface-result
+=== RUN   TestArchitecturePublicSignatureFixtures/generic-constraint
+=== RUN   TestArchitecturePublicSignatureFixtures/foreign-generic-argument
+=== RUN   TestArchitecturePublicSignatureFixtures/promoted-method
+=== RUN   TestArchitecturePublicSignatureFixtures/private-storage
+=== RUN   TestArchitecturePublicSignatureFixtures/private-defined-graph
+=== RUN   TestArchitecturePublicSignatureFixtures/recursive-public-graph
+--- PASS: TestArchitecturePublicSignatureFixtures (0.11s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/nested-container (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/alias (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/defined-rhs (0.03s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/interface-result (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/generic-constraint (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/foreign-generic-argument (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/promoted-method (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/private-storage (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/private-defined-graph (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/recursive-public-graph (0.01s)
+=== RUN   TestArchitectureEffectFixtures
+=== RUN   TestArchitectureEffectFixtures/indirect-clock
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/environment
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/filesystem
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/process
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/network
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/timer
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/entropy
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/goroutine
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/stored-callback
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/method-value
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/generic-callback
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/recursive-cycle
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/nested-json
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/nested-text
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/json-file-writer
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/json-file-reader
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/fmt-stringer
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/fmt-formatter
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/fmt-gostring
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/unknown-callback
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/unknown-location
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/local-location
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/utc-location
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/pure-callback
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/pure-recursive-cycle
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/pure-nested-json
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/pure-memory-stream
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/pure-fmt-type
+diagnostic root: example.invalid/fitness/record.Check
+=== RUN   TestArchitectureEffectFixtures/effectful-unrelated-sibling
+diagnostic root: example.invalid/fitness/record.Check
+--- PASS: TestArchitectureEffectFixtures (13.29s)
+    --- PASS: TestArchitectureEffectFixtures/indirect-clock (0.45s)
+    --- PASS: TestArchitectureEffectFixtures/environment (0.44s)
+    --- PASS: TestArchitectureEffectFixtures/filesystem (0.43s)
+    --- PASS: TestArchitectureEffectFixtures/process (0.42s)
+    --- PASS: TestArchitectureEffectFixtures/network (0.44s)
+    --- PASS: TestArchitectureEffectFixtures/timer (0.44s)
+    --- PASS: TestArchitectureEffectFixtures/entropy (0.43s)
+    --- PASS: TestArchitectureEffectFixtures/goroutine (0.42s)
+    --- PASS: TestArchitectureEffectFixtures/stored-callback (0.41s)
+    --- PASS: TestArchitectureEffectFixtures/method-value (0.47s)
+    --- PASS: TestArchitectureEffectFixtures/generic-callback (0.48s)
+    --- PASS: TestArchitectureEffectFixtures/recursive-cycle (0.49s)
+    --- PASS: TestArchitectureEffectFixtures/nested-json (0.48s)
+    --- PASS: TestArchitectureEffectFixtures/nested-text (0.55s)
+    --- PASS: TestArchitectureEffectFixtures/json-file-writer (0.47s)
+    --- PASS: TestArchitectureEffectFixtures/json-file-reader (0.48s)
+    --- PASS: TestArchitectureEffectFixtures/fmt-stringer (0.46s)
+    --- PASS: TestArchitectureEffectFixtures/fmt-formatter (0.51s)
+    --- PASS: TestArchitectureEffectFixtures/fmt-gostring (0.45s)
+    --- PASS: TestArchitectureEffectFixtures/unknown-callback (0.43s)
+    --- PASS: TestArchitectureEffectFixtures/unknown-location (0.43s)
+    --- PASS: TestArchitectureEffectFixtures/local-location (0.43s)
+    --- PASS: TestArchitectureEffectFixtures/utc-location (0.43s)
+    --- PASS: TestArchitectureEffectFixtures/pure-callback (0.49s)
+    --- PASS: TestArchitectureEffectFixtures/pure-recursive-cycle (0.51s)
+    --- PASS: TestArchitectureEffectFixtures/pure-nested-json (0.50s)
+    --- PASS: TestArchitectureEffectFixtures/pure-memory-stream (0.47s)
+    --- PASS: TestArchitectureEffectFixtures/pure-fmt-type (0.43s)
+    --- PASS: TestArchitectureEffectFixtures/effectful-unrelated-sibling (0.42s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3	13.462s

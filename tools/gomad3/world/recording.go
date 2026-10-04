@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
@@ -57,7 +56,7 @@ type recordingState struct {
 
 func (w *Model) StartRecording(transitionByteLimit uint64) (*Recorder, error) {
 	if transitionByteLimit == 0 {
-		return nil, fmt.Errorf("%w: transition byte limit must be positive", ErrInvalidConfig)
+		return nil, classifiedError(invalidConfig, "transition byte limit must be positive")
 	}
 	w.mu.Lock()
 	defer w.mu.Unlock()
@@ -66,7 +65,7 @@ func (w *Model) StartRecording(transitionByteLimit uint64) (*Recorder, error) {
 	}
 	state := &recordingState{initial: w.snapshotLocked(), start: len(w.history), limit: transitionByteLimit}
 	if _, err := EncodeSnapshot(state.initial); err != nil {
-		return nil, fmt.Errorf("validate initial World recording snapshot: %w", err)
+		return nil, modelContextError("validate initial World recording snapshot", err)
 	}
 	w.recording = state
 	return &Recorder{world: w, state: state}, nil
@@ -80,16 +79,20 @@ func (recorder *Recorder) FinishError(terminalErr error) (Recording, error) {
 	if terminalErr == nil {
 		return Recording{}, fmt.Errorf("World terminal error is required")
 	}
-	terminal := Terminal{Detail: terminalErr.Error()}
-	switch {
-	case errors.Is(terminalErr, ErrCapacity):
-		terminal.Kind = TerminalCapacity
-	case errors.Is(terminalErr, ErrReplayDivergence):
-		terminal.Kind = TerminalReplayDivergence
-	case errors.Is(terminalErr, ErrInvalidConfig), errors.Is(terminalErr, ErrInvalidRequest), errors.Is(terminalErr, ErrUnknownRequest), errors.Is(terminalErr, ErrRequestState), errors.Is(terminalErr, ErrTimeRegression), errors.Is(terminalErr, ErrInvalidSnapshot):
-		terminal.Kind = TerminalInvalidInput
+	terminal, ok := ownedTerminal(terminalErr)
+	if !ok {
+		return Recording{}, fmt.Errorf("unsupported World terminal error")
+	}
+	return recorder.FinishTerminal(terminal)
+}
+
+// FinishTerminal accepts detached error reporting data. General error callbacks
+// must be normalized by the caller outside the pure World model.
+func (recorder *Recorder) FinishTerminal(terminal Terminal) (Recording, error) {
+	switch terminal.Kind {
+	case TerminalCapacity, TerminalReplayDivergence, TerminalInvalidInput:
 	default:
-		return Recording{}, fmt.Errorf("unsupported World terminal error: %w", terminalErr)
+		return Recording{}, fmt.Errorf("World error terminal kind is required")
 	}
 	return recorder.finish(terminal)
 }
@@ -197,11 +200,11 @@ func (w *Model) checkRecordingTransition(transition Transition) error {
 func EncodeRecording(recording Recording) ([]byte, error) {
 	initial, err := EncodeSnapshot(recording.Initial)
 	if err != nil {
-		return nil, fmt.Errorf("encode initial World snapshot: %w", err)
+		return nil, modelContextError("encode initial World snapshot", err)
 	}
 	final, err := EncodeSnapshot(recording.Final)
 	if err != nil {
-		return nil, fmt.Errorf("encode final World snapshot: %w", err)
+		return nil, modelContextError("encode final World snapshot", err)
 	}
 	if recording.Terminal.Kind == "" {
 		recording.Terminal = Terminal{Kind: TerminalNone}

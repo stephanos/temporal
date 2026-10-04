@@ -1,0 +1,8 @@
+{
+  "task_title": "Inventory concrete inaccessible internal types in current public Go surface",
+  "task_body": "Read-only narrow source investigation of current gomad3 public packages for exported declarations that expose inaccessible internal-package types through parameters/results, fields, aliases, constraints, embeddings or promoted methods. Identify actual existing source issues and precise legal-visibility controls for task19, not implement the checker or duplicate callback/timezone/discovery scouts.",
+  "acceptance": "Return source-backed concrete findings or inspected-scope none, import/type chains, consumer visibility boundaries and minimal real-shape fixtures. No source/artifact/Flow/Git writes, tests/build/generation/bridges/qualification, or speculative mutation. Worker18 owns shared source and commands.",
+  "touches_count": 0,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

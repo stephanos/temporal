@@ -1,0 +1,44 @@
+=== RUN   TestArchitectureInventoryFixtures
+=== RUN   TestArchitectureInventoryFixtures/root-production
+=== RUN   TestArchitectureInventoryFixtures/hidden-production
+=== RUN   TestArchitectureInventoryFixtures/underscore-production
+=== RUN   TestArchitectureInventoryFixtures/unclassified-testdata
+=== RUN   TestArchitectureInventoryFixtures/overlay-prefix
+=== RUN   TestArchitectureInventoryFixtures/hidden-module
+=== RUN   TestArchitectureInventoryFixtures/excluded-root-module
+=== RUN   TestArchitectureInventoryFixtures/included-list-error
+=== RUN   TestArchitectureInventoryFixtures/owner-edge
+--- PASS: TestArchitectureInventoryFixtures (0.05s)
+    --- PASS: TestArchitectureInventoryFixtures/root-production (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/hidden-production (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/underscore-production (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/unclassified-testdata (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/overlay-prefix (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/hidden-module (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/excluded-root-module (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/included-list-error (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/owner-edge (0.01s)
+=== RUN   TestArchitecturePublicSignatureFixtures
+=== RUN   TestArchitecturePublicSignatureFixtures/nested-container
+=== RUN   TestArchitecturePublicSignatureFixtures/alias
+=== RUN   TestArchitecturePublicSignatureFixtures/defined-rhs
+=== RUN   TestArchitecturePublicSignatureFixtures/interface-result
+=== RUN   TestArchitecturePublicSignatureFixtures/generic-constraint
+=== RUN   TestArchitecturePublicSignatureFixtures/foreign-generic-argument
+=== RUN   TestArchitecturePublicSignatureFixtures/promoted-method
+=== RUN   TestArchitecturePublicSignatureFixtures/private-storage
+=== RUN   TestArchitecturePublicSignatureFixtures/private-defined-graph
+=== RUN   TestArchitecturePublicSignatureFixtures/recursive-public-graph
+--- PASS: TestArchitecturePublicSignatureFixtures (0.17s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/nested-container (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/alias (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/defined-rhs (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/interface-result (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/generic-constraint (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/foreign-generic-argument (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/promoted-method (0.08s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/private-storage (0.02s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/private-defined-graph (0.01s)
+    --- PASS: TestArchitecturePublicSignatureFixtures/recursive-public-graph (0.01s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3	0.223s

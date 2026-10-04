@@ -1,0 +1,113 @@
+=== RUN   TestDiscoveryRejectsOmittedSource
+--- PASS: TestDiscoveryRejectsOmittedSource (0.00s)
+=== RUN   TestRequiredModuleNeedsItsOwnSource
+--- PASS: TestRequiredModuleNeedsItsOwnSource (0.00s)
+=== RUN   TestDiscoveryRejectsDirectorySymlink
+--- PASS: TestDiscoveryRejectsDirectorySymlink (0.00s)
+=== RUN   TestEffectThroughHelper
+diagnostic root: example.invalid/architecture/record.Validate
+diagnostic root: example.invalid/architecture/record.helper
+--- PASS: TestEffectThroughHelper (0.27s)
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/argument-order
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/captured-order
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/single-unwrap
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/joined-unwrap
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/wrapped-is
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/interface-return
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/multi-unwrap
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/unwrap-return
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/recursive-wrapper
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/cross-argument-alias
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+=== RUN   TestEffectCallbackContextsAndUnwrapReturns/cached-mutation
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic root: example.invalid/architecture/record.clean
+diagnostic root: example.invalid/architecture/record.dirty
+--- PASS: TestEffectCallbackContextsAndUnwrapReturns (3.31s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/argument-order (0.30s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/captured-order (0.30s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/single-unwrap (0.30s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/joined-unwrap (0.29s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/wrapped-is (0.28s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/interface-return (0.30s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/multi-unwrap (0.31s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/unwrap-return (0.30s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/recursive-wrapper (0.31s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/cross-argument-alias (0.31s)
+    --- PASS: TestEffectCallbackContextsAndUnwrapReturns/cached-mutation (0.30s)
+=== RUN   TestPureMemoryFormattingAndJSON
+diagnostic root: example.invalid/architecture/record.Encode
+--- PASS: TestPureMemoryFormattingAndJSON (0.34s)
+=== RUN   TestPureJSONHelperRetainsConcreteArgument
+diagnostic root: example.invalid/architecture/record.Encode
+--- PASS: TestPureJSONHelperRetainsConcreteArgument (0.35s)
+=== RUN   TestImplicitCallbackPrecedence
+=== RUN   TestImplicitCallbackPrecedence/formatter-precedence
+diagnostic root: example.invalid/architecture/record.Check
+=== RUN   TestImplicitCallbackPrecedence/gostring-not-v
+diagnostic root: example.invalid/architecture/record.Check
+=== RUN   TestImplicitCallbackPrecedence/marshal-precedence
+diagnostic root: example.invalid/architecture/record.Check
+=== RUN   TestImplicitCallbackPrecedence/recursive-owned-copy
+diagnostic root: example.invalid/architecture/record.Check
+diagnostic round: example.invalid/architecture/record.Check 16 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 32 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 48 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 64 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 80 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 96 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 112 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 128 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 144 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 160 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 176 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 192 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 208 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 224 contexts=3
+diagnostic round: example.invalid/architecture/record.Check 240 contexts=3
+    effects_test.go:136: unused callback incorrectly invoked: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestImplicitCallbackPrecedencerecursive-owned-copy980481917/001/record/pure.go:1:121 example.invalid/architecture/record.Check ->  -> recursive effect summaries did not converge}]
+--- FAIL: TestImplicitCallbackPrecedence (1.75s)
+    --- PASS: TestImplicitCallbackPrecedence/formatter-precedence (0.34s)
+    --- PASS: TestImplicitCallbackPrecedence/gostring-not-v (0.33s)
+    --- PASS: TestImplicitCallbackPrecedence/marshal-precedence (0.37s)
+    --- FAIL: TestImplicitCallbackPrecedence/recursive-owned-copy (0.71s)
+=== RUN   TestPureCanonicalJSONConcreteArgument
+diagnostic root: example.invalid/architecture/record.Encode
+--- PASS: TestPureCanonicalJSONConcreteArgument (0.35s)
+=== RUN   TestSignatureNestedInternalIdentity
+--- PASS: TestSignatureNestedInternalIdentity (0.00s)
+=== RUN   TestImportableForeignNamedBoundary
+--- PASS: TestImportableForeignNamedBoundary (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	6.364s
+FAIL

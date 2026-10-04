@@ -1,0 +1,63 @@
+start=2026-10-04T06:33:46Z
+=== RUN   TestCallbackContainerMutations
+=== RUN   TestCallbackContainerMutations/copy-slice
+    mutation_test.go:71: callback clock escaped {linux amd64}: []
+=== RUN   TestCallbackContainerMutations/copy-alias
+    mutation_test.go:71: callback clock escaped {linux amd64}: []
+=== RUN   TestCallbackContainerMutations/insert
+    mutation_test.go:71: callback clock escaped {linux amd64}: []
+=== RUN   TestCallbackContainerMutations/insert-ellipsis
+    mutation_test.go:71: callback clock escaped {linux amd64}: []
+=== RUN   TestCallbackContainerMutations/insert-alias
+    mutation_test.go:71: callback clock escaped {linux amd64}: []
+=== RUN   TestCallbackContainerMutations/clone-assignment
+    mutation_test.go:71: callback clock escaped {linux amd64}: []
+=== RUN   TestCallbackContainerMutations/pointer-store
+    mutation_test.go:71: callback clock escaped {linux amd64}: []
+=== RUN   TestCallbackContainerMutations/pointer-helper
+    mutation_test.go:71: callback clock escaped {linux amd64}: []
+=== RUN   TestCallbackContainerMutations/range-function
+    mutation_test.go:71: callback clock escaped {linux amd64}: []
+=== RUN   TestCallbackContainerMutations/range-yield-callback
+    mutation_test.go:71: callback clock escaped {linux amd64}: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestCallbackContainerMutationsrange-yield-callback1599422576/001/record/pure.go:1:172 example.invalid/mutation/record.Check -> example.invalid/mutation/record.Check -> unresolved callback}]
+=== RUN   TestCallbackContainerMutations/slice-pointer-marshaler
+    mutation_test.go:71: callback clock escaped {linux amd64}: []
+=== RUN   TestCallbackContainerMutations/addressable-array-marshaler
+    mutation_test.go:71: callback clock escaped {linux amd64}: []
+=== RUN   TestCallbackContainerMutations/addressable-field-marshaler
+    mutation_test.go:71: callback clock escaped {linux amd64}: []
+=== RUN   TestCallbackContainerMutations/map-nonaddressable
+=== RUN   TestCallbackContainerMutations/array-nonaddressable
+=== RUN   TestCallbackContainerMutations/field-nonaddressable
+=== RUN   TestCallbackContainerMutations/pure-copy
+=== RUN   TestCallbackContainerMutations/pure-insert
+=== RUN   TestCallbackContainerMutations/pure-clone
+=== RUN   TestCallbackContainerMutations/pure-pointer
+=== RUN   TestCallbackContainerMutations/pure-iterator
+--- FAIL: TestCallbackContainerMutations (10.03s)
+    --- FAIL: TestCallbackContainerMutations/copy-slice (0.67s)
+    --- FAIL: TestCallbackContainerMutations/copy-alias (0.51s)
+    --- FAIL: TestCallbackContainerMutations/insert (0.42s)
+    --- FAIL: TestCallbackContainerMutations/insert-ellipsis (0.33s)
+    --- FAIL: TestCallbackContainerMutations/insert-alias (0.33s)
+    --- FAIL: TestCallbackContainerMutations/clone-assignment (0.33s)
+    --- FAIL: TestCallbackContainerMutations/pointer-store (0.33s)
+    --- FAIL: TestCallbackContainerMutations/pointer-helper (0.32s)
+    --- FAIL: TestCallbackContainerMutations/range-function (0.32s)
+    --- FAIL: TestCallbackContainerMutations/range-yield-callback (0.32s)
+    --- FAIL: TestCallbackContainerMutations/slice-pointer-marshaler (0.33s)
+    --- FAIL: TestCallbackContainerMutations/addressable-array-marshaler (0.33s)
+    --- FAIL: TestCallbackContainerMutations/addressable-field-marshaler (0.33s)
+    --- PASS: TestCallbackContainerMutations/map-nonaddressable (0.65s)
+    --- PASS: TestCallbackContainerMutations/array-nonaddressable (0.65s)
+    --- PASS: TestCallbackContainerMutations/field-nonaddressable (0.63s)
+    --- PASS: TestCallbackContainerMutations/pure-copy (0.65s)
+    --- PASS: TestCallbackContainerMutations/pure-insert (0.65s)
+    --- PASS: TestCallbackContainerMutations/pure-clone (0.65s)
+    --- PASS: TestCallbackContainerMutations/pure-pointer (0.64s)
+    --- PASS: TestCallbackContainerMutations/pure-iterator (0.64s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	10.041s
+FAIL
+end=2026-10-04T06:33:58Z
+exit=1

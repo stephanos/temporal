@@ -1,0 +1,79 @@
+2026-10-04T07:01:36Z
+=== RUN   TestArchitectureEffectFixtures
+=== RUN   TestArchitectureEffectFixtures/indirect-clock
+=== RUN   TestArchitectureEffectFixtures/environment
+=== RUN   TestArchitectureEffectFixtures/filesystem
+=== RUN   TestArchitectureEffectFixtures/process
+=== RUN   TestArchitectureEffectFixtures/network
+=== RUN   TestArchitectureEffectFixtures/timer
+=== RUN   TestArchitectureEffectFixtures/entropy
+=== RUN   TestArchitectureEffectFixtures/goroutine
+=== RUN   TestArchitectureEffectFixtures/stored-callback
+=== RUN   TestArchitectureEffectFixtures/method-value
+=== RUN   TestArchitectureEffectFixtures/generic-callback
+=== RUN   TestArchitectureEffectFixtures/recursive-cycle
+=== RUN   TestArchitectureEffectFixtures/nested-json
+=== RUN   TestArchitectureEffectFixtures/nested-text
+=== RUN   TestArchitectureEffectFixtures/json-file-writer
+=== RUN   TestArchitectureEffectFixtures/json-file-reader
+=== RUN   TestArchitectureEffectFixtures/fmt-stringer
+=== RUN   TestArchitectureEffectFixtures/fmt-formatter
+=== RUN   TestArchitectureEffectFixtures/fmt-gostring
+=== RUN   TestArchitectureEffectFixtures/unknown-callback
+=== RUN   TestArchitectureEffectFixtures/unknown-location
+=== RUN   TestArchitectureEffectFixtures/local-location
+=== RUN   TestArchitectureEffectFixtures/utc-location
+=== RUN   TestArchitectureEffectFixtures/pure-callback
+=== RUN   TestArchitectureEffectFixtures/pure-recursive-cycle
+=== RUN   TestArchitectureEffectFixtures/pure-nested-json
+=== RUN   TestArchitectureEffectFixtures/pure-memory-stream
+=== RUN   TestArchitectureEffectFixtures/pure-fmt-type
+=== RUN   TestArchitectureEffectFixtures/effectful-unrelated-sibling
+=== RUN   TestArchitectureEffectFixtures/copy-callback
+=== RUN   TestArchitectureEffectFixtures/insert-callback
+=== RUN   TestArchitectureEffectFixtures/clone-callback
+=== RUN   TestArchitectureEffectFixtures/pointer-callback
+=== RUN   TestArchitectureEffectFixtures/range-iterator
+=== RUN   TestArchitectureEffectFixtures/slice-pointer-json
+=== RUN   TestArchitectureEffectFixtures/blank-import-init
+--- PASS: TestArchitectureEffectFixtures (15.67s)
+    --- PASS: TestArchitectureEffectFixtures/indirect-clock (0.61s)
+    --- PASS: TestArchitectureEffectFixtures/environment (0.54s)
+    --- PASS: TestArchitectureEffectFixtures/filesystem (0.54s)
+    --- PASS: TestArchitectureEffectFixtures/process (0.46s)
+    --- PASS: TestArchitectureEffectFixtures/network (0.46s)
+    --- PASS: TestArchitectureEffectFixtures/timer (0.54s)
+    --- PASS: TestArchitectureEffectFixtures/entropy (0.51s)
+    --- PASS: TestArchitectureEffectFixtures/goroutine (0.49s)
+    --- PASS: TestArchitectureEffectFixtures/stored-callback (0.51s)
+    --- PASS: TestArchitectureEffectFixtures/method-value (0.47s)
+    --- PASS: TestArchitectureEffectFixtures/generic-callback (0.54s)
+    --- PASS: TestArchitectureEffectFixtures/recursive-cycle (0.46s)
+    --- PASS: TestArchitectureEffectFixtures/nested-json (0.47s)
+    --- PASS: TestArchitectureEffectFixtures/nested-text (0.45s)
+    --- PASS: TestArchitectureEffectFixtures/json-file-writer (0.46s)
+    --- PASS: TestArchitectureEffectFixtures/json-file-reader (0.45s)
+    --- PASS: TestArchitectureEffectFixtures/fmt-stringer (0.46s)
+    --- PASS: TestArchitectureEffectFixtures/fmt-formatter (0.45s)
+    --- PASS: TestArchitectureEffectFixtures/fmt-gostring (0.46s)
+    --- PASS: TestArchitectureEffectFixtures/unknown-callback (0.47s)
+    --- PASS: TestArchitectureEffectFixtures/unknown-location (0.46s)
+    --- PASS: TestArchitectureEffectFixtures/local-location (0.44s)
+    --- PASS: TestArchitectureEffectFixtures/utc-location (0.45s)
+    --- PASS: TestArchitectureEffectFixtures/pure-callback (0.46s)
+    --- PASS: TestArchitectureEffectFixtures/pure-recursive-cycle (0.46s)
+    --- PASS: TestArchitectureEffectFixtures/pure-nested-json (0.46s)
+    --- PASS: TestArchitectureEffectFixtures/pure-memory-stream (0.46s)
+    --- PASS: TestArchitectureEffectFixtures/pure-fmt-type (0.47s)
+    --- PASS: TestArchitectureEffectFixtures/effectful-unrelated-sibling (0.47s)
+    --- PASS: TestArchitectureEffectFixtures/copy-callback (0.23s)
+    --- PASS: TestArchitectureEffectFixtures/insert-callback (0.23s)
+    --- PASS: TestArchitectureEffectFixtures/clone-callback (0.22s)
+    --- PASS: TestArchitectureEffectFixtures/pointer-callback (0.23s)
+    --- PASS: TestArchitectureEffectFixtures/range-iterator (0.23s)
+    --- PASS: TestArchitectureEffectFixtures/slice-pointer-json (0.36s)
+    --- PASS: TestArchitectureEffectFixtures/blank-import-init (0.22s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3	15.676s
+2026-10-04T07:01:52Z
+suite_rc=0

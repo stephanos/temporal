@@ -1,0 +1,6 @@
+=== RUN   TestModelGeneratedTransitionContextRemainsRecordable
+    recording_terminal_test.go:81: owned transition context rejected: {Kind: Detail:} unsupported World terminal error
+--- FAIL: TestModelGeneratedTransitionContextRemainsRecordable (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/world	0.001s
+FAIL

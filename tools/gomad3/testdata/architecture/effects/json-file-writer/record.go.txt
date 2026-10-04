@@ -1,0 +1,5 @@
+package record
+import("example.invalid/fitness/helper";"time";"fmt";"encoding/json";"errors";"bytes";"os";"io")
+var _ = helper.FixtureMarker
+var _ = time.UTC;var _ = fmt.Sprintf;var _ = json.Marshal;var _ = errors.New;var _ = bytes.NewBuffer;var _ = os.Getenv;var _ io.Writer
+func Check(){_ = json.NewEncoder(&os.File{}).Encode(1)}

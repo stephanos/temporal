@@ -1,0 +1,17 @@
+2026-10-04T07:07:02Z
+tools/gomad3/filesystem_handles_ownership_test.go: OK
+tools/gomad3/Makefile: OK
+tools/gomad3/simulation_gate_selection_test.go: OK
+tools/gomad3/runner/internal/execution/simulation_root_integration_test.go: OK
+tools/gomad3/toolchain/version/version.json: OK
+tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go: OK
+tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles.go: OK
+tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/local_handles.go: OK
+tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go: OK
+tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/volume.go: OK
+tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/export_test.go: OK
+tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/handles_test.go: OK
+tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_handles_test.go: OK
+tools/gomad3sim/filesystem_handles_toolchain_test.go: OK
+2026-10-04T07:07:02Z
+suite_rc=0

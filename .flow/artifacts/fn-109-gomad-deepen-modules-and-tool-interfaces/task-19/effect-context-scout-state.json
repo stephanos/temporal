@@ -1,0 +1,8 @@
+{
+  "task_title": "Inspect callback/effect context memoization and wrapped-error provenance",
+  "task_body": "Read-only bounded source questions on architecture effects.go and standard.go: does context memoization distinguish field/argument positions and closure captures, and do fmt.Errorf/errors.Join/results preserve Error/Is/Unwrap callbacks through subsequent use? Identify concrete false-negative source fixtures and corrections without editing or executing. The task19 sole writer remains active; this is early source research, not formal review or frozen acceptance.",
+  "acceptance": "Answer both questions with source references and minimal concrete controls. Preserve source-only and changing-source limitations. No writes, tests, builds, package loading, Flow/Git mutations or further agents.",
+  "touches_count": 3,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

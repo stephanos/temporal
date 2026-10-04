@@ -1,0 +1,8 @@
+{
+  "task_title": "Early source audit of owned World errors and process terminal reporting",
+  "task_body": "Read-only independent source review of task19 World error/terminal repair against admitted deliberate migration and preservation requirements. Source writer remains active, so inspect before/after hashes and identify findings as snapshot-specific. Review model-owned constructors, immutable sentinels, classified/context wrapper preservation, closed FinishError and detached FinishTerminal, effectful process normalization and focused tests. No formal SHIP or native acceptance.",
+  "acceptance": "Return concrete Critical/Important/Minor findings or none with source references; distinguish intentional custom callback/sentinel rebinding migration from unintended typed error/message/precedence loss; no writes/tests/builds/package loading/Flow or Git mutations/bridges/further agents.",
+  "touches_count": 10,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

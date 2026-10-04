@@ -1,0 +1,5 @@
+=== RUN   TestOwnedWorldComposedManifestPreservesIdentity
+    world_terminal_identity_test.go:28: record=sha256:b389081166e24b0125866ab3eb93cd64fe404bec71978e16ada64a047d741720 failure=sha256:b457334a29e1a0d1c66c726e8be033bd2a42e399805e5c6823f74c884b5472fc bytes=sha256:220937aa423731c2e3dc66326e48e0752f9f816541ecac6f2b8c51e9ecd863f6
+--- PASS: TestOwnedWorldComposedManifestPreservesIdentity (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/record	0.003s

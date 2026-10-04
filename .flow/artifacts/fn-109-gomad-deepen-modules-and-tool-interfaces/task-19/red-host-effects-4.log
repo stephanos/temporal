@@ -1,0 +1,3 @@
+signal: killed
+FAIL	go.temporal.io/server/tools/gomad3	53.130s
+FAIL

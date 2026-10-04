@@ -112,7 +112,71 @@ type CapabilityPackageReference struct {
 }
 
 type CompatibilityIdentity compatibility.Identity
-type CompatibilityPackEvidence compatibility.PackEvidence
+
+// CompatibilityPackEvidence is the complete detached evidence selected by policy.
+type CompatibilityPackEvidence struct {
+	ID            string                             `json:"id"`
+	SHA256        string                             `json:"sha256"`
+	RequestSHA256 string                             `json:"request_sha256,omitempty"`
+	Governance    *CompatibilityPackGovernance       `json:"governance,omitempty"`
+	Activation    []CompatibilityModuleEvidence      `json:"activation"`
+	Rules         []CompatibilityPackageRuleEvidence `json:"rules"`
+}
+
+type CompatibilityPackGovernance struct {
+	Owner          string   `json:"owner"`
+	ReviewedAt     string   `json:"reviewed_at"`
+	Justification  string   `json:"justification"`
+	Workloads      []string `json:"workloads"`
+	Platforms      []string `json:"platforms"`
+	ApprovalSHA256 string   `json:"approval_sha256"`
+}
+
+type CompatibilityModuleEvidence struct {
+	Path        string                    `json:"path"`
+	Version     string                    `json:"version"`
+	Sum         string                    `json:"sum"`
+	Replacement string                    `json:"replacement"`
+	Adapter     *CompatibilityPackAdapter `json:"adapter,omitempty"`
+}
+
+type CompatibilityPackAdapter struct {
+	ProfileName                      string `json:"profile_name"`
+	ProfileImplementationSHA256      string `json:"profile_implementation_sha256"`
+	Module                           string `json:"module"`
+	Version                          string `json:"version"`
+	Sum                              string `json:"sum"`
+	OriginalSourceInventorySHA256    string `json:"original_source_inventory_sha256"`
+	ReplacementSourceInventorySHA256 string `json:"replacement_source_inventory_sha256"`
+	PreparedSourceSetSHA256          string `json:"prepared_source_set_sha256"`
+}
+
+type CompatibilityPackageRuleEvidence struct {
+	ImportPath      string                           `json:"import_path"`
+	Module          CompatibilityModuleEvidence      `json:"module"`
+	SourceSetSHA256 string                           `json:"source_set_sha256,omitempty"`
+	GoSources       []CompatibilityPackSource        `json:"go_sources,omitempty"`
+	ForeignSources  []CompatibilityPackForeignSource `json:"foreign_sources,omitempty"`
+	Capabilities    []string                         `json:"capabilities"`
+	Linknames       []CompatibilityLinknameEvidence  `json:"linknames"`
+}
+
+type CompatibilityPackSource struct {
+	Name   string `json:"name"`
+	SHA256 string `json:"sha256"`
+}
+
+type CompatibilityPackForeignSource struct {
+	Kind   string `json:"kind"`
+	Name   string `json:"name"`
+	SHA256 string `json:"sha256"`
+}
+
+type CompatibilityLinknameEvidence struct {
+	Source     string   `json:"source"`
+	SHA256     string   `json:"sha256"`
+	Directives []string `json:"directives"`
+}
 type CompatibilityDisposition compatibility.Disposition
 type CompatibilityRemediation compatibility.RemediationCategory
 

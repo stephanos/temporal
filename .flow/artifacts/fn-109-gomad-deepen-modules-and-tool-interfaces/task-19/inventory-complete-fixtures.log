@@ -1,0 +1,24 @@
+=== RUN   TestArchitectureInventoryFixtures
+=== RUN   TestArchitectureInventoryFixtures/root-production
+=== RUN   TestArchitectureInventoryFixtures/hidden-production
+=== RUN   TestArchitectureInventoryFixtures/underscore-production
+=== RUN   TestArchitectureInventoryFixtures/unclassified-testdata
+=== RUN   TestArchitectureInventoryFixtures/overlay-prefix
+    architecture_test.go:41: missing ownerless for toolchain/runtime/overlayextra/source.go: []
+=== RUN   TestArchitectureInventoryFixtures/hidden-module
+=== RUN   TestArchitectureInventoryFixtures/excluded-root-module
+=== RUN   TestArchitectureInventoryFixtures/included-list-error
+=== RUN   TestArchitectureInventoryFixtures/owner-edge
+--- FAIL: TestArchitectureInventoryFixtures (0.05s)
+    --- PASS: TestArchitectureInventoryFixtures/root-production (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/hidden-production (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/underscore-production (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/unclassified-testdata (0.01s)
+    --- FAIL: TestArchitectureInventoryFixtures/overlay-prefix (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/hidden-module (0.00s)
+    --- PASS: TestArchitectureInventoryFixtures/excluded-root-module (0.00s)
+    --- PASS: TestArchitectureInventoryFixtures/included-list-error (0.01s)
+    --- PASS: TestArchitectureInventoryFixtures/owner-edge (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3	0.050s
+FAIL

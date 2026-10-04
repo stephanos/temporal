@@ -1,0 +1,6 @@
+=== RUN   TestPureCanonicalJSONConcreteArgument
+    effects_test.go:53: concrete recursive canonical JSON argument lost: [{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestPureCanonicalJSONConcreteArgument3249972455/001/helper/helper.go:314:10 example.invalid/architecture/record.Encode -> example.invalid/architecture/record.Encode -> example.invalid/architecture/helper.CanonicalJSON -> example.invalid/architecture/helper.appendCanonical -> example.invalid/architecture/helper.appendCanonical -> unknown dynamic callback receiver any} {unresolved-effect  /home/agent/.cache/codex-build/tmp/TestPureCanonicalJSONConcreteArgument3249972455/001/helper/helper.go:34:12 example.invalid/architecture/record.Encode -> example.invalid/architecture/record.Encode -> example.invalid/architecture/helper.CanonicalJSON -> unknown dynamic callback receiver any}]
+--- FAIL: TestPureCanonicalJSONConcreteArgument (0.39s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	0.397s
+FAIL

@@ -119,7 +119,20 @@ func (session *Session) finish(terminalErr error) error {
 	if terminalErr == nil {
 		recording, err = session.recorder.Finish()
 	} else {
-		recording, err = session.recorder.FinishError(terminalErr)
+		terminal := world.Terminal{Detail: terminalErr.Error()}
+		switch {
+		case errors.Is(terminalErr, world.ErrCapacity):
+			terminal.Kind = world.TerminalCapacity
+		case errors.Is(terminalErr, world.ErrReplayDivergence):
+			terminal.Kind = world.TerminalReplayDivergence
+		case errors.Is(terminalErr, world.ErrInvalidConfig), errors.Is(terminalErr, world.ErrInvalidRequest), errors.Is(terminalErr, world.ErrUnknownRequest), errors.Is(terminalErr, world.ErrRequestState), errors.Is(terminalErr, world.ErrTimeRegression), errors.Is(terminalErr, world.ErrInvalidSnapshot):
+			terminal.Kind = world.TerminalInvalidInput
+		default:
+			err = fmt.Errorf("unsupported World terminal error: %w", terminalErr)
+		}
+		if err == nil {
+			recording, err = session.recorder.FinishTerminal(terminal)
+		}
 	}
 	if err != nil {
 		return errors.Join(err, session.output.Close())

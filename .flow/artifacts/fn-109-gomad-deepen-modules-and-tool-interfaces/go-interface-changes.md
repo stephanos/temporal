@@ -60,6 +60,66 @@ intentional Go source compatibility break for an inaccessible interface.
 
 Record of public Go interface changes made, or deliberately deferred, by fn-109 tasks.
 
+## Task 19 corrective migration inventory (implemented source; native acceptance open)
+
+The public-signature source scout found additional exposed internal identities.
+Task 19's checker rejects these in retained old-source RED evidence, and its corrective scope
+repairs them; no exception or new native qualification is granted by this
+inventory. Detailed type chains and consumers are retained in
+`task-19/public-signature-source-scout.md`.
+
+- Runner's CampaignPlanInspection.Journal/ArtifactCapacity,
+  CampaignInspection.ArtifactCapacity and ExecutionJournalInspection.Limits
+  now use detached public ExecutionJournalLimitsInspection and
+  ArtifactCapacityInspection values. Their complete public leaf graph
+  includes public string-based outcomes rather than campaign's named internal
+  outcome. Existing projectCampaignPlan/projectCampaign conversions preserve
+  report field order, JSON tags, Uint64String values and pointer presence.
+- Target's CompatibilityPackEvidence keeps its public outer name but gains a
+  completely public nested evidence graph and explicit projection from the
+  internal policy result. Governance, activation, adapter, rule, source,
+  foreign-source and linkname evidence remains available; compact record
+  projections cannot replace it. The complete detached public types are
+  CompatibilityPackGovernance, CompatibilityModuleEvidence,
+  CompatibilityPackAdapter, CompatibilityPackageRuleEvidence,
+  CompatibilityPackSource, CompatibilityPackForeignSource and
+  CompatibilityLinknameEvidence. Propagating qualification reports keep their
+  existing outer field types and JSON. Builtin-only defined public types stay.
+- pinimpact.Spec.Packs is replaced by PacksDirectory string. Evaluate
+  selects the explicit directory or existing default loader at the same
+  delayed point after module validation. The production pack-refresh consumer
+  passes the directory containing pack files (the selected authoring root's
+  packs directory); normal pin-impact and upgrade consumers
+  retain default behavior. This intentionally replaces an external-consumer
+  inaccessible callback type, not a usable public pack-loader interface.
+- World Recorder gains FinishTerminal(Terminal), a detached error-terminal
+  boundary using existing terminal validation and recording transitions.
+  FinishError(error) keeps its signature and convenience for original World
+  sentinels, concrete CapacityError/ReplayDivergenceError values and private
+  model-generated classified wrappers. Its projection uses owned kind/detail
+  without dispatching arbitrary Error, Is or Unwrap methods.
+  Direct custom errors and externally constructed wrappers must be classified
+  outside World and passed to FinishTerminal, or reported through the existing
+  process Session.FinishError seam. Rejecting those direct inputs without
+  callbacks intentionally replaces their formerly callback-derived admission
+  and messages; it is not unchanged arbitrary-input behavior. Internal immutable
+  sentinel identities/messages also mean exported sentinel-variable rebinding
+  no longer steers the pure model. Default sentinel identities and ordinary
+  typed Error/Unwrap/Is/As relationships remain usable. Process reporting retains
+  general error normalization, detail-before-classification order, category
+  precedence, wrapped unknown-error identity and session/cleanup ordering.
+  All identified callers remain supported; known-error terminal details,
+  recording bytes, snapshots, digests and composed manifest hashes must remain
+  unchanged. See task-19/world-terminal-design-decision.md for the admission,
+  complete caller inventory and required callback/preservation regressions.
+
+External-consumer construction, independent literal JSON/report comparisons,
+old/new behavior preservation and composed recording/manifest identity tests
+are retained under task-19. These changes intentionally replace inaccessible
+Go identities and the admitted direct arbitrary-error callback boundary; they
+do not change CLI syntax or recorded JSON. Native platform qualification and
+formal implementation acceptance remain separate, open conductor gates.
+
 ## fn-109.2 campaign options owner
 
 **Exported changes: none.** The exported fields of `runner.CampaignSpec`, `CampaignPlanSpec`,

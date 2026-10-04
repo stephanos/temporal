@@ -1,0 +1,8 @@
+{
+  "task_title": "Map concrete source-directory discovery exclusions for architecture task19",
+  "task_body": "Read-only follow-up: enumerate actual tools/gomad3 source directories and nested modules skipped by go list ./...; identify exact mandatory justified overlay/testdata/conformance exclusions, optional generated/build trees and matcher controls. Preserve existing production owner/edge coverage; do not rework previous callback/timezone analysis or implement checker.",
+  "acceptance": "Return source-backed directory/module inventory, which qualified platform package discovery includes or skips, minimal exact exclusion matcher semantics with stale-exclusion negative controls and optional-tree positive controls; no source/artifact/Flow writes, tests, builds, generation, bridges, qualification claims or duplicated prior analysis.",
+  "touches_count": 0,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

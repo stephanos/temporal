@@ -528,6 +528,17 @@ read the runtime's random state or clock. Its public methods accept and return
 detached data under one mutex, allowing adapters to wake application code only
 after World releases its lock.
 
+Recorder error completion follows the same boundary. `FinishError` recognizes
+original immutable model sentinels, concrete capacity/replay errors, and private
+model-produced context errors without dispatching arbitrary callbacks. Custom
+errors, external wrappers, and rebound public sentinels are not model inputs.
+`FinishTerminal` accepts detached capacity, replay-divergence, or invalid-input
+kind/detail data; invalid data leaves recording active. `Finish` alone infers
+quiescence. `world/process.Session.FinishError` performs general error reporting
+after session validation and captures `Error` detail before ordered `Is`/`Unwrap`
+classification and descriptor cleanup. The process boundary may execute those
+callbacks; the pure model does not.
+
 ### Lifecycle and identity
 
 Requests and readiness events receive monotonically increasing identities that

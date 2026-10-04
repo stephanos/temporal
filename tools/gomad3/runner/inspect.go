@@ -62,21 +62,21 @@ type SimulationStagedRoundInspection struct {
 }
 
 type CampaignPlanInspection struct {
-	SHA256           record.SHA256                 `json:"sha256"`
-	BundlePath       string                        `json:"bundle_path"`
-	Mapping          string                        `json:"mapping"`
-	Strategy         string                        `json:"strategy"`
-	Selection        string                        `json:"selection"`
-	SelectionCount   uint64                        `json:"selection_count"`
-	Parallel         uint64                        `json:"parallel"`
-	RunnerBuild      string                        `json:"runner_build"`
-	Toolchain        record.Toolchain              `json:"toolchain"`
-	Target           TargetReport                  `json:"target"`
-	Environment      []record.Environment          `json:"environment"`
-	ReadOnlyMounts   []string                      `json:"io_ro_mounts"`
-	MountSHA256      record.SHA256                 `json:"mount_sha256,omitempty"`
-	Journal          campaign.ExecutionJournalPlan `json:"journal"`
-	ArtifactCapacity campaign.ArtifactCapacityPlan `json:"artifact_capacity"`
+	SHA256           record.SHA256                    `json:"sha256"`
+	BundlePath       string                           `json:"bundle_path"`
+	Mapping          string                           `json:"mapping"`
+	Strategy         string                           `json:"strategy"`
+	Selection        string                           `json:"selection"`
+	SelectionCount   uint64                           `json:"selection_count"`
+	Parallel         uint64                           `json:"parallel"`
+	RunnerBuild      string                           `json:"runner_build"`
+	Toolchain        record.Toolchain                 `json:"toolchain"`
+	Target           TargetReport                     `json:"target"`
+	Environment      []record.Environment             `json:"environment"`
+	ReadOnlyMounts   []string                         `json:"io_ro_mounts"`
+	MountSHA256      record.SHA256                    `json:"mount_sha256,omitempty"`
+	Journal          ExecutionJournalLimitsInspection `json:"journal"`
+	ArtifactCapacity ArtifactCapacityInspection       `json:"artifact_capacity"`
 }
 
 type MergedCampaignInspection struct {
@@ -275,43 +275,43 @@ type StreamReport struct {
 }
 
 type CampaignInspection struct {
-	CampaignID                                string                         `json:"campaign_id"`
-	PlanSHA256                                record.SHA256                  `json:"plan_sha256,omitempty"`
-	Shard                                     *CampaignShard                 `json:"shard,omitempty"`
-	Strategy                                  string                         `json:"strategy"`
-	Selection                                 string                         `json:"selection"`
-	SelectionCount                            uint64                         `json:"selection_count"`
-	Attempted                                 uint64                         `json:"attempted"`
-	Succeeded                                 uint64                         `json:"succeeded"`
-	Failures                                  uint64                         `json:"failures"`
-	ReplayDivergences                         uint64                         `json:"replay_divergences,omitempty"`
-	Watchdogs                                 uint64                         `json:"watchdogs"`
-	Cancelled                                 uint64                         `json:"cancelled"`
-	DistinctFailures                          uint64                         `json:"distinct_failures"`
-	RetainedSuccesses                         uint64                         `json:"retained_successes"`
-	RetainedSuccessBytes                      uint64                         `json:"retained_success_bytes"`
-	StopReason                                string                         `json:"stop_reason"`
-	Journal                                   *ExecutionJournalInspection    `json:"journal,omitempty"`
-	ArtifactCapacity                          *campaign.ArtifactCapacityPlan `json:"artifact_capacity,omitempty"`
-	Executions                                []ExecutionInspection          `json:"executions"`
-	FailureArtifacts                          []FailureArtifact              `json:"failure_artifacts"`
-	SuccessArtifacts                          []SuccessArtifact              `json:"success_artifacts"`
-	ChoiceExploration                         *ChoiceExplorationSummary      `json:"choice_exploration,omitempty"`
-	ChoiceExplorationImplementationSHA256     record.SHA256                  `json:"choice_exploration_implementation_sha256,omitempty"`
-	ChoiceExplorationChainSHA256              record.SHA256                  `json:"choice_exploration_chain_sha256,omitempty"`
-	SimulationExploration                     *SimulationExplorationSummary  `json:"simulation_exploration,omitempty"`
-	SimulationExplorationImplementationSHA256 record.SHA256                  `json:"simulation_exploration_implementation_sha256,omitempty"`
-	SimulationExplorationChainSHA256          record.SHA256                  `json:"simulation_exploration_chain_sha256,omitempty"`
-	RecoveryExecutions                        uint64                         `json:"recovery_executions,omitempty"`
+	CampaignID                                string                        `json:"campaign_id"`
+	PlanSHA256                                record.SHA256                 `json:"plan_sha256,omitempty"`
+	Shard                                     *CampaignShard                `json:"shard,omitempty"`
+	Strategy                                  string                        `json:"strategy"`
+	Selection                                 string                        `json:"selection"`
+	SelectionCount                            uint64                        `json:"selection_count"`
+	Attempted                                 uint64                        `json:"attempted"`
+	Succeeded                                 uint64                        `json:"succeeded"`
+	Failures                                  uint64                        `json:"failures"`
+	ReplayDivergences                         uint64                        `json:"replay_divergences,omitempty"`
+	Watchdogs                                 uint64                        `json:"watchdogs"`
+	Cancelled                                 uint64                        `json:"cancelled"`
+	DistinctFailures                          uint64                        `json:"distinct_failures"`
+	RetainedSuccesses                         uint64                        `json:"retained_successes"`
+	RetainedSuccessBytes                      uint64                        `json:"retained_success_bytes"`
+	StopReason                                string                        `json:"stop_reason"`
+	Journal                                   *ExecutionJournalInspection   `json:"journal,omitempty"`
+	ArtifactCapacity                          *ArtifactCapacityInspection   `json:"artifact_capacity,omitempty"`
+	Executions                                []ExecutionInspection         `json:"executions"`
+	FailureArtifacts                          []FailureArtifact             `json:"failure_artifacts"`
+	SuccessArtifacts                          []SuccessArtifact             `json:"success_artifacts"`
+	ChoiceExploration                         *ChoiceExplorationSummary     `json:"choice_exploration,omitempty"`
+	ChoiceExplorationImplementationSHA256     record.SHA256                 `json:"choice_exploration_implementation_sha256,omitempty"`
+	ChoiceExplorationChainSHA256              record.SHA256                 `json:"choice_exploration_chain_sha256,omitempty"`
+	SimulationExploration                     *SimulationExplorationSummary `json:"simulation_exploration,omitempty"`
+	SimulationExplorationImplementationSHA256 record.SHA256                 `json:"simulation_exploration_implementation_sha256,omitempty"`
+	SimulationExplorationChainSHA256          record.SHA256                 `json:"simulation_exploration_chain_sha256,omitempty"`
+	RecoveryExecutions                        uint64                        `json:"recovery_executions,omitempty"`
 }
 
 type ExecutionJournalInspection struct {
-	Schema      string                        `json:"schema"`
-	IndexSHA256 record.SHA256                 `json:"index_sha256"`
-	Segments    uint64                        `json:"segments"`
-	Records     uint64                        `json:"records"`
-	Bytes       uint64                        `json:"bytes"`
-	Limits      campaign.ExecutionJournalPlan `json:"limits"`
+	Schema      string                           `json:"schema"`
+	IndexSHA256 record.SHA256                    `json:"index_sha256"`
+	Segments    uint64                           `json:"segments"`
+	Records     uint64                           `json:"records"`
+	Bytes       uint64                           `json:"bytes"`
+	Limits      ExecutionJournalLimitsInspection `json:"limits"`
 }
 
 type ExecutionInspection struct {
@@ -497,10 +497,10 @@ func projectCampaignPlan(opened openedCampaignPlan) CampaignPlanInspection {
 		Environment: append([]record.Environment(nil), plan.Environment...), ReadOnlyMounts: append([]string(nil), plan.IOROMounts...),
 	}
 	if plan.Journal != nil {
-		result.Journal = *plan.Journal
+		result.Journal = projectExecutionJournalLimits(*plan.Journal)
 	}
 	if plan.Artifacts != nil {
-		result.ArtifactCapacity = *plan.Artifacts
+		result.ArtifactCapacity = projectArtifactCapacity(*plan.Artifacts)
 	}
 	if opened.mounts != nil {
 		result.MountSHA256 = opened.mounts.SHA256
@@ -772,11 +772,11 @@ func projectCampaign(opened campaign.Campaign) (CampaignInspection, error) {
 	if opened.Journal != nil {
 		result.Journal = &ExecutionJournalInspection{
 			Schema: opened.Journal.Schema, IndexSHA256: opened.Journal.IndexSHA256,
-			Segments: opened.Journal.Segments, Records: opened.Journal.Records, Bytes: opened.Journal.Bytes, Limits: opened.Journal.Limits,
+			Segments: opened.Journal.Segments, Records: opened.Journal.Records, Bytes: opened.Journal.Bytes, Limits: projectExecutionJournalLimits(opened.Journal.Limits),
 		}
 	}
 	if batch.Artifacts != nil {
-		capacity := *batch.Artifacts
+		capacity := projectArtifactCapacity(*batch.Artifacts)
 		result.ArtifactCapacity = &capacity
 	}
 	seenArtifacts := make(map[string]struct{})

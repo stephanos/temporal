@@ -1,0 +1,49 @@
+start=2026-10-04T06:40:16Z
+=== RUN   TestCallbackContainerMutations
+=== RUN   TestCallbackContainerMutations/copy-slice
+=== RUN   TestCallbackContainerMutations/copy-alias
+=== RUN   TestCallbackContainerMutations/insert
+=== RUN   TestCallbackContainerMutations/insert-ellipsis
+=== RUN   TestCallbackContainerMutations/insert-alias
+=== RUN   TestCallbackContainerMutations/clone-assignment
+=== RUN   TestCallbackContainerMutations/pointer-store
+=== RUN   TestCallbackContainerMutations/pointer-helper
+=== RUN   TestCallbackContainerMutations/range-function
+=== RUN   TestCallbackContainerMutations/range-yield-callback
+=== RUN   TestCallbackContainerMutations/slice-pointer-marshaler
+=== RUN   TestCallbackContainerMutations/addressable-array-marshaler
+=== RUN   TestCallbackContainerMutations/addressable-field-marshaler
+=== RUN   TestCallbackContainerMutations/map-nonaddressable
+=== RUN   TestCallbackContainerMutations/array-nonaddressable
+=== RUN   TestCallbackContainerMutations/field-nonaddressable
+=== RUN   TestCallbackContainerMutations/pure-copy
+=== RUN   TestCallbackContainerMutations/pure-insert
+=== RUN   TestCallbackContainerMutations/pure-clone
+=== RUN   TestCallbackContainerMutations/pure-pointer
+=== RUN   TestCallbackContainerMutations/pure-iterator
+--- PASS: TestCallbackContainerMutations (13.38s)
+    --- PASS: TestCallbackContainerMutations/copy-slice (0.68s)
+    --- PASS: TestCallbackContainerMutations/copy-alias (0.62s)
+    --- PASS: TestCallbackContainerMutations/insert (0.63s)
+    --- PASS: TestCallbackContainerMutations/insert-ellipsis (0.63s)
+    --- PASS: TestCallbackContainerMutations/insert-alias (0.62s)
+    --- PASS: TestCallbackContainerMutations/clone-assignment (0.63s)
+    --- PASS: TestCallbackContainerMutations/pointer-store (0.63s)
+    --- PASS: TestCallbackContainerMutations/pointer-helper (0.63s)
+    --- PASS: TestCallbackContainerMutations/range-function (0.65s)
+    --- PASS: TestCallbackContainerMutations/range-yield-callback (0.64s)
+    --- PASS: TestCallbackContainerMutations/slice-pointer-marshaler (0.63s)
+    --- PASS: TestCallbackContainerMutations/addressable-array-marshaler (0.64s)
+    --- PASS: TestCallbackContainerMutations/addressable-field-marshaler (0.64s)
+    --- PASS: TestCallbackContainerMutations/map-nonaddressable (0.63s)
+    --- PASS: TestCallbackContainerMutations/array-nonaddressable (0.64s)
+    --- PASS: TestCallbackContainerMutations/field-nonaddressable (0.64s)
+    --- PASS: TestCallbackContainerMutations/pure-copy (0.64s)
+    --- PASS: TestCallbackContainerMutations/pure-insert (0.63s)
+    --- PASS: TestCallbackContainerMutations/pure-clone (0.64s)
+    --- PASS: TestCallbackContainerMutations/pure-pointer (0.64s)
+    --- PASS: TestCallbackContainerMutations/pure-iterator (0.65s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	13.381s
+end=2026-10-04T06:40:30Z
+exit=0

@@ -173,6 +173,28 @@ nested internal execution types or building descriptor layouts. Add a public
 tool constructor only if the consumer inventory establishes a need; otherwise
 centralize private application construction.
 
+R8's actual-source checks also admit the corrective migrations inventoried in
+`go-interface-changes.md`: detached public Runner capacity and target pack-evidence
+graphs replace retained private identities, and public pack-directory intent
+replaces pinimpact's inaccessible loader callback while preserving its authoring
+override. Preserve complete reports, canonical bytes, nil/empty distinctions,
+field order and validation/load precedence.
+
+World terminal reporting reconciles a real purity conflict rather than exempting
+arbitrary callbacks. Add a detached Recorder.FinishTerminal(Terminal) boundary;
+retain FinishError(error) for original World sentinels and owned typed/classified
+errors without arbitrary method dispatch. The effectful process Session reporting
+seam preserves general Error-before-Is normalization and established validation,
+classification and cleanup ordering. Direct recorder custom/external-wrapper
+inputs migrate to caller-side projection or process reporting; their former
+callback-derived acceptance/messages are deliberately not preserved inside the
+pure model. Immutable internal sentinel identities/messages replace behavior
+dependent on rebinding exported sentinel variables. Preserve original default
+sentinels, typed cause relationships, all identified callers and known-error
+record/snapshot/digest bytes. This bounded intentional behavior/API migration is
+recorded before implementation in `task-19/world-terminal-design-decision.md`
+and the interface inventory; it permits no other World semantic or policy change.
+
 Return existing typed/classified failures at established seams. Preserve error
 precedence, including simultaneous evidence errors, watchdog/cancellation,
 cleanup failure and publication failure. A wrapper that only forwards another

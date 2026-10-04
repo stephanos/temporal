@@ -1,0 +1,5 @@
+package helper
+
+import "time"
+
+func init() { _ = time.Now() }
