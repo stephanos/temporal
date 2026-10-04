@@ -122,14 +122,12 @@ func TestEveryQueryWithoutATotalIsRefused(t *testing.T) {
 		path := filepath.Join(directory, name)
 		m, err := umpiremodel.Load(path)
 		require.NoError(t, err)
-		totaled := proto.CloneOf(m)
-		for _, q := range totaled.GetQueries() {
-			total, err := umpiremodel.QueryTotal(totaled, q)
-			require.NoError(t, err)
-			n, ok := total.N()
-			require.True(t, ok)
-			q.Total = wrapperspb.Int64(n)
+		declared := proto.CloneOf(m)
+		for _, q := range declared.GetQueries() {
+			q.Total = wrapperspb.Int64(0)
 		}
+		totaled, err := umpiremodel.WithTotals(declared)
+		require.NoError(t, err)
 		require.NoError(t, umpiremodel.Validate(totaled))
 		encoded, err := protojson.Marshal(totaled)
 		require.NoError(t, err)

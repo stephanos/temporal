@@ -153,9 +153,12 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 }
 
 func TestActivityTablesAccountForEveryPair(t *testing.T) {
+	b := bind(activityModel(t), DefaultScope)
 	for name, mm := range built(t, activityModel(t)) {
 		require.Empty(t, mm.Holes, name)
-		require.NoError(t, mm.Rejected, name)
+		if mm.Decl.GetRefines() != nil {
+			require.NoError(t, b.refinement(b.subject(name)).err, name)
+		}
 		got := sideOf(mm.Table)
 		// The interpreter's own account of a disabled pair agrees with the rows.
 		for _, state := range mm.Table.States {

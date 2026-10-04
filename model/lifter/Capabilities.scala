@@ -589,7 +589,7 @@ private[lift] trait Capabilities:
     case None      => plain(a).show
 
   /**
-   * A Query's static combination count, as model/SEMANTICS.md (Query totals) and Go's `QueryTotal`
+   * A Query's static combination count, as model/SEMANTICS.md (Query totals) and Go's `Validate`
    * count it: the Scenario machine's states times, for a free Scenario, its action classes times the
    * step limit, and for a pinned one, the least of the step limit and its scheduled actions.
    */

@@ -83,9 +83,12 @@ func TestTransitionsAreTheRowsAsValues(t *testing.T) {
 // A refinement that does not hold is the machine's, not the Model's: its table is still built, so a
 // check can find the counterexample on it.
 func TestARejectedRefinementStaysWithItsMachine(t *testing.T) {
-	machines := built(t, lifted(t, "admission"))
-	require.NoError(t, machines["currentAdmission"].Rejected)
-	require.ErrorContains(t, machines["staleAdmission"].Rejected, "staleAdmission refines activityProduct: the row "+
+	m := lifted(t, "admission")
+	machines := built(t, m)
+	_, err := refinementOf(t, m, "currentAdmission")
+	require.NoError(t, err)
+	_, err = refinementOf(t, m, "staleAdmission")
+	require.ErrorContains(t, err, "staleAdmission refines activityProduct: the row "+
 		"'paused-queued-none-attemptStart' steps from 'paused-queued-none' to 'started-empty-one', which read as 'paused' and 'started'")
 	require.NotEmpty(t, machines["staleAdmission"].Table.Rows)
 }
@@ -276,10 +279,10 @@ func slicesDelete[T any](xs []T, drop func(T) bool) []T {
 }
 
 func TestVisibleProjectionOfARefinement(t *testing.T) {
-	disk := built(t, lifted(t, "declarations"))["disk"]
-	require.NoError(t, disk.Rejected)
+	rows, err := refinementOf(t, lifted(t, "declarations"), "disk")
+	require.NoError(t, err)
 	put := "put"
-	require.Equal(t, []RefinementRow{{Key: "empty-put", Product: &put}, {Key: "staged-flush"}}, disk.Refinement)
+	require.Equal(t, []RefinementRow{{Key: "empty-put", Product: &put}, {Key: "staged-flush"}}, rows)
 
 	for name, visible := range map[string]string{
 		"a stutter records a fact the product sees":   "disk.visible",
@@ -292,7 +295,8 @@ func TestVisibleProjectionOfARefinement(t *testing.T) {
 				Kind: &umpirespb.Expr_Literal{Literal: &umpirespb.Value{Kind: &umpirespb.Value_Bool{Bool: true}}}}
 			disk := built(t, m)["disk"]
 			require.NotEmpty(t, disk.reachableHoles(), "the reachable crash hole does not erase the rejection")
-			require.ErrorContains(t, disk.Rejected, "disk refines store: the row 'staged-flush'")
+			_, err := refinementOf(t, m, "disk")
+			require.ErrorContains(t, err, "disk refines store: the row 'staged-flush'")
 		})
 	}
 }

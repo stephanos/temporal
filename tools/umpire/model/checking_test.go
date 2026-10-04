@@ -1586,8 +1586,8 @@ func TestCheckingChangesNoTableIDOrFingerprint(t *testing.T) {
 					require.Equal(t, want.IDs(), table.IDs(), machine)
 					require.Equal(t, want.TargetFingerprint(), table.TargetFingerprint(), machine)
 					require.Equal(t, rowsJSON(t, want), rowsJSON(t, table), machine)
-					require.Equal(t, [][]string{want.States, want.Starts, want.Ends, want.Reachable, {want.Stuck}},
-						[][]string{table.States, table.Starts, table.Ends, table.Reachable, {table.Stuck}}, machine)
+					require.Equal(t, [][]string{want.States, want.Starts, want.Ends, want.Reachable, {stuck(want)}},
+						[][]string{table.States, table.Starts, table.Ends, table.Reachable, {stuck(table)}}, machine)
 				}
 			}
 		})
@@ -1696,31 +1696,6 @@ func TestARejectedWitnessIsAnError(t *testing.T) {
 	require.Equal(t, ReplayFailed, deadlock.Kind)
 	require.ErrorContains(t, deadlock.Cause, "the counterexample did not replay")
 	require.ErrorContains(t, deadlock.Cause, "step 1 takes put, which is not enabled at 'empty'")
-}
-
-// Build derives a machine's refinement by its own reading of the rule RefineTables checks. Each is
-// made to say what the other does not: the receipt is an error, never the answer of either.
-func TestBuildAndRefineTablesMustAgree(t *testing.T) {
-	for name, c := range map[string]struct {
-		disagree func(disk *Machine)
-		want     string
-	}{
-		"on whether it holds": {func(disk *Machine) { disk.Rejected = &Error{Message: "rejected"} },
-			"RefineTables and Build disagree on whether disk refines store"},
-		"on the carrying steps": {func(disk *Machine) { disk.Refinement = disk.Refinement[:1] },
-			"RefineTables and Build disagree on the steps of store that carry the rows of disk"},
-	} {
-		t.Run(name, func(t *testing.T) {
-			m := mutated(t, "declarations", noCrash)
-			checker := newChecker(m, DefaultScope, m)
-			disk := admMachine(m, "disk")
-			require.Equal(t, Verified, checker.refinement(disk).Kind)
-			c.disagree(checker.first.machines["disk"])
-			got := checker.refinement(disk)
-			require.Equal(t, ReplayFailed, got.Kind)
-			require.ErrorContains(t, got.Cause, c.want)
-		})
-	}
 }
 
 // ---- The counter Model ----------------------------------------------------------------------------

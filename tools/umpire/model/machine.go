@@ -171,18 +171,14 @@ type Work struct {
 	Evaluations int
 }
 
-// Machine is one machine of the IR, interpreted: its table and, for a refining machine, its
-// refinement rows.
-// It also holds the same rows as values, its hole rows, the monitors and assumptions it names, and,
-// for a refining machine, why the refinement does not hold. Nothing here applies a monitor or an
-// assumption: a check that reads the table alone answers a question about the rows, not about the
-// machine's declarations.
+// Machine is one machine of the IR, interpreted: its table, the same rows as values, its hole rows,
+// and the monitors and assumptions it names. Nothing here applies a monitor or an assumption, or
+// checks a refinement: a check that reads the table alone answers a question about the rows, not
+// about the machine's declarations. Check reads a refining machine's refinement (RefineTables).
 type Machine struct {
 	Decl        *umpirespb.Machine
 	Table       *Table
 	states      map[string]Value
-	Refinement  []RefinementRow
-	Rejected    error
 	Classes     []Class
 	Transitions []Transition
 	Holes       []HoleRow
@@ -208,33 +204,26 @@ func (m *Machine) reachableHoles() []HoleRow {
 	return out
 }
 
-// Build interprets every machine of a Model. A refining machine's refinement is checked against the
-// machine it names, which must be in the Model.
-// It interprets them within defaultCeilings, and a refinement that does not hold is the machine's
-// Rejected, not an error of the Model.
+// Build interprets every machine of a Model, within defaultCeilings.
 func Build(m *umpirespb.Model) (map[string]*Machine, error) {
 	return NewInterpreter(m).build(m)
 }
 
 func (in *Interpreter) build(m *umpirespb.Model) (map[string]*Machine, error) {
 	out := in.interpret(m)
-	for _, failures := range []map[string]error{out.failed, out.unrefined} {
-		for _, decl := range m.GetMachines() {
-			if err := failures[decl.GetName()]; err != nil {
-				return nil, err
-			}
+	for _, decl := range m.GetMachines() {
+		if err := out.failed[decl.GetName()]; err != nil {
+			return nil, err
 		}
 	}
 	return out.machines, nil
 }
 
 // interpretation is a Model's machines interpreted one by one, so that what one machine's
-// declarations leave unread does not take the others with it: failed is why a machine has no table,
-// and unrefined why a refining machine that has one has no refinement, neither held nor rejected.
+// declarations leave unread does not take the others with it: failed is why a machine has no table.
 type interpretation struct {
-	machines  map[string]*Machine
-	failed    map[string]error
-	unrefined map[string]error
+	machines map[string]*Machine
+	failed   map[string]error
 }
 
 func (in *Interpreter) interpret(m *umpirespb.Model) interpretation {
@@ -242,7 +231,7 @@ func (in *Interpreter) interpret(m *umpirespb.Model) interpretation {
 	for _, a := range m.GetActions() {
 		actions[a.GetId()] = a
 	}
-	out := interpretation{machines: map[string]*Machine{}, failed: map[string]error{}, unrefined: map[string]error{}}
+	out := interpretation{machines: map[string]*Machine{}, failed: map[string]error{}}
 	for _, decl := range m.GetMachines() {
 		mm, err := in.machine(decl, actions)
 		var limit *LimitError
@@ -257,21 +246,6 @@ func (in *Interpreter) interpret(m *umpirespb.Model) interpretation {
 			continue
 		}
 		out.machines[decl.GetName()] = mm
-	}
-	for _, decl := range m.GetMachines() {
-		mm, r := out.machines[decl.GetName()], decl.GetRefines()
-		if mm == nil || r == nil {
-			continue
-		}
-		product, ok := out.machines[r.GetProduct()]
-		switch {
-		case ok:
-			out.unrefined[decl.GetName()] = in.refinement(mm, product)
-		case out.failed[r.GetProduct()] != nil:
-			out.unrefined[decl.GetName()] = out.failed[r.GetProduct()]
-		default:
-			out.unrefined[decl.GetName()] = errorAt(decl.GetPosition(), "%s refines %s, which the Model does not declare", decl.GetName(), r.GetProduct())
-		}
 	}
 	return out
 }
@@ -676,176 +650,4 @@ func (in *Interpreter) evidence(decl *umpirespb.Machine, facts []Value, unread *
 		}
 	}
 	return out, nil
-}
-
-// refinement checks the declared refinement under the rule `Umpire.Command.deriveRefinement`
-// applies, as the checker's `Refinement` does: every outcome reads as a product outcome of the same name,
-// every start as a product start, and every row result is carried by a product row from the mapped
-// source that reaches the mapped target with the same outcome and whose facts all appear among the
-// result's facts, preferring the product action of the row's own name, or else the mapped states are
-// equal and the result is a stutter.
-// A refinement that names what the product sees narrows both, as Machines 6 says. It sets the
-// machine's refinement rows, or why the refinement does not hold as its Rejected, and returns only an
-// error evaluating the Model's functions.
-func (in *Interpreter) refinement(mm, product *Machine) error {
-	src, dst := mm.Table, product.Table
-	where := mm.Decl.GetName() + " refines " + dst.Machine
-	mapKey := func(state string) (string, error) {
-		v, err := in.Call(mm.Decl.GetRefines().GetMap(), []Value{mm.states[state]}, mm.Decl.GetPosition())
-		return v.Key(), err
-	}
-	if err := in.readsAs(mm, dst, where, mapKey); err != nil || mm.Rejected != nil {
-		return err
-	}
-	var rows []RefinementRow
-	for i, row := range src.Rows {
-		from, err := mapKey(row.Source)
-		if err != nil {
-			return err
-		}
-		for j, res := range row.Results {
-			to, err := mapKey(res.State)
-			if err != nil {
-				return err
-			}
-			seen, seenOutcome, err := in.seen(mm, dst, mm.Transitions[i].Steps[j])
-			if err != nil {
-				return err
-			}
-			if carrier, ok := carrierOf(dst, row, res, from, to, seen); ok {
-				rows = append(rows, RefinementRow{Key: row.Key, Product: &carrier})
-				continue
-			}
-			if mm.Rejected = noStutter(mm.Decl.GetPosition(), where, dst.Machine, row, res, from, to, seen, seenOutcome); mm.Rejected != nil {
-				return nil
-			}
-			rows = append(rows, RefinementRow{Key: row.Key})
-		}
-	}
-	mm.Refinement = rows
-	return nil
-}
-
-// readsAs checks that every outcome of the refining machine is a product outcome of the same name,
-// and that every start reads as a product start.
-func (in *Interpreter) readsAs(mm *Machine, dst *Table, where string, mapKey func(string) (string, error)) error {
-	src := mm.Table
-	for _, o := range src.Outcomes {
-		if !slices.Contains(dst.Outcomes, o) {
-			mm.Rejected = errorAt(mm.Decl.GetPosition(), "%s: '%s' is an outcome of %s and no outcome of %s has that name",
-				where, o, src.Machine, dst.Machine)
-			return nil
-		}
-	}
-	for _, s := range src.Starts {
-		mapped, err := mapKey(s)
-		if err != nil {
-			return err
-		}
-		if !slices.Contains(dst.Starts, mapped) {
-			mm.Rejected = errorAt(mm.Decl.GetPosition(), "%s: %s starts at '%s', which reads as '%s', and %s does not start there",
-				where, src.Machine, s, mapped, dst.Machine)
-			return nil
-		}
-	}
-	return nil
-}
-
-// seen is what the product sees of a step: the product keys of the facts it records that the
-// refinement's `visible` accepts, and whether `visible_outcomes` accepts its outcome.
-func (in *Interpreter) seen(mm *Machine, dst *Table, step Value) ([]string, bool, error) {
-	r := mm.Decl.GetRefines()
-	sees := func(function string, v Value) (bool, error) {
-		if function == "" {
-			return false, nil
-		}
-		b, err := in.Call(function, []Value{v}, mm.Decl.GetPosition())
-		if err == nil && b.Kind != BoolValue {
-			return false, errorAt(mm.Decl.GetPosition(), "%s: %s is %s for %s, not a Boolean", mm.Decl.GetName(), function, b.Key(), v.Key())
-		}
-		return b.Bool, err
-	}
-	var facts []string
-	for _, f := range step.Fields[2].Items {
-		visible, err := sees(r.GetVisible(), f)
-		if err != nil {
-			return nil, false, err
-		}
-		if visible {
-			k, ok := sameNamedKey(dst.Facts, f.Key())
-			if !ok {
-				k = f.Key()
-			}
-			facts = append(facts, k)
-		}
-	}
-	outcome, err := sees(r.GetVisibleOutcomes(), step.Fields[0])
-	return facts, outcome, err
-}
-
-// noStutter is why a result no product step carries is not a stutter either, or nil when it is one.
-func noStutter(at *umpirespb.Position, where, product string, row Row, res Result, from, to string,
-	seen []string, seenOutcome bool) error {
-	switch {
-	case from != to:
-		return errorAt(at, "%s: the row '%s' steps from '%s' to '%s', which read as '%s' and '%s' in %s, "+
-			"and %s has no step between them with outcome '%s', so the row is neither a step of %s nor a stutter",
-			where, row.Key, row.Source, res.State, from, to, product, product, res.Outcome, product)
-	case len(seen) > 0:
-		return errorAt(at, "%s: the row '%s' steps from '%s' to '%s', which both read as '%s' in %s, "+
-			"and records %v, which %s sees, so the row is no stutter, and no step of %s carries it",
-			where, row.Key, row.Source, res.State, from, product, seen, product, product)
-	case seenOutcome:
-		return errorAt(at, "%s: the row '%s' steps from '%s' to '%s', which both read as '%s' in %s, "+
-			"and its outcome '%s' is one %s sees, so the row is no stutter, and no step of %s carries it",
-			where, row.Key, row.Source, res.State, from, product, res.Outcome, product, product)
-	default:
-		return nil
-	}
-}
-
-func carrierOf(dst *Table, row Row, res Result, from, to string, seen []string) (string, bool) {
-	var facts []string
-	for _, f := range res.Facts {
-		if k, ok := sameNamedKey(dst.Facts, f); ok {
-			facts = append(facts, k)
-		}
-	}
-	var carriers []string
-	for _, c := range dst.RowsFrom(from) {
-		if slices.ContainsFunc(c.Results, func(cr Result) bool {
-			return cr.State == to && cr.Outcome == res.Outcome && allIn(cr.Facts, facts) && allIn(seen, cr.Facts)
-		}) {
-			carriers = append(carriers, c.Action)
-		}
-	}
-	if preferred, ok := sameNamedKey(dst.Actions, row.Action); ok && slices.Contains(carriers, preferred) {
-		return preferred, true
-	}
-	if len(carriers) > 0 {
-		return carriers[0], true
-	}
-	return "", false
-}
-
-// sameNamedKey is the product key a key names by default: the same key, or the constructor it
-// applies (`Umpire.Command.sameNamedKey`).
-func sameNamedKey(product []string, key string) (string, bool) {
-	if slices.Contains(product, key) {
-		return key, true
-	}
-	constructor, _, _ := strings.Cut(key, "-")
-	if slices.Contains(product, constructor) {
-		return constructor, true
-	}
-	return "", false
-}
-
-func allIn(xs, ys []string) bool {
-	for _, x := range xs {
-		if !slices.Contains(ys, x) {
-			return false
-		}
-	}
-	return true
 }

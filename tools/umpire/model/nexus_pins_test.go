@@ -76,7 +76,7 @@ func TestNexusProductTable(t *testing.T) {
 	// A retryable handler error is invisible here: it is the protocol machine that backs off.
 	require.True(t, product.Disabled("scheduled", "handlerReply-handlerError-true"))
 	require.Equal(t, []string{"scheduled", "canceled", "failed", "succeeded", "started", "timedOut"}, tb.Reachable)
-	require.Empty(t, tb.Stuck)
+	require.Empty(t, stuck(tb))
 }
 
 func TestNexusProtocolTable(t *testing.T) {
@@ -117,7 +117,7 @@ func TestNexusProtocolTable(t *testing.T) {
 		results("scheduled-0-unset-expires-unset-workerStop"))
 	require.True(t, nexus["nexusProduct"].Disabled("scheduled", "workerStop"))
 
-	require.Empty(t, tb.Stuck)
+	require.Empty(t, stuck(tb))
 	// Not every state is reachable. The Behavior Fingerprint reads the table, so these numbers are part
 	// of the Model's identity.
 	require.Len(t, tb.Reachable, 158)
@@ -125,11 +125,14 @@ func TestNexusProtocolTable(t *testing.T) {
 }
 
 func TestNexusRefinement(t *testing.T) {
-	protocol := machines(t)["nexusProtocol"]
-	require.NoError(t, protocol.Rejected)
-	require.Len(t, protocol.Refinement, len(protocol.Table.Rows))
+	m, err := Load(irPath)
+	require.NoError(t, err)
+	protocol := built(t, m)["nexusProtocol"]
+	refinement, err := refinementOf(t, m, "nexusProtocol")
+	require.NoError(t, err)
+	require.Len(t, refinement, len(protocol.Table.Rows))
 	lookup := map[string]*string{}
-	for _, r := range protocol.Refinement {
+	for _, r := range refinement {
 		lookup[r.Key] = r.Product
 	}
 	product := func(key string) string {
@@ -153,7 +156,7 @@ func TestNexusRefinement(t *testing.T) {
 
 	// Every schedule command, every retry, every backoff and every worker stop.
 	var stutters []string
-	for _, r := range protocol.Refinement {
+	for _, r := range refinement {
 		if r.Product == nil {
 			stutters = append(stutters, r.Key)
 		}

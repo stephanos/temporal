@@ -303,14 +303,8 @@ func (t *Table) propertyHeader(propertyID string) string {
 		`,"meanings":` + meaningsJSON(t.meanings())
 }
 
-// QueryCanonical is the Query's canonical form (`Umpire.Query.Check`), which its fingerprint hashes
-// whole.
-func (q *Query) QueryCanonical(t *Table, propertyFingerprint string) string {
-	return q.QueryCanonicalOf(t, propertyFingerprint, t.TargetFingerprint())
-}
-
-// QueryCanonicalOf is QueryCanonical for a caller that holds the table's Behavior Fingerprint
-// already: computing it is most of the work.
+// QueryCanonicalOf is the Query's canonical form (`Umpire.Query.Check`), which its fingerprint hashes
+// whole, over the table's Behavior Fingerprint the caller holds: computing it is most of the work.
 func (q *Query) QueryCanonicalOf(t *Table, propertyFingerprint, targetFingerprint string) string {
 	form := "find"
 	if q.Form == VerifyForm {
