@@ -48,9 +48,41 @@ make lint-model
 - [ ] The settled declaration shape is recorded in the spec's API Contracts; the harness supports the file-move deltas named in R1's allowed list.
 - [ ] R1 goldens, fn-112.1 equivalence, model gate, lint-model and Umpire Go tests pass.
 ## Done summary
-TBD
+Moved the six IR root lists out of the gate into Scala and made one lifter run write every Model IR file. All six `model/ir` files, every Case and the lifter's expected files are byte-identical (`make umpire-gen-model` changed nothing tracked).
 
+Commits: 0103c9b48c, b2530f8e65, 17150a9dfd.
+
+**Settled declaration shape** (recorded in the spec's API Contracts): one typed value per IR file, `val nexusControlFile = irFile("nexus-control")(Control.forgedCompletion, NexusRealization.forgedCompletion)`. `irFile(name)(roots: IrRoot*)` is core (`model/umpire/IrFile.scala`). `IrRoot` is the union of machine, composition, Query, list of Queries, progress claim and realization, so a root that names nothing, or a channel, does not compile (`crossed/IrFile.scala`). Declarations are in `IrFiles.scala` of `nexuscaller` (nexus-caller, nexus-control), `nexuscaller/closepolicy` (nexus-close) and `standaloneactivity` (activity, activity-system, activity-race). Rejected: an annotation (its arguments are a separate tree the lifter would resolve by name) and one registry (a second place to edit).
+
+**Lifter:**
+- `lift --ir <jar=prefix>,... <classpath> <dir> [name...]` reads TASTy once into a shared `Index`, finds every `irFile` val, and lifts each file with a fresh `Context` (accumulators, caches, ID and type-name claims).
+- `source` comes from the referenced vals' `fullName`, the same strings as before.
+- Refusals are printed under `lift: the roots of <name>.json did not lift:`. The `lift: <file>:<line>:` lines are unchanged, and nothing is written once any file fails.
+- Unreadable declarations (non-literal or path name, splat, duplicate) are refused at their lines.
+- The roots CLI stays for the fixtures. The `names no declaration` refusal is still in `rejects.txt`.
+
+**Gate:** one `lift --ir` run, with no Model FQN. `Roots.scala` is deleted.
+
+**Fixtures:** `shared-admission`/`shared-presence` share a root. `shared-presence` is lifted second and equals `expected/presence.json` byte for byte. A refusal is named under its file. `irFileRefusals/` covers the unreadable declarations.
+
+**R8 lift-stage wall time** (`lift-time.sh`, under the heavy lock):
+- Before (base lifter, six parallel JVMs): 10.9, 7.0 and 11.1 s.
+- After, per-file arrangement: 7.4 to 7.8 s.
+- After, single run: 3.4 to 3.7 s, so the single run is kept.
+- The gate's step went from 8 to 16 s (fn-112.10 logs) to 5 s.
+
+**Metrics** (`metrics.sh`, fn-112 R18 counter):
+- Models: 5,076 lines and 432 literals before, 5,177 and 438 after. The six new literals are the IR file names.
+- nexuscaller: 2,720/321 to 2,774/324.
+- standaloneactivity: 1,567/54 to 1,614/57, which is above fn-112's 1,600 line target.
+- model/gate: 2,654 to 2,563 lines.
+
+**File-move allowance:** the harness already covered positions (`source_path_splits`/`merges`), `source` (`source_root_moves`) and function symbols (`functions_by_reference`). The gap was lowered-Case source paths for split files, now fixed by `UnsplitSources` with a test. Per move, tasks 2-6 add a `source_path_splits` entry for each new file and a `source_root_moves` entry for each root.
+
+**Review:** claude-opus-5-5 at high (writer and reviewer are both Opus). Round 1 was SHIP with one P3, the gate step label, fixed in 17150a9dfd. Deferred FYIs: `UnsplitSources` would disagree with `Unsplit` only on chained splits, and a local `irFile` val would be discovered.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0103c9b48c, b2530f8e65, 17150a9dfd
+- Tests: CC=/usr/bin/gcc GOMEMLIMIT=4500MiB mise exec -- make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks (exit 0; no tracked change), CC=/usr/bin/gcc GOMEMLIMIT=4500MiB mise exec -- go test -tags test_dep -count=1 -p 2 -run OriginalBaseline ./tools/umpire/internal/golden ./tools/umpire/model ./tools/umpire/lower (exit 0), CC=/usr/bin/gcc GOMEMLIMIT=4500MiB mise exec -- make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks (exit 0), mise exec -- make lint-model (exit 0), CC=/usr/bin/gcc GOMEMLIMIT=4500MiB mise exec -- go test -tags test_dep -count=1 -p 2 -timeout 40m ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/... (exit 0), GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main mise exec -- make lint-code-fast (exit 0), mise exec -- scala-cli test model/lifter (exit 0), mise exec -- scala-cli test model/gate (exit 0, rerun after 17150a9dfd), bash .flow/tmp/fn114-1/lift-time.sh per-file 5 / single 5 (exit 0; IR byte-identical each run)
 - PRs:

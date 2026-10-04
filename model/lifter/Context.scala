@@ -6,10 +6,10 @@ import scala.tasty.inspector.Tasty
 import io.temporal.server.api.umpire.v1 as ir
 
 /**
- * What the concerns of one lift share: the compiler's reflection, every definition of the inspected
- * files by symbol, the repository prefix of each source, and the declarations lifted so far.
+ * What every IR file of one lifter run reads: every definition of the inspected files by symbol, and
+ * the repository prefix of each source. It is read once, however many IR files are lifted.
  */
-final private[lift] class Context(using val quotes: Quotes)(
+final private[lift] class Index(using val quotes: Quotes)(
     tastys: List[Tasty[quotes.type]],
     prefixes: Map[String, String]
 ):
@@ -17,6 +17,34 @@ final private[lift] class Context(using val quotes: Quotes)(
 
   // Every definition in the inspected files, by symbol, so a reference resolves to its body.
   val defs = mutable.Map.empty[Symbol, Definition]
+
+  // The directory, relative to the repository, that each source's build-relative path is under.
+  val sourceRoots = mutable.Map.empty[String, String]
+  for t <- tastys do
+    object index extends TreeTraverser:
+      override def traverseTree(tree: Tree)(owner: Symbol): Unit =
+        tree match
+          case d: ValDef => defs(d.symbol) = d
+          case d: DefDef => defs(d.symbol) = d
+          case _         => ()
+        super.traverseTree(tree)(owner)
+    index.traverseTree(t.ast)(Symbol.spliceOwner)
+    val prefix =
+      prefixes.collectFirst { case (tasty, p) if t.path.endsWith(tasty) => p }.getOrElse("")
+    scala.util.Try(t.ast.pos.sourceFile.path).foreach(path => sourceRoots(path) = prefix)
+
+/**
+ * What the concerns of one lift share: the run's index, and the declarations lifted so far. Each IR
+ * file is lifted with a Context of its own, so nothing one file lifted, cached or refused reaches
+ * another.
+ */
+final private[lift] class Context(val index: Index):
+  val quotes: index.quotes.type = index.quotes
+  given Quotes = quotes
+  import quotes.reflect.*
+
+  val defs: collection.Map[Symbol, Definition] = index.defs
+  val sourceRoots: collection.Map[String, String] = index.sourceRoots
   def isFunction(sym: Symbol): Boolean = defs.get(sym) match
     case Some(_: DefDef) => true
     case _               => false
@@ -51,21 +79,6 @@ final private[lift] class Context(using val quotes: Quotes)(
   def valDef(sym: Symbol, at: Tree, kind: String): ValDef = defs.get(sym) match
     case Some(v @ ValDef(_, _, Some(_))) => v
     case _ => fail(at, s"${sym.fullName} is not $kind declared by a val of the lifted sources")
-
-  // The directory, relative to the repository, that each source's build-relative path is under.
-  val sourceRoots = mutable.Map.empty[String, String]
-  for t <- tastys do
-    object index extends TreeTraverser:
-      override def traverseTree(tree: Tree)(owner: Symbol): Unit =
-        tree match
-          case d: ValDef => defs(d.symbol) = d
-          case d: DefDef => defs(d.symbol) = d
-          case _         => ()
-        super.traverseTree(tree)(owner)
-    index.traverseTree(t.ast)(Symbol.spliceOwner)
-    val prefix =
-      prefixes.collectFirst { case (tasty, p) if t.path.endsWith(tasty) => p }.getOrElse("")
-    scala.util.Try(t.ast.pos.sourceFile.path).foreach(path => sourceRoots(path) = prefix)
 
   val types = mutable.LinkedHashMap.empty[String, ir.Type]
   val functions = mutable.LinkedHashMap.empty[String, ir.Function]

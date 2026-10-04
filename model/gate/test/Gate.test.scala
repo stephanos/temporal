@@ -387,33 +387,48 @@ class GateSuite extends munit.FunSuite:
       s"gate: api/umpire/v1/ir.pb.go is older than the IR schema $schemaFile; run make protoc\n"
     )
 
-  // As the lifter, scala-cli writes the IR file its third argument names, and fails for a root list
-  // whose file is named in FAILING_LIFTS; it also records the update its test of the lifter was given.
+  // The IR files the stand-in lifter writes, as the Models declare them with `irFile`.
+  private val irFiles = Seq(
+    "nexus-caller.json",
+    "nexus-control.json",
+    "activity.json",
+    "activity-system.json",
+    "activity-race.json",
+    "nexus-close.json"
+  )
+
+  // As the lifter's one run (`lift --ir <jars> <classpath> <directory>`), scala-cli writes every IR
+  // file into the directory its fourth argument names, or, when FAILING_LIFTS names some of them,
+  // refuses each under a line naming it and writes none; it also records the update its test of the
+  // lifter was given.
   private val lifting =
-    """case " $* " in *" test model/lifter "*) echo "lifter update=[$UMPIRE_LIFTER_UPDATE]" >> "$TOOLS_LOG";; esac
+    s"""case " $$* " in *" test model/lifter "*) echo "lifter update=[$$UMPIRE_LIFTER_UPDATE]" >> "$$TOOLS_LOG";; esac
       |program=; n=0
-      |for a in "$@"; do
-      |  if [ -n "$program" ]; then
-      |    n=$((n + 1))
-      |    if [ $n -eq 3 ]; then
-      |      case " $FAILING_LIFTS " in *" ${a##*/} "*) echo "lift: ${a##*/}: no IR form"; exit 1;; esac
-      |      echo '{"lifted": true}' > "$a"
+      |for a in "$$@"; do
+      |  if [ -n "$$program" ]; then
+      |    n=$$((n + 1))
+      |    if [ $$n -eq 4 ]; then
+      |      if [ -n "$$FAILING_LIFTS" ]; then
+      |        for f in $$FAILING_LIFTS; do echo "lift: the roots of $$f did not lift:"; echo "lift: $$f: no IR form"; done
+      |        exit 1
+      |      fi
+      |      for f in ${irFiles.mkString(" ")}; do echo '{"lifted": true}' > "$$a/$$f"; done
       |    fi
       |  fi
-      |  [ "$a" = -- ] && program=yes
+      |  [ "$$a" = -- ] && program=yes
       |done
       |exit 0""".stripMargin
 
   private def checkedIn(repository: Repository): Map[String, String] =
-    Roots.ir
-      .map((file, _) => file -> Files.readString(repository.root.resolve("model/ir").resolve(file)))
+    irFiles
+      .map(file => file -> Files.readString(repository.root.resolve("model/ir").resolve(file)))
       .toMap
 
   /** A repository whose model/ir holds every file the gate lifts, each of them stale. */
   private def staleRepository(): Repository =
     val repository = Repository(scalaCli = lifting)
     val ir = Files.createDirectories(repository.root.resolve("model/ir"))
-    Roots.ir.foreach((file, _) => Files.writeString(ir.resolve(file), "{}\n"))
+    irFiles.foreach(file => Files.writeString(ir.resolve(file), "{}\n"))
     repository
 
   test("a check of a stale tree fails, names every stale file and rewrites nothing"):
@@ -421,7 +436,7 @@ class GateSuite extends munit.FunSuite:
     val answer =
       gate(repository.tools.withEnvironment("UMPIRE_LIFTER_UPDATE" -> "1"), "--skip-go-checks")
     assertEquals(answer.status, 1)
-    for (file, _) <- Roots.ir do
+    for file <- irFiles do
       assert(answer.err.contains(s"model/ir/$file is stale: line 1 is `{}`"), answer.err)
     assert(answer.err.contains("rerun with --update (make umpire-gen-model)"), answer.err)
     assertEquals(checkedIn(repository).values.toSet, Set("{}\n"))
@@ -463,7 +478,7 @@ class GateSuite extends munit.FunSuite:
   private def currentRepository(go: String): Repository =
     val repository = Repository(scalaCli = lifting, go = go)
     val ir = Files.createDirectories(repository.root.resolve("model/ir"))
-    Roots.ir.foreach((file, _) => Files.writeString(ir.resolve(file), "{\"lifted\": true}\n"))
+    irFiles.foreach(file => Files.writeString(ir.resolve(file), "{\"lifted\": true}\n"))
     repository
 
   test("the gate stops at a mention the vocabulary check finds, and shows where"):
@@ -502,7 +517,7 @@ class GateSuite extends munit.FunSuite:
     assert(answer.err.contains("model/temporal/Model.scala:1: method is free text"), answer.err)
     assertEquals(repository.ran, Seq(vocabularyCheck))
 
-  test("every lift that fails is reported, after all of them ended, and nothing is rewritten"):
+  test("the one lift reports every IR file that failed, each by name, and nothing is rewritten"):
     val repository = staleRepository()
     val failing =
       repository.tools.withEnvironment("FAILING_LIFTS" -> "activity.json nexus-close.json")
@@ -510,17 +525,22 @@ class GateSuite extends munit.FunSuite:
     assertEquals(answer.status, 1)
     assert(
       answer.err.contains(
-        "the roots of model/ir/activity.json did not lift:\nlift: activity.json: no IR form"
+        "the Models' IR files did not lift:\nlift: the roots of activity.json did not lift:\n" +
+          "lift: activity.json: no IR form"
       ),
       answer.err
     )
-    assert(answer.err.contains("the roots of model/ir/nexus-close.json did not lift:"), answer.err)
-    assert(!answer.err.contains("model/ir/nexus-caller.json"), answer.err)
-    // The lifts that did not fail had ended when the gate answered: their files are there.
-    val history = repository.root.resolve("model/gen/history")
-    val lifted = Files.list(history).filter(_.getFileName.toString.startsWith("ir.")).findFirst.get
-    val files = Roots.ir.map(_._1).filter(file => Files.exists(lifted.resolve(file)))
-    assertEquals(files.toSet, Roots.ir.map(_._1).toSet -- Set("activity.json", "nexus-close.json"))
+    assert(answer.err.contains("lift: the roots of nexus-close.json did not lift:"), answer.err)
+    assert(!answer.err.contains("nexus-caller.json"), answer.err)
+    // The gate names no root: the lifter finds the IR files the Models declare.
+    val lifts = repository.ran.filter(_.contains("--main-class umpire.lift.lift"))
+    assertEquals(lifts.size, 1, lifts.mkString("\n"))
+    assert(
+      lifts.head.matches(
+        """scala-cli run model/lifter --main-class umpire.lift.lift .*-- --ir \S+=model/ \S+ \S+"""
+      ),
+      lifts.head
+    )
     assertEquals(checkedIn(repository).values.toSet, Set("{}\n"))
 
   test("a check reports Cases that fail with their output, with every other failure"):
@@ -534,13 +554,13 @@ class GateSuite extends munit.FunSuite:
     assert(answer.err.contains("model/cases/a.json is stale"), answer.err)
     // The lifts beside it ended and were reported before the Cases.
     assert(
-      answer.out.indexOf("== lift the Nexus caller Model") <
+      answer.out.indexOf("== lift every IR file the Models declare") <
         answer.out.indexOf("== check every lowered Case"),
       answer.out
     )
     val stale = Repository(scalaCli = lifting, go = cases)
     val ir = Files.createDirectories(stale.root.resolve("model/ir"))
-    Roots.ir.foreach((file, _) => Files.writeString(ir.resolve(file), "{}\n"))
+    irFiles.foreach(file => Files.writeString(ir.resolve(file), "{}\n"))
     val both = gate(stale.tools, "--skip-go-checks")
     assertEquals(both.status, 1)
     assert(both.err.contains("model/ir/activity.json is stale"), both.err)
@@ -600,7 +620,7 @@ class GateSuite extends munit.FunSuite:
       message,
       s"""model/ir/a.json is stale: line 2 is `  "line": 1` and lifts to `  "line": 2`
          |model/ir/new.json is missing
-         |model/ir/old.json is checked in and nothing produces it: remove it or name its roots
+         |model/ir/old.json is checked in and nothing produces it: remove it or declare it with irFile
          |rerun with --update (make umpire-gen-model); the lifted files are in ${trees.lifted}""".stripMargin
     )
     assertEquals(trees.held, before)
@@ -625,6 +645,6 @@ class GateSuite extends munit.FunSuite:
     val message = intercept[GateError](trees.settle(update = true)).getMessage
     assertEquals(
       message,
-      "model/ir/old.json is checked in and nothing produces it: remove it or name its roots"
+      "model/ir/old.json is checked in and nothing produces it: remove it or declare it with irFile"
     )
     assertEquals(trees.held, before)

@@ -34,17 +34,48 @@ import scalapb.json4s.Printer
 final case class LiftError(position: String, message: String)
     extends Exception(s"$position: $message")
 
-class Lifter(roots: Seq[String], prefixes: Map[String, String]) extends Inspector:
-  val models = mutable.ArrayBuffer.empty[ir.Model]
-  val errors = mutable.ArrayBuffer.empty[LiftError]
+/** What one lifter run lifts: the roots named on its command line, or IR files a Model declares. */
+enum Target:
+  /** One Model of the declarations these fully qualified names name. */
+  case Roots(roots: Seq[String])
+
+  /** Every IR file the lifted sources declare with `irFile`, or the ones named. */
+  case IrFiles(names: Seq[String])
+
+class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
+  /** The Model of each IR file lifted, by the file's name; a lift of roots has one, named "". */
+  val models = mutable.LinkedHashMap.empty[String, ir.Model]
+
+  /** Every refusal, with the IR file it was lifting: "" for a lift of roots, or for none. */
+  val errors = mutable.ArrayBuffer.empty[(String, LiftError)]
 
   // A lift error is kept rather than thrown through the compiler, which would report it as a crash.
   def inspect(using Quotes)(tastys: List[Tasty[quotes.type]]): Unit =
-    try liftAll(tastys)
-    catch case e: LiftError => errors += e
+    try
+      val index = Index(tastys, prefixes)
+      target match
+        case Target.Roots(roots)  => liftFile(index, "", roots)
+        case Target.IrFiles(only) =>
+          val declared = Lifting(Context(index)).irFiles(errors += "" -> _)
+          // A declaration the lifter cannot read may be the one asked for, so nothing is lifted.
+          if errors.isEmpty then
+            for name <- only.distinct.sorted if !declared.exists(_._1 == name) do
+              errors += "" -> LiftError(
+                s"IR file $name",
+                "no irFile of the lifted sources declares it"
+              )
+            if declared.isEmpty then
+              errors += "" -> LiftError("IR files", "the lifted sources declare no irFile")
+            // Each file is lifted over the one index, with state of its own.
+            val chosen = declared.filter((name, _) => only.isEmpty || only.contains(name))
+            for (name, roots) <- chosen.sortBy(_._1) do liftFile(index, name, roots)
+    catch case e: LiftError => errors += "" -> e
 
-  private def liftAll(using Quotes)(tastys: List[Tasty[quotes.type]]): Unit =
-    val ctx = Context(tastys, prefixes)
+  private def liftFile(index: Index, file: String, roots: Seq[String]): Unit =
+    try liftRoots(Context(index), file, roots)
+    catch case e: LiftError => errors += file -> e
+
+  private def liftRoots(ctx: Context, file: String, roots: Seq[String]): Unit =
     import ctx.*
     val concerns = Lifting(ctx)
     concerns.readFinites()
@@ -59,18 +90,18 @@ class Lifter(roots: Seq[String], prefixes: Map[String, String]) extends Inspecto
         concerns.liftRoot(root)
         for (name, q) <- queries if !before(name) && q.total.isEmpty do
           val at = q.getPosition
-          errors += LiftError(
+          errors += file -> LiftError(
             s"${at.file}:${at.line}",
             s"Query $name asserts no total: write `.total(n)` with n its static combination " +
               "count, which model/README.md shows how to compute"
           )
       catch
         case e: LiftError =>
-          errors += e
+          errors += file -> e
           lifting.clear()
 
     def sorted[K: Ordering, V](m: collection.Map[K, V]): Seq[V] = m.toSeq.sortBy(_._1).map(_._2)
-    models += ir.Model(
+    models(file) = ir.Model(
       source = "model: " + roots.toList.sorted.mkString(", "),
       types = sorted(types),
       functions = sorted(functions),
@@ -98,20 +129,37 @@ class Lifter(roots: Seq[String], prefixes: Map[String, String]) extends Inspecto
 // or a progress claim; every jar's TASTy but the framework's is read, apart from the framework's
 // entity-neutral laws (umpire/laws), whose bodies a Model's claims fold like its own defs; and every
 // root is lifted and every refusal reported before anything is written.
+//
+// `lift --ir <jar=prefix>,... <classpath file> <out directory> [<IR file>...]` lifts the IR files
+// the jars declare with `irFile` instead, each into <out directory>/<name>.json: every one, or the
+// ones named. The TASTy is read once for all of them, each is lifted with state of its own, and a
+// refusal is reported under the file it was lifting; nothing is written once any file failed.
 @main def lift(args: String*): Unit =
-  val (specs, classpathFile, out, roots) = args.toList match
+  def usage(): Nothing =
+    System.err.println(
+      "usage: lift <jar=prefix>,... <classpath file> <out.json> <root>...\n" +
+        "       lift --ir <jar=prefix>,... <classpath file> <out directory> [<IR file>...]"
+    )
+    sys.exit(2)
+  def jarsOf(jars: String) = jars
+    .split(",")
+    .toList
+    .map(_.split("=", 2) match
+      case Array(jar, prefix) => (jar, prefix)
+      case Array(jar)         => (jar, ""))
+  val (specs, classpathFile, out, target) = args.toList match
+    case "--ir" :: jars :: classpath :: out :: names =>
+      (jarsOf(jars), classpath, out, Target.IrFiles(names))
     case jars :: classpath :: out :: roots if jars.contains("=") =>
-      val specs = jars
-        .split(",")
-        .toList
-        .map(_.split("=", 2) match
-          case Array(jar, prefix) => (jar, prefix)
-          case Array(jar)         => (jar, ""))
-      (specs, classpath, out, roots)
-    case jar :: classpath :: out :: prefix :: roots => (List(jar -> prefix), classpath, out, roots)
-    case _                                          =>
-      System.err.println("usage: lift <jar=prefix>,... <classpath file> <out.json> <root>...")
-      sys.exit(2)
+      (jarsOf(jars), classpath, out, Target.Roots(roots))
+    case jar :: classpath :: out :: prefix :: roots =>
+      (List(jar -> prefix), classpath, out, Target.Roots(roots))
+    case _ => usage()
+  target match
+    case Target.Roots(Nil) =>
+      System.err.println("lift: no roots: name the declarations to lift")
+      sys.exit(1)
+    case _ => ()
   val scratch = Files.createTempDirectory("umpire-lift")
   val prefixes = mutable.Map.empty[String, String]
   val tastys = specs.zipWithIndex.flatMap { case ((jar, prefix), i) =>
@@ -133,21 +181,25 @@ class Lifter(roots: Seq[String], prefixes: Map[String, String]) extends Inspecto
     .trim
     .split(java.io.File.pathSeparator)
     .toList
-  if roots.isEmpty then
-    System.err.println("lift: no roots: name the declarations to lift")
-    sys.exit(1)
-  val lifter = Lifter(roots, prefixes.toMap)
+  val lifter = Lifter(target, prefixes.toMap)
   TastyInspector.inspectAllTastyFiles(tastys, Nil, classpath)(lifter)
   if lifter.errors.nonEmpty then
-    if sys.env.contains("LIFT_DEBUG") then lifter.errors.foreach(_.printStackTrace())
-    lifter.errors.foreach(e => System.err.println(s"lift: ${e.getMessage}"))
+    if sys.env.contains("LIFT_DEBUG") then lifter.errors.foreach(_._2.printStackTrace())
+    // A file's refusals follow a line that names it, as the gate named the file of each lift.
+    for (file, refused) <- lifter.errors.groupBy(_._1).toSeq.sortBy(_._1) do
+      if file.nonEmpty then System.err.println(s"lift: the roots of $file.json did not lift:")
+      refused.foreach((_, e) => System.err.println(s"lift: ${e.getMessage}"))
     sys.exit(1)
-  val json = JsonMethods.mapper
-    .writer(Pretty())
-    .writeValueAsString(
-      Printer().toJson(lifter.models.headOption.getOrElse(sys.error("lift: nothing was lifted")))
-    )
-  Files.writeString(Paths.get(out), json + "\n")
+  def json(model: ir.Model) =
+    JsonMethods.mapper.writer(Pretty()).writeValueAsString(Printer().toJson(model)) + "\n"
+  target match
+    case Target.Roots(_) =>
+      val model = lifter.models.get("").getOrElse(sys.error("lift: nothing was lifted"))
+      Files.writeString(Paths.get(out), json(model))
+    case Target.IrFiles(_) =>
+      val directory = Files.createDirectories(Paths.get(out))
+      for (file, model) <- lifter.models do
+        Files.writeString(directory.resolve(s"$file.json"), json(model))
 
 /** Whether a jar entry is of the lifted sources: a Model's, or a law of the framework's. */
 private def lifted(entry: String): Boolean =

@@ -140,8 +140,8 @@ make umpire-check-model
 
 It is a Scala program, `model/gate`. In order, it checks that the files under `model/` keep to the
 model's own vocabulary, compiles and tests the DSL and the Models, runs the lifter's own tests,
-lifts every Model, requires every file of `model/ir` and `model/cases` to equal what it just
-produced, and runs `go vet` and `go test` over `./tools/umpire/...`. It stops at the first failure
+lifts every IR file the Models declare in one lifter run, requires every file of `model/ir` and
+`model/cases` to equal what it just produced, and runs `go vet` and `go test` over `./tools/umpire/...`. It stops at the first failure
 and changes no checked-in file. scala-cli, the JDK, protoc and Go come from the repository's
 `mise.toml`.
 
@@ -152,6 +152,23 @@ make umpire-gen-model     # the gate with --update: rewrites model/ir and model/
 ```
 
 Then read the diff of `model/ir` and `model/cases` like any other code change.
+
+Each file of `model/ir` is declared once, in Scala, beside the Models it holds (the folder's
+`IrFiles.scala`): its name and its roots, named by value.
+
+```scala
+val nexusControlFile =
+  irFile("nexus-control")(Control.forgedCompletion, NexusRealization.forgedCompletion)
+```
+
+A root is a machine, a composition, a Query, a list of Queries, a progress claim or a realization;
+the file holds it and everything it reaches. A root that names nothing does not compile. A
+declaration may be a root of several files and is lifted into each, and one that no file names
+stays out of `model/ir`, so a design can be kept out of the checked files. The lifter reads the
+compiled Models once and lifts every file apart, with nothing carried from one to the next; a
+refusal follows a line naming the file it was lifting. `lift --ir <jar=prefix> <classpath file>
+<directory> [name...]` is that run, and `lift <jar=prefix> <classpath file> <out.json> <root>...`
+lifts the roots named by their fully qualified names, as the lifter's fixtures do.
 
 The gate packages the linked Temporal API, Testpilot and well-known ScalaPB classes in
 `model/gen/api-scalapb.jar`. Its descriptor and tool stamp is checked before a build; editing a
@@ -289,9 +306,9 @@ requires exactly that of a live Run and of its replay.
 | `model/umpire` | The DSL: what an author writes a Model with. Realization declarations and their script helpers are in `umpire/realize` |
 | `model/temporal` | The Models, one folder per feature: `nexuscaller`, `standaloneactivity`, `worker`; `taskqueue`, the shared task-queue entity features compose; and `realize`, the shared Temporal realization kit |
 | `model/lifter` | The lifter. `testdata` holds Models it must lift and Models it must refuse |
-| `model/ir` | The checked-in Umpire IR, one file per lifted Model |
+| `model/ir` | The checked-in Umpire IR, one file per `irFile` the Models declare |
 | `model/cases` | The checked-in Cases and `manifest.json` |
-| `model/gate` | The gate program. It generates the IR's ScalaPB classes from the schema into `model/gen` (`--generate-ir`), and `Roots.scala` lists which declarations go into which IR file |
+| `model/gate` | The gate program. It generates the IR's ScalaPB classes from the schema into `model/gen` (`--generate-ir`) and runs the lifter once over every IR file the Models declare |
 | `model/project.scala` | The build settings of the DSL and the Models |
 | [SEMANTICS.md](SEMANTICS.md) | The evaluation rules of the Umpire IR: what every construct means |
 | [Known bugs](../.plans/UMPIRE4_VISION.md#known-bugs-knownbugs) | Vision for acknowledging a known bug; not implemented |
@@ -553,7 +570,7 @@ and its classes (`start()` among them), `input`, `UpTo`, `steps` and `~>`, `Step
 `Declares[S]`, `property` with `holds`, `holdsAcross` and `when`, `monitor`, `leadsTo`, `compose`
 with `sync` (named or after its first member's action), `synced`, `own` and `withMember`,
 `scenario`, `query` (named or after its Scenario and Property), `Limits`, `.total`,
-`DefinitionScope`, `choose`, and the realization declarations, among them the script helpers `rpc`,
+`DefinitionScope`, `choose`, `irFile`, and the realization declarations, among them the script helpers `rpc`,
 `poll`, `perform`, `onPath`, `always`, `script`, `command` and `statusTable`, `Actuator`,
 `MonitorExpectation` and the kit's roles and bindings. Sugar is a form whose meaning a core form
 already says: `implies`, `in`, `records`, `accept`, `stay`, `disabled`, the claim patterns (`once`,

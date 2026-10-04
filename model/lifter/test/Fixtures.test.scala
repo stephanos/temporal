@@ -373,6 +373,8 @@ class Fixtures extends munit.FunSuite:
         "Crossed.scala:45:28",
         "Crossed.scala:49:24",
         "Crossed.scala:59:29",
+        "IrFile.scala:11:37",
+        "IrFile.scala:8:37",
         "NamedInput.scala:21:50",
         "NamedInput.scala:24:27",
         "NamedInput.scala:27:49",
@@ -581,6 +583,69 @@ class Fixtures extends munit.FunSuite:
       List("atMostOneActiveAttempt", "terminalFinality")
     )
     assertEquals(byValue.toPrettyString, expected("heldByName").toPrettyString)
+
+  // fn-114.1: the IR files the sources declare with `irFile`, lifted by `lift --ir` in one run.
+  private def liftIr(out: Path, jars: String, names: String*): Ran =
+    lift((Seq("--ir", jars, modelClasspath.toString, out.toString) ++ names)*)
+
+  private def listed(directory: Path): Seq[String] =
+    if !Files.isDirectory(directory) then Nil
+    else
+      val stream = Files.list(directory)
+      try stream.iterator.asScala.map(_.getFileName.toString).toList.sorted
+      finally stream.close()
+
+  concurrently("one run lifts each IR file apart, and a root of two files into both"):
+    val out = scratch.resolve("irFiles")
+    val result = liftIr(out, liftsJars, "shared-admission", "shared-presence")
+    assert(!result.failed, result.diagnostics)
+    assertEquals(listed(out), Seq("shared-admission.json", "shared-presence.json"))
+    // Lifted after the wider file, with state of its own: the presence fixture's IR, byte for byte.
+    assertEquals(Files.readString(out.resolve("shared-presence.json")), ir("presence"))
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    def machines(json: String) =
+      mapper.readTree(json).path("machines").elements().asScala.map(_.path("name").asText()).toSet
+    val shared = Files.readString(out.resolve("shared-admission.json"))
+    assertEquals(machines(shared), machines(ir("presence")) ++ machines(ir("admission")))
+    assertEquals(
+      mapper.readTree(shared).path("source").asText(),
+      "model: fixture.presence.Presence$package$.presence, " +
+        "fixture.specimens.admission.Admission$package$.currentQueries, " +
+        "fixture.specimens.admission.Admission$package$.staleQueries"
+    )
+
+  concurrently("a refusal names the IR file it was lifting, and the run writes no file"):
+    val out = scratch.resolve("irFilesRefused")
+    val result = liftIr(out, liftsJars, "refused", "shared-presence", "nowhere")
+    assertNotEquals(result.exit, 0)
+    assertEquals(listed(out), Nil, "the lifter wrote an IR file of a run that failed")
+    val rejected = Files.readString(expected.resolve("rejects.txt")).linesIterator.toSet
+    refused(result) match
+      case Seq(nowhere, header, refusal) =>
+        assertEquals(
+          nowhere,
+          "lift: IR file nowhere: no irFile of the lifted sources declares it"
+        )
+        assertEquals(header, "lift: the roots of refused.json did not lift:")
+        assert(rejected(refusal), s"$refusal is not the rejected declaration's refusal")
+      case other => fail(s"one refusal under refused.json and an unknown file, not $other")
+
+  concurrently("the lifter refuses an IR file declaration it cannot read, at its line"):
+    val jar = packaged("irFileRefusals", materialize("irFileRefusals"))
+    val out = scratch.resolve("irFileRefusals-out")
+    val at = stored("irFileRefusals") + "IrFiles.scala"
+    val result = liftIr(out, s"$jar=${stored("irFileRefusals")},$modelJar=model/")
+    assertNotEquals(result.exit, 0)
+    assertEquals(listed(out), Nil)
+    assertEquals(
+      refused(result),
+      Seq(
+        s"lift: $at:14: an IR file is named by a nonempty string literal without a `/`",
+        s"lift: $at:17: an IR file is named by a nonempty string literal without a `/`",
+        s"lift: $at:22: splatted names its roots one by one, each a val that declares one",
+        s"lift: $at:9: twice is declared twice, at $at:6 and here: an IR file is declared once"
+      )
+    )
 
   concurrently("the lifter refuses a mapped read ending at a singular message"):
     val out = lifted("typedMapped")

@@ -66,26 +66,25 @@ production dispatch fails closed.
 
 | Order | Spec | In one line | Waits for |
 | --- | --- | --- | --- |
-| 1 | fn-112 foundations | Settle declaration, step, composition and author-computed Query-total contracts | — |
-| 2 | fn-120 choices | Named choices done (fn-120.1); the rollout and the refusal of unnamed branches (fn-120.2) wait for fn-114 | fn-112 foundations |
-| 3 | fn-112 showcase | Rewrite the standalone activity Model, extract the shared task queue and build the realization kit | fn-120 choices |
-| 4 | fn-114 | Roll the final showcase constructs, including choices, out to every other Model | fn-112 showcase |
-| alongside 3 | fn-118 interface | Settle hint-aware realization helpers with the shared kit; no waiting-behavior changes yet | done in fn-118.1 |
-| after 4 | fn-118 behavior | Derive generated-test waits from API hints, as a separate behavioral change | structural Case-byte freeze verified |
-| after 4 | fn-120 tools | Add model lint (including specification holes and a coverage summary) and the IR explorer | final reader contracts and fn-114 roots |
-| alongside 4 | fn-122 | Capabilities and their laws: shared Temporal promises stated once, adopted per entity | fn-112.10 |
-| after 3 | fn-121 | Shard generated Cases per Case in CI, with HSM/CHASM per Nexus Case | fn-112.10 |
+| 1 | fn-114 | Roll the fn-112 showcase constructs, including choices, out to every other Model; then shrink copied fixture text and rename the model/ tool folders | — (in progress) |
+| alongside 1 | fn-122 | Capabilities and their laws: shared Temporal promises stated once, adopted per entity | — (in progress) |
+| alongside 1 | fn-121 | Shard generated Cases per Case in CI, with HSM/CHASM per Nexus Case | — (in progress; task 3 needs GitHub CI) |
+| after 1 | fn-120 rollout and tools | Refuse unnamed branches; add model lint (specification holes, coverage summary) and the IR explorer | fn-114 |
+| after 1 | fn-118 behavior | Derive generated-test waits from API hints, as a separate behavioral change | fn-114 |
 | last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
 
-These are execution phases, not new specs. Build choices before the Model conversions so each
-branching step uses its final syntax once. Coordinate settled schema additions and compatibility
-handling; do not guess API-hint fields before their inventory. The structural migrations still freeze
-Case bytes, while fn-118 separately permits specified Program changes and freezes Contracts. After
-shared schema/reader changes settle, hint behavior and Go-only tools can run in parallel. fn-119's
-generic Driver primitives are done (fn-119.1-.2); the rest waits for fn-114, fn-118 and fn-120.
-Flow records dependencies only within a spec, so the conductor holds the cross-spec gates: fn-112.6
-waits for fn-120.1, fn-112.9 builds against the interface in `.plans/API_BEHAVIOR_HINTS.md`, and
-fn-121 and fn-122 wait for fn-112.10.
+fn-112 (the standalone activity DSL showcase) is closed: the feature is 1,567 lines and 54 string literals
+(targets 1,600 and 60), on captured names, machine derivation, typed compositions, claim patterns, input tokens,
+`UpTo` counters, author-computed Query totals, a shared `model/temporal/taskqueue` entity and a shared Temporal
+realization kit, with Case bytes unchanged. fn-120.1 (named choices) is done. These rows are execution phases,
+not new specs. The structural migrations freeze Case bytes, while fn-118 separately permits specified Program
+changes and freezes Contracts. fn-119's generic Driver primitives are done (fn-119.1-.2). Flow records
+dependencies only within a spec, so the conductor holds the cross-spec gates: fn-120.2 and fn-118.2-.5 wait for
+fn-114 to close.
+
+Open for the owner (deferred by fn-112's behavior freeze): the witness-only Properties `terminated` and
+`cancelRequestedWhileStarted` (false on 120 rows each) and seven pause/unpause rows the server rejects (pause in
+paused, pauseRequested and cancelRequested; unpause in scheduled, backingOff, started and cancelRequested).
 
 Design decisions taken on 2026-10-03 and folded into the specs: operator policy
 (`.plans/DSL_OPERATORS.md`: words for logic, symbols only where every programmer knows them);
@@ -95,46 +94,6 @@ lifter, each form lifting to the same IR as its core spelling; three-level tempo
 backend form); reusable behavioral protocols (`.plans/SEMANTIC_PROTOCOLS.md`, vision #PROTOCOLS);
 MUST/MAY/MUST NOT as generated views with a specification-hole lint rather than author keywords
 (`.plans/MODALITIES.md`).
-
-### fn-112: Make the standalone activity Scala Model a DSL showcase
-
-Rewrites the standalone activity Model to read as the best Scala the DSL allows, without changing
-its behavior: machine derivation (`rebind`, `extend`, `refining`, `assuming`, `unmonitored`) in place of copied machines,
-compositions keyed by fields in place of strings, names taken from `val`s, and a shared Temporal kit
-for what the activity and Nexus realizations both use. Files are split by kind (`Model.scala`,
-`Properties.scala`, `Queries.scala`) and the system contract by subject into folders. The current
-feature has 2,830 lines; the targets are at most 1,600 lines and 60 string literals. Each new
-construct is built once in the lifter, and realization helpers use the typed Temporal API.
-Two additional tasks require author-computed Query totals for capacity review and extract the
-reusable task-queue entity, providers and shared properties into `temporal/taskqueue/`. Shared
-claims are written with named patterns (`once(...).keeps(...)`, `never(...).from(...)`,
-`stays(...).unless(...)`) as parameterized definitions fn-122 turns into laws.
-
-Tasks 1 and 2 are done: the original-baseline archive and equivalence check, the DefinitionScope probe,
-the starting metrics (2,830 lines, 462 string literals), and captured declaration names, evidence defaults
-and refinement reads in the DSL and lifter (production Models not yet migrated). Task 3 is done too: machine
-derivations (`rebind`, `extend`, `refining`, `assuming`, `unmonitored`; `restrict` chains with them), sugar in
-`umpire/Syntax.scala` lowered by `lifter/Syntax.scala` with a core/sugar lint rule, and an original-baseline
-check that compares derived outputs and Case bytes rather than IR function bodies. Task 4 is done: typed
-composition selectors, `Declares[S]` and the claim patterns. Task 5 is done: input tokens, named inputs
-with `:=` and `UpTo` counters. Task 11 is done: every Query carries an author-written total (largest 887,040)
-that Go recomputes and refuses when wrong. fn-120.1 (named choices: `choose` with named alternatives, inert in the IR and
-exported to Quint) is merged. Task 6 is done: the product, protocol and admission machines use the new DSL
-with `choose`, Case bytes unchanged. Task 7 is done: queue providers and compositions are derived, scenarios
-use typed `synced`/`own` steps, the shared admission claims are single defs over `Declares[S]`, and no string
-keys remain. Task 12 is done: the task queue is a shared entity in `model/temporal/taskqueue/` (Model,
-Properties, Queries) with its own consumer fixture; the standalone feature is 2,281 lines and 179 literals,
-the queue 418 and 25. Task 8 is done: the feature is split by subject into `admission/` and `compositions/`
-subpackages and by kind into Model, Properties and Queries files, with no `Claims.scala`; it grew to 2,449 lines
-and 181 literals (headers, bundles, pins). Task 9 is done: a shared Temporal realization kit (288 lines) serves the
-standalone and Nexus realizations; the feature is now 1,994 lines and 98 literals. Task 10 closes the spec
-against the 1,600-line and 60-literal targets. Before tasks 6 and 7 change a
-production function body, they extend or re-capture the fn-115 migration golden (`TestMigrationGoldens`), which
-still compares function bodies. Task 6 made the 168 state/action pairs disabled only by a default arm explicit. Recorded follow-ups the
-behavior freeze forbids changing here: the witness-only Properties `terminated` and
-`cancelRequestedWhileStarted` (false on 120 rows each) and seven pause/unpause rows the server rejects
-(pause in paused, pauseRequested and cancelRequested; unpause in scheduled, backingOff, started and
-cancelRequested).
 
 ### fn-114: State every Scala Model declaration once
 
@@ -146,6 +105,11 @@ activity, and no `Claims.scala` remains. Lifter fixtures that copy live Model te
 names that say what they hold: `model/lifter` becomes `model/irgen`, `model/gate` becomes `model/check`
 (absorbing `model/metrics`), and the `model/gen` build cache becomes `model/build`.
 
+
+Task 1 is done: each Model folder declares its IR files in Scala (`val x = irFile("name")(roots...)` in
+`IrFiles.scala`), one lifter run writes all six, and the gate's root lists are gone; the lift step went from
+8-16 s to 5 s. The new files put standaloneactivity at 1,614 lines, above fn-112's 1,600; fn-114.8's counts
+report it. Task 2 (Nexus caller) is next; tasks 3 and 4 then run in parallel.
 ### fn-118: Declare how Temporal APIs behave once, and let the generated tests use it
 
 Task 1 is done: the inventory (16 Cases, 17 polls, 52 waits, 440 s declared wait budget) and the
@@ -199,3 +163,7 @@ and their bindings; each capability brings laws, and pairs bring interaction law
 listed. The pilots lift `terminalIsFinal` into `terminalStatesAreFinal` and `pausedIsNotDispatched`
 into a `Pausable × Pollable` law, on standalone activity and a minimal Nexus operation Model. A law
 joins only once two entities adopt it; an entity that differs overrides it with a recorded reason.
+
+Task 1 is done (branch `umpire-fn122`, merging): law bodies and the catalog as plain defs with server
+citations; the inventory classifies 76 claims as 8 law instances and 68 feature-specific. Three bodies wait for
+task 2's binding of plain value arguments.

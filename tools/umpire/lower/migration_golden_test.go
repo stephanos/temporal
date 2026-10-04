@@ -609,18 +609,19 @@ func compareLoweredCases(cfg golden.Config, expected, actual map[string][]byte, 
 			}
 			var err error
 			current := actual[name]
-			// A path under a merged directory names the directory on both sides, and a Case whose
-			// paths that changes is identified as putCase identifies it.
+			// A path under a merged directory names the directory on both sides, a file split out of
+			// another names that file, and a Case whose paths that changes is identified as putCase
+			// identifies it.
 			if file != "identity.json" {
 				original = cfg.MergeSources(cfg.RenameSources(original))
-				current = cfg.MergeSources(current)
+				current = cfg.MergeSources(cfg.UnsplitSources(current))
 			} else {
 				if renamed := cfg.MergeSources(cfg.RenameSources(expected[dir+"/case.json"])); !bytes.Equal(renamed, expected[dir+"/case.json"]) {
 					if original, err = renamedIdentity(renamed); err != nil {
 						return fmt.Errorf("%s: %w", name, err)
 					}
 				}
-				if merged := cfg.MergeSources(actual[dir+"/case.json"]); !bytes.Equal(merged, actual[dir+"/case.json"]) {
+				if merged := cfg.MergeSources(cfg.UnsplitSources(actual[dir+"/case.json"])); !bytes.Equal(merged, actual[dir+"/case.json"]) {
 					if current, err = renamedIdentity(merged); err != nil {
 						return fmt.Errorf("%s: %w", name, err)
 					}
@@ -644,7 +645,8 @@ func compareLoweredCases(cfg golden.Config, expected, actual map[string][]byte, 
 	return golden.Compare(want, got)
 }
 
-// renamedIdentity is the identity putCase records for a Case whose source paths were renamed or merged.
+// renamedIdentity is the identity putCase records for a Case whose source paths were renamed, merged
+// or unsplit.
 func renamedIdentity(encoded []byte) ([]byte, error) {
 	identity, err := recordedrun.CaseIdentity(encoded)
 	if err != nil {

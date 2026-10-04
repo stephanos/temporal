@@ -564,6 +564,31 @@ func TestMergeOfAFileNamesOnlyThatFile(t *testing.T) {
 	require.Error(t, err, "a declaration of another file of the directory moving into the kit still fails")
 }
 
+// A Query moved from one file of its package to a new one: the Case it lowers to names the file the
+// Query left, as Match compares its position, and a Case of another file is kept.
+func TestUnsplitSourcesNamesTheFileAQueryLeft(t *testing.T) {
+	cfg := Config{Splits: []Substitution{
+		{Old: "model/a/Properties.scala", New: "model/a/Claims.scala"},
+		{Old: "model/a/Queries.scala", New: "model/a/Claims.scala"},
+	}}
+	require.JSONEq(t, `{"path":"model/a/Claims.scala","sub":"model/a/Claims.scala","other":"model/a/Model.scala","note":"at model/a/Queries.scala:3"}`,
+		string(cfg.UnsplitSources([]byte(`{"path":"model/a/Queries.scala","sub":"model/a/Properties.scala","other":"model/a/Model.scala","note":"at model/a/Queries.scala:3"}`))))
+
+	original := &umpirespb.Model{Source: "model: a.Claims$package$.queries", Queries: []*umpirespb.Query{
+		{Name: "retry", Position: &umpirespb.Position{File: "model/a/Claims.scala", Line: 30}},
+	}}
+	cfg.Paths = []Substitution{{Old: "model/a/Claims.scala", New: "model/a/Claims.scala"}}
+	cfg.Labels = []Substitution{{Old: original.GetSource(), New: original.GetSource()}}
+	cfg.RootMoves = []Substitution{{Old: "a.Claims$package$.queries", New: "a.Queries$package$.queries"}}
+	cfg.Projection.PositionsByFile = true
+	current := &umpirespb.Model{Source: "model: a.Queries$package$.queries", Queries: []*umpirespb.Query{
+		{Name: "retry", Position: &umpirespb.Position{File: "model/a/Queries.scala", Line: 4}},
+	}}
+	moved, err := cfg.Match(original, current)
+	require.NoError(t, err)
+	require.True(t, moved, "the IR of the moved Query compares alike")
+}
+
 func TestMergeSourcesRewritesOnlyQuotedPathsUnderTheDirectory(t *testing.T) {
 	cfg := Config{Merges: []Substitution{{Old: "model/a/", New: "model/a"}}}
 	require.JSONEq(t, `{"path":"model/a","sub":"model/a","other":"model/b/Model.scala","note":"at model/a/Model.scala:3"}`,
