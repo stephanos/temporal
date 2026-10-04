@@ -223,6 +223,26 @@
     {
       "old": "temporal.standaloneactivity.System$package$.currentOverVolatile",
       "new": "temporal.standaloneactivity.compositions.Model$package$.currentOverVolatile"
+    },
+    {
+      "old": "temporal.nexuscaller.Claims$package$.functionalQueries",
+      "new": "temporal.nexuscaller.Queries$package$.functionalQueries"
+    },
+    {
+      "old": "temporal.nexuscaller.Claims$package$.terminalHolds",
+      "new": "temporal.nexuscaller.Queries$package$.terminalHolds"
+    },
+    {
+      "old": "temporal.nexuscaller.Claims$package$.stoppedWorkerRepliesNothing",
+      "new": "temporal.nexuscaller.Queries$package$.stoppedWorkerRepliesNothing"
+    },
+    {
+      "old": "temporal.nexuscaller.Claims$package$.syncCompletion",
+      "new": "temporal.nexuscaller.Queries$package$.syncCompletion"
+    },
+    {
+      "old": "temporal.nexuscaller.Control$.forgedCompletion",
+      "new": "temporal.nexuscaller.Queries$package$.forgedCompletion"
     }
   ],
   "source_path_merges": [
@@ -249,6 +269,30 @@
     {
       "old": "model/umpire/laws/",
       "new": "model/temporal/standaloneactivity"
+    },
+    {
+      "old": "model/temporal/nexuscaller/Nexus.scala",
+      "new": "model/temporal/nexuscaller"
+    },
+    {
+      "old": "model/temporal/nexuscaller/Model.scala",
+      "new": "model/temporal/nexuscaller"
+    },
+    {
+      "old": "model/temporal/nexuscaller/Claims.scala",
+      "new": "model/temporal/nexuscaller"
+    },
+    {
+      "old": "model/temporal/nexuscaller/Control.scala",
+      "new": "model/temporal/nexuscaller"
+    },
+    {
+      "old": "model/temporal/nexuscaller/Properties.scala",
+      "new": "model/temporal/nexuscaller"
+    },
+    {
+      "old": "model/temporal/nexuscaller/Queries.scala",
+      "new": "model/temporal/nexuscaller"
     }
   ],
   "source_label_substitutions": [

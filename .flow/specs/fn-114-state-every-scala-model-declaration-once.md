@@ -38,7 +38,7 @@ The author surface is fn-112's. This spec adds no construct except the IR-file d
 
 ```scala
 val nexusControlFile =
-  irFile("nexus-control")(Control.forgedCompletion, NexusRealization.forgedCompletion)
+  irFile("nexus-control")(forgedCompletion, NexusRealization.forgedCompletion)
 ```
 
 `def irFile(name: String)(roots: IrRoot*): IrFile` is core (`model/umpire/IrFile.scala`), with `type IrRoot = Machine[?, ?, ?] | Composition[?] | Query | Seq[Query] | Progress[?] | Realization`, so a root that names nothing, or names a declaration an IR file cannot hold, fails to compile. The name is the file's under `model/ir` without `.json`, an id written once on its declaration. `lift --ir <jar=prefix>,... <classpath file> <directory> [name...]` reads every `irFile` val of the TASTy it is given, or the ones named, and writes each `<name>.json` in one JVM: one shared index of definitions, and a fresh `Context` (accumulators, caches, Definition-ID and type-name claims) per file. A file's `source` is `model: ` and the sorted fully qualified names of the referenced vals, the same strings the gate's lists held. A refusal is printed under `lift: the roots of <name>.json did not lift:`; the `lift: <file>:<line>: <message>` lines are unchanged, and nothing is written once any file failed. The lifter refuses, at its line, a name that is not a nonempty literal without `/`, roots passed as one splatted list, and a file declared twice. The command-line roots form (`lift <jar=prefix>,... <classpath file> <out.json> <root>...`) stays for the lifter's fixtures. An annotation was rejected because its arguments are read as a separate tree the lifter would have to resolve by name; a single registry was rejected because it is the second place to edit that this spec removes.

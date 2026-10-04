@@ -40,7 +40,7 @@ func TestDecodeRejectsEachMalformation(t *testing.T) {
 		detail  string
 	}{
 		"another version":              {mutate(`"version": 1`, `"version": 2`), "format version 2"},
-		"a Case identity that is not":  {mutate(`"caseIdentity": "27d65f3bda1abf588aa2b8639d3b08ac80c6cd7a36c22d468e3f553839525634"`, `"caseIdentity": "zero"`), "caseIdentity"},
+		"a Case identity that is not":  {mutate(`"caseIdentity": "d20aef7f1eb220ce98956a6e778a5d54f3db0b6be4104652bb39452b57749367"`, `"caseIdentity": "zero"`), "caseIdentity"},
 		"a missing Profile":            {mutate(`"caseProfile": "production-canary"`, `"caseProfile": ""`), "caseProfile is missing"},
 		"an unknown authority class":   {mutate(`"authorityClass": "protected-workflow"`, `"authorityClass": "anyone"`), "authorityClass"},
 		"a raw coordinate":             {mutate(`"namespace": "unconfigured"`, `"namespace": "canary-prod"`), "coordinate namespace"},

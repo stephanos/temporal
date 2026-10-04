@@ -109,7 +109,10 @@ names that say what they hold: `model/lifter` becomes `model/irgen`, `model/gate
 Task 1 is done: each Model folder declares its IR files in Scala (`val x = irFile("name")(roots...)` in
 `IrFiles.scala`), one lifter run writes all six, and the gate's root lists are gone; the lift step went from
 8-16 s to 5 s. The new files put standaloneactivity at 1,614 lines, above fn-112's 1,600; fn-114.8's counts
-report it. Task 2 (Nexus caller) is next; tasks 3 and 4 then run in parallel.
+report it. Task 2 is done: the Nexus caller Model uses captured names, derivation and the four-file layout
+(its four files went from 898 lines and 114 literals to 780 and 21); the source-path change moved the canary
+Case identity, so its pinned Run was re-recorded. Tasks 3 (caller realization) and 4-5 (close policy) run in
+parallel.
 ### fn-118: Declare how Temporal APIs behave once, and let the generated tests use it
 
 Task 1 is done: the inventory (16 Cases, 17 polls, 52 waits, 440 s declared wait budget) and the
@@ -166,4 +169,7 @@ joins only once two entities adopt it; an entity that differs overrides it with 
 
 Task 1 is done (branch `umpire-fn122`, merging): law bodies and the catalog as plain defs with server
 citations; the inventory classifies 76 claims as 8 law instances and 68 feature-specific. Three bodies wait for
-task 2's binding of plain value arguments.
+task 2's binding of plain value arguments. Task 2 is done on the same branch: `capabilities(m, limits)(...)`
+with `except` and `overriding` (each with a reason) lifts each law into a Property, Scenario and Query named
+`<machine>.<law>`, a `<file>.laws.json` sidecar sits beside each IR file that declares capabilities, and all five
+laws now lift. Task 3 (the activity's capabilities) is next.

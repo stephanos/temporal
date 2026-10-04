@@ -22,4 +22,4 @@ val nexusCallerFile = irFile("nexus-caller")(
 
 // The forged completion a caller must refuse, and the realization that offers it.
 val nexusControlFile =
-  irFile("nexus-control")(Control.forgedCompletion, NexusRealization.forgedCompletion)
+  irFile("nexus-control")(forgedCompletion, NexusRealization.forgedCompletion)

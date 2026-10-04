@@ -23,7 +23,8 @@ enum Fact derives Finite:
   case lost(hard: Boolean)
 
 val client: Party = Party("client")
-val entry: Entity = Entity("entry", key = "entryId")
+val owner: Entity = Entity("owner")
+val entry: Entity = Entity("entry", key = "entryId", refer = Map("owner" -> owner))
 val lostData: Observation = Observation("lostData", entry, "lost")
 
 val put = action("put", client)

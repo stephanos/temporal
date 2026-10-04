@@ -8,7 +8,7 @@ import umpire.realize.Realization
  *
  * {{{
  * val nexusControlFile =
- *   irFile("nexus-control")(Control.forgedCompletion, NexusRealization.forgedCompletion)
+ *   irFile("nexus-control")(forgedCompletion, NexusRealization.forgedCompletion)
  * }}}
  *
  * The lifter (model/lifter) reads every such val and writes each file, in one run, from its roots and

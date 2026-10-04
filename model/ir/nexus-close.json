@@ -3,8 +3,8 @@
   "types": [ {
     "name": "temporal.nexuscaller.Resolution",
     "position": {
-      "file": "model/temporal/nexuscaller/Nexus.scala",
-      "line": 25
+      "file": "model/temporal/nexuscaller/Model.scala",
+      "line": 54
     },
     "enum": {
       "cases": [ {
@@ -15214,7 +15214,7 @@
     "name": "complete",
     "position": {
       "file": "model/temporal/nexuscaller/Model.scala",
-      "line": 69
+      "line": 87
     },
     "party": "handler",
     "inputs": [ {
@@ -15230,7 +15230,7 @@
     "name": "scheduleToClose",
     "position": {
       "file": "model/temporal/nexuscaller/Model.scala",
-      "line": 117
+      "line": 397
     },
     "party": "system",
     "timer": true
