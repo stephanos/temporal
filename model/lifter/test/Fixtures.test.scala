@@ -703,7 +703,6 @@ class Fixtures extends munit.FunSuite:
   // fn-112.5: input tokens, inputs supplied by name and a bounded counter (lifts/Inputs.scala).
   concurrently("inputs supplied by name lift as their positional calls, and UpTo as the Int range"):
     import com.fasterxml.jackson.databind.JsonNode
-    import com.fasterxml.jackson.databind.node.ObjectNode
     val protocol = "temporal.standaloneactivity.Model$package$.activityProtocol"
     val (model, _, property) = declarations(
       "inputs",
@@ -716,8 +715,7 @@ class Fixtures extends munit.FunSuite:
       .find(_.path("name").asText() == name)
       .getOrElse(fail(s"the inputs fixture lifted no $kind named $name"))
     def actionsOf(scenario: String): String =
-      val s = named("scenarios", scenario).deepCopy[ObjectNode]()
-      s.path("actions").toPrettyString
+      named("scenarios", scenario).path("actions").toPrettyString
     // A call by name is its positional twin, class by class: partial, reordered and defaulted.
     assertEquals(actionsOf("byName"), actionsOf("byPosition"))
     assertEquals(property("urgentByName"), property("urgentByPosition"))
