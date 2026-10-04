@@ -122,7 +122,9 @@ that Go recomputes and refuses when wrong. fn-120.1 (named choices: `choose` wit
 exported to Quint) is merged. Task 6 is done: the product, protocol and admission machines use the new DSL
 with `choose`, Case bytes unchanged. Task 7 is done: queue providers and compositions are derived, scenarios
 use typed `synced`/`own` steps, the shared admission claims are single defs over `Declares[S]`, and no string
-keys remain (feature now 2,640 lines). Task 12 (task-queue entity) is next, then 8, 9 and 10. Before tasks 6 and 7 change a
+keys remain. Task 12 is done: the task queue is a shared entity in `model/temporal/taskqueue/` (Model,
+Properties, Queries) with its own consumer fixture; the standalone feature is 2,281 lines and 179 literals,
+the queue 418 and 25. Task 8 is next, then 9 and 10. Before tasks 6 and 7 change a
 production function body, they extend or re-capture the fn-115 migration golden (`TestMigrationGoldens`), which
 still compares function bodies. Task 6 made the 168 state/action pairs disabled only by a default arm explicit. Recorded follow-ups the
 behavior freeze forbids changing here: the witness-only Properties `terminated` and
