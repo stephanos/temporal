@@ -49,7 +49,7 @@ stage: plan-sync - skipped(config: disabled; task remains blocked rather than do
 Root commits this verified source progress with its evidence before admitting the next source writer. Worker/reviewer commands and delegates are terminal; no push, task-done event, qualification closure or compatibility expansion.
 
 ## Evidence
-- Commits: owning source-progress checkpoint in Git history; this record does not claim task completion.
+- Commits: 8ac436447572c55d494ca4c2088f6ba441db16db (reviewed source progress only; no task completion).
 - Tests: [worker handover](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-29/handover.md), [worker evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-29/evidence.json), [independent source review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-29/independent-source-review.md), [review checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-29/independent-source-review-checks.json), [root verification](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-29/source-checkpoint-verification.json).
 - Open qualification: [acceptance-open.md](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-29/acceptance-open.md).
 - PRs: none; no push authorized.
