@@ -316,11 +316,12 @@ requires exactly that of a live Run and of its replay.
 The framework, `model/umpire`, names no Temporal concept, in its prose or its identifiers, so a
 Model of another system could be written in it. What a system has of its own its realization kit
 declares, by extending the framework's open traits `Addressee`, `Activation`, `Instruction`,
-`Recorded` and `Setting`. Temporal's are in `temporal.realize`: `Role` and `RoleKind`, the worker
-activations `WorkerActivation.{Workflow, NexusHandler, Activity}`, the instructions
-`WorkerInstruction.{AttemptFailure, AttemptCanceled, Fault, WorkflowCommand, NexusReply,
-NexusCompletion}` with `FaultKind`, the history read `WorkflowHistory.event`, and the
-dynamic-configuration `RequiredSetting`. `TestFrameworkNamesNoTemporal` in `tools/umpire/model`
+`Recorded`, `Setting`, `Behavior` and `SystemStep`. Temporal's are in `temporal.realize`: `Role` and
+`RoleKind`, the worker activations `WorkerActivation.{Workflow, NexusHandler, Activity}`, the
+instructions `WorkerInstruction.{AttemptFailure, AttemptCanceled, Fault, WorkflowCommand,
+NexusReply, NexusCompletion}` with `FaultKind`, the history read `WorkflowHistory.event`, the
+dynamic-configuration `RequiredSetting`, and the API behavior hints `ApiBehavior` and `ServerStep`
+with `WaitBound`, `Visible` and `CauseKind`. `TestFrameworkNamesNoTemporal` in `tools/umpire/model`
 fails when a file under `model/umpire` names a Temporal term; a mention stays only under an
 allowance that states its reason, and today only `model/umpire/Capabilities.scala` and
 `model/umpire/laws/` have one, until the capabilities and their laws move to `model/temporal`. The
@@ -782,6 +783,26 @@ operation's `nexusoperation.enableStandalone`). A Case lowered through it carrie
 Testpilot's preparation refuses a Profile whose dynamic configuration lacks one or sets it
 otherwise, naming the setting, and the live suite applies each Case's settings to the server it
 starts.
+
+How Temporal's APIs behave between calls is declared once, in the kit's `Behavior.scala`, each hint
+with a comment citing the server code it rests on, and `temporalRealization` attaches it to every
+Temporal realization (.plans/API_BEHAVIOR_HINTS.md):
+
+```scala
+METHOD_PAUSE_ACTIVITY_EXECUTION.visibleTo(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Visible.atOnce)
+CauseKind.handlerReply.visibleTo(
+  METHOD_DESCRIBE_WORKFLOW_EXECUTION,
+  Visible.eventually(WaitBound(intervalMs = 250, atMostMs = 2000))
+)
+CauseKind.delivery.boundedBy(WaitBound(intervalMs = 250, atMostMs = 3000))
+```
+
+A realization names the steps no command performs and the kind of cause each is,
+`serverSteps = Vector(ServerStep(attemptStart, CauseKind.delivery), ServerStep(scheduleToStart,
+CauseKind.timer, deadlineMs))`, a timer with the kit's deadline its request sets. A hint names only
+generated method constants, so one the API does not have does not compile, and the lifter refuses a
+method that is no generated constant at its line; the Go reader refuses a missing or non-positive
+bound at the hint's line. The lowering ignores both until fn-118.4.
 
 ### Naming protobuf data in a Model
 

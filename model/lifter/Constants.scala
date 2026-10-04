@@ -88,7 +88,8 @@ private[lift] trait Constants:
     case _ => None
 
   def constInt(t: Term): Long = resolve(t) match
-    case Literal(IntConstant(i)) => i.toLong
+    case Literal(IntConstant(i))  => i.toLong
+    case Literal(LongConstant(i)) => i
     // Operators on constants the compiler leaves unfolded, such as `1 << 20`.
     case Apply(Select(a, op), List(b)) if constOps.contains(op) =>
       constOps(op)(constInt(a), constInt(b))

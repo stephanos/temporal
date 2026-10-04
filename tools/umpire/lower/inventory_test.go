@@ -37,12 +37,25 @@ func declared(t *testing.T, m *umpirespb.Model, r *umpirespb.Realization) [][2]s
 			list := message.Get(f).List()
 			for j := range list.Len() {
 				element := list.Get(j).Message()
+				if step, ok := element.Interface().(*umpirespb.ServerStep); ok {
+					// A server step is named by its class.
+					out = append(out, [2]string{name, classKey(step.GetStep())})
+					continue
+				}
 				id := element.Descriptor().Fields().ByName("id")
 				if id == nil {
 					// A required setting is named by its key.
 					id = element.Descriptor().Fields().ByName("key")
 				}
 				out = append(out, [2]string{name, element.Get(id).String()})
+			}
+		case f.Name() == "behavior":
+			// The API behavior is its hints, each by its id.
+			for _, v := range r.GetBehavior().GetVisibility() {
+				out = append(out, [2]string{name, v.GetId()})
+			}
+			for _, c := range r.GetBehavior().GetCauses() {
+				out = append(out, [2]string{name, c.GetId()})
 			}
 		case f.Kind() == protoreflect.MessageKind:
 			inner := message.Get(f).Message()
@@ -142,6 +155,8 @@ func TestTheInventoryAgreesWithTheCase(t *testing.T) {
 					}
 				case "realization":
 					require.Equal(t, slices.Contains([]string{"id", "name"}, e.ID), e.Disposition == Names, e.ID)
+				case "behavior", "server_steps":
+					require.Equal(t, Unread, e.Disposition, e.ID)
 				default:
 					require.Equal(t, InCase, e.Disposition, e.ID)
 				}

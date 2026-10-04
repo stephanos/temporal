@@ -93,6 +93,7 @@ func (v *validator) realization(r *umpirespb.Realization) {
 	}
 	a.confirms(mm)
 	a.held(mm)
+	a.behavior(mm)
 }
 
 // attemptOf checks evidence that is the Run's record of an attempt: it names an attempt, counted from
@@ -601,7 +602,7 @@ func (a *realizing) activation(mm *umpirespb.Machine, s *umpirespb.Script) {
 	case *umpirespb.Script_Activity:
 		worker(act.Activity.GetActivityType(), act.Activity.GetWorker(), act.Activity.GetTaskQueue())
 		for _, class := range act.Activity.GetStarts() {
-			a.performing(mm, where, class, at, "the activation of "+where)
+			a.performing(mm, where, class, at, activationOf+where)
 		}
 	case *umpirespb.Script_NexusHandler:
 		if act.NexusHandler.GetService() == "" || act.NexusHandler.GetOperation() == "" {

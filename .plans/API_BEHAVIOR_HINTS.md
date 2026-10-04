@@ -406,6 +406,46 @@ greater than its bound, and a timer `ServerStep` with no positive deadline, each
 declaration's position. Empty fields leave existing IR bytes
 and fingerprints unchanged.
 
+### As built by task 2 (2026-10-04)
+
+Task 2 built the fields above with these adjustments:
+
+- **Field numbers.** `Realization.required_settings` (fn-122.4) took field 15 first, so
+  `behavior = 16` and `server_steps = 17`.
+- **Where the vocabulary lives.** The framework stays Temporal-agnostic (`TestFrameworkNamesNoTemporal`):
+  `model/umpire/realize` gains only the open traits `Behavior` and `SystemStep` and the fields
+  `Realization.behavior: Option[Behavior]` and `serverSteps: Vector[SystemStep]`. `WaitBound`,
+  `Visible`, `CauseKind`, `Visibility`, `CauseBound`, `ApiBehavior`, `ServerStep` and the
+  extensions `visibleTo` and `boundedBy` are the kit's (`model/temporal/realize/Realize.scala`), the
+  declarations are `temporalBehavior` in `model/temporal/realize/Behavior.scala`, and
+  `temporalRealization` attaches it (its `behavior` parameter exists for lifter fixtures) and takes
+  `serverSteps`. The timer deadline is the kit value `deadlineMs = deadlineSeconds * 1000`.
+- **Ids.** The lifter derives a hint's id from what it relates, so no author writes one:
+  `visibility.<write>.<read>`, a method by its name in lower camel case, a cause by its kind
+  (`visibility.pauseActivityExecution.describeActivityExecution`,
+  `visibility.handlerReply.describeWorkflowExecution`), and `cause.<kind>` (`cause.delivery`).
+  A hint's position is the line its `visibleTo`/`boundedBy` call is written on.
+- **More pairs.** Cases added after task 1 (fn-122) need StartNexusOperationExecution and
+  TerminateNexusOperationExecution -> DescribeNexusOperationExecution, both at once
+  (`chasm/lib/nexusoperation/handler.go:45-60,293-307`); they are declared.
+- **Server steps.** The activity realization declares `attemptStart` a delivery and
+  `scheduleToStart`, `startToClose` timers; the Nexus caller declares `scheduleToStart` and
+  `startToClose` timers. No request sets a schedule-to-close deadline, so `scheduleToClose` is not
+  declared: no path waits for it.
+- **Refusals split.** A method the API does not have does not compile; the lifter refuses a method
+  that is no generated constant, or whose request or response disagrees with its descriptor, at
+  its line. The Go reader (`tools/umpire/model/validate_behavior.go`) refuses the rest of the list
+  above at the declaration's position, plus a server step whose kind no cause bound bounds, one a
+  command performs, and one declared twice. Whether a visibility's write is bound to POST and its
+  read to GET needs the method descriptors, which only the lowering holds, so task 4 checks it
+  where it classifies writes and reads.
+- **Open for a sibling.** fn-125 plans API preconditions declared beside these hints; `ApiBehavior`
+  (Scala and IR) takes another repeated entry beside `visibility` and `causes` without changing
+  either.
+- **Bytes.** No table, ID, fingerprint, Query answer or Case changes; the IR files gain the two
+  fields, and the source positions of declarations below an edited line move with it. The lowering's
+  inventory accounts for both fields as carried by no part of a Case until task 4.
+
 ### Testpilot IR fields (task 3)
 
 ```proto

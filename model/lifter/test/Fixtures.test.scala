@@ -158,7 +158,18 @@ class Fixtures extends munit.FunSuite:
       "ledger",
       "putOnly",
       "durableEventually"
-    ).map("fixture.captured.Captured$package$." + _)
+    ).map("fixture.captured.Captured$package$." + _),
+    // fn-118.2: API behavior hints and server steps (lifts/Hints.scala). The reader admits the
+    // first and refuses each realization of the second at its line (tools/umpire/model).
+    "hints" -> Seq("keptBehavior", "ownBehavior").map("fixture.hints.Hints$package$." + _),
+    "hintsRefused" -> Seq(
+      "zeroInterval",
+      "nonPositiveBound",
+      "intervalOverBound",
+      "unboundedStep",
+      "timerNoDeadline",
+      "deliveryDeadline"
+    ).map("fixture.hints.Hints$package$." + _)
   )
 
   // fn-122.2: the fixtures whose capability declarations write a law sidecar beside their IR.
@@ -275,6 +286,10 @@ class Fixtures extends munit.FunSuite:
     "lambdaQuery"
   ).map("fixture.capabilityrejects.CapabilityRejects$package$." + _)
 
+  // The refusals of fn-118.2's API behavior hints (lifts/HintRejects.scala).
+  private val hintRejects: Seq[String] =
+    Seq("builtWrite", "builtRead").map("fixture.hintrejects.HintRejects$package$." + _)
+
   private val rejected = Seq(
     "unbounded",
     "waiting",
@@ -331,7 +346,7 @@ class Fixtures extends munit.FunSuite:
     "ComputedFamily$.familyComputed",
     "Anonymous$.anonymous",
     "ComputedAccepted$.computedAccept"
-  ).map("fixture.rejects." + _) ++ scriptRejects ++ capabilityRejects
+  ).map("fixture.rejects." + _) ++ scriptRejects ++ capabilityRejects ++ hintRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
   private lazy val liftsJars = s"$liftsJar=${stored("lifts")},$modelJar=model/"
@@ -509,6 +524,22 @@ class Fixtures extends munit.FunSuite:
 
   concurrently("only the unknown projected origin admits a dynamic message root"):
     assertEquals(refusals("dynamicInvalid"), Seq("Invalid.scala:10:16"))
+
+  // fn-118.2: a hint of a method the generated API lacks, or whose write, read, `when` or bound has
+  // the wrong type, a hint built by its constructor, and a server step of no class.
+  concurrently("API behavior hints refuse unknown methods and mistyped arguments, at their lines"):
+    assertEquals(
+      refusals("hintsInvalid").sorted,
+      Seq(
+        "Invalid.scala:22:20", // WorkflowServiceGrpc.METHOD_DESCRIBE_NOTHING
+        "Invalid.scala:23:21", // "StartActivityExecution".visibleTo(...)
+        "Invalid.scala:24:36", // start.visibleTo(DescribeActivityExecutionRequest, ...)
+        "Invalid.scala:27:66", // visibleTo(describe, WaitBound(100, 1000))
+        "Invalid.scala:28:19", // Visibility(...)
+        "Invalid.scala:31:48", // boundedBy(Visible.atOnce)
+        "Invalid.scala:34:30" // ServerStep(CauseKind.delivery, ...)
+      ).sorted
+    )
 
   concurrently("retired string proto constructors refuse direct and helper-built names"):
     val positions = refusals("retiredInvalid")

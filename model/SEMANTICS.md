@@ -393,6 +393,25 @@ in path order. The
 delivery of an attempt is the script's activation, so a step of a class the script starts with is
 performed by no command.
 
+A realization may also carry the system's **API behavior** and its **server steps**
+(.plans/API_BEHAVIOR_HINTS.md). The behavior is facts about the system's calls, not about the
+machine: a **visibility** says when the effect of a write, a method or a kind of asynchronous cause
+(an activity's answer, a workflow task, a Nexus handler's reply, a delivery, a timer), is visible to a
+read, a method, at once or eventually within a wait bound; a **cause bound** says how long one kind of
+cause may take, as an interval a wait looks at and the most it waits. A server step names a class of
+the machine that no command performs, such as an activity's delivery or a timeout, with the kind of
+cause it is and, for a timer, the deadline the realization set. Each hint has an id, derived from
+what it relates (`visibility.<write>.<read>`, `cause.<kind>`), and its declaration's position. No
+table, ID, fingerprint, Query answer or Contract reads either; they shape only how a lowered Case
+waits, and no Case reads them yet. Admission refuses a hint with no id or one another hint took, a
+visibility that names no write or no read or a pair another names, a cause bound of no known kind or
+of a kind another bounds, a cause bound with no bound, a bound or interval of zero or less, an
+interval greater than its bound, and a server step that names no class of the machine, a class
+declared twice or one a command performs, a kind the realization bounds no cause of, a timer with no
+positive deadline and a deadline on a step that is no timer; each at its declaration's position.
+Whether the API binds a write to POST and a read to GET is read from descriptors where waits are
+derived, by the lowering.
+
 A realization carries no Case and decides nothing a Query's path decides. Lowering a find Query
 through it is the same for every realization:
 

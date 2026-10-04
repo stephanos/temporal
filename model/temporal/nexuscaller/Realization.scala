@@ -25,6 +25,7 @@ import temporal.realize.{
   caseWorker,
   controller,
   correlated,
+  deadlineMs,
   deadlineSeconds,
   evidenceId,
   field,
@@ -38,7 +39,9 @@ import temporal.realize.{
   temporalRealization,
   workerNamespace,
   workflowService,
+  CauseKind,
   FaultKind,
+  ServerStep,
   WorkerActivation,
   WorkflowHistory
 }
@@ -513,7 +516,13 @@ object NexusRealization:
     scripts = Vector(callerController(steps*), workflowScript, handlerScript),
     evidence = Vector(scheduled, started, completed, failed, canceled, timedOut, pending),
     learned = Vector(completionAuthority),
-    observations = Vector(historyEvent, correlated)
+    observations = Vector(historyEvent, correlated),
+    // A timeout class fires at the deadline its schedule command sets. No command sets a
+    // schedule-to-close deadline, so no path waits for that class.
+    serverSteps = Vector(
+      ServerStep(scheduleToStart, CauseKind.timer, deadlineMs),
+      ServerStep(startToClose, CauseKind.timer, deadlineMs)
+    )
   )
 
   val asyncNexus: Realization = realization(nexusProtocol)

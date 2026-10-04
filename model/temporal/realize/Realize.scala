@@ -1,7 +1,7 @@
 /* What a Temporal realization says that only Temporal has: the roles of a Temporal deployment and
  * their kinds, the worker activations a script runs in, the instructions a worker carries out or a
- * run works on it, the history a run reads its evidence from, and the dynamic configuration the
- * server runs under.
+ * run works on it, the history a run reads its evidence from, the dynamic configuration the
+ * server runs under, and how Temporal's APIs behave between calls.
  *
  * Each declaration extends an open trait of the framework's realization vocabulary
  * (model/umpire/realize), which knows no system. As there, the lifter emits a declaration into the
@@ -10,17 +10,20 @@
  */
 package temporal.realize
 
+import io.grpc.MethodDescriptor
 import scalapb.GeneratedMessage
 import umpire.ClassRef
 import umpire.realize.{
   Activation,
   Addressee,
+  Behavior,
   Field,
   Instruction,
   KeyedRef,
   Name,
   Recorded,
   Setting,
+  SystemStep,
   TypedProto
 }
 
@@ -101,3 +104,80 @@ object WorkflowHistory:
    */
   def event[Root <: GeneratedMessage, Value](attributes: Field[Root, Value]): KeyedRef[Root] =
     KeyedRef(TypedHistory(attributes))
+
+// ### How Temporal's APIs behave between calls (.plans/API_BEHAVIOR_HINTS.md)
+//
+// A hint is a fact about an API, declared once in Behavior.scala with the server code it rests on,
+// and attached to every Temporal realization by `temporalRealization`. The lifter writes each hint
+// with an id derived from what it relates, and with the line it is declared at, which a lowered
+// wait names when it runs out.
+
+/** How long a condition may take to hold, and how often a wait looks, in milliseconds. */
+final case class WaitBound(intervalMs: Long, atMostMs: Long)
+
+/** When the effect of a write is visible to a read. */
+enum Visible:
+  /** In the write's own transaction: a read after the write reads once. */
+  case atOnce
+
+  /** Only after the write returns, within `bound`: a read after the write waits for its condition. */
+  case eventually(bound: WaitBound)
+
+/** A kind of asynchronous cause: something a read waits for that no command of its script does. */
+enum CauseKind:
+  /** An activity script's answer: RespondActivityTaskCompleted, Failed or Canceled. */
+  case activityAnswer
+
+  /** A workflow script's commands: RespondWorkflowTaskCompleted. */
+  case workflowTask
+
+  /** A Nexus handler script's reply: RespondNexusTaskCompleted or Failed. */
+  case handlerReply
+
+  /** The server's dispatch of a task to a worker. */
+  case delivery
+
+  /** A server timer at a deadline the realization set. */
+  case timer
+
+/**
+ * When the effect of `write`, a method the API binds to HTTP POST or a cause no call is, is visible
+ * to `read`, a method the API binds to HTTP GET: `write.visibleTo(read, when)`.
+ */
+final class Visibility private[realize] (
+    val write: MethodDescriptor[?, ?] | CauseKind,
+    val read: MethodDescriptor[?, ?],
+    val when: Visible
+)
+
+/** How long one kind of cause may take: `kind.boundedBy(bound)`. */
+final class CauseBound private[realize] (val kind: CauseKind, val bound: WaitBound)
+
+/** The behavior every Temporal realization carries: Behavior.scala declares it once. */
+final case class ApiBehavior(visibility: Vector[Visibility], causes: Vector[CauseBound])
+    extends Behavior
+
+/**
+ * A step class no command performs, and the kind of cause it is: an activity's `attemptStart` is a
+ * delivery, a timeout class a timer. A timer carries the deadline, in milliseconds, its request set
+ * from the same kit value; the wait for it is that deadline plus the timer's bound.
+ */
+final case class ServerStep(step: ClassRef, kind: CauseKind, deadlineMs: Long = 0)
+    extends SystemStep
+
+extension [Req <: GeneratedMessage, Rsp <: GeneratedMessage](write: MethodDescriptor[Req, Rsp])
+  /** That the effect of the call `write` is visible to `read` `when`. */
+  def visibleTo[RReq <: GeneratedMessage, RRsp <: GeneratedMessage](
+      read: MethodDescriptor[RReq, RRsp],
+      when: Visible
+  ): Visibility = Visibility(write, read, when)
+
+extension (cause: CauseKind)
+  /** That the effect of a cause of this kind is visible to `read` `when`. */
+  def visibleTo[RReq <: GeneratedMessage, RRsp <: GeneratedMessage](
+      read: MethodDescriptor[RReq, RRsp],
+      when: Visible
+  ): Visibility = Visibility(cause, read, when)
+
+  /** That a cause of this kind takes at most `bound` from the step before it. */
+  def boundedBy(bound: WaitBound): CauseBound = CauseBound(cause, bound)

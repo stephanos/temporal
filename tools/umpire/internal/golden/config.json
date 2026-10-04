@@ -17,7 +17,9 @@
     "model/scalav2/lifter/testdata/lifts/expected/taskqueue.json",
     "model/scalav2/lifter/testdata/lifts/expected/captured.json",
     "model/scalav2/lifter/testdata/lifts/expected/capabilities.json",
-    "model/scalav2/ir/nexus-operation.json"
+    "model/scalav2/ir/nexus-operation.json",
+    "model/scalav2/lifter/testdata/lifts/expected/hints.json",
+    "model/scalav2/lifter/testdata/lifts/expected/hintsRefused.json"
   ],
   "source_path_substitutions": [
     {
@@ -571,7 +573,9 @@
     ],
     "inert_fields": [
       "temporal.server.api.umpire.v1.Query.total",
-      "temporal.server.api.umpire.v1.Realization.required_settings"
+      "temporal.server.api.umpire.v1.Realization.required_settings",
+      "temporal.server.api.umpire.v1.Realization.behavior",
+      "temporal.server.api.umpire.v1.Realization.server_steps"
     ],
     "projected_case_ids": [
       "exploration"

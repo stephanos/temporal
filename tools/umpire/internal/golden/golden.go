@@ -93,7 +93,9 @@ type Projection struct {
 	// InertFields are IR fields, by full protobuf name, added after the goldens were captured and read
 	// by no table, ID, fingerprint, answer or Case: a frozen input never sets one, and the current IR
 	// is compared without it. A realization's required settings are read by the Cases lowered through
-	// it, which TestMigrationProjectionKeepsLoweredCases compares on their own.
+	// it, which TestMigrationProjectionKeepsLoweredCases compares on their own. Its API behavior hints
+	// and server steps are read by no table, ID, fingerprint or answer, and by no Case until fn-118.4
+	// lowers a Case's waits from them.
 	InertFields []string `json:"inert_fields"`
 	// CaseIDs are the kinds of lowered Case compared without their ID. An exploration Case's IDs carry
 	// the digest of its whole candidate Model, which the changes above alter; its other bytes do not.

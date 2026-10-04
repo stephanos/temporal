@@ -212,6 +212,13 @@ object ActivityRealization:
         unpauseActivity,
         Taking(control(Control.unpause), 1)
       )
+    ),
+    // An attempt starts when the server delivers it, and a timeout class fires at the deadline its
+    // start sets. No start sets a schedule-to-close deadline, so no path waits for that class.
+    serverSteps = Vector(
+      ServerStep(attemptStart, CauseKind.delivery),
+      ServerStep(scheduleToStart, CauseKind.timer, deadlineMs),
+      ServerStep(startToClose, CauseKind.timer, deadlineMs)
     )
   )
 

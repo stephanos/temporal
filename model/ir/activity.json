@@ -10492,7 +10492,7 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 105
+        "line": 108
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
@@ -10500,7 +10500,7 @@
       "id": "temporal.activity.standalone.evidence.statusScheduled",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 187
+        "line": 196
       },
       "records": "statusScheduled",
       "source": "temporal.activity.standalone.source.record",
@@ -10511,26 +10511,26 @@
         "key": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 195
+            "line": 204
           },
           "run": { }
         },
         "guard": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 175
+            "line": 184
           },
           "equal": {
             "left": {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 175
+                "line": 184
               },
               "path": {
                 "of": {
                   "position": {
                     "file": "model/temporal/realize/Kit.scala",
-                    "line": 175
+                    "line": 184
                   },
                   "projected": { }
                 },
@@ -10540,7 +10540,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 177
+                "line": 186
               },
               "literal": {
                 "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
@@ -10554,7 +10554,7 @@
       "id": "temporal.activity.standalone.evidence.statusStarted",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 223
+        "line": 232
       },
       "records": "statusStarted",
       "source": "temporal.activity.standalone.source.record",
@@ -10565,32 +10565,32 @@
         "key": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 231
+            "line": 240
           },
           "run": { }
         },
         "guard": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 233
+            "line": 242
           },
           "all": {
             "operands": [ {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 234
+                "line": 243
               },
               "present": {
                 "of": {
                   "position": {
                     "file": "model/temporal/realize/Kit.scala",
-                    "line": 234
+                    "line": 243
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/temporal/realize/Kit.scala",
-                        "line": 234
+                        "line": 243
                       },
                       "projected": { }
                     },
@@ -10601,25 +10601,25 @@
             }, {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 235
+                "line": 244
               },
               "not": {
                 "of": {
                   "position": {
                     "file": "model/temporal/realize/Kit.scala",
-                    "line": 236
+                    "line": 245
                   },
                   "equal": {
                     "left": {
                       "position": {
                         "file": "model/temporal/realize/Kit.scala",
-                        "line": 236
+                        "line": 245
                       },
                       "path": {
                         "of": {
                           "position": {
                             "file": "model/temporal/realize/Kit.scala",
-                            "line": 236
+                            "line": 245
                           },
                           "projected": { }
                         },
@@ -10629,7 +10629,7 @@
                     "right": {
                       "position": {
                         "file": "model/temporal/realize/Kit.scala",
-                        "line": 238
+                        "line": 247
                       },
                       "literal": {
                         "text": ""
@@ -10644,7 +10644,7 @@
         "attempt": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 243
+            "line": 252
           },
           "script": "activity",
           "number": "1"
@@ -10655,7 +10655,7 @@
         "id": "attempt",
         "position": {
           "file": "model/temporal/realize/Kit.scala",
-          "line": 258
+          "line": 267
         },
         "path": "activity_attempt.sdk_attempt",
         "role": "ROLE_ATTEMPT"
@@ -10663,7 +10663,7 @@
         "id": "delivery",
         "position": {
           "file": "model/temporal/realize/Kit.scala",
-          "line": 262
+          "line": 271
         },
         "path": "activity_attempt.delivery_id",
         "role": "ROLE_DELIVERY"
@@ -10671,7 +10671,7 @@
         "id": "activityRun",
         "position": {
           "file": "model/temporal/realize/Kit.scala",
-          "line": 266
+          "line": 275
         },
         "path": "activity_attempt.activity_run_id"
       } ],
@@ -10703,7 +10703,7 @@
       "id": "temporal.activity.standalone.evidence.statusCancelRequested",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 187
+        "line": 196
       },
       "records": "statusCancelRequested",
       "source": "temporal.activity.standalone.source.record",
@@ -10714,26 +10714,26 @@
         "key": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 195
+            "line": 204
           },
           "run": { }
         },
         "guard": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 175
+            "line": 184
           },
           "equal": {
             "left": {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 175
+                "line": 184
               },
               "path": {
                 "of": {
                   "position": {
                     "file": "model/temporal/realize/Kit.scala",
-                    "line": 175
+                    "line": 184
                   },
                   "projected": { }
                 },
@@ -10743,7 +10743,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 177
+                "line": 186
               },
               "literal": {
                 "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
@@ -10827,7 +10827,7 @@
       "id": "temporal.activity.standalone.evidence.attemptCount",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 223
+        "line": 232
       },
       "records": "attemptCount",
       "source": "temporal.activity.standalone.source.record",
@@ -10838,32 +10838,32 @@
         "key": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 231
+            "line": 240
           },
           "run": { }
         },
         "guard": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 233
+            "line": 242
           },
           "all": {
             "operands": [ {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 234
+                "line": 243
               },
               "present": {
                 "of": {
                   "position": {
                     "file": "model/temporal/realize/Kit.scala",
-                    "line": 234
+                    "line": 243
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/temporal/realize/Kit.scala",
-                        "line": 234
+                        "line": 243
                       },
                       "projected": { }
                     },
@@ -10874,25 +10874,25 @@
             }, {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 235
+                "line": 244
               },
               "not": {
                 "of": {
                   "position": {
                     "file": "model/temporal/realize/Kit.scala",
-                    "line": 236
+                    "line": 245
                   },
                   "equal": {
                     "left": {
                       "position": {
                         "file": "model/temporal/realize/Kit.scala",
-                        "line": 236
+                        "line": 245
                       },
                       "path": {
                         "of": {
                           "position": {
                             "file": "model/temporal/realize/Kit.scala",
-                            "line": 236
+                            "line": 245
                           },
                           "projected": { }
                         },
@@ -10902,7 +10902,7 @@
                     "right": {
                       "position": {
                         "file": "model/temporal/realize/Kit.scala",
-                        "line": 238
+                        "line": 247
                       },
                       "literal": {
                         "text": ""
@@ -10917,7 +10917,7 @@
         "attempt": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 243
+            "line": 252
           },
           "script": "activity",
           "number": "2"
@@ -10928,7 +10928,7 @@
         "id": "attempt",
         "position": {
           "file": "model/temporal/realize/Kit.scala",
-          "line": 258
+          "line": 267
         },
         "path": "activity_attempt.sdk_attempt",
         "role": "ROLE_ATTEMPT"
@@ -10936,7 +10936,7 @@
         "id": "delivery",
         "position": {
           "file": "model/temporal/realize/Kit.scala",
-          "line": 262
+          "line": 271
         },
         "path": "activity_attempt.delivery_id",
         "role": "ROLE_DELIVERY"
@@ -10944,7 +10944,7 @@
         "id": "activityRun",
         "position": {
           "file": "model/temporal/realize/Kit.scala",
-          "line": 266
+          "line": 275
         },
         "path": "activity_attempt.activity_run_id"
       } ],
@@ -10980,7 +10980,7 @@
       "id": "temporal.activity.standalone.evidence.statusScheduledAgain",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 187
+        "line": 196
       },
       "records": "statusScheduled",
       "source": "temporal.activity.standalone.source.record",
@@ -10991,26 +10991,26 @@
         "key": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 195
+            "line": 204
           },
           "run": { }
         },
         "guard": {
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 175
+            "line": 184
           },
           "equal": {
             "left": {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 175
+                "line": 184
               },
               "path": {
                 "of": {
                   "position": {
                     "file": "model/temporal/realize/Kit.scala",
-                    "line": 175
+                    "line": 184
                   },
                   "projected": { }
                 },
@@ -11020,7 +11020,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/realize/Kit.scala",
-                "line": 177
+                "line": 186
               },
               "literal": {
                 "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
@@ -11050,7 +11050,7 @@
     "correlation": {
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 112
+        "line": 115
       },
       "projection": "temporal.activity.standalone.projection",
       "run": "temporal.activity.standalone.scope.run",
@@ -11067,7 +11067,7 @@
       "id": "controller",
       "position": {
         "file": "model/temporal/realize/Kit.scala",
-        "line": 160
+        "line": 169
       },
       "controller": { },
       "items": [ {
@@ -11214,7 +11214,7 @@
                 "value": {
                   "position": {
                     "file": "model/temporal/realize/Kit.scala",
-                    "line": 85
+                    "line": 88
                   },
                   "literal": {
                     "number": "300"
@@ -11312,7 +11312,7 @@
                 "value": {
                   "position": {
                     "file": "model/temporal/realize/Kit.scala",
-                    "line": 85
+                    "line": 88
                   },
                   "literal": {
                     "number": "300"
@@ -11490,7 +11490,7 @@
           "id": "await-paused",
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 172
+            "line": 181
           },
           "poll": {
             "evidence": "temporal.activity.standalone.evidence.statusPaused",
@@ -11743,7 +11743,7 @@
           "id": "await-completed",
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 172
+            "line": 181
           },
           "poll": {
             "evidence": "temporal.activity.standalone.evidence.statusCompleted",
@@ -11821,7 +11821,7 @@
           "id": "await-failed",
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 172
+            "line": 181
           },
           "poll": {
             "evidence": "temporal.activity.standalone.evidence.statusFailed",
@@ -11902,7 +11902,7 @@
           "id": "await-canceled",
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 172
+            "line": 181
           },
           "poll": {
             "evidence": "temporal.activity.standalone.evidence.statusCanceled",
@@ -11980,7 +11980,7 @@
           "id": "await-terminated",
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 172
+            "line": 181
           },
           "poll": {
             "evidence": "temporal.activity.standalone.evidence.statusTerminated",
@@ -12058,7 +12058,7 @@
           "id": "await-timed-out",
           "position": {
             "file": "model/temporal/realize/Kit.scala",
-            "line": 172
+            "line": 181
           },
           "poll": {
             "evidence": "temporal.activity.standalone.evidence.statusTimedOut",
@@ -12328,6 +12328,203 @@
         } ]
       } ]
     } ],
-    "cleanup": "cleanup"
+    "cleanup": "cleanup",
+    "behavior": {
+      "visibility": [ {
+        "id": "visibility.startActivityExecution.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 19
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.pauseActivityExecution.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 23
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/PauseActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.unpauseActivityExecution.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 27
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/UnpauseActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.terminateActivityExecution.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 30
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/TerminateActivityExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.activityAnswer.describeActivityExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 37
+        },
+        "cause": "CAUSE_KIND_ACTIVITY_ANSWER",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution"
+      }, {
+        "id": "visibility.startNexusOperationExecution.describeNexusOperationExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 41
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/StartNexusOperationExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeNexusOperationExecution"
+      }, {
+        "id": "visibility.terminateNexusOperationExecution.describeNexusOperationExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 48
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/TerminateNexusOperationExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeNexusOperationExecution"
+      }, {
+        "id": "visibility.startWorkflowExecution.getWorkflowExecutionHistory",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 54
+        },
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
+      }, {
+        "id": "visibility.workflowTask.getWorkflowExecutionHistory",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 61
+        },
+        "cause": "CAUSE_KIND_WORKFLOW_TASK",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
+      }, {
+        "id": "visibility.handlerReply.describeWorkflowExecution",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 67
+        },
+        "cause": "CAUSE_KIND_HANDLER_REPLY",
+        "read": "/temporal.api.workflowservice.v1.WorkflowService/DescribeWorkflowExecution",
+        "eventuallyWithin": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 69
+          },
+          "intervalMs": "250",
+          "atMostMs": "2000"
+        }
+      } ],
+      "causes": [ {
+        "id": "cause.delivery",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 77
+        },
+        "kind": "CAUSE_KIND_DELIVERY",
+        "bound": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 77
+          },
+          "intervalMs": "250",
+          "atMostMs": "3000"
+        }
+      }, {
+        "id": "cause.activityAnswer",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 79
+        },
+        "kind": "CAUSE_KIND_ACTIVITY_ANSWER",
+        "bound": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 79
+          },
+          "intervalMs": "250",
+          "atMostMs": "2000"
+        }
+      }, {
+        "id": "cause.workflowTask",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 82
+        },
+        "kind": "CAUSE_KIND_WORKFLOW_TASK",
+        "bound": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 82
+          },
+          "intervalMs": "250",
+          "atMostMs": "5000"
+        }
+      }, {
+        "id": "cause.handlerReply",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 84
+        },
+        "kind": "CAUSE_KIND_HANDLER_REPLY",
+        "bound": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 84
+          },
+          "intervalMs": "250",
+          "atMostMs": "5000"
+        }
+      }, {
+        "id": "cause.timer",
+        "position": {
+          "file": "model/temporal/realize/Behavior.scala",
+          "line": 89
+        },
+        "kind": "CAUSE_KIND_TIMER",
+        "bound": {
+          "position": {
+            "file": "model/temporal/realize/Behavior.scala",
+            "line": 89
+          },
+          "intervalMs": "250",
+          "atMostMs": "3000"
+        }
+      } ]
+    },
+    "serverSteps": [ {
+      "position": {
+        "file": "model/temporal/standaloneactivity/Realization.scala",
+        "line": 219
+      },
+      "step": {
+        "action": "temporal.standaloneactivity.Model$package$.attemptStart"
+      },
+      "kind": "CAUSE_KIND_DELIVERY"
+    }, {
+      "position": {
+        "file": "model/temporal/standaloneactivity/Realization.scala",
+        "line": 220
+      },
+      "step": {
+        "action": "temporal.standaloneactivity.Model$package$.scheduleToStart"
+      },
+      "kind": "CAUSE_KIND_TIMER",
+      "deadlineMs": "2000"
+    }, {
+      "position": {
+        "file": "model/temporal/standaloneactivity/Realization.scala",
+        "line": 221
+      },
+      "step": {
+        "action": "temporal.standaloneactivity.Model$package$.startToClose"
+      },
+      "kind": "CAUSE_KIND_TIMER",
+      "deadlineMs": "2000"
+    } ]
   } ]
 }
