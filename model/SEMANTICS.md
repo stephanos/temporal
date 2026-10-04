@@ -127,12 +127,14 @@ refinement reads it, and it travels with the record through lists, `let`s, calls
 row's result reports the name of the step record it was read from, empty for an unnamed one; the
 redelivery a channel derives from a result ([Channels](#channels)) is unnamed, as its explanation is
 its own. The table's rows, their results and their order, the Definition IDs, the Behavior
-Fingerprint, Query answers, exploration and Model identities and lowered Cases are the same with and
-without names. An alternative is a result of its action class and never another class, so the names
-do not enter a Query's total ([Query totals](#query-totals)). A `choice` on a construct of any other
-type is an error of the Model, and so are two results of one row with the same name. The Quint
-export writes the name on the step record of the ordered result list (`f_choice`), and its checker
-action, not the step function, picks one result of that list.
+Fingerprint, Query answers and lowered Cases are the same with and without names, and so are
+exploration and Model identities for names written on steps. A named call adds the copies it calls,
+which enter those content-hashed identities as any change of a Model's functions does. An
+alternative is a result of its action class and never another class, so the names do not enter a
+Query's total ([Query totals](#query-totals)). A `choice` on a construct of any other type is an
+error of the Model, and so are two results of one row with the same name. The Quint export writes
+the name on the step record of the ordered result list (`f_choice`), and its checker action, not the
+step function, picks one result of that list.
 
 ## Channels
 

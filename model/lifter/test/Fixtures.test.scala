@@ -1105,6 +1105,7 @@ class Fixtures extends munit.FunSuite:
   // turn, while the function itself keeps its unnamed steps for the other calls.
   concurrently("choose names each alternative's step, and a copy of the function it calls"):
     import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.ObjectNode
     val (model, _, _) = declarations("choices", Seq("chosen"))
     val prefix = "fixture.choices.Choices$package$."
     def function(name: String): JsonNode = model
@@ -1143,6 +1144,31 @@ class Fixtures extends munit.FunSuite:
       List(prefix + "admitted$redelivered")
     )
     assertEquals(calls(function("resumeStep")), List(prefix + "admitted"))
+    // A copy is its function but for the names: without its name, its choices and the suffix of the
+    // copies it calls, it is the function, parameters, precondition and every branch alike.
+    def unnamed(f: JsonNode, choice: String): JsonNode =
+      val copy = f.deepCopy[JsonNode]()
+      def strip(n: JsonNode): Unit =
+        n match
+          case o: ObjectNode =>
+            o.remove(java.util.List.of("choice", "name")): Unit
+            if o.has("function") then
+              o.put("function", o.path("function").asText().stripSuffix("$" + choice)): Unit
+          case _ => ()
+        n.elements().asScala.foreach(strip)
+      strip(copy)
+      copy
+    for (name, choice) <- Seq(
+        "admitted" -> "committed",
+        "admitted" -> "redelivered",
+        "redeliveredStep" -> "redelivered"
+      )
+    do
+      assertEquals(
+        unnamed(function(s"$name$$$choice"), choice).toPrettyString,
+        unnamed(function(name), choice).toPrettyString,
+        s"$name$$$choice"
+      )
 
   // fn-112.4, fn-112.7: typed composition selectors (lifts/Members.scala).
   // The production compositions of temporal/standaloneactivity, written with typed selectors and

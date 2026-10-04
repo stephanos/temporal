@@ -1017,7 +1017,7 @@ val movedNameTaken = machine[Gauges, Outcome, Nothing] {
   steps(gaugeTick ~> gaugeStep)
 }
 
-// ### Unnamed branching (fn-120.2)
+// ### Functions a choose calls, and unnamed branching (fn-120.2)
 
 /** A function a choose calls that gives two steps, each named already. */
 def lampBothStep(l: Lamp): List[LampStep] = choose(lampOn -> stay(l), lampOff -> accept(Lamp(true)))
