@@ -1,0 +1,31 @@
+commit ad90b462e0f947b88f0190c0b4d0f60940ff5aec
+Author: Stephan Behnke <stephanos@users.noreply.github.com>
+Date:   Sat Oct 3 11:31:07 2026 -0700
+
+    wip
+
+diff --git a/tools/gomad3sim/runtime_time_toolchain.go b/tools/gomad3sim/runtime_time_toolchain.go
+index 34e2b38590..47b45d00f4 100644
+--- a/tools/gomad3sim/runtime_time_toolchain.go
++++ b/tools/gomad3sim/runtime_time_toolchain.go
+@@ -10,6 +10,9 @@ import (
+ //go:linkname gomadSimulationTimeAdvance runtime.gomadSimulationTimeAdvance
+ func gomadSimulationTimeAdvance(int64) bool
+ 
++//go:linkname gomadSimulationTimeCurrent runtime.gomadSimulationTimeCurrent
++func gomadSimulationTimeCurrent() int64
++
+ //go:linkname gomadSimulationTimeTakeArrivals runtime.gomadSimulationTimeTakeArrivals
+ func gomadSimulationTimeTakeArrivals() uint32
+ 
+@@ -20,6 +23,10 @@ func runtimeProcessTimeAdvance(current int64) error {
+ 	return nil
+ }
+ 
++func runtimeProcessTimeCurrent() int64 {
++	return gomadSimulationTimeCurrent()
++}
++
+ func runtimeProcessTimeArrivals() uint32 {
+ 	return gomadSimulationTimeTakeArrivals()
+ }

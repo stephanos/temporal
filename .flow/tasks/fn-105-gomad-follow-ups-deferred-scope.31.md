@@ -8,6 +8,10 @@ Origin: D16 investigation (`docs/research/gomad/GOMAD_D16_FORWARD_CLOCK_POLL_DEA
 
 Implement the shared clock: add the forward draws to the virtual clock so `time.Now` and timers read one clock. Start by reproducing the simulation time transport failure that moved fn-103 to a separate offset, and resolve it. If the shared clock is infeasible, stop, retain the evidence, and return the report's fallbacks for a decision.
 
+
+### Integrated first-party bridge pin repair
+
+The exact D26 time bridge digest and ordered Current directive are rebound without weakening identity predicates. Original source-pin RED, corrected GREEN, twelve rejection controls, independent source audit and conductor integrated checks are retained under .flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/bridge-pin-repair/. This is verified progress committed under MILESTONES item 5; the original R26 native shared-clock, seeded workload/replay and full gates remain open.
 ## Acceptance
 - The fn-103 simulation time transport failure is reproduced and resolved, or shown infeasible with retained evidence and the task returned for a decision.
 - A standard-library fixture demonstrates the late deadline on the current runtime and passes with the correction.

@@ -1,0 +1,32 @@
+{
+  "task": "fn-105-gomad-follow-ups-deferred-scope.31",
+  "base_revision": "430d054d34",
+  "verification_scope": "Stock Go 1.27.1 linux/arm64 host policy/source-pin checks; no native acceptance",
+  "scratch_verification": {
+    "chunk_id": "e4b991",
+    "wall_time_seconds": 0.000013,
+    "exit_code": 0,
+    "original_token_count": 34,
+    "output": "ok  \tgo.temporal.io/server/tools/gomad3/target\t0.003s\nok  \tgo.temporal.io/server/tools/gomad3/target/internal/capabilitypolicy\t0.002s\n",
+    "cwd": "/tmp/d26-bridge-pin.39dePDRJ/tools/gomad3"
+  },
+  "shared_verification": {
+    "chunk_id": "ea1512",
+    "wall_time_seconds": 0.410564542,
+    "exit_code": 0,
+    "original_token_count": 34,
+    "output": "ok  \tgo.temporal.io/server/tools/gomad3/target\t0.008s\nok  \tgo.temporal.io/server/tools/gomad3/target/internal/capabilitypolicy\t0.010s\n",
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+    "commands": [
+      "env GOWORK=off GOTOOLCHAIN=local GOMAXPROCS=2 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep ./target -run '^TestBuiltInSimulationLinknamesPinCurrentFirstPartySources$'",
+      "env GOWORK=off GOTOOLCHAIN=local GOMAXPROCS=2 /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep ./target/internal/capabilitypolicy"
+    ]
+  },
+  "source_sha256": {
+    "tools/gomad3/target/internal/capabilitypolicy/simulation_bridge.go": "6e8e072c7d47aa73f7e9f05d938ebe625e0e6ba56f317381978e539b30342bd8",
+    "tools/gomad3/target/internal/capabilitypolicy/policy_test.go": "88a4b3046dc1d9103f18c1206c817f05bdec5d49e875a2a74297fc8c9b41b728"
+  },
+  "native_qualification": false,
+  "flow_completion": false,
+  "push": false
+}

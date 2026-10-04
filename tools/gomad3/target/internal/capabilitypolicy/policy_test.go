@@ -101,3 +101,46 @@ func TestBuiltInSimulationLinknamesRequireExactFirstPartySource(t *testing.T) {
 		}
 	}
 }
+
+func TestBuiltInSimulationTimeBridgeRequiresExactSource(t *testing.T) {
+	source := Source{
+		Name: "runtime_time_toolchain.go", SHA256: "sha256:211c01f57125ba62115b1ffce5d2479d3c22116d51a41aefcfb1a576e8b393a9",
+		LinknameDirectives: []string{"gomadSimulationTimeAdvance runtime.gomadSimulationTimeAdvance", "gomadSimulationTimeCurrent runtime.gomadSimulationTimeCurrent", "gomadSimulationTimeTakeArrivals runtime.gomadSimulationTimeTakeArrivals"},
+	}
+	pkg := Package{ImportPath: "go.temporal.io/server/tools/gomad3sim", MainModule: true, Policy: compatibility.Package{Module: compatibility.Module{Path: "go.temporal.io/server"}}}
+	if !AllowsSimulationBridge(pkg, source) {
+		t.Fatal("exact first-party simulation time bridge was rejected")
+	}
+	for name, mutate := range map[string]func(*Package, *Source){
+		"wrong hash": func(_ *Package, source *Source) { source.SHA256 = "sha256:" + strings.Repeat("0", 64) },
+		"predecessor hash": func(_ *Package, source *Source) {
+			source.SHA256 = "sha256:e6402e8fbfc848c7360d19a1b77de93e841d64870ab625433fac8a47de83d23d"
+		},
+		"missing Current": func(_ *Package, source *Source) {
+			source.LinknameDirectives = []string{source.LinknameDirectives[0], source.LinknameDirectives[2]}
+		},
+		"reordered directives": func(_ *Package, source *Source) {
+			source.LinknameDirectives[0], source.LinknameDirectives[1] = source.LinknameDirectives[1], source.LinknameDirectives[0]
+		},
+		"malformed linkname": func(_ *Package, source *Source) { source.MalformedLinkname = true },
+		"foreign source":     func(_ *Package, source *Source) { source.Name = "foreign.go" },
+		"foreign import":     func(pkg *Package, _ *Source) { pkg.ImportPath = "example.com/gomad3sim" },
+		"lookalike import":   func(pkg *Package, _ *Source) { pkg.ImportPath += "/foreign" },
+		"foreign test variant": func(pkg *Package, _ *Source) {
+			pkg.ImportPath = "go.temporal.io/server/tools/gomad3sim [foreign.test]"
+			pkg.ForTest = "example.com/foreign"
+		},
+		"wrong module":    func(pkg *Package, _ *Source) { pkg.Policy.Module.Path = "example.com/lookalike" },
+		"non-main module": func(pkg *Package, _ *Source) { pkg.MainModule = false },
+		"replaced module": func(pkg *Package, _ *Source) { pkg.Policy.Module.Replaced = true },
+	} {
+		t.Run(name, func(t *testing.T) {
+			candidatePackage, candidateSource := pkg, source
+			candidateSource.LinknameDirectives = append([]string(nil), source.LinknameDirectives...)
+			mutate(&candidatePackage, &candidateSource)
+			if AllowsSimulationBridge(candidatePackage, candidateSource) {
+				t.Fatal("changed simulation time bridge was accepted")
+			}
+		})
+	}
+}

@@ -1,0 +1,8 @@
+{
+  "task_title": "Independently audit exact D26 simulation-time bridge pin repair",
+  "task_body": "Review the isolated patch and source-bound RED/GREEN/control evidence. Confirm the only production changes are the exact first-party runtime time source digest and ordered Current directive added by integrated D26; all identity predicates and other bridges remain unchanged.",
+  "acceptance": "Inspect actual scratch and patch, verify source/evidence identities and rejection controls, report concrete introduced defects or a bounded no-findings source audit. No formal SHIP/native qualification claim or shared source, Git, Flow mutation.",
+  "touches_count": 2,
+  "has_quick_commands": true,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

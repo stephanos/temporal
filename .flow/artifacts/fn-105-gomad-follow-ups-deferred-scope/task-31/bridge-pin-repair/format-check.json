@@ -1,0 +1,12 @@
+{
+  "command": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+    "-l",
+    "tools/gomad3/target/internal/capabilitypolicy/simulation_bridge.go",
+    "tools/gomad3/target/internal/capabilitypolicy/policy_test.go"
+  ],
+  "cwd": "/tmp/d26-bridge-pin.39dePDRJ",
+  "exit_code": 0,
+  "elapsed_seconds": 0.001885292000224581,
+  "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,13 @@
+{
+  "command": [
+    "patch",
+    "--dry-run",
+    "-p1",
+    "-i",
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-105-gomad-follow-ups-deferred-scope/task-31/bridge-pin-repair/bridge-pin-repair.patch"
+  ],
+  "cwd": "/tmp/d26-bridge-pin.39dePDRJ/baseline",
+  "exit_code": 0,
+  "elapsed_seconds": 0.0036572909993992653,
+  "log_sha256": "0c1d1d79219ab75659adab56cbd9b963a3292de920d3042553b90ca76ffd2c17"
+}

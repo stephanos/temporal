@@ -1,0 +1,20 @@
+{
+  "revision": "58b718565044ab3bc3385d3323ee908a6d54328e",
+  "scratch": "/tmp/d26-bridge-pin.39dePDRJ",
+  "archive_sha256": "bc375541190c6902a716351ee9f915628cc662e23cf8583a271f96583016687b",
+  "member_count": 1137,
+  "regular_members": 916,
+  "members_checked": "Only clean relative paths under tools/gomad3 and tools/gomad3sim; directories and regular members; no links or special entries.",
+  "baseline_sha256": {
+    "tools/gomad3/target/internal/capabilitypolicy/simulation_bridge.go": "a0a3135b03cef0acdd67138af007522604b33edd622c6165f9726ce8b01fb6c6",
+    "tools/gomad3/target/internal/capabilitypolicy/policy_test.go": "252d509e96a7cce374d2d38930844e7cc4ab6c20483dcb8536c46f95b792c9ec",
+    "tools/gomad3/target/capability_test.go": "6f838d2824eadd2409c7fe0ff1b5a62013587e6bab9a7c85b793e2208d17d489",
+    "tools/gomad3sim/runtime_time_toolchain.go": "211c01f57125ba62115b1ffce5d2479d3c22116d51a41aefcfb1a576e8b393a9",
+    "tools/gomad3/go.mod": "5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f",
+    "tools/gomad3/go.sum": "d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960"
+  },
+  "d26_commit": "ad90b462e0f947b88f0190c0b4d0f60940ff5aec",
+  "predecessor_runtime_time_sha256": "e6402e8fbfc848c7360d19a1b77de93e841d64870ab625433fac8a47de83d23d",
+  "d26_runtime_time_sha256": "211c01f57125ba62115b1ffce5d2479d3c22116d51a41aefcfb1a576e8b393a9",
+  "head_runtime_equals_d26": true
+}

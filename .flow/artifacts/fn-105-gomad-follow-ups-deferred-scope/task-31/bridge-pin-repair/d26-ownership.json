@@ -1,0 +1,13 @@
+{
+  "command": [
+    "git",
+    "show",
+    "ad90b462e0f947b88f0190c0b4d0f60940ff5aec",
+    "--",
+    "tools/gomad3sim/runtime_time_toolchain.go"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "exit_code": 0,
+  "elapsed_seconds": 0.02351575000284356,
+  "log_sha256": "981267619bc82dd4816d3540d5831065cc96a3b29c43515e395b88bb7838ca51"
+}

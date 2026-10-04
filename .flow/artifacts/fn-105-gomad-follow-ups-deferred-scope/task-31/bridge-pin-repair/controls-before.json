@@ -1,0 +1,21 @@
+{
+  "command": [
+    "env",
+    "GOWORK=off",
+    "GOTOOLCHAIN=local",
+    "GOMAXPROCS=2",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "test",
+    "-tags",
+    "test_dep",
+    "-count=1",
+    "-v",
+    "./target/internal/capabilitypolicy",
+    "-run",
+    "^TestBuiltInSimulation(LinknamesRequireExactFirstPartySource|TimeBridgeRequiresExactSource)$"
+  ],
+  "cwd": "/tmp/d26-bridge-pin.39dePDRJ/tools/gomad3",
+  "exit_code": 1,
+  "elapsed_seconds": 0.17775766700287932,
+  "log_sha256": "a2de94bea0d249113289c5ff775c6cb1d84a3e7a3822cce0e069a8eaa78fca06"
+}

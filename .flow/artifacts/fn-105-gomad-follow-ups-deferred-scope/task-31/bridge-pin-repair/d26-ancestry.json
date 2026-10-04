@@ -1,0 +1,13 @@
+{
+  "command": [
+    "git",
+    "merge-base",
+    "--is-ancestor",
+    "ad90b462e0f947b88f0190c0b4d0f60940ff5aec",
+    "58b718565044ab3bc3385d3323ee908a6d54328e"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "exit_code": 0,
+  "elapsed_seconds": 0.005406707998190541,
+  "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

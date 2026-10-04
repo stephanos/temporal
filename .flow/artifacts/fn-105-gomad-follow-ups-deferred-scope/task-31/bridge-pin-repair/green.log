@@ -1,0 +1,4 @@
+=== RUN   TestBuiltInSimulationLinknamesPinCurrentFirstPartySources
+--- PASS: TestBuiltInSimulationLinknamesPinCurrentFirstPartySources (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/target	0.003s

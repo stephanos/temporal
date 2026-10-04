@@ -1,0 +1,14 @@
+{
+  "command": [
+    "env",
+    "GOWORK=off",
+    "GOTOOLCHAIN=local",
+    "GOMAXPROCS=2",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "version"
+  ],
+  "cwd": "/tmp/d26-bridge-pin.39dePDRJ",
+  "exit_code": 0,
+  "elapsed_seconds": 0.0020912500003760215,
+  "log_sha256": "cd879e04aa0536dab43731f13b4b5716f4f2c8bda480984976155efa06fdb38a"
+}

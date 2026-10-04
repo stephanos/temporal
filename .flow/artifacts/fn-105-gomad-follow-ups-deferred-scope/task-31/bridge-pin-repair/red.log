@@ -1,0 +1,6 @@
+=== RUN   TestBuiltInSimulationLinknamesPinCurrentFirstPartySources
+    capability_test.go:72: runtime_time_toolchain.go is sha256:211c01f57125ba62115b1ffce5d2479d3c22116d51a41aefcfb1a576e8b393a9 with directives ["gomadSimulationTimeAdvance runtime.gomadSimulationTimeAdvance" "gomadSimulationTimeCurrent runtime.gomadSimulationTimeCurrent" "gomadSimulationTimeTakeArrivals runtime.gomadSimulationTimeTakeArrivals"], which no pinned bridge source matches
+--- FAIL: TestBuiltInSimulationLinknamesPinCurrentFirstPartySources (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/target	0.004s
+FAIL

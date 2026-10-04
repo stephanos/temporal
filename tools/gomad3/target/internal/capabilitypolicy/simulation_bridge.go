@@ -28,8 +28,8 @@ var builtInSimulationLinknames = map[string]Source{
 		LinknameDirectives: []string{"gomadProcessNetworkOperation internal/gomadio.ProcessSimulationNetworkOperation", "gomadProcessVolumeOperation internal/gomadfs.ProcessSimulationVolumeOperation"},
 	},
 	"runtime_time_toolchain.go": {
-		Name: "runtime_time_toolchain.go", SHA256: "sha256:e6402e8fbfc848c7360d19a1b77de93e841d64870ab625433fac8a47de83d23d",
-		LinknameDirectives: []string{"gomadSimulationTimeAdvance runtime.gomadSimulationTimeAdvance", "gomadSimulationTimeTakeArrivals runtime.gomadSimulationTimeTakeArrivals"},
+		Name: "runtime_time_toolchain.go", SHA256: "sha256:211c01f57125ba62115b1ffce5d2479d3c22116d51a41aefcfb1a576e8b393a9",
+		LinknameDirectives: []string{"gomadSimulationTimeAdvance runtime.gomadSimulationTimeAdvance", "gomadSimulationTimeCurrent runtime.gomadSimulationTimeCurrent", "gomadSimulationTimeTakeArrivals runtime.gomadSimulationTimeTakeArrivals"},
 	},
 	"runtime_volume.go": {
 		Name: "runtime_volume.go", SHA256: "sha256:feb0d31fa9c0d7d6a7c85c3aac6d9d12666bbfe94874e6e2077ca4c78b430a0c",

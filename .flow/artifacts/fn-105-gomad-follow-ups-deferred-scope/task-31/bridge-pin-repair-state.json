@@ -1,0 +1,8 @@
+{
+  "task_title": "Prepare exact D26 first-party simulation bridge pin repair in isolated scratch",
+  "task_body": "The integrated D26 runtime_time_toolchain.go adds gomadSimulationTimeCurrent; capabilitypolicy retains the predecessor SHA and two directives, so the existing first-party pin test fails. Reproduce on an isolated archived source tree, rebind only the exact SHA and ordered Current directive, exercise rejection controls, and return a source-bound patch without shared source, Git, or Flow mutations.",
+  "acceptance": "Existing first-party test fails before the change and passes after it; wrong hashes, directive lists, malformed linknames, wrong module/import/main/replaced identity remain rejected. No wildcard, predicate relaxation, generic I/O grant, or native qualification claim. Retain scratch source and logs with hashes for conductor integration.",
+  "touches_count": 2,
+  "has_quick_commands": true,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

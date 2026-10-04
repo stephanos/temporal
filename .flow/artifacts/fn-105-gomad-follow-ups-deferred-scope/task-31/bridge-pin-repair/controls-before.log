@@ -1,0 +1,8 @@
+=== RUN   TestBuiltInSimulationLinknamesRequireExactFirstPartySource
+--- PASS: TestBuiltInSimulationLinknamesRequireExactFirstPartySource (0.00s)
+=== RUN   TestBuiltInSimulationTimeBridgeRequiresExactSource
+    policy_test.go:112: exact first-party simulation time bridge was rejected
+--- FAIL: TestBuiltInSimulationTimeBridgeRequiresExactSource (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/target/internal/capabilitypolicy	0.002s
+FAIL
