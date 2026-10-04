@@ -459,6 +459,22 @@ func (w *pwriter) binary(b *umpirespb.Binary, sc pscope, at *umpirespb.Position)
 	if err != nil {
 		return "", ptype{}, err
 	}
+	// Membership in a list written out, as `phase.in(a, b)` lifts, is one equality per member: P
+	// writes no list as an expression.
+	if list := b.GetRight().GetList(); b.GetOp() == umpirespb.Binary_OP_CONTAINS && list != nil {
+		equals := make([]string, len(list.GetItems()))
+		for i, item := range list.GetItems() {
+			v, _, err := w.expr(item, sc)
+			if err != nil {
+				return "", ptype{}, err
+			}
+			equals[i] = fmt.Sprintf("(%s == %s)", l, v)
+		}
+		if len(equals) == 0 {
+			return "false", boolType, nil
+		}
+		return "(" + strings.Join(equals, " || ") + ")", boolType, nil
+	}
 	r, _, err := w.expr(b.GetRight(), sc)
 	if err != nil {
 		return "", ptype{}, err
