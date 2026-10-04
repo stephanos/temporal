@@ -69,9 +69,9 @@ func localName(ids []string, id string) string {
 	return id
 }
 
-// visitCase visits every name position of the Program and the correlated Contract in the order the
-// Lean traversal does: the Program's instructions, then its evidence declarations, then the
-// correlated Contract field by field. A model value is visited by its definition's name.
+// visitCase visits every name position of the Program and the correlated Contract in a fixed order,
+// which the Case bytes depend on: the Program's instructions, then its evidence declarations, then
+// the correlated Contract field by field. A model value is visited by its definition's name.
 func visitCase(c *testpilotspb.Case, name func(string) string) {
 	for _, e := range c.Program.Entrypoints {
 		for _, n := range e.Instructions {

@@ -10,7 +10,7 @@ import scala.deriving.Mirror
  * the member. A `sync` pairs member actions into one step; a member action no `sync` names steps
  * its member alone.
  *
- * A member is named by a selector of its field, `_.activity -> currentRecord`; `->` pairs the
+ * A member is named by a selector of its field, `_.order -> currentRecord`; `->` pairs the
  * member with its value and never means a transition. The lifter reads the selectors from the
  * source, so what a composition holds here is what its author wrote.
  */
@@ -39,7 +39,7 @@ final class Composition[S <: Product] @publicInBinary private[umpire] (
 
   /**
    * Pairs two members' actions into one step named `name`, each member by its field:
-   * `.sync("dispatch", _.activity -> dispatch, _.queue -> enqueue)`.
+   * `.sync("dispatch", _.order -> dispatch, _.queue -> enqueue)`.
    */
   def sync(
       name: String,
@@ -50,7 +50,7 @@ final class Composition[S <: Product] @publicInBinary private[umpire] (
 
   /**
    * Pairs two members' actions into one step named after the first member's action, each member by
-   * its field: `.sync(_.activity -> dispatch, _.queue -> enqueue)` is the sync `dispatch`. The
+   * its field: `.sync(_.order -> dispatch, _.queue -> enqueue)` is the sync `dispatch`. The
    * lifter reads the name from the action's declaration, so it is empty here.
    */
   def sync(first: S => (Any, Action[?]), second: S => (Any, Action[?])): Composition[S] =
@@ -68,7 +68,7 @@ final class Composition[S <: Product] @publicInBinary private[umpire] (
     copy(replaced = replaced :+ (field -> opaque))
 
   /**
-   * This composition with one member replaced, `currentOverQueue.withMember(_.activity ->
+   * This composition with one member replaced, `currentOverQueue.withMember(_.order ->
    * staleRecord)`: the same syncs, ends and member order, named after the `val` that declares it in
    * the `given Family`. A member that stands in for another machine here stands in for the one its
    * new machine declares it refines; the lifter refuses a new machine of another state type, one that
@@ -79,14 +79,14 @@ final class Composition[S <: Product] @publicInBinary private[umpire] (
     copy(family = family, name = "", withMembers = withMembers :+ member)
 
   /**
-   * The step a sync takes, by one of the member actions it pairs, `c.synced(_.activity -> dispatch)`:
+   * The step a sync takes, by one of the member actions it pairs, `c.synced(_.order -> dispatch)`:
    * a class a Scenario of this composition lists, or the action `whenAction` names. The lifter
    * refuses a member action no sync pairs, or more than one does.
    */
   def synced(move: S => (Any, Class | Action[?])): Composed = Composed(this, move)
 
   /**
-   * A step a member takes alone, `c.own(_.activity, control(Control.pause))`: a class a Scenario of
+   * A step a member takes alone, `c.own(_.order, control(Control.pause))`: a class a Scenario of
    * this composition lists, or the action `whenAction` names. The lifter refuses an action a sync of
    * the member pairs, since that action steps only with its pair.
    */
@@ -100,7 +100,7 @@ final class Composed private[umpire] (val composition: Model, val selected: Any)
 
 /**
  * Starts a composition named after the `val` that declares it, in the `given Family`, over members
- * each named by a selector of the field it fills: `compose[OverQueue](_.activity -> currentRecord,
+ * each named by a selector of the field it fills: `compose[OverQueue](_.order -> currentRecord,
  * _.queue -> dispatchQueue)`.
  */
 inline def compose[S <: Product](members: (S => (Any, Model))*)(using

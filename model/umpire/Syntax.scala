@@ -83,7 +83,7 @@ extension [S, O, F](b: PropertyBuilder[S, O, F])
 final class Once[S, O, F] private[umpire] (b: PropertyBuilder[S, O, F], over: S => Boolean):
   /**
    * The value a step from a state `over` holds of keeps, a field path such as `_.phase` or
-   * `_.activity.phase`. Core form:
+   * `_.order.phase`. Core form:
    * `holdsAcross((before, after) => !over(before) || after.state.phase == before.phase)`.
    */
   def keeps[V](projection: S => V): Property[S] =

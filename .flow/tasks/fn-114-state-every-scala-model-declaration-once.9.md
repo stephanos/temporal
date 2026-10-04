@@ -1,4 +1,4 @@
-# fn-114-state-every-scala-model-declaration-once.9 Rename model/ tool folders so each says what it holds
+# fn-114-state-every-scala-model-declaration-once.9 Rename model/ tool folders and group model/temporal into features/ and shared/
 
 ## Description
 Owner request (2026-10-04): several `model/` folder names do not say what the folder holds. Rename them so a newcomer can tell the role from the path, and keep the behavior byte-identical.
@@ -27,13 +27,24 @@ Owner request (2026-10-04): several `model/` folder names do not say what the fo
 ### Investigation targets
 **Required:** `Makefile:690-760`, `model/.gitignore`, `model/metrics/Metrics.scala`, `model/gate/project.scala`, `model/lifter/project.scala`, `tools/umpire/internal/golden/config.json`, `tools/umpire/model/ownership_test.go`.
 
+### Grouping under model/temporal (owner request, 2026-10-04)
+`model/temporal/` mixes feature Models with shared Temporal parts. Group them in the same rename pass so paths change once:
+
+| Now | New | Package |
+| --- | --- | --- |
+| `model/temporal/{standaloneactivity,nexuscaller,nexusoperation}` | `model/temporal/features/<same>` | `temporal.features.<same>` |
+| `model/temporal/{taskqueue,worker}` (parts the features compose) | `model/temporal/shared/<same>` | `temporal.shared.<same>` |
+| `model/temporal/{capabilities,realize}` | unchanged | unchanged |
+
+Package renames change owner symbols, so keep every Definition ID and IR type name with the existing mechanisms (DefinitionScope pins, the lifter's pinned-file type-name rule) and record the root and path moves in the golden config (append-only). Update `IrFiles.scala` roots, imports, the guard tests, `model/README.md`, `.plans/UMPIRE_MODULES.md` and paths in open Flow tasks/specs.
+
+Name choice for the shared folder: `shared/`. Rejected: `entities/` (features declare entities too), `system/` (taken by the system contract, `SystemFamily` and `activity-system.json`), `components/` (a CHASM term in this repository), `infra/` (reads as deployment infrastructure; the worker is a client process).
 ## Acceptance
 - [ ] `model/lifter`, `model/gate`, `model/metrics` and `model/gen` no longer exist; `model/irgen`, `model/check` and `model/build` replace them with packages `umpire.irgen` and `umpire.check`; source metrics run from `model/check`.
 - [ ] `make umpire-gen-model` reproduces `model/ir/**` and `model/cases/**` byte-identically, and the fn-112.1 original-baseline check passes unchanged.
 - [ ] The model gate, `lint-model` (renamed sub-targets), the Go tooling suite and `make lint-code-fast` pass; CI workflows reference only the new targets and paths.
 - [ ] Live docs and open Flow tasks/specs name only the new paths and "IR generator"; a test fails if an old path is reintroduced.
-
-
+- [ ] Feature Models live under `model/temporal/features/` and the shared task queue and worker under `model/temporal/shared/`, with matching packages; Definition IDs, IR type names, `model/ir/**` and `model/cases/**` are unchanged apart from positions and recorded path/root moves.
 ## Done summary
 TBD
 

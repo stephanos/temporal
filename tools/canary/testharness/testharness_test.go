@@ -16,7 +16,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-// canaryHarnessIdentity is the identity Temporal/Evaluation/CanaryTests.lean pins.
+// canaryHarnessIdentity is the canary harness identity this test pins; changing it is a deliberate
+// profile change.
 const canaryHarnessIdentity = "sha256:cfb6675934e5c89b50748e5d6b37c17fa7608a6bc63b1ca9108b710a654fc860"
 
 func environment(values map[string]string) authority.Lookup {

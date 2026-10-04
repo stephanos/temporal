@@ -10,10 +10,8 @@ import (
 	"strings"
 )
 
-// Canonical encodings and Behavior Fingerprints, byte-compatible with the Lean ones in
-// model0/lean/Umpire/Model/Canonical.lean, Scenario/Check.lean, Property/Check.lean and Query/Check.lean.
-// A fingerprint is "sha256:" and the hex SHA-256 of a domain line and the canonical content
-// (`Umpire.Fingerprint.derive`).
+// Canonical encodings and Behavior Fingerprints. The encodings are frozen: checked-in Cases carry
+// carry fingerprints computed from them, so a byte change is a fingerprint change. A fingerprint is "sha256:" and the hex SHA-256 of a domain line and the canonical content.
 
 // Fingerprint is the Behavior Fingerprint of already-canonical content.
 func Fingerprint(canonical string) string {

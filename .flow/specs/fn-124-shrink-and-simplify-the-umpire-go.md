@@ -1,0 +1,31 @@
+# Shrink and simplify the Umpire Go tooling
+
+## Goal
+
+Make Umpire's Go tooling smaller, plainer and correctly divided, without losing a capability, following the owner's decisions of 2026-10-04 on a Fable-researched audit (code inventory, Run-judging audit, off-the-shelf checker evaluation):
+
+- Keep the bespoke Go checker. Replacing its ~3,000 lines of exploration with TLC, Apalache, Alloy, P or similar needs a 4-6k-line exporter that becomes a trusted second semantics, and export-only would move lowering and judging to the JVM. The remaining ~8,000 lines (IR admission, interpreter, claim binding) are needed by lowering and judging regardless.
+- Delete what is dead or archived, retire migration scaffolding once its migrations close, remove Temporal knowledge and policy duplication from the Run judge, and split `tools/umpire/model` into packages with one reason to change each.
+
+## Requirements
+
+- **R1 Archives.** `tools/umpire0` (frozen Lean-era Go archive, 18.6k prod + 14.3k test lines, compiled in the module but built by no job), `model0` (13 MB Lean/Quint archive) and the empty `tools/umpire/cmd/umpire-gen-lean-api` are deleted; every reference (tests, comments, Makefile, docs) is removed or reworded; git history keeps them.
+- **R2 Checker trims.** The duplicate refinement implementation (`model/machine.go:690-851` `Interpreter.refinement` and helpers, compared against `checker/refine.go` in `checking.go:569-607`) and its plumbing (`Machine.Refinement/Rejected/Transitions` where only the comparison reads them) are removed, keeping a behaviour test of the rule; production APIs with only test callers are removed unless a planned task consumes them (record which).
+- **R3 Temporal facts declared, not coded.** Temporal semantics the Go runtime, lowering and conformance hard-code are declared in the Model's realization or the Case instead: activity-attempt classification (`sdk_attempt == ordinal+1`, one run id; `testpilot/internal/execution/scheduler.go:143-213`, `conformance/evidence.go:411-423`, `guard.go:60`, `assessor.go:346-353`), "a failed start starts nothing" and carrier kinds (`temporal/driver.go:353-371`, `internal/delivery/ledger.go`, `profile.go:297-305`), lost-admission rules (`execution/response_read.go:120-143`), causal-parent inference (`execution/values.go:58-72`), default instruction timeouts (`temporal/profile.go:83-106`), hard-coded history event type names (`execution/evidence.go:18,86-96`, `lower/descriptor.go:23`, `lower/realization.go:141`). Each moved fact has one source: the realization.
+- **R4 Judge policy defined once.** Verdict aggregation (copied in `verification/evaluator.go:486-499`, `execution/recorder.go:397-403`, `recordedrun.go:276-313`, `replay/form.go:29-57`) has one definition; the remaining generic judge rules (silence counts as inconclusive, freeze after violation, deadline-before-transition, disposition precedence, dedup by identity) are written down as the judge's semantics in the Testpilot README and tested there.
+- **R5 Expected outcomes by declared ids.** The generated-Case comparison checks disposition and cleanup expectations declared in `expected_run` (not inferred from "violated"), compares reasons by a declared reason id instead of text suffix, and Go stops repeating reason prose the Scala Queries own.
+- **R6 One judge path.** Model assessment (conformance) is reachable from the command-line judges (`umpire-run`, `umpire-assess`), not only from the live test binary; the Evaluation Profile is generated from Model declarations or retired as a separate judge.
+- **R7 Migration harness retired** once fn-114, fn-120 and fn-122 are closed: `tools/umpire/internal/golden`, original-baseline and migration tests, pin and parity tests that re-check frozen values, the frozen snapshots (`model/testdata/migration` incl. the 19 MB nexus-close snapshot, `lower/testdata/migration` with its duplicate `original/`/`mapped/` trees, `internal/golden/testdata/original`) are removed; behaviour tests that only these harnesses exercised are rewritten against live IR first.
+- **R8 Package split.** `tools/umpire/model` (one flat package mixing four responsibilities, imported as `umpiremodel` at 59 sites) is split by pure moves: `ir/` (load, validate, totals), `interp/` (IR to tables), `check/` (claim binding, Check, receipts, laws; with the engine as `check/internal/engine`), `realization/` (realization/script/guard admission plus the `Realizer`/`Bound` views lowering and conformance use). No behaviour change; the ownership test encodes the new boundaries.
+
+## Ordering
+
+R1 and R2 now. R3 after fn-118 lands (it edits the same waits, timeouts and realization surfaces). R4-R6 after R3. R7 after fn-114, fn-120 and fn-122 close. R8 last, after R2, R7 and fn-118/fn-120, so nothing dead is moved and no in-flight spec edits `model` mid-move.
+
+## Not in scope
+
+The Quint/P second opinion (switching it to `quint verify --backend tlc`, retiring P) is a separate owner decision. The `export/` package stays.
+
+## Verification
+
+Each task: model gate, original-baseline check while it still exists, full Go tooling suite, Testpilot tests, `lint-code-fast`, and `make umpire-check-cases` (Case bytes unchanged unless a task declares a change). R3-R6 also run the live generated Cases once.

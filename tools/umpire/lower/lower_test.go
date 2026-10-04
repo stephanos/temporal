@@ -247,14 +247,14 @@ var offPathKinds = map[string][]string{
 	"startToCloseTimeout":    {"completed", "failed", "canceled"},
 }
 
-// The Scala Model and its realization say what the comparative Go Model and model0/go/nexuscaller's
-// realization say, but for one declaration: the Scala realization declares the five history kinds
-// exhaustive (Realization.scala, historySource), which the comparative realization, a port of the Lean
-// one, does not. So the Case lowered from the IR is the Case model0/go produces from the comparative
-// Model once its realization is given that declaration, and it differs from the comparative Model's
-// own Case in exactly what the declaration adds: the history kinds off the path, each declared, lifted
-// by the history read and given no meaning in the Contract, with the projection's fingerprint and the
-// Case's own names that follow from them.
+// The Scala Model and its realization say what the comparative Go Model and its realization say, but
+// for one declaration: the Scala realization declares the five history kinds exhaustive
+// (Realization.scala, historySource), which the comparative realization, a port of the Lean one, does
+// not. So the Case lowered from the IR is the Case the comparative Model produces once its realization
+// is given that declaration, and it differs from the comparative Model's own Case in exactly what the
+// declaration adds: the history kinds off the path, each declared, lifted by the history read and
+// given no meaning in the Contract, with the projection's fingerprint and the Case's own names that
+// follow from them.
 //
 // The provenance also says where the Model was written, and the comparative Model names its Lean
 // counterpart where the IR names the Scala file, which is not behaviour. The test gives the comparative

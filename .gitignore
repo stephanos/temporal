@@ -35,9 +35,6 @@
 # Goreleaser
 /dist
 
-# Lake build output for the offline Lean model
-/model0/lean/.lake/
-
 # direnv
 .envrc
 

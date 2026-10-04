@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-04T20:02:38.305078Z",
+  "depends_on": [],
+  "id": "fn-124-shrink-and-simplify-the-umpire-go.7",
+  "priority": null,
+  "spec": "fn-124-shrink-and-simplify-the-umpire-go",
+  "spec_path": ".flow/tasks/fn-124-shrink-and-simplify-the-umpire-go.7.md",
+  "status": "todo",
+  "title": "Retire the migration harness and frozen snapshots",
+  "updated_at": "2026-10-04T20:03:30.363360Z"
+}

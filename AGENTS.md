@@ -5,7 +5,7 @@ Before starting the implementation of any request, you MUST REVIEW the following
 
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Model:** The behavior model is written in Scala under `model/` and checked by its gate, `make umpire-check-model`. Before any task involving it, read [model/README.md](model/README.md) and [model/SEMANTICS.md](model/SEMANTICS.md). After changing a Model, run `make umpire-gen-model` and review the diff of `model/ir` and `model/cases`.
-- **Umpire:** Before any task involving Umpire code (`model/`, `tools/umpire/`, `common/testing/testpilot/`, `tools/canary/`), read and follow [UMPIRE4 Spec](.plans/UMPIRE4_SPEC.md) and the [module map](.plans/UMPIRE_MODULES.md), which states each module's job, public interface and permitted imports.
+- **Umpire:** Before any task involving Umpire code (`model/`, `tools/umpire/`, `common/testing/testpilot/`, `tools/canary/`), read and follow [UMPIRE4 Spec](.plans/UMPIRE4_SPEC.md), the high-level architecture and its rules in [UMPIRE4 Vision](.plans/UMPIRE4_VISION.md#high-level-architecture), and the [module map](.plans/UMPIRE_MODULES.md), which states each module's job, public interface and permitted imports.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, and 'go.mod') before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
 - **Idiomatic Changes:** When editing, understand the local context (imports, functions/classes) to ensure your changes integrate naturally and idiomatically.
@@ -160,6 +160,8 @@ fast scout: claude-opus-5-5 at low
 
 thinking scout: claude-opus-5-5 at high
 
+research: claude-fable-5-1 at high
+
 ### Codex
 
 reviewer: gpt-6.1-sol at high
@@ -169,6 +171,13 @@ implementer: gpt-6.1-sol at high
 fast scout: gpt-6-luna at low
 
 thinking scout: gpt-6.1-sol at high
+
+research: gpt-6-astra at high
+
+`research` is investigation that ends in a report rather than a change or a decision: surveys of
+the codebase, audits, tool and literature evaluations, web research. It always uses the research
+model above, never the thinking scout; spec writing, task breakdown and design decisions stay with the
+thinking scout.
 
 Demanding tasks include ambiguous work or changes with a large blast radius.
 Explicit invocation instructions take precedence over the matching section,

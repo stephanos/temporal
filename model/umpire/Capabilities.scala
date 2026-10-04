@@ -8,70 +8,19 @@
  * expanded into the law sidecar beside the IR file. A function-valued field names a def of the lifted
  * sources, never a lambda, as a shared def's function-valued argument does.
  *
+ * The framework names no capability: a feature kit declares its kinds and laws (model/umpire/Catalog.scala).
  * Everything here is core: it declares what the IR and the sidecar need.
  */
 package umpire
 
-import umpire.laws.{Capability, Catalog, Law}
-import umpire.realize.{RunExpectation, StatusTable}
-
 /**
  * A capability of a machine whose steps are `Step[S, O, F]`: a predicate of another state type, an
- * outcome of another type or a fact of another type does not compile.
+ * outcome of another type or a fact of another type does not compile. A feature kit declares each
+ * capability as a case class whose companion is its `CapabilityKind`. The lifter reads a field of
+ * an action class as an action the machine must bind, a list of them as the path to a live state a
+ * functional law's find starts from, and a `RunExpectation` as the Run that find expects.
  */
-sealed trait CapabilityOf[S, +O, +F]:
-  def kind: Capability
-
-/**
- * The entity has a terminal status set: `status` reads a state's status, `terminal` says which
- * statuses close it, and a closed entity answers `rejected`.
- */
-final case class Closable[S, P, O](status: S => P, terminal: P => Boolean, rejected: O)
-    extends CapabilityOf[S, O, Nothing]:
-  def kind: Capability = Capability.Closable
-
-/**
- * The entity can be terminated by `terminate`, which records `settled`; `reach` is the path to a live
- * state the functional laws start from, and `expect` the Run their find Queries expect of a server.
- */
-final case class Terminable[S, F](
-    terminate: ClassRef,
-    settled: F,
-    reach: Seq[ClassRef],
-    expect: RunExpectation
-) extends CapabilityOf[S, Nothing, F]:
-  def kind: Capability = Capability.Terminable
-
-/** The entity can be paused by `pause` and unpaused by `unpause`; `paused` says where it is. */
-final case class Pausable[S](
-    pause: ClassRef | Composed,
-    unpause: ClassRef | Composed,
-    paused: S => Boolean
-) extends CapabilityOf[S, Nothing, Nothing]:
-  def kind: Capability = Capability.Pausable
-
-/**
- * A cancel of the entity is requested by `requestCancel`, which records `requested`; `reach` is the
- * path to a live state the functional laws start from, and `expect` the Run their find Queries
- * expect of a server.
- */
-final case class Cancelable[S, F](
-    requestCancel: ClassRef,
-    requested: F,
-    reach: Seq[ClassRef],
-    expect: RunExpectation
-) extends CapabilityOf[S, Nothing, F]:
-  def kind: Capability = Capability.Cancelable
-
-/** The entity's work is handed out by polling, `dispatch`; `running` says where a worker holds it. */
-final case class Pollable[S](dispatch: ClassRef | Composed, running: S => Boolean)
-    extends CapabilityOf[S, Nothing, Nothing]:
-  def kind: Capability = Capability.Pollable
-
-/** The entity is described by `status`, the realization's table from each fact to the status read. */
-final case class Describable[S, V](status: StatusTable[V])
-    extends CapabilityOf[S, Nothing, Nothing]:
-  def kind: Capability = Capability.Describable
+trait CapabilityOf[S, +O, +F]
 
 /** A law a declaration waives, with the reason: lifted not at all, or as the entity's own def. */
 enum Waiver:

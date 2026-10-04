@@ -75,6 +75,7 @@ production dispatch fails closed.
 | alongside 1 | fn-121 | Shard generated Cases per Case in CI, with HSM/CHASM per Nexus Case | tasks 1-2 done and merged (each Case is its own shard unit, names pinned by a golden); task 3 needs GitHub CI |
 | after 1 | fn-120 rollout and tools | Refuse unnamed branches; add model lint (specification holes, coverage summary) and the IR explorer | fn-114 |
 | after 1 | fn-118 behavior | Derive generated-test waits from API hints, as a separate behavioral change | fn-114 |
+| alongside | fn-124 | Cleanup: delete archives, trim the checker, make the Run judge declare-only, retire the migration harness, split the model package | tasks 1-2 now; 3 after fn-118; 7 after fn-114/120/122 close; 8 last |
 | last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
 
 fn-112 (the standalone activity DSL showcase) is closed: the feature is 1,567 lines and 54 string literals
@@ -116,7 +117,9 @@ with one lifter run writing all of them. Every Model folder gets the same file n
 activity, and no `Claims.scala` remains. The Temporal realization vocabulary leaves the framework for `model/temporal/realize` behind a guard test
 (fn-114.12), type annotations the compiler and lifter do not need are dropped from the Models (fn-114.11), lifter fixtures that copy live Model text shrink to minimal fixture-local Models (fn-114.10), and a final rename (fn-114.9, owner request 2026-10-04) gives the tool folders
 names that say what they hold: `model/lifter` becomes `model/irgen`, `model/gate` becomes `model/check`
-(absorbing `model/metrics`), and the `model/gen` build cache becomes `model/build`.
+(absorbing `model/metrics`), and the `model/gen` build cache becomes `model/build`. The same pass groups `model/temporal` into `features/`
+(standalone activity, Nexus caller, Nexus operation) and `shared/` (task queue, worker) beside `capabilities/` and
+`realize/`.
 
 
 Task 1 is done: each Model folder declares its IR files in Scala (`val x = irFile("name")(roots...)` in
@@ -207,3 +210,14 @@ capability or law; the six kinds, every law with its citations and the catalog l
 (law lint kinds) waits for fn-120.3's model lint and accepted-findings file, so tasks 6 and 7 wait too.
 The Testpilot Driver can reserve a Nexus handler only through a workflow or activity start, so the handler paths
 are modeled and verified but have no live Case.
+
+### fn-124: Shrink and simplify the Umpire Go tooling
+
+A cleanup spec from the 2026-10-04 audit. The bespoke Go checker stays: off-the-shelf checkers would need a larger
+exporter than the ~3,000 lines of exploration they could replace, and the interpreter, admission and claim binding
+serve lowering and judging anyway. The spec deletes the `tools/umpire0` and `model0` archives (~33k Go lines, 13 MB),
+removes the duplicate refinement implementation and test-only APIs, moves the Temporal knowledge the Run judge
+hard-codes (attempt rules, start carriers, lost admissions, causal parents, default timeouts, history event names) into
+realization declarations, defines verdict aggregation once, compares expected outcomes by declared ids, makes Model
+assessment the command-line judge, retires the migration harness once fn-114, fn-120 and fn-122 close (~8k lines,
+~26 MB), and splits `tools/umpire/model` into `ir/`, `interp/`, `check/` and `realization/`.

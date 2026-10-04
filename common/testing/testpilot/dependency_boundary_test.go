@@ -311,10 +311,8 @@ func forbiddenTestpilotDependency(importPath string) bool {
 	for _, prefix := range []string{
 		"go.temporal.io/server/tests",
 		"go.temporal.io/server/tools/umpire",
-		"go.temporal.io/server/tools/umpire0",
 		"go.temporal.io/server/tools/canary",
 		"go.temporal.io/server/model",
-		"go.temporal.io/server/model0",
 		"go.temporal.io/server/api/umpire",
 	} {
 		if hasImportPrefix(importPath, prefix) {
@@ -349,8 +347,7 @@ func TestTestpilotHelperDriverBoundary(t *testing.T) {
 		{"prepare.go", driver + "/binding", false},
 		{"campaign/run.go", "go.temporal.io/server/tools/umpire/model", false},
 		{"replay/report.go", "go.temporal.io/server/tools/umpire/replay", false},
-		{"temporal/binding/binding.go", "go.temporal.io/server/model0/go/umpire", false},
-		{"temporal/binding/binding.go", "go.temporal.io/server/tools/umpire0/binding", false},
+		{"temporal/binding/binding.go", "go.temporal.io/server/model/go/umpire", false},
 		{"replay/driver_test.go", "go.temporal.io/server/api/umpire/v1", false},
 	} {
 		t.Run(test.file+":"+test.dependency, func(t *testing.T) {

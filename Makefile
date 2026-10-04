@@ -652,6 +652,22 @@ canary-check-case:
 # pin their tools and fail when one is missing; the pins are in tools/umpire/export/tools_test.go.
 # UMPIRE_BACKEND_TOOLS names where P and .NET are installed, UMPIRE_BACKENDS_OUT a directory that
 # keeps every export, dump and report. Run from the package's directory, the receipts are printed.
+# Installs the pinned .NET SDK and P into UMPIRE_BACKEND_TOOLS (default .build/umpire-backend-tools),
+# as tools/umpire/export/README.md describes; Quint runs from npm's cache and needs no install. Rerunning
+# is a no-op once both are present. Nothing goes into mise.toml.
+UMPIRE_BACKEND_TOOLS ?= .build/umpire-backend-tools
+.PHONY: umpire-install-backends
+umpire-install-backends:
+	@printf $(COLOR) "Install .NET 8 and P 3.1.0 for the backend agreement..."
+	@if [ ! -x "$(UMPIRE_BACKEND_TOOLS)/dotnet/dotnet" ]; then \
+		curl -sSL https://dot.net/v1/dotnet-install.sh | bash -s -- --version 8.0.425 --install-dir "$(UMPIRE_BACKEND_TOOLS)/dotnet"; \
+	fi
+	@if [ ! -x "$(UMPIRE_BACKEND_TOOLS)/p/p" ]; then \
+		DOTNET_ROOT="$(CURDIR)/$(UMPIRE_BACKEND_TOOLS)/dotnet" DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+			"$(UMPIRE_BACKEND_TOOLS)/dotnet/dotnet" tool install P --version 3.1.0 --tool-path "$(UMPIRE_BACKEND_TOOLS)/p"; \
+	fi
+	@DOTNET_ROOT="$(CURDIR)/$(UMPIRE_BACKEND_TOOLS)/dotnet" "$(UMPIRE_BACKEND_TOOLS)/p/p" --version | head -1
+
 umpire-check-backends:
 	@UMPIRE_BACKENDS=require CC="$${CC:-/usr/bin/clang}" mise exec -- go test -C ./tools/umpire/export -count=1 -timeout 30m -tags test_dep
 
