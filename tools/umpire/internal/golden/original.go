@@ -64,7 +64,9 @@ var originalTrees = map[string]string{
 // refuses a field it does not name.
 type Delta struct {
 	// InertFields are IR fields, by full protobuf name, that the baseline never sets and that carry
-	// metadata no table, ID, fingerprint, answer or Case reads: Query.total, named-choice names.
+	// metadata no table, ID, fingerprint, answer or Case reads: Query.total, named-choice names. A
+	// realization's required settings are listed too: no table, ID, fingerprint or answer reads them,
+	// and the Cases that carry them are compared on their own as new Cases.
 	InertFields []string `json:"inert_fields"`
 	// Attachments are the entity attachments of fn-112's R20 task-queue entity. Each sets one field the
 	// baseline left empty, so whatever reads it is derived again from the baseline plus the attachment.

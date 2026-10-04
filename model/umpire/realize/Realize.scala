@@ -32,8 +32,17 @@ final case class Realization(
     observations: Vector[Observed] = Vector.empty,
     evidence: Vector[Evidence | EvidenceRef[?, ?] | TypedEvidence[?]] = Vector.empty,
     controls: Vector[Actuator] = Vector.empty,
-    cleanup: String = ""
+    cleanup: String = "",
+    requiredSettings: Vector[RequiredSetting] = Vector.empty
 )
+
+/**
+ * A dynamic-configuration setting the realized system must run under, such as the flag that
+ * enables a feature: its key and value as the server's dynamic configuration spells them. A Case
+ * lowered through the realization carries it, and preparation refuses an environment that sets it
+ * otherwise.
+ */
+final case class RequiredSetting(key: String, value: String)
 
 enum RoleKind:
   case endpoint, worker, taskQueue, participant

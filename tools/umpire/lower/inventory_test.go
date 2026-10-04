@@ -37,7 +37,12 @@ func declared(t *testing.T, m *umpirespb.Model, r *umpirespb.Realization) [][2]s
 			list := message.Get(f).List()
 			for j := range list.Len() {
 				element := list.Get(j).Message()
-				out = append(out, [2]string{name, element.Get(element.Descriptor().Fields().ByName("id")).String()})
+				id := element.Descriptor().Fields().ByName("id")
+				if id == nil {
+					// A required setting is named by its key.
+					id = element.Descriptor().Fields().ByName("key")
+				}
+				out = append(out, [2]string{name, element.Get(id).String()})
 			}
 		case f.Kind() == protoreflect.MessageKind:
 			inner := message.Get(f).Message()
@@ -273,6 +278,58 @@ func TestAnInventoryThatDoesNotCloseIsAnError(t *testing.T) {
 			controller := c.GetProgram().GetEntrypoints()[0]
 			controller.Instructions = controller.GetInstructions()[:len(controller.GetInstructions())-1]
 		}, "evidence temporal.nexus.caller.evidence.started is exhaustive, and the Case carries no controller/history to close it"},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			changed := proto.CloneOf(produced)
+			c.change(changed)
+			_, err := l.inventory(changed)
+			require.ErrorContains(t, err, c.want)
+		})
+	}
+}
+
+// A realization's required settings are the Program's, in the order declared and with the values
+// declared, each one entry of the inventory; a Case that carries one otherwise, or one more, does not
+// close.
+func TestTheRequiredSettingsAreTheProgramsAsDeclared(t *testing.T) {
+	m := loaded(t, "nexus-caller")
+	settings := []*umpirespb.RequiredSetting{{Key: "b.second", Value: "true"}, {Key: "a.first", Value: "1"}}
+	m.GetRealizations()[0].RequiredSettings = settings
+	p, err := NewProducer(m)
+	require.NoError(t, err)
+	lowered, err := p.Lower("syncCompletion", nexusIdentity("syncCompletion"))
+	require.NoError(t, err)
+	carried := lowered.Case.GetProgram().GetRequiredSettings()
+	require.Len(t, carried, len(settings))
+	for i, s := range settings {
+		require.Equal(t, [2]string{s.GetKey(), s.GetValue()}, [2]string{carried[i].GetKey(), carried[i].GetValue()})
+	}
+	as := map[string][]string{}
+	for _, e := range lowered.Inventory {
+		if e.Kind == "required_settings" {
+			require.Equal(t, InCase, e.Disposition)
+			as[e.ID] = e.As
+		}
+	}
+	require.Equal(t, map[string][]string{"b.second": {"program.required_settings[b.second]"}, "a.first": {"program.required_settings[a.first]"}}, as)
+	got := declared(t, m, m.GetRealizations()[0])
+	require.Contains(t, got, [2]string{"required_settings", "b.second"})
+
+	l, produced := ready(t, m, "syncCompletion")
+	for _, c := range []struct {
+		name   string
+		change func(c *testpilotspb.Case)
+		want   string
+	}{
+		{"another value", func(c *testpilotspb.Case) { c.GetProgram().GetRequiredSettings()[0].Value = "false" },
+			`required_settings b.second of realization asyncNexus is "b.second=true", and the Case's program.required_settings[b.second] carries "b.second=false"`},
+		{"another order", func(c *testpilotspb.Case) { slices.Reverse(c.GetProgram().GetRequiredSettings()) },
+			`required_settings b.second of realization asyncNexus is "b.second=true", and the Case's program.required_settings[b.second] carries "a.first=1"`},
+		{"one missing", func(c *testpilotspb.Case) { c.GetProgram().RequiredSettings = c.GetProgram().GetRequiredSettings()[:1] },
+			`required_settings a.first of realization asyncNexus is "a.first=1", and the Case's program.required_settings[a.first] carries ""`},
+		{"one more", func(c *testpilotspb.Case) {
+			c.GetProgram().RequiredSettings = append(c.GetProgram().RequiredSettings, &testpilotspb.RequiredSetting{Key: "stray", Value: "1"})
+		}, "carries program.required_settings[stray], which no declaration of realization asyncNexus accounts for"},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			changed := proto.CloneOf(produced)

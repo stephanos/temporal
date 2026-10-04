@@ -4,8 +4,11 @@ package tests
 
 import (
 	"errors"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -140,16 +143,66 @@ func runGeneratedCases(t *testing.T, env *testcore.TestEnv, fixture *testpilotco
 	return results
 }
 
+// requiredSettingOptions is the typed setting of each dynamic-configuration key a generated Case may
+// require, by its lower-case key, as the server reads the key. dynamicconfig has no public lookup
+// from a key to its setting, so a Case that requires a key missing here fails the suite rather than
+// running against a server that does not set it.
+var requiredSettingOptions = map[string]func(value string) (testcore.TestOption, error){
+	strings.ToLower(nexusoperation.Enabled.Key().String()): boolSettingOption(nexusoperation.Enabled),
+}
+
+func boolSettingOption(setting dynamicconfig.GenericSetting) func(string) (testcore.TestOption, error) {
+	return func(value string) (testcore.TestOption, error) {
+		parsed, err := strconv.ParseBool(value)
+		if err != nil {
+			return nil, err
+		}
+		return testcore.WithDynamicConfig(setting, parsed), nil
+	}
+}
+
+// generatedRequiredSettings is the union of the settings the lowered Cases require, by lower-case
+// key: one environment runs them all, so two Cases that require one key at two values fail the suite.
+func generatedRequiredSettings(t *testing.T, entries []lower.GeneratedCase) map[string]string {
+	t.Helper()
+	settings := map[string]string{}
+	for _, entry := range entries {
+		if entry.Standing != lower.Lowered {
+			continue
+		}
+		encoded, err := os.ReadFile(filepath.Join(generatedCaseDirectory, entry.File))
+		require.NoError(t, err)
+		source, err := testpilot.DecodeCaseProtoJSON(encoded)
+		require.NoError(t, err)
+		for _, setting := range source.GetProgram().GetRequiredSettings() {
+			key := strings.ToLower(setting.GetKey())
+			if previous, ok := settings[key]; ok {
+				require.Equal(t, previous, setting.GetValue(), "%s requires %s at another value than an earlier Case", entry.File, setting.GetKey())
+			}
+			settings[key] = setting.GetValue()
+		}
+	}
+	return settings
+}
+
 func TestTestpilotGeneratedCases(t *testing.T) {
 	entries, err := testpilotcore.GeneratedCases(generatedCaseDirectory)
 	require.NoError(t, err)
+	required := generatedRequiredSettings(t, entries)
 	for _, value := range testpilotcore.NexusImplementationSwitch() {
 		t.Run(value.Name, func(t *testing.T) {
 			options := []testcore.TestOption{
 				testcore.WithDynamicConfig(activity.Enabled, true),
 				testcore.WithDynamicConfig(activity.EnableStandaloneActivityOperatorCommands, true),
-				// The standalone Nexus operation Model's Cases (fn-122.4).
-				testcore.WithDynamicConfig(nexusoperation.Enabled, true),
+			}
+			// The server runs under every setting a Case requires, and the derived Profile records each,
+			// so preparation checks a Case against what the server actually runs with.
+			for _, key := range slices.Sorted(maps.Keys(required)) {
+				option, ok := requiredSettingOptions[key]
+				require.True(t, ok, "a generated Case requires %s, which the suite cannot set", key)
+				applied, err := option(required[key])
+				require.NoError(t, err, "a generated Case requires %s=%s", key, required[key])
+				options = append(options, applied)
 			}
 			for _, setting := range value.Settings {
 				options = append(options, testcore.WithDynamicConfig(setting.Setting, setting.Value))
@@ -179,6 +232,7 @@ func TestTestpilotGeneratedCases(t *testing.T) {
 						binding.CreateEndpoint = bindsNexusEndpoint(fixture.Source)
 						binding.DynamicConfig = value.Configuration()
 						binding.DynamicConfig[dynamicconfig.EnableChasm.Key().String()] = "true"
+						maps.Copy(binding.DynamicConfig, required)
 						catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
 						require.NoError(t, err)
 						handlerQueue := ""
@@ -188,6 +242,7 @@ func TestTestpilotGeneratedCases(t *testing.T) {
 						profile, err := testpilotdriver.DeriveProfile(fixture.Source, catalog, testpilotdriver.Environment{
 							Identity: binding.Identity, Namespace: binding.Namespace, TaskQueue: binding.TaskQueue,
 							HandlerTaskQueue: handlerQueue, NexusEndpoint: binding.NexusEndpoint, DeliveryControl: needsHold,
+							DynamicConfig: binding.DynamicConfig,
 						})
 						require.NoError(t, err)
 						if _, err := testpilot.Prepare(fixture.Source, profile); err != nil {

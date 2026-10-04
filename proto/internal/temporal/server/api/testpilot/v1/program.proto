@@ -19,6 +19,16 @@ message Program {
   Cleanup cleanup = 6;
   // The kinds of correlated evidence the Program lifts, each declared once.
   repeated EvidenceDeclaration evidence = 7;
+  // The dynamic-configuration settings the Program requires of the environment it runs in.
+  // Preparation refuses a Profile whose configuration lacks one or sets it to another value.
+  repeated RequiredSetting required_settings = 8;
+}
+
+// A dynamic-configuration setting a Program requires: its key and its value, each spelled as the
+// environment's dynamic configuration spells it.
+message RequiredSetting {
+  string key = 1;
+  string value = 2;
 }
 
 // EvidenceDeclaration declares one kind of correlated evidence once: the recorded data it is read

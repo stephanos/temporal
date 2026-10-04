@@ -46,6 +46,9 @@ object OperationRealization:
 
   /** The service and operation the start names, which no handler of the Case answers. */
   private val service = "umpire-case-service"
+
+  /** nexusoperation.Enabled's key (chasm/lib/nexusoperation/config.go). */
+  private val settingKey = "nexusoperation.enableStandalone"
   private val operationName = "complete"
 
   /** The start, under the run's id, of an operation the Case's endpoint names and no handler answers. */
@@ -79,6 +82,13 @@ object OperationRealization:
     onPath(terminate)(awaitTerminated)
   )
 
+  /**
+   * The frontend serves the standalone operation only with its flag on
+   * (chasm/lib/nexusoperation/frontend.go isStandaloneNexusOperationEnabled); a Case is refused at
+   * preparation in an environment that leaves it off.
+   */
+  private val standaloneEnabled = RequiredSetting(key = settingKey, value = "true")
+
   /** One standalone operation a controller starts on the Case's endpoint. */
   val standalone: Realization = temporalRealization(
     machine = nexusOperation,
@@ -89,5 +99,6 @@ object OperationRealization:
       answered(OperationFact.statusScheduled, startOperation),
       answered(OperationFact.statusCancelRequested, requestCancelOperation),
       status(OperationFact.statusTerminated)
-    )
+    ),
+    requiredSettings = Vector(standaloneEnabled)
   )

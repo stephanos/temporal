@@ -738,6 +738,13 @@ reads the status it polls for from that table. The table is the realization-side
 `Describable` status map of [.plans/SEMANTIC_PROTOCOLS.md](../.plans/SEMANTIC_PROTOCOLS.md); the
 lifter reads it when it lifts, and it adds nothing to the IR.
 
+A realization whose system serves the feature only behind a flag says so,
+`requiredSettings = Vector(RequiredSetting(key, value))`, the key and value as the server's dynamic
+configuration spells them (the standalone Nexus operation's `nexusoperation.enableStandalone`). A
+Case lowered through it carries them, Testpilot's preparation refuses a Profile whose dynamic
+configuration lacks one or sets it otherwise, naming the setting, and the live suite applies each
+Case's settings to the server it starts.
+
 ### Naming protobuf data in a Model
 
 Actions name message types, and realizations use generated unary method constants and typed field

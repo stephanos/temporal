@@ -19,7 +19,7 @@ func (p *production) assembleProgram(rules []EvidenceRule) (*testpilotspb.Progra
 		a.stated = append(a.stated, stated)
 	}
 	program := &testpilotspb.Program{ProgramId: p.identity.ProgramID, Roles: p.r.Plan.Roles,
-		Observations: p.r.Plan.Observations, Cleanup: p.r.Plan.Cleanup}
+		Observations: p.r.Plan.Observations, Cleanup: p.r.Plan.Cleanup, RequiredSettings: p.r.Plan.RequiredSettings}
 	program.Slots = append(program.Slots, p.r.Plan.Slots...)
 	if p.r.Plan.InstanceSlots != nil {
 		program.Slots = append(program.Slots, p.r.Plan.InstanceSlots(a.placement)...)

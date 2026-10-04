@@ -441,7 +441,8 @@
       }
     ],
     "inert_fields": [
-      "temporal.server.api.umpire.v1.Query.total"
+      "temporal.server.api.umpire.v1.Query.total",
+      "temporal.server.api.umpire.v1.Realization.required_settings"
     ],
     "projected_case_ids": [
       "exploration"

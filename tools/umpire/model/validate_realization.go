@@ -70,6 +70,7 @@ func (v *validator) realization(r *umpirespb.Realization) {
 		a.report(at, "it names no producer")
 	}
 	a.declarations()
+	a.requiredSettings()
 	a.correlation()
 	for _, s := range r.GetScripts() {
 		a.script(mm, s)
@@ -268,6 +269,21 @@ func (a *realizing) declarations() {
 		a.evidenceKind(e)
 	}
 	a.controlDeclarations()
+}
+
+// requiredSettings checks that each required setting names a key and a value, and that no key is
+// required twice: a dynamic-configuration key is read case-insensitively, so neither is a respelling.
+func (a *realizing) requiredSettings() {
+	required := map[string]bool{}
+	for _, s := range a.r.GetRequiredSettings() {
+		key := strings.ToLower(s.GetKey())
+		if s.GetKey() == "" || s.GetValue() == "" {
+			a.report(a.r.GetPosition(), "a required setting names no key or no value")
+		} else if required[key] {
+			a.report(a.r.GetPosition(), "it requires setting %s twice", s.GetKey())
+		}
+		required[key] = true
+	}
 }
 
 func (a *realizing) controlDeclarations() {

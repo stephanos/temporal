@@ -2938,7 +2938,7 @@
     "name": "standalone",
     "position": {
       "file": "model/temporal/nexusoperation/Realization.scala",
-      "line": 83
+      "line": 93
     },
     "machine": "nexusOperation",
     "producer": "temporal.nexusoperation.standalone.testpilot",
@@ -3125,12 +3125,12 @@
       "items": [ {
         "position": {
           "file": "model/temporal/nexusoperation/Realization.scala",
-          "line": 76
+          "line": 79
         },
         "performs": [ {
           "position": {
             "file": "model/temporal/nexusoperation/Realization.scala",
-            "line": 76
+            "line": 79
           },
           "step": {
             "action": "temporal.nexusoperation.Model$package$.start"
@@ -3139,7 +3139,7 @@
             "id": "start-operation",
             "position": {
               "file": "model/temporal/nexusoperation/Realization.scala",
-              "line": 52
+              "line": 55
             },
             "rpc": {
               "role": "temporal.workflow-service",
@@ -3176,7 +3176,7 @@
                 "value": {
                   "position": {
                     "file": "model/temporal/nexusoperation/Realization.scala",
-                    "line": 56
+                    "line": 59
                   },
                   "literal": {
                     "text": "umpire-case-service"
@@ -3187,7 +3187,7 @@
                 "value": {
                   "position": {
                     "file": "model/temporal/nexusoperation/Realization.scala",
-                    "line": 57
+                    "line": 60
                   },
                   "literal": {
                     "text": "complete"
@@ -3209,12 +3209,12 @@
       }, {
         "position": {
           "file": "model/temporal/nexusoperation/Realization.scala",
-          "line": 77
+          "line": 80
         },
         "performs": [ {
           "position": {
             "file": "model/temporal/nexusoperation/Realization.scala",
-            "line": 77
+            "line": 80
           },
           "step": {
             "action": "temporal.nexusoperation.Model$package$.requestCancel"
@@ -3223,7 +3223,7 @@
             "id": "request-cancel-operation",
             "position": {
               "file": "model/temporal/nexusoperation/Realization.scala",
-              "line": 61
+              "line": 64
             },
             "rpc": {
               "role": "temporal.workflow-service",
@@ -3262,12 +3262,12 @@
       }, {
         "position": {
           "file": "model/temporal/nexusoperation/Realization.scala",
-          "line": 78
+          "line": 81
         },
         "performs": [ {
           "position": {
             "file": "model/temporal/nexusoperation/Realization.scala",
-            "line": 78
+            "line": 81
           },
           "step": {
             "action": "temporal.nexusoperation.Model$package$.terminate"
@@ -3276,7 +3276,7 @@
             "id": "terminate-operation",
             "position": {
               "file": "model/temporal/nexusoperation/Realization.scala",
-              "line": 67
+              "line": 70
             },
             "rpc": {
               "role": "temporal.workflow-service",
@@ -3315,7 +3315,7 @@
       }, {
         "position": {
           "file": "model/temporal/nexusoperation/Realization.scala",
-          "line": 79
+          "line": 82
         },
         "command": {
           "id": "await-terminated",
@@ -3386,6 +3386,10 @@
         } ]
       } ]
     } ],
-    "cleanup": "cleanup"
+    "cleanup": "cleanup",
+    "requiredSettings": [ {
+      "key": "nexusoperation.enableStandalone",
+      "value": "true"
+    } ]
   } ]
 }
