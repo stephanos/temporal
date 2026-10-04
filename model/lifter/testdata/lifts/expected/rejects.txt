@@ -94,3 +94,9 @@ lift: model/lifter/testdata/lifts/Rejects.scala:587: withMember names spare, whi
 lift: model/lifter/testdata/lifts/Rejects.scala:592: left of standIn stands in for first, and oneStart refines no machine: declare the machine it stands in for with `refines` in oneStart
 lift: model/lifter/testdata/lifts/Rejects.scala:597: tapLamp binds no action flip, which sync flipBoth of flipPair pairs for left: a member's new machine binds the actions its syncs pair
 lift: model/lifter/testdata/lifts/Rejects.scala:294: fixture.rejects.Self$ pins its Definition IDs to itself, which changes none of them: pin an owner only where its declarations came from another
+lift: model/lifter/testdata/lifts/ScriptRejects.scala:88: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.standaloneactivity.Inputs.scheduleToStart is no field of the request
+lift: model/lifter/testdata/lifts/ScriptRejects.scala:41: onPath names at least one class whose path carries the command
+lift: model/lifter/testdata/lifts/ScriptRejects.scala:38: perform names at least one class it binds
+lift: model/lifter/testdata/lifts/ScriptRejects.scala:47: the status table lists statusPaused twice
+lift: model/lifter/testdata/lifts/ScriptRejects.scala:71: the status table lists no statusCompleted: add `statusCompleted -> value` to it
+lift: model/lifter/testdata/lifts/ScriptRejects.scala:35: a command is named after the val that declares it: declare it as a val and refer to it by value

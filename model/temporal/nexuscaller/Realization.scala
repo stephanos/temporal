@@ -16,6 +16,21 @@ package nexuscaller
 
 import umpire.*
 import umpire.realize.*
+import temporal.realize.{
+  caseWorker,
+  correlated,
+  correlatedEvidence,
+  deadlineSeconds,
+  handlerTaskQueue,
+  nexusEndpoint,
+  perCase,
+  run,
+  taskQueue,
+  taskQueueName,
+  temporalRealization,
+  workerNamespace,
+  workflowService
+}
 import umpire.realize.Instruction.*
 import umpire.realize.Operand.*
 import umpire.realize.ProtoValue.*
@@ -31,35 +46,20 @@ import io.temporal.api.enums.v1.{
 }
 import io.temporal.api.failure.v1.{ApplicationFailureInfo, Failure as ApiFailure}
 import io.temporal.api.nexus.v1.{Failure as NexusFailure, HandlerError, StartOperationResponse}
-import temporal.server.api.testpilot.v1.CorrelatedEvidence
 import io.grpc.MethodDescriptor
 import scalapb.GeneratedMessage
 
 import Timeout.{expires, unset}
 
 object NexusRealization:
-  // Roles and methods every realization shares.
-  private val workflowServiceRole = "temporal.workflow-service"
-  private val workerRole = "temporal.worker"
-  private val taskQueueRole = "temporal.task-queue"
-  private val handlerTaskQueueRole = "temporal.handler-task-queue"
-  private val nexusEndpointRole = "temporal.nexus-endpoint"
-
+  // The roles, bindings, correlation window and correlated record are the Temporal kit's
+  // (temporal/realize).
   private val historyObservation = "history-event"
-  private val correlatedObservation = "correlated-evidence"
-
-  private val workerNamespaceBinding = "temporal.worker.namespace"
-  private val taskQueueBinding = "temporal.task-queue.resource"
-  private val handlerTaskQueueBinding = "temporal.handler-task-queue.resource"
-  private val nexusEndpointBinding = "temporal.nexus-endpoint.resource"
 
   // Definition IDs every Case on this realization reads its evidence by.
-  private val projectionID = "temporal.nexus.caller.projection"
   private val historySourceID = "temporal.nexus.caller.source.history"
   private val describeSourceID = "temporal.nexus.caller.source.describe"
   private val scheduledSource = "temporal.nexus.caller.source.scheduled"
-  private val runFieldID = "temporal.nexus.caller.scope.run"
-  private val operationFieldID = "temporal.nexus.caller.scope.operation"
 
   private val scheduledEvidence = "temporal.nexus.caller.evidence.scheduled"
   private val startedEvidence = "temporal.nexus.caller.evidence.started"
@@ -171,7 +171,7 @@ object NexusRealization:
   // ### The scaffolding
 
   /** Each Case starts a workflow type of its own, so two Cases on one worker never share one. */
-  private val workflowType = Name("umpire-", fixture = true, suffix = "-workflow")
+  private val workflowType = perCase("workflow")
 
   private def rpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
       id: String,
@@ -179,16 +179,16 @@ object NexusRealization:
       assign: Vector[TypedAssignment[Req, ?]],
       reads: Vector[TypedResponseRead[Rsp, ?]]
   ) =
-    Command(id, Instruction.rpc(workflowServiceRole, method)(assign, reads))
+    Command(id, Instruction.rpc(workflowService, method)(assign, reads))
 
   private val historyAssignments = Vector(
     Assignment.typed(
       Field[GetWorkflowExecutionHistoryRequest, String](_.namespace),
-      Operand.environment[String](workerNamespaceBinding)
+      workerNamespace
     ),
     Assignment.typed(
       Field[GetWorkflowExecutionHistoryRequest, String](_.getExecution.workflowId),
-      Operand.run()
+      run
     ),
     Assignment.typed(
       Field[GetWorkflowExecutionHistoryRequest, Int](_.maximumPageSize),
@@ -206,18 +206,18 @@ object NexusRealization:
     Vector(
       Assignment.typed(
         Field[StartWorkflowExecutionRequest, String](_.namespace),
-        Operand.environment[String](workerNamespaceBinding)
+        workerNamespace
       ),
-      Assignment.typed(Field[StartWorkflowExecutionRequest, String](_.workflowId), Operand.run()),
+      Assignment.typed(Field[StartWorkflowExecutionRequest, String](_.workflowId), run),
       Assignment.typed(
         Field[StartWorkflowExecutionRequest, String](_.getWorkflowType.name),
         Operand.named(workflowType)
       ),
       Assignment.typed(
         Field[StartWorkflowExecutionRequest, String](_.getTaskQueue.name),
-        Operand.environment[String](taskQueueBinding)
+        taskQueueName
       ),
-      Assignment.typed(Field[StartWorkflowExecutionRequest, String](_.requestId), Operand.run())
+      Assignment.typed(Field[StartWorkflowExecutionRequest, String](_.requestId), run)
     ),
     Vector.empty
   )
@@ -240,7 +240,7 @@ object NexusRealization:
    */
   private val history = Command(
     "history",
-    Instruction.rpc(workflowServiceRole, WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY)(
+    Instruction.rpc(workflowService, WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY)(
       historyAssignments,
       Vector(
         ResponseRead.typed(
@@ -248,7 +248,7 @@ object NexusRealization:
             _.getHistory.events.map(event => event)
           ),
           Cardinality.each,
-          Vector(Target.Observe(historyObservation), Target.Lift(correlatedObservation))
+          Vector(Target.Observe(historyObservation), Target.Lift(correlatedEvidence))
         )
       )
     ),
@@ -264,29 +264,29 @@ object NexusRealization:
   private val pollAssignments = Vector(
     Assignment.typed(
       Field[GetWorkflowExecutionHistoryRequest, String](_.namespace),
-      Operand.environment[String](workerNamespaceBinding)
+      workerNamespace
     ),
     Assignment.typed(
       Field[GetWorkflowExecutionHistoryRequest, String](_.getExecution.workflowId),
-      Operand.run()
+      run
     )
   )
 
   private val describeAssignments = Vector(
     Assignment.typed(
       Field[DescribeWorkflowExecutionRequest, String](_.namespace),
-      Operand.environment[String](workerNamespaceBinding)
+      workerNamespace
     ),
     Assignment.typed(
       Field[DescribeWorkflowExecutionRequest, String](_.getExecution.workflowId),
-      Operand.run()
+      run
     )
   )
 
   /** Polls the pending operation until its first attempt has failed. */
   private val pendingAttempts = Command(
     "pending-attempts",
-    Instruction.poll(pending, workflowServiceRole)(
+    Instruction.poll(pending, workflowService)(
       describeAssignments,
       Condition.equal(Field[PendingNexusOperationInfo, Int](_.attempt), Operand.integer(1)),
       250
@@ -296,7 +296,7 @@ object NexusRealization:
   /** Polls the history for the scheduled event, run until the event exists. */
   private val awaitScheduled = Command(
     "await-scheduled",
-    Instruction.poll(scheduled, workflowServiceRole)(
+    Instruction.poll(scheduled, workflowService)(
       pollAssignments,
       Condition.present(
         Field[HistoryEvent, Option[NexusOperationScheduledEventAttributes]](
@@ -349,7 +349,7 @@ object NexusRealization:
       Proto[com.google.protobuf.duration.Duration](
         ProtoField.typed(
           Field[com.google.protobuf.duration.Duration, Long](_.seconds),
-          ProtoValue.number(2L)
+          ProtoValue.number(deadlineSeconds)
         )
       )
     )
@@ -364,7 +364,7 @@ object NexusRealization:
   private val scheduleAttributes = Vector(
     ProtoField.typed(
       Field[ScheduleNexusOperationCommandAttributes, String](_.endpoint),
-      ProtoValue.roleId(nexusEndpointRole)
+      ProtoValue.roleId(nexusEndpoint)
     ),
     ProtoField.typed(
       Field[ScheduleNexusOperationCommandAttributes, String](_.service),
@@ -457,7 +457,7 @@ object NexusRealization:
         Vector(
           Performance(
             workerStop,
-            Command("stop-handler-worker", Fault(handlerTaskQueueRole, FaultKind.workerStop))
+            Command("stop-handler-worker", Fault(handlerTaskQueue, FaultKind.workerStop))
           )
         )
       ),
@@ -486,7 +486,7 @@ object NexusRealization:
 
   private val workflowScript = Script(
     "workflow",
-    Activation.Workflow(workflowType, workerRole, taskQueueRole),
+    Activation.Workflow(workflowType, caseWorker, taskQueue),
     Vector(
       // The schedule command once per class of deadline a path of the caller Model sets.
       Item(performs =
@@ -545,7 +545,7 @@ object NexusRealization:
 
   private val handlerScript = Script(
     "handler",
-    Activation.NexusHandler(service, operation, workerRole, handlerTaskQueueRole),
+    Activation.NexusHandler(service, operation, caseWorker, handlerTaskQueue),
     Vector(
       Item(performs =
         Vector(
@@ -614,60 +614,24 @@ object NexusRealization:
 
   /**
    * One Nexus operation scheduled by a controller-started workflow and answered by a handler inside
-   * the Case's own worker.
+   * the Case's own worker, named after the val that declares it.
    */
   private def realization(
-      name: String,
       machine: Machine[ProtocolState, temporal.nexuscaller.Outcome, ProtocolFact],
       extra: Vector[Item]
-  ): Realization = Realization(
-    name = name,
+  ): Realization = temporalRealization(
     machine = machine,
-    producer = "temporal.nexus.caller.testpilot",
-    producerVersion = "1",
-    roles = Vector(
-      Role(workflowServiceRole, RoleKind.endpoint),
-      Role(workerRole, RoleKind.worker, namespace = workerNamespaceBinding),
-      Role(
-        taskQueueRole,
-        RoleKind.taskQueue,
-        namespace = workerNamespaceBinding,
-        resource = taskQueueBinding
-      ),
-      Role(
-        handlerTaskQueueRole,
-        RoleKind.taskQueue,
-        namespace = workerNamespaceBinding,
-        resource = handlerTaskQueueBinding
-      ),
-      Role(nexusEndpointRole, RoleKind.endpoint, resource = nexusEndpointBinding)
-    ),
-    correlation = Correlation(
-      projection = projectionID,
-      run = runFieldID,
-      operation = operationFieldID,
-      observation = correlatedObservation,
-      events = 32,
-      buffered = 16,
-      keys = 8,
-      support = 128,
-      work = 1000000000,
-      eventSize = 512
-    ),
+    operation = nexuscaller.operation,
+    roles = Vector(workflowService, caseWorker, taskQueue, handlerTaskQueue, nexusEndpoint),
     scripts = Vector(controller(extra), workflowScript, handlerScript),
-    learned = Vector(Learned(completionAuthority, LearnedKind.handle)),
-    observations = Vector(
-      Observed[HistoryEvent](historyObservation),
-      Observed[CorrelatedEvidence](correlatedObservation)
-    ),
     evidence = sources,
-    cleanup = "cleanup"
-  )
+    learned = Vector(Learned(completionAuthority, LearnedKind.handle)),
+    observations = Vector(Observed[HistoryEvent](historyObservation), correlated)
+  )(using nexuscaller.Family)
 
-  val asyncNexus: Realization = realization("asyncNexus", nexusProtocol, Vector.empty)
+  val asyncNexus: Realization = realization(nexusProtocol, Vector.empty)
 
   val forgedCompletion: Realization = realization(
-    "forgedCompletion",
     temporal.nexuscaller.Control.forged,
     Vector(
       Item(performs =

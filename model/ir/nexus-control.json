@@ -3627,8 +3627,8 @@
     "id": "temporal.nexuscaller.NexusRealization$.forgedCompletion",
     "name": "forgedCompletion",
     "position": {
-      "file": "model/temporal/nexuscaller/Realization.scala",
-      "line": 623
+      "file": "model/temporal/realize/Kit.scala",
+      "line": 140
     },
     "machine": "forgedCompletion",
     "producer": "temporal.nexus.caller.testpilot",
@@ -3636,23 +3636,23 @@
     "roles": [ {
       "id": "temporal.workflow-service",
       "position": {
-        "file": "model/temporal/nexuscaller/Realization.scala",
-        "line": 629
+        "file": "model/temporal/realize/Kit.scala",
+        "line": 33
       },
       "kind": "KIND_ENDPOINT"
     }, {
       "id": "temporal.worker",
       "position": {
-        "file": "model/temporal/nexuscaller/Realization.scala",
-        "line": 630
+        "file": "model/temporal/realize/Kit.scala",
+        "line": 36
       },
       "kind": "KIND_WORKER",
       "namespace": "temporal.worker.namespace"
     }, {
       "id": "temporal.task-queue",
       "position": {
-        "file": "model/temporal/nexuscaller/Realization.scala",
-        "line": 631
+        "file": "model/temporal/realize/Kit.scala",
+        "line": 39
       },
       "kind": "KIND_TASK_QUEUE",
       "namespace": "temporal.worker.namespace",
@@ -3660,8 +3660,8 @@
     }, {
       "id": "temporal.handler-task-queue",
       "position": {
-        "file": "model/temporal/nexuscaller/Realization.scala",
-        "line": 637
+        "file": "model/temporal/realize/Kit.scala",
+        "line": 47
       },
       "kind": "KIND_TASK_QUEUE",
       "namespace": "temporal.worker.namespace",
@@ -3669,8 +3669,8 @@
     }, {
       "id": "temporal.nexus-endpoint",
       "position": {
-        "file": "model/temporal/nexuscaller/Realization.scala",
-        "line": 643
+        "file": "model/temporal/realize/Kit.scala",
+        "line": 56
       },
       "kind": "KIND_ENDPOINT",
       "resource": "temporal.nexus-endpoint.resource"
@@ -3679,7 +3679,7 @@
       "id": "completion-authority",
       "position": {
         "file": "model/temporal/nexuscaller/Realization.scala",
-        "line": 658
+        "line": 628
       },
       "kind": "KIND_HANDLE"
     } ],
@@ -3687,14 +3687,14 @@
       "id": "history-event",
       "position": {
         "file": "model/temporal/nexuscaller/Realization.scala",
-        "line": 660
+        "line": 629
       },
       "message": "temporal.api.history.v1.HistoryEvent"
     }, {
       "id": "correlated-evidence",
       "position": {
-        "file": "model/temporal/nexuscaller/Realization.scala",
-        "line": 661
+        "file": "model/temporal/realize/Kit.scala",
+        "line": 105
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
@@ -3789,8 +3789,8 @@
     } ],
     "correlation": {
       "position": {
-        "file": "model/temporal/nexuscaller/Realization.scala",
-        "line": 645
+        "file": "model/temporal/realize/Kit.scala",
+        "line": 112
       },
       "projection": "temporal.nexus.caller.projection",
       "run": "temporal.nexus.caller.scope.run",
@@ -3853,8 +3853,8 @@
               "target": "namespace",
               "value": {
                 "position": {
-                  "file": "model/temporal/nexuscaller/Realization.scala",
-                  "line": 209
+                  "file": "model/temporal/realize/Kit.scala",
+                  "line": 59
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -3862,8 +3862,8 @@
               "target": "workflow_id",
               "value": {
                 "position": {
-                  "file": "model/temporal/nexuscaller/Realization.scala",
-                  "line": 211
+                  "file": "model/temporal/realize/Kit.scala",
+                  "line": 65
                 },
                 "run": { }
               }
@@ -3886,8 +3886,8 @@
               "target": "task_queue.name",
               "value": {
                 "position": {
-                  "file": "model/temporal/nexuscaller/Realization.scala",
-                  "line": 218
+                  "file": "model/temporal/realize/Kit.scala",
+                  "line": 62
                 },
                 "environment": "temporal.task-queue.resource"
               }
@@ -3895,8 +3895,8 @@
               "target": "request_id",
               "value": {
                 "position": {
-                  "file": "model/temporal/nexuscaller/Realization.scala",
-                  "line": 220
+                  "file": "model/temporal/realize/Kit.scala",
+                  "line": 65
                 },
                 "run": { }
               }
@@ -3921,8 +3921,8 @@
               "target": "namespace",
               "value": {
                 "position": {
-                  "file": "model/temporal/nexuscaller/Realization.scala",
-                  "line": 267
+                  "file": "model/temporal/realize/Kit.scala",
+                  "line": 59
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -3930,8 +3930,8 @@
               "target": "execution.workflow_id",
               "value": {
                 "position": {
-                  "file": "model/temporal/nexuscaller/Realization.scala",
-                  "line": 271
+                  "file": "model/temporal/realize/Kit.scala",
+                  "line": 65
                 },
                 "run": { }
               }
@@ -3966,12 +3966,12 @@
       }, {
         "position": {
           "file": "model/temporal/nexuscaller/Realization.scala",
-          "line": 673
+          "line": 637
         },
         "performs": [ {
           "position": {
             "file": "model/temporal/nexuscaller/Realization.scala",
-            "line": 675
+            "line": 639
           },
           "step": {
             "action": "temporal.nexuscaller.Control$.inspect"
@@ -3989,8 +3989,8 @@
                 "target": "namespace",
                 "value": {
                   "position": {
-                    "file": "model/temporal/nexuscaller/Realization.scala",
-                    "line": 278
+                    "file": "model/temporal/realize/Kit.scala",
+                    "line": 59
                   },
                   "environment": "temporal.worker.namespace"
                 }
@@ -3998,8 +3998,8 @@
                 "target": "execution.workflow_id",
                 "value": {
                   "position": {
-                    "file": "model/temporal/nexuscaller/Realization.scala",
-                    "line": 282
+                    "file": "model/temporal/realize/Kit.scala",
+                    "line": 65
                   },
                   "run": { }
                 }
@@ -4025,8 +4025,8 @@
               "target": "namespace",
               "value": {
                 "position": {
-                  "file": "model/temporal/nexuscaller/Realization.scala",
-                  "line": 278
+                  "file": "model/temporal/realize/Kit.scala",
+                  "line": 59
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -4034,8 +4034,8 @@
               "target": "execution.workflow_id",
               "value": {
                 "position": {
-                  "file": "model/temporal/nexuscaller/Realization.scala",
-                  "line": 282
+                  "file": "model/temporal/realize/Kit.scala",
+                  "line": 65
                 },
                 "run": { }
               }
@@ -4250,8 +4250,8 @@
               "target": "namespace",
               "value": {
                 "position": {
-                  "file": "model/temporal/nexuscaller/Realization.scala",
-                  "line": 187
+                  "file": "model/temporal/realize/Kit.scala",
+                  "line": 59
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -4259,8 +4259,8 @@
               "target": "execution.workflow_id",
               "value": {
                 "position": {
-                  "file": "model/temporal/nexuscaller/Realization.scala",
-                  "line": 191
+                  "file": "model/temporal/realize/Kit.scala",
+                  "line": 65
                 },
                 "run": { }
               }
@@ -4318,8 +4318,8 @@
               "target": "namespace",
               "value": {
                 "position": {
-                  "file": "model/temporal/nexuscaller/Realization.scala",
-                  "line": 187
+                  "file": "model/temporal/realize/Kit.scala",
+                  "line": 59
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -4327,8 +4327,8 @@
               "target": "execution.workflow_id",
               "value": {
                 "position": {
-                  "file": "model/temporal/nexuscaller/Realization.scala",
-                  "line": 191
+                  "file": "model/temporal/realize/Kit.scala",
+                  "line": 65
                 },
                 "run": { }
               }

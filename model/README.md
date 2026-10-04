@@ -286,8 +286,8 @@ requires exactly that of a live Run and of its replay.
 
 | Path | What it holds |
 | --- | --- |
-| `model/umpire` | The DSL: what an author writes a Model with. Realization declarations are in `umpire/realize` |
-| `model/temporal` | The Models, one folder per feature: `nexuscaller`, `standaloneactivity`, `worker`, and `taskqueue`, the shared task-queue entity features compose |
+| `model/umpire` | The DSL: what an author writes a Model with. Realization declarations and their script helpers are in `umpire/realize` |
+| `model/temporal` | The Models, one folder per feature: `nexuscaller`, `standaloneactivity`, `worker`; `taskqueue`, the shared task-queue entity features compose; and `realize`, the shared Temporal realization kit |
 | `model/lifter` | The lifter. `testdata` holds Models it must lift and Models it must refuse |
 | `model/ir` | The checked-in Umpire IR, one file per lifted Model |
 | `model/cases` | The checked-in Cases and `manifest.json` |
@@ -345,6 +345,16 @@ The lifter reads what an author wrote, as written:
   functions; `Step(…)` and `steps.because("…")` on steps written out, and named choices,
   `choose(committed -> …, redelivered -> …)` over tokens `val committed = choice`. `require`
   becomes the function's precondition; `ensuring` is not lifted.
+- **Realization script helpers** (core, `umpire/realize/Scripts.scala`): `script(id, activation)`
+  of `always(command)`, `onPath(classes*)(command)` and `perform(step -> command, …)` items;
+  `command(instruction, …)`; `rpc(role, method) { … }`, `poll(…) { … }` and `call.setting { … }`,
+  which appends assignments and keeps the call's name; `statusTable(fact -> value, …)`. A command
+  is named after its `val` in kebab case (`val pauseActivity` is `pause-activity`) unless written
+  out as `Command(id, …)`. A declaration referred to by value is written as its id, and a fact as
+  its enum case, or the companion of a case with fields. A lookup `table(fact)` is resolved when
+  the lifter lifts. The lifter refuses a command no `val` declares, a `perform` or `onPath` with no
+  class, a lookup of a fact its table lists twice or not at all, and a request-scope line that is
+  neither `field(_.x) := v` nor `Assignment.typed(…)`.
 - **Sugar** (`umpire/Syntax.scala`, lifted by `lifter/Syntax.scala`): `accept(state, facts*)`,
   `stay(s)`, `disabled`, `x.in(a, b, …)`, `a implies b` and `after.records(fact)`. Each is lifted to
   the IR its core form lifts to, and nothing else: `List(Step(accepted, state, List(facts*)))`,
@@ -354,7 +364,9 @@ The lifter reads what an author wrote, as written:
   least one member; `implies` reads its right side only where its left side holds. A composition's
   `after.records(_.member, fact)` lifts as `after.facts.contains("member_fact")`, the composed key
   it records. A named call `start(scheduleToStart := expires)` lifts as the positional
-  `start(unset, expires, unset)`.
+  `start(unset, expires, unset)`. The kit's `field(_.name) := operand`, in
+  `temporal/realize/Syntax.scala`, lifts as `Assignment.typed(Field[Req, V](_.name), operand)`,
+  where `Req` is the request type of the scope the enclosing `rpc` or `poll` opened.
 - **Claim patterns** (sugar, the same files): `once(over).keeps(_.x)`, `never(to)`,
   `never(to).from(before)`, `stays(p)` and `stays(p).unless(release)` on a Property builder, each
   lifted to the Property its lambda declares: `holdsAcross((before, after) => !over(before) ||
@@ -515,19 +527,29 @@ def queueLaws(m: Machine[QueueDetail, QueueOutcome, QueueFact]): QueueLaws = Que
 )
 ```
 
-Sugar is kept apart from the core declarations: framework sugar in `umpire/Syntax.scala`, its
-lifting in `lifter/Syntax.scala`, each definition documented with `Core form:` and the core
-spelling it stands for. No core file of the framework or the lifter uses a `Syntax.scala`, and a
-sugar word (`accept`, `stay`, `disabled`, `in`, `implies`, `records`, the claim patterns `once`,
-`keeps`, `never`, `from`, `stays` and `unless`, and `:=`) is defined in no other file;
-`make lint-model` checks all three. The lifter's tests lift each sugar form beside its core
-spelling and require the same IR.
+Sugar is kept apart from the core. The core is what the IR needs declared: `machine`, `action`,
+`input`, `steps` and `~>`, `Step` and `because`, `property` with `holds`, `holdsAcross` and `when`,
+`monitor`, `leadsTo`, `compose` with `sync`, `synced`, `own` and `withMember`, `scenario`, `query`,
+`Limits`, `DefinitionScope`, `choose`, and the realization declarations, among them the script
+helpers `rpc`, `poll`, `perform`, `onPath`, `always`, `script` and `command` and the kit's roles and
+bindings. Sugar is a form whose meaning a core form already says: `implies`, `in`, `records`,
+`accept`, `stay`, `disabled`, the claim patterns (`once`, `keeps`, `never`, `from`, `stays`,
+`unless`) and both spellings of `:=`, named inputs and request fields. It lives in the
+`Syntax.scala` files of the DSL (`umpire/Syntax.scala`), the kit (`temporal/realize/Syntax.scala`)
+and the lifter (`lifter/Syntax.scala`). Each form is documented with `Core form:` and the core
+spelling it stands for, and a lifter fixture lifts it beside that spelling and requires the same IR.
+No core file imports sugar, and a sugar word is defined in no other file; `make lint-model` checks
+these three rules.
 
-`:=` has one meaning: this named slot receives this value (`@targetName("set")`). A named call
-`start(scheduleToStart := expires)` is sugar for the positional `start(unset, expires, unset)`: the
-supplied inputs take the action's declaration order, and an omitted input takes its domain's first
-value, here `unset`. The lifter refuses, at the call's line, a token that is no input of the action
-and a token supplied twice. A value of the wrong type for its token is a compile error.
+Three symbols, each with one meaning: `~>` binds an action to its step function, `->` pairs a key
+with its value, `:=` gives a named slot a value; everything else the DSL adds is a word.
+
+`:=` is one operator (`@targetName("set")`) for both kinds of named slot, an action's input token
+and a request's field. A named call `start(scheduleToStart := expires)` is sugar for the positional
+`start(unset, expires, unset)`: the supplied inputs take the action's declaration order, and an
+omitted input takes its domain's first value, here `unset`. The lifter refuses, at the call's line,
+a token that is no input of the action and a token supplied twice. A value of the wrong type for its
+token is a compile error.
 
 A step that can go more than one way names each result with `choose`, which is core: it says
 what no other form does, the names of the alternatives, which the IR records on each step record
@@ -626,35 +648,51 @@ get. A missing or malformed expectation fails generation. What a realization may
 each declaration lowers, is in [SEMANTICS.md](SEMANTICS.md) under Realizations and Generated Case
 expectations.
 
+What every Temporal realization says alike is declared once, in the kit `model/temporal/realize`:
+the roles (`workflowService`, `caseWorker`, `taskQueue`, `handlerTaskQueue`, `nexusEndpoint`) and
+the environment bindings a run supplies for them, the correlation window, the controller script,
+the one interval a read polls at (`await`), the helpers that declare evidence from the Run's own
+record (`answered`, `answeredAs`, `delivered`), the deadlines a request sets, and
+`temporalRealization`, which takes what a feature says differently. The standalone activity and
+the Nexus caller realizations both use it. A feature that reads a status back declares what each
+fact reads as once, `statusTable(fact -> value, …)` beside its realization, and its `awaitStatus`
+reads the status it polls for from that table. The table is the realization-side form of the
+`Describable` status map of [.plans/SEMANTIC_PROTOCOLS.md](../.plans/SEMANTIC_PROTOCOLS.md); the
+lifter reads it when it lifts, and it adds nothing to the IR.
+
 ### Naming protobuf data in a Model
 
 Actions name message types, and realizations use generated unary method constants and typed field
 selectors. For example:
 
 ```scala
-import io.temporal.api.workflowservice.v1.{StartActivityExecutionRequest, WorkflowServiceGrpc}
+import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest
+import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION
 import umpire.*
 import umpire.realize.*
+import temporal.realize.*
 
 val start = action("start", Party("caller")).schema[StartActivityExecutionRequest]
-val call = Instruction.rpc("endpoint", WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION)(
-  Vector(
-    Assignment.typed(
-      Field[StartActivityExecutionRequest, String](_.namespace),
-      Operand.run()
-    )
-  ),
-  Vector.empty
-)
+val startActivity = rpc(workflowService, METHOD_START_ACTIVITY_EXECUTION) {
+  field(_.namespace) := workerNamespace
+  field(_.activityId) := run
+}
 ```
 
+The call is the command `start-activity`, after its `val`. The scope `rpc` opens fixes the request
+type, `StartActivityExecutionRequest`, so each line selects a field of it and no line repeats the
+type. It stands for the record the lifter writes, whose core form
+`Instruction.rpc(role, method)(Vector(Assignment.typed(Field[Req, V](_.x), operand)), Vector.empty)`
+still lifts to the same IR.
+
 `Recorded.read` and `Recorded.single` keep the method's request type and the selected response
-message type in an `Evidence.read` reference. `Instruction.poll` takes that reference, so its
-assignments use the method's request type and its condition selects fields of the projected
-message. `Field[Root, Value]` also names evidence fields, operation keys, response reads and Run
-Event guards. Select an optional nested message with a generated `get...` accessor, each repeated
-element with `.map`, and a oneof arm through its generated selector. A dynamic Run Event payload
-starts from `Operand.Projected.as[InstructionOutcome]` so the selected root is explicit.
+message type in an `Evidence.read` reference. `poll`, the kit's `await` and `Instruction.poll` take
+that reference, so their assignments use the method's request type and their condition selects
+fields of the projected message. `Field[Root, Value]` also names evidence fields, operation keys,
+response reads and Run Event guards. Select an optional nested message with a generated `get...`
+accessor, each repeated element with `.map`, and a oneof arm through its generated selector. A
+dynamic Run Event payload starts from `Operand.Projected.as[InstructionOutcome]` so the selected
+root is explicit.
 
 Constant messages remain symbolic: `Proto[Payload](ProtoField.typed(...))` names a message and its
 fields by type; `ProtoValue.mapping(ProtoEntry.typed("encoding", ProtoValue.utf8("json/plain")))`

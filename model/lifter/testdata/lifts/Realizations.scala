@@ -466,7 +466,7 @@ val pauseRace: Realization = Realization(
     raceEvidence("dispatchEnqueued", Commitment.durable),
     raceEvidence("attemptAdmitted", Commitment.durable)
   ),
-  controls = Vector(Control(holdDispatch, ControlKind.HoldDelivery(dispatchChannel)))
+  controls = Vector(Actuator(holdDispatch, ControlKind.HoldDelivery(dispatchChannel)))
 )
 
 // ### A Property that reads why a step was taken

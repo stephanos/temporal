@@ -367,6 +367,18 @@ the held thing is held, and the release once what it let go was delivered and wh
 committed for it is observed, which the release's own record carries. A message a command writes out names its protobuf type and the fields it
 sets, and a field it does not name stays unset.
 
+Scala writes the three modes of an item as `always(command)`, a command;
+`onPath(classes*)(command)`, a command with `when`; and `perform(step -> command, …)`, performances.
+A command's id is the name of the `val` that declares it, in kebab case (`val pauseActivity` is
+`pause-activity`), unless it is written out with `Command(id, …)`. `call.setting { … }` is the call
+with assignments appended, under the call's command id, so the commands of one call that
+performances bind read as one name; commands of one script share an id only as performances, never
+with a command that is not a performance. A declaration other declarations refer to by value, a
+role, script, actuator, learned value, kind of evidence or command, is written as its id, and a fact
+as its name. A status table, `statusTable(fact -> value, …)`, is read when the lifter lifts: a
+lookup `table(fact)` writes the value the table lists for the fact, and the table itself adds
+nothing to the IR. None of these forms has an IR field of its own.
+
 `Fault(role, admissionResponseLoss)` releases a previously held activity dispatch and loses one
 committed admission response. The Driver waits for the same request's retry to confirm the response
 replacement was consumed, then reports the original durable admission. Its successful outcome is one

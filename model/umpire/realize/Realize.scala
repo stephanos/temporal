@@ -31,7 +31,7 @@ final case class Realization(
     learned: Vector[Learned] = Vector.empty,
     observations: Vector[Observed] = Vector.empty,
     evidence: Vector[Evidence | EvidenceRef[?, ?] | TypedEvidence[?]] = Vector.empty,
-    controls: Vector[Control] = Vector.empty,
+    controls: Vector[Actuator] = Vector.empty,
     cleanup: String = ""
 )
 
@@ -99,8 +99,8 @@ enum Recorded:
    */
   case TypedRunEvent[Root <: GeneratedMessage](
       kind: EventKind,
-      script: String,
-      command: String,
+      script: String | Script,
+      command: String | Command | Instruction,
       key: ProjectedPath[Root, ?] | RunKey,
       guard: Option[Condition[Root]] = None,
       attempt: Option[AttemptOf] = None
@@ -133,8 +133,8 @@ object Recorded:
 
   def runEvent[Root <: GeneratedMessage](
       kind: EventKind,
-      script: String,
-      command: String,
+      script: String | Script,
+      command: String | Command | Instruction,
       key: ProjectedPath[Root, ?] | RunKey,
       guard: Option[Condition[Root]] = None,
       attempt: Option[AttemptOf] = None
@@ -147,7 +147,7 @@ object Recorded:
  * One attempt of the activity one script runs: the `number`-th delivery to the script's worker,
  * counted from one, as the server numbers attempts.
  */
-final case class AttemptOf(script: String, number: Long)
+final case class AttemptOf(script: String | Script, number: Long)
 
 /** The kinds of Run Event that carry an instruction outcome. */
 enum EventKind:
@@ -202,7 +202,7 @@ final case class Taking(step: ClassRef, occurrence: Long)
  */
 final class Evidence private[realize] (
     val id: String,
-    val records: String,
+    val records: Fact,
     val source: String,
     val from: Recorded,
     val operation: String,
@@ -215,7 +215,7 @@ final class Evidence private[realize] (
 object Evidence:
   def read[Req, Rsp, Projected](
       id: String,
-      records: String,
+      records: Fact,
       source: String,
       from: RecordedRef[Req, Rsp, Projected],
       operation: Field[Projected, ?],
@@ -243,7 +243,7 @@ object Evidence:
 
   def history[Root <: GeneratedMessage](
       id: String,
-      records: String,
+      records: Fact,
       source: String,
       from: HistoryRef[Root],
       operation: Field[Root, ?],
@@ -269,7 +269,7 @@ object Evidence:
 
   def runEvent[Root <: GeneratedMessage](
       id: String,
-      records: String,
+      records: Fact,
       source: String,
       from: RunEventRef[Root],
       commitment: Commitment,
@@ -317,10 +317,11 @@ enum ControlKind:
   case HoldDispatched(step: ClassRef)
 
 /**
- * An actuator a run needs beyond its commands. `role` is the task-queue role whose deliveries a run
- * holds: a run reaches the channel through the deliveries of that queue.
+ * An actuator a run needs beyond its commands, which the IR calls a control. `role` is the
+ * task-queue role whose deliveries a run holds: a run reaches the channel through the deliveries of
+ * that queue. It is not named `Control`, a word Models take for their own actions' inputs.
  */
-final case class Control(id: String, kind: ControlKind, role: String = "")
+final case class Actuator(id: String, kind: ControlKind, role: String | Role = "")
 
 /**
  * A text a Case gets its own copy of: the prefix, then the Case's fixture name when `fixture` is
@@ -331,8 +332,13 @@ final case class Name(prefix: String, fixture: Boolean = false, suffix: String =
 /** Who runs a script. */
 enum Activation:
   case Controller
-  case Workflow(workflowType: Name, worker: String, taskQueue: String)
-  case NexusHandler(service: String, operation: String, worker: String, taskQueue: String)
+  case Workflow(workflowType: Name, worker: String | Role, taskQueue: String | Role)
+  case NexusHandler(
+      service: String,
+      operation: String,
+      worker: String | Role,
+      taskQueue: String | Role
+  )
 
   /**
    * Each attempt of an activity the worker is delivered. `starts` is the classes that delivery is: a
@@ -341,8 +347,8 @@ enum Activation:
    */
   case Activity(
       activityType: Name,
-      worker: String,
-      taskQueue: String,
+      worker: String | Role,
+      taskQueue: String | Role,
       starts: Vector[ClassRef] = Vector.empty
   )
 
@@ -377,7 +383,7 @@ final case class Command(
     after: Option[After] = None,
     timeoutMs: Long = 0,
     regardless: Boolean = false,
-    closes: Vector[String] = Vector.empty
+    closes: Vector[String | EvidenceRef[?, ?] | TypedEvidence[?]] = Vector.empty
 )
 
 enum FaultKind:
@@ -427,7 +433,7 @@ object ResponseRead:
 enum Instruction:
   /** A unary call on an endpoint role. */
   case TypedRpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
-      role: String,
+      role: String | Role,
       method: MethodDescriptor[Req, Rsp],
       assign: Vector[TypedAssignment[Req, ?]],
       reads: Vector[TypedResponseRead[Rsp, ?]]
@@ -436,7 +442,7 @@ enum Instruction:
   /** Polls the read an evidence kind names until an element satisfies `until`. */
   case TypedPoll[Req, Projected](
       evidence: EvidenceRef[Req, Projected],
-      role: String,
+      role: String | Role,
       assign: Vector[TypedAssignment[Req, ?]],
       until: Condition[Projected],
       intervalMs: Long = 0
@@ -454,7 +460,7 @@ enum Instruction:
 
   /** Answers the attempt of an activity as canceled. */
   case AttemptCanceled
-  case Fault(role: String, kind: FaultKind)
+  case Fault(role: String | Role, kind: FaultKind)
 
   /** A workflow command, as the message the SDK would emit. */
   case WorkflowCommand(command: TypedProto[?])
@@ -462,19 +468,19 @@ enum Instruction:
   /** A Nexus handler's answer; an asynchronous one binds the handle `binds` names. */
   case NexusReply(reply: TypedProto[?], binds: String = "")
   case NexusCompletion(handle: String, result: TypedProto[?])
-  case Hold(control: String)
-  case Release(control: String)
+  case Hold(control: String | Actuator)
+  case Release(control: String | Actuator)
 
 object Instruction:
   def rpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
-      role: String,
+      role: String | Role,
       method: MethodDescriptor[Req, Rsp]
   )(
       assign: Vector[TypedAssignment[Req, ?]],
       reads: Vector[TypedResponseRead[Rsp, ?]]
   ): Instruction = TypedRpc(role, method, assign, reads)
 
-  def poll[Req, Projected](evidence: EvidenceRef[Req, Projected], role: String)(
+  def poll[Req, Projected](evidence: EvidenceRef[Req, Projected], role: String | Role)(
       assign: Vector[TypedAssignment[Req, ?]],
       until: Condition[Projected],
       intervalMs: Long = 0
@@ -572,7 +578,9 @@ object ProtoValue:
     new TypedProtoValue(value)
   def mapping(entries: TypedProtoEntry*): TypedProtoValue[Map[String, ByteString]] =
     new TypedProtoValue(entries.toVector)
-  def roleId(value: String): TypedProtoValue[String] = new TypedProtoValue(RoleId(value))
+  def roleId(value: String | Role): TypedProtoValue[String] = new TypedProtoValue(RoleId(value match
+    case r: Role   => r.id
+    case s: String => s))
   def named(value: Name): TypedProtoValue[String] = new TypedProtoValue(Named(value))
 
 /** The assessment a completed live Run must support, independently of the model-search answer. */

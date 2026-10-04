@@ -43,7 +43,8 @@ private[gate] object SyntaxRule:
     "stays",
     "unless",
     "sticky",
-    ":="
+    ":=",
+    "field"
   )
 
   final case class Finding(file: String, line: Int, reason: String):

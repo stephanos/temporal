@@ -2,6 +2,7 @@ package umpire.lift
 
 import io.temporal.server.api.umpire.v1 as ir
 import io.temporal.server.api.umpire.v1.Expr.Kind as E
+import scalapb.descriptors.{Descriptor, PMessage, PString}
 
 /**
  * The lifting of the framework's sugar (model/umpire/Syntax.scala). The lifter does not inline a
@@ -124,6 +125,39 @@ private[lift] trait Syntax:
             )
       ir.ActionClass(id, values)
     case _ => fail(t, s"outside the liftable subset: ${t.show}")
+
+  /**
+   * Hook: one line of a request scope written with the Temporal kit's sugar, `field(_.name) :=
+   * operand`, lifted as the assignment record its core form writes, or None for a line that is not
+   * one. The field's request type is the scope's, `root`, which the enclosing `rpc`/`poll` call
+   * opened; the selector is read against it. Core form: `Assignment.typed(Field[Req, V](_.name),
+   * operand)` lifts as `{target: "name", value: operand}`. `Realizations.scoped` asks it of every
+   * line before it reads a core one.
+   */
+  def requestAssignment(line: Bound, root: TypeRepr, into: Descriptor): Option[PMessage] =
+    val t = follow(line).term
+    sugarCall(t).collect { case (":=", List(List(slot), List(value))) => (slot, value) }.map {
+      (slot, value) =>
+        val (scope, selectors) = applied(slot).map(_._2).getOrElse(Nil).partition { a =>
+          isNamed(a.tpe, "umpire.realize.RequestScope")
+        }
+        (scope, selectors) match
+          case (List(s), List(selector))
+              if s.tpe.widen.dealias.typeArgs.headOption.exists(_ =:= root) =>
+            PMessage(
+              Map(
+                irField(into, "target", t) -> PString(selectorPath(root, selector, slot)),
+                irField(into, "value", t) ->
+                  typedOperandValue(Bound(value, line.env), irMessage(irField(into, "value", t), t))
+              )
+            )
+          case _ =>
+            fail(
+              t,
+              "a request scope assigns the request's fields, `field(_.name) := operand`, and " +
+                s"${slot.show} is no field of the request"
+            )
+    }
 
   /** `token := value`, as a call writes it: the token and the value. */
   private def assigned(t: Term): (Term, Term) = t match

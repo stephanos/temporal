@@ -531,7 +531,37 @@ func TestMergeNamesTheDirectoryOfAPosition(t *testing.T) {
 
 	cfg.Merges = []Substitution{{Old: "model/a", New: "model/a"}}
 	_, err = cfg.Match(original, current)
-	require.ErrorContains(t, err, "not a directory")
+	require.ErrorContains(t, err, "not a directory or a Scala file")
+}
+
+func TestMergeOfAFileNamesOnlyThatFile(t *testing.T) {
+	cfg := Config{
+		Paths: []Substitution{
+			{Old: "old/a/Realization.scala", New: "model/a/Realization.scala"},
+			{Old: "old/a/Model.scala", New: "model/a/Model.scala"},
+		},
+		Labels: []Substitution{{Old: "old model", New: "model"}},
+		Merges: []Substitution{
+			{Old: "model/kit/", New: "model/shared"},
+			{Old: "model/a/Realization.scala", New: "model/shared"},
+			{Old: "model/a/", New: "model/a"},
+		},
+	}
+	original := &umpirespb.Model{Source: "old model", Machines: []*umpirespb.Machine{
+		{Name: "role", Position: &umpirespb.Position{File: "old/a/Realization.scala", Line: 3}},
+		{Name: "machine", Position: &umpirespb.Position{File: "old/a/Model.scala", Line: 4}},
+	}}
+	current := &umpirespb.Model{Source: "model", Machines: []*umpirespb.Machine{
+		{Name: "role", Position: &umpirespb.Position{File: "model/kit/Kit.scala", Line: 3}},
+		{Name: "machine", Position: &umpirespb.Position{File: "model/a/Model.scala", Line: 4}},
+	}}
+	moved, err := cfg.Match(original, current)
+	require.NoError(t, err)
+	require.True(t, moved, "a declaration moving from the merged file into the kit compares alike")
+	leaving := proto.CloneOf(current)
+	leaving.Machines[1].Position.File = "model/kit/Kit.scala"
+	_, err = cfg.Match(original, leaving)
+	require.Error(t, err, "a declaration of another file of the directory moving into the kit still fails")
 }
 
 func TestMergeSourcesRewritesOnlyQuotedPathsUnderTheDirectory(t *testing.T) {

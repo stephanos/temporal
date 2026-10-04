@@ -210,6 +210,17 @@ class Fixtures extends munit.FunSuite:
   // The refusals of fn-112.12's claim bundles and of a moved type whose pinned name is taken.
   private val bundleRejects: Seq[String] = Seq("mixedBundle", "movedNameTaken")
 
+  // The refusals of fn-112.9's script helpers, status tables and request scopes
+  // (lifts/ScriptRejects.scala).
+  private val scriptRejects: Seq[String] = Seq(
+    "unnamedCommand",
+    "performsNothing",
+    "onNoPath",
+    "unlistedStatus",
+    "statusTwice",
+    "notAField"
+  ).map("fixture.scriptrejects.ScriptRejects$package$." + _)
+
   private val rejected = Seq(
     "unbounded",
     "waiting",
@@ -265,7 +276,7 @@ class Fixtures extends munit.FunSuite:
     "Computed$.pinnedComputed",
     "Anonymous$.anonymous",
     "ComputedAccepted$.computedAccept"
-  ).map("fixture.rejects." + _)
+  ).map("fixture.rejects." + _) ++ scriptRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
   private lazy val liftsJars = s"$liftsJar=${stored("lifts")},$modelJar=model/"
@@ -373,6 +384,7 @@ class Fixtures extends munit.FunSuite:
         "Invalid.scala:157:31",
         "Invalid.scala:160:3",
         "Invalid.scala:165:49",
+        "Invalid.scala:169:26",
         "Invalid.scala:22:63",
         "Invalid.scala:29:7",
         "Invalid.scala:43:9",
@@ -735,6 +747,41 @@ class Fixtures extends munit.FunSuite:
       """{"wildcard":{}}""",
       "a wildcard arm lifts as a wildcard"
     )
+
+  // fn-112.9: the script helpers and the Temporal kit beside the core records they stand for, and
+  // the kit's `field(_.name) :=` beside `Assignment.typed` (lifts/Scripts.scala).
+  concurrently(
+    "script helpers, the Temporal kit and field := lift as the core records they stand for"
+  ):
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val pkg = "fixture.scripts.Scripts$package$."
+    val out = lifted("scripts-pairs")
+    val roots = Seq("helpers", "records", "sugaredRequest", "coredRequest").map(pkg + _)
+    val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
+    assert(!result.failed, result.diagnostics)
+    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
+    def strip(n: JsonNode): Unit =
+      n match
+        case o: ObjectNode => o.remove("position"): Unit
+        case _             => ()
+      n.elements().asScala.foreach(strip)
+    def realization(name: String): JsonNode =
+      val r = model
+        .path("realizations")
+        .elements()
+        .asScala
+        .find(_.path("name").asText() == name)
+        .getOrElse(fail(s"the scripts fixture lifted no realization $name"))
+        .deepCopy[ObjectNode]()
+      r.remove(java.util.List.of("id", "name"))
+      strip(r)
+      r
+    assertEquals(realization("helpers").toPrettyString, realization("records").toPrettyString)
+    def request(name: String) =
+      realization(name).at("/scripts/0/items/0/command/rpc").toPrettyString
+    assert(request("sugaredRequest").contains("task_queue.name"), request("sugaredRequest"))
+    assertEquals(request("sugaredRequest"), request("coredRequest"))
 
   // fn-112.5: input tokens, inputs supplied by name and a bounded counter (lifts/Inputs.scala).
   concurrently("inputs supplied by name lift as their positional calls, and UpTo as the Int range"):

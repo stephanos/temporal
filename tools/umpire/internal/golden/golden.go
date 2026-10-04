@@ -52,7 +52,10 @@ type Config struct {
 	// reorganized by subject and declaration kind mixes declarations of several frozen files in one
 	// file, which Splits cannot name. Which file of its directory a declaration sits in is read by no
 	// table, Definition ID, fingerprint, answer or Case, and the original-baseline harness drops
-	// positions entirely; a declaration moving to another feature or fixture still fails.
+	// positions entirely; a declaration moving to another feature or fixture still fails. An entry
+	// may also name one Scala file, which compares as its name alone: the realizations whose shared
+	// declarations moved into the Temporal kit (fn-112.9) and the kit compare as one name. The first
+	// entry that names a position applies.
 	Merges     []Substitution `json:"source_path_merges"`
 	Projection Projection     `json:"projection"`
 }
@@ -409,8 +412,8 @@ func (c Config) Unsplit(current *umpirespb.Model) (*umpirespb.Model, error) {
 // Merged gives m with every position in a merged directory naming that directory.
 func (c Config) Merged(m *umpirespb.Model) (*umpirespb.Model, error) {
 	for _, merge := range c.Merges {
-		if !strings.HasSuffix(merge.Old, "/") {
-			return nil, fmt.Errorf("source path merge of %q, which is not a directory", merge.Old)
+		if !strings.HasSuffix(merge.Old, "/") && !strings.HasSuffix(merge.Old, ".scala") {
+			return nil, fmt.Errorf("source path merge of %q, which is not a directory or a Scala file", merge.Old)
 		}
 	}
 	if len(c.Merges) == 0 {

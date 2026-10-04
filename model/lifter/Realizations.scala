@@ -76,10 +76,10 @@ private[lift] trait Realizations:
     case r: Ref if b.env.contains(r.symbol) => reduce(b.env(r.symbol))
     case r: Ref if isFunction(r.symbol)     =>
       defs(r.symbol) match
-        case d: DefDef => reduce(Bound(d.rhs.get, Map.empty))
-        case _         => b
+        case d: DefDef if d.rhs.nonEmpty => reduce(Bound(d.rhs.get, Map.empty))
+        case _                           => b
     case r: Ref
-        if !isEnumCase(r.symbol) && !namedByIR(
+        if !isEnumCase(r.symbol) && !factCase(r.symbol) && !namedByIR(
           r.tpe
         ) && r.symbol.isValDef && defs.contains(
           resolveSymbol(r)
@@ -87,17 +87,28 @@ private[lift] trait Realizations:
       defs(resolveSymbol(r)) match
         case ValDef(_, _, Some(rhs)) => reduce(Bound(rhs, Map.empty))
         case _                       => b
+    // A val naming a value no val declares, such as an enum case: `val cancelAttempt = AttemptCanceled`.
+    case r: Ref if !isEnumCase(r.symbol) && r.symbol.isValDef && aliasOf(r.symbol).nonEmpty =>
+      reduce(Bound(aliasOf(r.symbol).get, Map.empty))
     case t =>
       applied(t) match
+        case Some((sel @ Select(table, "apply"), List(fact)))
+            if sel.symbol.owner.fullName == "umpire.realize.StatusTable" =>
+          reduce(looked(Bound(table, b.env), Bound(fact, b.env), t))
         case Some((fn, args)) if isFunction(fn.symbol) =>
           defs(fn.symbol) match
-            case d: DefDef =>
+            // A constructor has no body to follow: a module's, or a class's.
+            case d: DefDef if d.rhs.nonEmpty =>
               val params = d.termParamss.flatMap(_.params).map(_.symbol)
               reduce(
                 Bound(d.rhs.get, params.zip(args.map(Bound(_, b.env))).toMap)
               )
             case _ => b
         case _ => b
+
+  private def aliasOf(sym: Symbol): Option[Term] = defs.get(sym) match
+    case Some(ValDef(_, _, Some(rhs: Ref))) if !namedByIR(rhs.tpe) => Some(rhs)
+    case _                                                         => None
 
   // A field kind spelled as the refusal has always spelled it: FLOAT, DOUBLE, BYTE_STRING.
   def kindName(kind: ScalaType): String = kind match
@@ -123,10 +134,11 @@ private[lift] trait Realizations:
   def methodName(b0: Bound): String =
     val b = reduce(b0)
     val t = b.term
+    // A constant imported from the service object is an identifier, one selected from it a select.
     val selected = t match
-      case s: Select if s.name.startsWith("METHOD_") => s
+      case s: Ref if s.symbol.name.startsWith("METHOD_") => s.symbol
       case _ => fail(t, s"expected a generated gRPC method constant, got ${t.show}")
-    val owner = selected.symbol.owner.fullName.stripSuffix("$")
+    val owner = selected.owner.fullName.stripSuffix("$")
     val grpc = try Class.forName(s"$owner$$")
     catch case _: ClassNotFoundException => fail(t, s"$owner has no generated gRPC metadata")
     val method = try
@@ -177,6 +189,10 @@ private[lift] trait Realizations:
       .getOrElse(fail(t, s"expected a typed field, got ${t.show}"))
     val selector =
       args.headOption.getOrElse(fail(t, "a typed field needs a selector"))
+    selectorPath(root, selector, t, repeated)
+
+  /** The path a field selector of a message of type `root` names, as the IR writes it. */
+  def selectorPath(root: TypeRepr, selector: Term, t: Term, repeated: Boolean = false): String =
     def lambda(term: Term): (Symbol, Term) = term match
       case Block(List(d: DefDef), _: Closure) =>
         (d.termParamss.flatMap(_.params).head.symbol, d.rhs.get)
@@ -268,7 +284,7 @@ private[lift] trait Realizations:
   def generatedEnumName(b0: Bound): String =
     val selected = reduce(b0).term
     selected match
-      case named: Select =>
+      case named: Ref =>
         val owner = named.symbol.owner.fullName.stripSuffix("$")
         val companion = try
           val cls = Class.forName(s"$owner$$")
@@ -504,7 +520,8 @@ private[lift] trait Realizations:
       case r: Ref if isEnumCase(r.symbol) =>
         vocabulary(r.symbol)
         (r.symbol.name, Nil)
-      case t =>
+      case t if scriptCall(t).nonEmpty || performed(t).nonEmpty => scriptWritten(Bound(t, b.env))
+      case t                                                    =>
         applied(t) match
           case Some((fn, args)) if factory(fn, "Instruction", "rpc") =>
             (
@@ -638,15 +655,32 @@ private[lift] trait Realizations:
             )
           case _ => fail(t, s"not a realization declaration: ${t.show}")
 
-  /** A string a declaration names: a constant, or the IR's name of a machine or a channel. */
+  /**
+   * A string a declaration names: a constant; the IR's name of a machine or a channel; the id of a
+   * declaration it refers to by value, a role, script, actuator, learned value, kind of evidence or
+   * command; the name of a fact; or a field of a declaration written out, such as a family's root.
+   */
   def textOfBound(b0: Bound): String =
+    val f = follow(b0)
+    f.term match
+      case t if commandLike(t.tpe)      => commandName(f)
+      case r: Ref if factCase(r.symbol) => r.symbol.name
+      case _                            => reducedText(b0)
+
+  private def reducedText(b0: Bound): String =
     val b = reduce(b0)
     b.term match
-      case t if isNamed(t.tpe, "io.grpc.MethodDescriptor")   => methodName(b)
-      case t if isNamed(t.tpe, "umpire.realize.Field")       => fieldPath(b)
-      case t if isNamed(t.tpe, "umpire.realize.EvidenceRef") =>
+      case t if isNamed(t.tpe, "io.grpc.MethodDescriptor") => methodName(b)
+      case t if isNamed(t.tpe, "umpire.realize.Field")     => fieldPath(b)
+      case t
+          if isNamed(t.tpe, "umpire.realize.EvidenceRef") ||
+            isNamed(t.tpe, "umpire.realize.TypedEvidence") =>
         val (_, args) = written(b)
         textOfBound(args.find(_._1 == "id").get._2)
+      case t if identified.exists(isNamed(t.tpe, _)) => idOf(b)
+      case r: Ref if factCase(r.symbol)              => r.symbol.name
+      case Select(qual, field) if fieldOfDeclaration(Bound(qual, b.env), field).nonEmpty =>
+        textOfBound(fieldOfDeclaration(Bound(qual, b.env), field).get)
       case Literal(StringConstant(s))                 => s
       case r: Ref if isNamed(r.tpe, "umpire.Machine") =>
         machineOf(resolveSymbol(r), r).name
@@ -688,6 +722,15 @@ private[lift] trait Realizations:
 
   /** One value of a field: a message of the field's type, a class, or a constant. */
   def valueOf(f: FieldDescriptor, b0: Bound): PValue =
+    f.scalaType match
+      case ScalaType.Message(d) if d.name == "Command" => commandValue(b0, d)
+      // The term as written, not reduced: a command is named after the val that declares it, and a
+      // fact by its case.
+      case ScalaType.String if !isNamed(follow(b0).term.tpe, "umpire.realize.Field") =>
+        PString(textOfBound(b0))
+      case _ => valueOf0(f, b0)
+
+  private def valueOf0(f: FieldDescriptor, b0: Bound): PValue =
     val b = reduce(b0)
     f.scalaType match
       case ScalaType.Message(d) if d.name == "ActionClass" =>
@@ -877,3 +920,281 @@ private[lift] trait Realizations:
         distinctName("realizations", realizations.values.map(r => r.name -> r.id), r.name, id, d)
         realizations(id) = r
         r
+
+  // ### Script helpers (model/umpire/realize/Scripts.scala), written by name
+
+  private val scriptHelpers = "umpire.realize.Scripts$package$"
+
+  /** The script helper a term applies, by name, with its argument lists in order. */
+  def scriptCall(t: Term): Option[(String, List[Term])] = applied(t).collect {
+    case (fn, args) if fn.symbol.maybeOwner.fullName == scriptHelpers => fn.symbol.name -> args
+  }
+
+  /** `key -> value`: a class a `perform` binds and its command, or a fact and what it reads as. */
+  private def performed(t: Term): Option[(Term, Term)] = t match
+    case Apply(TypeApply(arrow @ Select(Apply(_, List(step)), "->"), _), List(command))
+        if arrow.symbol.owner.name == "ArrowAssoc" =>
+      Some(step -> command)
+    case _ => None
+
+  /** The record a script helper writes, by the IR name of its message and its fields. */
+  private def scriptWritten(b: Bound): (String, List[(String, Bound)]) =
+    def bound(t: Term) = Bound(t, b.env)
+    def atLeastOne(items: Term, helper: String, what: String): Bound =
+      if itemsOf(bound(items)).isEmpty then fail(b.term, s"$helper names at least one $what")
+      bound(items)
+    (performed(b.term), scriptCall(b.term)) match
+      case (Some((step, command)), _) =>
+        ("Performance", List("step" -> bound(step), "command" -> bound(command)))
+      case (_, Some(("script", List(id, activation, items)))) =>
+        (
+          "Script",
+          List("id" -> bound(id), "activation" -> bound(activation), "items" -> bound(items))
+        )
+      case (_, Some(("perform", List(bindings)))) =>
+        ("Item", List("performs" -> atLeastOne(bindings, "perform", "class it binds")))
+      case (_, Some(("onPath", List(classes, command)))) =>
+        (
+          "Item",
+          List(
+            "command" -> bound(command),
+            "when" -> atLeastOne(classes, "onPath", "class whose path carries the command")
+          )
+        )
+      case (_, Some(("always", List(command)))) => ("Item", List("command" -> bound(command)))
+      case (_, Some((other, _)))                =>
+        fail(b.term, s"$other is no script declaration: write it where a script step is")
+      case _ => fail(b.term, s"not a script declaration: ${b.term.show}")
+
+  /** A term once its wrappers and the helper parameters it names are followed, but not its vals. */
+  def follow(b: Bound): Bound = b.term match
+    case Typed(e, _)                        => follow(Bound(e, b.env))
+    case Inlined(_, Nil, e)                 => follow(Bound(e, b.env))
+    case NamedArg(_, e)                     => follow(Bound(e, b.env))
+    case r: Ref if b.env.contains(r.symbol) => follow(b.env(r.symbol))
+    case _                                  => b
+
+  private def declares(tpe: TypeRepr, cls: String): Boolean =
+    tpe.widen.dealias.baseClasses.exists(_.fullName == cls)
+
+  /** A command, or an instruction, which stands for the command with no options. */
+  private def commandLike(tpe: TypeRepr): Boolean =
+    declares(tpe, "umpire.realize.Command") || declares(tpe, "umpire.realize.Instruction")
+
+  /** The declarations other declarations refer to by value, each by its `id`. */
+  private val identified =
+    Set(
+      "umpire.realize.Role",
+      "umpire.realize.Script",
+      "umpire.realize.Actuator",
+      "umpire.realize.Learned"
+    )
+
+  /** The id of a declaration written out: the argument of its `id` parameter. */
+  private def idOf(b: Bound): String =
+    fieldOfDeclaration(b, "id")
+      .map(textOfBound)
+      .getOrElse(fail(b.term, s"${b.term.show} names no id"))
+
+  /** The argument a declaration written out gives its parameter `name`, if it has one. */
+  private def fieldOfDeclaration(b0: Bound, name: String): Option[Bound] =
+    val b = reduce(b0)
+    scriptCall(b.term) match
+      case Some(("script", id :: _)) if name == "id" => Some(Bound(id, b.env))
+      case Some(_)                                   => None
+      case None                                      =>
+        applied(b.term).flatMap { (fn, args) =>
+          val params = fn.symbol.paramSymss.flatten.filter(_.isTerm).map(_.name)
+          params.zip(args).collectFirst { case (`name`, a) => Bound(a, b.env) }
+        }
+
+  /**
+   * A fact a Model names by value: a case of an enum of the Models, or the companion of one with
+   * fields, which names every value of it.
+   */
+  private def factCase(sym: Symbol): Boolean =
+    def ours(s: Symbol) = !s.fullName.startsWith("umpire.") && !s.fullName.startsWith("scala.")
+    (isEnumCase(sym) && ours(sym)) ||
+    (sym.flags.is(Flags.Module) && isEnumCase(sym.companionClass) && ours(sym.companionClass))
+
+  /** The value a status table gives a fact, which it must list once. */
+  private def looked(table: Bound, fact: Bound, at: Term): Bound =
+    val name = textOfBound(fact)
+    val t = reduce(table)
+    val entries = scriptCall(t.term) match
+      case Some(("statusTable", List(listed))) =>
+        itemsOf(Bound(listed, t.env)).map { e =>
+          val pair = reduce(e)
+          performed(pair.term) match
+            case Some((k, v)) => (textOfBound(Bound(k, pair.env)), Bound(v, pair.env))
+            case None         =>
+              fail(pair.term, s"a status table lists `fact -> value`, not ${pair.term.show}")
+        }
+      case _ => fail(at, s"${table.term.show} is no status table written out")
+    entries.groupBy(_._1).collectFirst { case (n, es) if es.size > 1 => n }.foreach { n =>
+      fail(t.term, s"the status table lists $n twice")
+    }
+    entries
+      .collectFirst { case (`name`, v) => v }
+      .getOrElse(fail(at, s"the status table lists no $name: add `$name -> value` to it"))
+
+  private def kebab(name: String): String =
+    name.flatMap(c => if c.isUpper then s"-${c.toLower}" else c.toString)
+
+  /** Whether a command is written out with its id, `Command(id, …)`, rather than named by its val. */
+  private def spelledOut(b: Bound): Boolean =
+    isNamed(b.term.tpe, "umpire.realize.Command") && scriptCall(b.term).isEmpty
+
+  /**
+   * The id of a command: the one it is written out with, or the name of the `val` that declares it
+   * in kebab case. A call with fields `setting` adds keeps the name of the call it extends.
+   */
+  def commandName(b0: Bound): String =
+    val b = follow(b0)
+    val r0 = reduce(b)
+    if spelledOut(r0) then idOf(r0)
+    else
+      b.term match
+        case r: Ref if r.symbol.isValDef && defs.contains(r.symbol) =>
+          val sym = r.symbol
+          val d = valDef(sym, r, "a command")
+          scriptCall(follow(Bound(d.rhs.get, Map.empty)).term) match
+            case Some(("setting", base :: _)) => commandName(Bound(base, Map.empty))
+            case _                            => kebab(capturedName(sym, d, "a command"))
+        case t =>
+          scriptCall(t) match
+            case Some(("setting", base :: _)) => commandName(Bound(base, b.env))
+            case _                            =>
+              fail(
+                t,
+                "a command is named after the val that declares it: declare it as a val and " +
+                  "refer to it by value"
+              )
+
+  /**
+   * A command: one written out, `Command(id, …)`, as written; otherwise an instruction or
+   * `command(instruction, …)` with its options, named after its val.
+   */
+  private def commandValue(b0: Bound, d: Descriptor): PMessage =
+    val b = reduce(b0)
+    val m = Message(d)
+    if spelledOut(b) then declaration(b, m)
+    else
+      val (instruction, options) = scriptCall(b.term) match
+        case Some(("command", instruction :: options)) =>
+          val named = List("after", "timeoutMs", "regardless", "closes").zip(options).collect {
+            case (p, a) if !isDefault(a) => p -> Bound(a, b.env)
+          }
+          (Bound(instruction, b.env), named)
+        case _ => (b, Nil)
+      val i = reduce(instruction)
+      scriptCall(i.term) match
+        case Some(("rpc" | "setting", _)) =>
+          val f = irField(d, "rpc", i.term)
+          m.set(f, rpcValue(i, irMessage(f, i.term)))
+        case Some(("poll", _)) =>
+          val f = irField(d, "poll", i.term)
+          m.set(f, pollValue(i, irMessage(f, i.term)))
+        case Some((other, _)) => fail(i.term, s"$other is no instruction")
+        case None             => declaration(i, m)
+      for (p, a) <- options do fieldOf(m, irField(d, snake(p), a.term), a)
+      m.set(irField(d, "id", b.term), PString(commandName(b0)))
+      m.set(irField(d, "position", b.term), pos(b.term).toPMessage)
+    m.written
+
+  /** A call written with `rpc(role, method) { … }`, and the fields `setting` adds to it. */
+  private def rpcValue(b: Bound, d: Descriptor): PMessage =
+    def call(c: Bound): (Bound, Bound, List[PMessage]) = scriptCall(c.term) match
+      case Some(("rpc", List(role, method, assign))) =>
+        (Bound(role, c.env), Bound(method, c.env), scoped(Bound(assign, c.env), d))
+      case Some(("setting", List(base, assign))) =>
+        val (role, method, assigned) = call(reduce(Bound(base, c.env)))
+        (role, method, assigned ++ scoped(Bound(assign, c.env), d))
+      case _ => fail(c.term, "setting extends a call written `rpc(role, method) { ... }`")
+    val (role, method, assigned) = call(b)
+    PMessage(
+      Map(
+        irField(d, "role", b.term) -> valueOf(irField(d, "role", b.term), role),
+        irField(d, "method", b.term) -> valueOf(irField(d, "method", b.term), method)
+      ) ++ Option.when(assigned.nonEmpty)(
+        irField(d, "assign", b.term) -> PRepeated(assigned.toVector)
+      )
+    )
+
+  /** A read written with `poll(evidence, role, until, intervalMs) { … }`. */
+  private def pollValue(b: Bound, d: Descriptor): PMessage = scriptCall(b.term) match
+    case Some(("poll", List(evidence, role, until, interval, assign))) =>
+      val assigned = scoped(Bound(assign, b.env), d)
+      def value(name: String, a: Term) =
+        irField(d, name, b.term) -> valueOf(irField(d, name, b.term), Bound(a, b.env))
+      PMessage(
+        Map(
+          value("evidence", evidence),
+          value("role", role),
+          value("until", until),
+          value("interval_ms", interval)
+        ) ++
+          Option.when(assigned.nonEmpty)(
+            irField(d, "assign", b.term) -> PRepeated(assigned.toVector)
+          )
+      )
+    case _ => fail(b.term, "expected a poll")
+
+  private def passedOn(b: Bound): Boolean = follow(b).term match
+    case Block(List(_: DefDef), _: Closure) => true
+    case _                                  => false
+
+  /**
+   * The assignments of the scope a call opens, in order: each line `field(_.name) := operand`, the
+   * typed field of the scope's request type, or its core form `Assignment.typed(field, operand)`.
+   */
+  private def scoped(b0: Bound, call: Descriptor): List[PMessage] =
+    val assignment = irMessage(irField(call, "assign", b0.term), b0.term)
+    val b = follow(b0)
+    b.term match
+      case Block(List(d: DefDef), _: Closure) =>
+        val scope = d.termParamss
+          .flatMap(_.params)
+          .headOption
+          .map(_.tpt.tpe.widen.dealias)
+          .filter(t => isNamed(t, "umpire.realize.RequestScope"))
+          .getOrElse(fail(b.term, "expected the scope of a request"))
+        val root = scope.typeArgs.head
+        def lines(t: Bound): List[Bound] = t.term match
+          case Block(stats, e) =>
+            stats.map {
+              case s: Term => Bound(s, t.env)
+              case other   => fail(other, "a request scope assigns fields, and declares nothing")
+            } ++ lines(Bound(e, t.env))
+          case Typed(e, _)             => lines(Bound(e, t.env))
+          case Inlined(_, Nil, e)      => lines(Bound(e, t.env))
+          case Literal(UnitConstant()) => Nil
+          case _                       => List(t)
+        lines(Bound(d.rhs.get, b.env)).flatMap { line =>
+          line.term match
+            // A scope passed on to another call is applied to that call's scope.
+            case Apply(Select(fn, "apply"), _) if passedOn(Bound(fn, line.env)) =>
+              scoped(Bound(fn, line.env), call)
+            case _ =>
+              requestAssignment(line, root, assignment).map(List(_)).getOrElse {
+                val r = reduce(line)
+                applied(r.term) match
+                  case Some((fn, _))
+                      if fn.symbol.name == "typed" &&
+                        fn.symbol.owner.fullName.stripSuffix("$") == "umpire.realize.Assignment" =>
+                    val m = Message(assignment)
+                    declaration(r, m)
+                    List(m.written)
+                  case _ =>
+                    fail(
+                      line.term,
+                      "a request scope assigns the request's fields, `field(_.name) := operand`, " +
+                        s"not ${line.term.show}"
+                    )
+              }
+        }
+      case other =>
+        fail(
+          other,
+          "a request's fields are assigned in the scope its call opens: `{ field(_.name) := ... }`"
+        )
