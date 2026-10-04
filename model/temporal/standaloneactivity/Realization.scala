@@ -16,8 +16,9 @@ package standaloneactivity
 
 import umpire.*
 import umpire.realize.*
-import umpire.realize.Instruction.{AttemptCanceled, AttemptFailure, Fault, Finish, Hold, Release}
+import umpire.realize.Instruction.{Finish, Hold, Release}
 import temporal.realize.*
+import temporal.realize.WorkerInstruction.{AttemptCanceled, AttemptFailure, Fault}
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus.*
 import io.temporal.api.failure.v1.{ApplicationFailureInfo, Failure}
@@ -42,7 +43,7 @@ object ActivityRealization:
   )
 
   /** The status the activity's description reports while each fact holds. */
-  private val activityStatus = statusTable(
+  val activityStatus = statusTable(
     ProtocolFact.statusPaused -> ACTIVITY_EXECUTION_STATUS_PAUSED,
     ProtocolFact.statusCompleted -> ACTIVITY_EXECUTION_STATUS_COMPLETED,
     ProtocolFact.statusFailed -> ACTIVITY_EXECUTION_STATUS_FAILED,
@@ -166,7 +167,7 @@ object ActivityRealization:
   /** The activity's attempts: each delivery to the worker is an attempt start, answered in order. */
   private val attempts = script(
     "activity",
-    Activation.Activity(activityType, caseWorker, taskQueue, starts = Vector(attemptStart))
+    WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(attemptStart))
   )(
     perform(
       attemptResult(AttemptResult.completed) -> completeAttempt,

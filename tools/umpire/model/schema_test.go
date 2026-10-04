@@ -28,7 +28,7 @@ const (
 	// The fields no frozen migration input sets.
 	schemaSupplement = `{"version":1,"functions":[{"name":"f","params":[{"name":"p","type":{"intRange":{"low":"-3","high":"4"}}}],"body":{"match":{"scrutinee":{"literal":{"record":{"type":"r","fields":[{"list":{"items":[{"int":"-1"},{"bool":true}]}}]}}},"cases":[{"pattern":{"wildcard":{}},"guard":{"literal":{"bool":true}},"body":{"literal":{"text":"x"}}}]}}}]}`
 	// The fields schemaAdded lists, each set. It is current, not captured: no historical bytes have them.
-	schemaAddedSupplement = `{"queries":[{"name":"q","total":"48"}],"functions":[{"name":"g","body":{"construct":{"type":"umpire.Step","choice":"committed"}}}]}`
+	schemaAddedSupplement = `{"queries":[{"name":"q","total":"48"}],"functions":[{"name":"g","body":{"construct":{"type":"umpire.Step","choice":"committed"}}}],"realizations":[{"requiredSettings":[{"key":"k","value":"v"}]}]}`
 )
 
 // schemaAddedField is a field the schema gained after the capture: the message it was added to, by its
@@ -38,9 +38,16 @@ type schemaAddedField struct {
 	field   *descriptorpb.FieldDescriptorProto
 }
 
-// What the schema gained after the capture, in the order it was added: the files it imports and the
-// fields. The lists are closed: a field added to the schema fails these tests until it is listed here
-// and schemaAddedSupplement sets it.
+// schemaAddedMessage is a top-level message the schema gained after the capture, declared in the file
+// right after the message named after.
+type schemaAddedMessage struct {
+	after   string
+	message *descriptorpb.DescriptorProto
+}
+
+// What the schema gained after the capture, in the order it was added: the files it imports, the
+// messages and the fields. The lists are closed: a field added to the schema, or a message, fails
+// these tests until it is listed here and schemaAddedSupplement sets each of its fields.
 var (
 	schemaAddedDependencies = []string{
 		// Query.total's wrapper.
@@ -55,6 +62,19 @@ var (
 		{message: "Construct", field: &descriptorpb.FieldDescriptorProto{Name: proto.String("choice"), Number: proto.Int32(4),
 			Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
 			JsonName: proto.String("choice")}},
+		// The dynamic-configuration settings a realization requires of the system it runs (fn-122.4).
+		{message: "Realization", field: &descriptorpb.FieldDescriptorProto{Name: proto.String("required_settings"), Number: proto.Int32(15),
+			Label: descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
+			TypeName: proto.String("." + schemaPackage + ".RequiredSetting"), JsonName: proto.String("requiredSettings")}},
+	}
+	schemaAddedMessages = []schemaAddedMessage{
+		// Realization.required_settings' entry.
+		{after: "Realization", message: &descriptorpb.DescriptorProto{Name: proto.String("RequiredSetting"), Field: []*descriptorpb.FieldDescriptorProto{
+			{Name: proto.String("key"), Number: proto.Int32(1), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+				Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), JsonName: proto.String("key")},
+			{Name: proto.String("value"), Number: proto.Int32(2), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(),
+				Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), JsonName: proto.String("value")},
+		}}},
 	}
 )
 
@@ -110,6 +130,14 @@ func addedSinceTheCapture(t *testing.T, file *descriptorpb.FileDescriptorProto) 
 		require.NotContains(t, file.GetDependency(), dependency)
 		file.Dependency = append(file.Dependency, dependency)
 	}
+	for _, added := range schemaAddedMessages {
+		messages := file.GetMessageType()
+		require.False(t, slices.ContainsFunc(messages, func(m *descriptorpb.DescriptorProto) bool { return m.GetName() == added.message.GetName() }),
+			"%s was captured", added.message.GetName())
+		i := slices.IndexFunc(messages, func(m *descriptorpb.DescriptorProto) bool { return m.GetName() == added.after })
+		require.NotEqual(t, -1, i, "no message %s", added.after)
+		file.MessageType = slices.Insert(messages, i+1, proto.CloneOf(added.message))
+	}
 	for _, added := range schemaAddedFields {
 		messages := file.GetMessageType()
 		var message *descriptorpb.DescriptorProto
@@ -155,6 +183,11 @@ func TestSchemaRenameKeepsTheWireBytes(t *testing.T) {
 	var added []protoreflect.FullName
 	for _, a := range schemaAddedFields {
 		added = append(added, protoreflect.FullName(schemaPackage+"."+a.message+"."+a.field.GetName()))
+	}
+	for _, a := range schemaAddedMessages {
+		for _, field := range a.message.GetField() {
+			added = append(added, protoreflect.FullName(schemaPackage+"."+a.message.GetName()+"."+field.GetName()))
+		}
 	}
 	require.ElementsMatch(t, added, schemaFieldsUnset(historical), "the captured wire bytes set every field but those added since")
 

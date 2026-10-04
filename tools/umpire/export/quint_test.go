@@ -292,8 +292,8 @@ func function(m *umpirespb.Model, name string) *umpirespb.Function {
 	return m.GetFunctions()[i]
 }
 
-// overAtOnce narrows the admission record's notion of over, `s.phase.in(completed, timedOut)`, to
-// both memberships at once: an activity is over only when it is completed and timed out, which no
+// overAtOnce narrows the admission record's notion of over, `p.in(completed, timedOut)` of its
+// phase, to both memberships at once: an activity is over only when it is completed and timed out, which no
 // state is, so terminal finality is never closed and never reopened.
 func overAtOnce(m *umpirespb.Model) {
 	body := function(m, "temporal.standaloneactivity.admission.Admission$.terminal").GetBody()
@@ -328,7 +328,7 @@ func TestQuintExportListsWhatItLeavesOut(t *testing.T) {
 	x := exported(t, s)
 	got := kinds(x.Unsupported)
 	require.Equal(t, Unsupported, got["module-refinement matchingQueue"])
-	require.Equal(t, Unsupported, got["query-agreement 84 Queries"])
+	require.Equal(t, Unsupported, got["query-agreement 87 Queries"])
 	// Five of the seven compositions are exported. The two over a provider that does not refine the
 	// queue it replaces have no composed table in Go either: the reader rejects the replacement.
 	require.Equal(t, []string{"currentOverLossyMatching", "currentOverMatching", "currentOverQueue", "staleOverMatching", "staleOverQueue"}, x.Compositions)

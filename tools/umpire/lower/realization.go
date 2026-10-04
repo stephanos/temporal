@@ -107,6 +107,9 @@ func (a *adapter) realization() (*cp.Realization, []error) {
 	if a.r.GetCleanup() != "" {
 		out.Plan.Cleanup = &testpilotspb.Cleanup{EntrypointId: a.r.GetCleanup()}
 	}
+	for _, s := range a.r.GetRequiredSettings() {
+		out.Plan.RequiredSettings = append(out.Plan.RequiredSettings, &testpilotspb.RequiredSetting{Key: s.GetKey(), Value: s.GetValue()})
+	}
 	return out, problems
 }
 

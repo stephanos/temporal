@@ -46,9 +46,82 @@ make umpire-check-model
 - [ ] `Capabilities.scala` imports no `Syntax.scala`; any sugar spelling added has its fixture proving IR equality with the core form.
 - [ ] Checked-in IR and Cases are byte-identical; lifter tests, model gate and lint-model pass.
 ## Done summary
-TBD
+Added the capabilities declaration, its lifting through the given Catalog, `except` and `overriding`, the law sidecar, plain-value argument binding, and fixtures for every form and refusal. No Model under model/temporal declares a capability. model/cases is byte-identical. model/ir changed in positions only, because the laws became objects (the P3 below).
 
+**What changed**
+- **`model/umpire/Capabilities.scala` (core):**
+  - The types `Closable(status, terminal, rejected)`, `Terminable(terminate, settled, reach)`, `Pausable(pause, unpause, paused)`, `Cancelable(requestCancel, requested, reach)`, `Pollable(dispatch, running)` and `Describable(status: StatusTable)`, all typed through `CapabilityOf[S, +O, +F]`.
+  - `capabilities(m, limits)(…)(using Catalog)`, with `except(law, because)` and `overriding(law -> def, because)`.
+  - `IrRoot` admits `Capabilities[?]`, so task 3 can register declarations with `irFile`.
+- **Laws are objects** (deferred P3 from fn-122.1). The object's `apply` states the law and `extends Law(cites, promises, doesNotPromise)` carries its data. `name` is the object's name, so the repeated string and the untyped `statement` are gone. Direct calls (`terminalStatesAreFinal(m)(…)`) and the fn-122.1 instances are unchanged.
+- **Lifter (`model/lifter/Capabilities.scala`, plus one dispatch case in `Claims.fold` and a branch in `Lifting.liftRoot`):**
+  - Folds the catalog (`Catalog.single`/`pair`/`++`, vals and givens) and the law objects (their `apply`, their constructor's text, and literals joined with `+`).
+  - Binds each law parameter by name to the fields of the capabilities that bring it. Pairs are found among the declared kinds.
+  - Registers the Property as `<machine>.<law>` (`generating`) regardless of the name its body writes.
+  - Adds a Scenario and a Query of the same name. A law restricted by `when` is a `find` from the start through `reach` and that class; any other law is a `verify` over the free Scenario under `limits`.
+  - The total is computed as Go's `QueryTotal` counts it: states × classes × steps, or states × min(steps, schedule), with composed classes counted as Go counts them.
+  - Writes `<file>.laws.json` beside each IR file, or beside `out.json` for a roots lift. It holds the claims (law, capabilities, bindings, overriddenBy, position), the waivers (with reason and position) and the catalog entries (cites, promises, doesNotPromise, and the instantiating machines, one per state type).
+- **Value binding (`Claims.bodyOf`/`valued`):** a declaring def's parameter that is not a model, claim, Limits, string, integer, bundle or list is bound to its argument term. `lift`, `classOf` and `resolve` read it in its place. `closedIsRejectedUniformly`, `terminateSettles` and `cancelIsRequested` now lift. `declaring` refactored into `bodyOf`, so the expansion reuses fn-112.4's binding path.
+- **Refusals at their lines (`lifts/CapabilityRejects.scala`, `rejects.txt`):**
+  - an unbound action;
+  - a lambda field (names the def to write);
+  - two capabilities of one kind, in one declaration or across two;
+  - a waiver of a law not brought;
+  - a blank reason;
+  - an overriding def with other parameters;
+  - a lambda passed for a law's function-valued parameter.
+- **Compiler refusals (`crossed/Capabilities.scala`, `crossed/NoCatalog.scala`):** a foreign state type, missing `limits`, missing `because`, and no given Catalog.
+- **Fixture `lifts/Capabilities.scala`** (expected `capabilities.json` and `capabilities.laws.json`):
+  - single: Closable's two laws;
+  - pair: Pausable × Pollable, never listed;
+  - functional: terminateSettles and cancelIsRequested as finds from `reach`;
+  - cross-entity: a composition's Pausable × Pollable through its members' projections;
+  - `except` and `overriding`;
+  - a fixture catalog given explicitly, whose law's `keeps(status)` reads the bound field-path def `Jobs.phase` (R3).
+- **Go:**
+  - `capabilities_test.go` recounts every generated total with `QueryTotal` and pins each answer (5 verified and 2 found on the job; the override, the keeps law and the pair verified).
+  - Go readers take IR files through the new `umpiremodel.IRPaths`, which leaves out `*.laws.json`: lower `generated.go`, `umpire-gen-cases`, the isolation test, and the golden `Inputs`/`OriginalModels`.
+- **README:** laws as objects, value parameters, and capabilities with their expansion, sidecar and refusals.
+
+**Decisions (own)**
+- **Laws as objects with `apply`.** This fixes the P3 with no macro, and it reads as the spec's `except(terminalStatesAreFinal, …)`.
+- **Catalog keys stay the `Capability` enum.** Each capability type maps to its kind by class name.
+- **The functional form is derived from the generated Property's `when`.** No per-law flag. The generated find carries no `.expect`: the expected Run depends on the realization, so task 3 adds it if Case equality needs one.
+- **The cross-entity form is a composition declaring capabilities.** No catalog law is cross-entity yet.
+- **Capability refusals live in their own `CapabilityRejects.scala`,** not `Rejects.scala`, to stay clear of fn-114.2's edits.
+- **One declaration of each kind per machine is enforced across declarations.** Kinds are recorded only once a declaration lifts.
+- **Sidecars are skipped by Go IR readers,** as the spec's `model/ir/<file>.laws.json` name requires.
+- **The API Contracts' `def terminalStatesAreFinal…` became `object terminalStatesAreFinal extends Law(…)` with an `apply`.** The law's name now comes from its object, not from a duplicated string, and `except`/`overriding` take the law by value. Calls are spelled as before. Recorded per the spec's rule on name changes.
+- **Only positions changed in model/ir.** The two activity IR files moved `"line"` values in Pause.scala and Laws.scala; the original baseline ignores positions and passes. Cases are byte-identical.
+- **Two definitions of the sidecar filter.** `model.IRPaths` and `golden.IRFiles` both define it, because the live model package may not import the test-only golden package (TestLiveModelDependencyGraph). `original.go` uses golden's.
+
+**Review fixes:**
+- Round 1 NEEDS_WORK: only machines count as instantiating (P2, fixed); the bridge reads through IRPaths, with a test (P2, fixed); positions-only IR and the law shape are recorded above (P3); sidecar suffix helpers consolidated as far as the package graph allows (P3).
+- FYI, also fixed: the parity regex now accepts one-line law objects.
+- FYI, left as is:
+  - `sameSignature` compares parameter names, not types. A type mismatch is still refused by the fold or by Go.
+  - The sidecar lists only the laws brought to some machine of that file.
+
+**Gates:** all pass (evidence.md):
+- `umpire-gen-model` and `umpire-check-model` (lifter tests and CatalogTest);
+- the full Go tooling suite;
+- the affected Go packages after the review fixes;
+- `lint-model` and `lint-code-fast` (0 issues).
+
+**Review:** claude-opus-5-5 at high via `--spec claude:claude-opus-5-5:high`. Writer and reviewer are the same family (Opus).
+- Round 1: NEEDS_WORK, 2 P2 and 2 P3.
+- Round 2: SHIP.
+
+**Shared files for the merge with fn-114.2:**
+- lifter: `model/lifter/{Claims,Constants,Context,Expressions,Lift,Lifting}.scala`, `model/lifter/test/Fixtures.test.scala`, `model/lifter/testdata/lifts/expected/rejects.txt`;
+- golden: `tools/umpire/internal/golden/{config.json (one appended later_inventory entry),golden.go,original.go}`;
+- `model/umpire/IrFile.scala`;
+- `tools/umpire/{lower/generated.go,cmd/umpire-gen-cases/main.go,cmd/umpire-ir-bridge/main.go,model/load.go,model/isolation_test.go,model/activity_parity_test.go}`;
+- `model/README.md`;
+- regenerate `model/ir` and `lifts/expected` after merging.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c300c86a08, f08896b0da, 0a4003aa0e, fc607cd5fc, 9ad221cf55
+- Tests: make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks (exit 0), make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks (exit 0), go test -json -tags test_dep -count=1 -p 2 -timeout 40m ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/... (exit 0), go test -json -tags test_dep -count=1 -p 2 ./tools/umpire/model ./tools/umpire/internal/golden ./tools/umpire/lower ./tools/umpire/cmd/... (exit 0, after review fixes), make lint-model (exit 0), GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main make lint-code-fast (exit 0), flowctl claude impl-review --spec claude:claude-opus-5-5:high (round 2 SHIP)
 - PRs:

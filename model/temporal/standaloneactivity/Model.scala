@@ -109,8 +109,12 @@ object Product:
   import ProductPhase.*
   import ProductFact.*
 
-  def terminal(s: ProductState) =
-    s.phase.in(completed, failed, canceled, terminated, timedOut)
+  def phase(s: ProductState) = s.phase
+
+  def terminal(p: ProductPhase) = p.in(completed, failed, canceled, terminated, timedOut)
+
+  /** A path ends where the activity is over. */
+  def ends(s: ProductState) = terminal(s.phase)
 
   /** A paused activity, which no worker is given. */
   def paused(s: ProductState) = s.phase == ProductPhase.paused
@@ -149,7 +153,7 @@ object Product:
    * activity, or an unpause of one not paused, is FailedPrecondition; the protocol lists them.
    */
   def control(s: ProductState, c: Control) =
-    if terminal(s) then List(Step(Outcome.notFound, s))
+    if terminal(s.phase) then List(Step(Outcome.notFound, s))
     else
       c match
         case Control.pause =>
@@ -164,7 +168,7 @@ object Product:
 
   /** One of the activity's deadlines firing. Which deadline is the protocol's account of how. */
   def timeout(s: ProductState) =
-    if terminal(s) then disabled else accept(ProductState(timedOut), statusTimedOut)
+    if terminal(s.phase) then disabled else accept(ProductState(timedOut), statusTimedOut)
 
 val timeout = timer
 
@@ -172,7 +176,7 @@ val timeout = timer
 val activityProduct = machine[ProductState, Outcome, ProductFact] {
   forEntity(activity)
   starts(ProductState(ProductPhase.scheduled))
-  ends(Product.terminal)
+  ends(Product.ends)
   steps(
     attemptStart ~> Product.attemptStart,
     attemptResult ~> Product.attemptResult,

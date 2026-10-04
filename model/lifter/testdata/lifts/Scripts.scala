@@ -13,7 +13,7 @@ package fixture.scripts
 
 import umpire.*
 import umpire.realize.*
-import umpire.realize.Instruction.{Fault, Release}
+import umpire.realize.Instruction.Release, temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
 import temporal.standaloneactivity.{
   activity,
@@ -245,7 +245,7 @@ val records: Realization = Realization(
             ),
             Performance(
               control(Control.terminate),
-              Command("stop-worker", Instruction.Fault("temporal.task-queue", FaultKind.workerStop))
+              Command("stop-worker", Fault("temporal.task-queue", FaultKind.workerStop))
             )
           )
         ),

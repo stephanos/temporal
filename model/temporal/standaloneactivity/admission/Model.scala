@@ -60,8 +60,7 @@ object Admission:
   /** Paused before any attempt was admitted: the pause a delivery must not get past. */
   def paused(s: AdmissionState) = s.phase == AdmissionPhase.paused
   def running(s: AdmissionState) = s.phase == AdmissionPhase.started
-  def terminal(s: AdmissionState) =
-    s.phase.in(AdmissionPhase.completed, AdmissionPhase.timedOut)
+  def terminal(p: AdmissionPhase) = p.in(AdmissionPhase.completed, AdmissionPhase.timedOut)
   def twoActive(s: AdmissionState) = s.active == Active.two
   def phase(s: AdmissionState) = s.phase
 
@@ -133,7 +132,7 @@ object Admission:
 
   /** Covers the whole activity, so it competes with the other deadline while none has fired. */
   def scheduleToClose(s: AdmissionState) =
-    if terminal(s) then disabled else timeOut(s, TimeoutType.scheduleToClose)
+    if terminal(s.phase) then disabled else timeOut(s, TimeoutType.scheduleToClose)
 
   def timeOut(s: AdmissionState, t: TimeoutType) =
     accept(s.copy(phase = AdmissionPhase.timedOut, active = Active.none), statusTimedOut(t))
@@ -165,7 +164,7 @@ object Admission:
   /** Whether the activity is over after a step, and whether it left where it ended. */
   def finality(f: Finality, after: AdmissionStep) =
     if f == Finality.reopened then Finality.reopened
-    else if terminal(after.state) then Finality.closed
+    else if terminal(after.state.phase) then Finality.closed
     else if f == Finality.closed then Finality.reopened
     else Finality.open
 

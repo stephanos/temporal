@@ -123,10 +123,8 @@ def correlation(operation: Entity)(using family: Family) = Correlation(
 )
 
 /**
- * How the find Queries of `machine` run against a Temporal deployment: the `roles` its scripts
- * address, its `evidence` keyed by `operation`, the entity the machine is of, and the kit's
- * correlation, producer and cleanup. It is named after the `val` that declares it, and its producer
- * is `<family>.testpilot`.
+ * How `machine`'s find Queries run on Temporal: `roles`, `evidence` keyed by `operation`, the
+ * `requiredSettings`, the kit's correlation and cleanup; its val's name, `<family>.testpilot`'s.
  */
 def temporalRealization(
     machine: Machine[?, ?, ?],
@@ -136,7 +134,8 @@ def temporalRealization(
     evidence: Vector[Evidence | EvidenceRef[?, ?] | TypedEvidence[?]],
     learned: Vector[Learned] = Vector.empty,
     observations: Vector[Observed] = Vector(correlated),
-    controls: Vector[Actuator] = Vector.empty
+    controls: Vector[Actuator] = Vector.empty,
+    requiredSettings: Vector[RequiredSetting] = Vector.empty
 )(using family: Family) = Realization(
   machine = machine,
   producer = family.root + ".testpilot",
@@ -148,7 +147,8 @@ def temporalRealization(
   observations = observations,
   evidence = evidence,
   controls = controls,
-  cleanup = "cleanup"
+  cleanup = "cleanup",
+  requiredSettings = requiredSettings
 )
 
 // ### The controller and its reads
@@ -264,3 +264,8 @@ def deliveryField(path: Field[InstructionOutcome, String]) =
 /** The activity run the attempt belongs to. */
 def activityRunField(path: Field[InstructionOutcome, String]) =
   EvidenceField.typed("activityRun", path)
+
+// ### The endpoint a standalone Nexus operation names
+
+/** The name of the Nexus endpoint the run creates for the Case, as a start request names it. */
+val nexusEndpointName: TypedOperand[String] = Operand.environment(nexusEndpointBinding)

@@ -129,9 +129,9 @@ func positions(m proto.Message) []*umpirespb.Position {
 }
 
 func TestIRSourcePositionsResolveInsideModel(t *testing.T) {
-	models, err := filepath.Glob(filepath.Join("..", "..", "..", "model", "ir", "*.json"))
+	models, err := IRPaths(filepath.Join("..", "..", "..", "model", "ir"))
 	require.NoError(t, err)
-	expected, err := filepath.Glob(filepath.Join("..", "..", "..", "model", "lifter", "testdata", "lifts", "expected", "*.json"))
+	expected, err := IRPaths(filepath.Join("..", "..", "..", "model", "lifter", "testdata", "lifts", "expected"))
 	require.NoError(t, err)
 	models = append(models, expected...)
 	require.NotEmpty(t, models)

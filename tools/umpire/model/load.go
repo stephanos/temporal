@@ -2,12 +2,29 @@ package model
 
 import (
 	"os"
+	"path/filepath"
+	"slices"
+	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
+
+// LawSidecarSuffix ends the law sidecar the lifter writes beside an IR file whose Models declare
+// capabilities, `<file>.laws.json`: JSON that records the generated claims, and no Model. The
+// test-only golden package, which this package cannot import, spells it once more.
+const LawSidecarSuffix = ".laws.json"
+
+// IRPaths lists the IR files of a directory: its JSON files, apart from the law sidecars beside them.
+func IRPaths(dir string) ([]string, error) {
+	paths, err := filepath.Glob(filepath.Join(dir, "*.json"))
+	if err != nil {
+		return nil, err
+	}
+	return slices.DeleteFunc(paths, func(p string) bool { return strings.HasSuffix(p, LawSidecarSuffix) }), nil
+}
 
 // Load reads a Model in ProtoJSON, rejects fields the schema does not have, and validates it.
 func Load(path string) (*umpirespb.Model, error) {

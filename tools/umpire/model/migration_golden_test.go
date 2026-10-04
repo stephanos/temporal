@@ -295,10 +295,11 @@ func TestMigrationGoldens(t *testing.T) {
 	expected, err := golden.Read(filepath.Join("testdata", "migration"))
 	require.NoError(t, err)
 	cfg, models := migrationInputs(t)
+	require.NoError(t, cfg.RootsApply(migrationOriginals(t, expected, models), models))
 	for path, current := range models {
 		original := new(umpirespb.Model)
 		require.NoError(t, protojson.Unmarshal(expected["inputs/"+migrationKey(path)], original), path)
-		_, err := cfg.Match(original, current)
+		_, err := cfg.MatchAt(golden.OriginalKey(path), original, current)
 		require.NoError(t, err, path)
 		// Evaluate the immutable source spelling so located errors remain byte-comparable after a move.
 		models[path] = original
@@ -306,6 +307,63 @@ func TestMigrationGoldens(t *testing.T) {
 	require.NoError(t, cfg.FunctionsRenamed(models))
 	require.NoError(t, cfg.TypesRenamed(models))
 	require.NoError(t, golden.Compare(expected, migrationFiles(t, models)))
+}
+
+// TestMigrationGoldensAdmitOnlyTheLawReplacements compares the standalone activity, whose laws
+// generate claims, with its frozen input: at its original-baseline key the listed replacements are
+// admitted, and nothing beside them.
+func TestMigrationGoldensAdmitOnlyTheLawReplacements(t *testing.T) {
+	const path = "model/scalav2/ir/activity.json"
+	frozen, err := golden.Read(filepath.Join("testdata", "migration", "inputs"))
+	require.NoError(t, err)
+	original := new(umpirespb.Model)
+	require.NoError(t, protojson.Unmarshal(frozen[migrationKey(path)], original))
+	cfg, models := migrationInputs(t)
+	current, key := models[path], golden.OriginalKey(path)
+	_, err = cfg.MatchAt(key, original, current)
+	require.NoError(t, err)
+	_, err = cfg.Match(original, current)
+	require.Error(t, err, "without the key no replacement applies")
+	withoutRoots := cfg
+	withoutRoots.RootRetirements = nil
+	_, err = withoutRoots.MatchAt(key, original, current)
+	require.Error(t, err, "a retired root the configuration does not list")
+	for name, change := range map[string]func(*umpirespb.Model){
+		"unlisted generated claim": func(m *umpirespb.Model) {
+			extra := proto.CloneOf(m.GetQueries()[slices.IndexFunc(m.GetQueries(), func(q *umpirespb.Query) bool {
+				return q.GetName() == "activityProduct.terminalStatesAreFinal"
+			})])
+			extra.Name = "activityProduct.another"
+			m.Queries = append(m.Queries, extra)
+		},
+		"retired Query kept": func(m *umpirespb.Model) {
+			m.Queries = append(m.Queries, &umpirespb.Query{Name: "terminalHolds", Form: umpirespb.Query_FORM_VERIFY,
+				Property: &umpirespb.ClaimRef{Machine: "activityProduct", Name: "activityProduct.terminalStatesAreFinal"},
+				Scenario: &umpirespb.ClaimRef{Machine: "activityProtocol", Name: "completed"}, Through: true,
+				Limits: &umpirespb.Limits{Name: "three", Steps: 3, Actions: 3, Search: 4096}})
+		},
+		"generated twin without its Scenario": func(m *umpirespb.Model) {
+			m.Scenarios = slices.DeleteFunc(m.Scenarios, func(s *umpirespb.Scenario) bool { return s.GetName() == "activityProtocol.terminateSettles" })
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			changed := proto.CloneOf(current)
+			change(changed)
+			_, err := cfg.MatchAt(key, original, changed)
+			require.Error(t, err)
+		})
+	}
+}
+
+// migrationOriginals are the frozen inputs of the models, by path.
+func migrationOriginals(t *testing.T, expected map[string][]byte, models map[string]*umpirespb.Model) map[string]*umpirespb.Model {
+	t.Helper()
+	out := map[string]*umpirespb.Model{}
+	for path := range models {
+		out[path] = new(umpirespb.Model)
+		require.NoError(t, protojson.Unmarshal(expected["inputs/"+migrationKey(path)], out[path]), path)
+	}
+	return out
 }
 
 func TestMigrationGoldenDetectsSemanticMutations(t *testing.T) {
@@ -346,8 +404,13 @@ func TestMigrationProjectionPreservesSemantics(t *testing.T) {
 		t.Run(migrationKey(path), func(t *testing.T) {
 			frozen := new(umpirespb.Model)
 			require.NoError(t, protojson.Unmarshal(originals[migrationKey(path)], frozen))
-			// The task-queue entity fn-112 attaches is read on the frozen input too, as Match reads it.
-			original, err := golden.Attached(frozen)
+			// The original baseline's delta, the task-queue entity fn-112 attaches and the claims fn-122's
+			// laws replace, is read on the frozen input too, and the current Model without the generated
+			// claims it lists, as MatchAt reads them.
+			key := golden.OriginalKey(path)
+			original, err := golden.Attached(key, frozen)
+			require.NoError(t, err)
+			ungenerated, err := golden.Ungenerated(key, models[path])
 			require.NoError(t, err)
 			mapped, err := cfg.Migrate(original)
 			require.NoError(t, err)
@@ -372,7 +435,7 @@ func TestMigrationProjectionPreservesSemantics(t *testing.T) {
 			require.Equal(t, refined, readMapped.refined)
 			// The current IR, which Match admits under the projection, reads as the original does. The
 			// projection names a path the same in each spelling, so it applies over the migration.
-			current := readMigration(t, models[path], project)
+			current := readMigration(t, ungenerated, project)
 			requireSameMeaning(t, read.meaning[1], current.meaning[0])
 			for i := range definitions {
 				definitions[i].Error = project(definitions[i].Error)
@@ -739,10 +802,19 @@ func TestCaptureMigrationRefinedProperties(t *testing.T) {
 }
 
 func TestMigrationRefinedPropertiesCoverEveryProductPropertyRow(t *testing.T) {
+	const key = "ir/activity.json"
 	var expected []migrationRefinedProperty
-	frozenReaderJSON(t, "refined-properties/ir/activity.json", &expected)
+	frozenReaderJSON(t, "refined-properties/"+key, &expected)
 	require.NotEmpty(t, expected)
-	require.Equal(t, expected, migrationRefinedProperties(t, activityModel(t)))
+	frozen := frozenReaderModel(t, "activity")
+	require.Equal(t, expected, migrationRefinedProperties(t, frozen), "the frozen input derives as it was frozen")
+	// The rows of a Property a law replacement renames are derived again from the frozen input with the
+	// rename, and compared with the current Model's without the generated claims the delta lists.
+	original, err := golden.Attached(key, frozen)
+	require.NoError(t, err)
+	current, err := golden.Ungenerated(key, activityModel(t))
+	require.NoError(t, err)
+	require.Equal(t, migrationRefinedProperties(t, original), migrationRefinedProperties(t, current))
 }
 
 // locationMigrator maps the source paths a located error names. Its replacer is built once for all the

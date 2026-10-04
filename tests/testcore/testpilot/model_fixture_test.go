@@ -10,6 +10,7 @@ import (
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
+	"go.temporal.io/server/tools/umpire/lower"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -44,6 +45,61 @@ func TestModelCasesLowerForExistingConsumers(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
+}
+
+// The standalone Nexus operation's generated Cases require the feature's flag of the environment, so
+// a Profile derived from a server without it is refused at preparation, naming the setting, the
+// value it must take and that it is unset; one derived from a server that sets it admits them.
+func TestGeneratedNexusOperationCasesRequireTheStandaloneFlag(t *testing.T) {
+	directory := filepath.Join("..", "..", "..", "model", "cases")
+	entries, err := GeneratedCases(directory)
+	require.NoError(t, err)
+	catalog, err := temporal.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	checked := 0
+	for _, entry := range entries {
+		if entry.Model != "nexus-operation.json" || entry.Standing != lower.Lowered {
+			continue
+		}
+		checked++
+		t.Run(entry.File, func(t *testing.T) {
+			fixture, err := LoadGeneratedCase(directory, entry)
+			require.NoError(t, err)
+			settings := fixture.Source.GetProgram().GetRequiredSettings()
+			require.Len(t, settings, 1, "the Case carries its realization's required settings")
+			protorequire.ProtoEqual(t, &testpilotspb.RequiredSetting{Key: "nexusoperation.enableStandalone", Value: "true"}, settings[0])
+			environment := temporal.Environment{Identity: "scala", Namespace: "ns", TaskQueue: "q", NexusEndpoint: "e",
+				DynamicConfig: map[string]string{"history.enableChasm": "true"}}
+			if temporal.HandlerTaskQueueBindingID(fixture.Source.GetProgram()) != "" {
+				environment.HandlerTaskQueue = "h"
+			}
+			profile, err := temporal.DeriveProfile(fixture.Source, catalog, environment)
+			require.NoError(t, err)
+			_, err = testpilot.Prepare(fixture.Source, profile)
+			var refusal *testpilot.PreparationError
+			require.ErrorAs(t, err, &refusal)
+			require.Equal(t, testpilot.PreparationUnavailable, refusal.Category)
+			require.Equal(t, "program.required_settings[0]", refusal.Path)
+			require.Contains(t, refusal.Detail, `"nexusoperation.enableStandalone" must be "true"`)
+			require.Contains(t, refusal.Detail, "leaves it unset")
+
+			environment.DynamicConfig["nexusoperation.enableStandalone"] = "false"
+			profile, err = temporal.DeriveProfile(fixture.Source, catalog, environment)
+			require.NoError(t, err)
+			_, err = testpilot.Prepare(fixture.Source, profile)
+			require.ErrorAs(t, err, &refusal)
+			require.Contains(t, refusal.Detail, `sets it to "false"`)
+
+			environment.DynamicConfig["nexusoperation.enableStandalone"] = "true"
+			profile, err = temporal.DeriveProfile(fixture.Source, catalog, environment)
+			require.NoError(t, err)
+			prepared, err := testpilot.Prepare(fixture.Source, profile)
+			require.NoError(t, err)
+			_, err = prepared.WithAssessment(fixture.Assessment)
+			require.NoError(t, err)
+		})
+	}
+	require.Equal(t, 2, checked, "both standalone Nexus operation Cases are generated")
 }
 
 // The held race lowers only for an environment that supplies a delivery control, names the claim a

@@ -41,9 +41,90 @@ make umpire-check-live-tests
 - [ ] `rejected` differs from the activity's as a parameter; any override carries its reason in the sidecar; the done summary lists the laws that now have two instantiating machines.
 - [ ] Existing IR and Cases are byte-identical; the new IR file, sidecar and Cases are allow-listed by name; model gate and the live runner pass.
 ## Done summary
-TBD
+Modeled the standalone Nexus operation as the laws' second instantiating entity, with its generated Cases running live.
 
+**What changed**
+- **`model/temporal/nexusoperation/`** (fn-112 layout, captured-name forms):
+  - `Model.scala`: the machine `nexusOperation`.
+    - Actions: start, requestCancel, terminate, handlerReply (sync success, sync failure, async) and complete (succeeded, failed, canceled). No retry, no deadline.
+    - Phases: unstarted, scheduled, started, succeeded, failed, canceled, terminated, with a cancel-requested flag.
+    - Facts are named after the status each step lands in. Each step cites operation.go / operation_statemachine.go.
+  - `Properties.scala`: `operationCapabilities` (limits `three`).
+    - Closable: `rejected = Outcome.alreadyCompleted`, the parameter where it differs from the activity's NotFound (ErrOperationAlreadyCompleted).
+    - Terminable and Cancelable: reach `Seq(start)`, expect `inconclusive(explanationsDisagree)`.
+    - Describable: `operationStatus`.
+    - `.overriding(closedIsRejectedUniformly -> closedRejectsOrRepeats, because = …)`: the server answers a repeated request id OK after close (operation.go RequestCancel and Terminate). The sidecar records the override and its reason.
+  - `Queries.scala`: limits and expectations.
+  - `Realization.scala`: built on the kit, against `METHOD_{START,REQUEST_CANCEL,TERMINATE,DESCRIBE}_NEXUS_OPERATION_EXECUTION`. It has a Describe status table, an await on terminated, and the endpoint role. No handler answers, so the operation stays running until a control lands.
+  - `IrFiles.scala`: `irFile("nexus-operation")`.
+- **Kit:** `nexusEndpointName`, appended at the end so no Model's positions move.
+- **Harness:**
+  - `original.json`: `new_ir_files: ["ir/nexus-operation.json"]` and its two new Cases.
+  - `config.json`: `later_inventory`.
+  - The lowering comparison now lowers listed new IR files with the rest.
+- **Live suite:** applies each generated Case's declared required settings (see below), beside the blanket `activity.Enabled`.
+- **Docs:** `.plans/UMPIRE_MODULES.md` (module row), `.plans/SEMANTIC_PROTOCOLS.md` (the second entity, plus the laws with two machines).
+- **Catalog test:** now counts the declared machines.
+- **IR and Cases:** existing IR files and Cases are byte-identical. Only the manifest gains the four nexus-operation entries.
+
+**Laws that now have two checked-in instantiating machines** (model/ir/*.laws.json):
+- `terminalStatesAreFinal`: activityProduct, currentAdmission, nexusOperation.
+- `closedIsRejectedUniformly`: the same three; overridden on nexusOperation, waived on the admission designs.
+- `pausedIsNotDispatched`: activityProduct, currentAdmission.
+- `terminateSettles`: activityProtocol, nexusOperation.
+- `cancelIsRequested`: activityProtocol, nexusOperation.
+
+**Verdicts:** `nexusOperation.terminalStatesAreFinal` and `.closedIsRejectedUniformly` (the override) are verified; `.terminateSettles` and `.cancelIsRequested` are found and lowered.
+
+**Live** (live.md; under the lock with nothing else heavy):
+- Both nexus-operation Cases passed in 20 of 20 Runs (5 runs × hsm/chasm × 2 Cases), with a SATISFIED Verdict and the expected Property assessment.
+- The activity's Cases that stop the worker failed most runs at the stop-worker instruction's 10 s limit, with an INCONCLUSIVE Verdict:
+  - generated terminateSettles: 1/5 hsm, 0/5 chasm;
+  - generated cancelIsRequested: 2/5 and 2/5;
+  - authored terminate: 1/5 and 1/5.
+- That is fn-121's signature: matching's ShutdownWorker returns early when the root partition is not loaded. It is recorded for fn-118/fn-121. No window was widened, and no server or Profile change was made.
+
+**Required settings** (the conductor chose option (a) on the NEEDS_HUMAN, commit 6872629c51):
+- **Protos:** two new generic fields, `Realization.required_settings = 15` in the IR and `Program.required_settings = 8` in Testpilot, each a repeated `RequiredSetting{key, value}`.
+  - The IR field is listed as an inert schema addition (original.json and config.json `inert_fields`, plus schema_test's added fields and messages), the way fn-112.11 and fn-120.1 recorded theirs.
+  - The Testpilot proto has no captured-schema test.
+- **Scala:**
+  - `umpire.realize.RequiredSetting` and the kit's `temporalRealization(…, requiredSettings = …)`. The kit's later line numbers are kept, so existing IR and Cases are byte-identical.
+  - The Nexus operation realization requires `nexusoperation.enableStandalone = "true"`, which `make umpire-gen-model` lifts into its IR.
+- **Lowering:** carries the settings into the Case's Program, and the inventory accounts for them. Only the two nexus-operation Cases change.
+- **Prepare:** refuses a Profile whose configuration lacks a required setting or sets it otherwise. It answers PreparationUnavailable at `program.required_settings[i]`, for example: `required setting "nexusoperation.enableStandalone" must be "true", and the Profile's configuration leaves it unset`. Malformed entries are refused as PreparationMalformed.
+- **Tests:**
+  - Prepare unit tests.
+  - A negative test on the real nexus-operation Case fixtures: unset and false are refused naming the flag, true is admitted.
+  - A lowering inventory test and IR validator cases.
+- **Live harness:** applies the union of the lowered Cases' declared settings through a small key→setting table, failing on an unknown key. It records them in `binding.DynamicConfig` and now passes that into the Profile, so Prepare checks what the server runs with. The blanket `nexusoperation.Enabled` is gone.
+- **Catalog rotation:** the proto field changes the Driver catalog identity. `catalog_test.go` takes the new literal, and `make umpire-rerecord-pinned-runs` re-recorded the pinned Runs and receipt goldens. The replay Case fixture had drifted from its generated Case (pre-existing old source paths), so it was refreshed to the generated one first.
+
+**Findings** (findings.md):
+1. **The flag-off criterion is resolved** by the required settings above.
+2. **No handler carrier:** the Driver has no Nexus-handler carrier for a standalone operation. Handler paths are modeled and verified but do not lower. This is recorded in `.plans/SEMANTIC_PROTOCOLS.md`.
+3. **Request ids:** a Case sends the run as every request id, so the Model folds the "different request id" errors into its repeated-request stutters.
+
+**Review:** claude-opus-5-5 at high via `--spec claude:claude-opus-5-5:high`. Writer and reviewer are the same family (Opus).
+- **Round 1:** NEEDS_HUMAN on the flag-off criterion. The conductor chose (a), expanding the task with the required settings above. Both P3s were fixed in e335f4d8dc.
+- **Round 2:** after `review-rounds reset`, the same base and receipt. All three findings were fixed or withdrawn, and the verdict is SHIP.
+- **FYI:** the realization's header pointed at a scratch file; it now points at SEMANTIC_PROTOCOLS.md (45b5018f49, a comment on the same line).
+
+**Gates after the expansion:** all pass (evidence.md): lint-protos, umpire-check-model, the full Go suite, lint-model, lint-code-fast, tests/testcore/testpilot and the live nexus-operation Cases 4/4.
+
+**Shared files for the merge:**
+- Protos and bindings: `proto/internal/temporal/server/api/{umpire,testpilot}/v1/`, `api/{umpire,testpilot}/v1/`.
+- `common/testing/testpilot/{prepare.go,prepare_test.go,internal/execution/{prepare,program}.go,temporal/catalog_test.go}`.
+- Re-recorded testdata: `common/testing/testpilot/{evaluation,replay}/testdata` and `tools/canary/assessment/testdata`.
+- `tests/testpilot_generated_test.go`, `tests/testcore/testpilot/model_fixture_test.go`.
+- `tools/umpire/lower/{lower,realization}.go`, `tools/umpire/lower/internal/producer/*`, `tools/umpire/lower/{inventory,original_migration}_test.go`.
+- `tools/umpire/model/{validate_realization.go,realization_test.go,schema_test.go,capabilities_test.go}`.
+- `tools/umpire/internal/golden/{original.go,original.json,golden.go,config.json}`.
+- `model/umpire/realize/Realize.scala`, `model/temporal/realize/Kit.scala`, `model/README.md`, `.plans/{UMPIRE_MODULES,SEMANTIC_PROTOCOLS}.md`.
+- After merging: regenerate model/ir and model/cases, and re-record the pinned Runs if the catalog moves again.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: cc0957e498, e335f4d8dc, 6872629c51, e3f6432ea4, 45b5018f49
+- Tests: make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks (exit 0), go test -json -tags test_dep -count=1 -p 2 -timeout 40m ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/... (exit 0), make lint-model (exit 0), make lint-protos (exit 0), GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main make lint-code-fast (exit 0), go test -tags test_dep ./tests/testcore/testpilot/ (exit 0), go test -tags 'test_dep integration' ./tests -run TestTestpilotGeneratedCases/.../nexus-operation (4/4 PASS; 20/20 over 5 runs before the expansion), flowctl claude impl-review --spec claude:claude-opus-5-5:high (round 2 SHIP)
 - PRs:

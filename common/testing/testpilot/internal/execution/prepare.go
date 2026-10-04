@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"strings"
 
 	enumspb "go.temporal.io/api/enums/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -76,13 +77,41 @@ func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Profile) (*P
 	}
 	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}, carriers: map[carrierCoordinate]contract.ReservationCarrierPlan{}, roles: map[string]contract.PreparedRole{}}
 	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]contract.RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]contract.ReservationCarrierPolicy{}, opcodes: map[contract.Opcode]bool{}, commandTypes: map[enumspb.CommandType]bool{}, bindingsRequired: true, environment: map[string]string{}, bindings: map[string]string{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, evidenceSources: map[string]contract.Coordinate{}, graphIndex: map[string]*graph{}}
-	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindDataflow, a.deriveReservations, a.bindReservations, a.bindReservationCarriers} {
+	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, func() error { return checkRequiredSettings(source.Program, policy.Configuration) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindDataflow, a.deriveReservations, a.bindReservations, a.bindReservationCarriers} {
 		if err := check(); err != nil {
 			return nil, err
 		}
 	}
 	return prepared, nil
 }
+
+// checkRequiredSettings admits the Program's required settings against the environment's dynamic
+// configuration. A key is matched case-insensitively, as the server reads dynamic configuration, and
+// a value exactly as the Program spells it: the environment either runs under the setting or the
+// Case would exercise a system other than the one it was lowered for.
+func checkRequiredSettings(program *testpilotspb.Program, configuration map[string]string) error {
+	seen := make(map[string]bool, len(program.GetRequiredSettings()))
+	for i, setting := range program.GetRequiredSettings() {
+		path := fmt.Sprintf("program.required_settings[%d]", i)
+		key := strings.ToLower(setting.GetKey())
+		if !ir.ValidID(setting.GetKey()) || setting.GetValue() == "" {
+			return ir.Invalid(ir.Malformed, path, "required setting needs a valid key and a non-empty value")
+		}
+		if seen[key] {
+			return ir.Invalid(ir.Malformed, path, fmt.Sprintf("required setting %q is duplicated", setting.GetKey()))
+		}
+		seen[key] = true
+		actual, set := configuration[key]
+		switch {
+		case !set:
+			return ir.Invalid(ir.Unavailable, path, fmt.Sprintf("required setting %q must be %q, and the Profile's configuration leaves it unset", setting.GetKey(), setting.GetValue()))
+		case actual != setting.GetValue():
+			return ir.Invalid(ir.Unavailable, path, fmt.Sprintf("required setting %q must be %q, and the Profile's configuration sets it to %q", setting.GetKey(), setting.GetValue(), actual))
+		}
+	}
+	return nil
+}
+
 func validateProvenance(provenance *testpilotspb.CaseProvenance) error {
 	if provenance == nil {
 		return nil

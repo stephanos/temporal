@@ -115,6 +115,13 @@ const (
 // Every declaration of the system contract has one result, and none is left unanswered. The kinds are
 // the oracles' verdicts: the corrected design keeps every promise over every queue, the stale design
 // breaks each one, the detailed queue stands in for the opaque one, and each violating provider fails.
+// The laws each design and composition receives from its capabilities are verified by the Queries
+// they generate, `<machine>.<law>` over a free search of the machine, which answer as the retired
+// `<machine>.any.notAdmittedWhilePaused` and `<machine>.any.terminalStays` did. A design's closed
+// rejection, which no hand-written Query asked, fails on both: the corrected design meets a delivery
+// after the activity timed out as accepted, owing the queue an answer and recording
+// admissionRejected, where the law wants the state kept and notFound; the stale design's free search
+// meets the monitor's second admission first.
 func TestActivitySystemResults(t *testing.T) {
 	report := systemModel(t).report
 	require.Empty(t, report.Unsupported())
@@ -137,14 +144,19 @@ func TestActivitySystemResults(t *testing.T) {
 		"query activityProtocol competingTimers.scheduleToStartFirst": Found,
 		"query activityProtocol competingTimers.scheduleToCloseFirst": Found,
 
+		// The product's laws, which the system contract's Model carries with the product.
+		"query activityProduct activityProduct.terminalStatesAreFinal":    Verified,
+		"query activityProduct activityProduct.pausedIsNotDispatched":     Verified,
+		"query activityProduct activityProduct.closedIsRejectedUniformly": Verified,
+
 		current + "staleDelivery":                    Verified,
 		current + "admittedBeforePause":              Verified,
 		current + "duplicateDelivery":                Verified,
 		current + "duplicateDelivery.monitored":      Verified,
 		current + "startedAfterCompletion.monitored": Verified,
-		current + "any.notAdmittedWhilePaused":       Verified,
+		current + "pausedIsNotDispatched":            Verified,
 		current + "any.atMostOneActive":              Verified,
-		current + "any.terminalStays":                Verified,
+		current + "terminalStatesAreFinal":           Verified,
 		current + "scheduleToStartFirst":             Found,
 		current + "scheduleToCloseFirst":             Found,
 		current + "product.pausedIsNotDispatched":    Verified,
@@ -154,9 +166,9 @@ func TestActivitySystemResults(t *testing.T) {
 		stale + "duplicateDelivery":                Counterexample,
 		stale + "duplicateDelivery.monitored":      Counterexample,
 		stale + "startedAfterCompletion.monitored": Counterexample,
-		stale + "any.notAdmittedWhilePaused":       Counterexample,
+		stale + "pausedIsNotDispatched":            Counterexample,
 		stale + "any.atMostOneActive":              Counterexample,
-		stale + "any.terminalStays":                Counterexample,
+		stale + "terminalStatesAreFinal":           Counterexample,
 		stale + "scheduleToStartFirst":             Found,
 		stale + "scheduleToCloseFirst":             Found,
 		stale + "product.pausedIsNotDispatched":    RefinementRejected,
@@ -180,7 +192,7 @@ func TestActivitySystemResults(t *testing.T) {
 		"staleOverQueue":   {Counterexample, Verified, Counterexample, Verified, Counterexample, Counterexample, Counterexample},
 	} {
 		for i, name := range []string{"staleDelivery", "admittedBeforePause", "duplicateDelivery", "failedCommit",
-			"any.notAdmittedWhilePaused", "any.atMostOneActive", "any.terminalStays"} {
+			"pausedIsNotDispatched", "any.atMostOneActive", "terminalStatesAreFinal"} {
 			want["query "+composition+" "+composition+"."+name] = kinds[i]
 		}
 	}
@@ -190,7 +202,7 @@ func TestActivitySystemResults(t *testing.T) {
 		"staleOverMatching":        {Counterexample, Verified, Counterexample, Counterexample, Counterexample, Counterexample, Counterexample},
 	} {
 		for i, name := range []string{"staleDelivery", "admittedBeforePause", "deliveredAgainAfterLostAck",
-			"crashAfterAdmissionCommit", "any.notAdmittedWhilePaused", "any.atMostOneActive", "any.terminalStays"} {
+			"crashAfterAdmissionCommit", "pausedIsNotDispatched", "any.atMostOneActive", "terminalStatesAreFinal"} {
 			want["query "+composition+" "+composition+"."+name] = kinds[i]
 		}
 	}
@@ -217,10 +229,11 @@ func TestActivityStaleDeliveryAfterPause(t *testing.T) {
 	// A free search of the design alone is also read by its monitors, and a verify's counterexample is
 	// the first violation it meets: here the second admission the monitor counts, which needs no pause.
 	// The free search that isolates the Property is the one over a queue, whose members name no monitor.
-	free := receiptOf(t, c.report, stale+"any.notAdmittedWhilePaused")
+	// Each is the free search the design's or composition's capabilities generate for the law.
+	free := receiptOf(t, c.report, stale+"pausedIsNotDispatched")
 	require.Equal(t, "atMostOneActiveAttempt", free.Monitor)
 	require.Equal(t, []string{"attemptStart", "attemptStart"}, taken(free.Witness))
-	overQueue := receiptOf(t, c.report, "query staleOverQueue staleOverQueue.any.notAdmittedWhilePaused")
+	overQueue := receiptOf(t, c.report, "query staleOverQueue staleOverQueue.pausedIsNotDispatched")
 	require.Empty(t, overQueue.Monitor)
 	require.Equal(t, []string{"dispatch", "activity_control-pause", "admit"}, taken(overQueue.Witness))
 
@@ -322,9 +335,10 @@ func TestActivityTerminalFinality(t *testing.T) {
 	require.Equal(t, []MonitorVerdict{{Name: "atMostOneActiveAttempt", State: "one", Verdict: umpire.MonitorHeld},
 		{Name: "terminalFinality", State: "reopened", Verdict: umpire.MonitorViolated}}, reopened.Monitors)
 
-	// The free searches over a queue, which no monitor reads, end on the step that leaves the end.
-	for _, key := range []string{"query staleOverQueue staleOverQueue.any.terminalStays",
-		"query staleOverMatching staleOverMatching.any.terminalStays"} {
+	// The free searches over a queue, which no monitor reads, end on the step that leaves the end. Each
+	// is the one the composition's capabilities generate for terminalStatesAreFinal.
+	for _, key := range []string{"query staleOverQueue staleOverQueue.terminalStatesAreFinal",
+		"query staleOverMatching staleOverMatching.terminalStatesAreFinal"} {
 		w := receiptOf(t, c.report, key).Witness
 		require.NotNil(t, w, key)
 		before, after := w.Steps[len(w.Steps)-2].State.Value, last(t, w).State.Value
@@ -447,8 +461,8 @@ func TestActivityQueueSubstitution(t *testing.T) {
 	require.Equal(t, len(c.built["matchingQueue"].Table.Rows), held.Explored)
 	require.Empty(t, held.Holes)
 
-	for _, name := range []string{"staleDelivery", "admittedBeforePause", "any.notAdmittedWhilePaused", "any.atMostOneActive",
-		"any.terminalStays"} {
+	for _, name := range []string{"staleDelivery", "admittedBeforePause", "pausedIsNotDispatched", "any.atMostOneActive",
+		"terminalStatesAreFinal"} {
 		overQueue := receiptOf(t, c.report, "query currentOverQueue currentOverQueue."+name)
 		overMatching := receiptOf(t, c.report, "query currentOverMatching currentOverMatching."+name)
 		require.Equal(t, Verified, overQueue.Kind, name)
@@ -463,12 +477,12 @@ func TestActivityQueueSubstitution(t *testing.T) {
 	overQueue := receiptOf(t, c.report, "query staleOverQueue staleOverQueue.staleDelivery")
 	require.Equal(t, []string{"dispatch", "activity_control-pause", "admit"}, taken(overQueue.Witness))
 	require.Equal(t, "started-one-owed_deliveredOnce", last(t, overQueue.Witness).State.Value)
-	require.Equal(t, overQueue.Witness, receiptOf(t, c.report, "query staleOverQueue staleOverQueue.any.notAdmittedWhilePaused").Witness)
+	require.Equal(t, overQueue.Witness, receiptOf(t, c.report, "query staleOverQueue staleOverQueue.pausedIsNotDispatched").Witness)
 	overMatching := receiptOf(t, c.report, "query staleOverMatching staleOverMatching.staleDelivery")
 	require.Equal(t, []string{"dispatch", "queue_addActivityTask", "queue_persistTask", "activity_control-pause", "admit"},
 		taken(overMatching.Witness))
 	require.Equal(t, "started-one-owed_persisted-true-once", last(t, overMatching.Witness).State.Value)
-	free := receiptOf(t, c.report, "query staleOverMatching staleOverMatching.any.notAdmittedWhilePaused")
+	free := receiptOf(t, c.report, "query staleOverMatching staleOverMatching.pausedIsNotDispatched")
 	require.Len(t, free.Witness.Steps, 5)
 	require.Equal(t, "admit", last(t, free.Witness).Action.Value)
 	require.True(t, strings.HasPrefix(free.Witness.Steps[3].State.Value, "paused-none-settled_"))
@@ -588,9 +602,22 @@ func TestActivitySystemExclusionsAreDisabled(t *testing.T) {
 }
 
 // A free search that verifies the corrected design is bounded past the depth of the table it searches,
-// so it reads every step of every state the table reaches: the bound cuts nothing off.
+// so it reads every step of every state the table reaches: the bound cuts nothing off. The free
+// searches are the shared `any` Scenario's and those the capabilities generate for each law.
 func TestActivityFreeSearchesReachEveryState(t *testing.T) {
 	c := systemModel(t)
+	freeScenarios := map[string]bool{}
+	for _, s := range c.model.GetScenarios() {
+		if s.GetFree() {
+			freeScenarios[s.GetMachine()+" "+s.GetName()] = true
+		}
+	}
+	searches := map[string]bool{}
+	for _, q := range c.model.GetQueries() {
+		if freeScenarios[q.GetScenario().GetMachine()+" "+q.GetScenario().GetName()] {
+			searches[q.GetName()] = true
+		}
+	}
 	tables := map[string]*Table{}
 	for _, name := range []string{"currentAdmission", "matchingQueue"} {
 		tables[name] = c.built[name].Table
@@ -601,7 +628,7 @@ func TestActivityFreeSearchesReachEveryState(t *testing.T) {
 	free := 0
 	for _, r := range c.report.Receipts {
 		table := tables[r.Key.Owner]
-		if r.Subject != QuerySubject || table == nil || !strings.Contains(r.Key.Name, ".any.") {
+		if r.Subject != QuerySubject || table == nil || !searches[r.Key.Name] {
 			continue
 		}
 		free++

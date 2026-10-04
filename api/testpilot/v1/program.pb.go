@@ -107,9 +107,12 @@ type Program struct {
 	Entrypoints  []*Entrypoint          `protobuf:"bytes,5,rep,name=entrypoints,proto3" json:"entrypoints,omitempty"`
 	Cleanup      *Cleanup               `protobuf:"bytes,6,opt,name=cleanup,proto3" json:"cleanup,omitempty"`
 	// The kinds of correlated evidence the Program lifts, each declared once.
-	Evidence      []*EvidenceDeclaration `protobuf:"bytes,7,rep,name=evidence,proto3" json:"evidence,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	Evidence []*EvidenceDeclaration `protobuf:"bytes,7,rep,name=evidence,proto3" json:"evidence,omitempty"`
+	// The dynamic-configuration settings the Program requires of the environment it runs in.
+	// Preparation refuses a Profile whose configuration lacks one or sets it to another value.
+	RequiredSettings []*RequiredSetting `protobuf:"bytes,8,rep,name=required_settings,json=requiredSettings,proto3" json:"required_settings,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *Program) Reset() {
@@ -191,6 +194,67 @@ func (x *Program) GetEvidence() []*EvidenceDeclaration {
 	return nil
 }
 
+func (x *Program) GetRequiredSettings() []*RequiredSetting {
+	if x != nil {
+		return x.RequiredSettings
+	}
+	return nil
+}
+
+// A dynamic-configuration setting a Program requires: its key and its value, each spelled as the
+// environment's dynamic configuration spells it.
+type RequiredSetting struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Value         string                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RequiredSetting) Reset() {
+	*x = RequiredSetting{}
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RequiredSetting) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RequiredSetting) ProtoMessage() {}
+
+func (x *RequiredSetting) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RequiredSetting.ProtoReflect.Descriptor instead.
+func (*RequiredSetting) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *RequiredSetting) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *RequiredSetting) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
 // EvidenceDeclaration declares one kind of correlated evidence once: the recorded data it is read
 // from, the Run coordinates that scope every evidence identity of the kind, the path of the
 // operation key that groups it, and the fields it exposes. A Program lift names the declaration and
@@ -222,7 +286,7 @@ type EvidenceDeclaration struct {
 
 func (x *EvidenceDeclaration) Reset() {
 	*x = EvidenceDeclaration{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[1]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -234,7 +298,7 @@ func (x *EvidenceDeclaration) String() string {
 func (*EvidenceDeclaration) ProtoMessage() {}
 
 func (x *EvidenceDeclaration) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[1]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -247,7 +311,7 @@ func (x *EvidenceDeclaration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvidenceDeclaration.ProtoReflect.Descriptor instead.
 func (*EvidenceDeclaration) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{1}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *EvidenceDeclaration) GetEvidenceId() string {
@@ -352,7 +416,7 @@ type HistoryEventSource struct {
 
 func (x *HistoryEventSource) Reset() {
 	*x = HistoryEventSource{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[2]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -364,7 +428,7 @@ func (x *HistoryEventSource) String() string {
 func (*HistoryEventSource) ProtoMessage() {}
 
 func (x *HistoryEventSource) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[2]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -377,7 +441,7 @@ func (x *HistoryEventSource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HistoryEventSource.ProtoReflect.Descriptor instead.
 func (*HistoryEventSource) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{2}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *HistoryEventSource) GetAttributesField() string {
@@ -414,7 +478,7 @@ type RunEventSource struct {
 
 func (x *RunEventSource) Reset() {
 	*x = RunEventSource{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[3]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -426,7 +490,7 @@ func (x *RunEventSource) String() string {
 func (*RunEventSource) ProtoMessage() {}
 
 func (x *RunEventSource) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[3]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -439,7 +503,7 @@ func (x *RunEventSource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunEventSource.ProtoReflect.Descriptor instead.
 func (*RunEventSource) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{3}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *RunEventSource) GetKind() RunEventKind {
@@ -488,7 +552,7 @@ type ReadSource struct {
 
 func (x *ReadSource) Reset() {
 	*x = ReadSource{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[4]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -500,7 +564,7 @@ func (x *ReadSource) String() string {
 func (*ReadSource) ProtoMessage() {}
 
 func (x *ReadSource) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[4]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -513,7 +577,7 @@ func (x *ReadSource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadSource.ProtoReflect.Descriptor instead.
 func (*ReadSource) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{4}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ReadSource) GetMethod() string {
@@ -549,7 +613,7 @@ type EvidenceFieldDeclaration struct {
 
 func (x *EvidenceFieldDeclaration) Reset() {
 	*x = EvidenceFieldDeclaration{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -561,7 +625,7 @@ func (x *EvidenceFieldDeclaration) String() string {
 func (*EvidenceFieldDeclaration) ProtoMessage() {}
 
 func (x *EvidenceFieldDeclaration) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -574,7 +638,7 @@ func (x *EvidenceFieldDeclaration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvidenceFieldDeclaration.ProtoReflect.Descriptor instead.
 func (*EvidenceFieldDeclaration) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{5}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *EvidenceFieldDeclaration) GetFieldId() string {
@@ -608,7 +672,7 @@ type Role struct {
 
 func (x *Role) Reset() {
 	*x = Role{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -620,7 +684,7 @@ func (x *Role) String() string {
 func (*Role) ProtoMessage() {}
 
 func (x *Role) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -633,7 +697,7 @@ func (x *Role) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Role.ProtoReflect.Descriptor instead.
 func (*Role) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{6}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *Role) GetRoleId() string {
@@ -680,7 +744,7 @@ type Slot struct {
 
 func (x *Slot) Reset() {
 	*x = Slot{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -692,7 +756,7 @@ func (x *Slot) String() string {
 func (*Slot) ProtoMessage() {}
 
 func (x *Slot) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -705,7 +769,7 @@ func (x *Slot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Slot.ProtoReflect.Descriptor instead.
 func (*Slot) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{7}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Slot) GetSlotId() string {
@@ -767,7 +831,7 @@ type Observation struct {
 
 func (x *Observation) Reset() {
 	*x = Observation{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -779,7 +843,7 @@ func (x *Observation) String() string {
 func (*Observation) ProtoMessage() {}
 
 func (x *Observation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -792,7 +856,7 @@ func (x *Observation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Observation.ProtoReflect.Descriptor instead.
 func (*Observation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{8}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Observation) GetObservationId() string {
@@ -827,7 +891,7 @@ type Entrypoint struct {
 
 func (x *Entrypoint) Reset() {
 	*x = Entrypoint{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[9]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -839,7 +903,7 @@ func (x *Entrypoint) String() string {
 func (*Entrypoint) ProtoMessage() {}
 
 func (x *Entrypoint) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[9]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -852,7 +916,7 @@ func (x *Entrypoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Entrypoint.ProtoReflect.Descriptor instead.
 func (*Entrypoint) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{9}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *Entrypoint) GetEntrypointId() string {
@@ -949,7 +1013,7 @@ type ControllerActivation struct {
 
 func (x *ControllerActivation) Reset() {
 	*x = ControllerActivation{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[10]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -961,7 +1025,7 @@ func (x *ControllerActivation) String() string {
 func (*ControllerActivation) ProtoMessage() {}
 
 func (x *ControllerActivation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[10]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -974,7 +1038,7 @@ func (x *ControllerActivation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ControllerActivation.ProtoReflect.Descriptor instead.
 func (*ControllerActivation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{10}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{11}
 }
 
 // WorkflowActivation activates the entrypoint for each workflow of this type the worker role runs on
@@ -990,7 +1054,7 @@ type WorkflowActivation struct {
 
 func (x *WorkflowActivation) Reset() {
 	*x = WorkflowActivation{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[11]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1002,7 +1066,7 @@ func (x *WorkflowActivation) String() string {
 func (*WorkflowActivation) ProtoMessage() {}
 
 func (x *WorkflowActivation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[11]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1015,7 +1079,7 @@ func (x *WorkflowActivation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowActivation.ProtoReflect.Descriptor instead.
 func (*WorkflowActivation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{11}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *WorkflowActivation) GetWorkflowType() string {
@@ -1054,7 +1118,7 @@ type ActivityActivation struct {
 
 func (x *ActivityActivation) Reset() {
 	*x = ActivityActivation{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[12]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1066,7 +1130,7 @@ func (x *ActivityActivation) String() string {
 func (*ActivityActivation) ProtoMessage() {}
 
 func (x *ActivityActivation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[12]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1079,7 +1143,7 @@ func (x *ActivityActivation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActivityActivation.ProtoReflect.Descriptor instead.
 func (*ActivityActivation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{12}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *ActivityActivation) GetActivityType() string {
@@ -1117,7 +1181,7 @@ type NexusHandlerActivation struct {
 
 func (x *NexusHandlerActivation) Reset() {
 	*x = NexusHandlerActivation{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[13]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1129,7 +1193,7 @@ func (x *NexusHandlerActivation) String() string {
 func (*NexusHandlerActivation) ProtoMessage() {}
 
 func (x *NexusHandlerActivation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[13]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1142,7 +1206,7 @@ func (x *NexusHandlerActivation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NexusHandlerActivation.ProtoReflect.Descriptor instead.
 func (*NexusHandlerActivation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{13}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *NexusHandlerActivation) GetService() string {
@@ -1185,7 +1249,7 @@ type Cleanup struct {
 
 func (x *Cleanup) Reset() {
 	*x = Cleanup{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[14]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1197,7 +1261,7 @@ func (x *Cleanup) String() string {
 func (*Cleanup) ProtoMessage() {}
 
 func (x *Cleanup) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[14]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1210,7 +1274,7 @@ func (x *Cleanup) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Cleanup.ProtoReflect.Descriptor instead.
 func (*Cleanup) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{14}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *Cleanup) GetEntrypointId() string {
@@ -1265,7 +1329,7 @@ type ProgramLimits struct {
 
 func (x *ProgramLimits) Reset() {
 	*x = ProgramLimits{}
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[15]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1277,7 +1341,7 @@ func (x *ProgramLimits) String() string {
 func (*ProgramLimits) ProtoMessage() {}
 
 func (x *ProgramLimits) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[15]
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1290,7 +1354,7 @@ func (x *ProgramLimits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProgramLimits.ProtoReflect.Descriptor instead.
 func (*ProgramLimits) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{15}
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *ProgramLimits) GetMaxEntrypoints() int64 {
@@ -1395,7 +1459,7 @@ var File_temporal_server_api_testpilot_v1_program_proto protoreflect.FileDescrip
 
 const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\n" +
-	".temporal/server/api/testpilot/v1/program.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/correlated.proto\x1a,temporal/server/api/testpilot/v1/event.proto\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xdf\x03\n" +
+	".temporal/server/api/testpilot/v1/program.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/correlated.proto\x1a,temporal/server/api/testpilot/v1/event.proto\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xbf\x04\n" +
 	"\aProgram\x12\x1d\n" +
 	"\n" +
 	"program_id\x18\x01 \x01(\tR\tprogramId\x12<\n" +
@@ -1404,7 +1468,11 @@ const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\fobservations\x18\x04 \x03(\v2-.temporal.server.api.testpilot.v1.ObservationR\fobservations\x12N\n" +
 	"\ventrypoints\x18\x05 \x03(\v2,.temporal.server.api.testpilot.v1.EntrypointR\ventrypoints\x12C\n" +
 	"\acleanup\x18\x06 \x01(\v2).temporal.server.api.testpilot.v1.CleanupR\acleanup\x12Q\n" +
-	"\bevidence\x18\a \x03(\v25.temporal.server.api.testpilot.v1.EvidenceDeclarationR\bevidence\"\x91\x04\n" +
+	"\bevidence\x18\a \x03(\v25.temporal.server.api.testpilot.v1.EvidenceDeclarationR\bevidence\x12^\n" +
+	"\x11required_settings\x18\b \x03(\v21.temporal.server.api.testpilot.v1.RequiredSettingR\x10requiredSettings\"9\n" +
+	"\x0fRequiredSetting\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\"\x91\x04\n" +
 	"\x13EvidenceDeclaration\x12\x1f\n" +
 	"\vevidence_id\x18\x01 \x01(\tR\n" +
 	"evidenceId\x12'\n" +
@@ -1509,63 +1577,65 @@ func file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_testpilot_v1_program_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_temporal_server_api_testpilot_v1_program_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_temporal_server_api_testpilot_v1_program_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_temporal_server_api_testpilot_v1_program_proto_goTypes = []any{
 	(RoleKind)(0),                    // 0: temporal.server.api.testpilot.v1.RoleKind
 	(*Program)(nil),                  // 1: temporal.server.api.testpilot.v1.Program
-	(*EvidenceDeclaration)(nil),      // 2: temporal.server.api.testpilot.v1.EvidenceDeclaration
-	(*HistoryEventSource)(nil),       // 3: temporal.server.api.testpilot.v1.HistoryEventSource
-	(*RunEventSource)(nil),           // 4: temporal.server.api.testpilot.v1.RunEventSource
-	(*ReadSource)(nil),               // 5: temporal.server.api.testpilot.v1.ReadSource
-	(*EvidenceFieldDeclaration)(nil), // 6: temporal.server.api.testpilot.v1.EvidenceFieldDeclaration
-	(*Role)(nil),                     // 7: temporal.server.api.testpilot.v1.Role
-	(*Slot)(nil),                     // 8: temporal.server.api.testpilot.v1.Slot
-	(*Observation)(nil),              // 9: temporal.server.api.testpilot.v1.Observation
-	(*Entrypoint)(nil),               // 10: temporal.server.api.testpilot.v1.Entrypoint
-	(*ControllerActivation)(nil),     // 11: temporal.server.api.testpilot.v1.ControllerActivation
-	(*WorkflowActivation)(nil),       // 12: temporal.server.api.testpilot.v1.WorkflowActivation
-	(*ActivityActivation)(nil),       // 13: temporal.server.api.testpilot.v1.ActivityActivation
-	(*NexusHandlerActivation)(nil),   // 14: temporal.server.api.testpilot.v1.NexusHandlerActivation
-	(*Cleanup)(nil),                  // 15: temporal.server.api.testpilot.v1.Cleanup
-	(*ProgramLimits)(nil),            // 16: temporal.server.api.testpilot.v1.ProgramLimits
-	(*NamedValue)(nil),               // 17: temporal.server.api.testpilot.v1.NamedValue
-	(RunEventKind)(0),                // 18: temporal.server.api.testpilot.v1.RunEventKind
-	(*Expression)(nil),               // 19: temporal.server.api.testpilot.v1.Expression
-	(*InstructionReference)(nil),     // 20: temporal.server.api.testpilot.v1.InstructionReference
-	(*ValueType)(nil),                // 21: temporal.server.api.testpilot.v1.ValueType
-	(*OpaqueHandleType)(nil),         // 22: temporal.server.api.testpilot.v1.OpaqueHandleType
-	(*InstructionNode)(nil),          // 23: temporal.server.api.testpilot.v1.InstructionNode
+	(*RequiredSetting)(nil),          // 2: temporal.server.api.testpilot.v1.RequiredSetting
+	(*EvidenceDeclaration)(nil),      // 3: temporal.server.api.testpilot.v1.EvidenceDeclaration
+	(*HistoryEventSource)(nil),       // 4: temporal.server.api.testpilot.v1.HistoryEventSource
+	(*RunEventSource)(nil),           // 5: temporal.server.api.testpilot.v1.RunEventSource
+	(*ReadSource)(nil),               // 6: temporal.server.api.testpilot.v1.ReadSource
+	(*EvidenceFieldDeclaration)(nil), // 7: temporal.server.api.testpilot.v1.EvidenceFieldDeclaration
+	(*Role)(nil),                     // 8: temporal.server.api.testpilot.v1.Role
+	(*Slot)(nil),                     // 9: temporal.server.api.testpilot.v1.Slot
+	(*Observation)(nil),              // 10: temporal.server.api.testpilot.v1.Observation
+	(*Entrypoint)(nil),               // 11: temporal.server.api.testpilot.v1.Entrypoint
+	(*ControllerActivation)(nil),     // 12: temporal.server.api.testpilot.v1.ControllerActivation
+	(*WorkflowActivation)(nil),       // 13: temporal.server.api.testpilot.v1.WorkflowActivation
+	(*ActivityActivation)(nil),       // 14: temporal.server.api.testpilot.v1.ActivityActivation
+	(*NexusHandlerActivation)(nil),   // 15: temporal.server.api.testpilot.v1.NexusHandlerActivation
+	(*Cleanup)(nil),                  // 16: temporal.server.api.testpilot.v1.Cleanup
+	(*ProgramLimits)(nil),            // 17: temporal.server.api.testpilot.v1.ProgramLimits
+	(*NamedValue)(nil),               // 18: temporal.server.api.testpilot.v1.NamedValue
+	(RunEventKind)(0),                // 19: temporal.server.api.testpilot.v1.RunEventKind
+	(*Expression)(nil),               // 20: temporal.server.api.testpilot.v1.Expression
+	(*InstructionReference)(nil),     // 21: temporal.server.api.testpilot.v1.InstructionReference
+	(*ValueType)(nil),                // 22: temporal.server.api.testpilot.v1.ValueType
+	(*OpaqueHandleType)(nil),         // 23: temporal.server.api.testpilot.v1.OpaqueHandleType
+	(*InstructionNode)(nil),          // 24: temporal.server.api.testpilot.v1.InstructionNode
 }
 var file_temporal_server_api_testpilot_v1_program_proto_depIdxs = []int32{
-	7,  // 0: temporal.server.api.testpilot.v1.Program.roles:type_name -> temporal.server.api.testpilot.v1.Role
-	8,  // 1: temporal.server.api.testpilot.v1.Program.slots:type_name -> temporal.server.api.testpilot.v1.Slot
-	9,  // 2: temporal.server.api.testpilot.v1.Program.observations:type_name -> temporal.server.api.testpilot.v1.Observation
-	10, // 3: temporal.server.api.testpilot.v1.Program.entrypoints:type_name -> temporal.server.api.testpilot.v1.Entrypoint
-	15, // 4: temporal.server.api.testpilot.v1.Program.cleanup:type_name -> temporal.server.api.testpilot.v1.Cleanup
-	2,  // 5: temporal.server.api.testpilot.v1.Program.evidence:type_name -> temporal.server.api.testpilot.v1.EvidenceDeclaration
-	3,  // 6: temporal.server.api.testpilot.v1.EvidenceDeclaration.history_event:type_name -> temporal.server.api.testpilot.v1.HistoryEventSource
-	4,  // 7: temporal.server.api.testpilot.v1.EvidenceDeclaration.run_event:type_name -> temporal.server.api.testpilot.v1.RunEventSource
-	5,  // 8: temporal.server.api.testpilot.v1.EvidenceDeclaration.read:type_name -> temporal.server.api.testpilot.v1.ReadSource
-	17, // 9: temporal.server.api.testpilot.v1.EvidenceDeclaration.scope:type_name -> temporal.server.api.testpilot.v1.NamedValue
-	6,  // 10: temporal.server.api.testpilot.v1.EvidenceDeclaration.fields:type_name -> temporal.server.api.testpilot.v1.EvidenceFieldDeclaration
-	18, // 11: temporal.server.api.testpilot.v1.RunEventSource.kind:type_name -> temporal.server.api.testpilot.v1.RunEventKind
-	19, // 12: temporal.server.api.testpilot.v1.RunEventSource.guard:type_name -> temporal.server.api.testpilot.v1.Expression
-	20, // 13: temporal.server.api.testpilot.v1.RunEventSource.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
-	0,  // 14: temporal.server.api.testpilot.v1.Role.kind:type_name -> temporal.server.api.testpilot.v1.RoleKind
-	21, // 15: temporal.server.api.testpilot.v1.Slot.value:type_name -> temporal.server.api.testpilot.v1.ValueType
-	22, // 16: temporal.server.api.testpilot.v1.Slot.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
-	21, // 17: temporal.server.api.testpilot.v1.Observation.type:type_name -> temporal.server.api.testpilot.v1.ValueType
-	11, // 18: temporal.server.api.testpilot.v1.Entrypoint.controller:type_name -> temporal.server.api.testpilot.v1.ControllerActivation
-	12, // 19: temporal.server.api.testpilot.v1.Entrypoint.workflow:type_name -> temporal.server.api.testpilot.v1.WorkflowActivation
-	13, // 20: temporal.server.api.testpilot.v1.Entrypoint.activity:type_name -> temporal.server.api.testpilot.v1.ActivityActivation
-	14, // 21: temporal.server.api.testpilot.v1.Entrypoint.nexus_handler:type_name -> temporal.server.api.testpilot.v1.NexusHandlerActivation
-	23, // 22: temporal.server.api.testpilot.v1.Entrypoint.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
-	23, // 23: temporal.server.api.testpilot.v1.Cleanup.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
-	24, // [24:24] is the sub-list for method output_type
-	24, // [24:24] is the sub-list for method input_type
-	24, // [24:24] is the sub-list for extension type_name
-	24, // [24:24] is the sub-list for extension extendee
-	0,  // [0:24] is the sub-list for field type_name
+	8,  // 0: temporal.server.api.testpilot.v1.Program.roles:type_name -> temporal.server.api.testpilot.v1.Role
+	9,  // 1: temporal.server.api.testpilot.v1.Program.slots:type_name -> temporal.server.api.testpilot.v1.Slot
+	10, // 2: temporal.server.api.testpilot.v1.Program.observations:type_name -> temporal.server.api.testpilot.v1.Observation
+	11, // 3: temporal.server.api.testpilot.v1.Program.entrypoints:type_name -> temporal.server.api.testpilot.v1.Entrypoint
+	16, // 4: temporal.server.api.testpilot.v1.Program.cleanup:type_name -> temporal.server.api.testpilot.v1.Cleanup
+	3,  // 5: temporal.server.api.testpilot.v1.Program.evidence:type_name -> temporal.server.api.testpilot.v1.EvidenceDeclaration
+	2,  // 6: temporal.server.api.testpilot.v1.Program.required_settings:type_name -> temporal.server.api.testpilot.v1.RequiredSetting
+	4,  // 7: temporal.server.api.testpilot.v1.EvidenceDeclaration.history_event:type_name -> temporal.server.api.testpilot.v1.HistoryEventSource
+	5,  // 8: temporal.server.api.testpilot.v1.EvidenceDeclaration.run_event:type_name -> temporal.server.api.testpilot.v1.RunEventSource
+	6,  // 9: temporal.server.api.testpilot.v1.EvidenceDeclaration.read:type_name -> temporal.server.api.testpilot.v1.ReadSource
+	18, // 10: temporal.server.api.testpilot.v1.EvidenceDeclaration.scope:type_name -> temporal.server.api.testpilot.v1.NamedValue
+	7,  // 11: temporal.server.api.testpilot.v1.EvidenceDeclaration.fields:type_name -> temporal.server.api.testpilot.v1.EvidenceFieldDeclaration
+	19, // 12: temporal.server.api.testpilot.v1.RunEventSource.kind:type_name -> temporal.server.api.testpilot.v1.RunEventKind
+	20, // 13: temporal.server.api.testpilot.v1.RunEventSource.guard:type_name -> temporal.server.api.testpilot.v1.Expression
+	21, // 14: temporal.server.api.testpilot.v1.RunEventSource.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionReference
+	0,  // 15: temporal.server.api.testpilot.v1.Role.kind:type_name -> temporal.server.api.testpilot.v1.RoleKind
+	22, // 16: temporal.server.api.testpilot.v1.Slot.value:type_name -> temporal.server.api.testpilot.v1.ValueType
+	23, // 17: temporal.server.api.testpilot.v1.Slot.opaque_handle:type_name -> temporal.server.api.testpilot.v1.OpaqueHandleType
+	22, // 18: temporal.server.api.testpilot.v1.Observation.type:type_name -> temporal.server.api.testpilot.v1.ValueType
+	12, // 19: temporal.server.api.testpilot.v1.Entrypoint.controller:type_name -> temporal.server.api.testpilot.v1.ControllerActivation
+	13, // 20: temporal.server.api.testpilot.v1.Entrypoint.workflow:type_name -> temporal.server.api.testpilot.v1.WorkflowActivation
+	14, // 21: temporal.server.api.testpilot.v1.Entrypoint.activity:type_name -> temporal.server.api.testpilot.v1.ActivityActivation
+	15, // 22: temporal.server.api.testpilot.v1.Entrypoint.nexus_handler:type_name -> temporal.server.api.testpilot.v1.NexusHandlerActivation
+	24, // 23: temporal.server.api.testpilot.v1.Entrypoint.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
+	24, // 24: temporal.server.api.testpilot.v1.Cleanup.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionNode
+	25, // [25:25] is the sub-list for method output_type
+	25, // [25:25] is the sub-list for method input_type
+	25, // [25:25] is the sub-list for extension type_name
+	25, // [25:25] is the sub-list for extension extendee
+	0,  // [0:25] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_program_proto_init() }
@@ -1578,16 +1648,16 @@ func file_temporal_server_api_testpilot_v1_program_proto_init() {
 	file_temporal_server_api_testpilot_v1_expression_proto_init()
 	file_temporal_server_api_testpilot_v1_instruction_proto_init()
 	file_temporal_server_api_testpilot_v1_value_proto_init()
-	file_temporal_server_api_testpilot_v1_program_proto_msgTypes[1].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_program_proto_msgTypes[2].OneofWrappers = []any{
 		(*EvidenceDeclaration_HistoryEvent)(nil),
 		(*EvidenceDeclaration_RunEvent)(nil),
 		(*EvidenceDeclaration_Read)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_program_proto_msgTypes[7].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_program_proto_msgTypes[8].OneofWrappers = []any{
 		(*Slot_Value)(nil),
 		(*Slot_OpaqueHandle)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_program_proto_msgTypes[9].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_program_proto_msgTypes[10].OneofWrappers = []any{
 		(*Entrypoint_Controller)(nil),
 		(*Entrypoint_Workflow)(nil),
 		(*Entrypoint_Activity)(nil),
@@ -1599,7 +1669,7 @@ func file_temporal_server_api_testpilot_v1_program_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_program_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_program_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   16,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

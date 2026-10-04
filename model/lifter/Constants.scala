@@ -15,9 +15,10 @@ private[lift] trait Constants:
   )
 
   def resolve(t: Term): Term = t match
-    case Typed(e, _)        => resolve(e)
-    case Inlined(_, Nil, e) => resolve(e)
-    case NamedArg(_, e)     => resolve(e)
+    case Typed(e, _)                              => resolve(e)
+    case Inlined(_, Nil, e)                       => resolve(e)
+    case NamedArg(_, e)                           => resolve(e)
+    case r: Ref if boundValues.contains(r.symbol) => resolve(boundValues(r.symbol))
     case r: Ref
         if !r.symbol.flags.is(Flags.Param) && r.symbol.isValDef && defs.contains(r.symbol) =>
       defs(r.symbol) match

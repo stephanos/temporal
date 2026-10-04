@@ -3,6 +3,7 @@ package golden
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -593,4 +594,47 @@ func TestMergeSourcesRewritesOnlyQuotedPathsUnderTheDirectory(t *testing.T) {
 	cfg := Config{Merges: []Substitution{{Old: "model/a/", New: "model/a"}}}
 	require.JSONEq(t, `{"path":"model/a","sub":"model/a","other":"model/b/Model.scala","note":"at model/a/Model.scala:3"}`,
 		string(cfg.MergeSources([]byte(`{"path":"model/a/Model.scala","sub":"model/a/admission/Queries.scala","other":"model/b/Model.scala","note":"at model/a/Model.scala:3"}`))))
+}
+
+// A retired root leaves the frozen input's source and an added root the current Model's, so the two
+// name the same roots; a retirement, addition or move that names no root fails.
+func TestRootRetirementsAndAdditionsAreClosed(t *testing.T) {
+	cfg := Config{
+		Labels:          []Substitution{{Old: "frozen: a.Claims$package$.holds, a.Claims$package$.queries", New: "model: a.Claims$package$.holds, a.Claims$package$.queries"}},
+		RootMoves:       []Substitution{{Old: "a.Claims$package$.queries", New: "a.Queries$package$.queries"}},
+		RootRetirements: []string{"a.Claims$package$.holds"},
+		RootAdditions:   []string{"a.Properties$package$.capabilities"},
+	}
+	original := &umpirespb.Model{Source: "frozen: a.Claims$package$.holds, a.Claims$package$.queries"}
+	current := &umpirespb.Model{Source: "model: a.Properties$package$.capabilities, a.Queries$package$.queries"}
+	mapped, err := cfg.Migrate(original)
+	require.NoError(t, err)
+	retired, err := cfg.Retired(mapped)
+	require.NoError(t, err)
+	unsplit, err := cfg.Unsplit(current)
+	require.NoError(t, err)
+	require.Equal(t, "model: a.Claims$package$.queries", retired.GetSource())
+	require.Equal(t, retired.GetSource(), unsplit.GetSource())
+	require.Equal(t, "model: a.Claims$package$.holds, a.Claims$package$.queries", mapped.GetSource(), "the mapped original is kept")
+	originals, currents := map[string]*umpirespb.Model{"a": original}, map[string]*umpirespb.Model{"a": current}
+	require.NoError(t, cfg.RootsApply(originals, currents))
+	for name, change := range map[string]func(*Config){
+		"retirement": func(c *Config) { c.RootRetirements = append(c.RootRetirements, "a.Claims$package$.other") },
+		"addition":   func(c *Config) { c.RootAdditions = append(c.RootAdditions, "a.Properties$package$.other") },
+		"dead move": func(c *Config) {
+			c.RootMoves = append(c.RootMoves, Substitution{Old: "a.Claims$package$.x", New: "a.Queries$package$.x"})
+		},
+		"current root": func(c *Config) { c.RootRetirements = []string{"a.Queries$package$.queries"} },
+		"frozen root":  func(c *Config) { c.RootAdditions = []string{"a.Claims$package$.holds"} },
+	} {
+		changed := cfg
+		changed.RootRetirements, changed.RootAdditions, changed.RootMoves = slices.Clone(cfg.RootRetirements), slices.Clone(cfg.RootAdditions), slices.Clone(cfg.RootMoves)
+		change(&changed)
+		require.Error(t, changed.RootsApply(originals, currents), name)
+	}
+}
+
+func TestOriginalKeyNamesTheArchivedFile(t *testing.T) {
+	require.Equal(t, "ir/activity.json", OriginalKey("model/scalav2/ir/activity.json"))
+	require.Equal(t, "lifts/admission.json", OriginalKey("model/scalav2/lifter/testdata/lifts/expected/admission.json"))
 }

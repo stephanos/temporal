@@ -46,6 +46,9 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
   /** The Model of each IR file lifted, by the file's name; a lift of roots has one, named "". */
   val models = mutable.LinkedHashMap.empty[String, ir.Model]
 
+  /** The law sidecar of each IR file lifted that declares capabilities, by the file's name. */
+  val sidecars = mutable.LinkedHashMap.empty[String, org.json4s.JValue]
+
   /** Every refusal, with the IR file it was lifting: "" for a lift of roots, or for none. */
   val errors = mutable.ArrayBuffer.empty[(String, LiftError)]
 
@@ -118,6 +121,7 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
       progress = sorted(progress),
       realizations = sorted(realizations)
     )
+    for laws <- lawSidecar(ctx) do sidecars(file) = laws
 
 /**
  * `lift <model.jar> <classpath file> <out.json> <source prefix> <root>...`: lift the machines named
@@ -126,8 +130,9 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
  */
 // `lift <jar=prefix>,... <classpath file> <out.json> <root>...` reads several jars, each with the
 // prefix of its own sources. Either way a root may also name a composition, a Query, a list of Queries
-// or a progress claim; every jar's TASTy but the framework's is read; and every root is lifted and
-// every refusal reported before anything is written.
+// or a progress claim; every jar's TASTy but the framework's is read, apart from the framework's
+// entity-neutral laws (umpire/laws), whose bodies a Model's claims fold like its own defs; and every
+// root is lifted and every refusal reported before anything is written.
 //
 // `lift --ir <jar=prefix>,... <classpath file> <out directory> [<IR file>...]` lifts the IR files
 // the jars declare with `irFile` instead, each into <out directory>/<name>.json: every one, or the
@@ -164,7 +169,7 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
   val tastys = specs.zipWithIndex.flatMap { case ((jar, prefix), i) =>
     val zip = ZipFile(jar)
     zip.entries.asScala
-      .filter(e => !e.getName.startsWith("umpire/") && e.getName.endsWith(".tasty"))
+      .filter(e => lifted(e.getName) && e.getName.endsWith(".tasty"))
       .map { e =>
         val entry = s"$i/${e.getName}"
         val p = scratch.resolve(entry)
@@ -189,16 +194,26 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
       if file.nonEmpty then System.err.println(s"lift: the roots of $file.json did not lift:")
       refused.foreach((_, e) => System.err.println(s"lift: ${e.getMessage}"))
     sys.exit(1)
-  def json(model: ir.Model) =
-    JsonMethods.mapper.writer(Pretty()).writeValueAsString(Printer().toJson(model)) + "\n"
+  def json(value: org.json4s.JValue) =
+    JsonMethods.mapper.writer(Pretty()).writeValueAsString(JsonMethods.asJsonNode(value)) + "\n"
+  // Each IR file's law sidecar, where it declares capabilities, is written beside it as
+  // `<file>.laws.json`.
   target match
     case Target.Roots(_) =>
       val model = lifter.models.get("").getOrElse(sys.error("lift: nothing was lifted"))
-      Files.writeString(Paths.get(out), json(model))
+      Files.writeString(Paths.get(out), json(Printer().toJson(model)))
+      for laws <- lifter.sidecars.get("") do
+        Files.writeString(Paths.get(out.stripSuffix(".json") + ".laws.json"), json(laws))
     case Target.IrFiles(_) =>
       val directory = Files.createDirectories(Paths.get(out))
       for (file, model) <- lifter.models do
-        Files.writeString(directory.resolve(s"$file.json"), json(model))
+        Files.writeString(directory.resolve(s"$file.json"), json(Printer().toJson(model)))
+      for (file, laws) <- lifter.sidecars do
+        Files.writeString(directory.resolve(s"$file.laws.json"), json(laws))
+
+/** Whether a jar entry is of the lifted sources: a Model's, or a law of the framework's. */
+private def lifted(entry: String): Boolean =
+  !entry.startsWith("umpire/") || entry.startsWith("umpire/laws/")
 
 /** Jackson's indented layout, with a field's value after `": "` as ProtoJSON is usually written. */
 final private class Pretty extends DefaultPrettyPrinter:

@@ -184,6 +184,9 @@ type ProgramPlan struct {
 	Observations  []*testpilotspb.Observation
 	Entrypoints   []EntrypointPlan
 	Cleanup       *testpilotspb.Cleanup
+	// RequiredSettings are the dynamic-configuration settings the realized system must run under, in
+	// the order the realization declares them.
+	RequiredSettings []*testpilotspb.RequiredSetting
 }
 
 // ActionBinding is what one action class is realized as. Key is the class key a Scenario spells;

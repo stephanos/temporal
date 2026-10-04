@@ -1,11 +1,17 @@
 /* What a Model says about running its Queries against a system: the roles a run addresses, the
  * values it learns, what it observes and reads as evidence, the controls it needs, and the scripts
- * its controller and its workers follow.
+ * its controller and the system's own activations follow.
  *
  * These are declarations and nothing else. No code here builds a Case: the lifter emits a
  * declaration into the IR as written, each class by its simple name and each parameter by its own,
  * and Go lowers one Query's witness through it (model/SEMANTICS.md, Realizations). A default
  * is therefore always the empty value, which the IR leaves unset.
+ *
+ * Nothing here is particular to one system. What a system has of its own (the roles it addresses
+ * and their kinds, who runs a script beside the controller, the instructions only it carries out,
+ * the records only it keeps, the settings it runs under) its realization kit declares, by extending
+ * the open traits `Addressee`, `Activation`, `Instruction`, `Recorded` and `Setting`. The lifter
+ * reads a kit's classes by name, as it reads these.
  */
 package umpire.realize
 
@@ -25,24 +31,30 @@ final case class Realization(
     machine: Machine[?, ?, ?],
     producer: String,
     producerVersion: String,
-    roles: Vector[Role],
+    roles: Vector[Addressee],
     correlation: Correlation,
     scripts: Vector[Script],
     learned: Vector[Learned] = Vector.empty,
     observations: Vector[Observed] = Vector.empty,
     evidence: Vector[Evidence | EvidenceRef[?, ?] | TypedEvidence[?]] = Vector.empty,
     controls: Vector[Actuator] = Vector.empty,
-    cleanup: String = ""
+    cleanup: String = "",
+    requiredSettings: Vector[Setting] = Vector.empty
 )
 
-enum RoleKind:
-  case endpoint, worker, taskQueue, participant
+/**
+ * A setting the realized system must run under, such as the flag that enables a feature, as the
+ * system's kit declares one. A Case lowered through the realization carries it, and preparation
+ * refuses an environment that sets it otherwise.
+ */
+trait Setting
 
 /**
- * A symbolic participant commands and activations address. `namespace` and `resource` name the
- * environment bindings a run supplies.
+ * A symbolic participant commands, activations and controls address, named by its `id`. The
+ * system's kit declares its roles, with the kinds and the environment bindings its system has.
  */
-final case class Role(id: String, kind: RoleKind, namespace: String = "", resource: String = "")
+trait Addressee:
+  def id: String
 
 enum LearnedKind:
   case text
@@ -61,10 +73,15 @@ object Observed:
       companion: GeneratedMessageCompanion[Message]
   ): Observed = new Observed(id, companion.scalaDescriptor.fullName)
 
-/** Where one kind of evidence is recorded. */
-enum Recorded:
+/**
+ * Where one kind of evidence is recorded: in the response of a read, in the Run's own record, or in
+ * a record of the system's that its kit declares.
+ */
+trait Recorded
+
+object Recorded:
   /** The elements of the repeated field selected in the response of a unary method. */
-  case TypedRead[
+  final case class TypedRead[
       Req <: GeneratedMessage,
       Rsp <: GeneratedMessage,
       Projected <: GeneratedMessage
@@ -74,7 +91,7 @@ enum Recorded:
   ) extends Recorded
 
   /** The one message selected in the response of a unary method. */
-  case TypedSingle[
+  final case class TypedSingle[
       Req <: GeneratedMessage,
       Rsp <: GeneratedMessage,
       Projected <: GeneratedMessage
@@ -83,21 +100,17 @@ enum Recorded:
       path: Field[Rsp, Projected]
   ) extends Recorded
 
-  /** One member of the history event's attributes. */
-  case TypedHistory[Root <: GeneratedMessage, Value](
-      attributes: Field[Root, Value]
-  ) extends Recorded
-
   /**
    * The Run's own record of the events of one kind that one command of a script records, where
    * `guard` holds of the event's payload, its instruction outcome. `key` names the operation an event
    * is of: the run's own id, or a path of the payload.
    *
-   * `attempt` says the events are the record of one attempt of an activity, and a `diagnostic` always
-   * names one. A Run records an attempt once it is answered, so the evidence reaches the Run with that
-   * answer and not with the carrying command, as the events that record the attempt of that number.
+   * `attempt` says the events are the record of one attempt a script's activation is delivered, and
+   * a `diagnostic` always names one. A Run records an attempt once it is answered, so the evidence
+   * reaches the Run with that answer and not with the carrying command, as the events that record
+   * the attempt of that number.
    */
-  case TypedRunEvent[Root <: GeneratedMessage](
+  final case class TypedRunEvent[Root <: GeneratedMessage](
       kind: EventKind,
       script: String | Script,
       command: String | Command | Instruction,
@@ -105,11 +118,6 @@ enum Recorded:
       guard: Option[Condition[Root]] = None,
       attempt: Option[AttemptOf] = None
   ) extends Recorded
-
-object Recorded:
-  def history[Root <: GeneratedMessage, Value](
-      attributes: Field[Root, Value]
-  ): HistoryRef[Root] = new HistoryRef(Recorded.TypedHistory(attributes))
 
   def read[
       Req <: GeneratedMessage,
@@ -144,8 +152,8 @@ object Recorded:
     )
 
 /**
- * One attempt of the activity one script runs: the `number`-th delivery to the script's worker,
- * counted from one, as the server numbers attempts.
+ * One attempt of what one script's activation runs: the `number`-th delivery of it, counted from
+ * one, as the system numbers attempts.
  */
 final case class AttemptOf(script: String | Script, number: Long)
 
@@ -155,7 +163,7 @@ enum EventKind:
   case instructionCompleted
   case instructionTimedOut
 
-  /** What a worker reports of an activation the command carries, such as an attempt of an activity. */
+  /** What the system reports of an activation the command carries, such as one attempt of it. */
   case diagnostic
 
 /** What evidence commits to: what a caller was told, or a durable commit of the receiver. */
@@ -241,11 +249,15 @@ object Evidence:
       fields
     )
 
-  def history[Root <: GeneratedMessage](
+  /**
+   * Evidence recorded where the system's kit says, `from`, keyed to its operation by the field
+   * `operation` of the recorded message.
+   */
+  def keyed[Root <: GeneratedMessage](
       id: String,
       records: Fact,
       source: String,
-      from: HistoryRef[Root],
+      from: KeyedRef[Root],
       operation: Field[Root, ?],
       commitment: Commitment,
       fields: Vector[TypedEvidenceField[Root, ?]] = Vector.empty[TypedEvidenceField[Root, ?]],
@@ -317,11 +329,11 @@ enum ControlKind:
   case HoldDispatched(step: ClassRef)
 
 /**
- * An actuator a run needs beyond its commands, which the IR calls a control. `role` is the
- * task-queue role whose deliveries a run holds: a run reaches the channel through the deliveries of
- * that queue. It is not named `Control`, a word Models take for their own actions' inputs.
+ * An actuator a run needs beyond its commands, which the IR calls a control. `role` is the role
+ * whose deliveries a run holds: a run reaches the channel through the deliveries of that role. It is
+ * not named `Control`, a word Models take for their own actions' inputs.
  */
-final case class Actuator(id: String, kind: ControlKind, role: String | Role = "")
+final case class Actuator(id: String, kind: ControlKind, role: String | Addressee = "")
 
 /**
  * A text a Case gets its own copy of: the prefix, then the Case's fixture name when `fixture` is
@@ -329,28 +341,12 @@ final case class Actuator(id: String, kind: ControlKind, role: String | Role = "
  */
 final case class Name(prefix: String, fixture: Boolean = false, suffix: String = "")
 
-/** Who runs a script. */
-enum Activation:
-  case Controller
-  case Workflow(workflowType: Name, worker: String | Role, taskQueue: String | Role)
-  case NexusHandler(
-      service: String,
-      operation: String,
-      worker: String | Role,
-      taskQueue: String | Role
-  )
+/** Who runs a script: the controller, or an activation of the system its kit declares. */
+trait Activation
 
-  /**
-   * Each attempt of an activity the worker is delivered. `starts` is the classes that delivery is: a
-   * step of one of them is the activation itself, and no command performs it. The commands the path
-   * places in the script are the attempts in order.
-   */
-  case Activity(
-      activityType: Name,
-      worker: String | Role,
-      taskQueue: String | Role,
-      starts: Vector[ClassRef] = Vector.empty
-  )
+object Activation:
+  /** The run's own controller, which makes a Case's calls and works its controls. */
+  case object Controller extends Activation
 
 /** One ordered list of commands and who runs it. */
 final case class Script(id: String, activation: Activation, items: Vector[Item])
@@ -386,9 +382,6 @@ final case class Command(
     closes: Vector[String | EvidenceRef[?, ?] | TypedEvidence[?]] = Vector.empty
 )
 
-enum FaultKind:
-  case workerStop, workerResume, admissionResponseLoss
-
 enum Cardinality:
   case one
 
@@ -402,7 +395,7 @@ enum Target:
   /** Binds a learned value. */
   case Bind(learned: String)
 
-  /** Lifts the evidence kinds a history read confirms into an observation. */
+  /** Lifts the evidence kinds the read confirms into an observation. */
   case Lift(observation: String)
 
 object Assignment:
@@ -429,58 +422,45 @@ object ResponseRead:
   ): TypedResponseRead[Root, Value] =
     TypedResponseRead(path, cardinality, targets)
 
-/** What a command does. */
-enum Instruction:
+/** What a command does: one of the instructions below, or one the system's kit declares. */
+trait Instruction
+
+object Instruction:
   /** A unary call on an endpoint role. */
-  case TypedRpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
-      role: String | Role,
+  final case class TypedRpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
+      role: String | Addressee,
       method: MethodDescriptor[Req, Rsp],
       assign: Vector[TypedAssignment[Req, ?]],
       reads: Vector[TypedResponseRead[Rsp, ?]]
   ) extends Instruction
 
   /** Polls the read an evidence kind names until an element satisfies `until`. */
-  case TypedPoll[Req, Projected](
+  final case class TypedPoll[Req, Projected](
       evidence: EvidenceRef[Req, Projected],
-      role: String | Role,
+      role: String | Addressee,
       assign: Vector[TypedAssignment[Req, ?]],
       until: Condition[Projected],
       intervalMs: Long = 0
   ) extends Instruction
-  case AwaitLearned(learned: String)
+  final case class AwaitLearned(learned: String) extends Instruction
 
   /** Waits for the operation an earlier command of the script started. */
-  case AwaitCommand(command: String)
+  final case class AwaitCommand(command: String) extends Instruction
 
-  /** Completes with a result: a workflow, or the attempt of an activity. */
-  case Finish(result: Operand)
+  /** Completes the activation the script runs in with a result. */
+  final case class Finish(result: Operand) extends Instruction
+  final case class Hold(control: String | Actuator) extends Instruction
+  final case class Release(control: String | Actuator) extends Instruction
 
-  /** Fails the attempt of an activity, with a `temporal.api.failure.v1.Failure`. */
-  case AttemptFailure(failure: TypedProto[?])
-
-  /** Answers the attempt of an activity as canceled. */
-  case AttemptCanceled
-  case Fault(role: String | Role, kind: FaultKind)
-
-  /** A workflow command, as the message the SDK would emit. */
-  case WorkflowCommand(command: TypedProto[?])
-
-  /** A Nexus handler's answer; an asynchronous one binds the handle `binds` names. */
-  case NexusReply(reply: TypedProto[?], binds: String = "")
-  case NexusCompletion(handle: String, result: TypedProto[?])
-  case Hold(control: String | Actuator)
-  case Release(control: String | Actuator)
-
-object Instruction:
   def rpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
-      role: String | Role,
+      role: String | Addressee,
       method: MethodDescriptor[Req, Rsp]
   )(
       assign: Vector[TypedAssignment[Req, ?]],
       reads: Vector[TypedResponseRead[Rsp, ?]]
   ): Instruction = TypedRpc(role, method, assign, reads)
 
-  def poll[Req, Projected](evidence: EvidenceRef[Req, Projected], role: String | Role)(
+  def poll[Req, Projected](evidence: EvidenceRef[Req, Projected], role: String | Addressee)(
       assign: Vector[TypedAssignment[Req, ?]],
       until: Condition[Projected],
       intervalMs: Long = 0
@@ -578,9 +558,13 @@ object ProtoValue:
     new TypedProtoValue(value)
   def mapping(entries: TypedProtoEntry*): TypedProtoValue[Map[String, ByteString]] =
     new TypedProtoValue(entries.toVector)
-  def roleId(value: String | Role): TypedProtoValue[String] = new TypedProtoValue(RoleId(value match
-    case r: Role   => r.id
-    case s: String => s))
+  def roleId(value: String | Addressee): TypedProtoValue[String] = new TypedProtoValue(
+    RoleId(
+      value match
+        case r: Addressee => r.id
+        case s: String    => s
+    )
+  )
   def named(value: Name): TypedProtoValue[String] = new TypedProtoValue(Named(value))
 
 /** The assessment a completed live Run must support, independently of the model-search answer. */

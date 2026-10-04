@@ -670,6 +670,16 @@ message Realization {
   repeated Script scripts = 13;
   // The id a run's coordinates give the cleanup it always attempts.
   string cleanup = 14;
+  // The dynamic-configuration settings the realized system must run under. A Case lowered through
+  // the realization carries them, and preparation refuses an environment that sets one otherwise.
+  repeated RequiredSetting required_settings = 15;
+}
+
+// A dynamic-configuration setting a realization requires: its key and its value, each spelled as
+// the server's dynamic configuration spells it.
+message RequiredSetting {
+  string key = 1;
+  string value = 2;
 }
 
 // A symbolic participant commands and activations address. Its bindings name the environment

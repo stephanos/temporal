@@ -850,6 +850,7 @@ var realizationFields = map[protoreflect.Name]func(*accounting) error{
 	"cleanup": func(a *accounting) error {
 		return a.field("realization", "cleanup", a.l.a.r.GetCleanup(), a.c.GetProgram().GetCleanup().GetEntrypointId(), "program.cleanup")
 	},
+	"required_settings": (*accounting).requiredSettings,
 }
 
 var correlationFields = map[protoreflect.Name]func(a *accounting, c *umpirespb.Correlation, contract *testpilotspb.CorrelatedContract) error{
@@ -1001,6 +1002,24 @@ func (a *accounting) roles() error {
 		if err := a.carried("roles", role.GetId(), role.GetPosition(), "program.roles["+role.GetId()+"]", has); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// requiredSettings records each setting the realization requires as the Program's setting of its
+// key, which carries it in the declared order and with the declared value.
+func (a *accounting) requiredSettings() error {
+	carried := a.c.GetProgram().GetRequiredSettings()
+	for i, s := range a.l.a.r.GetRequiredSettings() {
+		part := "program.required_settings[" + s.GetKey() + "]"
+		declared := s.GetKey() + "=" + s.GetValue()
+		if i >= len(carried) {
+			return a.differs("required_settings", s.GetKey(), declared, "", part)
+		}
+		if got := carried[i].GetKey() + "=" + carried[i].GetValue(); got != declared {
+			return a.differs("required_settings", s.GetKey(), declared, got, part)
+		}
+		a.own("required_settings", s.GetKey(), a.l.a.r.GetPosition(), part)
 	}
 	return nil
 }

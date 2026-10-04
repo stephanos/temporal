@@ -7,8 +7,8 @@ import umpire.realize.Realization
  * value beside the Models it holds:
  *
  * {{{
- * val nexusControlFile =
- *   irFile("nexus-control")(forgedCompletion, NexusRealization.forgedCompletion)
+ * val ordersControlFile =
+ *   irFile("orders-control")(forgedCompletion, OrdersRealization.forgedCompletion)
  * }}}
  *
  * The lifter (model/lifter) reads every such val and writes each file, in one run, from its roots and
@@ -21,9 +21,10 @@ final class IrFile private[umpire] (val name: String, val roots: Seq[IrRoot])
 
 /**
  * What an IR file names as a root: a machine, a composition, a Query, a list of Queries, a progress
- * claim or a realization.
+ * claim, a realization, or a capability declaration with the laws it brings.
  */
-type IrRoot = Machine[?, ?, ?] | Composition[?] | Query | Seq[Query] | Progress[?] | Realization
+type IrRoot = Machine[?, ?, ?] | Composition[?] | Query | Seq[Query] | Progress[?] | Realization |
+  Capabilities[?]
 
 /** Declares the IR file `model/ir/<name>.json` and its roots. */
 def irFile(name: String)(roots: IrRoot*): IrFile = IrFile(name, roots)

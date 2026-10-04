@@ -1,3 +1,5 @@
+activity-activityProtocol.cancelIsRequested
+activity-activityProtocol.terminateSettles
 activity-completion
 activity-nonRetryableFailure
 activity-pauseResume
@@ -14,3 +16,5 @@ nexus-caller-scheduleToStartTimeout
 nexus-caller-startToCloseTimeout
 nexus-caller-syncCompletion
 nexus-control-forgedCompletion
+nexus-operation-nexusOperation.cancelIsRequested
+nexus-operation-nexusOperation.terminateSettles

@@ -13,8 +13,8 @@ import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_START_WORKF
 import io.temporal.api.history.v1.HistoryEvent
 import umpire.*
 import umpire.realize.*
-import umpire.realize.Instruction.{AwaitCommand, AwaitLearned, Fault}
-import temporal.realize.*
+import umpire.realize.Instruction.{AwaitCommand, AwaitLearned}
+import temporal.realize.*, temporal.realize.WorkerInstruction.Fault
 
 val startWorkflow = rpc(workflowService, METHOD_START_WORKFLOW_EXECUTION) {
   field(_.namespace) := workerNamespace
@@ -22,11 +22,11 @@ val startWorkflow = rpc(workflowService, METHOD_START_WORKFLOW_EXECUTION) {
 val start = action(Party())
 val completionAuthority = Learned("completion-authority", LearnedKind.handle)
 val historyEvent = Observed[HistoryEvent]("history-event")
-val started = Evidence.history(
+val started = Evidence.keyed(
   "fixture.referenceInvalid.evidence.started",
   "started",
   "fixture.referenceInvalid.source.history",
-  Recorded.history(Field[HistoryEvent, Long](_.eventId)),
+  WorkflowHistory.event(Field[HistoryEvent, Long](_.eventId)),
   Field[HistoryEvent, Long](_.eventId),
   Commitment.reported
 )

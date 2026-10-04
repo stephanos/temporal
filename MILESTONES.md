@@ -128,8 +128,9 @@ Case identity, so its pinned Run was re-recorded. Task 3 is done: the caller rea
 its declarations by value through the shared kit (525 lines and 30 literals, from 645 and 60). Tasks 4 and 5
 are done: the close policy uses the final DSL with a new `sticky` monitor form and the four-file layout (58
 literals, from 148). Task 6 is done: the worker Model is `Model.scala`
-with captured names and pinned IDs, and the lifter fixtures use captured names and named choices. Task 7
-(retire the string-named forms) is next, then 11, 10, 9 and 8. `leadsTo` has no captured-name form yet,
+with captured names and pinned IDs, and the lifter fixtures use captured names and named choices. Task 7 is done:
+the string-named and string-keyed declaration forms are gone from the DSL and the lifter, each refused at
+compile time. Tasks 11 and 12 come next, then 10, 9 and 8. `leadsTo` has no captured-name form yet,
 which leaves two literals in the close policy.
 
 ### fn-118: Declare how Temporal APIs behave once, and let the generated tests use it
@@ -186,19 +187,23 @@ listed. The pilots lift `terminalIsFinal` into `terminalStatesAreFinal` and `pau
 into a `Pausable × Pollable` law, on standalone activity and a minimal Nexus operation Model. A law
 joins only once two entities adopt it; an entity that differs overrides it with a recorded reason.
 
-Task 1 is done (branch `umpire-fn122`, merging): law bodies and the catalog as plain defs with server
+Task 1 is done: law bodies and the catalog as plain defs with server
 citations; the inventory classifies 76 claims as 8 law instances and 68 feature-specific. Three bodies wait for
-task 2's binding of plain value arguments. Task 2 is done on the same branch: `capabilities(m, limits)(...)`
+task 2's binding of plain value arguments. Task 2 is done: `capabilities(m, limits)(...)`
 with `except` and `overriding` (each with a reason) lifts each law into a Property, Scenario and Query named
 `<machine>.<law>`, a `<file>.laws.json` sidecar sits beside each IR file that declares capabilities, and all five
-laws now lift. Task 3 is done on the branch: the activity declares Closable, Pausable, Pollable, Terminable,
+laws now lift. Task 3 is done: the activity declares Closable, Pausable, Pollable, Terminable,
 Cancelable and Describable, its law claims are generated and every generated twin answers as the claim it
 retired, with two new generated Cases. `closedIsRejectedUniformly` is false for the admission record (a delivery
 to a timed-out record is accepted and recorded as `admissionRejected`), so the designs waive it with that reason.
 The new live Cases and the authored terminate Case time out inconclusive under shared load (10 s Contract
-window); fn-118's derived waits take that up. Task 4 is built on the branch: a standalone Nexus operation Model
+window); fn-118's derived waits take that up. Task 4 is done: a standalone Nexus operation Model
 (`model/temporal/nexusoperation/`, Closable, Terminable, Cancelable, Describable) gives every catalog law two
-instantiating machines, and its two live Cases pass 5 of 5 on hsm and chasm. It is finishing a required-settings
-field so a Case that needs `nexusoperation.Enabled` fails at preparation, naming the flag, when the flag is off.
+instantiating machines, and its two live Cases pass 5 of 5 on hsm and chasm. A realization now declares the
+dynamic-config settings it requires; preparation refuses a Case whose environment differs, naming the setting.
+Tasks 1-4 are merged into `umpire`. Task 8 is done on the branch (merging): the framework names no
+capability or law; the six kinds, every law with its citations and the catalog live in
+`model/temporal/capabilities/`, and each Model declares its capabilities in its own `Capabilities.scala`. Task 5
+(law lint kinds) waits for fn-120.3's model lint and accepted-findings file, so tasks 6 and 7 wait too.
 The Testpilot Driver can reserve a Nexus handler only through a workflow or activity start, so the handler paths
 are modeled and verified but have no live Case.

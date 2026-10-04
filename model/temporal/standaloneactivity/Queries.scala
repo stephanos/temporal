@@ -133,10 +133,6 @@ object Functional:
 val cancelRequest =
   query find cancelRequestedWhileStarted in Paths.cancelRequestedThenCanceled limits four total 1152
 
-val terminalHolds = query verify terminalIsFinal in Paths.completed limits three total 864
-val pauseHolds =
-  query verify pausedIsNotDispatched in Paths.pausedThenCompleted limits six total 1440
-
 /** Neither deadline is ordered before the other: each firing is a trace of its own. */
 val competingTimers = Vector(
   query("competingTimers.scheduleToStartFirst") find scheduleToStartFires in

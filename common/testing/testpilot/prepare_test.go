@@ -192,6 +192,54 @@ func TestPrepareFingerprintsConfiguration(t *testing.T) {
 	}
 }
 
+// A Program's required setting admits only a Profile whose configuration sets it to the required
+// value; the refusal names the setting, the value it must take and what the Profile sets instead.
+func TestPrepareChecksRequiredSettingsAgainstTheConfiguration(t *testing.T) {
+	required := []*testpilotspb.RequiredSetting{{Key: "nexusoperation.enableStandalone", Value: "true"}}
+	refusal := func(t *testing.T, settings []*testpilotspb.RequiredSetting, configuration []ConfigurationValue) *PreparationError {
+		t.Helper()
+		source, profile := facadeFixture(t)
+		source.Program.RequiredSettings = settings
+		profile.Configuration = configuration
+		_, err := Prepare(source, profile)
+		var preparation *PreparationError
+		require.ErrorAs(t, err, &preparation)
+		return preparation
+	}
+
+	source, profile := facadeFixture(t)
+	source.Program.RequiredSettings = required
+	// The key is matched as the server reads dynamic configuration, whatever its case.
+	profile.Configuration = []ConfigurationValue{{Key: "history.enablechasm", Value: "true"}, {Key: "nexusoperation.enablestandalone", Value: "true"}}
+	_, err := Prepare(source, profile)
+	require.NoError(t, err)
+
+	unset := refusal(t, required, []ConfigurationValue{{Key: "history.enablechasm", Value: "true"}})
+	require.Equal(t, PreparationUnavailable, unset.Category)
+	require.Equal(t, "program.required_settings[0]", unset.Path)
+	require.Equal(t, `required setting "nexusoperation.enableStandalone" must be "true", and the Profile's configuration leaves it unset`, unset.Detail)
+	require.Equal(t, PreparationUnavailable, refusal(t, required, nil).Category)
+
+	differs := refusal(t, required, []ConfigurationValue{{Key: "nexusoperation.enablestandalone", Value: "false"}})
+	require.Equal(t, PreparationUnavailable, differs.Category)
+	require.Equal(t, "program.required_settings[0]", differs.Path)
+	require.Equal(t, `required setting "nexusoperation.enableStandalone" must be "true", and the Profile's configuration sets it to "false"`, differs.Detail)
+
+	configured := []ConfigurationValue{{Key: "a.b", Value: "1"}, {Key: "nexusoperation.enablestandalone", Value: "true"}}
+	for name, settings := range map[string][]*testpilotspb.RequiredSetting{
+		"empty key":   {{Value: "true"}},
+		"invalid key": {{Key: "a b", Value: "1"}},
+		"empty value": {{Key: "a.b"}},
+		"duplicate":   {{Key: "a.b", Value: "1"}, {Key: "A.B", Value: "1"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			malformed := refusal(t, settings, configured)
+			require.Equal(t, PreparationMalformed, malformed.Category)
+			require.Equal(t, fmt.Sprintf("program.required_settings[%d]", len(settings)-1), malformed.Path)
+		})
+	}
+}
+
 func TestPrepareFingerprintsCanonicalEnvironmentSnapshot(t *testing.T) {
 	source, profile := facadeFixture(t)
 	source.Program.Roles = []*testpilotspb.Role{{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "alpha"}, {RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "alpha", ResourceBindingId: "beta"}}

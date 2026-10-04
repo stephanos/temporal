@@ -61,7 +61,7 @@ func sync(root string, complete map[string][]byte, selected kind, update bool) e
 // combination total. Lowering admits IR without totals, as lifted before the assertion existed;
 // Cases are generated only from a current Model, whose every Query declares its total.
 func requireTotals(irDirectory string) error {
-	paths, err := filepath.Glob(filepath.Join(irDirectory, "*.json"))
+	paths, err := umpiremodel.IRPaths(irDirectory)
 	if err != nil {
 		return err
 	}

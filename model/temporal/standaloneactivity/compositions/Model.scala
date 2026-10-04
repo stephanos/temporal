@@ -31,7 +31,6 @@ final case class OverQueue(activity: AdmissionState, queue: QueueView)
 object OverQueue:
   def paused(s: OverQueue) = Admission.paused(s.activity)
   def running(s: OverQueue) = Admission.running(s.activity)
-  def terminal(s: OverQueue) = Admission.terminal(s.activity)
   def twoActive(s: OverQueue) = Admission.twoActive(s.activity)
   def phase(s: OverQueue) = s.activity.phase
 
@@ -54,7 +53,6 @@ final case class OverMatching(activity: AdmissionState, queue: QueueDetail)
 object OverMatching:
   def paused(s: OverMatching) = Admission.paused(s.activity)
   def running(s: OverMatching) = Admission.running(s.activity)
-  def terminal(s: OverMatching) = Admission.terminal(s.activity)
   def twoActive(s: OverMatching) = Admission.twoActive(s.activity)
   def phase(s: OverMatching) = s.activity.phase
 

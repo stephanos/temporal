@@ -141,6 +141,15 @@ class Fixtures extends munit.FunSuite:
     ),
     "taskqueue" -> Seq("queueQueries", "matchingQueries", "forgetfulQueries")
       .map("fixture.taskqueue.TaskQueue$package$." + _),
+    "capabilities" -> Seq(
+      "jobCapabilities",
+      "legacyCapabilities",
+      "pairCapabilities",
+      "keptCapabilities",
+      "killedWhileQueued",
+      "rogueCapabilities"
+    )
+      .map("fixture.capabilities.Capabilities$package$." + _),
     "captured" -> Seq(
       "queries",
       "diskQueries",
@@ -151,6 +160,9 @@ class Fixtures extends munit.FunSuite:
       "durableEventually"
     ).map("fixture.captured.Captured$package$." + _)
   )
+
+  // fn-122.2: the fixtures whose capability declarations write a law sidecar beside their IR.
+  private val sidecars: Seq[String] = Seq("capabilities")
   // The refusals of fn-112.4's typed composition selectors, in lifts/Rejects.scala.
   private val selectorRejects: Seq[String] = Seq(
     "memberNoField",
@@ -247,6 +259,20 @@ class Fixtures extends munit.FunSuite:
     "foreignFact"
   ).map("fixture.scriptrejects.ScriptRejects$package$." + _)
 
+  // The refusals of fn-122.2's capability declarations (lifts/CapabilityRejects.scala).
+  private val capabilityRejects: Seq[String] = Seq(
+    "unboundAction",
+    "lambdaField",
+    "declaredTwice",
+    "againFirst",
+    "againSecond",
+    "notBrought",
+    "noReason",
+    "otherSignature",
+    "waivedClaim",
+    "lambdaQuery"
+  ).map("fixture.capabilityrejects.CapabilityRejects$package$." + _)
+
   private val rejected = Seq(
     "unbounded",
     "waiting",
@@ -303,7 +329,7 @@ class Fixtures extends munit.FunSuite:
     "ComputedFamily$.familyComputed",
     "Anonymous$.anonymous",
     "ComputedAccepted$.computedAccept"
-  ).map("fixture.rejects." + _) ++ scriptRejects
+  ).map("fixture.rejects." + _) ++ scriptRejects ++ capabilityRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
   private lazy val liftsJars = s"$liftsJar=${stored("lifts")},$modelJar=model/"
@@ -324,6 +350,11 @@ class Fixtures extends munit.FunSuite:
     assert(!lift.failed, s"the $name fixture did not lift:\n${lift.diagnostics}")
     Files.readString(lifted(name))
 
+  /** The law sidecar a fixture's capability declarations wrote beside its IR. */
+  private def laws(name: String): String =
+    ir(name): Unit
+    Files.readString(scratch.resolve(s"$name.laws.json"))
+
   /** The declarations the lifter refused, one line each, and no IR. */
   private def rejections(): String =
     val lift = ran("rejects")
@@ -339,13 +370,14 @@ class Fixtures extends munit.FunSuite:
     val held =
       try stream.iterator.asScala.map(_.getFileName.toString).toList.sorted
       finally stream.close()
-    held.diff(fixtures.map(_._1 + ".json") :+ "rejects.txt")
+    held.diff(fixtures.map(_._1 + ".json") ++ sidecars.map(_ + ".laws.json") :+ "rejects.txt")
 
   // An update rewrites the expected files only once every fixture lifted, every rejected
   // declaration was refused and no expected file is left over, so the tree it leaves is one whole
   // run's. The gate holds model/ir to the same rule.
   private lazy val everyLift: Unit =
     fixtures.foreach((name, _) => ir(name))
+    sidecars.foreach(laws)
     rejections(): Unit
     assertEquals(leftOver(), Nil, s"${root.relativize(expected)} holds files no fixture lifts to")
 
@@ -378,6 +410,9 @@ class Fixtures extends munit.FunSuite:
       refusals("crossed").sorted,
       Seq(
         "ActionInput.scala:15:28",
+        "Capabilities.scala:19:78",
+        "Capabilities.scala:22:16",
+        "Capabilities.scala:25:17",
         "Crossed.scala:35:14",
         "Crossed.scala:45:28",
         "Crossed.scala:49:24",
@@ -388,6 +423,7 @@ class Fixtures extends munit.FunSuite:
         "NamedInput.scala:24:27",
         "NamedInput.scala:27:49",
         "NamedInput.scala:30:31",
+        "NoCatalog.scala:7:91",
         "OneChoice.scala:18:62",
         "Sugar.scala:10:27",
         "Sugar.scala:13:76",
@@ -1395,6 +1431,10 @@ class Fixtures extends munit.FunSuite:
   for (name, _) <- fixtures do
     test(s"the $name fixture lifts to its expected IR"):
       expect(s"$name.json", ir(name))
+
+  for name <- sidecars do
+    test(s"the $name fixture writes its expected law sidecar"):
+      expect(s"$name.laws.json", laws(name))
 
   test("every rejected declaration is refused at its line, and no IR is written"):
     expect("rejects.txt", rejections())

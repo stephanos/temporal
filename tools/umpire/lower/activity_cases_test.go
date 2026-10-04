@@ -78,6 +78,16 @@ var activityCases = map[string]activityCase{
 	// scheduleToStartExpires: start(unset, expires, unset), workerStop, scheduleToStart.
 	"scheduleToStartTimeout": {[]string{"stop-worker", "start-activity", "await-timed-out"}, []string{},
 		map[string][]string{"statusScheduled": {"start-unset-expires-unset"}, "statusTimedOut": {"workerStop", "scheduleToStart"}}, []string{"workerStop"}},
+	// The finds Properties.scala's protocol capabilities generate, each over the Scenario its law's
+	// `reach` writes before the control: start, workerStop, then the control. Terminable's takes
+	// terminatedWhileScheduled's path and the same instructions as terminate's Case, but is a Case of
+	// its own (its Property and fingerprints differ), so `terminated` and `terminate` stay authored.
+	"activityProtocol.terminateSettles": {[]string{"stop-worker", "start-activity", "terminate-activity", "await-terminated"}, []string{},
+		map[string][]string{"statusScheduled": {plainStart}, "statusTerminated": {"workerStop", "control-terminate"}}, []string{"workerStop"}},
+	// Cancelable's: start, workerStop, control(requestCancel). The request's answer confirms it, so
+	// nothing is awaited after it.
+	"activityProtocol.cancelIsRequested": {[]string{"stop-worker", "start-activity", "request-cancel-activity"}, []string{},
+		map[string][]string{"statusScheduled": {plainStart}, "statusCancelRequested": {"workerStop", "control-requestCancel"}}, []string{"workerStop"}},
 }
 
 // activityLimits is, for each Query that lowers to no Case, the one thing that keeps it from one, and
@@ -123,7 +133,8 @@ func defined(names map[string]string, local string) string {
 }
 
 // Every find Query of the activity Model lowers to a Case, or names the one thing that keeps it from
-// one. Six lower: the completion, the retry and the pause and resume among them. Each Case carries the
+// one. Eight lower: the completion, the retry and the pause and resume among them, and the two finds
+// the protocol's capabilities generate. Each Case carries the
 // commands its path performs and the reads its path's classes call for, confirms each step by its own
 // evidence, prepares unchanged under the Profile derived from it, as any black-box consumer prepares a
 // Case, and is the same bytes when the Model is read and lowered again.

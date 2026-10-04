@@ -92,7 +92,7 @@ func TestAComposedReadingDecodesStatesStepsAndProperties(t *testing.T) {
 	for i, p := range c.Properties {
 		names[i] = p.Name
 	}
-	require.Equal(t, []string{"atMostOneActive", "failedCommitKeepsTheMessage", "notAdmittedWhilePaused", "terminalStays"}, names)
+	require.Equal(t, []string{"atMostOneActive", "failedCommitKeepsTheMessage", "staleOverQueue.pausedIsNotDispatched", "staleOverQueue.terminalStatesAreFinal"}, names)
 
 	var counterexample *Receipt
 	for _, x := range Check(m, DefaultScope).Receipts {
