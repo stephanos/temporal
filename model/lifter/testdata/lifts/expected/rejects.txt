@@ -1,11 +1,12 @@
-lift: model/lifter/testdata/lifts/CapabilityRejects.scala:64: againJob declares Pollable here and at model/lifter/testdata/lifts/CapabilityRejects.scala:62: a machine declares each capability once, with one binding
-lift: model/lifter/testdata/lifts/CapabilityRejects.scala:40: job declares Pollable twice: a machine declares each capability once, with one binding
-lift: model/lifter/testdata/lifts/CapabilityRejects.scala:35: status of Closable names a def of the lifted sources, which the lifter binds, not ((j: fixture.capabilities.Job) => j.phase): declare it as `def status(...)` and pass that
-lift: model/lifter/testdata/lifts/CapabilityRejects.scala:67: status of terminalStatesAreFinal names a def of the lifted sources, which the lifter binds, not ((j: fixture.capabilities.Job) => j.phase): declare it as `def status(...)` and pass that
-lift: model/lifter/testdata/lifts/CapabilityRejects.scala:49: except of terminalStatesAreFinal is refused without a reason: say why job differs from the law, citing the server code
-lift: model/lifter/testdata/lifts/CapabilityRejects.scala:45: job is brought no law terminateSettles to waive: for Pollable the catalog brings it none
-lift: model/lifter/testdata/lifts/CapabilityRejects.scala:53: reordered takes (m)(terminal, status, rejected), and the law closedIsRejectedUniformly it overrides takes (m)(status, terminal, rejected): an overriding def takes the law's parameters
-lift: model/lifter/testdata/lifts/CapabilityRejects.scala:31: terminate of Terminable is kill, which pollOnly does not bind: name an action it binds among its steps
+lift: model/lifter/testdata/lifts/CapabilityRejects.scala:69: againJob declares Pollable here and at model/lifter/testdata/lifts/CapabilityRejects.scala:67: a machine declares each capability once, with one binding
+lift: model/lifter/testdata/lifts/CapabilityRejects.scala:45: job declares Pollable twice: a machine declares each capability once, with one binding
+lift: model/lifter/testdata/lifts/CapabilityRejects.scala:40: status of Closable names a def of the lifted sources, which the lifter binds, not ((j: fixture.capabilities.Job) => j.phase): declare it as `def status(...)` and pass that
+lift: model/lifter/testdata/lifts/CapabilityRejects.scala:77: status of terminalStatesAreFinal names a def of the lifted sources, which the lifter binds, not ((j: fixture.capabilities.Job) => j.phase): declare it as `def status(...)` and pass that
+lift: model/lifter/testdata/lifts/CapabilityRejects.scala:54: except of terminalStatesAreFinal is refused without a reason: say why job differs from the law, citing the server code
+lift: model/lifter/testdata/lifts/CapabilityRejects.scala:50: job is brought no law terminateSettles to waive: for Pollable the catalog brings it none
+lift: model/lifter/testdata/lifts/CapabilityRejects.scala:58: reordered takes (m)(terminal, status, rejected), and the law closedIsRejectedUniformly it overrides takes (m)(status, terminal, rejected): an overriding def takes the law's parameters
+lift: model/lifter/testdata/lifts/CapabilityRejects.scala:32: terminate of Terminable is kill, which pollOnly does not bind: name an action it binds among its steps
+lift: model/lifter/testdata/lifts/CapabilityRejects.scala:73: legacyJob generates no terminalStatesAreFinal: its capabilities do not bring it, or it waives it
 lift: model/lifter/testdata/lifts/Rejects.scala:323: Limits takes its name from the val that declares it, and given_Limits is a name the compiler made up: declare it with a val of the name it has
 lift: model/lifter/testdata/lifts/Rejects.scala:304: a DefinitionScope names its former owner as a nonempty string literal, not umpire.DefinitionScope.apply("fixture.rejects.".+("Former$package$"))
 lift: model/lifter/testdata/lifts/Rejects.scala:560: accept answers the outcome a `given Accepted[O] = Accepted(o)` of the lifted sources names, not fixture.rejects.ComputedAccepted.given_Accepted_Outcome

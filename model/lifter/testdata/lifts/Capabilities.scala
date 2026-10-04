@@ -5,6 +5,7 @@
 //   - functional laws asked from `reach` (Terminable's and Cancelable's);
 //   - a composition's law read through its members' projections (the cross-entity form);
 //   - a law waived with `except` and one replaced with `overriding`, each with its reason.
+//   - a rogue job whose poll dispatches a paused job, which breaks the pair's law (R11);
 //   - a fixture's own catalog, given explicitly, whose law keeps `status`: a bound def whose body is
 //     a field path, `Jobs.phase`, is its `keeps` projection.
 // Every function-valued field names a def.
@@ -13,7 +14,7 @@ package fixture.capabilities
 import umpire.*
 import umpire.laws.{closedIsRejectedUniformly, terminalStatesAreFinal, Capability, Catalog, Law}
 import umpire.realize.statusTable
-import temporal.laws.given
+import temporal.laws.{terminateSettles, given}
 
 given Family = Family("fixture.capabilities")
 
@@ -69,6 +70,10 @@ object Jobs:
   def cancel(j: Job): List[Step[Job, Answer, Note]] =
     if terminal(j.phase) then closed(j) else accept(j, Note.cancelAsked)
 
+  /** The rogue job's poll, which dispatches a paused job as it does a queued one. */
+  def rogueDispatch(j: Job): List[Step[Job, Answer, Note]] =
+    if j.phase.in(queued, Phase.paused) then accept(Job(Phase.running), Note.started) else disabled
+
   /** The legacy job's answer to a closed job: it keeps the state, whatever it answers. */
   def closedKeepsTheState[S, P](m: Declares[S])(
       status: S => P,
@@ -102,13 +107,21 @@ val three = Limits(steps = 3, actions = 3, search = 512)
 
 val jobStatus = statusTable(Note.started -> "RUNNING", Note.killedNote -> "TERMINATED")
 
+/** The Run a server is expected to give the job's functional laws. */
+val settles = realize.RunExpectation(realize.Conformance.conformant, realize.Outcome.satisfied)
+
 // Free verify Queries: 5 states x 6 classes x 3 steps = 90; finds: 5 states x min(3, 2) = 10.
 val jobCapabilities = capabilities(job, limits = three)(
   Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone),
   Pausable(pause = pause, unpause = resume, paused = Jobs.paused),
   Pollable(dispatch = poll, running = Jobs.running),
-  Terminable(terminate = kill, settled = Note.killedNote, reach = Seq(poll)),
-  Cancelable(requestCancel = cancel, requested = Note.cancelAsked, reach = Seq(poll)),
+  Terminable(terminate = kill, settled = Note.killedNote, reach = Seq(poll), expect = settles),
+  Cancelable(
+    requestCancel = cancel,
+    requested = Note.cancelAsked,
+    reach = Seq(poll),
+    expect = settles
+  ),
   Describable(status = jobStatus)
 )
 
@@ -168,3 +181,24 @@ val keptJob = machine[Job, Answer, Note] {
 val keptCapabilities = capabilities(keptJob, limits = three)(
   Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone)
 )(using keptCatalog)
+
+// ### A Query of the job's own reading a generated Property by its law
+
+// Pinned: 5 states x min(3 steps, 1 scheduled kill) = 5.
+val queuedThenKilled = job.scenario.actions(kill)
+val killedWhileQueued =
+  query find jobCapabilities.claim(terminateSettles) in queuedThenKilled limits three total 5
+
+// ### A Model that breaks a law: the rogue job's poll dispatches a paused job
+
+val rogueJob = machine[Job, Answer, Note] {
+  starts(Job(Phase.queued))
+  ends(Jobs.ends)
+  steps(poll ~> Jobs.rogueDispatch, pause ~> Jobs.pause, resume ~> Jobs.resume)
+}
+
+// 5 states x 3 classes x 3 steps = 45; violated after pause, poll.
+val rogueCapabilities = capabilities(rogueJob, limits = three)(
+  Pausable(pause = pause, unpause = resume, paused = Jobs.paused),
+  Pollable(dispatch = poll, running = Jobs.running)
+)

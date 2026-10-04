@@ -145,7 +145,9 @@ class Fixtures extends munit.FunSuite:
       "jobCapabilities",
       "legacyCapabilities",
       "pairCapabilities",
-      "keptCapabilities"
+      "keptCapabilities",
+      "killedWhileQueued",
+      "rogueCapabilities"
     )
       .map("fixture.capabilities.Capabilities$package$." + _)
   )
@@ -258,6 +260,7 @@ class Fixtures extends munit.FunSuite:
     "notBrought",
     "noReason",
     "otherSignature",
+    "waivedClaim",
     "lambdaQuery"
   ).map("fixture.capabilityrejects.CapabilityRejects$package$." + _)
 

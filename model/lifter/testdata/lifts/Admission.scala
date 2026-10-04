@@ -1,8 +1,8 @@
 // The activity specimen's reviewed supported block (model/specimens/activity.md), lifted as
 // written, with the passive monitors its proposed E1 block states in the framework's `monitor`
-// declaration. Only the package, this header, the Monitors section and each design's `monitors` line
-// differ from the reviewed text. The lifter's tests lift both designs' Queries and compare the IR with
-// expected/admission.json.
+// declaration. Only the package, this header, the Monitors section, each design's `monitors` line and
+// the product Property declared below differ from the reviewed text. The lifter's tests lift both
+// designs' Queries and compare the IR with expected/admission.json.
 package fixture.specimens.admission
 
 import temporal.standaloneactivity.{
@@ -11,14 +11,20 @@ import temporal.standaloneactivity.{
   attemptResult,
   attemptStart,
   control,
-  pausedIsNotDispatched,
   AttemptResult,
   Control,
   Outcome,
+  Product,
   ProductPhase,
   ProductState
 }
 import umpire.*
+
+// The product's Property this specimen reads through its refinement. The activity Model now
+// generates it from its capabilities as `activityProduct.pausedIsNotDispatched`; the specimen keeps
+// the reviewed name by declaring the law's instance itself.
+val pausedIsNotDispatched =
+  temporal.laws.pausedIsNotDispatched(activityProduct)(Product.paused, Product.running)
 
 val Family: umpire.Family = umpire.Family("temporal.activity.standalone.admission")
 

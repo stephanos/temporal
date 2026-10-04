@@ -28,7 +28,12 @@ val pollOnly = machine[Job, Answer, Note] {
 }
 
 val unboundAction = capabilities(pollOnly, limits = three)(
-  Terminable(terminate = kill, settled = Note.killedNote, reach = Seq(poll))
+  Terminable(
+    terminate = kill,
+    settled = Note.killedNote,
+    reach = Seq(poll),
+    expect = fixture.capabilities.settles
+  )
 )
 
 val lambdaField = capabilities(job, limits = three)(
@@ -62,6 +67,11 @@ val againFirst =
   capabilities(againJob, limits = three)(Pollable(dispatch = poll, running = Jobs.running))
 val againSecond =
   capabilities(againJob, limits = three)(Pollable(dispatch = poll, running = Jobs.paused))
+
+// A Query of a law the declaration waives, which generates no Property for it.
+val waivedClaim = query find fixture.capabilities.legacyCapabilities.claim(
+  terminalStatesAreFinal
+) in pollOnly.scenario.actions(poll) limits three total 5
 
 // A law called directly with a lambda for a function-valued parameter.
 val lambdaArgument = terminalStatesAreFinal(job)((j: Job) => j.phase, Jobs.terminal)

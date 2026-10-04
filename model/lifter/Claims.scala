@@ -335,19 +335,7 @@ private[lift] trait Claims:
     case Apply(Select(q, "expect"), List(expected)) =>
       fold(q, env, named) match
         case Decl.Declared(name) if queries.contains(name) =>
-          val run = emit(ir.RunExpectation, Bound(expected, Map.empty))
-          val machine = queries(name).getScenario.machine
-          // A monitor the expected Run names is one the Query's machine watches.
-          for
-            watched <- machines.values.find(_.name == machine)
-            m <- run.monitors if !watched.monitors.exists(monitors.get(_).exists(_.name == m.name))
-          do
-            fail(
-              expected,
-              s"${m.name} is a monitor $machine does not watch: name one the Query's machine " +
-                "lists under `monitors`"
-            )
-          queries(name) = queries(name).withExpectedRun(run)
+          expectedRun(name, expected)
           Decl.Declared(name)
         case other => fail(t, s"expect declares a Query's live assessment, not $other")
     case Apply(Select(q, "total"), List(n)) =>
@@ -435,6 +423,22 @@ private[lift] trait Claims:
         case d: DefDef if d.rhs.nonEmpty => declaring(d, t, env, named)
         case _ => fail(t, s"${fn.symbol.fullName} is not a function of the lifted sources")
     case other => fail(other, s"not a declaration the IR carries: ${other.show}")
+
+  /** Records the Run the Query `name` expects of a server, `expected`, as `.expect` declares it. */
+  def expectedRun(name: String, expected: Term): Unit =
+    val run = emit(ir.RunExpectation, Bound(expected, Map.empty))
+    val machine = queries(name).getScenario.machine
+    // A monitor the expected Run names is one the Query's machine watches.
+    for
+      watched <- machines.values.find(_.name == machine)
+      m <- run.monitors if !watched.monitors.exists(monitors.get(_).exists(_.name == m.name))
+    do
+      fail(
+        expected,
+        s"${m.name} is a monitor $machine does not watch: name one the Query's machine " +
+          "lists under `monitors`"
+      )
+    queries(name) = queries(name).withExpectedRun(run)
 
   /**
    * Whether `cls` bundles claims: a case class of the lifted sources whose every field is a

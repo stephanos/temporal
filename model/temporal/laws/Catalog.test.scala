@@ -10,10 +10,9 @@ import umpire.laws.Capability.*
  * through its projection, and a machine derived from another, share a counted machine's state type
  * and so do not count again.
  *
- * No Model declares capabilities until fn-122 task 3, so the declarations counted here are the planned
- * set: the inventory of .plans/SEMANTIC_PROTOCOLS.md section 3 classifies today's claims under these
- * laws on these machines, task 3 declares the activity's and task 4 the Nexus operation's. Task 3
- * replaces the planned set with the declarations of the checked-in Models.
+ * The declarations counted are the activity's, which its Models declare (model/ir/<file>.laws.json lists
+ * them as each law's instantiating machines), and the Nexus operation's that fn-122 task 4 declares:
+ * until it does, Terminable and Cancelable have one checked-in machine, so the set stays written here.
  */
 class CatalogTest extends munit.FunSuite:
   /** A machine that declares capabilities: its name, the state type it owns, what it declares. */

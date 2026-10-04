@@ -8,6 +8,7 @@ package model
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -37,7 +38,28 @@ func TestCapabilitiesGeneratedClaims(t *testing.T) {
 		"query legacyJob legacyJob.closedIsRejectedUniformly": Verified,
 		"query keptJob keptJob.statusStaysClosed":             Verified,
 		"query pair pair.pausedIsNotDispatched":               Verified,
+		"query job killedWhileQueued":                         Found,
+		"query rogueJob rogueJob.pausedIsNotDispatched":       Counterexample,
 	}, kinds(c.report))
+}
+
+// A Model that breaks a law is rejected with the law's name and the entity's bindings (fn-122 R11):
+// the rogue job's poll dispatches a paused job, so its generated pausedIsNotDispatched fails, and the
+// report reads the law, both capabilities and their bindings from the sidecar.
+func TestCapabilitiesViolationNamesTheLawAndItsBindings(t *testing.T) {
+	path := filepath.Join("..", "..", "..", "model", "lifter", "testdata", "lifts", "expected", "capabilities.json")
+	c, err := checkedOnce(lifted(t, "capabilities"))
+	require.NoError(t, err)
+	sidecar, err := ReadLawSidecar(path)
+	require.NoError(t, err)
+	require.NotNil(t, sidecar)
+	violations := LawViolations(c.report, sidecar)
+	require.Len(t, violations, 1)
+	require.True(t, strings.HasPrefix(violations[0], "rogueJob.pausedIsNotDispatched breaks the law "+
+		"pausedIsNotDispatched of Pausable and Pollable (paused = fixture.capabilities.Jobs$.paused, "+
+		"running = fixture.capabilities.Jobs$.running): "), violations[0])
+	witness := receiptOf(t, c.report, "query rogueJob rogueJob.pausedIsNotDispatched").Witness
+	require.Equal(t, []string{"pause", "poll"}, taken(witness))
 }
 
 // The law sidecar the lifter writes beside an IR file is JSON and no Model: every reader of a

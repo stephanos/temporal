@@ -132,7 +132,8 @@ private[lift] trait Capabilities:
       (sym.name == "capabilities" && sym.maybeOwner.fullName.startsWith(
         "umpire.Capabilities$package"
       )) ||
-      (sym.maybeOwner.fullName == "umpire.Capabilities" && Set("except", "overriding")(sym.name))
+      (sym.maybeOwner.fullName == "umpire.Capabilities" &&
+        Set("except", "overriding", "claim")(sym.name))
     case _ => false
 
   private def plain(t: Term): Term = t match
@@ -147,7 +148,27 @@ private[lift] trait Capabilities:
    * waived or not, as a Property, a Scenario and a Query named `<machine>.<law>`, and what the law
    * sidecar says of each.
    */
-  def capabilitiesOf(t: Term, env: Map[Symbol, Decl]): Decl =
+  def capabilitiesOf(t: Term, env: Map[Symbol, Decl]): Decl = arguments(plain(t)) match
+    case Apply(Select(declared, "claim"), List(law)) => generatedClaim(declared, law, env)
+    case _                                           => declaration(t, env)
+
+  /**
+   * `declared.claim(law)`: the Property the declaration generated for `law`, which a Query of the
+   * entity's own reads; refused for a law the declaration is not brought or waives.
+   */
+  private def generatedClaim(declared: Term, law: Term, env: Map[Symbol, Decl]): Decl =
+    val machine = fold(declared, env) match
+      case Decl.Capable(machine) => machine
+      case other => fail(declared, s"claim reads a capability declaration, not $other")
+    val name = s"$machine.${lawOf(law).name}"
+    if !properties.contains((machine, name)) then
+      fail(
+        law,
+        s"$machine generates no ${lawOf(law).name}: its capabilities do not bring it, or it waives it"
+      )
+    Decl.Claim(claim(machine, name))
+
+  private def declaration(t: Term, env: Map[Symbol, Decl]): Decl =
     val (base, waivers) = peel(t, Nil)
     val (m, limits, items, catalogTerm) = call(arguments(base)) match
       case Some(("capabilities", List(List(m, limits), items, List(catalog)))) =>
@@ -303,7 +324,8 @@ private[lift] trait Capabilities:
 
   /** Refuses an action a capability names that `machine`, or a member of the composition, does not bind. */
   private def boundAction(machine: String, a: Term, what: String, env: Map[Symbol, Decl]): Unit =
-    if composed(a) then composedAction(a, machine, env): Unit
+    // A composed class is one a Scenario of the composition could take, a sync or a member's own.
+    if composed(a) then composedKey(a, machine, env, classes = true): Unit
     else
       val id = classOf(a).action
       val bound = machineNamed(machine) match
@@ -496,6 +518,10 @@ private[lift] trait Capabilities:
     val form = if scenario.free then ir.Query.Form.FORM_VERIFY else ir.Query.Form.FORM_FIND
     query(Some(name), form, claim(machine, name), claim(machine, name), bounds, at): Unit
     queries(name) = queries(name).withTotal(staticTotal(machine, scenario, bounds, at))
+    // A find expects of a server the Run its capability's `expect` names.
+    if !scenario.free then
+      for expected <- bringing.flatMap(_.fields.get("expect")).headOption do
+        expectedRun(name, expected)
     lawClaims += LawClaim(
       machine,
       name,

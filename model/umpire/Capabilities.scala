@@ -13,7 +13,7 @@
 package umpire
 
 import umpire.laws.{Capability, Catalog, Law}
-import umpire.realize.StatusTable
+import umpire.realize.{RunExpectation, StatusTable}
 
 /**
  * A capability of a machine whose steps are `Step[S, O, F]`: a predicate of another state type, an
@@ -32,10 +32,14 @@ final case class Closable[S, P, O](status: S => P, terminal: P => Boolean, rejec
 
 /**
  * The entity can be terminated by `terminate`, which records `settled`; `reach` is the path to a live
- * state the functional laws start from.
+ * state the functional laws start from, and `expect` the Run their find Queries expect of a server.
  */
-final case class Terminable[S, F](terminate: ClassRef, settled: F, reach: Seq[ClassRef])
-    extends CapabilityOf[S, Nothing, F]:
+final case class Terminable[S, F](
+    terminate: ClassRef,
+    settled: F,
+    reach: Seq[ClassRef],
+    expect: RunExpectation
+) extends CapabilityOf[S, Nothing, F]:
   def kind: Capability = Capability.Terminable
 
 /** The entity can be paused by `pause` and unpaused by `unpause`; `paused` says where it is. */
@@ -48,10 +52,15 @@ final case class Pausable[S](
 
 /**
  * A cancel of the entity is requested by `requestCancel`, which records `requested`; `reach` is the
- * path to a live state the functional laws start from.
+ * path to a live state the functional laws start from, and `expect` the Run their find Queries
+ * expect of a server.
  */
-final case class Cancelable[S, F](requestCancel: ClassRef, requested: F, reach: Seq[ClassRef])
-    extends CapabilityOf[S, Nothing, F]:
+final case class Cancelable[S, F](
+    requestCancel: ClassRef,
+    requested: F,
+    reach: Seq[ClassRef],
+    expect: RunExpectation
+) extends CapabilityOf[S, Nothing, F]:
   def kind: Capability = Capability.Cancelable
 
 /** The entity's work is handed out by polling, `dispatch`; `running` says where a worker holds it. */
@@ -80,6 +89,13 @@ final class Capabilities[S] private[umpire] (
     val catalog: Catalog,
     val waived: Seq[Waiver]
 ):
+  /**
+   * The Property this declaration generates for `law`, `<machine>.<law>`, for a Query of its own
+   * to read: a law the declaration waives with `except` has none.
+   */
+  def claim(law: Law): Property[S] =
+    Property(PropertyDecl(s"${model.name}.${law.name}", model, None, None, None))
+
   /** Lifts no Property and no Query for `law`, for the reason `because` gives. */
   def except(law: Law, because: String): Capabilities[S] =
     Capabilities(model, limits, declared, catalog, waived :+ Waiver.Except(law, because))
