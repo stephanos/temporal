@@ -1,0 +1,2725 @@
+[
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/go1.27.1.patch"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.000941+00:00",
+    "finished_utc": "2026-10-04T04:52:48.004945+00:00",
+    "duration_seconds": 0.0040025420021265745,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-5/source-size-original-baseline-U3.patch",
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 32652,
+      "lines": 1007,
+      "sha256": "950063a87d63cb01dada2e6ef232fdeb4acc52f71a008e2158885666669f80bc"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/version/version.json"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.005732+00:00",
+    "finished_utc": "2026-10-04T04:52:48.009155+00:00",
+    "duration_seconds": 0.0034205000010842923,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 5979,
+      "lines": 173,
+      "sha256": "87eb02f3f8c27c42d411c5a82ae98ef5e86d0e17605f1c6cec10bae316275c2c"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "ls-tree",
+      "-r",
+      "-z",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad",
+      "--",
+      "tools/gomad3/toolchain/runtime/overlay/"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.010916+00:00",
+    "finished_utc": "2026-10-04T04:52:48.020437+00:00",
+    "duration_seconds": 0.009541332998196594,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": "100644 blob aa0246402ce92f03355904ba5b7d4db906a88c0d\ttools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadcap.go\u0000100644 blob 21f1524c0387ed6480feddd86f132c2dc06f5181\ttools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadguard.go\u0000100644 blob f36c97c9d2e8c9734c73a181e0779bd14afa2f99\ttools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go\u0000100644 blob 7c078960a302b68b9faf3eafa47f9e6a7a2a40bb\ttools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/intercept.go\u0000100644 blob f21f5c7ff961a4913d9116925ac156713edb5dc0\ttools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/simulation_specs.go\u0000100644 blob 9d5e29a7253d868dc955b6eddf91f42508cca4ac\ttools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go127.go\u0000100644 blob 181f641ad309156dff86f5ee41111ff68502d64f\ttools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode.go\u0000100644 blob c102fc145b9cd1b44c13f9974f6c236c1cda2fbe\ttools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode_test.go\u0000100644 blob ddce1598d9b15f6e7c2653f1ecd4e4351e3771bb\ttools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go\u0000100644 blob c6e861c31e4d76b85120b74e68cd311b83830d06\ttools/gomad3/toolchain/runtime/overlay/src/cmd/link/internal/ld/gomadcap.go\u0000100644 blob 9d9138a05dacd96d9c0a33cb3f187869f0228a00\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/hash.go\u0000100644 blob 9b28ee5b1a37ba5d5686db084341317874cb9e72\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/hash_test.go\u0000100644 blob 5d81b47723303a84063aa0b37c78af0cbc00c678\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go\u0000100644 blob f8762fe232452a7d7028baf1698e9e83ea14ec8b\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated_test.go\u0000100644 blob e914edcce8ceffa8db28775c198bdca83e86089c\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go\u0000100644 blob 754cd9e842e9db35efc72a54f582f26c59f488d3\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs_test.go\u0000100644 blob e7c20b1aaf9a01c2385b483b243692ba83761540\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go\u0000100644 blob d382f60d8a488c0fb4e21b4350e562dc3cf11aad\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume_host.go\u0000100644 blob 7180f67c93e79b8ea76a2859e34ca40628e7abe4\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/runtime.go\u0000100644 blob 253888dc964c9e5a4c155122ddd58e58aec57390\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/simulation_volume.go\u0000100644 blob 67dcaa5180e1d01b35a9576df531695ce1bbf48f\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/simulation_volume_wire.go\u0000100644 blob a4a7ba047850f8788d92140b722d024d89006e3c\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/volume.go\u0000100644 blob cf92626023131346f553866fb00798641afc7ab0\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/anonymous.go\u0000100644 blob e28c230720a8456db25083c67b4e7dd93b3a1013\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/anonymous_test.go\u0000100644 blob 610aea6f952f0279d0d411a69df7ea14dd6303fd\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/gomadio.go\u0000100644 blob 1c5a1676c3890d18f64c325ca0aab66fd286b585\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/libc.go\u0000100644 blob b431ff5467d85ff200d191d415c27d31526ce9d7\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/mount/client.go\u0000100644 blob 23135a5a3fa0c1d15138d411f230b718eb6c2511\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/mount/client_test.go\u0000100644 blob f09f904d3376600dc769b42eb3ecc4f7edfcade6\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go\u0000100644 blob 5b1a4ceacfb56659b1f081a79fbf1e1d060c82ba\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_network.go\u0000100644 blob 5f9063e2b851efab5f6e32e7adb838c3a6176448\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go\u0000100644 blob 17b4e6f6d00d14f2f5dbeb08ea56efbac53964a2\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_wire.go\u0000100644 blob e1483a5e90c7fd77784cff2d54222833936eebab\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/transcript.go\u0000100644 blob 566cc3bc3a951c638a56b58f5c547221151d83ee\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go\u0000100644 blob 226a267b445cc351ea2a3bac1c06ed0c7a40df33\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated_test.go\u0000100644 blob 1030e844b43796e45fe354b157110b450cf44ad2\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go\u0000100644 blob 9ec0168ace4c25154703a0dc48c5dd262118d7a5\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process.go\u0000100644 blob 6d86af076fafeec14cd3e7a87ef1592b8eb4090c\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model.go\u0000100644 blob 933c2196bfe24ad8c71744adb6272f3cace6a173\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go\u0000100644 blob 488ed0c92771b3e3a056fb5ac404bce6560832c4\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go\u0000100644 blob c1ad741a27331e6a71e008892894ebd8494356d8\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/simulation.go\u0000100644 blob ece4e4f8799a50f965968d0b84acd415aa235d9a\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/simulation_test.go\u0000100644 blob 7edd60cf2653673d72e3b0dd3065e65fdb6e5b92\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadtrace/trace.go\u0000100644 blob ef85459787f66170bc1ac80b81ddb2f5f91a0643\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadwire/wire_generated.go\u0000100644 blob c1ad94b438cb8e9e327c7cf7b28d939cc47bf953\ttools/gomad3/toolchain/runtime/overlay/src/internal/gomadwire/wire_generated_test.go\u0000100644 blob 9532532bfc21e5b234bbf5b1dd88d82a3e04ec15\ttools/gomad3/toolchain/runtime/overlay/src/net/gomad.go\u0000100644 blob d21c5ae0951c00570d05e897182beb8b3504e91f\ttools/gomad3/toolchain/runtime/overlay/src/net/gomad_unsupported_generated.go\u0000100644 blob fd8a24a1eef646f7e207603eb9e7249516a915e7\ttools/gomad3/toolchain/runtime/overlay/src/os/gomad.go\u0000100644 blob d12da3ff0f51283238a139a0566abb9d9d4e1121\ttools/gomad3/toolchain/runtime/overlay/src/os/gomad_simulation_test.go\u0000100644 blob c3b0a51158c45d804654eaee568f3b17addc4de4\ttools/gomad3/toolchain/runtime/overlay/src/os/signal/gomad.go\u0000100644 blob 0fbecce500e96764910c83c4ecca5d98dd61e739\ttools/gomad3/toolchain/runtime/overlay/src/os/user/gomad.go\u0000100644 blob 17564be6a28be7db0a101f2b8381b999884fc734\ttools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go\u0000100644 blob 0838e7d54c0a0497325bac14ffa42d52f13c441b\ttools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go\u0000100644 blob 5d785935f9b11fdd9b42296a76e92b24045db462\ttools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin_arm64.s\u0000100644 blob b077b5e24b9dd22093898f1a014fdb64703d12dd\ttools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_aslr_other.go\u0000100644 blob 1209980c43dc4391716fd30df9b40bd7989d18f2\ttools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_choicewire_generated.go\u0000100644 blob ad44633ea3065938f40f32560fce89ba1424fca2\ttools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_iowire_generated.go\u0000",
+    "stdout": {
+      "bytes": 7435,
+      "lines": 0,
+      "sha256": "fbbc6e6575d69d1a2e8b2f8f68e87a9db1fe43fef8a67120ab4e63262ae3d765"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadcap.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.022976+00:00",
+    "finished_utc": "2026-10-04T04:52:48.070947+00:00",
+    "duration_seconds": 0.04796816700036288,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 279,
+      "lines": 9,
+      "sha256": "98eab6cd0dfcee36b51a68fba1ef3d682f99d8567f6c4c7f6c8139e8d5dd1bed"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadguard.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.071472+00:00",
+    "finished_utc": "2026-10-04T04:52:48.074989+00:00",
+    "duration_seconds": 0.003511874998366693,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 286,
+      "lines": 9,
+      "sha256": "74a089935804dfc806b71907a09d2c1f7d4cb2cd39ceac8042c15382b439c374"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.075322+00:00",
+    "finished_utc": "2026-10-04T04:52:48.078591+00:00",
+    "duration_seconds": 0.0032726659992476925,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 2643,
+      "lines": 84,
+      "sha256": "3fbea44376cf2c223017381b3aa885ed271cbab7aadcfef8e707b1ba0817aa48"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/intercept.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.079018+00:00",
+    "finished_utc": "2026-10-04T04:52:48.082403+00:00",
+    "duration_seconds": 0.003387416003533872,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 11697,
+      "lines": 372,
+      "sha256": "22c0269d0888577ee7d5c30c086c1d1e5c80dce1187b021dcc8cdd4478491436"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/simulation_specs.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.082852+00:00",
+    "finished_utc": "2026-10-04T04:52:48.085769+00:00",
+    "duration_seconds": 0.002917082998465048,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 6445,
+      "lines": 35,
+      "sha256": "bb67a470cdc976ceab98bd09f81d1b337e9d386f3a30715e21b1faf8cb0ee4bb"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go127.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.086039+00:00",
+    "finished_utc": "2026-10-04T04:52:48.089018+00:00",
+    "duration_seconds": 0.0029802079989167396,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 31530,
+      "lines": 144,
+      "sha256": "4586e682fa978a017903417fbed9c17226d10894fee80b9e410f193e07f1d9da"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.089406+00:00",
+    "finished_utc": "2026-10-04T04:52:48.092290+00:00",
+    "duration_seconds": 0.002876291997381486,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 8018,
+      "lines": 226,
+      "sha256": "f0d2115f7b5321c7bef9c41c93d2d2bb48e40d540187e3cd3f394bd2bd95ee79"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode_test.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.092579+00:00",
+    "finished_utc": "2026-10-04T04:52:48.095744+00:00",
+    "duration_seconds": 0.0031679999992775265,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 6860,
+      "lines": 156,
+      "sha256": "7a4d2aed0f3e8047c9d45e60b430f3f1f54d6f43332fbc985a03fca1f087f59e"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.096127+00:00",
+    "finished_utc": "2026-10-04T04:52:48.100146+00:00",
+    "duration_seconds": 0.004018458002974512,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 33787,
+      "lines": 330,
+      "sha256": "703942a5637cfe4c145b58c9c44ec49ae5a62ff86c8099e916f9499ab289580a"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/cmd/link/internal/ld/gomadcap.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.101318+00:00",
+    "finished_utc": "2026-10-04T04:52:48.118069+00:00",
+    "duration_seconds": 0.016751582999859238,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 2776,
+      "lines": 87,
+      "sha256": "923326a3c3126f783e7cb43e3e85c1a8eb810d198114782f88fb02ba4cd7437f"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/hash.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.118645+00:00",
+    "finished_utc": "2026-10-04T04:52:48.122372+00:00",
+    "duration_seconds": 0.0037402919988380745,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 2565,
+      "lines": 83,
+      "sha256": "d7c42809ff2a4f65be23607670785c18c3df116609357f002103c5cb2039fbdc"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/hash_test.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.123649+00:00",
+    "finished_utc": "2026-10-04T04:52:48.128121+00:00",
+    "duration_seconds": 0.004466833001060877,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 746,
+      "lines": 23,
+      "sha256": "f70c6b8e2ac9ddb513283d4a0482b630fc4ce38ff25e71512da8e34c99378915"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.129058+00:00",
+    "finished_utc": "2026-10-04T04:52:48.133626+00:00",
+    "duration_seconds": 0.0045744579983875155,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 16744,
+      "lines": 414,
+      "sha256": "c7f86a43cecd1dc6f5214761efcf144599cbf074a448ad580bf9c23a2ad06b67"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated_test.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.135384+00:00",
+    "finished_utc": "2026-10-04T04:52:48.155790+00:00",
+    "duration_seconds": 0.02041095800086623,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 4710,
+      "lines": 113,
+      "sha256": "42538ff6d2d8b2159854cfa6d95c3675a20e1598a43720216eb8bd7e3eb2954b"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.157132+00:00",
+    "finished_utc": "2026-10-04T04:52:48.164508+00:00",
+    "duration_seconds": 0.007373042000835994,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 37338,
+      "lines": 1421,
+      "sha256": "69bc374b33681eef78c061fb396b1d0c1229eda8f15b51fa662bd280a231f8d4"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/fs_test.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.165080+00:00",
+    "finished_utc": "2026-10-04T04:52:48.169071+00:00",
+    "duration_seconds": 0.003994250000687316,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 22247,
+      "lines": 697,
+      "sha256": "2cc6e8fdf8538fcc847e5765973bf2e37dfc01efa98a059d34e7f8b327831023"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.169482+00:00",
+    "finished_utc": "2026-10-04T04:52:48.172797+00:00",
+    "duration_seconds": 0.003316334001283394,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 8899,
+      "lines": 272,
+      "sha256": "0c22df2227a77ff5d84be5da4fe7bb0eac54aefff37c35a2b4d5e7a033c2cc8e"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/process_volume_host.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.173186+00:00",
+    "finished_utc": "2026-10-04T04:52:48.176180+00:00",
+    "duration_seconds": 0.003000208998855669,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 11502,
+      "lines": 283,
+      "sha256": "ffb3f557787617b22bc4f2453a65996bf052a4a0d45043bc75c662590a80213b"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/runtime.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.176580+00:00",
+    "finished_utc": "2026-10-04T04:52:48.179826+00:00",
+    "duration_seconds": 0.0032487499993294477,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 2425,
+      "lines": 93,
+      "sha256": "00d0622d43b67e420e7e1885f2bd8c3df2c402f927444912b8276462e5f44b44"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/simulation_volume.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.180221+00:00",
+    "finished_utc": "2026-10-04T04:52:48.183991+00:00",
+    "duration_seconds": 0.0037702910012740176,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 21073,
+      "lines": 607,
+      "sha256": "c31f39220a44e7b703d67b20b80e6062bde4736d6383e74be9be755524f36b10"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/simulation_volume_wire.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.184387+00:00",
+    "finished_utc": "2026-10-04T04:52:48.192308+00:00",
+    "duration_seconds": 0.007921917000203393,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 14463,
+      "lines": 395,
+      "sha256": "a1f320edd95fab8a1f2ed9932610c52abe2a28fe2823d441079a0e374ea0fc9e"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadfs/volume.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.192888+00:00",
+    "finished_utc": "2026-10-04T04:52:48.195913+00:00",
+    "duration_seconds": 0.0030287080007838085,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 42433,
+      "lines": 1377,
+      "sha256": "ecaad9fa09b3da86e06df8d709576c738079886595b28bd4d7887f42d75e16d7"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/anonymous.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.196265+00:00",
+    "finished_utc": "2026-10-04T04:52:48.198868+00:00",
+    "duration_seconds": 0.0026032080022559967,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 2132,
+      "lines": 84,
+      "sha256": "4eef76260bd645b8d8c185ce49d6be7282e3a85dfe528c0d39207cb4d9ee4456"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/anonymous_test.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.199226+00:00",
+    "finished_utc": "2026-10-04T04:52:48.202349+00:00",
+    "duration_seconds": 0.0031248750019585714,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 2488,
+      "lines": 88,
+      "sha256": "6e655c8da5a9c4bfa690c1fa8096ee61c4914b8844a331b43a2cc74a95ad9d04"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/gomadio.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.202661+00:00",
+    "finished_utc": "2026-10-04T04:52:48.205181+00:00",
+    "duration_seconds": 0.0025197920003847685,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 2245,
+      "lines": 97,
+      "sha256": "5e6b5e9609372bd7402ed6f1a4c87e8e2bf9745dd4b9d5b52d16274879198509"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/libc.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.205564+00:00",
+    "finished_utc": "2026-10-04T04:52:48.208442+00:00",
+    "duration_seconds": 0.002880208001442952,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 7203,
+      "lines": 295,
+      "sha256": "db905da1abc1aba0bbe86935730ecf2fdb8b054605aa7cfcfb92b67e21bcc095"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/mount/client.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.208807+00:00",
+    "finished_utc": "2026-10-04T04:52:48.211537+00:00",
+    "duration_seconds": 0.00273291700068512,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 2965,
+      "lines": 112,
+      "sha256": "5d89f7a82f8b0d2d2275ddcb85a7b2c855b905c8f4f5fa875cfc1ff0c039365b"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/mount/client_test.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.211882+00:00",
+    "finished_utc": "2026-10-04T04:52:48.214624+00:00",
+    "duration_seconds": 0.002741459000390023,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 2219,
+      "lines": 66,
+      "sha256": "7bad090b017ba9041cef6e9bda3eef797b809d2f3288cd719a0c8726f0cc34c2"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.214988+00:00",
+    "finished_utc": "2026-10-04T04:52:48.218475+00:00",
+    "duration_seconds": 0.003489750000881031,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 21504,
+      "lines": 654,
+      "sha256": "5a085a4d48be2f87edd8e8ba2e41de8ed04afa1fb5447ceae4706a9cdb70c0a6"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/process_network.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.218949+00:00",
+    "finished_utc": "2026-10-04T04:52:48.222199+00:00",
+    "duration_seconds": 0.003248207998694852,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 14167,
+      "lines": 375,
+      "sha256": "6e27d195d27dfee5753618c22f47bc600b9f75990c9f822f09c165ba8844238d"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.222578+00:00",
+    "finished_utc": "2026-10-04T04:52:48.225181+00:00",
+    "duration_seconds": 0.002603500000986969,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 38459,
+      "lines": 1102,
+      "sha256": "733a858d04fcf8e9fb796950bbb935984f811e7b69671e880f8b53988b25c897"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_wire.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.225544+00:00",
+    "finished_utc": "2026-10-04T04:52:48.228414+00:00",
+    "duration_seconds": 0.0028665829995588865,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 12908,
+      "lines": 378,
+      "sha256": "7daeaa5c6f1f821f55c9962ebcebbfa499098ab413553a0d857706e0f6e2a99d"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/transcript.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.228848+00:00",
+    "finished_utc": "2026-10-04T04:52:48.231600+00:00",
+    "duration_seconds": 0.0027529580002010334,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 1443,
+      "lines": 71,
+      "sha256": "723c2eec21e51b5359098d6a8647d6892089d759de5893debb8d6074edafe30a"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.231972+00:00",
+    "finished_utc": "2026-10-04T04:52:48.234895+00:00",
+    "duration_seconds": 0.0029250420011521783,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 13402,
+      "lines": 420,
+      "sha256": "29593b7690703947f63a440ff3c567cae3728a9ecf77fdf97fe7f207b05b6ced"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated_test.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.235302+00:00",
+    "finished_utc": "2026-10-04T04:52:48.238234+00:00",
+    "duration_seconds": 0.0029330840006878134,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 1760,
+      "lines": 49,
+      "sha256": "49268c620249db903e6c4425028a2577db96d3944a1aee2c0ec65b2dab7c95da"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.238977+00:00",
+    "finished_utc": "2026-10-04T04:52:48.243399+00:00",
+    "duration_seconds": 0.004422415997396456,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 3998,
+      "lines": 106,
+      "sha256": "ce438427386a2e8b6ebf5dea8f8b06104bff258750c87c90de2dd3df345642e8"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.243874+00:00",
+    "finished_utc": "2026-10-04T04:52:48.247308+00:00",
+    "duration_seconds": 0.003434166999795707,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 9946,
+      "lines": 334,
+      "sha256": "61d5bb31bf8e808321491a8b2939286e0c072baa903401a9c1b4739b0d5db136"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.247711+00:00",
+    "finished_utc": "2026-10-04T04:52:48.252863+00:00",
+    "duration_seconds": 0.005158459000085713,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 4540,
+      "lines": 157,
+      "sha256": "4eb44c2a4f41228254550b0abac6525cb66c2af910245d90e7a62a2555e97b8a"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_model_test.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.253734+00:00",
+    "finished_utc": "2026-10-04T04:52:48.267337+00:00",
+    "duration_seconds": 0.013606624997919425,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 3216,
+      "lines": 112,
+      "sha256": "169000f652abf44e14a4360b5a5cdf082ec670c4db3a430db04f6273c0f2e854"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/process_time_test.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.267937+00:00",
+    "finished_utc": "2026-10-04T04:52:48.280883+00:00",
+    "duration_seconds": 0.012951124997925945,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 917,
+      "lines": 25,
+      "sha256": "c7007123343e6f2f350fd74d1abe8b32dc85d69745c4bb4b6964a6a42b6f839f"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/simulation.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.281406+00:00",
+    "finished_utc": "2026-10-04T04:52:48.284812+00:00",
+    "duration_seconds": 0.0034090830013155937,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 9670,
+      "lines": 391,
+      "sha256": "2539a6d66294914e4322a85fcae304c36753487f03e46ff45d76fc761b043511"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/simulation_test.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.285298+00:00",
+    "finished_utc": "2026-10-04T04:52:48.288678+00:00",
+    "duration_seconds": 0.0033823749981820583,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 3337,
+      "lines": 126,
+      "sha256": "a6b7d8123cf25ea7bd2e15ed17c673d549884de62f514d319ce11de26a0129d3"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadtrace/trace.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.289095+00:00",
+    "finished_utc": "2026-10-04T04:52:48.292375+00:00",
+    "duration_seconds": 0.0032873340023797937,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 6569,
+      "lines": 200,
+      "sha256": "f412dc84159a9d2df5121de65a298b907f8b4f30fcd510aa1b8edf4b73ac1791"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadwire/wire_generated.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.292957+00:00",
+    "finished_utc": "2026-10-04T04:52:48.296885+00:00",
+    "duration_seconds": 0.003932915999030229,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 21565,
+      "lines": 546,
+      "sha256": "94c02eb236a69d2c1f88da7a931d6a61e941a7688f55a3b5fc5d312d4886e4a4"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/internal/gomadwire/wire_generated_test.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.297443+00:00",
+    "finished_utc": "2026-10-04T04:52:48.300464+00:00",
+    "duration_seconds": 0.0030198329986887984,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 10213,
+      "lines": 254,
+      "sha256": "3687b1c7dd1de44fc086fd5efac518fd513898eb124d39486e16e0679e90cd07"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/net/gomad.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.301437+00:00",
+    "finished_utc": "2026-10-04T04:52:48.307141+00:00",
+    "duration_seconds": 0.005704165996576194,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 13598,
+      "lines": 514,
+      "sha256": "61006dab8bcf333e1d5f4ddf1ef9731817540f180e755ce497d40ca023a07f28"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/net/gomad_unsupported_generated.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.308068+00:00",
+    "finished_utc": "2026-10-04T04:52:48.311487+00:00",
+    "duration_seconds": 0.003417583997361362,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 8269,
+      "lines": 303,
+      "sha256": "607ee5a7c4f313266473e6755b7e44ff06c9e4b1df6d35290aa790ead9c92d9c"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/os/gomad.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.311935+00:00",
+    "finished_utc": "2026-10-04T04:52:48.322289+00:00",
+    "duration_seconds": 0.010363666002376704,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 31104,
+      "lines": 1181,
+      "sha256": "b5ef9fddd4d0f303d91d8b132dc9e9b19a8d957e0c90eca1ecbc12ef93a53ee8"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/os/gomad_simulation_test.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.323022+00:00",
+    "finished_utc": "2026-10-04T04:52:48.326102+00:00",
+    "duration_seconds": 0.0030795000020589214,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 1452,
+      "lines": 51,
+      "sha256": "138056013a355ce1310bf5e0ea39d368bafd8b3b5f3ad15f18f8a4af21d4e8fe"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/os/signal/gomad.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.326601+00:00",
+    "finished_utc": "2026-10-04T04:52:48.329579+00:00",
+    "duration_seconds": 0.002980458000820363,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 391,
+      "lines": 20,
+      "sha256": "1edb9fe65f0c604c1a4196b5db0e0e89f6a09f696a0d09a0335f924505460f28"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/os/user/gomad.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.330136+00:00",
+    "finished_utc": "2026-10-04T04:52:48.333009+00:00",
+    "duration_seconds": 0.0028755000021192245,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 452,
+      "lines": 21,
+      "sha256": "f343b6fe8d28d15ccbc2687d174f061bab9f793b2f8ade63f349bb8ba0c6da34"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.333568+00:00",
+    "finished_utc": "2026-10-04T04:52:48.337462+00:00",
+    "duration_seconds": 0.003900375002558576,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 46630,
+      "lines": 1375,
+      "sha256": "307f40ea7c550d016527fc118bd09b1b35808feae12586c33afde5b56792ddd1"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.338084+00:00",
+    "finished_utc": "2026-10-04T04:52:48.341629+00:00",
+    "duration_seconds": 0.0035498329998517875,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 4755,
+      "lines": 127,
+      "sha256": "17b936d26b8cc7a91934caa57f621b70f5f79e732a5e8b6f530b8da24080712c"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin_arm64.s"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.342179+00:00",
+    "finished_utc": "2026-10-04T04:52:48.345674+00:00",
+    "duration_seconds": 0.00349833300060709,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 1013,
+      "lines": 35,
+      "sha256": "a161be52516b39c91e7778b7ef7ec1ae67712016c79d6d6ba9a62c172ee3ad62"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_aslr_other.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.346393+00:00",
+    "finished_utc": "2026-10-04T04:52:48.351768+00:00",
+    "duration_seconds": 0.005375124997954117,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 362,
+      "lines": 11,
+      "sha256": "0ab4656ccb8e6de0b6b1c386ccc3089c80fb76e6b7ed42b1610bcb23cba23a49"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_choicewire_generated.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.352303+00:00",
+    "finished_utc": "2026-10-04T04:52:48.356034+00:00",
+    "duration_seconds": 0.0037312500026018824,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 6114,
+      "lines": 162,
+      "sha256": "f9934803c420ecfd1711cc26880a0a195b0321e5d1282de49bf9d1325c1750f1"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "show",
+      "38957053f1ce342a8797af1803f5f8f6bb53fcad:tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad_iowire_generated.go"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:48.357012+00:00",
+    "finished_utc": "2026-10-04T04:52:48.360463+00:00",
+    "duration_seconds": 0.0034504579998611007,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 1044,
+      "lines": 33,
+      "sha256": "a3e3695fc6cad7bad09b2fefa909c1a9df75bfff3a4f3cf8a28f3cb6f0edde88"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "patch",
+      "--dry-run",
+      "--batch",
+      "-V",
+      "none",
+      "-p1",
+      "-F",
+      "0"
+    ],
+    "cwd": "/tmp/fn110-source-size-CNRyRbvw/original/b",
+    "started_utc": "2026-10-04T04:52:49.025170+00:00",
+    "finished_utc": "2026-10-04T04:52:49.027905+00:00",
+    "duration_seconds": 0.0027335839986335486,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": {
+      "bytes": 32652,
+      "lines": 1007,
+      "sha256": "950063a87d63cb01dada2e6ef232fdeb4acc52f71a008e2158885666669f80bc"
+    },
+    "stdout_path": null,
+    "stdout_text": "checking file src/cmd/compile/internal/gc/main.go\nchecking file src/cmd/dist/buildtool.go\nchecking file src/cmd/link/internal/ld/lib.go\nchecking file src/crypto/rand/rand.go\nchecking file src/runtime/lock_spinbit.go\nchecking file src/runtime/panic.go\nchecking file src/runtime/preempt.go\nchecking file src/runtime/proc.go\nchecking file src/runtime/rand.go\nchecking file src/runtime/runtime2.go\nchecking file src/runtime/select.go\nchecking file src/runtime/sizeof_test.go\nchecking file src/runtime/symtab.go\nchecking file src/runtime/time.go\nchecking file src/runtime/time_nofake.go\nchecking file src/runtime/traceback.go\nchecking file src/syscall/env_unix.go\nchecking file src/syscall/rlimit.go\nchecking file src/syscall/syscall_unix.go\nchecking file src/testing/testing.go\n",
+    "stdout": {
+      "bytes": 774,
+      "lines": 20,
+      "sha256": "3815fb4500ee99fd6ad82d8ffa14c8f8c705f39b0ecc20e55ec06026ec38e64b"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "patch",
+      "--batch",
+      "-V",
+      "none",
+      "-p1",
+      "-F",
+      "0"
+    ],
+    "cwd": "/tmp/fn110-source-size-CNRyRbvw/original/b",
+    "started_utc": "2026-10-04T04:52:49.028673+00:00",
+    "finished_utc": "2026-10-04T04:52:49.033569+00:00",
+    "duration_seconds": 0.004897999999229796,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": {
+      "bytes": 32652,
+      "lines": 1007,
+      "sha256": "950063a87d63cb01dada2e6ef232fdeb4acc52f71a008e2158885666669f80bc"
+    },
+    "stdout_path": null,
+    "stdout_text": "patching file src/cmd/compile/internal/gc/main.go\npatching file src/cmd/dist/buildtool.go\npatching file src/cmd/link/internal/ld/lib.go\npatching file src/crypto/rand/rand.go\npatching file src/runtime/lock_spinbit.go\npatching file src/runtime/panic.go\npatching file src/runtime/preempt.go\npatching file src/runtime/proc.go\npatching file src/runtime/rand.go\npatching file src/runtime/runtime2.go\npatching file src/runtime/select.go\npatching file src/runtime/sizeof_test.go\npatching file src/runtime/symtab.go\npatching file src/runtime/time.go\npatching file src/runtime/time_nofake.go\npatching file src/runtime/traceback.go\npatching file src/syscall/env_unix.go\npatching file src/syscall/rlimit.go\npatching file src/syscall/syscall_unix.go\npatching file src/testing/testing.go\n",
+    "stdout": {
+      "bytes": 774,
+      "lines": 20,
+      "sha256": "7e3d20e5c4ebb89e68d344dce337a01537aac8f45e76a913a0b848113d9a8c1b"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "patch",
+      "--dry-run",
+      "--batch",
+      "-V",
+      "none",
+      "-p1",
+      "-F",
+      "0"
+    ],
+    "cwd": "/tmp/fn110-source-size-CNRyRbvw/final/b",
+    "started_utc": "2026-10-04T04:52:49.034446+00:00",
+    "finished_utc": "2026-10-04T04:52:49.038224+00:00",
+    "duration_seconds": 0.0037801250000484288,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": {
+      "bytes": 29015,
+      "lines": 778,
+      "sha256": "8497f8855011f13fb46ad36a02448d165d4bd65688ef00eed6ae09822306a90b"
+    },
+    "stdout_path": null,
+    "stdout_text": "checking file src/cmd/compile/internal/gc/main.go\nchecking file src/cmd/dist/buildtool.go\nchecking file src/cmd/link/internal/ld/lib.go\nchecking file src/runtime/lock_spinbit.go\nchecking file src/runtime/os_linux.go\nchecking file src/runtime/panic.go\nchecking file src/runtime/preempt.go\nchecking file src/runtime/proc.go\nchecking file src/runtime/rand.go\nchecking file src/runtime/runtime2.go\nchecking file src/runtime/select.go\nchecking file src/runtime/sizeof_test.go\nchecking file src/runtime/symtab.go\nchecking file src/runtime/time.go\nchecking file src/runtime/time_nofake.go\nchecking file src/runtime/traceback.go\nchecking file src/syscall/env_unix.go\nchecking file src/syscall/rlimit.go\nchecking file src/syscall/syscall_unix.go\nchecking file src/testing/testing.go\n",
+    "stdout": {
+      "bytes": 774,
+      "lines": 20,
+      "sha256": "07bd625081689b4bd25e37723acaee32d5fc3588cb97c750bdff40cd8ce75889"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "patch",
+      "--batch",
+      "-V",
+      "none",
+      "-p1",
+      "-F",
+      "0"
+    ],
+    "cwd": "/tmp/fn110-source-size-CNRyRbvw/final/b",
+    "started_utc": "2026-10-04T04:52:49.038765+00:00",
+    "finished_utc": "2026-10-04T04:52:49.042868+00:00",
+    "duration_seconds": 0.004103125000256114,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": {
+      "bytes": 29015,
+      "lines": 778,
+      "sha256": "8497f8855011f13fb46ad36a02448d165d4bd65688ef00eed6ae09822306a90b"
+    },
+    "stdout_path": null,
+    "stdout_text": "patching file src/cmd/compile/internal/gc/main.go\npatching file src/cmd/dist/buildtool.go\npatching file src/cmd/link/internal/ld/lib.go\npatching file src/runtime/lock_spinbit.go\npatching file src/runtime/os_linux.go\npatching file src/runtime/panic.go\npatching file src/runtime/preempt.go\npatching file src/runtime/proc.go\npatching file src/runtime/rand.go\npatching file src/runtime/runtime2.go\npatching file src/runtime/select.go\npatching file src/runtime/sizeof_test.go\npatching file src/runtime/symtab.go\npatching file src/runtime/time.go\npatching file src/runtime/time_nofake.go\npatching file src/runtime/traceback.go\npatching file src/syscall/env_unix.go\npatching file src/syscall/rlimit.go\npatching file src/syscall/syscall_unix.go\npatching file src/testing/testing.go\n",
+    "stdout": {
+      "bytes": 774,
+      "lines": 20,
+      "sha256": "28ce70a947990a40dd4dba738d489cc569c3d9c21a6480ecb47f3143f91d87d0"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--binary",
+      "--no-prefix",
+      "--abbrev=7",
+      "--diff-algorithm=myers",
+      "--unified=3",
+      "--",
+      "a",
+      "b"
+    ],
+    "cwd": "/tmp/fn110-source-size-CNRyRbvw/original",
+    "started_utc": "2026-10-04T04:52:49.043682+00:00",
+    "finished_utc": "2026-10-04T04:52:49.051213+00:00",
+    "duration_seconds": 0.007532208001066465,
+    "exit_code": 1,
+    "expected_exit_codes": [
+      1
+    ],
+    "stdin": null,
+    "stdout_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-5/source-size-reproduced-baseline-U3.patch",
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 32652,
+      "lines": 1007,
+      "sha256": "950063a87d63cb01dada2e6ef232fdeb4acc52f71a008e2158885666669f80bc"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--binary",
+      "--no-prefix",
+      "--abbrev=7",
+      "--diff-algorithm=myers",
+      "--unified=3",
+      "--",
+      "a",
+      "b"
+    ],
+    "cwd": "/tmp/fn110-source-size-CNRyRbvw/final",
+    "started_utc": "2026-10-04T04:52:49.051975+00:00",
+    "finished_utc": "2026-10-04T04:52:49.058982+00:00",
+    "duration_seconds": 0.00700262499958626,
+    "exit_code": 1,
+    "expected_exit_codes": [
+      1
+    ],
+    "stdin": null,
+    "stdout_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-5/source-size-final-U3.patch",
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 38362,
+      "lines": 1112,
+      "sha256": "86def26a7f4d0b5c494a6a031c87bec284f7e76c91dcf437bc23fcc4c276ea5c"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--binary",
+      "--no-prefix",
+      "--abbrev=7",
+      "--diff-algorithm=myers",
+      "--unified=1",
+      "--",
+      "a",
+      "b"
+    ],
+    "cwd": "/tmp/fn110-source-size-CNRyRbvw/final",
+    "started_utc": "2026-10-04T04:52:49.059612+00:00",
+    "finished_utc": "2026-10-04T04:52:49.072948+00:00",
+    "duration_seconds": 0.013342041998839704,
+    "exit_code": 1,
+    "expected_exit_codes": [
+      1
+    ],
+    "stdin": null,
+    "stdout_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-5/source-size-reproduced-current-U1.patch",
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 29015,
+      "lines": 778,
+      "sha256": "8497f8855011f13fb46ad36a02448d165d4bd65688ef00eed6ae09822306a90b"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--binary",
+      "--no-prefix",
+      "--abbrev=7",
+      "--diff-algorithm=myers",
+      "--unified=3",
+      "--",
+      "a",
+      "b"
+    ],
+    "cwd": "/tmp/fn110-source-size-CNRyRbvw/final",
+    "started_utc": "2026-10-04T04:52:49.096001+00:00",
+    "finished_utc": "2026-10-04T04:52:49.103534+00:00",
+    "duration_seconds": 0.007527916997787543,
+    "exit_code": 1,
+    "expected_exit_codes": [
+      1
+    ],
+    "stdin": null,
+    "stdout_path": "/tmp/fn110-source-size-CNRyRbvw/final-U3-repeat.patch",
+    "stdout_text": null,
+    "stdout": {
+      "bytes": 38362,
+      "lines": 1112,
+      "sha256": "86def26a7f4d0b5c494a6a031c87bec284f7e76c91dcf437bc23fcc4c276ea5c"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "patch",
+      "--dry-run",
+      "--batch",
+      "-V",
+      "none",
+      "-p1",
+      "-F",
+      "0"
+    ],
+    "cwd": "/tmp/fn110-source-size-CNRyRbvw/equivalent-U3",
+    "started_utc": "2026-10-04T04:52:49.105179+00:00",
+    "finished_utc": "2026-10-04T04:52:49.109059+00:00",
+    "duration_seconds": 0.0038836669991724193,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": {
+      "bytes": 38362,
+      "lines": 1112,
+      "sha256": "86def26a7f4d0b5c494a6a031c87bec284f7e76c91dcf437bc23fcc4c276ea5c"
+    },
+    "stdout_path": null,
+    "stdout_text": "checking file src/cmd/compile/internal/gc/main.go\nchecking file src/cmd/dist/buildtool.go\nchecking file src/cmd/link/internal/ld/lib.go\nchecking file src/runtime/lock_spinbit.go\nchecking file src/runtime/os_linux.go\nchecking file src/runtime/panic.go\nchecking file src/runtime/preempt.go\nchecking file src/runtime/proc.go\nchecking file src/runtime/rand.go\nchecking file src/runtime/runtime2.go\nchecking file src/runtime/select.go\nchecking file src/runtime/sizeof_test.go\nchecking file src/runtime/symtab.go\nchecking file src/runtime/time.go\nchecking file src/runtime/time_nofake.go\nchecking file src/runtime/traceback.go\nchecking file src/syscall/env_unix.go\nchecking file src/syscall/rlimit.go\nchecking file src/syscall/syscall_unix.go\nchecking file src/testing/testing.go\n",
+    "stdout": {
+      "bytes": 774,
+      "lines": 20,
+      "sha256": "07bd625081689b4bd25e37723acaee32d5fc3588cb97c750bdff40cd8ce75889"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "patch",
+      "--batch",
+      "-V",
+      "none",
+      "-p1",
+      "-F",
+      "0"
+    ],
+    "cwd": "/tmp/fn110-source-size-CNRyRbvw/equivalent-U3",
+    "started_utc": "2026-10-04T04:52:49.109731+00:00",
+    "finished_utc": "2026-10-04T04:52:49.113755+00:00",
+    "duration_seconds": 0.004027625000162516,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": {
+      "bytes": 38362,
+      "lines": 1112,
+      "sha256": "86def26a7f4d0b5c494a6a031c87bec284f7e76c91dcf437bc23fcc4c276ea5c"
+    },
+    "stdout_path": null,
+    "stdout_text": "patching file src/cmd/compile/internal/gc/main.go\npatching file src/cmd/dist/buildtool.go\npatching file src/cmd/link/internal/ld/lib.go\npatching file src/runtime/lock_spinbit.go\npatching file src/runtime/os_linux.go\npatching file src/runtime/panic.go\npatching file src/runtime/preempt.go\npatching file src/runtime/proc.go\npatching file src/runtime/rand.go\npatching file src/runtime/runtime2.go\npatching file src/runtime/select.go\npatching file src/runtime/sizeof_test.go\npatching file src/runtime/symtab.go\npatching file src/runtime/time.go\npatching file src/runtime/time_nofake.go\npatching file src/runtime/traceback.go\npatching file src/syscall/env_unix.go\npatching file src/syscall/rlimit.go\npatching file src/syscall/syscall_unix.go\npatching file src/testing/testing.go\n",
+    "stdout": {
+      "bytes": 774,
+      "lines": 20,
+      "sha256": "28ce70a947990a40dd4dba738d489cc569c3d9c21a6480ecb47f3143f91d87d0"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "apply",
+      "--numstat"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:49.118087+00:00",
+    "finished_utc": "2026-10-04T04:52:49.119247+00:00",
+    "duration_seconds": 0.001162542001111433,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": {
+      "bytes": 32652,
+      "lines": 1007,
+      "sha256": "950063a87d63cb01dada2e6ef232fdeb4acc52f71a008e2158885666669f80bc"
+    },
+    "stdout_path": null,
+    "stdout_text": "4\t0\tsrc/cmd/compile/internal/gc/main.go\n1\t0\tsrc/cmd/dist/buildtool.go\n7\t0\tsrc/cmd/link/internal/ld/lib.go\n10\t0\tsrc/crypto/rand/rand.go\n2\t2\tsrc/runtime/lock_spinbit.go\n3\t0\tsrc/runtime/panic.go\n4\t0\tsrc/runtime/preempt.go\n205\t20\tsrc/runtime/proc.go\n16\t1\tsrc/runtime/rand.go\n11\t7\tsrc/runtime/runtime2.go\n14\t1\tsrc/runtime/select.go\n1\t1\tsrc/runtime/sizeof_test.go\n1\t1\tsrc/runtime/symtab.go\n20\t5\tsrc/runtime/time.go\n3\t0\tsrc/runtime/time_nofake.go\n9\t1\tsrc/runtime/traceback.go\n7\t0\tsrc/syscall/env_unix.go\n2\t16\tsrc/syscall/rlimit.go\n14\t0\tsrc/syscall/syscall_unix.go\n8\t0\tsrc/testing/testing.go\n",
+    "stdout": {
+      "bytes": 584,
+      "lines": 20,
+      "sha256": "769b1d242c97f5e3d0a5f50ad2f8f7e2345c00ccd6fc699323810e02437ec6b6"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "apply",
+      "--numstat"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:49.120871+00:00",
+    "finished_utc": "2026-10-04T04:52:49.122233+00:00",
+    "duration_seconds": 0.0013620839999930467,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": {
+      "bytes": 38362,
+      "lines": 1112,
+      "sha256": "86def26a7f4d0b5c494a6a031c87bec284f7e76c91dcf437bc23fcc4c276ea5c"
+    },
+    "stdout_path": null,
+    "stdout_text": "4\t0\tsrc/cmd/compile/internal/gc/main.go\n1\t0\tsrc/cmd/dist/buildtool.go\n7\t0\tsrc/cmd/link/internal/ld/lib.go\n2\t2\tsrc/runtime/lock_spinbit.go\n1\t1\tsrc/runtime/os_linux.go\n3\t0\tsrc/runtime/panic.go\n4\t0\tsrc/runtime/preempt.go\n142\t31\tsrc/runtime/proc.go\n16\t1\tsrc/runtime/rand.go\n56\t43\tsrc/runtime/runtime2.go\n16\t1\tsrc/runtime/select.go\n1\t1\tsrc/runtime/sizeof_test.go\n1\t1\tsrc/runtime/symtab.go\n31\t5\tsrc/runtime/time.go\n3\t0\tsrc/runtime/time_nofake.go\n9\t1\tsrc/runtime/traceback.go\n3\t0\tsrc/syscall/env_unix.go\n2\t16\tsrc/syscall/rlimit.go\n8\t0\tsrc/syscall/syscall_unix.go\n8\t0\tsrc/testing/testing.go\n",
+    "stdout": {
+      "bytes": 583,
+      "lines": 20,
+      "sha256": "f1b0eddd9b037d9f0edbb8da2cecf6a63a5f340df8423345ffb3cf526e9477e8"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "apply",
+      "--numstat"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:49.123619+00:00",
+    "finished_utc": "2026-10-04T04:52:49.124486+00:00",
+    "duration_seconds": 0.0008667499969305936,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": {
+      "bytes": 29015,
+      "lines": 778,
+      "sha256": "8497f8855011f13fb46ad36a02448d165d4bd65688ef00eed6ae09822306a90b"
+    },
+    "stdout_path": null,
+    "stdout_text": "4\t0\tsrc/cmd/compile/internal/gc/main.go\n1\t0\tsrc/cmd/dist/buildtool.go\n7\t0\tsrc/cmd/link/internal/ld/lib.go\n2\t2\tsrc/runtime/lock_spinbit.go\n1\t1\tsrc/runtime/os_linux.go\n3\t0\tsrc/runtime/panic.go\n4\t0\tsrc/runtime/preempt.go\n142\t31\tsrc/runtime/proc.go\n16\t1\tsrc/runtime/rand.go\n56\t43\tsrc/runtime/runtime2.go\n16\t1\tsrc/runtime/select.go\n1\t1\tsrc/runtime/sizeof_test.go\n1\t1\tsrc/runtime/symtab.go\n31\t5\tsrc/runtime/time.go\n3\t0\tsrc/runtime/time_nofake.go\n9\t1\tsrc/runtime/traceback.go\n3\t0\tsrc/syscall/env_unix.go\n2\t16\tsrc/syscall/rlimit.go\n8\t0\tsrc/syscall/syscall_unix.go\n8\t0\tsrc/testing/testing.go\n",
+    "stdout": {
+      "bytes": 583,
+      "lines": 20,
+      "sha256": "f1b0eddd9b037d9f0edbb8da2cecf6a63a5f340df8423345ffb3cf526e9477e8"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "uname",
+      "-s",
+      "-m"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:49.161790+00:00",
+    "finished_utc": "2026-10-04T04:52:49.163036+00:00",
+    "duration_seconds": 0.0012376659979054239,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": "Linux aarch64\n",
+    "stdout": {
+      "bytes": 14,
+      "lines": 1,
+      "sha256": "8c675c547fba3929494a135c3e737588f309e469625bba04a846247793d15995"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "--version"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:49.163836+00:00",
+    "finished_utc": "2026-10-04T04:52:49.164726+00:00",
+    "duration_seconds": 0.0008933339995564893,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": "git version 2.53.0\n",
+    "stdout": {
+      "bytes": 19,
+      "lines": 1,
+      "sha256": "97452bcde974ef512f9552791fc4f6a3219a724877671fba270baca1a6075b74"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "patch",
+      "--version"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:49.165361+00:00",
+    "finished_utc": "2026-10-04T04:52:49.165751+00:00",
+    "duration_seconds": 0.00038783399941166863,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert\n",
+    "stdout": {
+      "bytes": 336,
+      "lines": 9,
+      "sha256": "82f273f48e89a799d94e00688a36bb0cb8aff0b374100fb0ec71d1d2f1da8583"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  },
+  {
+    "argv": [
+      "git",
+      "rev-parse",
+      "HEAD"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started_utc": "2026-10-04T04:52:49.166319+00:00",
+    "finished_utc": "2026-10-04T04:52:49.167445+00:00",
+    "duration_seconds": 0.0011286670014669653,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "stdin": null,
+    "stdout_path": null,
+    "stdout_text": "0dd05b313acd0986312da7fd3159520e6a21f1bf\n",
+    "stdout": {
+      "bytes": 41,
+      "lines": 1,
+      "sha256": "fc72c47183430239639adba7cb5e5c29bd70576dd5c847fe97f90097e30ace5b"
+    },
+    "stderr_text": "",
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC"
+    }
+  }
+]

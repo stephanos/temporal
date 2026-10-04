@@ -1,0 +1,1275 @@
+{
+  "schema": "fn110-alignment-experiment/v1",
+  "started_utc": "2026-10-04T05:15:03.733371+00:00",
+  "finished_utc": "2026-10-04T05:15:06.302626+00:00",
+  "duration_seconds": 2.5692280850016687,
+  "preparation": {
+    "started_utc": "2026-10-04T05:14:55.193099+00:00",
+    "finished_utc": "2026-10-04T05:14:55.308855+00:00",
+    "duration_seconds": 0.11575387499760836,
+    "scratch": "/tmp/fn110-alignment-1TWNKL9O",
+    "shared_before": {
+      "patch": {
+        "bytes": 29015,
+        "lines": 778,
+        "sha256": "8497f8855011f13fb46ad36a02448d165d4bd65688ef00eed6ae09822306a90b"
+      },
+      "descriptor": {
+        "bytes": 7039,
+        "lines": 195,
+        "sha256": "94358dc0d221c0c0ba0e4f487303b0e9acd46afa212d24091ab44b124f276779"
+      },
+      "archive": {
+        "bytes": 35109201,
+        "lines": 131750,
+        "sha256": "4e408abae126d916b6164627193f2c54f0e3ca1312d693b86db45f862ab238b1"
+      },
+      "overlay": {
+        "src/cmd/compile/internal/base/gomadcap.go": {
+          "bytes": 279,
+          "lines": 9,
+          "sha256": "98eab6cd0dfcee36b51a68fba1ef3d682f99d8567f6c4c7f6c8139e8d5dd1bed"
+        },
+        "src/cmd/compile/internal/base/gomadguard.go": {
+          "bytes": 286,
+          "lines": 9,
+          "sha256": "74a089935804dfc806b71907a09d2c1f7d4cb2cd39ceac8042c15382b439c374"
+        },
+        "src/cmd/compile/internal/gomadguard/guard.go": {
+          "bytes": 2643,
+          "lines": 84,
+          "sha256": "3fbea44376cf2c223017381b3aa885ed271cbab7aadcfef8e707b1ba0817aa48"
+        },
+        "src/cmd/compile/internal/gomadintercept/intercept.go": {
+          "bytes": 11697,
+          "lines": 372,
+          "sha256": "22c0269d0888577ee7d5c30c086c1d1e5c80dce1187b021dcc8cdd4478491436"
+        },
+        "src/cmd/compile/internal/gomadintercept/simulation_specs.go": {
+          "bytes": 6445,
+          "lines": 35,
+          "sha256": "bb67a470cdc976ceab98bd09f81d1b337e9d386f3a30715e21b1faf8cb0ee4bb"
+        },
+        "src/cmd/compile/internal/gomadintercept/spec_go127.go": {
+          "bytes": 31530,
+          "lines": 144,
+          "sha256": "4586e682fa978a017903417fbed9c17226d10894fee80b9e410f193e07f1d9da"
+        },
+        "src/cmd/internal/gomadcap/encode.go": {
+          "bytes": 8018,
+          "lines": 226,
+          "sha256": "f0d2115f7b5321c7bef9c41c93d2d2bb48e40d540187e3cd3f394bd2bd95ee79"
+        },
+        "src/cmd/internal/gomadcap/encode_test.go": {
+          "bytes": 6860,
+          "lines": 156,
+          "sha256": "7a4d2aed0f3e8047c9d45e60b430f3f1f54d6f43332fbc985a03fca1f087f59e"
+        },
+        "src/cmd/internal/gomadcap/protocol_generated.go": {
+          "bytes": 33787,
+          "lines": 330,
+          "sha256": "204e501a19e6229aa285cbf5b12fc478b270fc7a8d0f401a655e311622cdbddd"
+        },
+        "src/cmd/link/internal/ld/gomadcap.go": {
+          "bytes": 2776,
+          "lines": 87,
+          "sha256": "923326a3c3126f783e7cb43e3e85c1a8eb810d198114782f88fb02ba4cd7437f"
+        },
+        "src/crypto/rand/gomad.go": {
+          "bytes": 469,
+          "lines": 19,
+          "sha256": "8a08776372af7d1c2f7ab4c314fd410446bba0127946f1da8e5629d862d53c63"
+        },
+        "src/internal/gomadchoicewire/diagnostic_runtime_test.go": {
+          "bytes": 14003,
+          "lines": 364,
+          "sha256": "b7e51f62d30fa6335aa95a7a7326b646be626c4fb5fcac0d0e04c3a1216dbfb4"
+        },
+        "src/internal/gomadchoicewire/hash.go": {
+          "bytes": 2565,
+          "lines": 83,
+          "sha256": "d7c42809ff2a4f65be23607670785c18c3df116609357f002103c5cb2039fbdc"
+        },
+        "src/internal/gomadchoicewire/hash_test.go": {
+          "bytes": 746,
+          "lines": 23,
+          "sha256": "f70c6b8e2ac9ddb513283d4a0482b630fc4ce38ff25e71512da8e34c99378915"
+        },
+        "src/internal/gomadchoicewire/wire_generated.go": {
+          "bytes": 24966,
+          "lines": 596,
+          "sha256": "a4ea7fd30686e2369f3adf48366a0c704a9920ad88e1ffa2b18247e8e2b4d56a"
+        },
+        "src/internal/gomadchoicewire/wire_generated_test.go": {
+          "bytes": 9382,
+          "lines": 206,
+          "sha256": "08f19144d690a3eb0dd480a98b42324389ccb9b474aae492cb922162add169df"
+        },
+        "src/internal/gomadfs/export_test.go": {
+          "bytes": 125,
+          "lines": 5,
+          "sha256": "8f04c57217c92ed2e09e3fff4268a2c369267a55ffc9d31c48f18fca77ce3220"
+        },
+        "src/internal/gomadfs/fs.go": {
+          "bytes": 20951,
+          "lines": 810,
+          "sha256": "17a6163daca49c776abee8eac53aca8f68e47f2ef09d51a2364f83bf52d13453"
+        },
+        "src/internal/gomadfs/fs_test.go": {
+          "bytes": 26502,
+          "lines": 818,
+          "sha256": "1e50c6916859463598dbf0891027be623a81e0168850ca32786dca2e79dd8953"
+        },
+        "src/internal/gomadfs/handles.go": {
+          "bytes": 2940,
+          "lines": 65,
+          "sha256": "5b95fb83701ca10dbb8af5c53af8e9c7997cdddf8b78384a222bb585bf9de9d0"
+        },
+        "src/internal/gomadfs/handles_test.go": {
+          "bytes": 7620,
+          "lines": 249,
+          "sha256": "7b99ae8033ee7a94a63d7227e20e612f6f94b175b87978a1b1e87ae3716a268b"
+        },
+        "src/internal/gomadfs/local_handles.go": {
+          "bytes": 14971,
+          "lines": 562,
+          "sha256": "9e74dcd7201572f4618e2933b1f272439c24c478ce5e92483ca0de00e742eb98"
+        },
+        "src/internal/gomadfs/process_commands.go": {
+          "bytes": 13063,
+          "lines": 305,
+          "sha256": "566d197b342e62f276d6a327bfc7cf482134ad8eb0f7274908454a261944b89b"
+        },
+        "src/internal/gomadfs/process_commands_export_test.go": {
+          "bytes": 719,
+          "lines": 15,
+          "sha256": "48d171cba430f8ff1c6c44acaf8ed37d9503d3844bfcfe5c49ccf59a78a1171c"
+        },
+        "src/internal/gomadfs/process_commands_test.go": {
+          "bytes": 27203,
+          "lines": 259,
+          "sha256": "478a71de2035b5cd7a319c1a0f03f8cce899d845fad46a1c93956260d6901985"
+        },
+        "src/internal/gomadfs/process_handles_test.go": {
+          "bytes": 13001,
+          "lines": 321,
+          "sha256": "801685588aa34bc16ff361936149726492470a167a029cb2dc88dd5c22db1ff5"
+        },
+        "src/internal/gomadfs/process_volume.go": {
+          "bytes": 7862,
+          "lines": 244,
+          "sha256": "983194fedffe08a092ee14e113149472a91e65c2576b1806934e22b02d32e4c2"
+        },
+        "src/internal/gomadfs/process_volume_host.go": {
+          "bytes": 7817,
+          "lines": 222,
+          "sha256": "ab9a74b692fcdcdfb033fe94c0fd49f68ec885f9f0a39261467f34b93b3d2493"
+        },
+        "src/internal/gomadfs/runtime.go": {
+          "bytes": 2425,
+          "lines": 93,
+          "sha256": "00d0622d43b67e420e7e1885f2bd8c3df2c402f927444912b8276462e5f44b44"
+        },
+        "src/internal/gomadfs/simulation_volume.go": {
+          "bytes": 21073,
+          "lines": 607,
+          "sha256": "c31f39220a44e7b703d67b20b80e6062bde4736d6383e74be9be755524f36b10"
+        },
+        "src/internal/gomadfs/simulation_volume_wire.go": {
+          "bytes": 14463,
+          "lines": 395,
+          "sha256": "a1f320edd95fab8a1f2ed9932610c52abe2a28fe2823d441079a0e374ea0fc9e"
+        },
+        "src/internal/gomadfs/volume.go": {
+          "bytes": 42443,
+          "lines": 1377,
+          "sha256": "efd241e55910a4006df26db847a03d90f7b44b35e5d4df357367b4b60902afa1"
+        },
+        "src/internal/gomadio/anonymous.go": {
+          "bytes": 2132,
+          "lines": 84,
+          "sha256": "4eef76260bd645b8d8c185ce49d6be7282e3a85dfe528c0d39207cb4d9ee4456"
+        },
+        "src/internal/gomadio/anonymous_test.go": {
+          "bytes": 3324,
+          "lines": 116,
+          "sha256": "f3b5799d5fef94c3c2be4f0fb7291c69eed9633379b61f6ecc05befae32abb3e"
+        },
+        "src/internal/gomadio/gomadio.go": {
+          "bytes": 2245,
+          "lines": 97,
+          "sha256": "5e6b5e9609372bd7402ed6f1a4c87e8e2bf9745dd4b9d5b52d16274879198509"
+        },
+        "src/internal/gomadio/libc.go": {
+          "bytes": 7264,
+          "lines": 298,
+          "sha256": "e56fe97787d4b1b6224d97a2d9867826e67743b7d859ba332d7d6d0d97874ef4"
+        },
+        "src/internal/gomadio/mount/client.go": {
+          "bytes": 2965,
+          "lines": 112,
+          "sha256": "5d89f7a82f8b0d2d2275ddcb85a7b2c855b905c8f4f5fa875cfc1ff0c039365b"
+        },
+        "src/internal/gomadio/mount/client_test.go": {
+          "bytes": 2219,
+          "lines": 66,
+          "sha256": "7bad090b017ba9041cef6e9bda3eef797b809d2f3288cd719a0c8726f0cc34c2"
+        },
+        "src/internal/gomadio/network.go": {
+          "bytes": 17084,
+          "lines": 540,
+          "sha256": "57b98bb88190fac515b758d07be31e8c9d428a16159a07d4f754ef2dd39b9356"
+        },
+        "src/internal/gomadio/network_handles_test.go": {
+          "bytes": 10520,
+          "lines": 315,
+          "sha256": "cfead548fb2ecf987d4314d34fa2be1161bb1941786e2ba08dc7bfcdb0b59fba"
+        },
+        "src/internal/gomadio/process_commands.go": {
+          "bytes": 7082,
+          "lines": 169,
+          "sha256": "025373f3e03b240e032a2785658ce7a10dc9cf242aa722e4a681dd483979c92b"
+        },
+        "src/internal/gomadio/process_commands_export_test.go": {
+          "bytes": 1420,
+          "lines": 41,
+          "sha256": "37a1aa079922906b97f94e178fe65b82da6225eb7cbd4f172bf89ebe03eeec97"
+        },
+        "src/internal/gomadio/process_commands_test.go": {
+          "bytes": 14584,
+          "lines": 173,
+          "sha256": "0752f0fa45c71bf4b1f127deb3a2330a4c86fa9d0dbddd95c63feb64f7057906"
+        },
+        "src/internal/gomadio/process_network.go": {
+          "bytes": 12307,
+          "lines": 344,
+          "sha256": "584ac64bf45d35e0f89453f732acc22448d244be2984e284743b23c6c142acf1"
+        },
+        "src/internal/gomadio/simulation_handles.go": {
+          "bytes": 11317,
+          "lines": 318,
+          "sha256": "b38594b3713a73f7c0bc1e2b06890ab4c27f9ee60efd6bf7ae23504e88c3a1e7"
+        },
+        "src/internal/gomadio/simulation_network.go": {
+          "bytes": 38647,
+          "lines": 1102,
+          "sha256": "a8dd8cf68d3d50679e2a0ca839e602bb1bf7f20a9e8eabc8e9427bd35c92624d"
+        },
+        "src/internal/gomadio/simulation_wire.go": {
+          "bytes": 12908,
+          "lines": 378,
+          "sha256": "7daeaa5c6f1f821f55c9962ebcebbfa499098ab413553a0d857706e0f6e2a99d"
+        },
+        "src/internal/gomadio/transcript.go": {
+          "bytes": 1443,
+          "lines": 71,
+          "sha256": "723c2eec21e51b5359098d6a8647d6892089d759de5893debb8d6074edafe30a"
+        },
+        "src/internal/gomadmodelwire/wire_generated.go": {
+          "bytes": 13402,
+          "lines": 420,
+          "sha256": "29593b7690703947f63a440ff3c567cae3728a9ecf77fdf97fe7f207b05b6ced"
+        },
+        "src/internal/gomadmodelwire/wire_generated_test.go": {
+          "bytes": 1760,
+          "lines": 49,
+          "sha256": "49268c620249db903e6c4425028a2577db96d3944a1aee2c0ec65b2dab7c95da"
+        },
+        "src/internal/gomadsim/export_test.go": {
+          "bytes": 254,
+          "lines": 7,
+          "sha256": "f3864bddb8c918707f65a42cb2dd968748ee42f956b46fb6783d75a48399dc62"
+        },
+        "src/internal/gomadsim/model_transport_generated.go": {
+          "bytes": 4040,
+          "lines": 106,
+          "sha256": "b0fb588aaafc5b34edca2fccf288adacd2052c3907c103b69b58e35264c6f212"
+        },
+        "src/internal/gomadsim/process.go": {
+          "bytes": 10144,
+          "lines": 337,
+          "sha256": "d7103b5ff451eb6a7e4e262c550567483f779adacc5bca1a14ff101cbf0ed7d4"
+        },
+        "src/internal/gomadsim/process_model.go": {
+          "bytes": 5032,
+          "lines": 166,
+          "sha256": "8ff33c38997cfdcfc3e1272f7bec8c2f2bf93e9f8b29482b15606a125f0a0eae"
+        },
+        "src/internal/gomadsim/process_model_test.go": {
+          "bytes": 4037,
+          "lines": 135,
+          "sha256": "76533f2c57ab14fa154dbca4a6dab35c30cd5948dd064b76e2b605e0f8f7e04d"
+        },
+        "src/internal/gomadsim/process_time_test.go": {
+          "bytes": 958,
+          "lines": 29,
+          "sha256": "60d6a19f7e4acfd7806c8dbfb1b253ce2360ef3799f5af7987145c46e3b257ba"
+        },
+        "src/internal/gomadsim/simulation.go": {
+          "bytes": 9670,
+          "lines": 391,
+          "sha256": "2539a6d66294914e4322a85fcae304c36753487f03e46ff45d76fc761b043511"
+        },
+        "src/internal/gomadsim/simulation_test.go": {
+          "bytes": 3337,
+          "lines": 126,
+          "sha256": "a6b7d8123cf25ea7bd2e15ed17c673d549884de62f514d319ce11de26a0129d3"
+        },
+        "src/internal/gomadtrace/trace.go": {
+          "bytes": 6569,
+          "lines": 200,
+          "sha256": "f412dc84159a9d2df5121de65a298b907f8b4f30fcd510aa1b8edf4b73ac1791"
+        },
+        "src/internal/gomadwire/wire_generated.go": {
+          "bytes": 21565,
+          "lines": 546,
+          "sha256": "94c02eb236a69d2c1f88da7a931d6a61e941a7688f55a3b5fc5d312d4886e4a4"
+        },
+        "src/internal/gomadwire/wire_generated_test.go": {
+          "bytes": 10213,
+          "lines": 254,
+          "sha256": "3687b1c7dd1de44fc086fd5efac518fd513898eb124d39486e16e0679e90cd07"
+        },
+        "src/net/gomad.go": {
+          "bytes": 13598,
+          "lines": 514,
+          "sha256": "61006dab8bcf333e1d5f4ddf1ef9731817540f180e755ce497d40ca023a07f28"
+        },
+        "src/net/gomad_unsupported_generated.go": {
+          "bytes": 8269,
+          "lines": 303,
+          "sha256": "607ee5a7c4f313266473e6755b7e44ff06c9e4b1df6d35290aa790ead9c92d9c"
+        },
+        "src/os/gomad.go": {
+          "bytes": 31633,
+          "lines": 1197,
+          "sha256": "1899157f60a8ba364d8a016de6004875fecbba7a13e379cd9b5a460221dd06ff"
+        },
+        "src/os/gomad_model_conformance_test.go": {
+          "bytes": 3095,
+          "lines": 106,
+          "sha256": "05d9261fcdef7895c9e131856b67180cb46c4b6e2def5d233d14d698a50b5573"
+        },
+        "src/os/gomad_simulation_test.go": {
+          "bytes": 1452,
+          "lines": 51,
+          "sha256": "138056013a355ce1310bf5e0ea39d368bafd8b3b5f3ad15f18f8a4af21d4e8fe"
+        },
+        "src/os/signal/gomad.go": {
+          "bytes": 391,
+          "lines": 20,
+          "sha256": "1edb9fe65f0c604c1a4196b5db0e0e89f6a09f696a0d09a0335f924505460f28"
+        },
+        "src/os/user/gomad.go": {
+          "bytes": 452,
+          "lines": 21,
+          "sha256": "f343b6fe8d28d15ccbc2687d174f061bab9f793b2f8ade63f349bb8ba0c6da34"
+        },
+        "src/runtime/gomad.go": {
+          "bytes": 65607,
+          "lines": 1867,
+          "sha256": "9055744a08fa24cbc376edd6ca261b3a6fa401bdc407725809066d64962126e9"
+        },
+        "src/runtime/gomad_aslr_darwin.go": {
+          "bytes": 4755,
+          "lines": 127,
+          "sha256": "17b936d26b8cc7a91934caa57f621b70f5f79e732a5e8b6f530b8da24080712c"
+        },
+        "src/runtime/gomad_aslr_darwin_arm64.s": {
+          "bytes": 1013,
+          "lines": 35,
+          "sha256": "a161be52516b39c91e7778b7ef7ec1ae67712016c79d6d6ba9a62c172ee3ad62"
+        },
+        "src/runtime/gomad_aslr_other.go": {
+          "bytes": 362,
+          "lines": 11,
+          "sha256": "0ab4656ccb8e6de0b6b1c386ccc3089c80fb76e6b7ed42b1610bcb23cba23a49"
+        },
+        "src/runtime/gomad_choicewire_generated.go": {
+          "bytes": 8173,
+          "lines": 215,
+          "sha256": "4b2e5c6da2861eff4aa0728a86c986e5b99fb101bcc39db5efd3d5f98af56547"
+        },
+        "src/runtime/gomad_iowire_generated.go": {
+          "bytes": 1044,
+          "lines": 33,
+          "sha256": "a3e3695fc6cad7bad09b2fefa909c1a9df75bfff3a4f3cf8a28f3cb6f0edde88"
+        },
+        "src/runtime/gomad_timewire_export_generated_test.go": {
+          "bytes": 231,
+          "lines": 6,
+          "sha256": "49b5075dd73ea527175e99ffb5ecb3c3cd2ffa7a41b1627e2651b1f2fd7dbc93"
+        },
+        "src/runtime/gomad_timewire_generated.go": {
+          "bytes": 2383,
+          "lines": 79,
+          "sha256": "425d75ef372ba9eba431e0384b51bf21a0ebedf5d91a315d7894363f846efe87"
+        },
+        "src/runtime/gomad_timewire_generated_test.go": {
+          "bytes": 2458,
+          "lines": 62,
+          "sha256": "d8dcca09321bd4ec618e8936d64f8109885bae01ccb6003678264bf828a2789b"
+        },
+        "src/syscall/gomad_env_unix.go": {
+          "bytes": 549,
+          "lines": 18,
+          "sha256": "c88ccf172a7f853233e5a48ed5f26d8a6d4c297b8c2a8f57ac8fe7d252069c60"
+        },
+        "src/syscall/gomad_unix.go": {
+          "bytes": 502,
+          "lines": 18,
+          "sha256": "69c33f9cdb4f20e1f5cbf1bde26b342014da1742f53e2a86d1ac81a099f876b9"
+        }
+      },
+      "prior_pristine": {
+        "VERSION": {
+          "bytes": 35,
+          "lines": 2,
+          "sha256": "25eb74b09036e1ad894fb63b86cb0f0ee53342df8d2e2e860da4ff5079607758"
+        },
+        "src/cmd/compile/internal/gc/main.go": {
+          "bytes": 13193,
+          "lines": 431,
+          "sha256": "630003459bf6c39ee0c795be1de24d184ae27ddc432a923a4ae7ec86256ad05c"
+        },
+        "src/cmd/dist/buildtool.go": {
+          "bytes": 12372,
+          "lines": 408,
+          "sha256": "618ba1f636a18678276cebf6323bdf6d7a91c7d3edff4502ca994a7434579f9a"
+        },
+        "src/cmd/link/internal/ld/lib.go": {
+          "bytes": 99230,
+          "lines": 3198,
+          "sha256": "0218e21f9c86bdf9bbc7f872b20a3652d56a8c79d5526fcf6bac5b27d1274493"
+        },
+        "src/crypto/rand/rand.go": {
+          "bytes": 2362,
+          "lines": 68,
+          "sha256": "7c289648d453d0bdca0f05091d00bb86c94b69637080c748ff3d3476677521ac"
+        },
+        "src/runtime/lock_spinbit.go": {
+          "bytes": 15314,
+          "lines": 469,
+          "sha256": "a814e056b003ceecb224bf3f1ed41d09a2e83592b30de037ebae5b2727259941"
+        },
+        "src/runtime/os_linux.go": {
+          "bytes": 30358,
+          "lines": 1012,
+          "sha256": "f211c96802c315ffa23343fc3a672f38713418f46658681da1f4d8187d9462a1"
+        },
+        "src/runtime/panic.go": {
+          "bytes": 52256,
+          "lines": 1789,
+          "sha256": "55bf157a0922d2474c4c04526eed90eec4c5a48ad92d649d0c97887760b53e11"
+        },
+        "src/runtime/preempt.go": {
+          "bytes": 17566,
+          "lines": 497,
+          "sha256": "c50342a043676dab55b58ea9aabc90a04cfb0c0cdd9a70e475239ba9460f5ce3"
+        },
+        "src/runtime/proc.go": {
+          "bytes": 243217,
+          "lines": 8176,
+          "sha256": "40d15ce858cf058cff92606001a29ee1689db88c121a2f0c283163a0d64a7375"
+        },
+        "src/runtime/rand.go": {
+          "bytes": 9923,
+          "lines": 344,
+          "sha256": "2cad544cf8ffabfb8fcf88e4687b6f6452d9f0ba5bb6aca570aa69bee6a167d0"
+        },
+        "src/runtime/runtime2.go": {
+          "bytes": 57123,
+          "lines": 1520,
+          "sha256": "7d66ed912f68b1259947807ca1bdf79ee7e54c6a61a716d88db663d570af66da"
+        },
+        "src/runtime/select.go": {
+          "bytes": 15792,
+          "lines": 659,
+          "sha256": "93977178a5c507d2bd0bbd990613fa0c8a1d6d18b974fcbcd6c9edce6bd8b5bf"
+        },
+        "src/runtime/sizeof_test.go": {
+          "bytes": 1102,
+          "lines": 42,
+          "sha256": "9433728baee23411aa8768d36897b01b1a1b31c12fc34cc79d500faf5c8b687e"
+        },
+        "src/runtime/symtab.go": {
+          "bytes": 42138,
+          "lines": 1338,
+          "sha256": "50ce6d14b3885a8847086281a221ace995603c2b942e06c46935a15c0d66e17d"
+        },
+        "src/runtime/time.go": {
+          "bytes": 43649,
+          "lines": 1494,
+          "sha256": "cf2ae4e953a3315c226499f553a8e8e1529d27ceac166b4fb75e8d7b3a4fa682"
+        },
+        "src/runtime/time_nofake.go": {
+          "bytes": 1606,
+          "lines": 58,
+          "sha256": "d42faad51f376b9d43b4944620b4208a24bcb48ce7c0d9ef1d7786e3467b1f42"
+        },
+        "src/runtime/traceback.go": {
+          "bytes": 62423,
+          "lines": 1852,
+          "sha256": "ed3f2f022fb238610e1423ea4768c5abadd1376fdcb6f1092c2d43566641583e"
+        },
+        "src/syscall/env_unix.go": {
+          "bytes": 2618,
+          "lines": 146,
+          "sha256": "7a75aaf2e881a7d48cdb449c5854925dd81dabe45cee6c54e508727b85c7dab2"
+        },
+        "src/syscall/rlimit.go": {
+          "bytes": 1950,
+          "lines": 56,
+          "sha256": "f0eee111b4a1fd060d21d2a18878353242c9c9440da5aec97d74667ef634eb51"
+        },
+        "src/syscall/syscall_unix.go": {
+          "bytes": 13648,
+          "lines": 551,
+          "sha256": "7361dc67cc63399a24a39473e0e3b0b02695464236630f6963604991fd1d4873"
+        },
+        "src/testing/testing.go": {
+          "bytes": 94214,
+          "lines": 3002,
+          "sha256": "8d2437cfdcfb82fd8807e5063783de1d50f70e589e80cad10e17d8ef23f724d9"
+        }
+      },
+      "prior_current": {
+        "VERSION": {
+          "bytes": 35,
+          "lines": 2,
+          "sha256": "25eb74b09036e1ad894fb63b86cb0f0ee53342df8d2e2e860da4ff5079607758"
+        },
+        "src/cmd/compile/internal/gc/main.go": {
+          "bytes": 13343,
+          "lines": 435,
+          "sha256": "0fc6f1986aecaaeaaa9059a593d8f4cd84868cd89c90cd813fbb00dbbb456e4a"
+        },
+        "src/cmd/dist/buildtool.go": {
+          "bytes": 12398,
+          "lines": 409,
+          "sha256": "714c87ae4200839d077ab1c1a1eb404c6e04090240b9b059fa5cc83426e344be"
+        },
+        "src/cmd/link/internal/ld/lib.go": {
+          "bytes": 99462,
+          "lines": 3205,
+          "sha256": "c7bac7ad30afe6fbe38323605de09be5431d47d602fea1a61a783b181d5dccba"
+        },
+        "src/crypto/rand/rand.go": {
+          "bytes": 2362,
+          "lines": 68,
+          "sha256": "7c289648d453d0bdca0f05091d00bb86c94b69637080c748ff3d3476677521ac"
+        },
+        "src/runtime/lock_spinbit.go": {
+          "bytes": 15339,
+          "lines": 469,
+          "sha256": "c22993f5287d4cef04a89ec0434a75537be4a69c1d54b6a85f026d1c29faa1d2"
+        },
+        "src/runtime/os_linux.go": {
+          "bytes": 30367,
+          "lines": 1012,
+          "sha256": "58be3bd2c94335adad9a8ecea2325fe47e93fa077170681da5fe8d05ef7537e4"
+        },
+        "src/runtime/panic.go": {
+          "bytes": 52296,
+          "lines": 1792,
+          "sha256": "f4d23e50837f69883d6903fad84d22b07d70eeaab564c247474d26780ea342dc"
+        },
+        "src/runtime/preempt.go": {
+          "bytes": 17621,
+          "lines": 501,
+          "sha256": "327df38fdd7cf84c392564a0d53844135d429611ebb1c71259e9a3c74a18b79e"
+        },
+        "src/runtime/proc.go": {
+          "bytes": 246765,
+          "lines": 8287,
+          "sha256": "9ec69bd8d09d52584acc232ffe7286ebc13c936c076e575a6890bf047b761969"
+        },
+        "src/runtime/rand.go": {
+          "bytes": 10264,
+          "lines": 359,
+          "sha256": "a6e02e6561f11a76b08a270564ac2063fe47f8d3e2e54af54a628d4e7880638e"
+        },
+        "src/runtime/runtime2.go": {
+          "bytes": 57829,
+          "lines": 1533,
+          "sha256": "022d281aabd119107669effc0ed43b5dd6e4a342652418217ff98b1adf626f92"
+        },
+        "src/runtime/select.go": {
+          "bytes": 16406,
+          "lines": 674,
+          "sha256": "2496226871127fdc1245a92cde1c403c43b14562d9f182c91ada967e12b7c0c3"
+        },
+        "src/runtime/sizeof_test.go": {
+          "bytes": 1102,
+          "lines": 42,
+          "sha256": "8420566b42aa00d835cf8d16fc4ca811687629837fc4e28a9fc90d9de43b9d5a"
+        },
+        "src/runtime/symtab.go": {
+          "bytes": 42147,
+          "lines": 1338,
+          "sha256": "7ebf721550d8a62cf1379d900a38d44c4277a2b436aa0c480853c4999c50318b"
+        },
+        "src/runtime/time.go": {
+          "bytes": 44585,
+          "lines": 1520,
+          "sha256": "3e378fe4528de8c0c4df967168a6d5c9b57eb751478c34b1da2c458acce8dd7f"
+        },
+        "src/runtime/time_nofake.go": {
+          "bytes": 1646,
+          "lines": 61,
+          "sha256": "6d5e8bfd55b8c4644fe08aee355f3b9a0ed6a97c0d1bde7ba7e7f45bcd57a5cb"
+        },
+        "src/runtime/traceback.go": {
+          "bytes": 62673,
+          "lines": 1860,
+          "sha256": "0be544e15f3216b54cc83ac0af692ae2beff373af5b3ba549b57f5f2be491d9a"
+        },
+        "src/syscall/env_unix.go": {
+          "bytes": 2711,
+          "lines": 149,
+          "sha256": "3e02d4f45b3370ff024573eaa8a96f45685d873c8126a3e7f16330046f098ddf"
+        },
+        "src/syscall/rlimit.go": {
+          "bytes": 1514,
+          "lines": 42,
+          "sha256": "1b706af1c939ac62c308c7b257db924c439f0c313bf70e6dbabd3d0173e07f26"
+        },
+        "src/syscall/syscall_unix.go": {
+          "bytes": 13857,
+          "lines": 559,
+          "sha256": "b9c99651764fd03dacb54e4c3ebe197ebf4348734822a61685e4df202a207d85"
+        },
+        "src/testing/testing.go": {
+          "bytes": 94412,
+          "lines": 3010,
+          "sha256": "ffee20f252d39fca15b981adf262f86d7d9d96429068022d26cfb068b29d7b9a"
+        }
+      }
+    },
+    "verified_all_22_prior_members_against_retained_evidence": true,
+    "verified_all_79_overlay_files_against_retained_evidence": true
+  },
+  "scratch": "/tmp/fn110-alignment-1TWNKL9O",
+  "requested_routing": "thinking scout gpt-6.1-sol high",
+  "actual_model_metadata": "unknown; not host-observed",
+  "tools": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": {
+      "bytes": 15793848,
+      "lines": 75946,
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt": {
+      "bytes": 3027672,
+      "lines": 12250,
+      "sha256": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+    },
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-5/alignment-experiment/verify.py": {
+      "bytes": 12210,
+      "lines": 203,
+      "sha256": "96d9e7a77cf96e097fa90a55ddcdbb52d4b9181d235bf4e70360d64cacb5d280"
+    },
+    "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-5/alignment-experiment/token-compare.go": {
+      "bytes": 2652,
+      "lines": 113,
+      "sha256": "0c7c3ff6bb2903677ff7a0fd845f420384f27cdfc93a0a6df1afb0e88cc2a786"
+    },
+    "/tmp/fn110-alignment-1TWNKL9O/token-compare.go": {
+      "bytes": 2680,
+      "lines": 113,
+      "sha256": "82a4ad359d1a36a4f436ca89a22cb733479eec4ee6342ae2beb2b511defa9cb6"
+    },
+    "/tmp/fn110-alignment-1TWNKL9O/token-compare": {
+      "bytes": 4202169,
+      "lines": 15575,
+      "sha256": "b51fee52477344f56772cae43d51757261838f3affe9969bbe768481da47bc60"
+    }
+  },
+  "versions": {
+    "go": "go version go1.27.1 linux/arm64",
+    "uname": "Linux aarch64",
+    "git": "git version 2.53.0",
+    "patch": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert"
+  },
+  "patches": {
+    "original_baseline_U3": {
+      "bytes": 32652,
+      "lines": 1007,
+      "sha256": "950063a87d63cb01dada2e6ef232fdeb4acc52f71a008e2158885666669f80bc"
+    },
+    "current_U3": {
+      "bytes": 38362,
+      "lines": 1112,
+      "sha256": "86def26a7f4d0b5c494a6a031c87bec284f7e76c91dcf437bc23fcc4c276ea5c"
+    },
+    "current_U1": {
+      "bytes": 29015,
+      "lines": 778,
+      "sha256": "8497f8855011f13fb46ad36a02448d165d4bd65688ef00eed6ae09822306a90b"
+    },
+    "candidate_U3": {
+      "bytes": 34596,
+      "lines": 1056,
+      "sha256": "760cd2b9a5324108de27eed5e98673c16b2bd7f2dc2b6dbe4da1ffc7efd0ab98"
+    },
+    "candidate_U1": {
+      "bytes": 25330,
+      "lines": 722,
+      "sha256": "b5294ed0f6d45ad562a19ecb85d62c7d50f34eee8ade936ab62b665ed35e25c9"
+    }
+  },
+  "current_U3_sections": {
+    "src/cmd/compile/internal/gc/main.go": {
+      "bytes": 758,
+      "lines": 22,
+      "sha256": "6424e666a16ff4714c83db61cb7554691aa137ac100b2fcb64f2ece37bb0181a"
+    },
+    "src/cmd/dist/buildtool.go": {
+      "bytes": 379,
+      "lines": 12,
+      "sha256": "c74d7e1f27bb161daafccbf6c858cbdb5d5176b1addc1c8436bb6ae63baeb619"
+    },
+    "src/cmd/link/internal/ld/lib.go": {
+      "bytes": 638,
+      "lines": 18,
+      "sha256": "9c5d4668a84a81aa1ee4053ec17bccd669815fdae03e2b6ab3318025603e4001"
+    },
+    "src/runtime/lock_spinbit.go": {
+      "bytes": 888,
+      "lines": 22,
+      "sha256": "56b7cd145c2fd62baf5a0a560b9199d254cd6a816c115ed3c2e4870a33495bcb"
+    },
+    "src/runtime/os_linux.go": {
+      "bytes": 570,
+      "lines": 13,
+      "sha256": "f08b1dfb9f9ed3ece811c83243ac1a83693819c88258da749d812bd8b2032cb4"
+    },
+    "src/runtime/panic.go": {
+      "bytes": 464,
+      "lines": 14,
+      "sha256": "6f3df6e7d4352c9767e98d8205d129c904b3c5072bacc00fab5cdfc0765b2ffd"
+    },
+    "src/runtime/preempt.go": {
+      "bytes": 404,
+      "lines": 15,
+      "sha256": "6f89910fbb43c26d83340a55dbb9c55c92819c22340742d20ea5968c03f0bea6"
+    },
+    "src/runtime/proc.go": {
+      "bytes": 15423,
+      "lines": 484,
+      "sha256": "676c525728b3d672f8dec5ce5e225521df081d4149ba19c7762eb0ce9be1cb9b"
+    },
+    "src/runtime/rand.go": {
+      "bytes": 1499,
+      "lines": 49,
+      "sha256": "453a63088d2cbabe2f4d0142d959dcbd1a4c4eae3baeeaf9aae026d55ba2226a"
+    },
+    "src/runtime/runtime2.go": {
+      "bytes": 6439,
+      "lines": 124,
+      "sha256": "ef4622ef682b914948444d89ba1d058ad2da8591987198141490310c7cc12d4c"
+    },
+    "src/runtime/select.go": {
+      "bytes": 1696,
+      "lines": 49,
+      "sha256": "f7af0875eff0d5edc17e0bcb2439135d5ed368f9582859aff66fe53c17e9e227"
+    },
+    "src/runtime/sizeof_test.go": {
+      "bytes": 539,
+      "lines": 13,
+      "sha256": "80ae5588a930e823524a5e4640cf32a049e72b54699e67de8b1acefe4115c300"
+    },
+    "src/runtime/symtab.go": {
+      "bytes": 519,
+      "lines": 13,
+      "sha256": "59273cfc3a2e7615a8a56f9ca1f6e7ff86ed6ff8ba3a87c79220f050dd7b645b"
+    },
+    "src/runtime/time.go": {
+      "bytes": 3803,
+      "lines": 119,
+      "sha256": "3924c23ea8ebd6d3fa33b83994affde5cd8485377bba73343730681502d0000a"
+    },
+    "src/runtime/time_nofake.go": {
+      "bytes": 334,
+      "lines": 14,
+      "sha256": "577153f713e02b6c0e6399004cc0ba5cf924295476872a9acfd826a8ff6e279b"
+    },
+    "src/runtime/traceback.go": {
+      "bytes": 639,
+      "lines": 22,
+      "sha256": "e8bee271e8606e7b53bacd99c2dcbe30a14dfcfd82b530c05bacba7347d12dc5"
+    },
+    "src/syscall/env_unix.go": {
+      "bytes": 468,
+      "lines": 14,
+      "sha256": "70fb85772f8775e15ea20c6ba8c3523c9fe31f552c860f20b1c6160a2240b300"
+    },
+    "src/syscall/rlimit.go": {
+      "bytes": 1144,
+      "lines": 29,
+      "sha256": "de5bdbb5d31fb8461e7aa7e2fe2aac37b7e7eb40497f55c33b31e02f2a8200e1"
+    },
+    "src/syscall/syscall_unix.go": {
+      "bytes": 747,
+      "lines": 26,
+      "sha256": "e7ef22d2fa0b2058d978aa650106f028618b6c4541e542730097b61a7835015e"
+    },
+    "src/testing/testing.go": {
+      "bytes": 1011,
+      "lines": 40,
+      "sha256": "d25d60d2bcfaa939608fa150584cfa1445c40beb745c608de2b34fe66505e4c8"
+    }
+  },
+  "candidate_U3_sections": {
+    "src/cmd/compile/internal/gc/main.go": {
+      "bytes": 758,
+      "lines": 22,
+      "sha256": "6424e666a16ff4714c83db61cb7554691aa137ac100b2fcb64f2ece37bb0181a"
+    },
+    "src/cmd/dist/buildtool.go": {
+      "bytes": 379,
+      "lines": 12,
+      "sha256": "c74d7e1f27bb161daafccbf6c858cbdb5d5176b1addc1c8436bb6ae63baeb619"
+    },
+    "src/cmd/link/internal/ld/lib.go": {
+      "bytes": 638,
+      "lines": 18,
+      "sha256": "9c5d4668a84a81aa1ee4053ec17bccd669815fdae03e2b6ab3318025603e4001"
+    },
+    "src/runtime/lock_spinbit.go": {
+      "bytes": 888,
+      "lines": 22,
+      "sha256": "56b7cd145c2fd62baf5a0a560b9199d254cd6a816c115ed3c2e4870a33495bcb"
+    },
+    "src/runtime/os_linux.go": {
+      "bytes": 570,
+      "lines": 13,
+      "sha256": "f08b1dfb9f9ed3ece811c83243ac1a83693819c88258da749d812bd8b2032cb4"
+    },
+    "src/runtime/panic.go": {
+      "bytes": 464,
+      "lines": 14,
+      "sha256": "6f3df6e7d4352c9767e98d8205d129c904b3c5072bacc00fab5cdfc0765b2ffd"
+    },
+    "src/runtime/preempt.go": {
+      "bytes": 404,
+      "lines": 15,
+      "sha256": "6f89910fbb43c26d83340a55dbb9c55c92819c22340742d20ea5968c03f0bea6"
+    },
+    "src/runtime/proc.go": {
+      "bytes": 15423,
+      "lines": 484,
+      "sha256": "676c525728b3d672f8dec5ce5e225521df081d4149ba19c7762eb0ce9be1cb9b"
+    },
+    "src/runtime/rand.go": {
+      "bytes": 1499,
+      "lines": 49,
+      "sha256": "453a63088d2cbabe2f4d0142d959dcbd1a4c4eae3baeeaf9aae026d55ba2226a"
+    },
+    "src/runtime/runtime2.go": {
+      "bytes": 2673,
+      "lines": 68,
+      "sha256": "6ae4fbe2f9b3355d3993d0bf619945104f5abe949e0fff0a8da5f565f555225b"
+    },
+    "src/runtime/select.go": {
+      "bytes": 1696,
+      "lines": 49,
+      "sha256": "f7af0875eff0d5edc17e0bcb2439135d5ed368f9582859aff66fe53c17e9e227"
+    },
+    "src/runtime/sizeof_test.go": {
+      "bytes": 539,
+      "lines": 13,
+      "sha256": "80ae5588a930e823524a5e4640cf32a049e72b54699e67de8b1acefe4115c300"
+    },
+    "src/runtime/symtab.go": {
+      "bytes": 519,
+      "lines": 13,
+      "sha256": "59273cfc3a2e7615a8a56f9ca1f6e7ff86ed6ff8ba3a87c79220f050dd7b645b"
+    },
+    "src/runtime/time.go": {
+      "bytes": 3803,
+      "lines": 119,
+      "sha256": "3924c23ea8ebd6d3fa33b83994affde5cd8485377bba73343730681502d0000a"
+    },
+    "src/runtime/time_nofake.go": {
+      "bytes": 334,
+      "lines": 14,
+      "sha256": "577153f713e02b6c0e6399004cc0ba5cf924295476872a9acfd826a8ff6e279b"
+    },
+    "src/runtime/traceback.go": {
+      "bytes": 639,
+      "lines": 22,
+      "sha256": "e8bee271e8606e7b53bacd99c2dcbe30a14dfcfd82b530c05bacba7347d12dc5"
+    },
+    "src/syscall/env_unix.go": {
+      "bytes": 468,
+      "lines": 14,
+      "sha256": "70fb85772f8775e15ea20c6ba8c3523c9fe31f552c860f20b1c6160a2240b300"
+    },
+    "src/syscall/rlimit.go": {
+      "bytes": 1144,
+      "lines": 29,
+      "sha256": "de5bdbb5d31fb8461e7aa7e2fe2aac37b7e7eb40497f55c33b31e02f2a8200e1"
+    },
+    "src/syscall/syscall_unix.go": {
+      "bytes": 747,
+      "lines": 26,
+      "sha256": "e7ef22d2fa0b2058d978aa650106f028618b6c4541e542730097b61a7835015e"
+    },
+    "src/testing/testing.go": {
+      "bytes": 1011,
+      "lines": 40,
+      "sha256": "d25d60d2bcfaa939608fa150584cfa1445c40beb745c608de2b34fe66505e4c8"
+    }
+  },
+  "formatting_diff": {
+    "bytes": 5891,
+    "lines": 114,
+    "sha256": "ced3b01a6f1861b152f3cf0f3380dcc5e90b64af9791172dd5f5f47010449ae7"
+  },
+  "token_equality": {
+    "all_equal": true,
+    "files": [
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "ec4a1ecb069361ad6df884f02d364df2545cebcdff6af942864bcd8ad26ee791",
+        "comments": 88,
+        "path": "src/cmd/compile/internal/gc/main.go",
+        "token_sequence_sha256": "532ef8b23be8ae67244b75a56cfda9007f3896003058b217ed6f3adf5a54ae89",
+        "tokens": 2157,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "2da1240345fc776234918b6f0edcd32912acee29bab25f8f5205141496437260",
+        "comments": 76,
+        "path": "src/cmd/dist/buildtool.go",
+        "token_sequence_sha256": "1893980c78df8784c86a2e3f8a12f7939791ccdbd6b12f67a7f06759bb4fd81a",
+        "tokens": 1695,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "ce768558f838db7a72626ca4a495ef7f79cd5a331c76499f12f25ebd84684803",
+        "comments": 623,
+        "path": "src/cmd/link/internal/ld/lib.go",
+        "token_sequence_sha256": "759ce4ee8cde83d6932fe62dbc0fe095b57e8b51e24b1cb505cfffd52b061580",
+        "tokens": 17657,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "cea3219c3407c46bd2ac46521c770c7a6c7f90d0c4263b0c84053b0c5d87a7eb",
+        "comments": 34,
+        "path": "src/crypto/rand/rand.go",
+        "token_sequence_sha256": "48ddb71dffc0044a0a36f1d531ab83e8d405dfefd55bc967976aff1c707cf700",
+        "tokens": 200,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "c5c26e2be38edf720a98d7393c04e6ebbbc83c2ad46f563b35f3a0ce59f2a5cf",
+        "comments": 161,
+        "path": "src/runtime/lock_spinbit.go",
+        "token_sequence_sha256": "9f08ef78328585df5bc72705e9bcc8156834a3d580f2c5c4a7b8f4f2125af5a4",
+        "tokens": 1838,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "5c3a12aa914f93a7a5efd2273bd8f091d6da81ece0fb6907e6a6010e0c471089",
+        "comments": 369,
+        "path": "src/runtime/os_linux.go",
+        "token_sequence_sha256": "5c2b4b991033809103e0569e59aa3d1d7ca7f515c6803f9fb0e4f64b0cbb55c3",
+        "tokens": 4155,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "9ddc4f167f4945cef85d3faf0ec12080e83c64210a954e2be169a6d8e8f516d1",
+        "comments": 614,
+        "path": "src/runtime/panic.go",
+        "token_sequence_sha256": "493d95ab221aebb1db60e7ce43fad5d8935c064e161c0bd266f232249588168d",
+        "tokens": 7672,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "a242c2a863981d66693411ec372a849ed0ae5919163c4940e680f595a05b17b0",
+        "comments": 266,
+        "path": "src/runtime/preempt.go",
+        "token_sequence_sha256": "1c81163cb1fb128607b80243f08da5f4a6d8c92b2708dc95729d16a57111d910",
+        "tokens": 1456,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "5c028e0b73809ea7211895b7fe61df9c51b54f744e1fe3d0b3b98af2439b8aa7",
+        "comments": 2932,
+        "path": "src/runtime/proc.go",
+        "token_sequence_sha256": "d77051d686b4d070a181179be769b2ad8c73599650a91409e00da012c5090645",
+        "tokens": 33120,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "9e72337fedf0c5784102a9613ded8ae7060fc825134caeb45e49e534e3d82b14",
+        "comments": 148,
+        "path": "src/runtime/rand.go",
+        "token_sequence_sha256": "10e89e269de83d5bc903e75f41a1c8d88cb3eaf28015d1ab66b6910d9cf86749",
+        "tokens": 1314,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "6cf8075a9fbd963f9c2a8d32af59e57e836b036f589f77e7ae7771a2b7530921",
+        "comments": 856,
+        "path": "src/runtime/runtime2.go",
+        "token_sequence_sha256": "ed4dbd0c77366ab92ff8b75dff342a17af1cf424fb02815da9a9500dd9b90f2e",
+        "tokens": 3762,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "0f7d32f37d944b8b0a8fe6464dda6580a99b9bd5de9f6c6ab1078750eeb42158",
+        "comments": 119,
+        "path": "src/runtime/select.go",
+        "token_sequence_sha256": "a8116024ad138070e24ab12cc933cab3598f8d3d525e87bf534963d6c05238b0",
+        "tokens": 3305,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "e2796cbf673c1a3e466187ec0b648b29ef6c22323d66c5fea3906f2f6d6274be",
+        "comments": 10,
+        "path": "src/runtime/sizeof_test.go",
+        "token_sequence_sha256": "2001540e181e33f73687ea601879d1150ae2004c651635181f9984d9da023007",
+        "tokens": 201,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "aaef5ba1903bcf15c10a1ab55c5cb9b5df9d25d3044ac96dd211890a58822138",
+        "comments": 476,
+        "path": "src/runtime/symtab.go",
+        "token_sequence_sha256": "2e125377777d08b6872b783f5183497f29e78783670d73eae7dbbd1e7b84d042",
+        "tokens": 5995,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "f4c453fe50defe62512157919a957566d3e7a4bcad64b338a25041f1e5f4394e",
+        "comments": 491,
+        "path": "src/runtime/time.go",
+        "token_sequence_sha256": "9123d0db1de2e60b6e021cdccbace334e3206475e9717637d1e969622b62c8bc",
+        "tokens": 6187,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "69b3048affa3c54624eeaa766cf391e100819e27c12cf6de04b215940ddb01b2",
+        "comments": 38,
+        "path": "src/runtime/time_nofake.go",
+        "token_sequence_sha256": "12b939025ea871a7d6fe170e88c47fcc8ac77ac5991ba760d1c30c236fb14d52",
+        "tokens": 135,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "7eb6a0e510539942756a1c40eac7b1a862756537e1d46141353cd676f5b13518",
+        "comments": 739,
+        "path": "src/runtime/traceback.go",
+        "token_sequence_sha256": "cfa54539a3a47a1554bf29997b1ab18ef303d4ae26fbfb66e9ccf4b0d2989813",
+        "tokens": 7797,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "d3cc54b8f27ae04525ecdda176a6d05daf5ff77945092daa3f625500b1b7af15",
+        "comments": 17,
+        "path": "src/syscall/env_unix.go",
+        "token_sequence_sha256": "3ba3ae625fc0b660480b4752818a684a1f9a596538036efa6a6893c1ec367621",
+        "tokens": 671,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "8b53fb06bbf2b23ce6f07d7cd292a9fc5d9273100f64a2df77ca2c1ea7e84dbc",
+        "comments": 23,
+        "path": "src/syscall/rlimit.go",
+        "token_sequence_sha256": "b082550b88d68293cfc09b21821e61a8ff5c3ba19c4ff403da1a22d42e2eb233",
+        "tokens": 85,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "9f08e72907a7064b3ece2a90bc6d5acd20270ad1490b1c2852f63cc98e0b8909",
+        "comments": 52,
+        "path": "src/syscall/syscall_unix.go",
+        "token_sequence_sha256": "eb9fd86dff39746e998299a3c926ca1dc61121a21ed861b0c364217306584d7d",
+        "tokens": 3711,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      },
+      {
+        "comment_literal_bytes_equal": true,
+        "comment_sequence_sha256": "c274773ccc9349d9c92ef47d32857f108687bb72126b923e9e6254da33cd7f58",
+        "comments": 1021,
+        "path": "src/testing/testing.go",
+        "token_sequence_sha256": "17e90a8a3c52bc384770d4a0b50a003ce529bf8b55e8ba1bfd6211fc580f927c",
+        "tokens": 13471,
+        "tokens_equal_including_comments_and_inserted_semicolons": true
+      }
+    ],
+    "go_files": 21
+  },
+  "candidate_source_inventory": {
+    "VERSION": {
+      "bytes": 35,
+      "lines": 2,
+      "sha256": "25eb74b09036e1ad894fb63b86cb0f0ee53342df8d2e2e860da4ff5079607758"
+    },
+    "src/cmd/compile/internal/gc/main.go": {
+      "bytes": 13343,
+      "lines": 435,
+      "sha256": "0fc6f1986aecaaeaaa9059a593d8f4cd84868cd89c90cd813fbb00dbbb456e4a"
+    },
+    "src/cmd/dist/buildtool.go": {
+      "bytes": 12398,
+      "lines": 409,
+      "sha256": "714c87ae4200839d077ab1c1a1eb404c6e04090240b9b059fa5cc83426e344be"
+    },
+    "src/cmd/link/internal/ld/lib.go": {
+      "bytes": 99462,
+      "lines": 3205,
+      "sha256": "c7bac7ad30afe6fbe38323605de09be5431d47d602fea1a61a783b181d5dccba"
+    },
+    "src/crypto/rand/rand.go": {
+      "bytes": 2362,
+      "lines": 68,
+      "sha256": "7c289648d453d0bdca0f05091d00bb86c94b69637080c748ff3d3476677521ac"
+    },
+    "src/runtime/lock_spinbit.go": {
+      "bytes": 15339,
+      "lines": 469,
+      "sha256": "c22993f5287d4cef04a89ec0434a75537be4a69c1d54b6a85f026d1c29faa1d2"
+    },
+    "src/runtime/os_linux.go": {
+      "bytes": 30367,
+      "lines": 1012,
+      "sha256": "58be3bd2c94335adad9a8ecea2325fe47e93fa077170681da5fe8d05ef7537e4"
+    },
+    "src/runtime/panic.go": {
+      "bytes": 52296,
+      "lines": 1792,
+      "sha256": "f4d23e50837f69883d6903fad84d22b07d70eeaab564c247474d26780ea342dc"
+    },
+    "src/runtime/preempt.go": {
+      "bytes": 17621,
+      "lines": 501,
+      "sha256": "327df38fdd7cf84c392564a0d53844135d429611ebb1c71259e9a3c74a18b79e"
+    },
+    "src/runtime/proc.go": {
+      "bytes": 246765,
+      "lines": 8287,
+      "sha256": "9ec69bd8d09d52584acc232ffe7286ebc13c936c076e575a6890bf047b761969"
+    },
+    "src/runtime/rand.go": {
+      "bytes": 10264,
+      "lines": 359,
+      "sha256": "a6e02e6561f11a76b08a270564ac2063fe47f8d3e2e54af54a628d4e7880638e"
+    },
+    "src/runtime/runtime2.go": {
+      "bytes": 57585,
+      "lines": 1537,
+      "sha256": "cdf896d1acd4c1e06746aa76a6e369e01443a3667856f0c670688f6e6b4826f2"
+    },
+    "src/runtime/select.go": {
+      "bytes": 16406,
+      "lines": 674,
+      "sha256": "2496226871127fdc1245a92cde1c403c43b14562d9f182c91ada967e12b7c0c3"
+    },
+    "src/runtime/sizeof_test.go": {
+      "bytes": 1102,
+      "lines": 42,
+      "sha256": "8420566b42aa00d835cf8d16fc4ca811687629837fc4e28a9fc90d9de43b9d5a"
+    },
+    "src/runtime/symtab.go": {
+      "bytes": 42147,
+      "lines": 1338,
+      "sha256": "7ebf721550d8a62cf1379d900a38d44c4277a2b436aa0c480853c4999c50318b"
+    },
+    "src/runtime/time.go": {
+      "bytes": 44585,
+      "lines": 1520,
+      "sha256": "3e378fe4528de8c0c4df967168a6d5c9b57eb751478c34b1da2c458acce8dd7f"
+    },
+    "src/runtime/time_nofake.go": {
+      "bytes": 1646,
+      "lines": 61,
+      "sha256": "6d5e8bfd55b8c4644fe08aee355f3b9a0ed6a97c0d1bde7ba7e7f45bcd57a5cb"
+    },
+    "src/runtime/traceback.go": {
+      "bytes": 62673,
+      "lines": 1860,
+      "sha256": "0be544e15f3216b54cc83ac0af692ae2beff373af5b3ba549b57f5f2be491d9a"
+    },
+    "src/syscall/env_unix.go": {
+      "bytes": 2711,
+      "lines": 149,
+      "sha256": "3e02d4f45b3370ff024573eaa8a96f45685d873c8126a3e7f16330046f098ddf"
+    },
+    "src/syscall/rlimit.go": {
+      "bytes": 1514,
+      "lines": 42,
+      "sha256": "1b706af1c939ac62c308c7b257db924c439f0c313bf70e6dbabd3d0173e07f26"
+    },
+    "src/syscall/syscall_unix.go": {
+      "bytes": 13857,
+      "lines": 559,
+      "sha256": "b9c99651764fd03dacb54e4c3ebe197ebf4348734822a61685e4df202a207d85"
+    },
+    "src/testing/testing.go": {
+      "bytes": 94412,
+      "lines": 3010,
+      "sha256": "ffee20f252d39fca15b981adf262f86d7d9d96429068022d26cfb068b29d7b9a"
+    }
+  },
+  "changed_members": [
+    "src/runtime/runtime2.go"
+  ],
+  "shared_input_stability": {
+    "patch": true,
+    "descriptor": true,
+    "archive": true,
+    "overlay": true,
+    "prior_pristine": true,
+    "prior_current": true
+  },
+  "materializations": [
+    {
+      "context": "U3",
+      "exit_code": 0,
+      "zero_fuzz_zero_offset": true,
+      "all_22_members_byte_identical_to_candidate": true
+    },
+    {
+      "context": "U1",
+      "exit_code": 0,
+      "zero_fuzz_zero_offset": true,
+      "all_22_members_byte_identical_to_candidate": true
+    }
+  ],
+  "comparisons": {
+    "U3_bytes_saved": 3766,
+    "U1_bytes_saved": 3685,
+    "candidate_U3_minus_original_baseline_U3_bytes": 1944,
+    "additional_bytes_to_be_strictly_smaller": 1945,
+    "candidate_U1_minus_candidate_U3_bytes": -9266
+  },
+  "limits": [
+    "Scratch-only formatting candidate; no adoption or acceptance claim.",
+    "Token and comment equality does not prove compiled ABI or native runtime behavior.",
+    "No Gomad package loading, generation, tests, builds, descriptor edits or Flow state mutation.",
+    "No Git index/history mutation; only index-free git diff commands.",
+    "Unsupported linux/arm64; native R4 and R7 gates remain open."
+  ]
+}

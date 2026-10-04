@@ -1,9 +1,3 @@
----
-satisfies: [R7, R8, R6]
----
-# fn-110-gomad-minimize-the-runtime-patch.5 Qualify the final candidate and publish measurements and guidance
-
-## Description
 Qualify the integrated final candidate on both native qualified platforms, publish the final measurements and build identity, and update milestone status and maintainer regeneration guidance. The current linux/arm64 development host supplies neither native gate; source-only input preparation does not start this task or close its dependencies. No toolchain input changes here: a failure is reported against the task that introduced it, not patched over.
 
 **Size:** M
@@ -49,7 +43,7 @@ wc -c -l tools/gomad3/toolchain/runtime/go1.27.1.patch && git show HEAD:tools/go
 ### Key context
 
 **Working constraints (apply to every fn-110 task):**
-- Commit verified progress in bounded batches, as requested by the user. The conductor owns staging and commits; preserve unrelated changes and leave active shared-source edits unstaged until their verification boundary. Do not push, stash, create worktrees or rewrite history without separate authorization.
+- No `git commit`, `git add`, stash, or worktrees. The user owns commits; leave changes in the working tree and report them. Earlier fn-110 tasks may therefore be uncommitted working-tree changes — do not revert them.
 - Recheck the actual host before gates. This development session is `linux/arm64`, with the patched toolchain absent; neither native `darwin/arm64` nor native `linux/amd64` qualification is available here. Record every missing native check as incomplete. Stock-host tests, textual patch equivalence, cross-compilation and source/type checks do not substitute for either platform's required native execution.
 - Disk: about 19 GB was free at planning time and each toolchain build directory under `tools/gomad3/.toolchain/builds/<key>` is 2–6 GB. Run `df -h .` before every rebuild and stop if less than 8 GB is free. Only delete build directories that this spec's own intermediate candidates created, once superseded and not referenced by retained evidence. Never delete the baseline key recorded by task 1 or the active key in `.toolchain/build-key`. Pre-existing directories and `make clean-qualifications` need the user's confirmation.
 - Patch and overlay bytes feed the build key (`tools/gomad3/toolchain/buildkey.go:48-58`), so every patch or overlay edit yields a new toolchain identity. Never relabel old artifacts.
@@ -65,16 +59,3 @@ wc -c -l tools/gomad3/toolchain/runtime/go1.27.1.patch && git show HEAD:tools/go
 5. `make -C tools/gomad3 generate validate`, then `make -C tools/gomad3 toolchain` (the build runs the archive-based overlay collision check at `toolchain/build.go:176`).
 
 The descriptor requires `patch_allowlist` and `overlay_allowlist` to equal the checked trees exactly (`toolchain/version/descriptor.go:114-160`), so a task that adds an overlay file or empties a patched file updates `version.json` and regenerates in the same task.
-## Acceptance
-- [ ] The full Gomad gate, process-simulation, entropy, integration, smoke, core, and seeds 11/17 Temporal qualification ran on darwin/arm64 under the final build key, with before/after outcomes listed per workload and no expectation or disposition edited
-- [ ] Final `-U3` is smaller than baseline `-U3`, and canonical `-U1` is smaller than final `-U3`; patch, edited-file, added/deleted-line, and overlay figures are published separately with digests
-- [ ] The new build identity is explained; baseline artifacts keep their original binding and no artifact was relabeled
-- [ ] Milestone status and README/CLI regeneration guidance are updated; D12/D14 text is unchanged; every existing comment, negative test, and retained contract from the spec's Edge Cases is confirmed present
-- [ ] Required native `darwin/arm64` and `linux/amd64` gates (R7) and each platform's `-U3`/`-U1` equivalence (R4) have source-bound results, or remain explicitly incomplete with the native commands/CI jobs that close them; unsupported-host or historical results do not close either platform
-## Done summary
-TBD
-
-## Evidence
-- Commits:
-- Tests:
-- PRs:

@@ -1,0 +1,5 @@
+- [ ] The full Gomad gate, process-simulation, entropy, integration, smoke, core, and seeds 11/17 Temporal qualification ran on darwin/arm64 under the final build key, with before/after outcomes listed per workload and no expectation or disposition edited
+- [ ] Final `-U3` is smaller than baseline `-U3`, and canonical `-U1` is smaller than final `-U3`; patch, edited-file, added/deleted-line, and overlay figures are published separately with digests
+- [ ] The new build identity is explained; baseline artifacts keep their original binding and no artifact was relabeled
+- [ ] Milestone status and README/CLI regeneration guidance are updated; D12/D14 text is unchanged; every existing comment, negative test, and retained contract from the spec's Edge Cases is confirmed present
+- [ ] Required native `darwin/arm64` and `linux/amd64` gates (R7) and each platform's `-U3`/`-U1` equivalence (R4) have source-bound results, or remain explicitly incomplete with the native commands/CI jobs that close them; unsupported-host or historical results do not close either platform

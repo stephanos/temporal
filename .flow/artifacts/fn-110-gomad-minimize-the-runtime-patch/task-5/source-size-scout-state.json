@@ -1,0 +1,8 @@
+{
+  "task_title": "Independently verify final fn110 patch representations and original-baseline size requirement",
+  "task_body": "Prepare source-only task5 inputs without claiming or starting qualification. Verify the retained original task1 baseline, current pinned archive and canonical patch; materialize current final source in unique scratch with zero fuzz and independently obtain its U3 representation without a Git index. Count patch and overlay inventories and retain reproducible evidence. Investigate whether literal R8 extraction reduction against the original baseline is met; preserve the original comparator and report any contradiction to its owning task.",
+  "acceptance": "Write only task5 verification artifacts and unique scratch. No shared source, generator, descriptor, policy, Flow lifecycle or Git mutations, no builds or tests, no toolchain/native acceptance claims. Record commands, exits, timings and exact input hashes; preserve all baseline bindings and R8 requirements. Requested thinking-scout routing gpt-6.1-sol at high; actual model metadata must remain unknown unless host-observed.",
+  "touches_count": 3,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

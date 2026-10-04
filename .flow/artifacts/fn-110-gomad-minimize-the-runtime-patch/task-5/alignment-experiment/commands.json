@@ -1,0 +1,927 @@
+[
+  {
+    "argv": [
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "-w",
+      "/tmp/fn110-alignment-1TWNKL9O/candidate/b/src/runtime/runtime2.go"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O",
+    "started_utc": "2026-10-04T05:15:03.797716+00:00",
+    "finished_utc": "2026-10-04T05:15:03.802121+00:00",
+    "duration_seconds": 0.004394542000227375,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": null,
+    "stdout_text": "",
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "-l",
+      "/tmp/fn110-alignment-1TWNKL9O/candidate/b/src/runtime/runtime2.go"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O",
+    "started_utc": "2026-10-04T05:15:03.802644+00:00",
+    "finished_utc": "2026-10-04T05:15:03.805516+00:00",
+    "duration_seconds": 0.0028702080016955733,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": null,
+    "stdout_text": "",
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt",
+      "-w",
+      "/tmp/fn110-alignment-1TWNKL9O/token-compare.go"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O",
+    "started_utc": "2026-10-04T05:15:03.806020+00:00",
+    "finished_utc": "2026-10-04T05:15:03.807268+00:00",
+    "duration_seconds": 0.0012485000006563496,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": null,
+    "stdout_text": "",
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "build",
+      "-tags",
+      "test_dep",
+      "-o",
+      "/tmp/fn110-alignment-1TWNKL9O/token-compare",
+      "/tmp/fn110-alignment-1TWNKL9O/token-compare.go"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O",
+    "started_utc": "2026-10-04T05:15:03.807552+00:00",
+    "finished_utc": "2026-10-04T05:15:06.100055+00:00",
+    "duration_seconds": 2.2925815420021536,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": null,
+    "stdout_text": "",
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "/tmp/fn110-alignment-1TWNKL9O/token-compare",
+      "/tmp/fn110-alignment-1TWNKL9O/current/b",
+      "/tmp/fn110-alignment-1TWNKL9O/candidate/b"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O",
+    "started_utc": "2026-10-04T05:15:06.100897+00:00",
+    "finished_utc": "2026-10-04T05:15:06.137293+00:00",
+    "duration_seconds": 0.03640025000277092,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 7314,
+      "lines": 1,
+      "sha256": "db6940ae47be093178bec9bfb0b404d17fdd61ab428364c1281cabf83b4cef33"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-5/alignment-experiment/tokens.json",
+    "stdout_text": null,
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--binary",
+      "--no-prefix",
+      "--abbrev=7",
+      "--diff-algorithm=myers",
+      "--unified=3",
+      "--",
+      "current/b/src/runtime/runtime2.go",
+      "candidate/b/src/runtime/runtime2.go"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O",
+    "started_utc": "2026-10-04T05:15:06.139323+00:00",
+    "finished_utc": "2026-10-04T05:15:06.141223+00:00",
+    "duration_seconds": 0.0018914160027634352,
+    "exit_code": 1,
+    "expected_exit_codes": [
+      1
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 5891,
+      "lines": 114,
+      "sha256": "ced3b01a6f1861b152f3cf0f3380dcc5e90b64af9791172dd5f5f47010449ae7"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-5/alignment-experiment/formatting-only.patch",
+    "stdout_text": null,
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--binary",
+      "--no-prefix",
+      "--abbrev=7",
+      "--diff-algorithm=myers",
+      "--unified=3",
+      "--",
+      "a",
+      "b"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O/current",
+    "started_utc": "2026-10-04T05:15:06.141706+00:00",
+    "finished_utc": "2026-10-04T05:15:06.148825+00:00",
+    "duration_seconds": 0.007121667000319576,
+    "exit_code": 1,
+    "expected_exit_codes": [
+      1
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 38362,
+      "lines": 1112,
+      "sha256": "86def26a7f4d0b5c494a6a031c87bec284f7e76c91dcf437bc23fcc4c276ea5c"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-5/alignment-experiment/current-U3.patch",
+    "stdout_text": null,
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--binary",
+      "--no-prefix",
+      "--abbrev=7",
+      "--diff-algorithm=myers",
+      "--unified=1",
+      "--",
+      "a",
+      "b"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O/current",
+    "started_utc": "2026-10-04T05:15:06.149543+00:00",
+    "finished_utc": "2026-10-04T05:15:06.156319+00:00",
+    "duration_seconds": 0.006774582998332335,
+    "exit_code": 1,
+    "expected_exit_codes": [
+      1
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 29015,
+      "lines": 778,
+      "sha256": "8497f8855011f13fb46ad36a02448d165d4bd65688ef00eed6ae09822306a90b"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-5/alignment-experiment/current-U1.patch",
+    "stdout_text": null,
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--binary",
+      "--no-prefix",
+      "--abbrev=7",
+      "--diff-algorithm=myers",
+      "--unified=3",
+      "--",
+      "a",
+      "b"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O/candidate",
+    "started_utc": "2026-10-04T05:15:06.157990+00:00",
+    "finished_utc": "2026-10-04T05:15:06.165104+00:00",
+    "duration_seconds": 0.007113874999049585,
+    "exit_code": 1,
+    "expected_exit_codes": [
+      1
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 34596,
+      "lines": 1056,
+      "sha256": "760cd2b9a5324108de27eed5e98673c16b2bd7f2dc2b6dbe4da1ffc7efd0ab98"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-5/alignment-experiment/candidate-U3.patch",
+    "stdout_text": null,
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--binary",
+      "--no-prefix",
+      "--abbrev=7",
+      "--diff-algorithm=myers",
+      "--unified=1",
+      "--",
+      "a",
+      "b"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O/candidate",
+    "started_utc": "2026-10-04T05:15:06.165474+00:00",
+    "finished_utc": "2026-10-04T05:15:06.172235+00:00",
+    "duration_seconds": 0.006762749999325024,
+    "exit_code": 1,
+    "expected_exit_codes": [
+      1
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 25330,
+      "lines": 722,
+      "sha256": "b5294ed0f6d45ad562a19ecb85d62c7d50f34eee8ade936ab62b665ed35e25c9"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-5/alignment-experiment/candidate-U1.patch",
+    "stdout_text": null,
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--binary",
+      "--no-prefix",
+      "--abbrev=7",
+      "--diff-algorithm=myers",
+      "--unified=3",
+      "--",
+      "a",
+      "b"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O/candidate",
+    "started_utc": "2026-10-04T05:15:06.172860+00:00",
+    "finished_utc": "2026-10-04T05:15:06.179690+00:00",
+    "duration_seconds": 0.006831874998169951,
+    "exit_code": 1,
+    "expected_exit_codes": [
+      1
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 34596,
+      "lines": 1056,
+      "sha256": "760cd2b9a5324108de27eed5e98673c16b2bd7f2dc2b6dbe4da1ffc7efd0ab98"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": "/tmp/fn110-alignment-1TWNKL9O/repeat-U3.patch",
+    "stdout_text": null,
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "git",
+      "diff",
+      "--no-index",
+      "--no-ext-diff",
+      "--no-textconv",
+      "--binary",
+      "--no-prefix",
+      "--abbrev=7",
+      "--diff-algorithm=myers",
+      "--unified=1",
+      "--",
+      "a",
+      "b"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O/candidate",
+    "started_utc": "2026-10-04T05:15:06.180056+00:00",
+    "finished_utc": "2026-10-04T05:15:06.187142+00:00",
+    "duration_seconds": 0.007087458001478808,
+    "exit_code": 1,
+    "expected_exit_codes": [
+      1
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 25330,
+      "lines": 722,
+      "sha256": "b5294ed0f6d45ad562a19ecb85d62c7d50f34eee8ade936ab62b665ed35e25c9"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": "/tmp/fn110-alignment-1TWNKL9O/repeat-U1.patch",
+    "stdout_text": null,
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "patch",
+      "--dry-run",
+      "--batch",
+      "-V",
+      "none",
+      "-p1",
+      "-F",
+      "0"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O/applied-U3",
+    "started_utc": "2026-10-04T05:15:06.189219+00:00",
+    "finished_utc": "2026-10-04T05:15:06.191919+00:00",
+    "duration_seconds": 0.0027021659989259206,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": {
+      "bytes": 34596,
+      "lines": 1056,
+      "sha256": "760cd2b9a5324108de27eed5e98673c16b2bd7f2dc2b6dbe4da1ffc7efd0ab98"
+    },
+    "stdout": {
+      "bytes": 774,
+      "lines": 20,
+      "sha256": "07bd625081689b4bd25e37723acaee32d5fc3588cb97c750bdff40cd8ce75889"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": null,
+    "stdout_text": "checking file src/cmd/compile/internal/gc/main.go\nchecking file src/cmd/dist/buildtool.go\nchecking file src/cmd/link/internal/ld/lib.go\nchecking file src/runtime/lock_spinbit.go\nchecking file src/runtime/os_linux.go\nchecking file src/runtime/panic.go\nchecking file src/runtime/preempt.go\nchecking file src/runtime/proc.go\nchecking file src/runtime/rand.go\nchecking file src/runtime/runtime2.go\nchecking file src/runtime/select.go\nchecking file src/runtime/sizeof_test.go\nchecking file src/runtime/symtab.go\nchecking file src/runtime/time.go\nchecking file src/runtime/time_nofake.go\nchecking file src/runtime/traceback.go\nchecking file src/syscall/env_unix.go\nchecking file src/syscall/rlimit.go\nchecking file src/syscall/syscall_unix.go\nchecking file src/testing/testing.go\n",
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "patch",
+      "--batch",
+      "-V",
+      "none",
+      "-p1",
+      "-F",
+      "0"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O/applied-U3",
+    "started_utc": "2026-10-04T05:15:06.192449+00:00",
+    "finished_utc": "2026-10-04T05:15:06.195245+00:00",
+    "duration_seconds": 0.002799416000925703,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": {
+      "bytes": 34596,
+      "lines": 1056,
+      "sha256": "760cd2b9a5324108de27eed5e98673c16b2bd7f2dc2b6dbe4da1ffc7efd0ab98"
+    },
+    "stdout": {
+      "bytes": 774,
+      "lines": 20,
+      "sha256": "28ce70a947990a40dd4dba738d489cc569c3d9c21a6480ecb47f3143f91d87d0"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": null,
+    "stdout_text": "patching file src/cmd/compile/internal/gc/main.go\npatching file src/cmd/dist/buildtool.go\npatching file src/cmd/link/internal/ld/lib.go\npatching file src/runtime/lock_spinbit.go\npatching file src/runtime/os_linux.go\npatching file src/runtime/panic.go\npatching file src/runtime/preempt.go\npatching file src/runtime/proc.go\npatching file src/runtime/rand.go\npatching file src/runtime/runtime2.go\npatching file src/runtime/select.go\npatching file src/runtime/sizeof_test.go\npatching file src/runtime/symtab.go\npatching file src/runtime/time.go\npatching file src/runtime/time_nofake.go\npatching file src/runtime/traceback.go\npatching file src/syscall/env_unix.go\npatching file src/syscall/rlimit.go\npatching file src/syscall/syscall_unix.go\npatching file src/testing/testing.go\n",
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "patch",
+      "--dry-run",
+      "--batch",
+      "-V",
+      "none",
+      "-p1",
+      "-F",
+      "0"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O/applied-U1",
+    "started_utc": "2026-10-04T05:15:06.198322+00:00",
+    "finished_utc": "2026-10-04T05:15:06.202102+00:00",
+    "duration_seconds": 0.0037799159981659614,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": {
+      "bytes": 25330,
+      "lines": 722,
+      "sha256": "b5294ed0f6d45ad562a19ecb85d62c7d50f34eee8ade936ab62b665ed35e25c9"
+    },
+    "stdout": {
+      "bytes": 774,
+      "lines": 20,
+      "sha256": "07bd625081689b4bd25e37723acaee32d5fc3588cb97c750bdff40cd8ce75889"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": null,
+    "stdout_text": "checking file src/cmd/compile/internal/gc/main.go\nchecking file src/cmd/dist/buildtool.go\nchecking file src/cmd/link/internal/ld/lib.go\nchecking file src/runtime/lock_spinbit.go\nchecking file src/runtime/os_linux.go\nchecking file src/runtime/panic.go\nchecking file src/runtime/preempt.go\nchecking file src/runtime/proc.go\nchecking file src/runtime/rand.go\nchecking file src/runtime/runtime2.go\nchecking file src/runtime/select.go\nchecking file src/runtime/sizeof_test.go\nchecking file src/runtime/symtab.go\nchecking file src/runtime/time.go\nchecking file src/runtime/time_nofake.go\nchecking file src/runtime/traceback.go\nchecking file src/syscall/env_unix.go\nchecking file src/syscall/rlimit.go\nchecking file src/syscall/syscall_unix.go\nchecking file src/testing/testing.go\n",
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "patch",
+      "--batch",
+      "-V",
+      "none",
+      "-p1",
+      "-F",
+      "0"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O/applied-U1",
+    "started_utc": "2026-10-04T05:15:06.202478+00:00",
+    "finished_utc": "2026-10-04T05:15:06.205531+00:00",
+    "duration_seconds": 0.003055750003113644,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": {
+      "bytes": 25330,
+      "lines": 722,
+      "sha256": "b5294ed0f6d45ad562a19ecb85d62c7d50f34eee8ade936ab62b665ed35e25c9"
+    },
+    "stdout": {
+      "bytes": 774,
+      "lines": 20,
+      "sha256": "28ce70a947990a40dd4dba738d489cc569c3d9c21a6480ecb47f3143f91d87d0"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": null,
+    "stdout_text": "patching file src/cmd/compile/internal/gc/main.go\npatching file src/cmd/dist/buildtool.go\npatching file src/cmd/link/internal/ld/lib.go\npatching file src/runtime/lock_spinbit.go\npatching file src/runtime/os_linux.go\npatching file src/runtime/panic.go\npatching file src/runtime/preempt.go\npatching file src/runtime/proc.go\npatching file src/runtime/rand.go\npatching file src/runtime/runtime2.go\npatching file src/runtime/select.go\npatching file src/runtime/sizeof_test.go\npatching file src/runtime/symtab.go\npatching file src/runtime/time.go\npatching file src/runtime/time_nofake.go\npatching file src/runtime/traceback.go\npatching file src/syscall/env_unix.go\npatching file src/syscall/rlimit.go\npatching file src/syscall/syscall_unix.go\npatching file src/testing/testing.go\n",
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "version"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O",
+    "started_utc": "2026-10-04T05:15:06.262665+00:00",
+    "finished_utc": "2026-10-04T05:15:06.264214+00:00",
+    "duration_seconds": 0.0015454579988727346,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 32,
+      "lines": 1,
+      "sha256": "cd879e04aa0536dab43731f13b4b5716f4f2c8bda480984976155efa06fdb38a"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": null,
+    "stdout_text": "go version go1.27.1 linux/arm64\n",
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "uname",
+      "-s",
+      "-m"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O",
+    "started_utc": "2026-10-04T05:15:06.264717+00:00",
+    "finished_utc": "2026-10-04T05:15:06.266665+00:00",
+    "duration_seconds": 0.0019482909992802888,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 14,
+      "lines": 1,
+      "sha256": "8c675c547fba3929494a135c3e737588f309e469625bba04a846247793d15995"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": null,
+    "stdout_text": "Linux aarch64\n",
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "git",
+      "--version"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O",
+    "started_utc": "2026-10-04T05:15:06.267045+00:00",
+    "finished_utc": "2026-10-04T05:15:06.267628+00:00",
+    "duration_seconds": 0.0005829999972775113,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 19,
+      "lines": 1,
+      "sha256": "97452bcde974ef512f9552791fc4f6a3219a724877671fba270baca1a6075b74"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": null,
+    "stdout_text": "git version 2.53.0\n",
+    "stderr_text": ""
+  },
+  {
+    "argv": [
+      "patch",
+      "--version"
+    ],
+    "cwd": "/tmp/fn110-alignment-1TWNKL9O",
+    "started_utc": "2026-10-04T05:15:06.268086+00:00",
+    "finished_utc": "2026-10-04T05:15:06.268598+00:00",
+    "duration_seconds": 0.0005100000016682316,
+    "exit_code": 0,
+    "expected_exit_codes": [
+      0
+    ],
+    "environment_overrides": {
+      "GIT_OPTIONAL_LOCKS": "0",
+      "LC_ALL": "C",
+      "TZ": "UTC",
+      "GOTOOLCHAIN": "local",
+      "GOWORK": "off",
+      "GOENV": "off",
+      "GO111MODULE": "off",
+      "CGO_ENABLED": "0",
+      "GOCACHE": "/tmp/fn110-alignment-1TWNKL9O/go-cache",
+      "GOFLAGS": ""
+    },
+    "stdin": null,
+    "stdout": {
+      "bytes": 336,
+      "lines": 9,
+      "sha256": "82f273f48e89a799d94e00688a36bb0cb8aff0b374100fb0ec71d1d2f1da8583"
+    },
+    "stderr": {
+      "bytes": 0,
+      "lines": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout_path": null,
+    "stdout_text": "GNU patch 2.8\nCopyright 1989-2025 Free Software Foundation, Inc.\nCopyright 1984-1988 Larry Wall\n\nLicense GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.\nThis is free software: you are free to change and redistribute it.\nThere is NO WARRANTY, to the extent permitted by law.\n\nWritten by Larry Wall and Paul Eggert\n",
+    "stderr_text": ""
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "task_title": "Quantify formatting-only patch overhead without changing runtime semantics or approved extraction scope",
+  "task_body": "In an independent unique scratch copy of freshly verified materialized source, test whether blank-line grouping around added Gomad fields prevents gofmt from realigning unrelated runtime2 fields. Regenerate index-free U3/U1 measurements for this scratch experiment and compare Go token streams including every comment against the measured current source. Determine whether this source-text-only hypothesis can close the literal original-baseline R8 gap; do not ship or adopt the candidate.",
+  "acceptance": "Change only own scratch and task5/alignment-experiment artifacts. Preserve every field's name/type/order, every token/comment and all current behavior; no embedding, relocation, renamed fields, deleted comments/features, policy changes or baseline substitution. No shared source, generation, builds/tests of Gomad, Flow or Git index/history mutations. Report exact code/token equivalence coverage, gofmt version, patch counts/hashes and remaining gap. Token equality is source evidence, not native qualification or scope approval.",
+  "touches_count": 3,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}
