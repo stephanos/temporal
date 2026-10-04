@@ -73,9 +73,9 @@ production dispatch fails closed.
 | 1 | fn-114 | Roll the fn-112 showcase constructs, including choices, out to every other Model; then shrink copied fixture text and rename the model/ tool folders | — (in progress) |
 | alongside 1 | fn-122 | Capabilities and their laws: shared Temporal promises stated once, adopted per entity | — (in progress) |
 | alongside 1 | fn-121 | Shard generated Cases per Case in CI, with HSM/CHASM per Nexus Case | tasks 1-2 done and merged (each Case is its own shard unit, names pinned by a golden); task 3 needs GitHub CI |
-| after 1 | fn-120 rollout and tools | Refuse unnamed branches; add model lint (specification holes, coverage summary) and the IR explorer | fn-114 |
-| after 1 | fn-118 behavior | Derive generated-test waits from API hints, as a separate behavioral change | fn-114 |
-| alongside | fn-124 | Cleanup: delete archives, trim the checker, make the Run judge declare-only, retire the migration harness, split the model package | tasks 1-2 now; 3 after fn-118; 7 after fn-114/120/122 close; 8 last |
+| alongside 1 | fn-120 rollout and tools | fn-120.2 done (unnamed branching refused; `choose` accepts helper calls); fn-120.3 model lint in progress; then the IR explorer | started early: fn-114's remaining tasks are cleanup |
+| alongside 1 | fn-118 behavior | fn-118.3 done (Testpilot waits by condition within declared bounds, read-once evidence, scale factor); fn-118.2 hints in the kit in progress; then derived waits | started early, as above |
+| alongside | fn-124 | Cleanup: delete archives, trim the checker, make the Run judge declare-only, retire the migration harness, split the model package | task 1 done (archives deleted); task 2 in progress; 3 after fn-118; 7 after fn-114/120/122 close; 8 last |
 | last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
 
 fn-112 (the standalone activity DSL showcase) is closed: the feature is 1,567 lines and 54 string literals
