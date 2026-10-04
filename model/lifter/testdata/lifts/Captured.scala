@@ -9,6 +9,7 @@ package fixture.captured
 
 import umpire.*
 import umpire.realize.*
+import temporal.server.api.testpilot.v1.CorrelatedEvidence
 
 given DefinitionScope = DefinitionScope("fixture.spelled.Spelled$package$")
 
@@ -184,6 +185,7 @@ val ledger = Realization(
     work = 1000,
     eventSize = 512
   ),
+  observations = Vector(Observed[CorrelatedEvidence]("correlated-evidence")),
   scripts = Vector(Script("controller", Activation.Controller, Vector.empty))
 )
 

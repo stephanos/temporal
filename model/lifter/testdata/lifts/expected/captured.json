@@ -4,7 +4,7 @@
     "name": "fixture.spelled.DetailedPair",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 108
+      "line": 109
     },
     "record": {
       "fields": [ {
@@ -23,7 +23,7 @@
     "name": "fixture.spelled.Disk",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 65
+      "line": 66
     },
     "record": {
       "fields": [ {
@@ -37,7 +37,7 @@
     "name": "fixture.spelled.Fact",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 25
+      "line": 26
     },
     "enum": {
       "cases": [ {
@@ -58,7 +58,7 @@
     "name": "fixture.spelled.Kept",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 17
+      "line": 18
     },
     "enum": {
       "cases": [ {
@@ -71,7 +71,7 @@
     "name": "fixture.spelled.Note",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 199
+      "line": 201
     },
     "enum": {
       "cases": [ {
@@ -84,7 +84,7 @@
     "name": "fixture.spelled.Outcome",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 22
+      "line": 23
     },
     "enum": {
       "cases": [ {
@@ -97,7 +97,7 @@
     "name": "fixture.spelled.Relay",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 193
+      "line": 195
     },
     "record": {
       "fields": [ {
@@ -116,7 +116,7 @@
     "name": "fixture.spelled.Seen",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 81
+      "line": 82
     },
     "enum": {
       "cases": [ {
@@ -131,7 +131,7 @@
     "name": "fixture.spelled.Stage",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 62
+      "line": 63
     },
     "enum": {
       "cases": [ {
@@ -146,7 +146,7 @@
     "name": "fixture.spelled.Store",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 20
+      "line": 21
     },
     "record": {
       "fields": [ {
@@ -161,7 +161,7 @@
     "name": "detailedPair.property.frontHeld",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 121
+      "line": 122
     },
     "params": [ {
       "name": "after",
@@ -172,32 +172,32 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 121
+        "line": 122
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 121
+            "line": 122
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 121
+                "line": 122
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 121
+                    "line": 122
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Captured.scala",
-                        "line": 121
+                        "line": 122
                       },
                       "var": "after"
                     },
@@ -213,7 +213,7 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 121
+            "line": 122
           },
           "literal": {
             "enum": {
@@ -228,7 +228,7 @@
     "name": "disk.evidence",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 101
+      "line": 102
     },
     "params": [ {
       "name": "fact",
@@ -239,13 +239,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 101
+        "line": 102
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 101
+            "line": 102
           },
           "var": "fact"
         },
@@ -261,7 +261,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Captured.scala",
-              "line": 101
+              "line": 102
             },
             "literal": {
               "text": "stored"
@@ -279,7 +279,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Captured.scala",
-              "line": 101
+              "line": 102
             },
             "literal": {
               "text": "staged"
@@ -298,7 +298,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Captured.scala",
-              "line": 101
+              "line": 102
             },
             "literal": {
               "text": "lostData"
@@ -309,55 +309,6 @@
     }
   }, {
     "name": "disk.progress.durableEventually.from",
-    "position": {
-      "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 159
-    },
-    "params": [ {
-      "name": "d",
-      "type": {
-        "named": "fixture.spelled.Disk"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 159
-      },
-      "binary": {
-        "op": "OP_EQ",
-        "left": {
-          "position": {
-            "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 159
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 159
-              },
-              "var": "d"
-            },
-            "field": "stage"
-          }
-        },
-        "right": {
-          "position": {
-            "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 159
-          },
-          "literal": {
-            "enum": {
-              "type": "fixture.spelled.Stage",
-              "case": "staged"
-            }
-          }
-        }
-      }
-    }
-  }, {
-    "name": "disk.progress.durableEventually.to",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
       "line": 160
@@ -399,6 +350,55 @@
           "literal": {
             "enum": {
               "type": "fixture.spelled.Stage",
+              "case": "staged"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.progress.durableEventually.to",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Captured.scala",
+      "line": 161
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "fixture.spelled.Disk"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Captured.scala",
+        "line": 161
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Captured.scala",
+            "line": 161
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Captured.scala",
+                "line": 161
+              },
+              "var": "d"
+            },
+            "field": "stage"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Captured.scala",
+            "line": 161
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.spelled.Stage",
               "case": "durable"
             }
           }
@@ -409,7 +409,7 @@
     "name": "disk.property.disk.everPut",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 147
+      "line": 148
     },
     "params": [ {
       "name": "after",
@@ -420,14 +420,14 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 148
+        "line": 149
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 148
+            "line": 149
           },
           "literal": {
             "enum": {
@@ -439,13 +439,13 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 148
+            "line": 149
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 148
+                "line": 149
               },
               "var": "after"
             },
@@ -458,7 +458,7 @@
     "name": "disk.property.durableStays",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 118
+      "line": 119
     },
     "params": [ {
       "name": "before",
@@ -474,27 +474,27 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 119
+        "line": 120
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 119
+            "line": 120
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 119
+                "line": 120
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 119
+                    "line": 120
                   },
                   "var": "before"
                 },
@@ -504,7 +504,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 119
+                "line": 120
               },
               "literal": {
                 "enum": {
@@ -518,26 +518,26 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 119
+            "line": 120
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 119
+                "line": 120
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 119
+                    "line": 120
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Captured.scala",
-                        "line": 119
+                        "line": 120
                       },
                       "var": "after"
                     },
@@ -550,7 +550,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 119
+                "line": 120
               },
               "literal": {
                 "enum": {
@@ -567,7 +567,7 @@
     "name": "disk.property.stays",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 154
+      "line": 155
     },
     "params": [ {
       "name": "after",
@@ -578,26 +578,26 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 154
+        "line": 155
       },
       "binary": {
         "op": "OP_NE",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 154
+            "line": 155
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 154
+                "line": 155
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 154
+                    "line": 155
                   },
                   "var": "after"
                 },
@@ -610,7 +610,7 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 154
+            "line": 155
           },
           "literal": {
             "enum": {
@@ -625,7 +625,7 @@
     "name": "disk.visible",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 97
+      "line": 98
     },
     "params": [ {
       "name": "f",
@@ -636,21 +636,21 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 97
+        "line": 98
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 97
+            "line": 98
           },
           "var": "f"
         },
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 97
+            "line": 98
           },
           "literal": {
             "enum": {
@@ -665,7 +665,7 @@
     "name": "fixture.captured.Captured$package$.countStored",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 84
+      "line": 85
     },
     "params": [ {
       "name": "seen",
@@ -686,27 +686,27 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 85
+        "line": 86
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 85
+            "line": 86
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 85
+                "line": 86
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 85
+                    "line": 86
                   },
                   "literal": {
                     "enum": {
@@ -718,13 +718,13 @@
                 "right": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 85
+                    "line": 86
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Captured.scala",
-                        "line": 85
+                        "line": 86
                       },
                       "var": "after"
                     },
@@ -738,20 +738,20 @@
         "then": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 85
+            "line": 86
           },
           "var": "seen"
         },
         "else": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 87
+            "line": 88
           },
           "match": {
             "scrutinee": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 87
+                "line": 88
               },
               "var": "seen"
             },
@@ -767,7 +767,7 @@
               "body": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Captured.scala",
-                  "line": 88
+                  "line": 89
                 },
                 "literal": {
                   "enum": {
@@ -799,7 +799,7 @@
               "body": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Captured.scala",
-                  "line": 89
+                  "line": 90
                 },
                 "literal": {
                   "enum": {
@@ -817,7 +817,7 @@
     "name": "fixture.captured.Captured$package$.crashDisk",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 78
+      "line": 79
     },
     "params": [ {
       "name": "d",
@@ -828,26 +828,26 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 79
+        "line": 80
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 79
+            "line": 80
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 79
+                "line": 80
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 79
+                    "line": 80
                   },
                   "var": "d"
                 },
@@ -857,7 +857,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 79
+                "line": 80
               },
               "literal": {
                 "enum": {
@@ -871,14 +871,14 @@
         "then": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 79
+            "line": 80
           },
           "hole": "fixture.spelled.Spelled$package$.crashUnmodeled"
         },
         "else": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 79
+            "line": 80
           },
           "list": { }
         }
@@ -888,7 +888,7 @@
     "name": "fixture.captured.Captured$package$.drop",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 210
+      "line": 212
     },
     "params": [ {
       "name": "r",
@@ -904,20 +904,20 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 211
+        "line": 213
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 211
+            "line": 213
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 211
+                "line": 213
               },
               "literal": {
                 "enum": {
@@ -928,19 +928,19 @@
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 211
+                "line": 213
               },
               "var": "r"
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 211
+                "line": 213
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 211
+                    "line": 213
                   },
                   "literal": {
                     "enum": {
@@ -953,7 +953,7 @@
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 211
+                "line": 213
               },
               "literal": {
                 "text": ""
@@ -967,7 +967,7 @@
     "name": "fixture.captured.Captured$package$.expireStore",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 49
+      "line": 50
     },
     "params": [ {
       "name": "s",
@@ -978,26 +978,26 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 50
+        "line": 51
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 50
+            "line": 51
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 50
+                "line": 51
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 50
+                    "line": 51
                   },
                   "var": "s"
                 },
@@ -1007,7 +1007,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 50
+                "line": 51
               },
               "literal": {
                 "enum": {
@@ -1021,20 +1021,20 @@
         "then": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 50
+            "line": 51
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 50
+                "line": 51
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 50
+                    "line": 51
                   },
                   "literal": {
                     "enum": {
@@ -1045,19 +1045,19 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 50
+                    "line": 51
                   },
                   "var": "s"
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 50
+                    "line": 51
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Captured.scala",
-                        "line": 50
+                        "line": 51
                       },
                       "construct": {
                         "type": "fixture.spelled.Fact",
@@ -1065,7 +1065,7 @@
                         "args": [ {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Captured.scala",
-                            "line": 50
+                            "line": 51
                           },
                           "literal": {
                             "bool": false
@@ -1077,7 +1077,7 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 50
+                    "line": 51
                   },
                   "literal": {
                     "text": ""
@@ -1090,7 +1090,7 @@
         "else": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 50
+            "line": 51
           },
           "list": { }
         }
@@ -1100,7 +1100,7 @@
     "name": "fixture.captured.Captured$package$.flushDisk",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 74
+      "line": 75
     },
     "params": [ {
       "name": "d",
@@ -1111,19 +1111,19 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 74
+        "line": 75
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 74
+            "line": 75
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 74
+                "line": 75
               },
               "var": "d"
             },
@@ -1142,20 +1142,20 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Captured.scala",
-              "line": 75
+              "line": 76
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Captured.scala",
-                  "line": 75
+                  "line": 76
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Captured.scala",
-                      "line": 75
+                      "line": 76
                     },
                     "literal": {
                       "enum": {
@@ -1166,14 +1166,14 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Captured.scala",
-                      "line": 75
+                      "line": 76
                     },
                     "construct": {
                       "type": "fixture.spelled.Disk",
                       "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Captured.scala",
-                          "line": 75
+                          "line": 76
                         },
                         "literal": {
                           "enum": {
@@ -1186,13 +1186,13 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Captured.scala",
-                      "line": 75
+                      "line": 76
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Captured.scala",
-                          "line": 75
+                          "line": 76
                         },
                         "literal": {
                           "enum": {
@@ -1205,7 +1205,7 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Captured.scala",
-                      "line": 75
+                      "line": 76
                     },
                     "literal": {
                       "text": ""
@@ -1222,7 +1222,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Captured.scala",
-              "line": 76
+              "line": 77
             },
             "list": { }
           }
@@ -1233,7 +1233,7 @@
     "name": "fixture.captured.Captured$package$.hear",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 207
+      "line": 209
     },
     "params": [ {
       "name": "r",
@@ -1249,20 +1249,20 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 208
+        "line": 210
       },
       "list": {
         "items": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 208
+            "line": 210
           },
           "construct": {
             "type": "umpire.Step",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 208
+                "line": 210
               },
               "literal": {
                 "enum": {
@@ -1273,13 +1273,13 @@
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 208
+                "line": 210
               },
               "copy": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 208
+                    "line": 210
                   },
                   "var": "r"
                 },
@@ -1288,7 +1288,7 @@
                   "value": {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Captured.scala",
-                      "line": 208
+                      "line": 210
                     },
                     "var": "k"
                   }
@@ -1297,13 +1297,13 @@
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 208
+                "line": 210
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 208
+                    "line": 210
                   },
                   "literal": {
                     "enum": {
@@ -1316,7 +1316,7 @@
             }, {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 208
+                "line": 210
               },
               "literal": {
                 "text": ""
@@ -1330,7 +1330,7 @@
     "name": "fixture.captured.Captured$package$.putDisk",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 70
+      "line": 71
     },
     "params": [ {
       "name": "d",
@@ -1341,19 +1341,19 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 70
+        "line": 71
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 70
+            "line": 71
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 70
+                "line": 71
               },
               "var": "d"
             },
@@ -1372,20 +1372,20 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Captured.scala",
-              "line": 71
+              "line": 72
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Captured.scala",
-                  "line": 71
+                  "line": 72
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Captured.scala",
-                      "line": 71
+                      "line": 72
                     },
                     "literal": {
                       "enum": {
@@ -1396,14 +1396,14 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Captured.scala",
-                      "line": 71
+                      "line": 72
                     },
                     "construct": {
                       "type": "fixture.spelled.Disk",
                       "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Captured.scala",
-                          "line": 71
+                          "line": 72
                         },
                         "literal": {
                           "enum": {
@@ -1416,13 +1416,13 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Captured.scala",
-                      "line": 71
+                      "line": 72
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Captured.scala",
-                          "line": 71
+                          "line": 72
                         },
                         "literal": {
                           "enum": {
@@ -1435,7 +1435,7 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Captured.scala",
-                      "line": 71
+                      "line": 72
                     },
                     "literal": {
                       "text": ""
@@ -1468,7 +1468,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Captured.scala",
-              "line": 72
+              "line": 73
             },
             "list": { }
           }
@@ -1479,7 +1479,7 @@
     "name": "fixture.captured.Captured$package$.putStore",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 45
+      "line": 46
     },
     "params": [ {
       "name": "s",
@@ -1490,26 +1490,26 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 46
+        "line": 47
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 46
+            "line": 47
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 46
+                "line": 47
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 46
+                    "line": 47
                   },
                   "var": "s"
                 },
@@ -1519,7 +1519,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 46
+                "line": 47
               },
               "literal": {
                 "enum": {
@@ -1533,20 +1533,20 @@
         "then": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 46
+            "line": 47
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 46
+                "line": 47
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 46
+                    "line": 47
                   },
                   "literal": {
                     "enum": {
@@ -1557,14 +1557,14 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 46
+                    "line": 47
                   },
                   "construct": {
                     "type": "fixture.spelled.Store",
                     "args": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Captured.scala",
-                        "line": 46
+                        "line": 47
                       },
                       "literal": {
                         "enum": {
@@ -1577,13 +1577,13 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 46
+                    "line": 47
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Captured.scala",
-                        "line": 46
+                        "line": 47
                       },
                       "literal": {
                         "enum": {
@@ -1596,7 +1596,7 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 46
+                    "line": 47
                   },
                   "literal": {
                     "text": ""
@@ -1609,7 +1609,7 @@
         "else": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 47
+            "line": 48
           },
           "list": { }
         }
@@ -1619,7 +1619,7 @@
     "name": "fixture.captured.Captured$package$.sendStep",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 204
+      "line": 206
     },
     "params": [ {
       "name": "r",
@@ -1630,13 +1630,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 205
+        "line": 207
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 205
+            "line": 207
           },
           "inbox": {
             "op": "OP_IS_FULL",
@@ -1644,13 +1644,13 @@
             "contents": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 205
+                "line": 207
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 205
+                    "line": 207
                   },
                   "var": "r"
                 },
@@ -1662,27 +1662,27 @@
         "then": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 205
+            "line": 207
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 205
+            "line": 207
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 205
+                "line": 207
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 205
+                    "line": 207
                   },
                   "literal": {
                     "enum": {
@@ -1693,13 +1693,13 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 205
+                    "line": 207
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Captured.scala",
-                        "line": 205
+                        "line": 207
                       },
                       "var": "r"
                     },
@@ -1708,7 +1708,7 @@
                       "value": {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Captured.scala",
-                          "line": 205
+                          "line": 207
                         },
                         "inbox": {
                           "op": "OP_SEND",
@@ -1716,13 +1716,13 @@
                           "contents": {
                             "position": {
                               "file": "model/lifter/testdata/lifts/Captured.scala",
-                              "line": 205
+                              "line": 207
                             },
                             "field": {
                               "base": {
                                 "position": {
                                   "file": "model/lifter/testdata/lifts/Captured.scala",
-                                  "line": 205
+                                  "line": 207
                                 },
                                 "var": "r"
                               },
@@ -1732,7 +1732,7 @@
                           "message": {
                             "position": {
                               "file": "model/lifter/testdata/lifts/Captured.scala",
-                              "line": 205
+                              "line": 207
                             },
                             "literal": {
                               "enum": {
@@ -1748,13 +1748,13 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 205
+                    "line": 207
                   },
                   "list": { }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 205
+                    "line": 207
                   },
                   "literal": {
                     "text": ""
@@ -1770,7 +1770,7 @@
     "name": "fixture.captured.Captured$package$.stored",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 67
+      "line": 68
     },
     "params": [ {
       "name": "d",
@@ -1781,26 +1781,26 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 68
+        "line": 69
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 68
+            "line": 69
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 68
+                "line": 69
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 68
+                    "line": 69
                   },
                   "var": "d"
                 },
@@ -1810,7 +1810,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 68
+                "line": 69
               },
               "literal": {
                 "enum": {
@@ -1824,14 +1824,14 @@
         "then": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 68
+            "line": 69
           },
           "construct": {
             "type": "fixture.spelled.Store",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 68
+                "line": 69
               },
               "literal": {
                 "enum": {
@@ -1845,14 +1845,14 @@
         "else": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 68
+            "line": 69
           },
           "construct": {
             "type": "fixture.spelled.Store",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 68
+                "line": 69
               },
               "literal": {
                 "enum": {
@@ -1869,7 +1869,7 @@
     "name": "fixture.spelled.Spelled$package$.storedOnce.violated",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 92
+      "line": 93
     },
     "params": [ {
       "name": "seen",
@@ -1880,21 +1880,21 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 92
+        "line": 93
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 92
+            "line": 93
           },
           "var": "seen"
         },
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 92
+            "line": 93
           },
           "literal": {
             "enum": {
@@ -1909,7 +1909,7 @@
     "name": "relay.evidence",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 214
+      "line": 216
     },
     "params": [ {
       "name": "note",
@@ -1920,13 +1920,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 214
+        "line": 216
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 214
+            "line": 216
           },
           "var": "note"
         },
@@ -1942,7 +1942,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Captured.scala",
-              "line": 214
+              "line": 216
             },
             "literal": {
               "text": "heard"
@@ -1960,7 +1960,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Captured.scala",
-              "line": 214
+              "line": 216
             },
             "literal": {
               "text": "missed"
@@ -1973,7 +1973,7 @@
     "name": "store.evidence",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 58
+      "line": 59
     },
     "params": [ {
       "name": "fact",
@@ -1984,13 +1984,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 58
+        "line": 59
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 58
+            "line": 59
           },
           "var": "fact"
         },
@@ -2006,7 +2006,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Captured.scala",
-              "line": 58
+              "line": 59
             },
             "literal": {
               "text": "stored"
@@ -2024,7 +2024,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Captured.scala",
-              "line": 58
+              "line": 59
             },
             "literal": {
               "text": "staged"
@@ -2043,7 +2043,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Captured.scala",
-              "line": 58
+              "line": 59
             },
             "literal": {
               "text": "lostData"
@@ -2056,7 +2056,7 @@
     "name": "store.property.putStores",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 117
+      "line": 118
     },
     "params": [ {
       "name": "after",
@@ -2067,14 +2067,14 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 117
+        "line": 118
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 117
+            "line": 118
           },
           "literal": {
             "enum": {
@@ -2086,13 +2086,13 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 117
+            "line": 118
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 117
+                "line": 118
               },
               "var": "after"
             },
@@ -2107,7 +2107,7 @@
     "name": "crash",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 38
+      "line": 39
     },
     "party": "fault"
   }, {
@@ -2115,7 +2115,7 @@
     "name": "expire",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 39
+      "line": 40
     },
     "party": "system",
     "timer": true
@@ -2124,7 +2124,7 @@
     "name": "flush",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 37
+      "line": 38
     },
     "party": "system",
     "internal": true
@@ -2133,7 +2133,7 @@
     "name": "put",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 36
+      "line": 37
     },
     "party": "client"
   }, {
@@ -2141,7 +2141,7 @@
     "name": "send",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 202
+      "line": 204
     },
     "party": "client"
   }, {
@@ -2149,7 +2149,7 @@
     "name": "wireDelivery",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 191
+      "line": 193
     },
     "party": "system",
     "inputs": [ {
@@ -2165,7 +2165,7 @@
     "name": "wireLoss",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 191
+      "line": 193
     },
     "party": "system",
     "inputs": [ {
@@ -2182,7 +2182,7 @@
     "name": "disk",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 95
+      "line": 96
     },
     "stateType": "fixture.spelled.Disk",
     "outcomeType": "fixture.spelled.Outcome",
@@ -2190,14 +2190,14 @@
     "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 99
+        "line": 100
       },
       "construct": {
         "type": "fixture.spelled.Disk",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 99
+            "line": 100
           },
           "literal": {
             "enum": {
@@ -2211,7 +2211,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 100
+        "line": 101
       },
       "lambda": {
         "params": [ {
@@ -2223,20 +2223,20 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 100
+            "line": 101
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 100
+                "line": 101
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 100
+                    "line": 101
                   },
                   "var": "d"
                 },
@@ -2246,7 +2246,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 100
+                "line": 101
               },
               "literal": {
                 "enum": {
@@ -2264,21 +2264,21 @@
       "function": "fixture.captured.Captured$package$.putDisk",
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 102
+        "line": 103
       }
     }, {
       "action": "fixture.spelled.Spelled$package$.flush",
       "function": "fixture.captured.Captured$package$.flushDisk",
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 102
+        "line": 103
       }
     }, {
       "action": "fixture.spelled.Spelled$package$.crash",
       "function": "fixture.captured.Captured$package$.crashDisk",
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 102
+        "line": 103
       }
     } ],
     "evidence": "disk.evidence",
@@ -2293,7 +2293,7 @@
     "name": "putOnly",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 106
+      "line": 107
     },
     "stateType": "fixture.spelled.Disk",
     "outcomeType": "fixture.spelled.Outcome",
@@ -2301,14 +2301,14 @@
     "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 99
+        "line": 100
       },
       "construct": {
         "type": "fixture.spelled.Disk",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 99
+            "line": 100
           },
           "literal": {
             "enum": {
@@ -2322,7 +2322,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 100
+        "line": 101
       },
       "lambda": {
         "params": [ {
@@ -2334,20 +2334,20 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 100
+            "line": 101
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 100
+                "line": 101
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 100
+                    "line": 101
                   },
                   "var": "d"
                 },
@@ -2357,7 +2357,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 100
+                "line": 101
               },
               "literal": {
                 "enum": {
@@ -2375,7 +2375,7 @@
       "function": "fixture.captured.Captured$package$.putDisk",
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 102
+        "line": 103
       }
     } ],
     "evidence": "disk.evidence",
@@ -2385,7 +2385,7 @@
     "name": "relay",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 214
+      "line": 216
     },
     "stateType": "fixture.spelled.Relay",
     "outcomeType": "fixture.spelled.Outcome",
@@ -2393,14 +2393,14 @@
     "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 215
+        "line": 217
       },
       "construct": {
         "type": "fixture.spelled.Relay",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 215
+            "line": 217
           },
           "literal": {
             "enum": {
@@ -2411,7 +2411,7 @@
         }, {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 215
+            "line": 217
           },
           "literal": {
             "list": { }
@@ -2422,7 +2422,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 216
+        "line": 218
       },
       "lambda": {
         "params": [ {
@@ -2434,7 +2434,7 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 216
+            "line": 218
           },
           "literal": {
             "bool": true
@@ -2447,21 +2447,21 @@
       "function": "fixture.captured.Captured$package$.sendStep",
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 217
+        "line": 219
       }
     }, {
       "action": "fixture.spelled.Spelled$package$.wire.deliver",
       "function": "fixture.captured.Captured$package$.hear",
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 217
+        "line": 219
       }
     }, {
       "action": "fixture.spelled.Spelled$package$.wire.lose",
       "function": "fixture.captured.Captured$package$.drop",
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 217
+        "line": 219
       }
     } ],
     "evidence": "relay.evidence"
@@ -2470,7 +2470,7 @@
     "name": "store",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 53
+      "line": 54
     },
     "entity": "entry",
     "stateType": "fixture.spelled.Store",
@@ -2479,14 +2479,14 @@
     "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 56
+        "line": 57
       },
       "construct": {
         "type": "fixture.spelled.Store",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 56
+            "line": 57
           },
           "literal": {
             "enum": {
@@ -2500,7 +2500,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 57
+        "line": 58
       },
       "lambda": {
         "params": [ {
@@ -2512,20 +2512,20 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 57
+            "line": 58
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 57
+                "line": 58
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 57
+                    "line": 58
                   },
                   "var": "s"
                 },
@@ -2535,7 +2535,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 57
+                "line": 58
               },
               "literal": {
                 "enum": {
@@ -2553,14 +2553,14 @@
       "function": "fixture.captured.Captured$package$.putStore",
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 59
+        "line": 60
       }
     }, {
       "action": "fixture.spelled.Spelled$package$.expire",
       "function": "fixture.captured.Captured$package$.expireStore",
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 59
+        "line": 60
       }
     } ],
     "evidence": "store.evidence",
@@ -2571,7 +2571,7 @@
     "name": "wire",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 191
+      "line": 193
     },
     "message": {
       "named": "fixture.spelled.Kept"
@@ -2585,7 +2585,7 @@
     "name": "storedOnce",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 91
+      "line": 92
     },
     "state": {
       "named": "fixture.spelled.Seen"
@@ -2593,7 +2593,7 @@
     "initial": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 92
+        "line": 93
       },
       "literal": {
         "enum": {
@@ -2611,7 +2611,7 @@
     "name": "flushRuns",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 42
+      "line": 43
     },
     "fair": [ "fixture.spelled.Spelled$package$.flush" ]
   }, {
@@ -2619,7 +2619,7 @@
     "name": "storeOpaque",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 41
+      "line": 42
     }
   } ],
   "holes": [ {
@@ -2627,7 +2627,7 @@
     "name": "crashUnmodeled",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 43
+      "line": 44
     }
   } ],
   "compositions": [ {
@@ -2635,7 +2635,7 @@
     "name": "detailedPair",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 112
+      "line": 113
     },
     "stateType": "fixture.spelled.DetailedPair",
     "members": [ {
@@ -2660,7 +2660,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 115
+        "line": 116
       },
       "lambda": {
         "params": [ {
@@ -2672,26 +2672,26 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 115
+            "line": 116
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 115
+                "line": 116
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Captured.scala",
-                    "line": 115
+                    "line": 116
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Captured.scala",
-                        "line": 115
+                        "line": 116
                       },
                       "var": "p"
                     },
@@ -2704,7 +2704,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 115
+                "line": 116
               },
               "literal": {
                 "enum": {
@@ -2723,7 +2723,7 @@
     "name": "frontHeld",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 121
+      "line": 122
     },
     "holds": "detailedPair.property.frontHeld"
   }, {
@@ -2731,7 +2731,7 @@
     "name": "disk.everPut",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 147
+      "line": 148
     },
     "holds": "disk.property.disk.everPut"
   }, {
@@ -2739,7 +2739,7 @@
     "name": "durableStays",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 118
+      "line": 119
     },
     "holds": "disk.property.durableStays",
     "transition": true
@@ -2748,7 +2748,7 @@
     "name": "stays",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 154
+      "line": 155
     },
     "holds": "disk.property.stays"
   }, {
@@ -2756,7 +2756,7 @@
     "name": "putStores",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 117
+      "line": 118
     },
     "whenClass": {
       "action": "fixture.spelled.Spelled$package$.put"
@@ -2768,26 +2768,26 @@
     "name": "bothPut",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 127
+      "line": 128
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 127
+        "line": 128
       },
       "construct": {
         "type": "fixture.spelled.DetailedPair",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 56
+            "line": 57
           },
           "construct": {
             "type": "fixture.spelled.Store",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 56
+                "line": 57
               },
               "literal": {
                 "enum": {
@@ -2800,14 +2800,14 @@
         }, {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 99
+            "line": 100
           },
           "construct": {
             "type": "fixture.spelled.Disk",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Captured.scala",
-                "line": 99
+                "line": 100
               },
               "literal": {
                 "enum": {
@@ -2826,19 +2826,19 @@
     "name": "any",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 143
+      "line": 144
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 145
+        "line": 146
       },
       "construct": {
         "type": "fixture.spelled.Disk",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 145
+            "line": 146
           },
           "literal": {
             "enum": {
@@ -2855,19 +2855,19 @@
     "name": "anyPut",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 149
+      "line": 150
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 149
+        "line": 150
       },
       "construct": {
         "type": "fixture.spelled.Disk",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 149
+            "line": 150
           },
           "literal": {
             "enum": {
@@ -2884,19 +2884,19 @@
     "name": "putThenFlush",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 126
+      "line": 127
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 99
+        "line": 100
       },
       "construct": {
         "type": "fixture.spelled.Disk",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 99
+            "line": 100
           },
           "literal": {
             "enum": {
@@ -2917,19 +2917,19 @@
     "name": "putOnce",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 125
+      "line": 126
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 56
+        "line": 57
       },
       "construct": {
         "type": "fixture.spelled.Store",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Captured.scala",
-            "line": 56
+            "line": 57
           },
           "literal": {
             "enum": {
@@ -2948,7 +2948,7 @@
     "name": "bothPutHeld",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 135
+      "line": 136
     },
     "form": "FORM_FIND",
     "property": {
@@ -2970,7 +2970,7 @@
     "name": "disk.any.durableStays",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 143
+      "line": 144
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -2992,7 +2992,7 @@
     "name": "disk.any.everPut",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 147
+      "line": 148
     },
     "form": "FORM_FIND",
     "property": {
@@ -3014,7 +3014,7 @@
     "name": "durableAfterFlush",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 132
+      "line": 133
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -3036,7 +3036,7 @@
     "name": "localStays",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 155
+      "line": 156
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -3058,7 +3058,7 @@
     "name": "putStoresOnce",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 131
+      "line": 132
     },
     "form": "FORM_FIND",
     "property": {
@@ -3080,7 +3080,7 @@
     "name": "putStoresThroughDisk",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 134
+      "line": 135
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -3105,7 +3105,7 @@
     "name": "durableEventually",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 158
+      "line": 159
     },
     "from": "disk.progress.durableEventually.from",
     "to": "disk.progress.durableEventually.to",
@@ -3117,7 +3117,7 @@
     "name": "ledger",
     "position": {
       "file": "model/lifter/testdata/lifts/Captured.scala",
-      "line": 170
+      "line": 171
     },
     "machine": "store",
     "producer": "fixture.spelled",
@@ -3126,14 +3126,22 @@
       "id": "fixture.spelled.server",
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 174
+        "line": 175
       },
       "kind": "KIND_ENDPOINT"
+    } ],
+    "observations": [ {
+      "id": "correlated-evidence",
+      "position": {
+        "file": "model/lifter/testdata/lifts/Captured.scala",
+        "line": 188
+      },
+      "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
     "correlation": {
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 175
+        "line": 176
       },
       "projection": "fixture.spelled.projection",
       "run": "fixture.spelled.scope.run",
@@ -3150,7 +3158,7 @@
       "id": "controller",
       "position": {
         "file": "model/lifter/testdata/lifts/Captured.scala",
-        "line": 187
+        "line": 189
       },
       "controller": { }
     } ]
