@@ -91,8 +91,8 @@ Decides whether a recorded Run satisfies its Case's Contract and is explained by
   declared. A rule of their own is generic, written down once and tested; anything else is a defect
   to move into the Models.
 - **Temporal stays at the edges.** Only the Models and Testpilot's Temporal Driver know Temporal.
-  The DSL framework, IR, checker, test generator, Testpilot runtime and judge stay Temporal-
-  agnostic.
+  The DSL framework, IR, checker, test generator, Testpilot runtime and judge stay
+  Temporal-agnostic.
 - **One meaning, one source.** The IR has one interpretation that every Go component shares, and
   every fact has one declaration. Other checkers may give a second opinion but never decide.
 - **Declared, deterministic, fail closed.** Nothing is defaulted silently; what is not declared is
