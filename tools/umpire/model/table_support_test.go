@@ -75,10 +75,11 @@ func sideOf(t *Table) tableSide {
 	return side
 }
 
-// stuck is the first reachable state that is not an end and has no row with a result, or "".
+// stuck is the first reachable state that is not an end and has no row with a result, or "". It reads
+// the rows themselves, not the table's index of them, which a test that edits the rows leaves stale.
 func stuck(t *Table) string {
 	for _, s := range t.Reachable {
-		if !slices.Contains(t.Ends, s) && !slices.ContainsFunc(t.RowsFrom(s), func(r Row) bool { return len(r.Results) > 0 }) {
+		if !slices.Contains(t.Ends, s) && !slices.ContainsFunc(t.Rows, func(r Row) bool { return r.Source == s && len(r.Results) > 0 }) {
 			return s
 		}
 	}

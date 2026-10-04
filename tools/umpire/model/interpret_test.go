@@ -279,8 +279,11 @@ func slicesDelete[T any](xs []T, drop func(T) bool) []T {
 }
 
 func TestVisibleProjectionOfARefinement(t *testing.T) {
+	// The reachable crash hole leaves the refinement unknown, not rejected: every row refines.
 	rows, err := refinementOf(t, lifted(t, "declarations"), "disk")
-	require.NoError(t, err)
+	var incomplete *RefinementError
+	require.ErrorAs(t, err, &incomplete)
+	require.Equal(t, RefinementIncomplete, incomplete.Kind)
 	put := "put"
 	require.Equal(t, []RefinementRow{{Key: "empty-put", Product: &put}, {Key: "staged-flush"}}, rows)
 
@@ -552,7 +555,8 @@ func TestAStateOfTheRightKeyButAnotherTypeIsOutsideTheDomain(t *testing.T) {
 }
 
 // ends, visible and visibleOutcomes each made to return 3: a located error, never a state that is no
-// end or a fact the product does not see.
+// end or a fact the product does not see. Build reads ends; the refinement Check reads reads the two
+// others.
 func TestEndsAndVisibleMustReturnABoolean(t *testing.T) {
 	three := func(at *umpirespb.Expr) *umpirespb.Expr { return admLiteral(at, admIntValue(3)) }
 	for name, c := range map[string]struct {
@@ -576,6 +580,10 @@ func TestEndsAndVisibleMustReturnABoolean(t *testing.T) {
 			m := proto.Clone(lifted(t, "declarations")).(*umpirespb.Model)
 			c.mutate(m)
 			_, err := Build(m)
+			if name != "ends" {
+				require.NoError(t, err)
+				_, err = refinementOf(t, m, "disk")
+			}
 			var located *Error
 			require.ErrorAs(t, err, &located)
 			require.NotEmpty(t, located.Position)
