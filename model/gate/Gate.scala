@@ -4,7 +4,7 @@
 // The model's own vocabulary is held too, by a Go test outside model/ that every run names.
 //
 //   scala-cli run model/gate                        lift, require every file of model/ir and
-//                                                   model/cases to be current, test
+//                                                   model/cases to be current, lint, test
 //   scala-cli run model/gate -- --update            lift and rewrite model/ir and model/cases
 //   scala-cli run model/gate -- --skip-go-checks    either, without `go vet` and `go test`
 //   scala-cli run model/gate -- --generate-ir       package the IR's classes and stop; with
@@ -357,6 +357,11 @@ final class Gate(tools: Tools, log: PrintStream):
     report(cases, Try(build(update)).failed.toOption)
     if update then step("generate every lowered Case and the Query manifest")(lower(update)): Unit
 
+    // Not one of the Go checks a run may skip: it is the gate's check of the IR it settled.
+    // It fails on a finding no acceptance matches and on a stale acceptance, never on a count.
+    step("lint every IR file and print its coverage"):
+      tools.run("go", Seq("run", "./tools/umpire/cmd/umpire-lint"), Output.Shown).orFail(): Unit
+
     // Combined verification may run the complete Go suite separately; the default gate includes it.
     if goChecks then
       step("interpret the IR in Go and hold it to its goldens"):
@@ -472,15 +477,20 @@ object Gate:
     if at < 0 then "its lines are the same and its line endings differ"
     else s"line ${at + 1} is ${line(was)} and lifts to ${line(now)}"
 
+  // The accepted lint findings beside an IR file, `<file>.lint.json`: an author writes them and the
+  // lifter does not, and umpire-lint fails on one beside no IR file.
+  private val acceptedSuffix = ".lint.json"
+
   /**
    * Holds the checked-in `tree` to the `produced` directory, file for file: the tree is the files
-   * that were produced and no others. A check writes nothing and fails on every file that is stale,
-   * missing or produced by nothing. An update writes the files that changed, and only once every file
-   * was produced and none is left over.
+   * that were produced and no others, apart from the accepted lint findings an author writes. A
+   * check writes nothing and fails on every file that is stale, missing or produced by nothing. An
+   * update writes the files that changed, and only once every file was produced and none is left
+   * over.
    */
   def settle(tree: Path, produced: Path, root: Path, update: Boolean): Unit =
     def name(file: Path) = root.relativize(file)
-    val (held, lifted) = (files(tree), files(produced))
+    val (held, lifted) = (files(tree).filterNot(_.endsWith(acceptedSuffix)), files(produced))
     val orphans = (held -- lifted).toSeq.sorted.map(file =>
       s"${name(tree.resolve(file))} is checked in and nothing produces it: remove it or declare it with irFile"
     )

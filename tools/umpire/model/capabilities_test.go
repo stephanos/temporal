@@ -62,11 +62,12 @@ func TestCapabilitiesViolationNamesTheLawAndItsBindings(t *testing.T) {
 	require.Equal(t, []string{"pause", "poll"}, taken(witness))
 }
 
-// The law sidecar the lifter writes beside an IR file is JSON and no Model: every reader of a
-// directory of IR files, the Case generator and the exploration bridge among them, lists it apart.
-func TestIRPathsLeaveOutLawSidecars(t *testing.T) {
+// The law sidecar the lifter writes beside an IR file, and the accepted lint findings an author
+// writes there, are JSON and no Model: every reader of a directory of IR files, the Case generator,
+// the exploration bridge and lint among them, lists them apart.
+func TestIRPathsLeaveOutLawSidecarsAndAcceptedFindings(t *testing.T) {
 	dir := t.TempDir()
-	for _, name := range []string{"activity.json", "activity.laws.json", "nexus.json", "notes.txt"} {
+	for _, name := range []string{"activity.json", "activity.laws.json", "activity.lint.json", "nexus.json", "notes.txt"} {
 		require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte("{}"), 0o600))
 	}
 	paths, err := IRPaths(dir)

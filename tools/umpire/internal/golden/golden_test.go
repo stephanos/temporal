@@ -1,6 +1,7 @@
 package golden
 
 import (
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -118,6 +119,25 @@ func TestIRInventoryRejectsMissingAndUnknownFiles(t *testing.T) {
 	require.NoError(t, os.Remove(filepath.Join(dir, "other.json")))
 	_, err = cfg.Inputs(root)
 	require.ErrorContains(t, err, "missing later IR inventory entry")
+}
+
+// The law sidecar and the accepted lint findings beside an IR file are no Model: neither is listed as
+// an IR file, and the accepted findings, which the lifter does not produce, are no current file the
+// archive freezes.
+func TestIRFilesLeaveOutLawSidecarsAndAcceptedFindings(t *testing.T) {
+	root := t.TempDir()
+	dir := filepath.Join(root, "model", "ir")
+	require.NoError(t, os.MkdirAll(dir, 0755))
+	for _, name := range []string{"activity.json", "activity.laws.json", "activity.lint.json", "nexus.json", "notes.txt"} {
+		require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte(`{}`), 0644))
+	}
+	paths, err := IRFiles(dir)
+	require.NoError(t, err)
+	require.Equal(t, []string{filepath.Join(dir, "activity.json"), filepath.Join(dir, "nexus.json")}, paths)
+	current, err := OriginalCurrent(root)
+	require.NoError(t, err)
+	require.ElementsMatch(t, []string{OriginalIR + "activity.json", OriginalIR + "activity.laws.json", OriginalIR + "nexus.json"},
+		slices.Collect(maps.Keys(current)))
 }
 
 func projectedJob(t *testing.T) (cfg Config, original, current *umpirespb.Model) {

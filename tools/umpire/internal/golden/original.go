@@ -642,7 +642,8 @@ func OriginalCurrent(root string) (map[string][]byte, error) {
 		}
 		for _, path := range paths {
 			name := filepath.Base(path)
-			if !strings.HasSuffix(name, ".json") && prefix+name != OriginalRejects {
+			// Accepted lint findings are an author's, beside the IR, and nothing the archive froze.
+			if !strings.HasSuffix(name, ".json") && prefix+name != OriginalRejects || IsAccepted(name) {
 				continue
 			}
 			encoded, err := os.ReadFile(path)

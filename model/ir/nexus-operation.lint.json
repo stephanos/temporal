@@ -1,0 +1,84 @@
+{
+  "accepted": [
+    {
+      "kind": "unevidenced-fact",
+      "owner": "nexusOperation",
+      "subjects": [
+        "statusCanceled",
+        "statusFailed",
+        "statusStarted",
+        "statusSucceeded"
+      ],
+      "because": "The realization declares evidence only for the status its Cases end in (terminated); these statuses are recorded by steps no lowered Case takes yet, so no evidence kind is declared for them."
+    },
+    {
+      "kind": "unperformed-action",
+      "owner": "nexusOperation",
+      "subjects": [
+        "complete",
+        "handlerReply"
+      ],
+      "because": "No script of the realization performs the handler's reply or completion: its Cases reach the operation through the caller's requests alone, and the handler is the system's side."
+    },
+    {
+      "kind": "unmodeled-api-value",
+      "owner": "nexusOperation",
+      "subjects": [
+        "temporal.api.nexus.v1.NexusOperationExecutionInfo.status NEXUS_OPERATION_EXECUTION_STATUS_CANCELED",
+        "temporal.api.nexus.v1.NexusOperationExecutionInfo.status NEXUS_OPERATION_EXECUTION_STATUS_COMPLETED",
+        "temporal.api.nexus.v1.NexusOperationExecutionInfo.status NEXUS_OPERATION_EXECUTION_STATUS_FAILED",
+        "temporal.api.nexus.v1.NexusOperationExecutionInfo.status NEXUS_OPERATION_EXECUTION_STATUS_TIMED_OUT"
+      ],
+      "because": "The realization polls the operation's status only for the termination its Cases end in; the other statuses are confirmed by steps no lowered Case takes yet."
+    },
+    {
+      "kind": "unmodeled-api-value",
+      "owner": "nexusOperation",
+      "subjects": [
+        "temporal.api.nexus.v1.NexusOperationExecutionInfo.status NEXUS_OPERATION_EXECUTION_STATUS_RUNNING"
+      ],
+      "because": "A poll waits through this status on its way to a terminal one; no Model fact maps it, as the Model reads the start from the Run's own record."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "nexusOperation",
+      "subjects": [
+        "complete-canceled in unstarted, scheduled",
+        "complete-failed in unstarted, scheduled",
+        "complete-succeeded in unstarted, scheduled",
+        "handlerReply-async in unstarted, started",
+        "handlerReply-syncCanceled in unstarted, started",
+        "handlerReply-syncFailure in unstarted, started",
+        "handlerReply-syncSuccess in unstarted, started",
+        "requestCancel in unstarted",
+        "start in scheduled, started",
+        "terminate in unstarted"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "nexusOperation",
+      "subjects": [
+        "complete-canceled",
+        "complete-failed",
+        "complete-succeeded",
+        "handlerReply-async",
+        "handlerReply-syncCanceled",
+        "handlerReply-syncFailure",
+        "handlerReply-syncSuccess",
+        "start"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "nexusOperation",
+      "subjects": [
+        "nexusOperation.cancelIsRequested",
+        "nexusOperation.terminateSettles"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    }
+  ]
+}

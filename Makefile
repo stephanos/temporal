@@ -426,7 +426,7 @@ TESTPILOT_PROTOCOL_PROTOS := \
 	proto/internal/temporal/server/api/testpilot/v1/run.proto \
 	proto/internal/temporal/server/api/testpilot/v1/value.proto
 
-.PHONY: canary-build umpire-check-testpilot-protocol umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-check-live-tests umpire-rerecord-pinned-runs umpire-ir-bridge umpire-gen-cases umpire-check-cases umpire-gen-fixtures umpire-check-fixtures canary-gen-case canary-check-case umpire-check-backends umpire-check-exploration-bridge umpire-check-replay-bridge fmt-model lint-model fix-model umpire-check-model umpire-gen-model
+.PHONY: canary-build umpire-check-testpilot-protocol umpire-run umpire-fuzz umpire-fuzz-run umpire-repeat umpire-repeat-run umpire-replay umpire-replay-run umpire-assess umpire-assess-run umpire-check-live-tests umpire-rerecord-pinned-runs umpire-ir-bridge umpire-gen-cases umpire-check-cases umpire-check-lint umpire-gen-fixtures umpire-check-fixtures canary-gen-case canary-check-case umpire-check-backends umpire-check-exploration-bridge umpire-check-replay-bridge fmt-model lint-model fix-model umpire-check-model umpire-gen-model
 
 canary-build:
 	@printf $(COLOR) "Build the production canary..."
@@ -634,6 +634,10 @@ umpire-gen-cases:
 
 umpire-check-cases:
 	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases
+
+# Lints every IR file of model/ir and prints its coverage; the model gate runs the same command.
+umpire-check-lint:
+	@mise exec -- go run ./tools/umpire/cmd/umpire-lint
 
 umpire-gen-fixtures:
 	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases --kind functional --update

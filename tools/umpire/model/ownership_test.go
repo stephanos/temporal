@@ -127,7 +127,9 @@ func modelImportProblem(file string, external bool, imported string) string {
 		if dependency == owner || owner == "cmd" || (test && name == "tools/umpire/internal/golden") {
 			return ""
 		}
-		allowed := map[string][]string{"lower": {"model"}, "conformance": {"model"}, "export": {"model"}, "explore": {"model", "lower"}, "model": {}}
+		// Lint reads lowering only through what its command hands it, so the reader is its one edge.
+		allowed := map[string][]string{"lower": {"model"}, "conformance": {"model"}, "export": {"model"}, "explore": {"model", "lower"},
+			"lint": {"model"}, "model": {}}
 		if test {
 			if owner == "lower" && external && !strings.Contains(part, "/internal/") {
 				allowed[owner] = append(allowed[owner], "explore", "conformance")
@@ -326,6 +328,12 @@ func TestModelDependencyGraphRejectsCrossedOwners(t *testing.T) {
 		{file: "tools/umpire/conformance/conformance.go", dependency: module + "tools/umpire/lower"},
 		{file: "tools/umpire/conformance/conformance_test.go", dependency: module + "tools/umpire/lower", allowed: true},
 		{file: "tools/umpire/conformance/conformance.go", dependency: module + "tools/umpire/explore"},
+		{file: "tools/umpire/lint/lint.go", dependency: module + "tools/umpire/model", allowed: true},
+		{file: "tools/umpire/lint/lint.go", dependency: module + "tools/umpire/lower"},
+		{file: "tools/umpire/lint/lint.go", dependency: module + "tools/umpire/explore"},
+		{file: "tools/umpire/lint/lint_test.go", dependency: module + "tools/umpire/lower"},
+		{file: "tools/umpire/cmd/umpire-lint/main.go", dependency: module + "tools/umpire/lint", allowed: true},
+		{file: "tools/umpire/cmd/umpire-lint/main.go", dependency: module + "tools/umpire/lower", allowed: true},
 		{file: "tools/umpire/export/export.go", dependency: module + "tools/umpire/model", allowed: true},
 		{file: "tools/umpire/export/export.go", dependency: module + "api/umpire/v1", allowed: true},
 		{file: "tools/umpire/export/export.go", dependency: module + "common/testing/testpilot"},

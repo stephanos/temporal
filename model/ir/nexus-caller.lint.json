@@ -1,0 +1,177 @@
+{
+  "accepted": [
+    {
+      "kind": "unconstrained-result",
+      "owner": "handlerWorker",
+      "subjects": [
+        "workerStop"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "never-enabled",
+      "owner": "nexusProduct",
+      "subjects": [
+        "handlerReply-handlerError-true"
+      ],
+      "because": "A retryable handler error leaves the operation where it is: the product machine does not know about backing off, which is the whole of what the protocol machine adds (nexuscaller/Model.scala)."
+    },
+    {
+      "kind": "never-enabled",
+      "owner": "nexusProduct",
+      "subjects": [
+        "transportFault"
+      ],
+      "because": "A fault is the environment's and no request the server answers: where the Model disables it the fault cannot happen, which the author decided."
+    },
+    {
+      "kind": "never-enabled",
+      "owner": "nexusProduct",
+      "subjects": [
+        "workerStop"
+      ],
+      "because": "The product machine does not feel a worker stopping (nexuscaller/Model.scala, workerStop is disabled); the protocol and worker machines step it."
+    },
+    {
+      "kind": "unproduced",
+      "owner": "nexusProduct",
+      "subjects": [
+        "fact nexusOperationScheduled"
+      ],
+      "because": "The product machine starts scheduled, so no step of it records the scheduling; the protocol machine records it."
+    },
+    {
+      "kind": "disabled-by-default",
+      "owner": "nexusProduct",
+      "subjects": [
+        "handlerReply-handlerError-true in scheduled"
+      ],
+      "because": "A retryable handler error leaves the operation where it is: the product machine does not know about backing off, which is the whole of what the protocol machine adds (nexuscaller/Model.scala)."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "nexusProduct",
+      "subjects": [
+        "handlerReply-async in started",
+        "handlerReply-handlerError-false in started",
+        "handlerReply-handlerError-true in scheduled, started",
+        "handlerReply-operationCanceled in started",
+        "handlerReply-operationFailed in started",
+        "handlerReply-syncSuccess in started"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "nexusProduct",
+      "subjects": [
+        "transportFault in scheduled, started"
+      ],
+      "because": "A fault is the environment's and no request the server answers: where the Model disables it the fault cannot happen, which the author decided."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "nexusProduct",
+      "subjects": [
+        "workerStop in scheduled, started"
+      ],
+      "because": "The worker stopping is a fault the Run records; a machine that does not feel it disables it, and the worker and protocol machines step it."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "nexusProduct",
+      "subjects": [
+        "handlerReply-async",
+        "handlerReply-handlerError-false",
+        "handlerReply-operationCanceled",
+        "handlerReply-operationFailed",
+        "handlerReply-syncSuccess",
+        "timeout"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unperformed-action",
+      "owner": "nexusProtocol",
+      "subjects": [
+        "transportFault"
+      ],
+      "because": "No script of the realization performs this fault, so the find Queries whose paths take it are not lowered; realizing faults belongs to the later spec that declares typed faults as environment actions (fn-120 Boundaries)."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "nexusProtocol",
+      "subjects": [
+        "complete-canceled in unscheduled",
+        "complete-failed in unscheduled",
+        "complete-succeeded in unscheduled",
+        "handlerReply-async in unscheduled, backingOff, started",
+        "handlerReply-handlerError-false in unscheduled, backingOff, started",
+        "handlerReply-handlerError-true in unscheduled, backingOff, started",
+        "handlerReply-operationCanceled in unscheduled, backingOff, started",
+        "handlerReply-operationFailed in unscheduled, backingOff, started",
+        "handlerReply-syncSuccess in unscheduled, backingOff, started",
+        "schedule-expires-expires-expires in scheduled, backingOff, started",
+        "schedule-expires-expires-unset in scheduled, backingOff, started",
+        "schedule-expires-unset-expires in scheduled, backingOff, started",
+        "schedule-expires-unset-unset in scheduled, backingOff, started",
+        "schedule-unset-expires-expires in scheduled, backingOff, started",
+        "schedule-unset-expires-unset in scheduled, backingOff, started",
+        "schedule-unset-unset-expires in scheduled, backingOff, started",
+        "schedule-unset-unset-unset in scheduled, backingOff, started"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "nexusProtocol",
+      "subjects": [
+        "transportFault in unscheduled, backingOff, started"
+      ],
+      "because": "A fault is the environment's and no request the server answers: where the Model disables it the fault cannot happen, which the author decided."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "nexusProtocol",
+      "subjects": [
+        "backoff",
+        "schedule-expires-expires-expires",
+        "schedule-expires-expires-unset",
+        "schedule-expires-unset-expires",
+        "schedule-expires-unset-unset",
+        "schedule-unset-expires-expires",
+        "schedule-unset-expires-unset",
+        "schedule-unset-unset-expires",
+        "schedule-unset-unset-unset",
+        "scheduleToClose",
+        "transportFault",
+        "workerStop"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "nexusProtocol",
+      "subjects": [
+        "completionFails",
+        "completionSucceeds",
+        "handlerErrorFails",
+        "retrySucceeds",
+        "scheduleToStartFires",
+        "startToCloseFires",
+        "syncSucceeds"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "polling",
+      "subjects": [
+        "serve",
+        "workerResume",
+        "workerStop"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    }
+  ]
+}

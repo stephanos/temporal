@@ -1,0 +1,129 @@
+coverage model/ir/activity.json activityProduct
+  properties           3 declared, 3 named by a Query
+  verify Queries       3, 3 whose Property fired
+coverage model/ir/activity.json activityProtocol
+  properties           10 declared, 10 named by a Query
+  non-system actions   5, 5 performed by a realization
+  facts                10, 10 with evidence
+  refinements          1 declared, 0 read through by a Query
+  observations         1, 1 read
+  API values           7 tested, 6 mapped to a fact
+coverage model/ir/activity.json standaloneActivity
+  properties           1 declared, 1 named by a Query
+  verify Queries       1, 1 whose Property fired
+coverage model/ir/nexus-control.json forgedCompletion
+  properties           1 declared, 1 named by a Query
+  non-system actions   6, 5 performed by a realization
+  facts                7, 7 with evidence
+  named choices        2, 2 taken by a reachable state
+  observations         2, 2 read
+coverage model/lifter/testdata/lifts/expected/admission.json activityProduct
+  properties           1 declared, 1 named by a Query
+  verify Queries       2, 1 whose Property fired
+coverage model/lifter/testdata/lifts/expected/admission.json currentAdmission
+  properties           3 declared, 3 named by a Query
+  verify Queries       6, 6 whose Property fired
+  named choices        2, 2 taken by a reachable state
+  refinements          1 declared, 1 read through by a Query
+coverage model/lifter/testdata/lifts/expected/admission.json staleAdmission
+  properties           3 declared, 3 named by a Query
+  verify Queries       6, 6 whose Property fired
+  named choices        2, 2 taken by a reachable state
+  refinements          1 declared, 1 read through by a Query
+coverage model/lifter/testdata/lifts/expected/capabilities.json job
+  properties           5 declared, 5 named by a Query
+  verify Queries       3, 3 whose Property fired
+coverage model/lifter/testdata/lifts/expected/capabilities.json keptJob
+  properties           1 declared, 1 named by a Query
+  verify Queries       1, 1 whose Property fired
+coverage model/lifter/testdata/lifts/expected/capabilities.json legacyJob
+  properties           1 declared, 1 named by a Query
+  verify Queries       1, 1 whose Property fired
+coverage model/lifter/testdata/lifts/expected/capabilities.json pair
+  properties           1 declared, 1 named by a Query
+  verify Queries       1, 1 whose Property fired
+coverage model/lifter/testdata/lifts/expected/capabilities.json rogueJob
+  properties           1 declared, 1 named by a Query
+  verify Queries       1, 1 whose Property fired
+coverage model/lifter/testdata/lifts/expected/captured.json detailedPair
+  properties           1 declared, 1 named by a Query
+coverage model/lifter/testdata/lifts/expected/captured.json disk
+  properties           3 declared, 3 named by a Query
+  verify Queries       3, 3 whose Property fired
+  refinements          1 declared, 1 read through by a Query
+coverage model/lifter/testdata/lifts/expected/captured.json store
+  properties           1 declared, 1 named by a Query
+  verify Queries       1, 1 whose Property fired
+  non-system actions   1, 0 performed by a realization
+  facts                3, 0 with evidence
+  observations         1, 1 read
+coverage model/lifter/testdata/lifts/expected/closereset.json ackByOriginal
+  properties           2 declared, 2 named by a Query
+  verify Queries       7, 7 whose Property fired
+  named choices        4, 3 taken by a reachable state
+coverage model/lifter/testdata/lifts/expected/closereset.json rejectAfterClose
+  properties           2 declared, 2 named by a Query
+  verify Queries       7, 7 whose Property fired
+  named choices        4, 4 taken by a reachable state
+coverage model/lifter/testdata/lifts/expected/closereset.json retainAndRoute
+  properties           2 declared, 2 named by a Query
+  verify Queries       7, 7 whose Property fired
+  named choices        4, 3 taken by a reachable state
+coverage model/lifter/testdata/lifts/expected/declarations.json detailedPair
+  properties           1 declared, 1 named by a Query
+coverage model/lifter/testdata/lifts/expected/declarations.json disk
+  properties           2 declared, 2 named by a Query
+  verify Queries       2, 2 whose Property fired
+  refinements          1 declared, 1 read through by a Query
+coverage model/lifter/testdata/lifts/expected/declarations.json pair
+  properties           1 declared, 1 named by a Query
+  verify Queries       1, 1 whose Property fired
+coverage model/lifter/testdata/lifts/expected/declarations.json store
+  properties           1 declared, 1 named by a Query
+  verify Queries       1, 1 whose Property fired
+coverage model/lifter/testdata/lifts/expected/realizations.json door
+  properties           1 declared, 1 named by a Query
+  non-system actions   1, 1 performed by a realization
+  facts                1, 1 with evidence
+  observations         1, 1 read
+coverage model/lifter/testdata/lifts/expected/realizations.json errand
+  properties           2 declared, 2 named by a Query
+  non-system actions   3, 3 performed by a realization
+  facts                3, 3 with evidence
+  observations         1, 1 read
+  API values           7 tested, 2 mapped to a fact
+coverage model/lifter/testdata/lifts/expected/realizations.json nexusProtocol
+  properties           1 declared, 1 named by a Query
+  non-system actions   5, 2 performed by a realization
+  facts                7, 2 with evidence
+  refinements          1 declared, 0 read through by a Query
+  observations         2, 2 read
+coverage model/lifter/testdata/lifts/expected/realizations.json staleAdmission
+  properties           1 declared, 1 named by a Query
+  non-system actions   3, 2 performed by a realization
+  facts                6, 4 with evidence
+  named choices        2, 2 taken by a reachable state
+  refinements          1 declared, 0 read through by a Query
+  observations         1, 1 read
+coverage model/lifter/testdata/lifts/expected/realizations.json tally
+  properties           1 declared, 1 named by a Query
+  non-system actions   1, 1 performed by a realization
+  facts                1, 1 with evidence
+  observations         1, 1 read
+coverage model/lifter/testdata/lifts/expected/taskqueue.json dispatchQueue
+  named choices        2, 2 taken by a reachable state
+coverage model/lifter/testdata/lifts/expected/taskqueue.json forgetfulQueue
+  named choices        2, 2 taken by a reachable state
+  refinements          1 declared, 0 read through by a Query
+coverage model/lifter/testdata/lifts/expected/taskqueue.json jobOverForgetful
+  properties           2 declared, 2 named by a Query
+  verify Queries       1, 0 whose Property fired
+coverage model/lifter/testdata/lifts/expected/taskqueue.json jobOverMatching
+  properties           2 declared, 2 named by a Query
+  verify Queries       1, 1 whose Property fired
+coverage model/lifter/testdata/lifts/expected/taskqueue.json jobOverQueue
+  properties           2 declared, 2 named by a Query
+  verify Queries       1, 1 whose Property fired
+coverage model/lifter/testdata/lifts/expected/taskqueue.json matchingQueue
+  named choices        2, 2 taken by a reachable state
+  refinements          1 declared, 0 read through by a Query

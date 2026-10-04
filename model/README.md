@@ -140,7 +140,7 @@ make umpire-check-model
 It is a Scala program, `model/gate`. In order, it checks that the files under `model/` keep to the
 model's own vocabulary, compiles and tests the DSL and the Models, runs the lifter's own tests,
 lifts every IR file the Models declare in one lifter run, requires every file of `model/ir` and
-`model/cases` to equal what it just produced, and runs `go vet` and `go test` over `./tools/umpire/...`. It stops at the first failure
+`model/cases` to equal what it just produced, lints every IR file, and runs `go vet` and `go test` over `./tools/umpire/...`. It stops at the first failure
 and changes no checked-in file. scala-cli, the JDK, protoc and Go come from the repository's
 `mise.toml`.
 
@@ -151,6 +151,12 @@ make umpire-gen-model     # the gate with --update: rewrites model/ir and model/
 ```
 
 Then read the diff of `model/ir` and `model/cases` like any other code change.
+
+The gate then lints every IR file (`make umpire-check-lint` runs the lint alone): what a Model
+declares that nothing reaches, takes, asks, evidences or realizes, and its specification holes, each
+at its Scala line. It fails on a finding until you fix the Model or accept the finding with a reason
+in `model/ir/<file>.lint.json`, and on an acceptance that no longer matches a finding. The coverage
+summary it prints per machine is informational; no count fails the gate.
 
 Each file of `model/ir` is declared once, in Scala, beside the Models it holds (the folder's
 `IrFiles.scala`): its name and its roots, named by value.
@@ -178,7 +184,7 @@ lifted. The compiler reports misspelled fields, wrong request or response roots 
 types before lifting.
 
 `make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks` leaves out the `go vet` and `go test`
-step, for when you run the Go tests separately. `go test -tags test_dep ./tools/umpire/...` runs the
+step, for when you run the Go tests separately; it still lints the IR. `go test -tags test_dep ./tools/umpire/...` runs the
 Go side alone from the checked-in IR and needs no JVM.
 
 ## Following the example to a Verdict

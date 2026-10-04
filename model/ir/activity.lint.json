@@ -1,0 +1,160 @@
+{
+  "accepted": [
+    {
+      "kind": "never-enabled",
+      "owner": "activityProduct",
+      "subjects": [
+        "workerStop"
+      ],
+      "because": "The product machine does not feel a worker stopping (Model.scala, workerStop is disabled); the protocol and worker machines step it."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "activityProduct",
+      "subjects": [
+        "attemptResult-canceled in scheduled, started, paused",
+        "attemptResult-completed in scheduled, paused",
+        "attemptResult-failed-false in scheduled, paused",
+        "attemptResult-failed-true in scheduled, paused",
+        "attemptStart in started, paused, cancelRequested"
+      ],
+      "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "activityProduct",
+      "subjects": [
+        "control-pause in paused, cancelRequested",
+        "control-unpause in scheduled, started, cancelRequested"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "activityProduct",
+      "subjects": [
+        "workerStop in scheduled, started, paused, cancelRequested"
+      ],
+      "because": "The worker stopping is a fault the Run records; a machine that does not feel it disables it, and the worker and protocol machines step it."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "activityProduct",
+      "subjects": [
+        "attemptResult-canceled",
+        "attemptResult-completed",
+        "attemptResult-failed-false",
+        "attemptResult-failed-true",
+        "attemptStart"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unread-refinement",
+      "owner": "activityProtocol",
+      "subjects": [
+        "activityProtocol refines activityProduct"
+      ],
+      "because": "The refinement is checked on every check of the Model (Machines 6); no Query reads a product Property through it yet, which the spec that adds product claims to this root takes."
+    },
+    {
+      "kind": "unmodeled-api-value",
+      "owner": "activityProtocol",
+      "subjects": [
+        "temporal.api.activity.v1.ActivityExecutionInfo.status ACTIVITY_EXECUTION_STATUS_RUNNING"
+      ],
+      "because": "A poll waits through this status on its way to a terminal one; no Model fact maps it, as the Model reads the start from the Run's own record."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "activityProtocol",
+      "subjects": [
+        "attemptResult-canceled in unstarted, scheduled, backingOff, started, paused, pauseRequested",
+        "attemptResult-completed in unstarted, scheduled, backingOff, paused",
+        "attemptResult-failed-false in unstarted, scheduled, backingOff, paused",
+        "attemptResult-failed-true in unstarted, scheduled, backingOff, paused",
+        "attemptStart in unstarted, backingOff, started, paused, pauseRequested, cancelRequested"
+      ],
+      "because": "A worker step the server dispatches: a worker answers only an attempt or task it was given and the server rejects a stale one, so the pair stays disabled; the known exception of fn-120 R5, delivery the system decides, kept until a Model separates dispatch from the worker's step."
+    },
+    {
+      "kind": "silent-rejection",
+      "owner": "activityProtocol",
+      "subjects": [
+        "control-pause in unstarted, paused, pauseRequested, cancelRequested",
+        "control-requestCancel in unstarted",
+        "control-terminate in unstarted",
+        "control-unpause in unstarted, scheduled, backingOff, started, cancelRequested",
+        "start-expires-expires-expires in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
+        "start-expires-expires-unset in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
+        "start-expires-unset-expires in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
+        "start-expires-unset-unset in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
+        "start-unset-expires-expires in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
+        "start-unset-expires-unset in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
+        "start-unset-unset-expires in scheduled, backingOff, started, paused, pauseRequested, cancelRequested",
+        "start-unset-unset-unset in scheduled, backingOff, started, paused, pauseRequested, cancelRequested"
+      ],
+      "because": "The server answers this request here with a rejection (FailedPrecondition, NotFound or an already-started error), and the Model leaves the pair disabled: a rejecting row adds rows to the table, so it waits for a spec that lifts fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "activityProtocol",
+      "subjects": [
+        "attemptResult-failed-true",
+        "backoff",
+        "start-expires-expires-expires",
+        "start-expires-expires-unset",
+        "start-expires-unset-expires",
+        "start-expires-unset-unset",
+        "start-unset-expires-expires",
+        "start-unset-expires-unset",
+        "start-unset-unset-expires",
+        "start-unset-unset-unset",
+        "workerStop"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "activityProtocol",
+      "subjects": [
+        "activityProtocol.cancelIsRequested",
+        "activityProtocol.terminateSettles",
+        "canceledByWorker",
+        "completes",
+        "nonRetryableFails",
+        "retryCompletes",
+        "scheduleToStartFires",
+        "startToCloseFires"
+      ],
+      "because": "Asked only by find Queries over pinned Scenarios, whose witnesses become Cases; a verify over a free Scenario is a new Query, left to a later spec under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "witness-only",
+      "owner": "activityProtocol",
+      "subjects": [
+        "cancelRequestedWhileStarted",
+        "terminated"
+      ],
+      "because": "False on the notFound stutter of a terminal phase (.plans/MODALITIES.md section 6), so it cannot be verified over the table as written; recorded against fn-112's behavior freeze (fn-112 Decision Context, Model gaps) until a later spec rephrases it."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "activityWorker",
+      "subjects": [
+        "workerStop"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    },
+    {
+      "kind": "unconstrained-result",
+      "owner": "polling",
+      "subjects": [
+        "serve",
+        "workerResume",
+        "workerStop"
+      ],
+      "because": "No same-step Property, transition claim or progress claim reads this class's results yet; the Model's Queries pin other classes, and a claim for it is new Model work left to the spec that takes claim coverage, under fn-112's behavior freeze (fn-112 Decision Context, Model gaps)."
+    }
+  ]
+}
