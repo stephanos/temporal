@@ -116,7 +116,9 @@ with one lifter run writing all of them. Every Model folder gets the same file n
 activity, and no `Claims.scala` remains. The Temporal realization vocabulary leaves the framework for `model/temporal/realize` behind a guard test
 (fn-114.12), type annotations the compiler and lifter do not need are dropped from the Models (fn-114.11), lifter fixtures that copy live Model text shrink to minimal fixture-local Models (fn-114.10), and a final rename (fn-114.9, owner request 2026-10-04) gives the tool folders
 names that say what they hold: `model/lifter` becomes `model/irgen`, `model/gate` becomes `model/check`
-(absorbing `model/metrics`), and the `model/gen` build cache becomes `model/build`.
+(absorbing `model/metrics`), and the `model/gen` build cache becomes `model/build`. The same pass groups `model/temporal` into `features/`
+(standalone activity, Nexus caller, Nexus operation) and `entities/` (task queue, worker) beside `capabilities/` and
+`realize/`.
 
 
 Task 1 is done: each Model folder declares its IR files in Scala (`val x = irFile("name")(roots...)` in
