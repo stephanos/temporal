@@ -20,6 +20,7 @@ import (
 )
 
 const (
+	// testcore.CheckTestShard hashes the same depth-2 name prefix.
 	defaultLevel = 2 // 1 means shard by suite, 2 means shard by test
 )
 

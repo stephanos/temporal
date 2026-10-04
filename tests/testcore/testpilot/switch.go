@@ -35,13 +35,13 @@ func (v SwitchValue) Configuration() map[string]string {
 	return configuration
 }
 
-// NexusImplementationSwitchName is the switch the Nexus realization declares, spelled as its
-// `repeat:` names it.
+// NexusImplementationSwitchName is the name of the Nexus implementation switch. The functional tests
+// declare the switch and its value names; no Model, IR or Case declares it, and the Case bytes do not
+// depend on it.
 const NexusImplementationSwitchName = "implementation"
 
 // NexusImplementationSwitch is the Nexus implementation switch: the HSM implementation and the CHASM
-// one, each the three settings the upstream Nexus suites set at environment construction. The value
-// names are the ones the realization declares.
+// one, each the three settings the upstream Nexus suites set at environment construction.
 func NexusImplementationSwitch() []SwitchValue {
 	implementation := func(name string, chasm bool) SwitchValue {
 		return SwitchValue{Name: name, Settings: []SwitchSetting{
