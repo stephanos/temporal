@@ -422,6 +422,20 @@ class Fixtures extends munit.FunSuite:
       ).sorted
     )
 
+  concurrently("a realization's reference by value to a missing declaration fails to compile"):
+    assertEquals(
+      refusals("referenceInvalid").sorted,
+      Seq(
+        "Invalid.scala:36:29",
+        "Invalid.scala:38:44",
+        "Invalid.scala:40:38",
+        "Invalid.scala:42:41",
+        "Invalid.scala:44:63",
+        "Invalid.scala:46:38",
+        "Invalid.scala:48:28"
+      )
+    )
+
   concurrently("only the unknown projected origin admits a dynamic message root"):
     assertEquals(refusals("dynamicInvalid"), Seq("Invalid.scala:10:16"))
 
