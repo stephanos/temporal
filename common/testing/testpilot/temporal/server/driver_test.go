@@ -338,3 +338,41 @@ func TestSessionAndEffectIdentityCollisions(t *testing.T) {
 	_, err = h.OpenSession(t.Context(), "later", prepared(t, h, source))
 	require.ErrorIs(t, err, errClosed)
 }
+
+// A Driver takes the Profile's bound scale as preparation does: it refuses a scale below 100% or
+// one whose scaled ceilings leave the Program ceiling, and a scaled Driver is its own identity.
+func TestNewChecksTheProfilesBoundScale(t *testing.T) {
+	h, source, _ := fixture(t, "127.0.0.1:1")
+	open := func(profile testpilot.ProfileSpec) (*Driver, error) {
+		driver, err := New(Options{Profile: profile, Endpoints: map[string]Endpoint{"endpoint": {Target: "127.0.0.1:1", Credentials: insecure.NewCredentials()}}})
+		if err == nil {
+			t.Cleanup(func() { require.NoError(t, driver.Close(context.Background())) })
+		}
+		return driver, err
+	}
+	for _, scale := range []testpilot.BoundScale{-1, 50, 99} {
+		profile := h.Snapshot()
+		profile.BoundScale = scale
+		_, err := open(profile)
+		require.ErrorIs(t, err, errInvalid, "scale %d", scale)
+	}
+	beyond := h.Snapshot()
+	beyond.ProgramLimits.MaxTotalDurationMilliseconds = 86400000
+	beyond.BoundScale = 101
+	_, err := open(beyond)
+	require.ErrorIs(t, err, errInvalid)
+
+	scaled := h.Snapshot()
+	scaled.BoundScale = 200
+	driver, err := open(scaled)
+	require.NoError(t, err)
+	scaledIdentity, err := driver.Identity(t.Context())
+	require.NoError(t, err)
+	plainIdentity, err := h.Identity(t.Context())
+	require.NoError(t, err)
+	require.NotEqual(t, plainIdentity, scaledIdentity)
+	preparedCase, err := testpilot.Prepare(source, driver)
+	require.NoError(t, err)
+	require.Equal(t, scaledIdentity, preparedCase.Identity())
+	require.Equal(t, int64(60000), facadetest.Capture(t, preparedCase).Limits().GetMaxTotalDurationMilliseconds())
+}

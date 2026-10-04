@@ -62,8 +62,8 @@ func (c *Catalog) CheckMethod(name string) error {
 // Profile supplies static authorization only. Snapshot must not perform target I/O, and returns a
 // spec its caller owns: no collection or limit in it is shared with the Profile or a prior snapshot.
 // Identity must change whenever authorization, reservation carrier policy, resource ceilings,
-// instruction defaults or role bindings change; rotating credentials for the same authorized identity
-// does not change it.
+// instruction defaults, the bound scale or role bindings change; rotating credentials for the same
+// authorized identity does not change it.
 type Profile interface{ Snapshot() ProfileSpec }
 
 // ConfigurationValue is one dynamic configuration value the environment a Profile describes runs
@@ -95,6 +95,10 @@ type ProfileSpec struct {
 	ContractLimits      *testpilotspb.ContractLimits
 	CorrelatedLimits    *testpilotspb.CorrelatedLimits
 	InstructionDefaults InstructionDefaults
+	// BoundScale scales every wait hint's bound and the duration ceilings of ProgramLimits together,
+	// for an environment slower than the one the bounds were declared for; a Run under a scaled
+	// Profile records the scale. Zero applies them as declared.
+	BoundScale BoundScale
 	// DeliveryControl says the environment can hold and release a delivery inside the server, which
 	// only an environment that runs the server can. A Case that holds a delivery is refused under a
 	// Profile without it, at preparation.
@@ -130,15 +134,19 @@ func (p ProfileSpec) Snapshot() ProfileSpec {
 }
 
 // BindingFingerprint validates and identifies the complete environment binding snapshot, the
-// configuration the environment runs under included. Rejections are malformed Profile preparation
-// errors, including binding ceiling failures. A Profile with no bindings and no configuration has
-// no fingerprint, so a Profile that carried neither before keeps the identity it had.
+// configuration the environment runs under and its bound scale included. Rejections are malformed
+// Profile preparation errors, including binding ceiling failures. A Profile with no bindings, no
+// configuration and no scale has no fingerprint, so a Profile that carried none before keeps the
+// identity it had.
 func (p ProfileSpec) BindingFingerprint() (string, error) {
 	configuration, err := p.canonicalConfiguration()
 	if err != nil {
 		return "", err
 	}
-	if len(p.EnvironmentBindings) == 0 && len(configuration) == 0 {
+	if p.BoundScale.Percent() < 100 {
+		return "", preparationError(fmt.Errorf("bound scale %d%% is below 100%%", int64(p.BoundScale)), "profile.bound_scale")
+	}
+	if len(p.EnvironmentBindings) == 0 && len(configuration) == 0 && !p.BoundScale.Scaled() {
 		return "", nil
 	}
 	if p.ProgramLimits == nil {
@@ -175,6 +183,12 @@ func (p ProfileSpec) BindingFingerprint() (string, error) {
 			canonical = binary.BigEndian.AppendUint64(canonical, uint64(len(value.Value)))
 			canonical = append(canonical, value.Value...)
 		}
+	}
+	// Likewise the scale, which a Driver must share with the Profile it runs: a Driver built from
+	// the unscaled spec would cap a scaled bound at the unscaled ceilings.
+	if p.BoundScale.Scaled() {
+		canonical = append(canonical, "testpilot.bound-scale/v1"...)
+		canonical = binary.BigEndian.AppendUint64(canonical, uint64(p.BoundScale.Percent()))
 	}
 	fingerprint := sha256.Sum256(canonical)
 	return hex.EncodeToString(fingerprint[:]), nil

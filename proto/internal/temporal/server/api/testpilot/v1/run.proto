@@ -20,6 +20,9 @@ message Run {
   oneof evaluation_failure {
     int64 evaluation_failure_sequence = 9;
   }
+  // The Profile's bound scale, in percent, when it is not 100: the Run applied every wait hint's
+  // bound and the Profile's duration ceilings scaled by it. Zero when it applied them as declared.
+  int64 bound_scale_percent = 10;
 }
 
 // RunEvent is an immutable fact at one Executor-recorded monotonic coordinate.

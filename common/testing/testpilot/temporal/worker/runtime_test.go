@@ -548,3 +548,25 @@ func TestNexusCandidatesWithoutRouteIsEmptyNotNil(t *testing.T) {
 	require.NotNil(t, candidates)
 	require.Empty(t, candidates)
 }
+
+// The completion callback's deadline is the total duration ceiling preparation applied, so a scaled
+// Profile's callback waits as long as its scaled Run may; a scale below 100% is refused.
+func TestNewScalesTheCallbackDeadlineWithTheProfile(t *testing.T) {
+	catalog, err := testpilot.NewCatalog(testsupport.DescriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
+	require.NoError(t, err)
+	open := func(scale testpilot.BoundScale) (*Driver, error) {
+		return New(Options{
+			Profile: testpilot.ProfileSpec{Identity: "profile", Catalog: catalog, ProgramLimits: testsupport.ProgramLimits(), BoundScale: scale, Roles: []testpilot.RolePolicy{{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}}},
+			Client:  &recordingClient{}, WorkerRoleID: "worker",
+		})
+	}
+	plain, err := open(0)
+	require.NoError(t, err)
+	require.Equal(t, 30*time.Second, plain.options.completion.httpClient.Timeout)
+	scaled, err := open(150)
+	require.NoError(t, err)
+	require.Equal(t, 45*time.Second, scaled.options.completion.httpClient.Timeout)
+	require.Equal(t, int64(30000), scaled.options.profile.ProgramLimits.GetMaxTotalDurationMilliseconds(), "the Profile keeps its declared ceilings")
+	_, err = open(99)
+	require.ErrorIs(t, err, ErrInvalid)
+}

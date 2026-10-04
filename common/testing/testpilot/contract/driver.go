@@ -86,7 +86,10 @@ type Session interface {
 	// PollRPC repeats one unary RPC on the named endpoint role at the interval until the runtime's
 	// predicate accepts a response, the context ends or a poll fails: the effect's result is the
 	// accepted response, the first failed poll's outcome, or the timeout. The predicate is bounded
-	// and performs no I/O; a Driver evaluates it on each response it receives.
+	// and performs no I/O; a Driver evaluates it on each response it receives. A zero interval reads
+	// once: the RPC is called once and the predicate asked once, and a response it does not accept
+	// ends the effect TIMED_OUT with no response and no protocol code, as a poll whose timeout ran
+	// out. A negative interval is refused.
 	PollRPC(context.Context, Coordinate, string, protoreflect.MethodDescriptor, proto.Message, time.Duration, PollPredicate) (EffectHandle, error)
 	InvokeHandle(context.Context, Coordinate, OpaqueHandle, proto.Message) (EffectHandle, error)
 	// InjectFault realizes one deliberate outage on the named ROLE_KIND_TASK_QUEUE role.
