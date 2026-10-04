@@ -200,7 +200,8 @@ func underBase(paths []string, base string) map[string]string {
 }
 
 // LawSidecarSuffix ends the law sidecar the lifter writes beside an IR file whose Models declare
-// capabilities, `<file>.laws.json`: JSON that records the generated claims, and no Model.
+// capabilities, `<file>.laws.json`: JSON that records the generated claims, and no Model. It is
+// tools/umpire/model.LawSidecarSuffix, which this test-only package does not import.
 const LawSidecarSuffix = ".laws.json"
 
 // IsLawSidecar reports whether a path or name is a law sidecar rather than an IR file.
