@@ -5,6 +5,8 @@ package fixture.channels
 
 import umpire.*
 
+given Family = Family("fixture.channels")
+
 enum Note derives Finite:
   case ping, pong
 
@@ -12,9 +14,9 @@ enum Signal derives Finite:
   case up, down
 
 val wire: Channel[Note] =
-  channel[Note]("wire", capacity = 2, order = Order.fifo, loss = Loss.reliable, duplicates = 1)
+  channel[Note](capacity = 2, order = Order.fifo, loss = Loss.reliable, duplicates = 1)
 val radio: Channel[Signal] =
-  channel[Signal]("radio", capacity = 1, order = Order.unordered, loss = Loss.lossy)
+  channel[Signal](capacity = 1, order = Order.unordered, loss = Loss.lossy)
 
 enum Heard derives Finite:
   case nothing, note, signal
@@ -29,8 +31,8 @@ given Finite[Relay] =
 enum Outcome derives Finite:
   case accepted, dropped
 
-val talk = action("talk", Party("fixture")).input[Note]("note")
-val flash = action("flash", Party("fixture")).input[Signal]("signal")
+val talk = action(Party("fixture")).input[Note]("note")
+val flash = action(Party("fixture")).input[Signal]("signal")
 
 def talkStep(r: Relay, n: Note): List[Step[Relay, Outcome, Nothing]] =
   if r.wire.isFull then Nil else List(Step(Outcome.accepted, r.copy(wire = r.wire.send(n))))
@@ -47,22 +49,21 @@ def tune(r: Relay, s: Signal): List[Step[Relay, Outcome, Nothing]] =
 
 def fade(r: Relay, s: Signal): List[Step[Relay, Outcome, Nothing]] = List(Step(Outcome.dropped, r))
 
-val relay: Machine[Relay, Outcome, Nothing] =
-  machine[Relay, Outcome, Nothing](Family("fixture.channels"), "relay") {
-    starts(Relay(Heard.nothing, wire.empty, radio.empty))
-    ends(_ => true)
-    steps(
-      talk ~> talkStep,
-      flash ~> flashStep,
-      wire.deliver ~> hear,
-      radio.deliver ~> tune,
-      radio.lose ~> fade
-    )
-  }
+val relay = machine[Relay, Outcome, Nothing] {
+  starts(Relay(Heard.nothing, wire.empty, radio.empty))
+  ends(_ => true)
+  steps(
+    talk ~> talkStep,
+    flash ~> flashStep,
+    wire.deliver ~> hear,
+    radio.deliver ~> tune,
+    radio.lose ~> fade
+  )
+}
 
 /** A channel of bounded integers: the range its declaration names is its catalog of messages. */
 val tally: Channel[Int] =
-  channel[Int]("tally", capacity = 1, order = Order.fifo, loss = Loss.reliable)(using
+  channel[Int](capacity = 1, order = Order.fifo, loss = Loss.reliable)(using
     Finite.upTo(2)
   )
 
@@ -72,7 +73,7 @@ given Finite[Tally] =
   given Finite[Inbox[Int]] = tally.contents
   Finite.derived
 
-val count = timer("count")
+val count = timer
 
 def countStep(t: Tally): List[Step[Tally, Outcome, Nothing]] =
   if t.counts.isEmpty then List(Step(Outcome.accepted, t.copy(counts = t.counts.send(2)))) else Nil
@@ -80,9 +81,8 @@ def countStep(t: Tally): List[Step[Tally, Outcome, Nothing]] =
 def counted(t: Tally, n: Int): List[Step[Tally, Outcome, Nothing]] =
   if n == 2 then List(Step(Outcome.accepted, t.copy(heard = Heard.note))) else Nil
 
-val tallying: Machine[Tally, Outcome, Nothing] =
-  machine[Tally, Outcome, Nothing](Family("fixture.channels"), "tallying") {
-    starts(Tally(Heard.nothing, tally.empty))
-    ends(_ => true)
-    steps(count ~> countStep, tally.deliver ~> counted)
-  }
+val tallying = machine[Tally, Outcome, Nothing] {
+  starts(Tally(Heard.nothing, tally.empty))
+  ends(_ => true)
+  steps(count ~> countStep, tally.deliver ~> counted)
+}

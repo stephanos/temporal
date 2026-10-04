@@ -219,23 +219,16 @@ final class Machine[S, O, F] private[umpire] (
   type Fact = F
 
   /**
-   * A machine that keeps the rows of the named actions and drops the rest.
-   * It keeps the state type, starts and ends, owns its own name
-   * and Definition IDs, and does not inherit a refinement.
+   * A machine that keeps the rows of the named actions and drops the rest, named after the `val`
+   * that declares it, in the `given Family`. It keeps the state type, starts and ends, owns its own
+   * name and Definition IDs, and does not inherit a refinement.
    */
-  def restrict(family: Family, name: String)(keep: Action[?]*): Machine[S, O, F] =
-    restricted(family, name, keep)
-
-  /** A restriction named after the `val` that declares it, in the `given Family`. */
   def restrict(keep: Action[?]*)(using family: Family): Machine[S, O, F] =
-    restricted(family, "", keep)
-
-  private def restricted(family: Family, name: String, keep: Seq[Action[?]]): Machine[S, O, F] =
     val decls = keep.map(_.decl).toSet
     // It keeps its source's monitors and assumptions, which are about the state and the machine.
     derived(
       family,
-      name,
+      "",
       unobservableNames = Set.empty,
       bindings = bindings.filter(b => decls(b.decl)),
       refinement = None,

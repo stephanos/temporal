@@ -4,6 +4,7 @@ package model
 // the lifter recorded, so a Model error reads against the file the author edits.
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -117,7 +118,9 @@ func TestValidateReportsUnrelatedSameStateMachinesAtQueryPosition(t *testing.T) 
 	require.NotNil(t, q)
 	require.NotNil(t, other)
 	q.Scenario = proto.Clone(other.GetScenario()).(*umpirespb.ClaimRef)
-	require.EqualError(t, Validate(m), "model/temporal/nexuscaller/closepolicy/Claims.scala:230: query ackByOriginal.ackedThenReset pairs a Property of ackByOriginal with a Scenario of rejectAfterClose")
+	// The refusal is at the Query's own line, wherever the Query sits in its file.
+	require.EqualError(t, Validate(m), fmt.Sprintf("model/temporal/nexuscaller/closepolicy/Queries.scala:%d: query ackByOriginal.ackedThenReset "+
+		"pairs a Property of ackByOriginal with a Scenario of rejectAfterClose", q.GetPosition().GetLine()))
 }
 
 // The saturating successor, rewritten as a plain increment: the IR stays well formed, and the

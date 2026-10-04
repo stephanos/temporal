@@ -18613,8 +18613,8 @@
     "id": "temporal.worker.Worker$package$.workerStop",
     "name": "workerStop",
     "position": {
-      "file": "model/temporal/worker/Worker.scala",
-      "line": 57
+      "file": "model/temporal/worker/Model.scala",
+      "line": 61
     },
     "party": "worker"
   } ],

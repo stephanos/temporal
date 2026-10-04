@@ -268,7 +268,7 @@ func NewEnv(t *testing.T, opts ...TestOption) *TestEnv {
 	t.Helper()
 
 	// Check test sharding early, before any expensive operations.
-	checkTestShard(t)
+	CheckTestShard(t)
 
 	// Create the test context before any expensive setup, so that the deadline
 	// extension below can compensate for the time setup takes.
@@ -750,9 +750,15 @@ func canBeNamespaceScoped(p dynamicconfig.Precedence) bool {
 	}
 }
 
-// checkTestShard supports test sharding based on environment variables.
+// CheckTestShard supports test sharding based on environment variables.
 // This distributes tests across multiple CI shards for parallel execution.
-func checkTestShard(t *testing.T) {
+//
+// The shard unit is the depth-2 name (see shardKey), the same level the salt
+// optimizer aggregates durations at (defaultLevel in tools/optimize-test-sharding).
+// So a cluster constructed in a deeper subtest lands in its depth-2 ancestor's
+// shard, and a depth-2 subtest whose clusters live in its children can call this
+// first to skip as a whole.
+func CheckTestShard(t *testing.T) {
 	totalStr := os.Getenv("TEST_TOTAL_SHARDS")
 	indexStr := os.Getenv("TEST_SHARD_INDEX")
 	if totalStr == "" || indexStr == "" {
@@ -767,12 +773,24 @@ func checkTestShard(t *testing.T) {
 		t.Fatal("Couldn't convert TEST_SHARD_INDEX")
 	}
 
-	nameToHash := t.Name() + strings.TrimSpace(shardSalt)
-	testIndex := int(farm.Fingerprint32([]byte(nameToHash))) % total
+	testIndex := shardIndex(t.Name(), total)
 	if testIndex != index {
 		t.Skipf("Skipping %s in test shard %d/%d (it runs in %d)", t.Name(), index+1, total, testIndex+1)
 	}
 	t.Logf("Running %s in test shard %d/%d", t.Name(), index+1, total)
+}
+
+// shardIndex returns the zero-based shard that the test named name runs in.
+func shardIndex(name string, total int) int {
+	nameToHash := shardKey(name) + strings.TrimSpace(shardSalt)
+	return int(farm.Fingerprint32([]byte(nameToHash))) % total
+}
+
+// shardKey returns the first two "/"-separated segments of a test name, or the
+// whole name if it has fewer.
+func shardKey(name string) string {
+	parts := strings.SplitN(name, "/", 3)
+	return strings.Join(parts[:min(len(parts), 2)], "/")
 }
 
 type dedicatedClusterGuard struct {

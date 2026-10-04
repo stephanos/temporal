@@ -13,7 +13,7 @@ enum Note derives Finite:
 enum Outcome derives Finite:
   case accepted
 
-val go = action("go", Party("fixture"))
+val go = action(Party("fixture"))
 
 /** A list in a state has no bound. */
 final case class Unbounded(notes: List[Note])
@@ -21,7 +21,7 @@ final case class Unbounded(notes: List[Note])
 given Finite[Unbounded] = Finite.of(Unbounded(Nil), Unbounded(List(Note.ping)))
 
 val unbounded: Machine[Unbounded, Outcome, Nothing] =
-  machine[Unbounded, Outcome, Nothing](Family, "unbounded") {
+  machine[Unbounded, Outcome, Nothing] {
     starts(Unbounded(Nil))
     ends(_ => true)
     steps(go ~> (_ => Nil))
@@ -29,7 +29,7 @@ val unbounded: Machine[Unbounded, Outcome, Nothing] =
 
 /** A channel that holds nothing. */
 val closed: Channel[Note] =
-  channel[Note]("closed", capacity = 0, order = Order.fifo, loss = Loss.reliable)
+  channel[Note](capacity = 0, order = Order.fifo, loss = Loss.reliable)
 
 final case class Waiting(inbox: Inbox[Note])
 
@@ -38,7 +38,7 @@ given Finite[Waiting] =
   Finite.derived
 
 val waiting: Machine[Waiting, Outcome, Nothing] =
-  machine[Waiting, Outcome, Nothing](Family, "waiting") {
+  machine[Waiting, Outcome, Nothing] {
     starts(Waiting(closed.empty))
     ends(_ => true)
     steps(closed.deliver ~> ((w, _) => List(Step(Outcome.accepted, w))))
@@ -46,7 +46,7 @@ val waiting: Machine[Waiting, Outcome, Nothing] =
 
 /** A lossy channel whose loss no step says the meaning of. */
 val leaky: Channel[Note] =
-  channel[Note]("leaky", capacity = 1, order = Order.fifo, loss = Loss.lossy)
+  channel[Note](capacity = 1, order = Order.fifo, loss = Loss.lossy)
 
 final case class Listening(inbox: Inbox[Note])
 
@@ -55,7 +55,7 @@ given Finite[Listening] =
   Finite.derived
 
 val listening: Machine[Listening, Outcome, Nothing] =
-  machine[Listening, Outcome, Nothing](Family, "listening") {
+  machine[Listening, Outcome, Nothing] {
     starts(Listening(leaky.empty))
     ends(_ => true)
     steps(leaky.deliver ~> ((l, _) => List(Step(Outcome.accepted, l))))
@@ -69,7 +69,7 @@ given Finite[Twice] =
   Finite.derived
 
 val doubled: Machine[Twice, Outcome, Nothing] =
-  machine[Twice, Outcome, Nothing](Family, "doubled") {
+  machine[Twice, Outcome, Nothing] {
     starts(Twice(leaky.empty, leaky.empty))
     ends(_ => true)
     steps(leaky.lose ~> ((t, _) => List(Step(Outcome.accepted, t))))
@@ -85,7 +85,7 @@ given Finite[Counter] =
   Finite.derived
 
 val counter: Machine[Counter, Outcome, Nothing] =
-  machine[Counter, Outcome, Nothing](Family, "counter") {
+  machine[Counter, Outcome, Nothing] {
     starts(Counter(2))
     ends(_ => true)
     steps(go ~> (c => List(Step(Outcome.accepted, Counter(countdown(c.n))))))
@@ -93,28 +93,28 @@ val counter: Machine[Counter, Outcome, Nothing] =
 
 final case class Flag(on: Boolean) derives Finite
 
-val flip = action("flip", Party("fixture"))
+val flip = action(Party("fixture"))
 
 def flipStep(f: Flag): List[Step[Flag, Outcome, Nothing]] = List(
   Step(Outcome.accepted, Flag(!f.on))
 )
 
 val first: Machine[Flag, Outcome, Nothing] =
-  machine[Flag, Outcome, Nothing](Family, "first") {
+  machine[Flag, Outcome, Nothing] {
     starts(Flag(false))
     ends(_ => true)
     steps(flip ~> flipStep)
   }
 
 val second: Machine[Flag, Outcome, Nothing] =
-  machine[Flag, Outcome, Nothing](Family, "second") {
+  machine[Flag, Outcome, Nothing] {
     starts(Flag(false))
     ends(_ => true)
     steps(flip ~> flipStep)
   }
 
 val refining: Machine[Flag, Outcome, Nothing] =
-  machine[Flag, Outcome, Nothing](Family, "refining") {
+  machine[Flag, Outcome, Nothing] {
     refines(first)(f => f)
     starts(Flag(false))
     ends(_ => true)
@@ -122,18 +122,18 @@ val refining: Machine[Flag, Outcome, Nothing] =
   }
 
 val flips: Property[Flag] =
-  second.property("flips") holds (after => after.outcome == Outcome.accepted)
-val flipping: Scenario[Flag] = refining.scenario("flipping").starts(Flag(false)).actions(flip)
-val secondFlips: Scenario[Flag] = second.scenario("secondFlips").starts(Flag(false)).actions(flip)
-val one: Limits = Limits("one", steps = 1, actions = 1, search = 8)
+  second.property holds (after => after.outcome == Outcome.accepted)
+val flipping: Scenario[Flag] = refining.scenario.starts(Flag(false)).actions(flip)
+val secondFlips: Scenario[Flag] = second.scenario.starts(Flag(false)).actions(flip)
+val one: Limits = Limits(steps = 1, actions = 1, search = 8)
 
 /** A Property read through a refinement its Scenario's machine does not declare. */
 val crossedRead: Query =
-  query("crossedRead").verify(flips).in(flipping) limits one
+  query.verify(flips).in(flipping) limits one
 
 /** Limits below zero. */
-val backwards: Limits = Limits("backwards", steps = -1, actions = 1, search = 8)
-val negative: Query = query("negative") verify flips in secondFlips limits backwards
+val backwards: Limits = Limits(steps = -1, actions = 1, search = 8)
+val negative: Query = query verify flips in secondFlips limits backwards
 
 /** Two monitors under one name would share one Definition ID. */
 val twiceFirst: Monitor[Flag, Outcome, Nothing, Boolean] =
@@ -142,7 +142,7 @@ val twiceSecond: Monitor[Flag, Outcome, Nothing, Boolean] =
   monitor[Flag, Outcome, Nothing, Boolean]("twice", true)((seen, _, _) => seen)(seen => seen)
 
 val watched: Machine[Flag, Outcome, Nothing] =
-  machine[Flag, Outcome, Nothing](Family, "watched") {
+  machine[Flag, Outcome, Nothing] {
     monitors(twiceFirst, twiceSecond)
     starts(Flag(false))
     ends(_ => true)
@@ -151,23 +151,23 @@ val watched: Machine[Flag, Outcome, Nothing] =
 
 /** What a refined machine sees, on a machine that refines none. */
 val unrefined: Machine[Flag, Outcome, Nothing] =
-  machine[Flag, Outcome, Nothing](Family, "unrefined") {
+  machine[Flag, Outcome, Nothing] {
     visible(_ => true)
     starts(Flag(false))
     ends(_ => true)
     steps(flip ~> flipStep)
   }
 
-final case class Flags(left: Flag, right: Flag)
+final case class Flags(left: Flag, middle: Flag, right: Flag)
 
 /** A replacement of a member the composition does not have. */
 val misplaced: Composition[Flags] =
-  compose[Flags](Family, "misplaced")("left" -> first, "right" -> refining)
-    .replaces("middle", first)
+  compose[Flags](_.left -> first, _.right -> refining)
+    .replaces(_.middle, first)
 
 /** The outcomes a refined machine sees, on a machine that refines none. */
 val unrefinedOutcomes: Machine[Flag, Outcome, Nothing] =
-  machine[Flag, Outcome, Nothing](Family, "unrefinedOutcomes") {
+  machine[Flag, Outcome, Nothing] {
     visibleOutcomes(_ => true)
     starts(Flag(false))
     ends(_ => true)
@@ -176,7 +176,7 @@ val unrefinedOutcomes: Machine[Flag, Outcome, Nothing] =
 
 /** Int messages whose catalog is not a range the IR can carry. */
 val counts: Channel[Int] =
-  channel[Int]("counts", capacity = 1, order = Order.fifo, loss = Loss.reliable)(using
+  channel[Int](capacity = 1, order = Order.fifo, loss = Loss.reliable)(using
     Finite.of(1, 5)
   )
 
@@ -187,14 +187,14 @@ given Finite[Counting] =
   Finite.derived
 
 val counting: Machine[Counting, Outcome, Nothing] =
-  machine[Counting, Outcome, Nothing](Family, "counting") {
+  machine[Counting, Outcome, Nothing] {
     starts(Counting(counts.empty))
     ends(_ => true)
   }
 
 /** List messages, which have no finite catalog in the IR. */
 val batches: Channel[List[Note]] =
-  channel[List[Note]]("batches", capacity = 1, order = Order.fifo, loss = Loss.reliable)(using
+  channel[List[Note]](capacity = 1, order = Order.fifo, loss = Loss.reliable)(using
     Finite.of(Nil, List(Note.ping))
   )
 
@@ -205,14 +205,14 @@ given Finite[Batching] =
   Finite.derived
 
 val batching: Machine[Batching, Outcome, Nothing] =
-  machine[Batching, Outcome, Nothing](Family, "batching") {
+  machine[Batching, Outcome, Nothing] {
     starts(Batching(batches.empty))
     ends(_ => true)
   }
 
 /** A channel whose order is computed rather than named. */
 val shuffled: Channel[Note] =
-  channel[Note]("shuffled", capacity = 1, order = Order.fromOrdinal(1), loss = Loss.reliable)
+  channel[Note](capacity = 1, order = Order.fromOrdinal(1), loss = Loss.reliable)
 
 final case class Shuffling(inbox: Inbox[Note])
 
@@ -221,14 +221,14 @@ given Finite[Shuffling] =
   Finite.derived
 
 val shuffling: Machine[Shuffling, Outcome, Nothing] =
-  machine[Shuffling, Outcome, Nothing](Family, "shuffling") {
+  machine[Shuffling, Outcome, Nothing] {
     starts(Shuffling(shuffled.empty))
     ends(_ => true)
   }
 
 /** A channel whose loss is computed rather than named. */
 val guessed: Channel[Note] =
-  channel[Note]("guessed", capacity = 1, order = Order.fifo, loss = Loss.valueOf("reliable"))
+  channel[Note](capacity = 1, order = Order.fifo, loss = Loss.valueOf("reliable"))
 
 final case class Guessing(inbox: Inbox[Note])
 
@@ -237,12 +237,12 @@ given Finite[Guessing] =
   Finite.derived
 
 val guessing: Machine[Guessing, Outcome, Nothing] =
-  machine[Guessing, Outcome, Nothing](Family, "guessing") {
+  machine[Guessing, Outcome, Nothing] {
     starts(Guessing(guessed.empty))
     ends(_ => true)
   }
 
-// The fixtures below take their names from their vals, in the family the given names.
+// Every fixture takes its family from this given, and its name from its val.
 given umpire.Family = Family
 
 final case class Lamp(lit: Boolean) derives Finite
@@ -321,7 +321,7 @@ object ComputedFamily:
 /** Limits named after an anonymous given, a name the compiler made up. */
 object Anonymous:
   given Limits = Limits(steps = 1, actions = 1, search = 8)
-  val anonymous: Query = query("anonymous") verify flips in secondFlips limits summon[Limits]
+  val anonymous: Query = query verify flips in secondFlips limits summon[Limits]
 
 /**
  * Two Queries of one Scenario and Property in a list, which no val names: both take the name
@@ -362,7 +362,7 @@ object TwinB:
 
 final case class Lamps(left: Lamp, right: Lamp)
 
-val twins = compose[Lamps]("left" -> TwinA.twin, "right" -> TwinB.twin)
+val twins = compose[Lamps](_.left -> TwinA.twin, _.right -> TwinB.twin)
 
 /** Two Queries named alike in two objects. */
 object AskedA:
@@ -414,7 +414,7 @@ val oneStart = machine[Lamp, Outcome, Nothing] {
   ends(_ => true)
   steps(flip ~> lampStep)
 }
-val startsPair = compose[Lamps]("left" -> twoStarts, "right" -> oneStart)
+val startsPair = compose[Lamps](_.left -> twoStarts, _.right -> oneStart)
 val pairLit = startsPair.property holds (after => after.state.left.lit)
 val eitherPair = startsPair.scenario.free
 val unstartedPair: Query = query find pairLit in eitherPair limits one
@@ -531,7 +531,7 @@ val loopSecond: Machine[Lamp, Outcome, Nothing] = loopFirst.rebind(flip ~> lampS
 /** Two machines that are aliases of each other. */
 val aliasFirst: Machine[Lamp, Outcome, Nothing] = aliasSecond
 val aliasSecond: Machine[Lamp, Outcome, Nothing] = aliasFirst
-val aliased = compose[Lamps]("left" -> aliasFirst, "right" -> oneStart)
+val aliased = compose[Lamps](_.left -> aliasFirst, _.right -> oneStart)
 
 given Accepted[Outcome] = Accepted(Outcome.accepted)
 
@@ -678,7 +678,7 @@ val partyUnnamedLamp = machine[Lamp, Outcome, Nothing] {
 
 /** A monitor a Query's expected Run names by a def, which no val declares. */
 def flipWatch: Monitor[Flag, Outcome, Nothing, Boolean] =
-  monitor[Flag, Outcome, Nothing, Boolean]("flipWatch", false)((seen, _, _) => seen)(seen => seen)
+  monitor[Flag, Outcome, Nothing, Boolean](false)((seen, _, _) => seen)(seen => seen)
 val watchUnnamed: Query = (query verify flips in secondFlips limits one).expect(
   umpire.realize.RunExpectation(
     umpire.realize.Conformance.conformant,
@@ -690,7 +690,7 @@ val watchUnnamed: Query = (query verify flips in secondFlips limits one).expect(
 
 /** A monitor a Query's expected Run names by value, which no machine watches. */
 val unwatched: Monitor[Flag, Outcome, Nothing, Boolean] =
-  monitor[Flag, Outcome, Nothing, Boolean]("unwatched", false)((seen, _, _) => seen)(seen => seen)
+  monitor[Flag, Outcome, Nothing, Boolean](false)((seen, _, _) => seen)(seen => seen)
 val watchUnwatched: Query = (query verify flips in secondFlips limits one).expect(
   umpire.realize.RunExpectation(
     umpire.realize.Conformance.conformant,
@@ -700,20 +700,20 @@ val watchUnwatched: Query = (query verify flips in secondFlips limits one).expec
   )
 )
 
-/** A monitor a Query's expected Run names by value, which another machine watches. */
+/**
+ * A monitor a Query's expected Run names by value, which another machine watches.
+ */
 val elsewhereWatch: Monitor[Flag, Outcome, Nothing, Boolean] =
-  monitor[Flag, Outcome, Nothing, Boolean]("elsewhereWatch", false)((seen, _, _) => seen)(seen =>
-    seen
-  )
+  monitor[Flag, Outcome, Nothing, Boolean](false)((seen, _, _) => seen)(seen => seen)
 val watchingElsewhere: Machine[Flag, Outcome, Nothing] =
-  machine[Flag, Outcome, Nothing](Family, "watchingElsewhere") {
+  machine[Flag, Outcome, Nothing] {
     monitors(elsewhereWatch)
     starts(Flag(false))
     ends(_ => true)
     steps(flip ~> flipStep)
   }
 val elsewhereFlips: Property[Flag] =
-  watchingElsewhere.property("elsewhereFlips") holds (after => after.outcome == Outcome.accepted)
+  watchingElsewhere.property holds (after => after.outcome == Outcome.accepted)
 val watchElsewhere: Vector[Query] = Vector(
   query("watchedThere") verify elsewhereFlips in watchingElsewhere
     .scenario("there")
@@ -786,7 +786,7 @@ val litStaysLambda = litStays(oneStart)(l => l.lit)
 val sharedLambda: Query = query verify litStaysLambda in lampFlips limits one
 
 /** A composition's records whose selector names no member, and a fact its member does not record. */
-val patternLamps = compose[Lamps]("left" -> oneStart, "right" -> oneStart)
+val patternLamps = compose[Lamps](_.left -> oneStart, _.right -> oneStart)
 val patternLampsFree = patternLamps.scenario.free
 val leftLitRecorded = patternLamps.property holds (after => after.records(_.left.lit, Note.ping))
 val recordsNoMember: Query = query verify leftLitRecorded in patternLampsFree limits one

@@ -1,8 +1,9 @@
 // The activity specimen's reviewed supported block (model/specimens/activity.md), lifted as
 // written, with the passive monitors its proposed E1 block states in the framework's `monitor`
-// declaration. Only the package, this header, the Monitors section, each design's `monitors` line and
-// the product Property declared below differ from the reviewed text. The lifter's tests lift both
-// designs' Queries and compare the IR with expected/admission.json.
+// declaration. Only the package, this header, the Monitors section, each design's `monitors` line,
+// the names taken from vals, the named choices and the product Property declared below differ from
+// the reviewed text. The lifter's tests lift both designs' Queries and compare the IR with
+// expected/admission.json.
 package fixture.specimens.admission
 
 import temporal.standaloneactivity.{
@@ -26,7 +27,7 @@ import umpire.*
 val pausedIsNotDispatched =
   temporal.laws.pausedIsNotDispatched(activityProduct)(Product.paused, Product.running)
 
-val Family: umpire.Family = umpire.Family("temporal.activity.standalone.admission")
+given Family = Family("temporal.activity.standalone.admission")
 
 // ### System vocabulary: one logical activity, one dispatch message, the attempts admission committed
 
@@ -64,8 +65,11 @@ enum AdmissionFact derives Finite:
 
 type AdmissionStep = Step[AdmissionState, Outcome, AdmissionFact]
 
+val committed = choice
+val redelivered = choice
+
 /** History's dispatch task sends the message. System-internal, so spelled as a timer today. */
-val dispatch = timer("dispatch")
+val dispatch = timer
 
 val scheduledEmpty: AdmissionState =
   AdmissionState(AdmissionPhase.scheduled, Message.empty, Active.none)
@@ -125,17 +129,21 @@ def admitted(s: AdmissionState): List[AdmissionStep] =
       )
     )
   else
-    List(
-      Step(
-        Outcome.accepted,
-        next.copy(message = Message.empty),
-        List(AdmissionFact.statusStarted, AdmissionFact.attemptAdmitted)
+    choose(
+      committed -> List(
+        Step(
+          Outcome.accepted,
+          next.copy(message = Message.empty),
+          List(AdmissionFact.statusStarted, AdmissionFact.attemptAdmitted)
+        )
       ),
-      Step(
-        Outcome.accepted,
-        next.copy(message = Message.redelivery),
-        List(AdmissionFact.statusStarted, AdmissionFact.attemptAdmitted),
-        "the channel may deliver the message again"
+      redelivered -> List(
+        Step(
+          Outcome.accepted,
+          next.copy(message = Message.redelivery),
+          List(AdmissionFact.statusStarted, AdmissionFact.attemptAdmitted),
+          "the channel may deliver the message again"
+        )
       )
     )
 
@@ -198,7 +206,7 @@ def countActive(active: Active, before: AdmissionState, after: AdmissionStep): A
   else active
 
 val atMostOneActiveAttempt: Monitor[AdmissionState, Outcome, AdmissionFact, Active] =
-  monitor[AdmissionState, Outcome, AdmissionFact, Active]("atMostOneActiveAttempt", Active.none)(
+  monitor[AdmissionState, Outcome, AdmissionFact, Active](Active.none)(
     countActive
   )(_ == Active.two).readAfter(after => after.facts.contains(AdmissionFact.attemptAdmitted))
 
@@ -214,14 +222,14 @@ def finality(f: Finality, before: AdmissionState, after: AdmissionStep): Finalit
     else Finality.open
 
 val terminalFinality: Monitor[AdmissionState, Outcome, AdmissionFact, Finality] =
-  monitor[AdmissionState, Outcome, AdmissionFact, Finality]("terminalFinality", Finality.open)(
+  monitor[AdmissionState, Outcome, AdmissionFact, Finality](Finality.open)(
     finality
   )(_ == Finality.reopened)
 
 // ### The two designs
 
 val currentAdmission: Machine[AdmissionState, Outcome, AdmissionFact] =
-  machine[AdmissionState, Outcome, AdmissionFact](Family, "currentAdmission") {
+  machine {
     forEntity(activity)
     monitors(atMostOneActiveAttempt, terminalFinality)
     refines(activityProduct)(productOfAdmission)
@@ -237,7 +245,7 @@ val currentAdmission: Machine[AdmissionState, Outcome, AdmissionFact] =
   }
 
 val staleAdmission: Machine[AdmissionState, Outcome, AdmissionFact] =
-  machine[AdmissionState, Outcome, AdmissionFact](Family, "staleAdmission") {
+  machine {
     forEntity(activity)
     monitors(atMostOneActiveAttempt, terminalFinality)
     refines(activityProduct)(productOfAdmission)
@@ -262,8 +270,8 @@ def atMostOneActive(after: AdmissionStep): Boolean = after.state.active != Activ
 def terminalStays(before: AdmissionState, after: AdmissionStep): Boolean =
   before.phase != AdmissionPhase.completed || after.state.phase == AdmissionPhase.completed
 
-val three: Limits = Limits("three", steps = 3, actions = 3, search = 4096)
-val five: Limits = Limits("five", steps = 5, actions = 5, search = 65536)
+val three: Limits = Limits(steps = 3, actions = 3, search = 4096)
+val five: Limits = Limits(steps = 5, actions = 5, search = 65536)
 
 /** Every claim and path, declared on one design: a Property or Scenario belongs to one machine. */
 def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector[Query] =
@@ -282,7 +290,7 @@ def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector
     .scenario("duplicateDelivery")
     .starts(scheduledEmpty)
     .actions(dispatch, attemptStart, attemptStart)
-  val any = m.scenario("any").starts(scheduledEmpty).free
+  val any = m.scenario.starts(scheduledEmpty).free
   Vector(
     query(s"${m.name}.staleDelivery") verify notPaused in stale limits three total 135,
     query(s"${m.name}.admittedBeforePause") verify notPaused in prePause limits three total 135,

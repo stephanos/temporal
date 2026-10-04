@@ -569,6 +569,23 @@ func (c Config) Merged(m *umpirespb.Model) (*umpirespb.Model, error) {
 	return m, err
 }
 
+// FrozenModels reads the frozen inputs whose keys begin with prefix, such as "ir/", as Models by key:
+// the inputs FunctionsRenamed checks the substitutions against.
+func FrozenModels(files map[string][]byte, prefix string) (map[string]*umpirespb.Model, error) {
+	models := map[string]*umpirespb.Model{}
+	for key, encoded := range files {
+		if !strings.HasPrefix(key, prefix) {
+			continue
+		}
+		m := new(umpirespb.Model)
+		if err := protojson.Unmarshal(encoded, m); err != nil {
+			return nil, fmt.Errorf("frozen input %s: %w", key, err)
+		}
+		models[key] = m
+	}
+	return models, nil
+}
+
 // FunctionsRenamed checks that every function-name substitution renames a Function of some frozen
 // input, so the list stays closed.
 func (c Config) FunctionsRenamed(originals map[string]*umpirespb.Model) error {

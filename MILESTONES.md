@@ -56,6 +56,10 @@ that IR, lower it to Testpilot Cases, and run those Cases as functional tests an
 Umpire IR and the Testpilot IR are what connect the parts. See [SCALA.md](.plans/SCALA.md) and
 [UMPIRE4_SPEC.md](.plans/UMPIRE4_SPEC.md).
 
+The DSL framework (`model/umpire`) stays Temporal-agnostic as far as is realistic: Temporal's capability
+vocabulary, laws, realization vocabulary and kit live under `model/temporal/`, and the lifter and Testpilot IR
+are the parts that are Temporal's driver tooling by design (fn-114.12, fn-122.8).
+
 The planned work below continues that direction: the Scala layer first, then the Models.
 
 ## Planned
@@ -68,7 +72,7 @@ production dispatch fails closed.
 | --- | --- | --- | --- |
 | 1 | fn-114 | Roll the fn-112 showcase constructs, including choices, out to every other Model; then shrink copied fixture text and rename the model/ tool folders | — (in progress) |
 | alongside 1 | fn-122 | Capabilities and their laws: shared Temporal promises stated once, adopted per entity | — (in progress) |
-| alongside 1 | fn-121 | Shard generated Cases per Case in CI, with HSM/CHASM per Nexus Case | — (in progress; task 3 needs GitHub CI) |
+| alongside 1 | fn-121 | Shard generated Cases per Case in CI, with HSM/CHASM per Nexus Case | tasks 1-2 done and merged (each Case is its own shard unit, names pinned by a golden); task 3 needs GitHub CI |
 | after 1 | fn-120 rollout and tools | Refuse unnamed branches; add model lint (specification holes, coverage summary) and the IR explorer | fn-114 |
 | after 1 | fn-118 behavior | Derive generated-test waits from API hints, as a separate behavioral change | fn-114 |
 | last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
@@ -81,6 +85,14 @@ not new specs. The structural migrations freeze Case bytes, while fn-118 separat
 changes and freezes Contracts. fn-119's generic Driver primitives are done (fn-119.1-.2). Flow records
 dependencies only within a spec, so the conductor holds the cross-spec gates: fn-120.2 and fn-118.2-.5 wait for
 fn-114 to close.
+
+Open for the owner: generated Cases that stop a worker (activity-terminate and activity-pauseResume always,
+the two scheduleToStartTimeout Cases sometimes) come back INCONCLUSIVE because of a matching race, not Model or
+test-shape changes. `ShutdownWorker` returns early when the task queue's root partition is not loaded yet
+(`service/matching/matching_engine.go`, upstream #9424), never records the worker as shut down, and later polls
+hang until `stop-worker` runs out its 10 s limit. With `frontend.enableMatchingFanOutForPollCancellation=false`
+the same Cases are satisfied in 20 of 20 Runs. The choice is a server fix or that setting in the generated
+test's Profile; fn-121.3's sharded CI run stays red on these Cases until then.
 
 Open for the owner (deferred by fn-112's behavior freeze): the witness-only Properties `terminated` and
 `cancelRequestedWhileStarted` (false on 120 rows each) and seven pause/unpause rows the server rejects (pause in
@@ -101,7 +113,8 @@ Split out of fn-113 so the specs run in a line. Rolls fn-112's constructs out to
 fixtures, and removes the string-named forms from the framework. Realizations refer to their own
 ids by value, identity evidence lines go, and the contents of each IR file are declared in Scala
 with one lifter run writing all of them. Every Model folder gets the same file names as the
-activity, and no `Claims.scala` remains. Lifter fixtures that copy live Model text shrink to minimal fixture-local Models (fn-114.10), and a final rename (fn-114.9, owner request 2026-10-04) gives the tool folders
+activity, and no `Claims.scala` remains. The Temporal realization vocabulary leaves the framework for `model/temporal/realize` behind a guard test
+(fn-114.12), type annotations the compiler and lifter do not need are dropped from the Models (fn-114.11), lifter fixtures that copy live Model text shrink to minimal fixture-local Models (fn-114.10), and a final rename (fn-114.9, owner request 2026-10-04) gives the tool folders
 names that say what they hold: `model/lifter` becomes `model/irgen`, `model/gate` becomes `model/check`
 (absorbing `model/metrics`), and the `model/gen` build cache becomes `model/build`.
 
@@ -112,8 +125,13 @@ Task 1 is done: each Model folder declares its IR files in Scala (`val x = irFil
 report it. Task 2 is done: the Nexus caller Model uses captured names, derivation and the four-file layout
 (its four files went from 898 lines and 114 literals to 780 and 21); the source-path change moved the canary
 Case identity, so its pinned Run was re-recorded. Task 3 is done: the caller realization refers to
-its declarations by value through the shared kit (525 lines and 30 literals, from 645 and 60). Tasks 4-5
-(close policy) are in progress.
+its declarations by value through the shared kit (525 lines and 30 literals, from 645 and 60). Tasks 4 and 5
+are done: the close policy uses the final DSL with a new `sticky` monitor form and the four-file layout (58
+literals, from 148). Task 6 is done: the worker Model is `Model.scala`
+with captured names and pinned IDs, and the lifter fixtures use captured names and named choices. Task 7
+(retire the string-named forms) is next, then 11, 10, 9 and 8. `leadsTo` has no captured-name form yet,
+which leaves two literals in the close policy.
+
 ### fn-118: Declare how Temporal APIs behave once, and let the generated tests use it
 
 Task 1 is done: the inventory (16 Cases, 17 polls, 52 waits, 440 s declared wait budget) and the
@@ -173,4 +191,14 @@ citations; the inventory classifies 76 claims as 8 law instances and 68 feature-
 task 2's binding of plain value arguments. Task 2 is done on the same branch: `capabilities(m, limits)(...)`
 with `except` and `overriding` (each with a reason) lifts each law into a Property, Scenario and Query named
 `<machine>.<law>`, a `<file>.laws.json` sidecar sits beside each IR file that declares capabilities, and all five
-laws now lift. Task 3 (the activity's capabilities) is next.
+laws now lift. Task 3 is done on the branch: the activity declares Closable, Pausable, Pollable, Terminable,
+Cancelable and Describable, its law claims are generated and every generated twin answers as the claim it
+retired, with two new generated Cases. `closedIsRejectedUniformly` is false for the admission record (a delivery
+to a timed-out record is accepted and recorded as `admissionRejected`), so the designs waive it with that reason.
+The new live Cases and the authored terminate Case time out inconclusive under shared load (10 s Contract
+window); fn-118's derived waits take that up. Task 4 is built on the branch: a standalone Nexus operation Model
+(`model/temporal/nexusoperation/`, Closable, Terminable, Cancelable, Describable) gives every catalog law two
+instantiating machines, and its two live Cases pass 5 of 5 on hsm and chasm. It is finishing a required-settings
+field so a Case that needs `nexusoperation.Enabled` fails at preparation, naming the flag, when the flag is off.
+The Testpilot Driver can reserve a Nexus handler only through a workflow or activity start, so the handler paths
+are modeled and verified but have no live Case.

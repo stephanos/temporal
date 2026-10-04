@@ -168,15 +168,20 @@ var closePromises = map[string]string{
 	"lateCompletionIsDropped":     "N8: a completion after the deadline",
 }
 
+// closeDeclared finds each declaration of the sources by its kind: by the name it states, or by the
+// val it takes its name from. A pattern's first group that matched is the name.
 var closeDeclared = map[string]*regexp.Regexp{
-	"machine":    regexp.MustCompile(`machine\[[^\]]+\]\(\s*Family,\s*"([^"]+)"\s*\)`),
-	"monitor":    regexp.MustCompile(`monitor\[[^\]]+\]\(\s*"([^"]+)"`),
+	"machine":    regexp.MustCompile(`(?m)^val (\w+) =\s*(?:machine\[|\w+\s*\.(?:assuming|rebind|extend|restrict)\()`),
+	"monitor":    regexp.MustCompile(`(?m)^val (\w+) =\s*(?:monitor\[|sticky\(|stickyAcross\()`),
 	"assumption": regexp.MustCompile(`assume\(\s*"([^"]+)"\s*\)`),
 	"progress":   regexp.MustCompile(`\.leadsTo\(\s*"([^"]+)"\s*\)`),
-	"property":   regexp.MustCompile(`\.property\(\s*"([^"]+)"\s*\)`),
-	"scenario":   regexp.MustCompile(`\.scenario\(\s*"([^"]+)"\s*\)`),
+	"property":   regexp.MustCompile(`\.property\(\s*"([^"]+)"\s*\)|val (\w+) = m\.property[\s.]`),
+	"scenario":   regexp.MustCompile(`\.scenario\(\s*"([^"]+)"\s*\)|val (\w+) = m\.scenario\b`),
 	"query":      regexp.MustCompile(`query\(\s*s"\$\{m\.name\}\.([^"]+)"\s*\)`),
 }
+
+// A Query that names itself neither, named after its Scenario and the Property its claims hold.
+var closeDefaultQuery = regexp.MustCompile(`query\s+(?:verify|find)\s+claims\.(\w+)\s+in\s+(\w+)`)
 
 // closeSource is every name the Scala sources of the designs declare, as "<kind> <name>".
 func closeSource(t *testing.T) []string {
@@ -190,8 +195,16 @@ func closeSource(t *testing.T) []string {
 		require.NoError(t, err)
 		for kind, declares := range closeDeclared {
 			for _, match := range declares.FindAllStringSubmatch(string(source), -1) {
-				found[kind+" "+match[1]] = true
+				for _, name := range match[1:] {
+					if name != "" {
+						found[kind+" "+name] = true
+						break
+					}
+				}
 			}
+		}
+		for _, match := range closeDefaultQuery.FindAllStringSubmatch(string(source), -1) {
+			found["query "+match[2]+"."+match[1]] = true
 		}
 	}
 	return slices.Sorted(maps.Keys(found))
@@ -314,7 +327,7 @@ type closeClaim struct {
 // assumptions it is conditional on, and an assumption makes fair only what its name says.
 func TestNexusCloseProgressClaimsAreTheSpecimens(t *testing.T) {
 	m := closeModel(t).model
-	const model, claims = "temporal.nexuscaller.closepolicy.Model$package$.", "temporal.nexuscaller.closepolicy.Claims$package$."
+	const model, properties = "temporal.nexuscaller.closepolicy.Model$package$.", "temporal.nexuscaller.closepolicy.Properties$package$."
 	names := map[string]string{}
 	fair := map[string][]string{}
 	for _, a := range m.GetAssumptions() {
@@ -333,7 +346,7 @@ func TestNexusCloseProgressClaimsAreTheSpecimens(t *testing.T) {
 	}, fair)
 
 	reaches := closeClaim{model + "isDone", model + "settled", 6, []string{reporting, delivery}}
-	retained := closeClaim{claims + "awaitingOwner", claims + "ownerKnowsOutcome", 2, []string{delivery, recovery}}
+	retained := closeClaim{properties + "awaitingOwner", properties + "ownerKnowsOutcome", 2, []string{delivery, recovery}}
 	unrecovered := retained
 	unrecovered.Assumptions = []string{delivery}
 	want := map[string]closeClaim{

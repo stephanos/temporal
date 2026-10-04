@@ -397,6 +397,13 @@ The lifter reads what an author wrote, as written:
   !before(before) || !to(after))`, `holdsAcross((before, after) => !p(before) || p(after.state))`
   and the same with `|| release(after)`. Each predicate is lifted as `holds` lifts its lambda and
   called from the Property's function; `keeps` takes a field path, or a def whose body is one.
+- **The monitor pattern** (sugar, the same files): `val retainedOutcome = sticky(outcomePreserved)`
+  and `val ownerAcknowledgment = stickyAcross(ackOnlyWhenKept)` declare a monitor of a promise that,
+  once a step breaks it, stays broken, named after its `val`. Each lifts as the monitor
+  `monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !p(after))(broken =>
+  broken)`, with `!p(before, after)` for `stickyAcross`, read after every step. A promise about
+  another state type than the monitor's does not compile. A monitor that needs history, such as
+  one counting the outcomes recorded, is written with `monitor`.
 
 A declaration takes its name from the `val` that declares it, and its family from the
 `given Family` in scope. A machine states its three types once, in `machine[S, O, F]` or as the
@@ -414,16 +421,23 @@ val two = Limits(steps = 2, actions = 2, search = 64)
 val putStoresOnce = query find putStores in putOnce limits two total 2
 ```
 
-The same holds for `timer`, `internal`, `compose[S](members*)`, `monitor[S, O, F, M](initial)…`,
-`assume`, `hole`, `channel[M](capacity = …, …)` and `Realization(machine = …, …)` without `name`,
-and for `Party()`, `Entity(key = …)` and `Observation(on = …, read = …)`, whose `name`, read as
-`attemptCount.name` in an evidence line or a kit body, is their `val`'s.
-The explicit forms, such as `machine[S, O, F](family, name)`, `action(name, party)` and
-`property("…")`, name a declaration whose name differs from its `val`'s. A Property or Scenario
-with no `val`, built in a list or in a function over a machine argument, keeps `property("…")` or
-`scenario("…")`, except where the function's body ends in it and a `val` declares the function's
-call: it then takes that `val`'s name, as a law's instance does
-(`val terminalStays = terminalStatesAreFinal(m)(Admission.phase, Admission.terminal)`). A Query that neither a `val` nor `query("…")` names is named
+The same holds for `timer`, `internal`, `compose[S](_.field -> machine, …)`,
+`monitor[S, O, F, M](initial)…`, `assume`, `hole`, `channel[M](capacity = …, …)` and
+`Realization(machine = …, …)` without `name`, and for `Party()`, `Entity(key = …)` and
+`Observation(on = …, read = …)`, whose `name`, read as `attemptCount.name` in an evidence line or a
+kit body, is their `val`'s.
+
+A name is written as a string only where it differs from the `val`'s, or where no `val` declares
+it, and each kind has one form for that: `machine[S, O, F](family, name)`, `action(name, party)`,
+`monitor[S, O, F, M](name, initial)`, `assume(name)`, `property(name)`, `scenario(name)`,
+`query(name)` and `Limits(name, …)`. A timer, internal step, hole, channel, derived machine and
+composition has none: each is named after its `val`, and a composition names its members, syncs and
+Scenario classes by field selector, never by a string key. A progress claim is always named,
+`m.leadsTo(name)(…)`. A Property or Scenario with no `val`, built in a list or in a function over a
+machine argument, keeps `property("…")` or `scenario("…")`, except where the function's body ends
+in it and a `val` declares the function's call: it then takes that `val`'s name, as a law's instance
+does (`val terminalStays = terminalStatesAreFinal(m)(Admission.phase, Admission.terminal)`). A Query
+that neither a `val` nor `query("…")` names is named
 `<machine>.<scenario>.<property>`, after the machine its Scenario is declared on, its Scenario and
 its Property: `query verify notPaused in any` over a design `m` is `m.any.notAdmittedWhilePaused`.
 Any other captured form with no `val`, or with a name the compiler made up such as an anonymous
@@ -610,7 +624,8 @@ with `sync` (named or after its first member's action), `synced`, `own` and `wit
 `poll`, `perform`, `onPath`, `always`, `script`, `command` and `statusTable`, `Actuator`,
 `MonitorExpectation` and the kit's roles and bindings. Sugar is a form whose meaning a core form
 already says: `implies`, `in`, `records`, `accept`, `stay`, `disabled`, the claim patterns (`once`,
-`keeps`, `never`, `from`, `stays`, `unless`) and both spellings of `:=`, named inputs and request
+`keeps`, `never`, `from`, `stays`, `unless`), the monitor pattern (`sticky`, `stickyAcross`) and
+both spellings of `:=`, named inputs and request
 fields. It lives in the `Syntax.scala` files of the DSL (`umpire/Syntax.scala`), the kit
 (`temporal/realize/Syntax.scala`) and the lifter (`lifter/Syntax.scala`). Each form is documented
 with `Core form:` and the core spelling it stands for, and a lifter fixture lifts it beside that

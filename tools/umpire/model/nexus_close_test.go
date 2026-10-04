@@ -433,7 +433,7 @@ func TestNexusClosePrincipalLossIsItsOwnAssessment(t *testing.T) {
 	require.Equal(t, []string{"requestCancel-callerWorkflow", "reset"}, taken(free.Witness))
 	// The successor then commits the canceled outcome with no request in its history.
 	require.Equal(t, []Result{{Outcome: "accepted", State: "resetOpen-none-done-canceled-none-none-successor-canceled",
-		Facts: []string{"nexusOperationCanceled"}}},
+		Facts: []string{"nexusOperationCanceled"}, Choice: "taken"}},
 		plainResults(t, c.built["forgetsCancelOnReset"].Table,
 			"resetOpen-none-done-canceled-inFlight-canceled-none-none-complete-canceled")[:1])
 	// Every design that keeps the request keeps its principal: the monitor holds over their whole search.
@@ -468,16 +468,19 @@ func TestNexusCloseDuplicateCompletion(t *testing.T) {
 	table := c.built["retainAndRoute"].Table
 	const lostAck = "the acknowledgment is lost"
 	require.Equal(t, []Result{
-		{Outcome: "accepted", State: "open-none-done-succeeded-none-none-original-succeeded", Facts: []string{"nexusOperationCompleted"}},
-		{Outcome: "rejectedTransient", State: "open-none-done-succeeded-inFlight-succeeded-none-none", Facts: []string{}},
+		{Outcome: "accepted", State: "open-none-done-succeeded-none-none-original-succeeded", Facts: []string{"nexusOperationCompleted"},
+			Choice: "taken"},
+		{Outcome: "rejectedTransient", State: "open-none-done-succeeded-inFlight-succeeded-none-none", Facts: []string{},
+			Choice: "rejectedForNow"},
 		{Outcome: "accepted", State: "open-none-done-succeeded-inFlight-succeeded-none-original-succeeded",
-			Facts: []string{"nexusOperationCompleted"}, Because: lostAck},
+			Facts: []string{"nexusOperationCompleted"}, Because: lostAck, Choice: "ackLost"},
 	}, plainResults(t, table, "open-none-done-succeeded-inFlight-succeeded-none-none-complete-succeeded"))
 	require.Equal(t, []Result{
-		{Outcome: "accepted", State: "open-none-done-succeeded-none-none-original-succeeded", Facts: []string{}},
-		{Outcome: "rejectedTransient", State: "open-none-done-succeeded-inFlight-succeeded-none-original-succeeded", Facts: []string{}},
+		{Outcome: "accepted", State: "open-none-done-succeeded-none-none-original-succeeded", Facts: []string{}, Choice: "taken"},
+		{Outcome: "rejectedTransient", State: "open-none-done-succeeded-inFlight-succeeded-none-original-succeeded", Facts: []string{},
+			Choice: "rejectedForNow"},
 		{Outcome: "accepted", State: "open-none-done-succeeded-inFlight-succeeded-none-original-succeeded", Facts: []string{},
-			Because: lostAck},
+			Because: lostAck, Choice: "ackLost"},
 	}, plainResults(t, table, "open-none-done-succeeded-inFlight-succeeded-none-original-succeeded-complete-succeeded"))
 	for _, design := range closeDesigns {
 		require.True(t, closeQuery(t, c, design, "duplicateCompletion").Exercised, design)

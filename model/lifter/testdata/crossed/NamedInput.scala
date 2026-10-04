@@ -12,7 +12,7 @@ val scheduleToStart = input[Timeout]
 val startToClose = input[Timeout]
 val heartbeat = input[Timeout]
 
-val start = action("start", Party("fixture"))
+val start = action(Party("fixture"))
   .input(scheduleToStart)
   .input(startToClose)
   .input(heartbeat)

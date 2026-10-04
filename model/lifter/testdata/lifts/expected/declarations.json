@@ -4,7 +4,7 @@
     "name": "fixture.declarations.DetailedPair",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 120
+      "line": 116
     },
     "record": {
       "fields": [ {
@@ -23,7 +23,7 @@
     "name": "fixture.declarations.Disk",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 54
+      "line": 53
     },
     "record": {
       "fields": [ {
@@ -76,7 +76,7 @@
     "name": "fixture.declarations.Pair",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 118
+      "line": 114
     },
     "record": {
       "fields": [ {
@@ -95,7 +95,7 @@
     "name": "fixture.declarations.Seen",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 72
+      "line": 71
     },
     "enum": {
       "cases": [ {
@@ -110,7 +110,7 @@
     "name": "fixture.declarations.Stage",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 51
+      "line": 50
     },
     "enum": {
       "cases": [ {
@@ -140,308 +140,6 @@
     "name": "detailedPair.property.frontHeld",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 143
-    },
-    "params": [ {
-      "name": "after",
-      "type": {
-        "named": "umpire.Step"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 143
-      },
-      "binary": {
-        "op": "OP_EQ",
-        "left": {
-          "position": {
-            "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 143
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 143
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 143
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/lifter/testdata/lifts/Declarations.scala",
-                        "line": 143
-                      },
-                      "var": "after"
-                    },
-                    "field": "state"
-                  }
-                },
-                "field": "front"
-              }
-            },
-            "field": "kept"
-          }
-        },
-        "right": {
-          "position": {
-            "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 143
-          },
-          "literal": {
-            "enum": {
-              "type": "fixture.declarations.Kept",
-              "case": "held"
-            }
-          }
-        }
-      }
-    }
-  }, {
-    "name": "disk.evidence",
-    "position": {
-      "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 106
-    },
-    "params": [ {
-      "name": "f",
-      "type": {
-        "named": "fixture.declarations.Fact"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 106
-      },
-      "call": {
-        "function": "fixture.declarations.Declarations$package$.evidenceOf",
-        "args": [ {
-          "position": {
-            "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 106
-          },
-          "var": "f"
-        } ]
-      }
-    }
-  }, {
-    "name": "disk.progress.durableEventually.from",
-    "position": {
-      "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 112
-    },
-    "params": [ {
-      "name": "d",
-      "type": {
-        "named": "fixture.declarations.Disk"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 112
-      },
-      "binary": {
-        "op": "OP_EQ",
-        "left": {
-          "position": {
-            "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 112
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 112
-              },
-              "var": "d"
-            },
-            "field": "stage"
-          }
-        },
-        "right": {
-          "position": {
-            "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 112
-          },
-          "literal": {
-            "enum": {
-              "type": "fixture.declarations.Stage",
-              "case": "staged"
-            }
-          }
-        }
-      }
-    }
-  }, {
-    "name": "disk.progress.durableEventually.to",
-    "position": {
-      "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 113
-    },
-    "params": [ {
-      "name": "d",
-      "type": {
-        "named": "fixture.declarations.Disk"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 113
-      },
-      "binary": {
-        "op": "OP_EQ",
-        "left": {
-          "position": {
-            "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 113
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 113
-              },
-              "var": "d"
-            },
-            "field": "stage"
-          }
-        },
-        "right": {
-          "position": {
-            "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 113
-          },
-          "literal": {
-            "enum": {
-              "type": "fixture.declarations.Stage",
-              "case": "durable"
-            }
-          }
-        }
-      }
-    }
-  }, {
-    "name": "disk.property.durableStays",
-    "position": {
-      "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 133
-    },
-    "params": [ {
-      "name": "before",
-      "type": {
-        "named": "fixture.declarations.Disk"
-      }
-    }, {
-      "name": "after",
-      "type": {
-        "named": "umpire.Step"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 134
-      },
-      "binary": {
-        "op": "OP_OR",
-        "left": {
-          "position": {
-            "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 134
-          },
-          "binary": {
-            "op": "OP_NE",
-            "left": {
-              "position": {
-                "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 134
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 134
-                  },
-                  "var": "before"
-                },
-                "field": "stage"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 134
-              },
-              "literal": {
-                "enum": {
-                  "type": "fixture.declarations.Stage",
-                  "case": "durable"
-                }
-              }
-            }
-          }
-        },
-        "right": {
-          "position": {
-            "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 134
-          },
-          "binary": {
-            "op": "OP_EQ",
-            "left": {
-              "position": {
-                "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 134
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 134
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/lifter/testdata/lifts/Declarations.scala",
-                        "line": 134
-                      },
-                      "var": "after"
-                    },
-                    "field": "state"
-                  }
-                },
-                "field": "stage"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 134
-              },
-              "literal": {
-                "enum": {
-                  "type": "fixture.declarations.Stage",
-                  "case": "durable"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }, {
-    "name": "disk.property.putAccepted",
-    "position": {
-      "file": "model/lifter/testdata/lifts/Declarations.scala",
       "line": 139
     },
     "params": [ {
@@ -468,6 +166,308 @@
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
                 "line": 139
               },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Declarations.scala",
+                    "line": 139
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Declarations.scala",
+                        "line": 139
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                },
+                "field": "front"
+              }
+            },
+            "field": "kept"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Declarations.scala",
+            "line": 139
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Kept",
+              "case": "held"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.evidence",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Declarations.scala",
+      "line": 102
+    },
+    "params": [ {
+      "name": "f",
+      "type": {
+        "named": "fixture.declarations.Fact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Declarations.scala",
+        "line": 102
+      },
+      "call": {
+        "function": "fixture.declarations.Declarations$package$.evidenceOf",
+        "args": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Declarations.scala",
+            "line": 102
+          },
+          "var": "f"
+        } ]
+      }
+    }
+  }, {
+    "name": "disk.progress.durableEventually.from",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Declarations.scala",
+      "line": 108
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "fixture.declarations.Disk"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Declarations.scala",
+        "line": 108
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Declarations.scala",
+            "line": 108
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Declarations.scala",
+                "line": 108
+              },
+              "var": "d"
+            },
+            "field": "stage"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Declarations.scala",
+            "line": 108
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Stage",
+              "case": "staged"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.progress.durableEventually.to",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Declarations.scala",
+      "line": 109
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "fixture.declarations.Disk"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Declarations.scala",
+        "line": 109
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Declarations.scala",
+            "line": 109
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Declarations.scala",
+                "line": 109
+              },
+              "var": "d"
+            },
+            "field": "stage"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Declarations.scala",
+            "line": 109
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.declarations.Stage",
+              "case": "durable"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.property.durableStays",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Declarations.scala",
+      "line": 129
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.declarations.Disk"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Declarations.scala",
+        "line": 130
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Declarations.scala",
+            "line": 130
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Declarations.scala",
+                "line": 130
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Declarations.scala",
+                    "line": 130
+                  },
+                  "var": "before"
+                },
+                "field": "stage"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Declarations.scala",
+                "line": 130
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Stage",
+                  "case": "durable"
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Declarations.scala",
+            "line": 130
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Declarations.scala",
+                "line": 130
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Declarations.scala",
+                    "line": 130
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Declarations.scala",
+                        "line": 130
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                },
+                "field": "stage"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Declarations.scala",
+                "line": 130
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.declarations.Stage",
+                  "case": "durable"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "disk.property.putAccepted",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Declarations.scala",
+      "line": 135
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Declarations.scala",
+        "line": 135
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Declarations.scala",
+            "line": 135
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Declarations.scala",
+                "line": 135
+              },
               "var": "after"
             },
             "field": "outcome"
@@ -476,7 +476,7 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 139
+            "line": 135
           },
           "literal": {
             "enum": {
@@ -491,7 +491,7 @@
     "name": "disk.visible",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 101
+      "line": 97
     },
     "params": [ {
       "name": "f",
@@ -502,21 +502,21 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 101
+        "line": 97
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 101
+            "line": 97
           },
           "var": "f"
         },
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 101
+            "line": 97
           },
           "literal": {
             "enum": {
@@ -531,7 +531,7 @@
     "name": "disk.visibleOutcomes",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 102
+      "line": 98
     },
     "params": [ {
       "name": "o",
@@ -542,21 +542,21 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 102
+        "line": 98
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 102
+            "line": 98
           },
           "var": "o"
         },
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 102
+            "line": 98
           },
           "literal": {
             "enum": {
@@ -571,7 +571,7 @@
     "name": "fixture.declarations.Declarations$package$.countStored",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 75
+      "line": 74
     },
     "params": [ {
       "name": "seen",
@@ -592,27 +592,27 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 76
+        "line": 75
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 76
+            "line": 75
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 76
+                "line": 75
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 76
+                    "line": 75
                   },
                   "literal": {
                     "enum": {
@@ -624,13 +624,13 @@
                 "right": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 76
+                    "line": 75
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Declarations.scala",
-                        "line": 76
+                        "line": 75
                       },
                       "var": "after"
                     },
@@ -644,20 +644,20 @@
         "then": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 76
+            "line": 75
           },
           "var": "seen"
         },
         "else": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 78
+            "line": 77
           },
           "match": {
             "scrutinee": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 78
+                "line": 77
               },
               "var": "seen"
             },
@@ -673,7 +673,7 @@
               "body": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Declarations.scala",
-                  "line": 79
+                  "line": 78
                 },
                 "literal": {
                   "enum": {
@@ -705,7 +705,7 @@
               "body": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Declarations.scala",
-                  "line": 80
+                  "line": 79
                 },
                 "literal": {
                   "enum": {
@@ -723,7 +723,7 @@
     "name": "fixture.declarations.Declarations$package$.crashStep",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 69
+      "line": 68
     },
     "params": [ {
       "name": "d",
@@ -734,26 +734,26 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 70
+        "line": 69
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 70
+            "line": 69
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 70
+                "line": 69
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 70
+                    "line": 69
                   },
                   "var": "d"
                 },
@@ -763,7 +763,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 70
+                "line": 69
               },
               "literal": {
                 "enum": {
@@ -777,14 +777,14 @@
         "then": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 70
+            "line": 69
           },
           "hole": "fixture.declarations.Declarations$package$.crashUnmodeled"
         },
         "else": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 70
+            "line": 69
           },
           "list": { }
         }
@@ -794,7 +794,7 @@
     "name": "fixture.declarations.Declarations$package$.endsDurable.next",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 88
+      "line": 85
     },
     "params": [ {
       "name": "boolean",
@@ -815,26 +815,26 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 89
+        "line": 85
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 89
+            "line": 85
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 89
+                "line": 85
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 89
+                    "line": 85
                   },
                   "var": "after"
                 },
@@ -847,7 +847,7 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 89
+            "line": 85
           },
           "literal": {
             "enum": {
@@ -862,7 +862,7 @@
     "name": "fixture.declarations.Declarations$package$.endsDurable.violated",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 90
+      "line": 86
     },
     "params": [ {
       "name": "durable",
@@ -873,14 +873,14 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 90
+        "line": 86
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 90
+            "line": 86
           },
           "var": "durable"
         }
@@ -954,7 +954,7 @@
     "name": "fixture.declarations.Declarations$package$.flushStep",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 64
+      "line": 63
     },
     "params": [ {
       "name": "d",
@@ -965,19 +965,19 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 64
+        "line": 63
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 64
+            "line": 63
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 64
+                "line": 63
               },
               "var": "d"
             },
@@ -996,20 +996,20 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Declarations.scala",
-              "line": 65
+              "line": 64
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Declarations.scala",
-                  "line": 65
+                  "line": 64
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Declarations.scala",
-                      "line": 65
+                      "line": 64
                     },
                     "literal": {
                       "enum": {
@@ -1020,14 +1020,14 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Declarations.scala",
-                      "line": 65
+                      "line": 64
                     },
                     "construct": {
                       "type": "fixture.declarations.Disk",
                       "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Declarations.scala",
-                          "line": 65
+                          "line": 64
                         },
                         "literal": {
                           "enum": {
@@ -1040,13 +1040,13 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Declarations.scala",
-                      "line": 65
+                      "line": 64
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Declarations.scala",
-                          "line": 65
+                          "line": 64
                         },
                         "literal": {
                           "enum": {
@@ -1059,7 +1059,7 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Declarations.scala",
-                      "line": 65
+                      "line": 64
                     },
                     "literal": {
                       "text": ""
@@ -1076,7 +1076,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Declarations.scala",
-              "line": 66
+              "line": 65
             },
             "list": { }
           }
@@ -1087,7 +1087,7 @@
     "name": "fixture.declarations.Declarations$package$.putStep",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 59
+      "line": 58
     },
     "params": [ {
       "name": "d",
@@ -1098,19 +1098,19 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 59
+        "line": 58
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 59
+            "line": 58
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 59
+                "line": 58
               },
               "var": "d"
             },
@@ -1129,20 +1129,20 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Declarations.scala",
-              "line": 60
+              "line": 59
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Declarations.scala",
-                  "line": 60
+                  "line": 59
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Declarations.scala",
-                      "line": 60
+                      "line": 59
                     },
                     "literal": {
                       "enum": {
@@ -1153,14 +1153,14 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Declarations.scala",
-                      "line": 60
+                      "line": 59
                     },
                     "construct": {
                       "type": "fixture.declarations.Disk",
                       "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Declarations.scala",
-                          "line": 60
+                          "line": 59
                         },
                         "literal": {
                           "enum": {
@@ -1173,13 +1173,13 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Declarations.scala",
-                      "line": 60
+                      "line": 59
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Declarations.scala",
-                          "line": 60
+                          "line": 59
                         },
                         "literal": {
                           "enum": {
@@ -1192,7 +1192,7 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Declarations.scala",
-                      "line": 60
+                      "line": 59
                     },
                     "literal": {
                       "text": ""
@@ -1225,7 +1225,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Declarations.scala",
-              "line": 61
+              "line": 60
             },
             "list": { }
           }
@@ -1236,7 +1236,7 @@
     "name": "fixture.declarations.Declarations$package$.stagedBeforeDurable.after",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 95
+      "line": 92
     },
     "params": [ {
       "name": "after",
@@ -1247,26 +1247,26 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 95
+        "line": 92
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 95
+            "line": 92
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 95
+                "line": 92
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 95
+                    "line": 92
                   },
                   "var": "after"
                 },
@@ -1279,7 +1279,7 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 95
+            "line": 92
           },
           "literal": {
             "enum": {
@@ -1294,7 +1294,7 @@
     "name": "fixture.declarations.Declarations$package$.stagedBeforeDurable.next",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 93
+      "line": 90
     },
     "params": [ {
       "name": "seen",
@@ -1315,28 +1315,28 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 94
+        "line": 91
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 94
+            "line": 91
           },
           "var": "seen"
         },
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 94
+            "line": 91
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 94
+                "line": 91
               },
               "literal": {
                 "enum": {
@@ -1348,13 +1348,13 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 94
+                "line": 91
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 94
+                    "line": 91
                   },
                   "var": "after"
                 },
@@ -1369,7 +1369,7 @@
     "name": "fixture.declarations.Declarations$package$.stagedBeforeDurable.violated",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 95
+      "line": 92
     },
     "params": [ {
       "name": "seen",
@@ -1380,14 +1380,14 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 95
+        "line": 92
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 95
+            "line": 92
           },
           "var": "seen"
         }
@@ -1397,7 +1397,7 @@
     "name": "fixture.declarations.Declarations$package$.stored",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 56
+      "line": 55
     },
     "params": [ {
       "name": "d",
@@ -1408,26 +1408,26 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 57
+        "line": 56
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 57
+            "line": 56
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 57
+                "line": 56
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 57
+                    "line": 56
                   },
                   "var": "d"
                 },
@@ -1437,7 +1437,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 57
+                "line": 56
               },
               "literal": {
                 "enum": {
@@ -1451,14 +1451,14 @@
         "then": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 57
+            "line": 56
           },
           "construct": {
             "type": "fixture.declarations.Store",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 57
+                "line": 56
               },
               "literal": {
                 "enum": {
@@ -1472,14 +1472,14 @@
         "else": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 57
+            "line": 56
           },
           "construct": {
             "type": "fixture.declarations.Store",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 57
+                "line": 56
               },
               "literal": {
                 "enum": {
@@ -1496,7 +1496,7 @@
     "name": "fixture.declarations.Declarations$package$.storedOnce.violated",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 83
+      "line": 82
     },
     "params": [ {
       "name": "seen",
@@ -1507,21 +1507,21 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 84
+        "line": 82
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 84
+            "line": 82
           },
           "var": "seen"
         },
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 84
+            "line": 82
           },
           "literal": {
             "enum": {
@@ -1536,7 +1536,7 @@
     "name": "pair.property.keptTogether",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 141
+      "line": 137
     },
     "params": [ {
       "name": "after",
@@ -1547,32 +1547,32 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 141
+        "line": 137
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 141
+            "line": 137
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 141
+                "line": 137
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 141
+                    "line": 137
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Declarations.scala",
-                        "line": 141
+                        "line": 137
                       },
                       "var": "after"
                     },
@@ -1588,25 +1588,25 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 141
+            "line": 137
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 141
+                "line": 137
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 141
+                    "line": 137
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Declarations.scala",
-                        "line": 141
+                        "line": 137
                       },
                       "var": "after"
                     },
@@ -1625,7 +1625,7 @@
     "name": "store.evidence",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 41
+      "line": 40
     },
     "params": [ {
       "name": "f",
@@ -1636,14 +1636,14 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 41
+        "line": 40
       },
       "call": {
         "function": "fixture.declarations.Declarations$package$.evidenceOf",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 41
+            "line": 40
           },
           "var": "f"
         } ]
@@ -1653,7 +1653,7 @@
     "name": "store.property.putStores",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 137
+      "line": 133
     },
     "params": [ {
       "name": "after",
@@ -1664,14 +1664,14 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 137
+        "line": 133
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 137
+            "line": 133
           },
           "literal": {
             "enum": {
@@ -1683,13 +1683,13 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 137
+            "line": 133
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 137
+                "line": 133
               },
               "var": "after"
             },
@@ -1702,7 +1702,7 @@
     "name": "store.put",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 43
+      "line": 42
     },
     "params": [ {
       "name": "s",
@@ -1713,26 +1713,26 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 44
+        "line": 43
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 44
+            "line": 43
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 44
+                "line": 43
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 44
+                    "line": 43
                   },
                   "var": "s"
                 },
@@ -1742,7 +1742,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 44
+                "line": 43
               },
               "literal": {
                 "enum": {
@@ -1756,20 +1756,20 @@
         "then": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 45
+            "line": 44
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 45
+                "line": 44
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 45
+                    "line": 44
                   },
                   "literal": {
                     "enum": {
@@ -1780,14 +1780,14 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 45
+                    "line": 44
                   },
                   "construct": {
                     "type": "fixture.declarations.Store",
                     "args": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Declarations.scala",
-                        "line": 45
+                        "line": 44
                       },
                       "literal": {
                         "enum": {
@@ -1800,13 +1800,13 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 45
+                    "line": 44
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Declarations.scala",
-                        "line": 45
+                        "line": 44
                       },
                       "literal": {
                         "enum": {
@@ -1819,7 +1819,7 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 45
+                    "line": 44
                   },
                   "literal": {
                     "text": ""
@@ -1832,7 +1832,7 @@
         "else": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 46
+            "line": 45
           },
           "list": { }
         }
@@ -1870,7 +1870,7 @@
     "name": "disk",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 99
+      "line": 95
     },
     "stateType": "fixture.declarations.Disk",
     "outcomeType": "fixture.declarations.Outcome",
@@ -1878,14 +1878,14 @@
     "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 104
+        "line": 100
       },
       "construct": {
         "type": "fixture.declarations.Disk",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 104
+            "line": 100
           },
           "literal": {
             "enum": {
@@ -1899,7 +1899,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 105
+        "line": 101
       },
       "lambda": {
         "params": [ {
@@ -1911,20 +1911,20 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 105
+            "line": 101
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 105
+                "line": 101
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 105
+                    "line": 101
                   },
                   "var": "d"
                 },
@@ -1934,7 +1934,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 105
+                "line": 101
               },
               "literal": {
                 "enum": {
@@ -1952,21 +1952,21 @@
       "function": "fixture.declarations.Declarations$package$.putStep",
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 107
+        "line": 103
       }
     }, {
       "action": "fixture.declarations.Declarations$package$.flush",
       "function": "fixture.declarations.Declarations$package$.flushStep",
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 107
+        "line": 103
       }
     }, {
       "action": "fixture.declarations.Declarations$package$.crash",
       "function": "fixture.declarations.Declarations$package$.crashStep",
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 107
+        "line": 103
       }
     } ],
     "evidence": "disk.evidence",
@@ -1982,7 +1982,7 @@
     "name": "store",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 37
+      "line": 36
     },
     "stateType": "fixture.declarations.Store",
     "outcomeType": "fixture.declarations.Outcome",
@@ -1990,14 +1990,14 @@
     "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 39
+        "line": 38
       },
       "construct": {
         "type": "fixture.declarations.Store",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 39
+            "line": 38
           },
           "literal": {
             "enum": {
@@ -2011,7 +2011,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 40
+        "line": 39
       },
       "lambda": {
         "params": [ {
@@ -2023,20 +2023,20 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 40
+            "line": 39
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 40
+                "line": 39
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 40
+                    "line": 39
                   },
                   "var": "s"
                 },
@@ -2046,7 +2046,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 40
+                "line": 39
               },
               "literal": {
                 "enum": {
@@ -2064,7 +2064,7 @@
       "function": "store.put",
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 43
+        "line": 42
       }
     } ],
     "evidence": "store.evidence",
@@ -2075,7 +2075,7 @@
     "name": "endsDurable",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 87
+      "line": 84
     },
     "state": {
       "bool": { }
@@ -2083,7 +2083,7 @@
     "initial": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 88
+        "line": 85
       },
       "literal": {
         "bool": false
@@ -2097,7 +2097,7 @@
     "name": "stagedBeforeDurable",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 92
+      "line": 89
     },
     "state": {
       "bool": { }
@@ -2105,7 +2105,7 @@
     "initial": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 93
+        "line": 90
       },
       "literal": {
         "bool": false
@@ -2119,7 +2119,7 @@
     "name": "storedOnce",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 82
+      "line": 81
     },
     "state": {
       "named": "fixture.declarations.Seen"
@@ -2127,7 +2127,7 @@
     "initial": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 83
+        "line": 82
       },
       "literal": {
         "enum": {
@@ -2169,7 +2169,7 @@
     "name": "detailedPair",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 128
+      "line": 124
     },
     "stateType": "fixture.declarations.DetailedPair",
     "members": [ {
@@ -2194,7 +2194,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 131
+        "line": 127
       },
       "lambda": {
         "params": [ {
@@ -2206,26 +2206,26 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 131
+            "line": 127
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 131
+                "line": 127
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 131
+                    "line": 127
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Declarations.scala",
-                        "line": 131
+                        "line": 127
                       },
                       "var": "p"
                     },
@@ -2238,7 +2238,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 131
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -2256,7 +2256,7 @@
     "name": "pair",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 123
+      "line": 119
     },
     "stateType": "fixture.declarations.Pair",
     "members": [ {
@@ -2280,7 +2280,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 125
+        "line": 121
       },
       "lambda": {
         "params": [ {
@@ -2292,26 +2292,26 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 125
+            "line": 121
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 125
+                "line": 121
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 125
+                    "line": 121
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Declarations.scala",
-                        "line": 125
+                        "line": 121
                       },
                       "var": "p"
                     },
@@ -2324,19 +2324,19 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 125
+                "line": 121
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Declarations.scala",
-                    "line": 125
+                    "line": 121
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Declarations.scala",
-                        "line": 125
+                        "line": 121
                       },
                       "var": "p"
                     },
@@ -2356,7 +2356,7 @@
     "name": "frontHeld",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 143
+      "line": 139
     },
     "holds": "detailedPair.property.frontHeld"
   }, {
@@ -2364,7 +2364,7 @@
     "name": "durableStays",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 133
+      "line": 129
     },
     "holds": "disk.property.durableStays",
     "transition": true
@@ -2373,7 +2373,7 @@
     "name": "putAccepted",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 139
+      "line": 135
     },
     "whenAction": "put",
     "holds": "disk.property.putAccepted"
@@ -2382,7 +2382,7 @@
     "name": "keptTogether",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 141
+      "line": 137
     },
     "holds": "pair.property.keptTogether"
   }, {
@@ -2390,7 +2390,7 @@
     "name": "putStores",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 137
+      "line": 133
     },
     "whenClass": {
       "action": "fixture.declarations.Declarations$package$.put"
@@ -2402,26 +2402,26 @@
     "name": "bothPut",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 152
+      "line": 148
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 154
+        "line": 149
       },
       "construct": {
         "type": "fixture.declarations.DetailedPair",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 154
+            "line": 149
           },
           "construct": {
             "type": "fixture.declarations.Store",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 154
+                "line": 149
               },
               "literal": {
                 "enum": {
@@ -2434,14 +2434,14 @@
         }, {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 154
+            "line": 149
           },
           "construct": {
             "type": "fixture.declarations.Disk",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 154
+                "line": 149
               },
               "literal": {
                 "enum": {
@@ -2460,19 +2460,19 @@
     "name": "any",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 147
+      "line": 143
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 147
+        "line": 143
       },
       "construct": {
         "type": "fixture.declarations.Disk",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 147
+            "line": 143
           },
           "literal": {
             "enum": {
@@ -2489,19 +2489,19 @@
     "name": "putThenFlush",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 146
+      "line": 142
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 146
+        "line": 142
       },
       "construct": {
         "type": "fixture.declarations.Disk",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 146
+            "line": 142
           },
           "literal": {
             "enum": {
@@ -2522,26 +2522,26 @@
     "name": "any",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 150
+      "line": 146
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 150
+        "line": 146
       },
       "construct": {
         "type": "fixture.declarations.Pair",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 150
+            "line": 146
           },
           "construct": {
             "type": "fixture.declarations.Store",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 150
+                "line": 146
               },
               "literal": {
                 "enum": {
@@ -2554,14 +2554,14 @@
         }, {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 150
+            "line": 146
           },
           "construct": {
             "type": "fixture.declarations.Store",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Declarations.scala",
-                "line": 150
+                "line": 146
               },
               "literal": {
                 "enum": {
@@ -2580,19 +2580,19 @@
     "name": "putOnce",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 148
+      "line": 144
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/Declarations.scala",
-        "line": 148
+        "line": 144
       },
       "construct": {
         "type": "fixture.declarations.Store",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Declarations.scala",
-            "line": 148
+            "line": 144
           },
           "literal": {
             "enum": {
@@ -2611,7 +2611,7 @@
     "name": "bothPut",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 167
+      "line": 162
     },
     "form": "FORM_FIND",
     "property": {
@@ -2633,7 +2633,7 @@
     "name": "durableStays",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 160
+      "line": 155
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -2655,7 +2655,7 @@
     "name": "keptTogether",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 166
+      "line": 161
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -2677,7 +2677,7 @@
     "name": "putAccepted",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 161
+      "line": 156
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -2699,7 +2699,7 @@
     "name": "putStores",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 162
+      "line": 157
     },
     "form": "FORM_FIND",
     "property": {
@@ -2721,7 +2721,7 @@
     "name": "putStoresThroughDisk",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 163
+      "line": 158
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -2746,7 +2746,7 @@
     "name": "durableEventually",
     "position": {
       "file": "model/lifter/testdata/lifts/Declarations.scala",
-      "line": 111
+      "line": 107
     },
     "from": "disk.progress.durableEventually.from",
     "to": "disk.progress.durableEventually.to",

@@ -5,7 +5,9 @@
   "created_at": "2026-10-04T00:42:06.859727Z",
   "depends_on": [
     "fn-114-state-every-scala-model-declaration-once.7",
-    "fn-114-state-every-scala-model-declaration-once.10"
+    "fn-114-state-every-scala-model-declaration-once.10",
+    "fn-114-state-every-scala-model-declaration-once.11",
+    "fn-114-state-every-scala-model-declaration-once.12"
   ],
   "id": "fn-114-state-every-scala-model-declaration-once.9",
   "priority": null,
@@ -13,5 +15,5 @@
   "spec_path": ".flow/tasks/fn-114-state-every-scala-model-declaration-once.9.md",
   "status": "todo",
   "title": "Rename model/ tool folders so each says what it holds",
-  "updated_at": "2026-10-04T00:54:00.366615Z"
+  "updated_at": "2026-10-04T17:53:12.617942Z"
 }

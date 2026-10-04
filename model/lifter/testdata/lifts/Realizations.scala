@@ -199,7 +199,6 @@ private val payload = Proto[Payload](
 )
 
 val learnedRun: Realization = Realization(
-  name = "learnedRun",
   machine = nexusProtocol,
   producer = "fixture.realizations",
   producerVersion = "1",
@@ -330,7 +329,6 @@ val learnedRun: Realization = Realization(
 /** The dispatch the race holds, as the channel the specimen proposes for it. */
 val dispatchChannel: Channel[Dispatched] =
   channel[Dispatched](
-    "dispatchChannel",
     capacity = 1,
     order = Order.unordered,
     loss = Loss.reliable
@@ -343,11 +341,10 @@ private val holdDispatch = "hold-dispatch"
 // message consumed and the message kept for redelivery, that record the same facts, so no kind of
 // evidence tells them apart and a producer refuses a path through it as ambiguous.
 private val pausedWhileQueued =
-  staleAdmission.property("pausedWhileQueued") when control(ActivityControl.pause) holds
+  staleAdmission.property when control(ActivityControl.pause) holds
     (_.facts.contains(AdmissionFact.statusPaused))
 
-private val heldRace = staleAdmission
-  .scenario("heldRace")
+private val heldRace = staleAdmission.scenario
   .starts(scheduledEmpty)
   .actions(dispatch, control(ActivityControl.pause))
 
@@ -393,7 +390,6 @@ private def raceEvidence(records: String, commitment: Commitment) =
   )
 
 val pauseRace: Realization = Realization(
-  name = "pauseRace",
   machine = staleAdmission,
   producer = "fixture.realizations",
   producerVersion = "1",
@@ -512,9 +508,9 @@ enum DoorFact derives Finite:
 type DoorStep = Step[DoorState, DoorOutcome, DoorFact]
 
 val doorFamily: umpire.Family = umpire.Family("fixture.realizations.door")
-val doorkeeper: Party = Party("doorkeeper")
-val door: Entity = Entity("door", key = "doorId")
-val push = action("push", doorkeeper) on door
+val doorkeeper: Party = Party()
+val door: Entity = Entity(key = "doorId")
+val push = action(doorkeeper) on door
 
 /** A push opens a closed door, and says why; an open door takes no push. */
 def pushStep(s: DoorState): List[DoorStep] = s match
@@ -536,11 +532,11 @@ val doorMachine: Machine[DoorState, DoorOutcome, DoorFact] =
 
 /** The step's explanation is part of the step a Property reads, as its outcome and facts are. */
 private val opensBecauseTheLatchGives =
-  doorMachine.property("opensBecauseTheLatchGives") when push holds { s =>
+  doorMachine.property when push holds { s =>
     s.because == "the latch gives" && s.facts.contains(DoorFact.doorOpened)
   }
 
-private val pushed = doorMachine.scenario("pushed").starts(DoorState.closed).actions(push)
+private val pushed = doorMachine.scenario.starts(DoorState.closed).actions(push)
 
 val doorOpens: Query =
   query("door.opens") find opensBecauseTheLatchGives in pushed limits Limits(
@@ -551,7 +547,6 @@ val doorOpens: Query =
   ) total 2
 
 val doorRealization: Realization = Realization(
-  name = "doorRealization",
   machine = doorMachine,
   producer = "fixture.realizations",
   producerVersion = "1",
@@ -667,12 +662,12 @@ enum ErrandFact derives Finite:
 type ErrandStep = Step[ErrandState, ErrandOutcome, ErrandFact]
 
 val errandFamily: umpire.Family = umpire.Family("fixture.realizations.errand")
-val requester: Party = Party("requester")
-val runner: Party = Party("runner")
-val errand: Entity = Entity("errand", key = "errandId")
-val request = action("request", requester).creates(errand)
-val deliver = action("deliver", runner) on errand
-val answer = action("answer", runner).on(errand).input[ErrandAnswer]("answer")
+val requester: Party = Party()
+val runner: Party = Party()
+val errand: Entity = Entity(key = "errandId")
+val request = action(requester).creates(errand)
+val deliver = action(runner) on errand
+val answer = action(runner).on(errand).input[ErrandAnswer]("answer")
 
 def requestStep(s: ErrandState): List[ErrandStep] = s match
   case ErrandState.idle =>
@@ -714,12 +709,11 @@ val errandMachine: Machine[ErrandState, ErrandOutcome, ErrandFact] =
   }
 
 private val closesOnCompletion =
-  errandMachine.property("closesOnCompletion") when answer(ErrandAnswer.completed) holds { s =>
+  errandMachine.property when answer(ErrandAnswer.completed) holds { s =>
     s.state == ErrandState.done && s.facts.contains(ErrandFact.errandClosed)
   }
 
-private val retriedOnce = errandMachine
-  .scenario("retriedOnce")
+private val retriedOnce = errandMachine.scenario
   .starts(ErrandState.idle)
   .actions(request, deliver, answer(ErrandAnswer.failed), deliver, answer(ErrandAnswer.completed))
 
@@ -734,12 +728,11 @@ val errandRetry: Query =
 // The one path that takes the worker's canceled answer, which Testpilot has no instruction for: its
 // Query is blocked by that command, and the retry above, whose path does not take it, is not.
 private val withdrawsOnCancel =
-  errandMachine.property("withdrawsOnCancel") when answer(ErrandAnswer.canceled) holds { s =>
+  errandMachine.property when answer(ErrandAnswer.canceled) holds { s =>
     s.state == ErrandState.withdrawn && s.facts.contains(ErrandFact.errandWithdrawn)
   }
 
-private val canceledOnce = errandMachine
-  .scenario("canceledOnce")
+private val canceledOnce = errandMachine.scenario
   .starts(ErrandState.idle)
   .actions(request, deliver, answer(ErrandAnswer.canceled))
 
@@ -795,7 +788,6 @@ private def awaitListed(
   )
 
 val errandRealization: Realization = Realization(
-  name = "errandRealization",
   machine = errandMachine,
   producer = "fixture.realizations",
   producerVersion = "1",
@@ -969,9 +961,9 @@ val tallyMachine: Machine[DoorState, DoorOutcome, DoorFact] =
   }
 
 private val tallyOpened =
-  tallyMachine.property("tallyOpened") when push holds (_.facts.contains(DoorFact.doorOpened))
+  tallyMachine.property when push holds (_.facts.contains(DoorFact.doorOpened))
 
-private val tallied = tallyMachine.scenario("tallied").starts(DoorState.closed).actions(push)
+private val tallied = tallyMachine.scenario.starts(DoorState.closed).actions(push)
 
 val tallyOpens: Query =
   query("tally.opens") find tallyOpened in tallied limits Limits(
@@ -1013,7 +1005,6 @@ private val tallyOpenedEvidence = Evidence.read(
 )
 
 val tallyRealization: Realization = Realization(
-  name = "tallyRealization",
   machine = tallyMachine,
   producer = "fixture.realizations",
   producerVersion = "1",

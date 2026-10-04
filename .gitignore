@@ -57,3 +57,7 @@
 
 # Locally built tool binaries
 /.build/
+
+# scala-cli build state, written wherever scala-cli runs (fmt, compile); remove with `make umpire-clean-scratch`
+.bsp/
+.scala-build/

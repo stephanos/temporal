@@ -304,11 +304,8 @@ private[lift] trait Claims:
       fold(b, env, named) match
         case sc: Decl.ScenarioOn => sc.copy(start = Some(lift(s)))
         case other               => fail(t, s"starts begins a Scenario, not $other")
-    case Apply(Select(b, op @ ("actions" | "actionKeys")), List(items)) =>
-      scenario(fold(b, env, named), t) { s =>
-        if op == "actions" then scheduled(s, varargs(items), env)
-        else s.addAllKeys(varargs(items).map(constString))
-      }
+    case Apply(Select(b, "actions"), List(items)) =>
+      scenario(fold(b, env, named), t)(scheduled(_, varargs(items), env))
     case Select(b, "free") => scenario(fold(b, env, named), t)(_.withFree(true))
 
     case Apply(Ident("query"), List(name)) =>

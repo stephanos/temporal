@@ -8,7 +8,10 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-121-shard-generated-cases-per-case-in-ci",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-121-shard-generated-cases-per-case-in-ci.1": 0,
+    "fn-121-shard-generated-cases-per-case-in-ci.2": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -141,15 +144,92 @@
       "task": null,
       "timestamp": "2026-10-03T20:11:00.704319Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e360029be3d65d62a79fbbb03a98acb9089b860fdcf5f4d143de37cf48c37152",
+      "backend": "claude",
+      "base_sha": "5e6961b91a621c62d1c6eeeb889f9bf69433c533",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-4929562b4fdf7824d08e34b58bc26f5e",
+            "classification": "introduced",
+            "findingId": "finding-4929562b4fdf7824d08e34b58bc26f5e",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9c65536753db823a6ac36f14ccfaf6875ce3acb0",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 6199,
+      "output_sha256": "24008ed885842a494c742ea228e7cf6bbb932d4f8b56a5c970145e7513f24926",
+      "reservation_id": "c79480e06ab846048a576d5cbab58184",
+      "round_consumed": true,
+      "scope": "impl:fn-121-shard-generated-cases-per-case-in-ci.1",
+      "superseded_by": null,
+      "task": "fn-121-shard-generated-cases-per-case-in-ci.1",
+      "timestamp": "2026-10-04T15:32:03.924636Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "fd20590833970776c74fc624f44fbb232264132ca563f34e1453dffa211e183a",
+      "backend": "claude",
+      "base_sha": "a61bcee9ec17989b04a7bef5861a0affcfd768d2",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "339ed9c0b03715e5a0b5f1607a38a40bd96e4d46",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 3095,
+      "output_sha256": "6c968b34a5f31582e816c2c48723b4b67c7738ed942d94b8a69e7a22256953b4",
+      "reservation_id": "f49f051e0a8c421db4ba0240bdb0d761",
+      "round_consumed": true,
+      "scope": "impl:fn-121-shard-generated-cases-per-case-in-ci.2",
+      "superseded_by": null,
+      "task": "fn-121-shard-generated-cases-per-case-in-ci.2",
+      "timestamp": "2026-10-04T16:26:42.670889Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-121-shard-generated-cases-per-case-in-ci.1": 1,
+    "impl:fn-121-shard-generated-cases-per-case-in-ci.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-121-shard-generated-cases-per-case-in-ci.1": 0,
+    "impl:fn-121-shard-generated-cases-per-case-in-ci.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-121-shard-generated-cases-per-case-in-ci.md",
@@ -166,5 +246,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-03T20:11:00.794446Z"
+  "updated_at": "2026-10-04T16:26:42.674537Z"
 }

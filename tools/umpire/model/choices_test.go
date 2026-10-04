@@ -30,10 +30,14 @@ func stepAt(t *testing.T, list *umpirespb.Expr, item int) *umpirespb.Construct {
 
 // namedAdmission is the admission specimen with its committed admission's alternatives named: a
 // redelivered message is consumed, a first delivery consumed or retained. A dispatch, one result of
-// its own, is named too; the stale-message rejection of admitCurrent is left unnamed.
+// its own, is named too; the stale-message rejection of admitCurrent is left unnamed. plain is the
+// specimen with the names its source gives with `choose` cleared.
 func namedAdmission(t *testing.T) (plain, named *umpirespb.Model) {
 	t.Helper()
 	plain = lifted(t, "admission")
+	chosen := functionNamed(plain, admissionPackage+"admitted").GetBody().GetLet().GetBody().GetIf()
+	stepAt(t, chosen.GetElse(), 0).Choice = ""
+	stepAt(t, chosen.GetElse(), 1).Choice = ""
 	named = proto.CloneOf(plain)
 	admitted := functionNamed(named, admissionPackage+"admitted").GetBody().GetLet().GetBody().GetIf()
 	stepAt(t, admitted.GetThen(), 0).Choice = "consumed"

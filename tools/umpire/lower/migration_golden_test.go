@@ -490,7 +490,11 @@ func TestMigrationProjectionKeepsLoweredCases(t *testing.T) {
 	} else {
 		cfg.Projection.Functions = append(cfg.Projection.Functions, golden.Substitution{Old: kernel, New: moved})
 	}
-	require.NoError(t, cfg.FunctionsRenamed(map[string]*umpirespb.Model{path: original}))
+	// Each substitution renames a Function of the frozen IR that declares it, the Nexus caller's or
+	// another's.
+	originals, err := golden.FrozenModels(expected, "original/inputs/ir/")
+	require.NoError(t, err)
+	require.NoError(t, cfg.FunctionsRenamed(originals))
 	require.NoError(t, cfg.TypesRenamed(map[string]*umpirespb.Model{path: original}))
 	line := regexp.MustCompile(`"line":\s*([0-9]+)`)
 	encoded, err := protojson.Marshal(inputs[path])

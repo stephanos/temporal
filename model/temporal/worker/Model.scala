@@ -6,15 +6,17 @@
  *
  * The package declares no set, Case or Query: nothing here is realized on its own, and the
  * Properties about a worker are the cross-entity ones a composition states.
- *
- *
  */
 package temporal
 package worker
 
 import umpire.*
 
-val Family: umpire.Family = umpire.Family("temporal.worker")
+// The declarations were written in Worker.scala, and every Case that stops a worker carries the
+// Definition IDs they had there.
+given DefinitionScope = DefinitionScope("temporal.worker.Worker$package$")
+
+given Family = Family("temporal.worker")
 
 /** The worker party, which stops and resumes the worker. */
 val party: Party = Party("worker")
@@ -35,6 +37,8 @@ final case class State(phase: Phase) derives Finite
 enum Outcome derives Finite:
   case accepted
 
+given Accepted[Outcome] = Accepted(Outcome.accepted)
+
 /**
  * A worker records nothing of its own. Its stop and resume are faults the Run records against no
  * entity, and what it serves is recorded by the work it serves.
@@ -54,26 +58,26 @@ type WorkerStep = Step[State, Outcome, Fact]
 // the name), and every Case that stops a worker carries these IDs. A feature imports them by name
 // (`import worker.{serve, workerStop}`) rather than writing `worker.workerStop` or an alias.
 
-val workerStop = action("workerStop", party)
-val workerResume = action("workerResume", party)
-val serve = action("serve", party) on entity
+val workerStop = action(party)
+val workerResume = action(party)
+val serve = action(party) on entity
 
 // ### The machine
 
 /** A polling worker stops; a stopped one has nothing to stop. */
 def stopStep(s: State): List[WorkerStep] =
-  if s.phase != Phase.polling then Nil else List(Step(Outcome.accepted, State(Phase.stopped)))
+  if s.phase != Phase.polling then disabled else accept(State(Phase.stopped))
 
 /** A stopped worker resumes polling; a polling one has nothing to resume. */
 def resumeStep(s: State): List[WorkerStep] =
-  if s.phase != Phase.stopped then Nil else List(Step(Outcome.accepted, State(Phase.polling)))
+  if s.phase != Phase.stopped then disabled else accept(State(Phase.polling))
 
 /** A polling worker serves and keeps polling; a stopped one serves nothing. */
 def serveStep(s: State): List[WorkerStep] =
-  if s.phase != Phase.polling then Nil else List(Step(Outcome.accepted, s))
+  if s.phase != Phase.polling then disabled else stay(s)
 
 /** The worker. A worker has no natural end: it may be left polling or stopped. */
-val polling: Machine[State, Outcome, Fact] = machine[State, Outcome, Fact](Family, "polling") {
+val polling = machine[State, Outcome, Fact] {
   forEntity(entity)
   starts(State(Phase.polling))
   ends(_ => true)

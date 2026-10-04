@@ -4,6 +4,8 @@ package temporal.fixture
 
 import umpire.*
 
+given Family = Family("temporal.fixture")
+
 enum Phase derives Finite:
   case idle, done
 
@@ -12,7 +14,7 @@ final case class State(phase: Phase) derives Finite
 enum Outcome derives Finite:
   case accepted
 
-val go = action("go", Party("fixture"))
+val go = action(Party("fixture"))
 
 def goStep(s: State): List[Step[State, Outcome, Nothing]] =
   var out = List.empty[Step[State, Outcome, Nothing]]
@@ -20,7 +22,7 @@ def goStep(s: State): List[Step[State, Outcome, Nothing]] =
   out
 
 val unsupported: Machine[State, Outcome, Nothing] =
-  machine[State, Outcome, Nothing](Family("temporal.fixture"), "unsupported") {
+  machine[State, Outcome, Nothing] {
     starts(State(Phase.idle))
     steps(go ~> goStep)
   }

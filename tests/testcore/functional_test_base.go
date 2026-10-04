@@ -420,7 +420,7 @@ func (s *FunctionalTestBase) initAssertions() {
 
 // checkTestShard supports test sharding based on environment variables.
 func (s *FunctionalTestBase) checkTestShard() {
-	checkTestShard(s.T())
+	CheckTestShard(s.T())
 }
 
 func ApplyTestClusterOptions(options []TestClusterOption) testClusterParams {

@@ -66,7 +66,7 @@ final case class Pair(job: Job, lamp: Lamp) derives Finite
 
 type PairStep = Step[Pair, String, String]
 
-val pair = compose[Pair]("job" -> job, "lamp" -> lamp).ends(p => p.job.phase == Phase.done)
+val pair = compose[Pair](_.job -> job, _.lamp -> lamp).ends(p => p.job.phase == Phase.done)
 
 // ### The predicates the claims name, over the job and over the pair's job
 

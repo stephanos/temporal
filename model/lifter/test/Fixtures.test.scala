@@ -149,7 +149,16 @@ class Fixtures extends munit.FunSuite:
       "killedWhileQueued",
       "rogueCapabilities"
     )
-      .map("fixture.capabilities.Capabilities$package$." + _)
+      .map("fixture.capabilities.Capabilities$package$." + _),
+    "captured" -> Seq(
+      "queries",
+      "diskQueries",
+      "localDiskQueries",
+      "relay",
+      "ledger",
+      "putOnly",
+      "durableEventually"
+    ).map("fixture.captured.Captured$package$." + _)
   )
 
   // fn-122.2: the fixtures whose capability declarations write a law sidecar beside their IR.
@@ -394,7 +403,7 @@ class Fixtures extends munit.FunSuite:
     started.foreach(_())
 
   concurrently("the build refuses a warning -Werror makes an error, at its line"):
-    assertEquals(refusals("werror"), Seq("Steps.scala:21:58"))
+    assertEquals(refusals("werror"), Seq("Steps.scala:23:58"))
 
   concurrently("the build refuses crossed types, at their lines"):
     assertEquals(
@@ -419,7 +428,8 @@ class Fixtures extends munit.FunSuite:
         "Sugar.scala:10:27",
         "Sugar.scala:13:76",
         "Sugar.scala:16:73",
-        "Sugar.scala:19:68"
+        "Sugar.scala:19:68",
+        "Sugar.scala:23:69"
       )
     )
 
@@ -470,6 +480,29 @@ class Fixtures extends munit.FunSuite:
         "Invalid.scala:46:38",
         "Invalid.scala:48:28"
       )
+    )
+
+  // fn-114 R3: each string-named or string-keyed form the DSL retired, written as it was.
+  concurrently("the retired string-named and string-keyed declaration forms do not compile"):
+    assertEquals(
+      refusals("retiredNames").sorted,
+      Seq(
+        "Invalid.scala:34:27", // timer("expire")
+        "Invalid.scala:37:29", // internal("flush")
+        "Invalid.scala:40:20", // hole("crash")
+        "Invalid.scala:43:33", // channel[Note]("wire", ...)
+        "Invalid.scala:43:41",
+        "Invalid.scala:46:38", // lamp.restrict(family, "pressOnly")(...)
+        "Invalid.scala:46:54",
+        "Invalid.scala:49:33", // compose[Pair](family, "pair")("left" -> ..., ...)
+        "Invalid.scala:49:49",
+        "Invalid.scala:50:31", // compose[Pair]("left" -> ..., ...)
+        "Invalid.scala:50:47",
+        "Invalid.scala:51:41", // pair.sync("pressBoth", "left" -> ..., ...)
+        "Invalid.scala:51:58",
+        "Invalid.scala:53:42", // pair.replaces("left", lamp)
+        "Invalid.scala:56:20" // lamp.scenario.actionKeys("press")
+      ).sorted
     )
 
   concurrently("only the unknown projected origin admits a dynamic message root"):
@@ -727,62 +760,24 @@ class Fixtures extends munit.FunSuite:
       result.diagnostics
     )
 
-  // The same Model spelled out (Spelled.scala) and with names taken from vals, a given family, defaulted
-  // starts and evidence and a refinement read with no given (Captured.scala): one IR, but for positions
-  // and the owner of the functions each file declares. Captured.scala pins Spelled.scala's owner, so
-  // its symbol-based Definition IDs and the names of its top-level types are Spelled.scala's before
-  // anything is substituted.
-  concurrently("captured names, a given family and defaults lift to the IR spelled-out forms do"):
-    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
-    def spelledAs(fixture: String): String =
-      val pkg = s"fixture.$fixture.${fixture.capitalize}$$package$$"
-      val out = lifted(fixture)
-      val roots = Seq(
-        "queries",
-        "diskQueries",
-        "localDiskQueries",
-        "relay",
-        "ledger",
-        "putOnly",
-        "durableEventually"
-      ).map(s"$pkg." + _)
-      val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
-      assert(!result.failed, result.diagnostics)
-      Files.readString(out)
-    def strip(n: com.fasterxml.jackson.databind.JsonNode): Unit =
-      n match
-        case o: com.fasterxml.jackson.databind.node.ObjectNode =>
-          o.remove(java.util.List.of("position", "source")): Unit
-        case _ => ()
-      n.elements().asScala.foreach(strip)
-    val captured = spelledAs("captured")
-    val ids = mapper.readTree(captured)
+  // Captured.scala takes every name from its val, its family from a given, its starts and evidence by
+  // default and reads a refinement with no given; expected/captured.json pins its IR. Its one
+  // DefinitionScope pins the owner fixture.spelled.Spelled$package$, so its symbol-based Definition
+  // IDs and the names of its top-level types are that owner's, not its own.
+  test("a DefinitionScope keeps the captured fixture's IDs and type names its former owner's"):
+    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("captured"))
+    val owner = "fixture.spelled.Spelled$package$."
     for
       kind <- Seq("actions", "monitors", "assumptions", "holes", "channels", "realizations")
-      id = ids.path(kind)
+      declared = model.path(kind)
     do
-      assert(id.size() > 0, s"Captured.scala declares no $kind")
-      for d <- id.elements().asScala do
-        assert(
-          d.path("id").asText().startsWith("fixture.spelled.Spelled$package$."),
-          s"${d.path("id").asText()} is not pinned to Spelled.scala's owner"
-        )
-    val spelled = mapper.readTree(spelledAs("spelled"))
-    def typeNames(model: com.fasterxml.jackson.databind.JsonNode) =
-      model.path("types").elements().asScala.map(_.path("name").asText()).toList
-    assertEquals(
-      typeNames(ids),
-      typeNames(spelled),
-      "Captured.scala's types keep Spelled.scala's names"
-    )
-    val same = mapper.readTree(
-      captured
-        .replace("fixture.captured.Captured$package$", "fixture.spelled.Spelled$package$")
-        .replace("fixture.captured.", "fixture.spelled.")
-    )
-    strip(spelled)
-    strip(same)
-    assertEquals(same.toPrettyString, spelled.toPrettyString)
+      assert(declared.size() > 0, s"Captured.scala declares no $kind")
+      for d <- declared.elements().asScala do
+        val id = d.path("id").asText()
+        assert(id.startsWith(owner), s"$id is not pinned to $owner")
+    val types = model.path("types").elements().asScala.map(_.path("name").asText()).toList
+    assert(types.nonEmpty, "Captured.scala declares no types")
+    for name <- types do assert(name.startsWith("fixture.spelled."), s"$name left fixture.spelled")
 
   /**
    * The machines and Properties of one lift of `roots` of the lifts fixture `fixture`, by name, each
@@ -886,12 +881,49 @@ class Fixtures extends munit.FunSuite:
 
   // Each sugar form beside its core spelling (lifts/Sugar.scala).
   concurrently(
-    "accept, stay, disabled, because, in, implies and records lift as their core forms do"
+    "accept, stay, disabled, because, in, implies, records and sticky lift as their core forms do"
   ):
-    val (model, machine, property) = declarations("sugar", Seq("sugared", "cored", "claims"))
+    val (model, machine, property) =
+      declarations("sugar", Seq("sugared", "cored", "claims", "watched"))
     assertEquals(machine("sugared"), machine("cored"))
     for form <- Seq("records", "implies", "paused") do
       assertEquals(property(s"${form}Sugar"), property(s"${form}Core"), form)
+    // Each sticky monitor beside its `monitor` spelling: one monitor but for its ID, name, position
+    // and the names of its functions, whose bodies are compared in their place.
+    def monitor(name: String): String =
+      import com.fasterxml.jackson.databind.node.ObjectNode
+      val m = model
+        .path("monitors")
+        .elements()
+        .asScala
+        .find(_.path("name").asText() == name)
+        .getOrElse(fail(s"the sugar fixture lifted no monitor named $name"))
+        .deepCopy[ObjectNode]()
+      m.remove(java.util.List.of("id", "name", "position"))
+      m.path("initial") match
+        case i: ObjectNode => i.remove("position"): Unit
+        case _             => ()
+      for field <- Seq("next", "violated") do
+        val f = model
+          .path("functions")
+          .elements()
+          .asScala
+          .find(_.path("name").asText() == m.path(field).asText())
+          .get
+          .deepCopy[ObjectNode]()
+        f.remove(java.util.List.of("name", "position"))
+        f.findParents("position").asScala.foreach {
+          case o: ObjectNode => o.remove("position"): Unit
+          case _             => ()
+        }
+        m.set(field, f): Unit
+      m.toPrettyString
+    for (sugar, spelled) <- Seq(
+        "refusedOnce" -> "refusedOnceSpelled",
+        "retriedLost" -> "retriedLostSpelled"
+      )
+    do assertEquals(monitor(sugar), monitor(spelled), sugar)
+    assert(monitor("refusedOnce").contains("neverRefused"), monitor("refusedOnce"))
     val functions = model.path("functions").elements().asScala.map(_.path("name").asText()).toList
     assert(
       functions.forall(!_.startsWith("umpire.")),
@@ -1367,7 +1399,7 @@ class Fixtures extends munit.FunSuite:
     )
     assertNotEquals(lift.exit, 0)
     val line =
-      "lift: model/lifter/testdata/unsupported/Unsupported.scala:18: `var out` has no IR form"
+      "lift: model/lifter/testdata/unsupported/Unsupported.scala:20: `var out` has no IR form"
     refused(lift) match
       case Seq(refusal) => assert(refusal.startsWith(line), refusal)
       case refusals     => fail(s"one refusal, not $refusals")

@@ -48,8 +48,8 @@ func TestChoiceKeepsEveryResultInOrder(t *testing.T) {
 	facts := []string{"statusStarted", "attemptAdmitted"}
 	require.Equal(t, Row{Key: "scheduled-queued-none-attemptStart", Source: "scheduled-queued-none", Action: "attemptStart",
 		Results: []Result{
-			{Outcome: "accepted", State: "started-empty-one", Facts: facts},
-			{Outcome: "accepted", State: "started-redelivery-one", Facts: facts, Because: "the channel may deliver the message again"},
+			{Outcome: "accepted", State: "started-empty-one", Facts: facts, Choice: "committed"},
+			{Outcome: "accepted", State: "started-redelivery-one", Facts: facts, Because: "the channel may deliver the message again", Choice: "redelivered"},
 		}}, row(t, mm, "scheduled-queued-none-attemptStart"))
 }
 
@@ -203,7 +203,7 @@ func TestASendToAFullChannelLeavesTheDomain(t *testing.T) {
 	talk := function(m, "Channels$package$.talkStep")
 	talk.Body = talk.GetBody().GetIf().GetElse()
 	_, err := Build(m)
-	require.ErrorContains(t, err, "Channels.scala:55: relay: row nothing-[ping-0,ping-0]-[]-talk-ping lands in "+
+	require.ErrorContains(t, err, "Channels.scala:56: relay: row nothing-[ping-0,ping-0]-[]-talk-ping lands in "+
 		"nothing-[ping-0,ping-0,ping-0]-[], which is outside the state domain")
 }
 
@@ -375,7 +375,7 @@ func TestADeliveryMovesOneMessage(t *testing.T) {
 		}
 	}
 	_, err := Build(m)
-	require.ErrorContains(t, err, "Channels.scala:57: wireDelivery moves one message of "+
+	require.ErrorContains(t, err, "Channels.scala:58: wireDelivery moves one message of "+
 		"fixture.channels.Channels$package$.wire, and has 0 inputs")
 }
 
@@ -416,23 +416,23 @@ func TestAStepResultMustBeStepRecords(t *testing.T) {
 		"not a list": {"declarations", func(m *umpirespb.Model) {
 			f := function(m, "Declarations$package$.putStep")
 			f.Body = admLiteral(f.GetBody(), &umpirespb.Value{Kind: &umpirespb.Value_Bool{Bool: false}})
-		}, "Declarations.scala:107: " + putStep + " returns false, not a list of steps"},
+		}, "Declarations.scala:103: " + putStep + " returns false, not a list of steps"},
 		"a step of two fields": {"declarations", func(m *umpirespb.Model) {
 			f := function(m, "Declarations$package$.putStep")
 			f.Body = admLiteral(f.GetBody(), &umpirespb.Value{Kind: &umpirespb.Value_List{List: &umpirespb.ListValue{Items: []*umpirespb.Value{
 				{Kind: &umpirespb.Value_Record{Record: &umpirespb.RecordValue{Type: StepType, Fields: []*umpirespb.Value{
 					admEnum("fixture.declarations.Outcome", "accepted"), admEnum("fixture.declarations.Stage", "staged")}}}}}}}})
-		}, "Declarations.scala:107: " + putStep + " returns a step of 2 fields, not 4"},
+		}, "Declarations.scala:103: " + putStep + " returns a step of 2 fields, not 4"},
 		"an outcome of another type": {"presence", func(m *umpirespb.Model) {
 			f := function(m, "Presence$package$.forgetStep")
 			step := f.GetBody().GetMatch().GetCases()[0].GetBody().GetList().GetItems()[0].GetConstruct()
 			step.Args[0] = admLiteral(step.GetArgs()[0], admEnum("fixture.presence.Result", "failed"))
-		}, "Presence.scala:74: presence: row unsent-Some-succeeded-0-0-forget has outcome failed, which is no fixture.presence.Outcome"},
+		}, "Presence.scala:75: presence: row unsent-Some-succeeded-0-0-forget has outcome failed, which is no fixture.presence.Outcome"},
 		"a fact of another type": {"declarations", func(m *umpirespb.Model) {
 			f := function(m, "Declarations$package$.putStep")
 			facts := f.GetBody().GetMatch().GetCases()[0].GetBody().GetList().GetItems()[0].GetConstruct().GetArgs()[2]
 			facts.GetList().Items[0] = admLiteral(facts, admEnum("fixture.declarations.Kept", "held"))
-		}, "Declarations.scala:107: disk: row empty-put records held, which is no fixture.declarations.Fact"},
+		}, "Declarations.scala:103: disk: row empty-put records held, which is no fixture.declarations.Fact"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			m := proto.Clone(lifted(t, c.fixture)).(*umpirespb.Model)
@@ -451,7 +451,7 @@ func TestATransferIsADeliveryOrALossNotBoth(t *testing.T) {
 		}
 	}
 	_, err := Build(m)
-	require.ErrorContains(t, err, "Channels.scala:59: radioLoss both delivers and loses fixture.channels.Channels$package$.radio")
+	require.ErrorContains(t, err, "Channels.scala:60: radioLoss both delivers and loses fixture.channels.Channels$package$.radio")
 }
 
 // keep and forget given an input of 0..59 each: no binding lists more than 60 classes, and together
@@ -543,7 +543,7 @@ func TestAStateOfTheRightKeyButAnotherTypeIsOutsideTheDomain(t *testing.T) {
 	polls := f.GetBody().GetIf().GetThen().GetList().GetItems()[0].GetConstruct().GetArgs()[1].GetCopy().GetUpdates()[0]
 	polls.Value = admLiteral(polls.GetValue(), &umpirespb.Value{Kind: &umpirespb.Value_Text{Text: "1"}})
 	_, err := Build(m)
-	require.ErrorContains(t, err, "Presence.scala:74: presence: row unsent-None-0-0-poll lands in unsent-None-0-1, "+
+	require.ErrorContains(t, err, "Presence.scala:75: presence: row unsent-None-0-0-poll lands in unsent-None-0-1, "+
 		"which is outside the state domain")
 }
 

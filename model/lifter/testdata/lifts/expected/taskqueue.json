@@ -46,7 +46,7 @@
     "name": "fixture.taskqueue.OverMatching",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 88
+      "line": 87
     },
     "record": {
       "fields": [ {
@@ -899,7 +899,7 @@
     "name": "jobOverForgetful.property.settledLeavesNothing",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 105
+      "line": 104
     },
     "params": [ {
       "name": "after",
@@ -910,21 +910,21 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-        "line": 105
+        "line": 104
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-            "line": 105
+            "line": 104
           },
           "call": {
             "function": "jobOverForgetful.property.settledLeavesNothing.never",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 105
+                "line": 104
               },
               "var": "after"
             } ]
@@ -936,7 +936,7 @@
     "name": "jobOverForgetful.property.settledLeavesNothing.never",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 107
+      "line": 105
     },
     "params": [ {
       "name": "after",
@@ -947,39 +947,39 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-        "line": 108
+        "line": 106
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-            "line": 108
+            "line": 106
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 108
+                "line": 106
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                    "line": 108
+                    "line": 106
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                        "line": 108
+                        "line": 106
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                            "line": 108
+                            "line": 106
                           },
                           "var": "after"
                         },
@@ -995,7 +995,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 108
+                "line": 106
               },
               "literal": {
                 "enum": {
@@ -1009,32 +1009,32 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-            "line": 108
+            "line": 106
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 108
+                "line": 106
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                    "line": 108
+                    "line": 106
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                        "line": 108
+                        "line": 106
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                            "line": 108
+                            "line": 106
                           },
                           "var": "after"
                         },
@@ -1050,7 +1050,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 108
+                "line": 106
               },
               "literal": {
                 "enum": {
@@ -1067,7 +1067,7 @@
     "name": "jobOverForgetful.property.settles",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 104
+      "line": 103
     },
     "params": [ {
       "name": "step",
@@ -1078,32 +1078,32 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-        "line": 104
+        "line": 103
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-            "line": 104
+            "line": 103
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 104
+                "line": 103
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                    "line": 104
+                    "line": 103
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                        "line": 104
+                        "line": 103
                       },
                       "var": "step"
                     },
@@ -1119,7 +1119,7 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-            "line": 104
+            "line": 103
           },
           "literal": {
             "enum": {
@@ -1134,7 +1134,7 @@
     "name": "jobOverMatching.property.settledLeavesNothing",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 105
+      "line": 104
     },
     "params": [ {
       "name": "after",
@@ -1145,21 +1145,21 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-        "line": 105
+        "line": 104
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-            "line": 105
+            "line": 104
           },
           "call": {
             "function": "jobOverMatching.property.settledLeavesNothing.never",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 105
+                "line": 104
               },
               "var": "after"
             } ]
@@ -1171,7 +1171,7 @@
     "name": "jobOverMatching.property.settledLeavesNothing.never",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 107
+      "line": 105
     },
     "params": [ {
       "name": "after",
@@ -1182,39 +1182,39 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-        "line": 108
+        "line": 106
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-            "line": 108
+            "line": 106
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 108
+                "line": 106
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                    "line": 108
+                    "line": 106
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                        "line": 108
+                        "line": 106
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                            "line": 108
+                            "line": 106
                           },
                           "var": "after"
                         },
@@ -1230,7 +1230,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 108
+                "line": 106
               },
               "literal": {
                 "enum": {
@@ -1244,32 +1244,32 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-            "line": 108
+            "line": 106
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 108
+                "line": 106
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                    "line": 108
+                    "line": 106
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                        "line": 108
+                        "line": 106
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                            "line": 108
+                            "line": 106
                           },
                           "var": "after"
                         },
@@ -1285,7 +1285,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 108
+                "line": 106
               },
               "literal": {
                 "enum": {
@@ -1302,7 +1302,7 @@
     "name": "jobOverMatching.property.settles",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 104
+      "line": 103
     },
     "params": [ {
       "name": "step",
@@ -1313,32 +1313,32 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-        "line": 104
+        "line": 103
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-            "line": 104
+            "line": 103
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 104
+                "line": 103
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                    "line": 104
+                    "line": 103
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                        "line": 104
+                        "line": 103
                       },
                       "var": "step"
                     },
@@ -1354,7 +1354,7 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-            "line": 104
+            "line": 103
           },
           "literal": {
             "enum": {
@@ -5480,7 +5480,7 @@
     "name": "jobOverForgetful",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 100
+      "line": 99
     },
     "stateType": "fixture.taskqueue.OverMatching",
     "members": [ {
@@ -5525,7 +5525,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-        "line": 96
+        "line": 95
       },
       "lambda": {
         "params": [ {
@@ -5537,26 +5537,26 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-            "line": 96
+            "line": 95
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 96
+                "line": 95
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                    "line": 96
+                    "line": 95
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                        "line": 96
+                        "line": 95
                       },
                       "var": "s"
                     },
@@ -5569,7 +5569,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 96
+                "line": 95
               },
               "literal": {
                 "enum": {
@@ -5587,7 +5587,7 @@
     "name": "jobOverMatching",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 91
+      "line": 90
     },
     "stateType": "fixture.taskqueue.OverMatching",
     "members": [ {
@@ -5632,7 +5632,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-        "line": 96
+        "line": 95
       },
       "lambda": {
         "params": [ {
@@ -5644,26 +5644,26 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-            "line": 96
+            "line": 95
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 96
+                "line": 95
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                    "line": 96
+                    "line": 95
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                        "line": 96
+                        "line": 95
                       },
                       "var": "s"
                     },
@@ -5676,7 +5676,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-                "line": 96
+                "line": 95
               },
               "literal": {
                 "enum": {
@@ -5801,7 +5801,7 @@
     "name": "settledLeavesNothing",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 105
+      "line": 104
     },
     "holds": "jobOverForgetful.property.settledLeavesNothing"
   }, {
@@ -5809,7 +5809,7 @@
     "name": "settles",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 103
+      "line": 102
     },
     "whenAction": "settle",
     "holds": "jobOverForgetful.property.settles"
@@ -5818,7 +5818,7 @@
     "name": "settledLeavesNothing",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 105
+      "line": 104
     },
     "holds": "jobOverMatching.property.settledLeavesNothing"
   }, {
@@ -5826,7 +5826,7 @@
     "name": "settles",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 103
+      "line": 102
     },
     "whenAction": "settle",
     "holds": "jobOverMatching.property.settles"
@@ -5853,12 +5853,12 @@
     "name": "any",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 122
+      "line": 119
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-        "line": 122
+        "line": 119
       },
       "construct": {
         "type": "fixture.taskqueue.OverMatching",
@@ -5930,12 +5930,12 @@
     "name": "crashAfterInvocation",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 111
+      "line": 109
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-        "line": 111
+        "line": 109
       },
       "construct": {
         "type": "fixture.taskqueue.OverMatching",
@@ -6007,12 +6007,12 @@
     "name": "any",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 122
+      "line": 119
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-        "line": 122
+        "line": 119
       },
       "construct": {
         "type": "fixture.taskqueue.OverMatching",
@@ -6084,12 +6084,12 @@
     "name": "crashAfterInvocation",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 111
+      "line": 109
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-        "line": 111
+        "line": 109
       },
       "construct": {
         "type": "fixture.taskqueue.OverMatching",
@@ -6161,12 +6161,12 @@
     "name": "any",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 84
+      "line": 83
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-        "line": 84
+        "line": 83
       },
       "construct": {
         "type": "fixture.taskqueue.OverQueue",
@@ -6277,7 +6277,7 @@
     "name": "jobOverForgetful.any.settledLeavesNothing",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 126
+      "line": 123
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -6299,7 +6299,7 @@
     "name": "jobOverForgetful.crashAfterInvocation",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 124
+      "line": 121
     },
     "form": "FORM_FIND",
     "property": {
@@ -6321,7 +6321,7 @@
     "name": "jobOverMatching.any.settledLeavesNothing",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 126
+      "line": 123
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -6343,7 +6343,7 @@
     "name": "jobOverMatching.crashAfterInvocation",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 124
+      "line": 121
     },
     "form": "FORM_FIND",
     "property": {
@@ -6365,7 +6365,7 @@
     "name": "jobOverQueue.any.settledLeavesNothing",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 133
+      "line": 130
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -6387,7 +6387,7 @@
     "name": "jobOverQueue.duplicateDelivery",
     "position": {
       "file": "model/lifter/testdata/lifts/TaskQueue.scala",
-      "line": 131
+      "line": 128
     },
     "form": "FORM_FIND",
     "property": {

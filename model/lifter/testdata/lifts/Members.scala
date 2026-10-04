@@ -18,8 +18,7 @@ import umpire.*
 // ### The cross-entity claim, about every attempt start the sync pairs
 
 val startedByPollingWorkerTyped: Property[StandaloneActivityState] =
-  standaloneActivity
-    .property("startedByPollingWorkerTyped")
+  standaloneActivity.property
     .whenAction(standaloneActivity.synced(_.worker -> temporal.worker.serve)) holds
     (_.state.worker.phase == WorkerPhase.polling)
 
@@ -42,12 +41,12 @@ val turnOn = action("turn-on", Party("fixture")).input[Level]("level")
 
 /** The left switch's actions, spelled as the right switch's are. */
 object Left:
-  val tap = action("tap", Party("fixture"))
-  val flick = action("flick", Party("fixture"))
+  val tap = action(Party("fixture"))
+  val flick = action(Party("fixture"))
 
 object Right:
-  val tap = action("tap", Party("fixture"))
-  val flick = action("flick", Party("fixture"))
+  val tap = action(Party("fixture"))
+  val flick = action(Party("fixture"))
 
 def toggle(s: Switch): List[Step[Switch, Switched, Nothing]] = List(
   Step(Switched.accepted, Switch(!s.on))

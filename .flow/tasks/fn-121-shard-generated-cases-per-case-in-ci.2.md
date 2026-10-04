@@ -42,9 +42,18 @@ UMPIRE_CASE_NAME_GOLDENS=write go test -count=1 -tags test_dep ./tests/testcore/
 - [ ] README names the contract and the rewrite variable; no byte under `model/` changed.
 
 ## Done summary
-TBD
+# fn-121.2 done summary
 
+**What changed** (commits 339ed9c0b0, a75829721d; base a61bcee9ec): `tests/testcore/testpilot/generated_names_test.go` (`TestGeneratedCaseNames`, no cluster) reads `model/cases/manifest.json`, keeps lowered entries, and holds each `GeneratedCaseName` to the file stem (file must end in `-case.json`) and to `<model>-<query>` from the entry's Model and Query, unique, no `/`, no whitespace; the sorted list must equal `testdata/generated-case-names.txt` (16 names), rewritten with `UMPIRE_CASE_NAME_GOLDENS=write` (receipt_test.go convention). The mismatch message says a renamed Case moves a shard unit and names the variable. README gains a paragraph on the contract and the variable.
+
+**Evidence** (`.flow/tmp/fn121-2/`): name test pass; probe renaming `activity-retry` in the golden fails with the shard-unit message naming `UMPIRE_CASE_NAME_GOLDENS=write` (exit 1), `=write` restores it byte-identical (exit 0); whole package pass; `make umpire-check-cases` exit 0; no byte under `model/` changed; lint-code-fast exit 0.
+
+**Decisions:** README paragraph placed after the intro, not in the `testdata/generated` fixture paragraph, because the names come from `model/cases`, not the functional fixture tree.
+
+**Review:** `flowctl claude impl-review --spec claude:claude-opus-5-5:high`, round 1 SHIP with one P3 (the stem check repeated the derivation, so it could not fail); applied in a75829721d by requiring the `-case.json` suffix and checking `<model>-<query>` from independent fields. Writer and reviewer are the same family (Opus 5.5).
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 339ed9c0b0, a75829721d
+- Tests: go test -count=1 -tags test_dep ./tests/testcore/testpilot/ -run GeneratedCaseName (exit 0), golden rename probe (exit 1, message names UMPIRE_CASE_NAME_GOLDENS=write), UMPIRE_CASE_NAME_GOLDENS=write go test ... -run GeneratedCaseName (exit 0, golden byte-identical), go test -count=1 -tags test_dep ./tests/testcore/testpilot/ (exit 0), make umpire-check-cases (exit 0), GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main make lint-code-fast (exit 0)
 - PRs:

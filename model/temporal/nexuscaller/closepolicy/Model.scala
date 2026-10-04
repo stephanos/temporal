@@ -20,13 +20,14 @@ package closepolicy
 
 import umpire.*
 
-val Family: umpire.Family = umpire.Family("temporal.nexus.caller.closepolicy")
+/** The family of the designs' machines. */
+given Family = Family("temporal.nexus.caller.closepolicy")
 
 /**
  * The logical operation. `operation` is keyed by the scheduled event of one run's history, which
  * cannot follow the operation into a reset successor; the request identity can.
  */
-val request: Entity = Entity("nexusRequest", key = "requestId", refer = Map("owner" -> workflow))
+val nexusRequest: Entity = Entity(key = "requestId", refer = Map("owner" -> workflow))
 
 // ### Design vocabulary: one logical operation, the original run and one reset successor
 
@@ -98,6 +99,8 @@ final case class CloseResetState(
 enum Answer derives Finite:
   case accepted, retained, rejectedTransient, rejectedPermanent
 
+given Accepted[Answer] = Accepted(Answer.accepted)
+
 /**
  * What a step records. The history events carry the baseline's names; the rest is what a design
  * would have to expose for a Run to read it.
@@ -155,13 +158,16 @@ enum Redelivery derives Finite:
    */
   case once
 
-val callerClose = action("callerClose", caller) on workflow
-val reset = action("reset", caller) on workflow
-val requestCancel = action("requestCancel", caller).on(operation).input[Principal]("principal")
-val handlerFinish = action("handlerFinish", handler).on(operation).input[Resolution]("result")
+val principal = input[Principal]
+val result = input[Resolution]
+
+val callerClose = action(caller) on workflow
+val reset = action(caller) on workflow
+val requestCancel = action(caller).on(operation).input(principal)
+val handlerFinish = action(handler).on(operation).input(result)
 
 /** The cancel request reaches the handler. */
-val deliverCancel = internal("deliverCancel")
+val deliverCancel = internal
 
 val opened: CloseResetState = CloseResetState(
   Caller.open,
@@ -175,41 +181,37 @@ val opened: CloseResetState = CloseResetState(
 // ### Step functions
 
 def closeStep(s: CloseResetState): List[CloseResetStep] =
-  if s.caller != Caller.open then Nil
-  else List(Step(Answer.accepted, s.copy(caller = Caller.closed), List(Fact.workflowClosed)))
+  if s.caller != Caller.open then disabled
+  else accept(s.copy(caller = Caller.closed), Fact.workflowClosed)
 
 /**
  * One cancellation, while the handler has neither finished nor been asked, by a run still open.
  */
 def cancelStep(s: CloseResetState, p: Principal): List[CloseResetStep] =
-  if s.intent != Intent.none || s.caller == Caller.closed || s.handler != Handler.running then Nil
-  else
-    List(Step(Answer.accepted, s.copy(intent = Intent.requested(p)), List(Fact.cancelRequested(p))))
+  if s.intent != Intent.none || s.caller == Caller.closed || s.handler != Handler.running then
+    disabled
+  else accept(s.copy(intent = Intent.requested(p)), Fact.cancelRequested(p))
 
 /**
  * The request in flight reaches a handler still working. A closed run's request is still delivered.
  */
 def cancelDeliveryStep(s: CloseResetState): List[CloseResetStep] =
-  if s.intent == Intent.none || s.handler != Handler.running then Nil
-  else
-    List(Step(Answer.accepted, s.copy(handler = Handler.cancelReceived), List(Fact.cancelReceived)))
+  if s.intent == Intent.none || s.handler != Handler.running then disabled
+  else accept(s.copy(handler = Handler.cancelReceived), Fact.cancelReceived)
 
-def working(h: Handler): Boolean = h == Handler.running || h == Handler.cancelReceived
+def working(h: Handler): Boolean = h.in(Handler.running, Handler.cancelReceived)
 
 /**
  * The handler's irreversible effect, and its first report. A canceled result needs the handler to
  * have received the cancel request; having received it, the handler may still succeed or fail.
  */
 def finishStep(s: CloseResetState, r: Resolution): List[CloseResetStep] =
-  if !working(s.handler) then Nil
-  else if r == Resolution.canceled && s.handler != Handler.cancelReceived then Nil
+  if !working(s.handler) then disabled
+  else if r == Resolution.canceled && s.handler != Handler.cancelReceived then disabled
   else
-    List(
-      Step(
-        Answer.accepted,
-        s.copy(handler = Handler.done(r), channel = Completion.inFlight(r)),
-        List(Fact.handlerFinished(r))
-      )
+    accept(
+      s.copy(handler = Handler.done(r), channel = Completion.inFlight(r)),
+      Fact.handlerFinished(r)
     )
 
 /** The history event that records an outcome, by the baseline's names. */
@@ -224,8 +226,8 @@ def recorded(r: Resolution): Fact = r match
 def recordedOnce(s: CloseResetState, k: Knowledge, r: Resolution): List[Fact] =
   if s.known == k then Nil else List(recorded(r))
 
-def carries(c: Completion, r: Resolution): Boolean = c == Completion.inFlight(r) ||
-  c == Completion.retried(r)
+def carries(c: Completion, r: Resolution): Boolean =
+  c.in(Completion.inFlight(r), Completion.retried(r))
 
 /**
  * Whether a delivery that does not end the report leaves it to be delivered again.
@@ -236,6 +238,12 @@ def redelivers(d: Redelivery, c: Completion, r: Resolution): Boolean = d == Rede
 /** The report as the channel holds it for its next delivery. */
 def again(d: Redelivery, r: Resolution): Completion =
   if d == Redelivery.untilAck then Completion.inFlight(r) else Completion.retried(r)
+
+// The ways a delivery that leaves the report to be delivered again can go.
+val taken = choice
+val rejectedForNow = choice
+val ackLost = choice
+val refused = choice
 
 /**
  * The owner commits the outcome. Transient rejection keeps the report in flight; a lost
@@ -248,34 +256,32 @@ def committed(
     r: Resolution
 ): List[CloseResetStep] =
   if redelivers(d, s.channel, r) then
-    List(
-      Step(Answer.accepted, s.copy(known = k, channel = Completion.none), recordedOnce(s, k, r)),
-      Step(Answer.rejectedTransient, s.copy(channel = again(d, r)), Nil),
-      Step(
-        Answer.accepted,
-        s.copy(known = k, channel = again(d, r)),
-        recordedOnce(s, k, r),
-        "the acknowledgment is lost"
-      )
+    choose(
+      taken -> accept(s.copy(known = k, channel = Completion.none), recordedOnce(s, k, r)*),
+      rejectedForNow -> List(Step(Answer.rejectedTransient, s.copy(channel = again(d, r)))),
+      ackLost -> accept(s.copy(known = k, channel = again(d, r)), recordedOnce(s, k, r)*)
+        .because("the acknowledgment is lost")
     )
-  else
-    List(Step(Answer.accepted, s.copy(known = k, channel = Completion.none), recordedOnce(s, k, r)))
+  else accept(s.copy(known = k, channel = Completion.none), recordedOnce(s, k, r)*)
 
 def keptAtOperation(d: Redelivery, s: CloseResetState, r: Resolution): List[CloseResetStep] =
   if redelivers(d, s.channel, r) then
-    List(
-      Step(
-        Answer.retained,
-        s.copy(retained = Retained.pending(r), channel = Completion.none),
-        List(Fact.outcomeRetained)
+    choose(
+      taken -> List(
+        Step(
+          Answer.retained,
+          s.copy(retained = Retained.pending(r), channel = Completion.none),
+          List(Fact.outcomeRetained)
+        )
       ),
-      Step(Answer.rejectedTransient, s.copy(channel = again(d, r)), Nil),
-      Step(
-        Answer.retained,
-        s.copy(retained = Retained.pending(r), channel = again(d, r)),
-        List(Fact.outcomeRetained),
-        "the acknowledgment is lost"
-      )
+      rejectedForNow -> List(Step(Answer.rejectedTransient, s.copy(channel = again(d, r)))),
+      ackLost -> List(
+        Step(
+          Answer.retained,
+          s.copy(retained = Retained.pending(r), channel = again(d, r)),
+          List(Fact.outcomeRetained)
+        )
+      ).because("the acknowledgment is lost")
     )
   else
     List(
@@ -286,19 +292,37 @@ def keptAtOperation(d: Redelivery, s: CloseResetState, r: Resolution): List[Clos
       )
     )
 
-/** A permanent rejection ends the report: the handler stops reporting. */
-def dropped(s: CloseResetState): CloseResetStep =
-  Step(Answer.rejectedPermanent, s.copy(channel = Completion.none), List(Fact.completionDropped))
+/**
+ * A permanent rejection ends the report: the handler stops reporting. A `choose` writes this step
+ * out in its alternative, since an alternative is one step written out, not a helper's.
+ */
+def dropped(s: CloseResetState): List[CloseResetStep] =
+  List(
+    Step(
+      Answer.rejectedPermanent,
+      s.copy(channel = Completion.none),
+      List(Fact.completionDropped)
+    )
+  )
 
 def rejectedByClosed(d: Redelivery, s: CloseResetState, r: Resolution): List[CloseResetStep] =
   if redelivers(d, s.channel, r) then
-    List(dropped(s), Step(Answer.rejectedTransient, s.copy(channel = again(d, r)), Nil))
-  else List(dropped(s))
+    choose(
+      refused -> List(
+        Step(
+          Answer.rejectedPermanent,
+          s.copy(channel = Completion.none),
+          List(Fact.completionDropped)
+        )
+      ),
+      rejectedForNow -> List(Step(Answer.rejectedTransient, s.copy(channel = again(d, r))))
+    )
+  else dropped(s)
 
 def deliverStep(p: Policy, d: Redelivery, s: CloseResetState, r: Resolution): List[CloseResetStep] =
-  if !carries(s.channel, r) then Nil
+  if !carries(s.channel, r) then disabled
   // The deadline resolved the operation: a completion after it finds nothing to complete.
-  else if s.known == Knowledge.expired then List(dropped(s))
+  else if s.known == Knowledge.expired then dropped(s)
   else
     s.caller match
       case Caller.open   => committed(d, s, Knowledge.original(r), r)
@@ -306,14 +330,7 @@ def deliverStep(p: Policy, d: Redelivery, s: CloseResetState, r: Resolution): Li
         if p == Policy.rejectAfterClose then rejectedByClosed(d, s, r) else keptAtOperation(d, s, r)
       case Caller.resetOpen =>
         if p == Policy.ackByOriginal then
-          List(
-            Step(
-              Answer.accepted,
-              s.copy(channel = Completion.none),
-              Nil,
-              "the original run acknowledges it"
-            )
-          )
+          accept(s.copy(channel = Completion.none)).because("the original run acknowledges it")
         else committed(d, s, Knowledge.successor(r), r)
 
 def fromRetention(x: Retained): Knowledge = x match
@@ -341,19 +358,16 @@ def resetFacts(k: Knowledge): List[Fact] = k match
  * the cancel intent. It cannot undo the handler's effect.
  */
 def resetStep(rule: Reset, s: CloseResetState): List[CloseResetStep] =
-  if s.caller == Caller.resetOpen then Nil
+  if s.caller == Caller.resetOpen then disabled
   else
-    List(
-      Step(
-        Answer.accepted,
-        s.copy(
-          caller = Caller.resetOpen,
-          intent = carried(rule, s.intent),
-          known = reapplied(rule, s),
-          retained = Retained.none
-        ),
-        resetFacts(reapplied(rule, s))
-      )
+    accept(
+      s.copy(
+        caller = Caller.resetOpen,
+        intent = carried(rule, s.intent),
+        known = reapplied(rule, s),
+        retained = Retained.none
+      ),
+      resetFacts(reapplied(rule, s))*
     )
 
 /**
@@ -361,25 +375,8 @@ def resetStep(rule: Reset, s: CloseResetState): List[CloseResetStep] =
  * history is frozen, so no deadline fires in it.
  */
 def expireStep(s: CloseResetState): List[CloseResetStep] =
-  if s.caller == Caller.closed || s.known != Knowledge.none then Nil
-  else
-    List(
-      Step(Answer.accepted, s.copy(known = Knowledge.expired), List(Fact.nexusOperationTimedOut))
-    )
-
-def closeResetEvidence(f: Fact): String = f match
-  case Fact.workflowClosed          => "workflowClosed"
-  case Fact.workflowReset           => "workflowReset"
-  case Fact.cancelRequested(_)      => "nexusOperationCancelRequested"
-  case Fact.cancelReceived          => "cancelReceived"
-  case Fact.handlerFinished(_)      => "handlerFinished"
-  case Fact.nexusOperationCompleted => "nexusOperationCompleted"
-  case Fact.nexusOperationFailed    => "nexusOperationFailed"
-  case Fact.nexusOperationCanceled  => "nexusOperationCanceled"
-  case Fact.nexusOperationTimedOut  => "nexusOperationTimedOut"
-  case Fact.outcomeRetained         => "outcomeRetained"
-  case Fact.outcomeReapplied        => "outcomeReapplied"
-  case Fact.completionDropped       => "completionDropped"
+  if s.caller == Caller.closed || s.known != Knowledge.none then disabled
+  else accept(s.copy(known = Knowledge.expired), Fact.nexusOperationTimedOut)
 
 // ### Promises
 
@@ -401,9 +398,9 @@ def outcomePreserved(after: CloseResetStep): Boolean = after.state.handler match
   case _ => true
 
 def keptOrOwed(after: CloseResetStep, r: Resolution): Boolean =
-  (after.outcome != Answer.accepted && after.outcome != Answer.retained) ||
-    after.state.channel != Completion.none || ownerKnows(after.state, r) ||
-    after.state.retained == Retained.pending(r)
+  after.outcome.in(Answer.accepted, Answer.retained) implies
+    (after.state.channel != Completion.none || ownerKnows(after.state, r) ||
+      after.state.retained == Retained.pending(r))
 
 /**
  * An acknowledgment ends the handler's report only once the owner committed or the operation
@@ -433,19 +430,13 @@ def settled(s: CloseResetState): Boolean = s.handler match
 /**
  * Whether a step lost a decided outcome: no owner knows it, and nothing retains or carries it.
  */
-val retainedOutcome: Monitor[CloseResetState, Answer, Fact, Boolean] =
-  monitor[CloseResetState, Answer, Fact, Boolean]("retainedOutcome", false)((lost, _, after) =>
-    lost || !outcomePreserved(after)
-  )(lost => lost)
+val retainedOutcome = sticky(outcomePreserved)
 
 /**
  * Whether an acknowledgment ended the handler's report before the owner committed the outcome or
  * the operation retained it.
  */
-val ownerAcknowledgment: Monitor[CloseResetState, Answer, Fact, Boolean] =
-  monitor[CloseResetState, Answer, Fact, Boolean]("ownerAcknowledgment", false)(
-    (broken, before, after) => broken || !ackOnlyWhenKept(before, after)
-  )(broken => broken)
+val ownerAcknowledgment = stickyAcross(ackOnlyWhenKept)
 
 /** The outcomes the runs' histories have recorded. */
 enum Outcomes derives Finite:
@@ -463,9 +454,9 @@ def outcomesAfter(seen: Outcomes, k: Knowledge): Outcomes = k match
   case Knowledge.successor(r) => withOutcome(seen, r)
   case _                      => seen
 
-val singleOutcome: Monitor[CloseResetState, Answer, Fact, Outcomes] =
-  monitor[CloseResetState, Answer, Fact, Outcomes]("singleOutcome", Outcomes.none)(
-    (seen, _, after) => outcomesAfter(seen, after.state.known)
+val singleOutcome =
+  monitor[CloseResetState, Answer, Fact, Outcomes](Outcomes.none)((seen, _, after) =>
+    outcomesAfter(seen, after.state.known)
   )(seen => seen == Outcomes.several)
 
 /** Who asked for the cancellation, and whether the history still says so. */
@@ -486,9 +477,9 @@ def askedAfter(asked: Asked, i: Intent): Asked = asked match
 /**
  * The cancellation principal is lost: a request made is no longer in the owner's history as made.
  */
-val cancelPrincipal: Monitor[CloseResetState, Answer, Fact, Asked] =
-  monitor[CloseResetState, Answer, Fact, Asked]("cancelPrincipal", Asked.nobody)(
-    (asked, _, after) => askedAfter(asked, after.state.intent)
+val cancelPrincipal =
+  monitor[CloseResetState, Answer, Fact, Asked](Asked.nobody)((asked, _, after) =>
+    askedAfter(asked, after.state.intent)
   )(asked => asked == Asked.lost)
 
 // ### Assumptions
@@ -529,174 +520,62 @@ val recovery: Assumption = assume("currentOwnerEventuallyRecoversAndReappliesRet
   .fair(reset)
 
 // ### The designs differ only in the policy, the reset and the channel their steps pass
+//
+// Each design after the first is derived from one before it, changing the step functions its
+// policy, reset or channel changes and the assumptions it adds.
 
-val rejectAfterCloseDesign: Machine[CloseResetState, Answer, Fact] =
-  machine[CloseResetState, Answer, Fact](Family, "rejectAfterClose") {
-    forEntity(request)
-    monitors(retainedOutcome, ownerAcknowledgment, singleOutcome, cancelPrincipal)
-    starts(opened)
-    ends(settled)
-    evidence(closeResetEvidence)
-    steps(
-      callerClose ~> closeStep,
-      reset ~> (s => resetStep(Reset.reapplies, s)),
-      requestCancel ~> cancelStep,
-      deliverCancel ~> cancelDeliveryStep,
-      handlerFinish ~> finishStep,
-      complete ~> ((s, r) => deliverStep(Policy.rejectAfterClose, Redelivery.untilAck, s, r))
-    )
+val rejectAfterClose = machine[CloseResetState, Answer, Fact] {
+  forEntity(nexusRequest)
+  monitors(retainedOutcome, ownerAcknowledgment, singleOutcome, cancelPrincipal)
+  starts(opened)
+  ends(settled)
+  evidence {
+    case Fact.cancelRequested(_) => "nexusOperationCancelRequested"
+    case Fact.handlerFinished(_) => "handlerFinished"
   }
+  steps(
+    callerClose ~> closeStep,
+    reset ~> (s => resetStep(Reset.reapplies, s)),
+    requestCancel ~> cancelStep,
+    deliverCancel ~> cancelDeliveryStep,
+    handlerFinish ~> finishStep,
+    complete ~> ((s, r) => deliverStep(Policy.rejectAfterClose, Redelivery.untilAck, s, r))
+  )
+}
 
-val ackByOriginalDesign: Machine[CloseResetState, Answer, Fact] =
-  machine[CloseResetState, Answer, Fact](Family, "ackByOriginal") {
-    forEntity(request)
-    assumes(retentionDurable)
-    monitors(retainedOutcome, ownerAcknowledgment, singleOutcome, cancelPrincipal)
-    starts(opened)
-    ends(settled)
-    evidence(closeResetEvidence)
-    steps(
-      callerClose ~> closeStep,
-      reset ~> (s => resetStep(Reset.reapplies, s)),
-      requestCancel ~> cancelStep,
-      deliverCancel ~> cancelDeliveryStep,
-      handlerFinish ~> finishStep,
-      complete ~> ((s, r) => deliverStep(Policy.ackByOriginal, Redelivery.untilAck, s, r))
-    )
-  }
+val ackByOriginal = rejectAfterClose
+  .assuming(retentionDurable)
+  .rebind(complete ~> ((s, r) => deliverStep(Policy.ackByOriginal, Redelivery.untilAck, s, r)))
 
-val retainAndRouteDesign: Machine[CloseResetState, Answer, Fact] =
-  machine[CloseResetState, Answer, Fact](Family, "retainAndRoute") {
-    forEntity(request)
-    assumes(retentionDurable)
-    monitors(retainedOutcome, ownerAcknowledgment, singleOutcome, cancelPrincipal)
-    starts(opened)
-    ends(settled)
-    evidence(closeResetEvidence)
-    steps(
-      callerClose ~> closeStep,
-      reset ~> (s => resetStep(Reset.reapplies, s)),
-      requestCancel ~> cancelStep,
-      deliverCancel ~> cancelDeliveryStep,
-      handlerFinish ~> finishStep,
-      complete ~> ((s, r) => deliverStep(Policy.retainAndRoute, Redelivery.untilAck, s, r))
-    )
-  }
+val retainAndRoute = rejectAfterClose
+  .assuming(retentionDurable)
+  .rebind(complete ~> ((s, r) => deliverStep(Policy.retainAndRoute, Redelivery.untilAck, s, r)))
 
 /** The corrected policy with a reset that forgets the cancel request. */
-val forgetsCancelOnResetDesign: Machine[CloseResetState, Answer, Fact] =
-  machine[CloseResetState, Answer, Fact](Family, "forgetsCancelOnReset") {
-    forEntity(request)
-    assumes(retentionDurable)
-    monitors(retainedOutcome, ownerAcknowledgment, singleOutcome, cancelPrincipal)
-    starts(opened)
-    ends(settled)
-    evidence(closeResetEvidence)
-    steps(
-      callerClose ~> closeStep,
-      reset ~> (s => resetStep(Reset.forgetsCancel, s)),
-      requestCancel ~> cancelStep,
-      deliverCancel ~> cancelDeliveryStep,
-      handlerFinish ~> finishStep,
-      complete ~> ((s, r) => deliverStep(Policy.retainAndRoute, Redelivery.untilAck, s, r))
-    )
-  }
+val forgetsCancelOnReset = retainAndRoute.rebind(reset ~> (s => resetStep(Reset.forgetsCancel, s)))
 
 /**
  * The corrected policy with a reset that does not reapply what the original run recorded.
  */
-val truncatesOnResetDesign: Machine[CloseResetState, Answer, Fact] =
-  machine[CloseResetState, Answer, Fact](Family, "truncatesOnReset") {
-    forEntity(request)
-    assumes(retentionDurable)
-    monitors(retainedOutcome, ownerAcknowledgment, singleOutcome, cancelPrincipal)
-    starts(opened)
-    ends(settled)
-    evidence(closeResetEvidence)
-    steps(
-      callerClose ~> closeStep,
-      reset ~> (s => resetStep(Reset.truncates, s)),
-      requestCancel ~> cancelStep,
-      deliverCancel ~> cancelDeliveryStep,
-      handlerFinish ~> finishStep,
-      complete ~> ((s, r) => deliverStep(Policy.retainAndRoute, Redelivery.untilAck, s, r))
-    )
-  }
+val truncatesOnReset = retainAndRoute.rebind(reset ~> (s => resetStep(Reset.truncates, s)))
 
 /** The corrected design over the channel that redelivers once. */
-val retainAndRouteBoundedRetryDesign: Machine[CloseResetState, Answer, Fact] =
-  machine[CloseResetState, Answer, Fact](Family, "retainAndRouteBoundedRetry") {
-    forEntity(request)
-    assumes(retentionDurable, retryFair)
-    monitors(retainedOutcome, ownerAcknowledgment, singleOutcome, cancelPrincipal)
-    starts(opened)
-    ends(settled)
-    evidence(closeResetEvidence)
-    steps(
-      callerClose ~> closeStep,
-      reset ~> (s => resetStep(Reset.reapplies, s)),
-      requestCancel ~> cancelStep,
-      deliverCancel ~> cancelDeliveryStep,
-      handlerFinish ~> finishStep,
-      complete ~> ((s, r) => deliverStep(Policy.retainAndRoute, Redelivery.once, s, r))
-    )
-  }
+val retainAndRouteBoundedRetry = retainAndRoute
+  .assuming(retryFair)
+  .rebind(complete ~> ((s, r) => deliverStep(Policy.retainAndRoute, Redelivery.once, s, r)))
 
 // ### The three policies with a schedule-to-close deadline, over the channel that redelivers once
 
-val rejectAfterCloseWithDeadlineDesign: Machine[CloseResetState, Answer, Fact] =
-  machine[CloseResetState, Answer, Fact](Family, "rejectAfterCloseWithDeadline") {
-    forEntity(request)
-    assumes(retryFair, deadlineExpires)
-    monitors(retainedOutcome, ownerAcknowledgment, singleOutcome, cancelPrincipal)
-    starts(opened)
-    ends(settled)
-    evidence(closeResetEvidence)
-    steps(
-      callerClose ~> closeStep,
-      reset ~> (s => resetStep(Reset.reapplies, s)),
-      requestCancel ~> cancelStep,
-      deliverCancel ~> cancelDeliveryStep,
-      handlerFinish ~> finishStep,
-      complete ~> ((s, r) => deliverStep(Policy.rejectAfterClose, Redelivery.once, s, r)),
-      scheduleToClose ~> expireStep
-    )
-  }
+val rejectAfterCloseWithDeadline = rejectAfterClose
+  .assuming(retryFair, deadlineExpires)
+  .rebind(complete ~> ((s, r) => deliverStep(Policy.rejectAfterClose, Redelivery.once, s, r)))
+  .extend(scheduleToClose ~> expireStep)
 
-val ackByOriginalWithDeadlineDesign: Machine[CloseResetState, Answer, Fact] =
-  machine[CloseResetState, Answer, Fact](Family, "ackByOriginalWithDeadline") {
-    forEntity(request)
-    assumes(retentionDurable, retryFair, deadlineExpires)
-    monitors(retainedOutcome, ownerAcknowledgment, singleOutcome, cancelPrincipal)
-    starts(opened)
-    ends(settled)
-    evidence(closeResetEvidence)
-    steps(
-      callerClose ~> closeStep,
-      reset ~> (s => resetStep(Reset.reapplies, s)),
-      requestCancel ~> cancelStep,
-      deliverCancel ~> cancelDeliveryStep,
-      handlerFinish ~> finishStep,
-      complete ~> ((s, r) => deliverStep(Policy.ackByOriginal, Redelivery.once, s, r)),
-      scheduleToClose ~> expireStep
-    )
-  }
+val ackByOriginalWithDeadline = ackByOriginal
+  .assuming(retryFair, deadlineExpires)
+  .rebind(complete ~> ((s, r) => deliverStep(Policy.ackByOriginal, Redelivery.once, s, r)))
+  .extend(scheduleToClose ~> expireStep)
 
-val retainAndRouteWithDeadlineDesign: Machine[CloseResetState, Answer, Fact] =
-  machine[CloseResetState, Answer, Fact](Family, "retainAndRouteWithDeadline") {
-    forEntity(request)
-    assumes(retentionDurable, retryFair, deadlineExpires)
-    monitors(retainedOutcome, ownerAcknowledgment, singleOutcome, cancelPrincipal)
-    starts(opened)
-    ends(settled)
-    evidence(closeResetEvidence)
-    steps(
-      callerClose ~> closeStep,
-      reset ~> (s => resetStep(Reset.reapplies, s)),
-      requestCancel ~> cancelStep,
-      deliverCancel ~> cancelDeliveryStep,
-      handlerFinish ~> finishStep,
-      complete ~> ((s, r) => deliverStep(Policy.retainAndRoute, Redelivery.once, s, r)),
-      scheduleToClose ~> expireStep
-    )
-  }
+val retainAndRouteWithDeadline = retainAndRouteBoundedRetry
+  .assuming(deadlineExpires)
+  .extend(scheduleToClose ~> expireStep)

@@ -143,149 +143,174 @@ func runGeneratedCases(t *testing.T, env *testcore.TestEnv, fixture *testpilotco
 	return results
 }
 
-// requiredSettingOptions is the typed setting of each dynamic-configuration key a generated Case may
-// require, by its lower-case key, as the server reads the key. dynamicconfig has no public lookup
-// from a key to its setting, so a Case that requires a key missing here fails the suite rather than
-// running against a server that does not set it.
-var requiredSettingOptions = map[string]func(value string) (testcore.TestOption, error){
-	strings.ToLower(nexusoperation.Enabled.Key().String()): boolSettingOption(nexusoperation.Enabled),
-}
-
-func boolSettingOption(setting dynamicconfig.GenericSetting) func(string) (testcore.TestOption, error) {
-	return func(value string) (testcore.TestOption, error) {
-		parsed, err := strconv.ParseBool(value)
-		if err != nil {
-			return nil, err
-		}
-		return testcore.WithDynamicConfig(setting, parsed), nil
-	}
-}
-
-// generatedRequiredSettings is the union of the settings the lowered Cases require, by lower-case
-// key: one environment runs them all, so two Cases that require one key at two values fail the suite.
-func generatedRequiredSettings(t *testing.T, entries []lower.GeneratedCase) map[string]string {
-	t.Helper()
-	settings := map[string]string{}
+// TestTestpilotGeneratedCases runs every lowered Case as its own depth-2 subtest, the unit the
+// functional job shards and the salt optimizer times, each against a dedicated cluster. A Case that
+// binds a Nexus endpoint runs once per value of the Nexus implementation switch, a cluster each, and
+// the two Verdicts must agree; any other Case runs once with no switch below it.
+func TestTestpilotGeneratedCases(t *testing.T) {
+	entries, err := testpilotcore.GeneratedCases(generatedCaseDirectory)
+	require.NoError(t, err)
 	for _, entry := range entries {
 		if entry.Standing != lower.Lowered {
 			continue
 		}
-		encoded, err := os.ReadFile(filepath.Join(generatedCaseDirectory, entry.File))
-		require.NoError(t, err)
-		source, err := testpilot.DecodeCaseProtoJSON(encoded)
-		require.NoError(t, err)
-		for _, setting := range source.GetProgram().GetRequiredSettings() {
-			key := strings.ToLower(setting.GetKey())
-			if previous, ok := settings[key]; ok {
-				require.Equal(t, previous, setting.GetValue(), "%s requires %s at another value than an earlier Case", entry.File, setting.GetKey())
+		name := testpilotcore.GeneratedCaseName(entry)
+		t.Run(name, func(t *testing.T) {
+			// First, so a Case outside the running shard skips as a whole: a Nexus Case constructs its
+			// clusters below this level, where only the prefix places them.
+			testcore.CheckTestShard(t)
+			fixture, err := testpilotcore.LoadGeneratedCase(generatedCaseDirectory, entry)
+			require.NoError(t, err)
+			// The cluster runs under every setting the Case's Program requires, and the Profile records
+			// each, so preparation checks the Case against what the server actually runs with.
+			required := requiredSettings(t, fixture.Source)
+			if !bindsNexusEndpoint(fixture.Source) {
+				runGeneratedCaseOnCluster(t, entry, fixture, "", append([]testpilotcore.SwitchSetting{
+					{Setting: activity.Enabled, Value: true},
+					{Setting: activity.EnableStandaloneActivityOperatorCommands, Value: true},
+					{Setting: dynamicconfig.EnableChasm, Value: true},
+				}, required...))
+				return
 			}
-			settings[key] = setting.GetValue()
-		}
+			// Each value appends only the Verdict it produced, and nothing here counts them: the test
+			// runner retries a failed value alone, by its anchored name, and that retry must be judged on
+			// the one value it runs.
+			var results []testpilotcore.SwitchVerdict
+			for _, value := range testpilotcore.NexusImplementationSwitch() {
+				t.Run(value.Name, func(t *testing.T) {
+					// Standalone activity needs CHASM independently of the Nexus implementation switch.
+					settings := append(slices.Clone(value.Settings), testpilotcore.SwitchSetting{Setting: dynamicconfig.EnableChasm, Value: true})
+					settings = append(settings, required...)
+					verdict := runGeneratedCaseOnCluster(t, entry, fixture, value.Name, settings)
+					results = append(results, testpilotcore.SwitchVerdict{Value: value.Name, Verdict: verdict})
+				})
+			}
+			require.NoError(t, testpilotcore.CheckSwitchAgreement(testpilotcore.NexusImplementationSwitchName, results))
+		})
+	}
+}
+
+// requiredSettingKinds turns the value of each dynamic-configuration key a generated Case may require
+// into its typed setting, by its lower-case key. dynamicconfig has no public lookup from a key to its
+// setting, so a Case that requires a key missing here fails rather than running against a server that
+// does not set it.
+var requiredSettingKinds = map[string]func(value string) (testpilotcore.SwitchSetting, error){
+	strings.ToLower(nexusoperation.Enabled.Key().String()): boolSetting(nexusoperation.Enabled),
+}
+
+func boolSetting(setting dynamicconfig.GenericSetting) func(string) (testpilotcore.SwitchSetting, error) {
+	return func(value string) (testpilotcore.SwitchSetting, error) {
+		parsed, err := strconv.ParseBool(value)
+		return testpilotcore.SwitchSetting{Setting: setting, Value: parsed}, err
+	}
+}
+
+// requiredSettings is the dynamic configuration a Case's Program requires, as the settings its
+// cluster is constructed with.
+func requiredSettings(t *testing.T, source *testpilotspb.Case) []testpilotcore.SwitchSetting {
+	t.Helper()
+	var settings []testpilotcore.SwitchSetting
+	for _, required := range source.GetProgram().GetRequiredSettings() {
+		kind, ok := requiredSettingKinds[strings.ToLower(required.GetKey())]
+		require.True(t, ok, "the Case requires %s, which the suite cannot set", required.GetKey())
+		setting, err := kind(required.GetValue())
+		require.NoError(t, err, "the Case requires %s=%s", required.GetKey(), required.GetValue())
+		settings = append(settings, setting)
 	}
 	return settings
 }
 
-func TestTestpilotGeneratedCases(t *testing.T) {
-	entries, err := testpilotcore.GeneratedCases(generatedCaseDirectory)
-	require.NoError(t, err)
-	required := generatedRequiredSettings(t, entries)
-	for _, value := range testpilotcore.NexusImplementationSwitch() {
-		t.Run(value.Name, func(t *testing.T) {
-			options := []testcore.TestOption{
-				testcore.WithDynamicConfig(activity.Enabled, true),
-				testcore.WithDynamicConfig(activity.EnableStandaloneActivityOperatorCommands, true),
-			}
-			// The server runs under every setting a Case requires, and the derived Profile records each,
-			// so preparation checks a Case against what the server actually runs with.
-			for _, key := range slices.Sorted(maps.Keys(required)) {
-				option, ok := requiredSettingOptions[key]
-				require.True(t, ok, "a generated Case requires %s, which the suite cannot set", key)
-				applied, err := option(required[key])
-				require.NoError(t, err, "a generated Case requires %s=%s", key, required[key])
-				options = append(options, applied)
-			}
-			for _, setting := range value.Settings {
-				options = append(options, testcore.WithDynamicConfig(setting.Setting, setting.Value))
-			}
-			// Standalone activity needs CHASM independently of the Nexus implementation switch.
-			options = append(options, testcore.WithDynamicConfig(dynamicconfig.EnableChasm, true))
-			env := newTestpilotTestEnvironment(t, options...)
-			for _, entry := range entries {
-				if entry.Standing != lower.Lowered {
-					continue
-				}
-				t.Run(entry.File, func(t *testing.T) {
-					fixture, err := testpilotcore.LoadGeneratedCase(generatedCaseDirectory, entry)
-					require.NoError(t, err)
-					needsHold := false
-					for _, script := range fixture.Source.GetProgram().GetEntrypoints() {
-						for _, node := range script.GetInstructions() {
-							if node.GetInstruction().GetInjectFault().GetKind() == testpilotspb.FAULT_KIND_DELIVERY_HOLD {
-								needsHold = true
-							}
-						}
-					}
-					lives := make([]testpilotLiveCase, 2)
-					for i := range lives {
-						name := "scala-" + uuid.NewString()
-						binding := defaultBinding(name, fixture.Source)
-						binding.CreateEndpoint = bindsNexusEndpoint(fixture.Source)
-						binding.DynamicConfig = value.Configuration()
-						binding.DynamicConfig[dynamicconfig.EnableChasm.Key().String()] = "true"
-						maps.Copy(binding.DynamicConfig, required)
-						catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
-						require.NoError(t, err)
-						handlerQueue := ""
-						if testpilotdriver.HandlerTaskQueueBindingID(fixture.Source.GetProgram()) != "" {
-							handlerQueue = binding.TaskQueue + "-handler"
-						}
-						profile, err := testpilotdriver.DeriveProfile(fixture.Source, catalog, testpilotdriver.Environment{
-							Identity: binding.Identity, Namespace: binding.Namespace, TaskQueue: binding.TaskQueue,
-							HandlerTaskQueue: handlerQueue, NexusEndpoint: binding.NexusEndpoint, DeliveryControl: needsHold,
-							DynamicConfig: binding.DynamicConfig,
-						})
-						require.NoError(t, err)
-						if _, err := testpilot.Prepare(fixture.Source, profile); err != nil {
-							var rejection *testpilot.PreparationError
-							if errors.As(err, &rejection) && rejection.Category == testpilot.PreparationUnsupported {
-								t.Skipf("skipped: %v", err)
-							}
-							require.NoError(t, err)
-						}
-						if needsHold {
-							controlled := bindControlledCase(t, env, fixture.Source, name)
-							_, _, err := controlled.prepared.Run(t.Context(), controlled.uncontrolled)
-							require.ErrorIs(t, err, testpilotdriver.ErrNoDeliveryControl)
-							lives[i] = controlled.testpilotLiveCase
-						} else {
-							lives[i] = bindCase(t, env, fixture.Source, binding)
-						}
-					}
-					require.NotEqual(t, lives[0].prepared.Identity().Bindings, lives[1].prepared.Identity().Bindings)
-					ids := map[string]bool{}
-					for round := range 2 {
-						for i, result := range runGeneratedCases(t, env, fixture, lives) {
-							requireGeneratedAssessment(t, fixture, lives[i], result)
-							if round == 0 && i == 0 && os.Getenv("UMPIRE_EXPLORATION_DIR") != "" {
-								model, err := umpiremodel.Load(filepath.Join(generatedCaseDirectory, "..", "ir", entry.Model))
-								require.NoError(t, err)
-								identity, err := recordedrun.CaseIdentity(fixture.Bytes)
-								require.NoError(t, err)
-								root, err := filepath.Abs("..")
-								require.NoError(t, err)
-								trace, err := explore.RenderTrace(&explore.Candidate{Model: model, Case: fixture.Source, Identity: identity, Digest: "generated:" + entry.Model + "/" + entry.Query.Name}, entry.Query.Name, result.run, result.assessment, root)
-								require.NoError(t, err)
-								writeExplorationArtifact(t, value.Name+"-"+entry.File+".html", trace)
-							}
-							require.NotContains(t, ids, result.run.GetRunId())
-							ids[result.run.GetRunId()] = true
-							if len(fixture.Durable) != 0 {
-								requireInconclusiveWithoutDurableEvidence(t, fixture, lives[i], result.run)
-							}
-						}
-					}
-				})
-			}
-		})
+// runGeneratedCaseOnCluster constructs one dedicated cluster under settings, binds the Case to two
+// isolated lives on it and runs both twice, requiring every Run to be assessed as the manifest
+// expects. It returns the first life's first Verdict, the one a switch agreement compares. value is
+// the switch value the cluster runs under, empty for a Case with no switch: under a value, a Profile
+// that rejects the Case as unsupported fails naming the value, since the other value running and this
+// one not is a finding; with no switch it skips, since no agreement depends on it.
+func runGeneratedCaseOnCluster(t *testing.T, entry lower.GeneratedCase, fixture *testpilotcore.ModelCase, value string, settings []testpilotcore.SwitchSetting) *testpilotspb.Verdict {
+	t.Helper()
+	options := make([]testcore.TestOption, 0, len(settings))
+	for _, setting := range settings {
+		options = append(options, testcore.WithDynamicConfig(setting.Setting, setting.Value))
 	}
+	env := newTestpilotTestEnvironment(t, options...)
+	// The Profile records the settings this cluster was constructed with, and only those; a setting
+	// repeated in the list takes its last value, as at construction.
+	configuration := testpilotcore.SwitchValue{Settings: settings}.Configuration()
+	needsHold := false
+	for _, script := range fixture.Source.GetProgram().GetEntrypoints() {
+		for _, node := range script.GetInstructions() {
+			if node.GetInstruction().GetInjectFault().GetKind() == testpilotspb.FAULT_KIND_DELIVERY_HOLD {
+				needsHold = true
+			}
+		}
+	}
+	lives := make([]testpilotLiveCase, 2)
+	for i := range lives {
+		name := "scala-" + uuid.NewString()
+		binding := defaultBinding(name, fixture.Source)
+		binding.CreateEndpoint = bindsNexusEndpoint(fixture.Source)
+		binding.DynamicConfig = maps.Clone(configuration)
+		catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
+		require.NoError(t, err)
+		handlerQueue := ""
+		if testpilotdriver.HandlerTaskQueueBindingID(fixture.Source.GetProgram()) != "" {
+			handlerQueue = binding.TaskQueue + "-handler"
+		}
+		profile, err := testpilotdriver.DeriveProfile(fixture.Source, catalog, testpilotdriver.Environment{
+			Identity: binding.Identity, Namespace: binding.Namespace, TaskQueue: binding.TaskQueue,
+			HandlerTaskQueue: handlerQueue, NexusEndpoint: binding.NexusEndpoint, DeliveryControl: needsHold,
+			DynamicConfig: binding.DynamicConfig,
+		})
+		require.NoError(t, err)
+		if _, err := testpilot.Prepare(fixture.Source, profile); err != nil {
+			var rejection *testpilot.PreparationError
+			if errors.As(err, &rejection) && rejection.Category == testpilot.PreparationUnsupported {
+				if value != "" {
+					t.Fatalf("%s=%s rejected the Case at preparation: %v", testpilotcore.NexusImplementationSwitchName, value, err)
+				}
+				t.Skipf("skipped: %v", err)
+			}
+			require.NoError(t, err)
+		}
+		if needsHold {
+			controlled := bindControlledCase(t, env, fixture.Source, name)
+			_, _, err := controlled.prepared.Run(t.Context(), controlled.uncontrolled)
+			require.ErrorIs(t, err, testpilotdriver.ErrNoDeliveryControl)
+			lives[i] = controlled.testpilotLiveCase
+		} else {
+			lives[i] = bindCase(t, env, fixture.Source, binding)
+		}
+	}
+	require.NotEqual(t, lives[0].prepared.Identity().Bindings, lives[1].prepared.Identity().Bindings)
+	var verdict *testpilotspb.Verdict
+	ids := map[string]bool{}
+	for round := range 2 {
+		for i, result := range runGeneratedCases(t, env, fixture, lives) {
+			requireGeneratedAssessment(t, fixture, lives[i], result)
+			if round == 0 && i == 0 {
+				verdict = result.verdict
+				if os.Getenv("UMPIRE_EXPLORATION_DIR") != "" {
+					model, err := umpiremodel.Load(filepath.Join(generatedCaseDirectory, "..", "ir", entry.Model))
+					require.NoError(t, err)
+					identity, err := recordedrun.CaseIdentity(fixture.Bytes)
+					require.NoError(t, err)
+					root, err := filepath.Abs("..")
+					require.NoError(t, err)
+					trace, err := explore.RenderTrace(&explore.Candidate{Model: model, Case: fixture.Source, Identity: identity, Digest: "generated:" + entry.Model + "/" + entry.Query.Name}, entry.Query.Name, result.run, result.assessment, root)
+					require.NoError(t, err)
+					artifact := testpilotcore.GeneratedCaseName(entry)
+					if value != "" {
+						artifact += "-" + value
+					}
+					writeExplorationArtifact(t, artifact+".html", trace)
+				}
+			}
+			require.NotContains(t, ids, result.run.GetRunId())
+			ids[result.run.GetRunId()] = true
+			if len(fixture.Durable) != 0 {
+				requireInconclusiveWithoutDurableEvidence(t, fixture, lives[i], result.run)
+			}
+		}
+	}
+	return verdict
 }

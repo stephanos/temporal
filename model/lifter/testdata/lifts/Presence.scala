@@ -5,6 +5,8 @@ package fixture.presence
 
 import umpire.*
 
+given Family = Family("fixture.presence")
+
 enum Result derives Finite:
   case succeeded, failed
 
@@ -35,10 +37,10 @@ given Finite[State] =
 enum Outcome derives Finite:
   case accepted, ignored
 
-val send = action("send", Party("fixture")).input[Result]("result")
-val keep = action("keep", Party("fixture"))
-val forget = action("forget", Party("fixture"))
-val poll = timer("poll")
+val send = action(Party("fixture")).input[Result]("result")
+val keep = action(Party("fixture"))
+val forget = action(Party("fixture"))
+val poll = timer
 
 def sendStep(s: State, r: Result): List[Step[State, Outcome, Nothing]] = s.report match
   case Report.unsent        => List(Step(Outcome.accepted, s.copy(report = Report.sent(r, false))))
@@ -67,9 +69,8 @@ def forgetStep(s: State): List[Step[State, Outcome, Nothing]] = s.kept match
 def pollStep(s: State): List[Step[State, Outcome, Nothing]] =
   if s.polls == 0 then List(Step(Outcome.accepted, s.copy(polls = 1))) else Nil
 
-val presence: Machine[State, Outcome, Nothing] =
-  machine[State, Outcome, Nothing](Family("fixture.presence"), "presence") {
-    starts(State(Report.unsent, None, Retries.none, 0))
-    ends(s => s.kept != None)
-    steps(send ~> sendStep, keep ~> keepStep, forget ~> forgetStep, poll ~> pollStep)
-  }
+val presence = machine[State, Outcome, Nothing] {
+  starts(State(Report.unsent, None, Retries.none, 0))
+  ends(s => s.kept != None)
+  steps(send ~> sendStep, keep ~> keepStep, forget ~> forgetStep, poll ~> pollStep)
+}
