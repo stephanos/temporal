@@ -7,9 +7,10 @@
 // instead of a Case. `errandRealization` runs a standalone activity whose first attempt fails and
 // whose retry completes, on a machine whose facts a listing reports. `tallyRealization` declares
 // evidence read from one message that keeps fields, one of them without its value, which no Case
-// carries, and the Run's own record as evidence. `heldByValue` names the monitors of a Query's
-// expected Run by value, and `heldByName` by their names. The lifter's tests
-// lift them and compare the IR with expected/realizations.json.
+// carries, and the Run's own record as evidence. The lifter's tests
+// lift them and compare the IR with expected/realizations.json. They lift `heldByValue`, which names
+// the monitors of a Query's expected Run by value, and `heldByName`, by their names, apart from them
+// and require one expected Run of the two.
 package fixture.realizations
 
 import fixture.specimens.admission.{

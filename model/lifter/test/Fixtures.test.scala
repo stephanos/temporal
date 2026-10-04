@@ -131,8 +131,6 @@ class Fixtures extends munit.FunSuite:
       "temporal.nexuscaller.Claims$package$.syncCompletion",
       "fixture.realizations.Realizations$package$.pauseRace",
       "fixture.realizations.Realizations$package$.pauseRaceQuery",
-      "fixture.realizations.Realizations$package$.heldByValue",
-      "fixture.realizations.Realizations$package$.heldByName",
       "fixture.realizations.Realizations$package$.doorRealization",
       "fixture.realizations.Realizations$package$.doorOpens",
       "fixture.realizations.Realizations$package$.errandRealization",
@@ -555,12 +553,18 @@ class Fixtures extends munit.FunSuite:
       .asText()
     assertEquals(bare, "executions")
 
-  // fn-112.10: a monitor of a Query's expected Run named by value, as by its name.
-  test("a monitor expectation names its monitor by value as by its name"):
-    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
-    def expected(name: String) = mapper
-      .readTree(ir("realizations"))
+  // fn-112.10: a monitor of a Query's expected Run named by value, as by its name. Lifted apart
+  // from the realizations fixture, whose expected IR the original baseline holds.
+  concurrently("a monitor expectation names its monitor by value as by its name"):
+    val out = lifted("monitorExpectations")
+    val roots =
+      Seq("heldByValue", "heldByName").map("fixture.realizations.Realizations$package$." + _)
+    val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
+    assert(!result.failed, result.diagnostics)
+    val queries = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(out))
       .path("queries")
+    def expected(name: String) = queries
       .elements()
       .asScala
       .find(_.path("name").asText() == name)
