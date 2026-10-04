@@ -1,0 +1,47 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.30",
+  "base_commit": "08096389f252e35ff2cd898ca5e381f9b878f46c",
+  "branch": "gomad",
+  "protected_files": 1042,
+  "protected_aggregate_sha256": "03624cfa72199f66795820c3fe5e6b92734457e3fc88db05b97e1098446ca6a4",
+  "protected_exclusions": [
+    "tools/gomad3/artifact/open.go",
+    "tools/gomad3/artifact/opened_test.go"
+  ],
+  "protected_original_documents": {
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md": "ed73b16b6bf0581cdfb0a93d6483daf3b550018e0c70839c2214165a46772230",
+    "tools/gomad3/README.md": "8b95e9d3ae6103f120f6cadacbeffcc17f27bac6636b923279461fe13ec6e61a",
+    "AGENTS.md": "1d1647deacf876fd634c64c2760194e210f67198fd31194fd4e464be6bc80f0d",
+    ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43"
+  },
+  "source_plan_bounds": {
+    "tools/gomad3/artifact/open.go": "d84222b9f4acf50d55eb9fc7b967a8b3b262fcc467a4828971e3d82a0c39c26c",
+    "tools/gomad3/artifact/opened_test.go": "86f2b6090d4700f232df8c7984f7c05cb4ef542b0b3aefa3ad4a2b566de59b4f",
+    "tools/gomad3/runner/replay_operation.go": "24dbae80d5175671d6b89c163e35df3ab459c17afc5662ef2ad73110538bdb49",
+    "tools/gomad3/runner/minimize_operation.go": "758cc37786e21093a9e4c1833eab3feb10e571c2aa9bb029024d52b71359f346",
+    ".flow/tmp/artifact-cleanup-source-mapping.md": "3fa6fb04bcee2a6c31cbe3167850170fa46165bb5277a263b709dc7da91b8397"
+  },
+  "public_copy_plan_sha256": "a4464d4b9568eec68acebdf6eff77be8cefc45d662c0611b3d2ec1da43486a29",
+  "index_empty": true,
+  "selection": "tracked tools/gomad3, tools/gomad3sim, tools/gomad3integration, root go.mod/go.sum and lint config excluding only artifact/open.go and artifact/opened_test.go",
+  "encoding": "sorted-key JSON with ordinary comma/colon separator spaces",
+  "requested_worker": {
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "tier_line": "Tier: session (jev-unavailable(no_key))",
+    "actual_model": null
+  },
+  "scheduling": "wave: one source writer in authorized current checkout; independent read-only directory/verifier scout overlaps",
+  "source_scope": [
+    "tools/gomad3/artifact/open.go",
+    "tools/gomad3/artifact/opened_test.go"
+  ],
+  "root_owned": [
+    "Git/index/commit",
+    "Flow/lifecycle/parent",
+    "MILESTONES.md",
+    "fresh independent source review"
+  ],
+  "review_backend": "conductor-deferred source progress; formal review only on qualified green tree",
+  "qualification_limits": "Original R13/R18/R19/task12/predecessors/task21/first-baseline/full/native/formal remain open; no push or compatibility expansion"
+}

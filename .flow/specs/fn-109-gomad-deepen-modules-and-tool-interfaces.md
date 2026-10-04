@@ -508,6 +508,23 @@ task 21 consumes its source evidence. Original R13/R18/R19, task 12/predecessors
 matched first-baseline fixed identities and complete/full/formal/both-native
 acceptance remain open. Root commits reviewed source progress before the next writer.
 
+Task 30's independently reviewed public CopyPayload repair checks six cleanup
+sites and five original test-handle cleanup sites. Payload descriptors close once,
+destination before source. Nil Close preserves exact primary errors, and a sole
+cleanup failure retains its raw error. Source validation, exclusive destination
+creation, pinned source/private manifest, modes and copy/hash/count/EOF/Sync
+retain their original operation body. Real-file controls pass against baseline
+and final source; nil-wrap and second-close mutants fail for their intended reasons.
+Ordinary package, focused, boundary, errortype and generator checks pass on
+developmental linux/arm64. Actual unfiltered artifact lint falls from 21 to 10,
+with eleven mapped repairs and no introduced diagnostics. Genuine first-Close
+and simultaneous cleanup-failure execution remain unproved. Directory sync,
+shared verification, reflection and publication/pool retain separate owners.
+Task 30 stays blocked; task 21 consumes its source evidence. Original R13/R18/R19,
+task 12/predecessors, matched first-baseline fixed identities and complete/full/
+formal/both-native qualification remain open. Root commits reviewed progress
+before the next source writer.
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.

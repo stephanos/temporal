@@ -255,7 +255,7 @@ func (opened *Opened) ReadPayload(relativePath string, maximum uint64) ([]byte, 
 
 // CopyPayload copies a listed payload to a new file at destination and checks
 // the copy against the manifest.
-func (opened *Opened) CopyPayload(relativePath, destination string, destinationMode os.FileMode) error {
+func (opened *Opened) CopyPayload(relativePath, destination string, destinationMode os.FileMode) (retErr error) {
 	if opened == nil || opened.root == nil {
 		return fmt.Errorf("artifact is not open")
 	}
@@ -267,37 +267,49 @@ func (opened *Opened) CopyPayload(relativePath, destination string, destinationM
 	if err != nil {
 		return err
 	}
-	defer source.Close()
+	defer func() {
+		if closeErr := source.Close(); closeErr != nil {
+			if retErr == nil {
+				retErr = closeErr
+			} else {
+				retErr = errors.Join(retErr, closeErr)
+			}
+		}
+	}()
 	destinationFile, err := os.OpenFile(destination, os.O_WRONLY|os.O_CREATE|os.O_EXCL, destinationMode)
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if closeErr := destinationFile.Close(); closeErr != nil {
+			if retErr == nil {
+				retErr = closeErr
+			} else {
+				retErr = errors.Join(retErr, closeErr)
+			}
+		}
+	}()
 	if err := destinationFile.Chmod(destinationMode); err != nil {
-		destinationFile.Close()
 		return err
 	}
 	hasher := sha256.New()
 	reader := &io.LimitedReader{R: source, N: int64(expected.Size)}
 	written, copyErr := io.Copy(io.MultiWriter(destinationFile, hasher), reader)
 	if copyErr != nil {
-		destinationFile.Close()
 		return copyErr
 	}
 	var extra [1]byte
 	if count, readErr := source.Read(extra[:]); count != 0 || readErr != io.EOF {
-		destinationFile.Close()
 		return fmt.Errorf("artifact payload %q changed size while copying", relativePath)
 	}
 	digest := record.SHA256("sha256:" + hex.EncodeToString(hasher.Sum(nil)))
 	if uint64(written) != uint64(expected.Size) || digest != expected.SHA256 {
-		destinationFile.Close()
 		return fmt.Errorf("artifact payload %q identity mismatch", relativePath)
 	}
 	if err := destinationFile.Sync(); err != nil {
-		destinationFile.Close()
 		return err
 	}
-	return destinationFile.Close()
+	return nil
 }
 
 func listedFile(opened *Opened, relativePath string) *record.File {

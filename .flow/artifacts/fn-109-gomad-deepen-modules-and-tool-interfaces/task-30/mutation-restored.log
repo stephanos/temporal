@@ -1,0 +1,12 @@
+=== RUN   TestOpenedArtifactPayloadAccess
+--- PASS: TestOpenedArtifactPayloadAccess (0.01s)
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle/collision
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle/missing_parent
+--- PASS: TestOpenedArtifactCopyDestinationErrorsPreserveHandle (0.00s)
+    --- PASS: TestOpenedArtifactCopyDestinationErrorsPreserveHandle/collision (0.00s)
+    --- PASS: TestOpenedArtifactCopyDestinationErrorsPreserveHandle/missing_parent (0.00s)
+=== RUN   TestOpenedArtifactReadsPinnedDirectoryAfterReplacement
+--- PASS: TestOpenedArtifactReadsPinnedDirectoryAfterReplacement (0.01s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/artifact	0.020s

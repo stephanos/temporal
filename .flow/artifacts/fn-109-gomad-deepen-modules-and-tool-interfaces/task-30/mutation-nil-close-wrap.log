@@ -1,0 +1,11 @@
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle/collision
+    opened_test.go:139: CopyPayload destination error = *errors.joinError open /home/agent/.cache/codex-build/tmp/TestOpenedArtifactCopyDestinationErrorsPreserveHandle4081790094/003/existing: file exists, want raw open PathError for /home/agent/.cache/codex-build/tmp/TestOpenedArtifactCopyDestinationErrorsPreserveHandle4081790094/003/existing with file already exists
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle/missing_parent
+    opened_test.go:139: CopyPayload destination error = *errors.joinError open /home/agent/.cache/codex-build/tmp/TestOpenedArtifactCopyDestinationErrorsPreserveHandle4081790094/003/missing/stdout: no such file or directory, want raw open PathError for /home/agent/.cache/codex-build/tmp/TestOpenedArtifactCopyDestinationErrorsPreserveHandle4081790094/003/missing/stdout with file does not exist
+--- FAIL: TestOpenedArtifactCopyDestinationErrorsPreserveHandle (0.01s)
+    --- FAIL: TestOpenedArtifactCopyDestinationErrorsPreserveHandle/collision (0.00s)
+    --- FAIL: TestOpenedArtifactCopyDestinationErrorsPreserveHandle/missing_parent (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/artifact	0.009s
+FAIL

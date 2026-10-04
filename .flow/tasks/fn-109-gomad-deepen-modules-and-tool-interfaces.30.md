@@ -1,0 +1,59 @@
+---
+satisfies: [R13, R18, R19]
+---
+# fn-109-gomad-deepen-modules-and-tool-interfaces.30 Preserve public artifact copy cleanup and handle lifetime
+
+## Description
+Bounded R13/R18/R19 source repair after private payload checkpoint 8ac436447572c55d494ca4c2088f6ba441db16db and evidence commit 08096389f252e35ff2cd898ca5e381f9b878f46c. Preserve original task 12/predecessors and task 21 acceptance; do not force-start or complete them.
+
+**Size:** M
+**Touches:** [tools/gomad3/artifact/open.go, tools/gomad3/artifact/opened_test.go, .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/**]
+Root separately owns Flow parent/tasks, MILESTONES, review and Git/index/commit. One source writer in the authorized gomad checkout; a read-only scout may overlap only on stable disjoint files.
+
+Read AGENTS.md, Gomad README/MILESTONES, original fn109 spec/task12, the artifact interface inventory, .flow/tmp/artifact-cleanup-source-mapping.md and .flow/tmp/public-copy-cleanup-owner-plan.md. Reuse the existing mapping and concrete public-copy plan, not another exploratory inventory. This owner covers six production errcheck sites in Opened.CopyPayload at open.go baseline lines 270,276,283,288,293,297 and five closely related opened-test cleanup sites at opened_test.go baseline lines 41,61,145,256,323. Private copyPayload/writePayload, directory sync, shared verification, publication, pool and callers remain separate owners and byte-identical.
+
+Baseline whole ordinary ./artifact tests and actual unfiltered pinned lint/errortype before production edits. Follow test-driven-development, writing-good-tests, code-style and verification-before-completion. The actual eleven unchecked-close analyzer findings are the source-policy RED. Add meaningful real-file controls before production edits; passing baseline characterizations are not runtime first-Close regression proof.
+
+Name CopyPayload's existing error result without changing its public Go function type. Register one observing source defer after OpenPayload acquisition and one observing destination defer after exclusive OpenFile acquisition; LIFO destination-before-source release must be exactly once. Remove all five ignored branch destination Close calls and replace the checked success return with nil so the destination defer owns the one attempt. Nil Close leaves retErr untouched; nonnil Close with nil retErr adopts that exact Close error object; otherwise join existing primary first then cleanup. In particular, a destination-Close error on an otherwise successful copy currently returns directly: errors.Join(nil, closeErr) would introduce a gratuitous wrapper. Formerly ignored genuine source-close failures become visible and dual failures add cleanup detail; disclose this limited behavior change instead of claiming universal error equivalence.
+
+Keep nil/closed-handle, inventory and OpenPayload source-validation checks in their existing order before destination create. Keep public comments, pinned root, private manifest, cloning, expected bound/mode/size/SHA/EOF/rewind checks, target-only hard-link permission, O_WRONLY|O_CREATE|O_EXCL, Chmod, LimitedReader/MultiWriter/hash/extra-read/synthetic-error precedence, Sync and partial destination policy unchanged. CopyPayload must not close the Opened root, create a missing parent, delete or truncate destination, change consumer cleanup, add a buffer/public helper/fake syscall seam or retry Close. No broad cleanup framework. Replace the five ignored test-handle defers with observing checked cleanup at the same test/subtest lifetime; preserve original assertions and helper semantics, including reflection switches and invariants.
+
+Use the smallest missing real-file controls from the source plan. Valid-source destination collision and missing-parent errors must remain raw directly assertable *os.PathError, Op open/Path, errors.Is(os.ErrExist/NotExist), with sentinel bytes/mode unchanged and no parent created; the same Opened remains usable for stdout and a later successful copy. Extend existing source-damage matrix to CopyPayload (not the caller-selected maximum case which has no public copy parameter), checking existing literal source errors win over destination collision and leave sentinel/fresh destination unchanged/absent. Extend the pinned-directory replacement test by copying original stdout at mode 0600, which differs from the replacement; retain manifest identity. Existing target copy0500, nil/closed/idempotent Close and clone controls stay intact. Derive expectations from literals/current behavior, not mirror helpers. No descriptor theft, races, fake Close injection or new public seam. Genuine first-Close, simultaneous operation/destination/source-close failure and post-validation growth/Chmod/Sync fault execution remain explicitly unproved where no legitimate portable seam exists.
+
+Use cached stock Go1.27.1 linux/arm64, GOWORK=off GOTOOLCHAIN=local GOPROXY=off GOFLAGS='' cleared GOMADSEED/GOMAD3_CHILD_SEED, tests -count=1 -tags test_dep. Final whole ./artifact, focused opened/public-copy/clone/pinned/source-validation/Store/publication/pool/mode/retained-cost tests, root ownership/architecture/public alias/signature/external Runner boundaries, pinned unfiltered lint and errortype. Inspect generator inputs; disposition make validate against current protected inputs without regeneration. Do not rerun unchanged broad rootfast/full/native environment failures.
+
+Pinned local Go: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go. Analyzers: /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 and errortype. Use unchanged .github/.golangci.yml with --build-tags test_dep --fix=false ./artifact and errortype -tags test_dep ./artifact. Actual baseline should bind task29's 21 residual findings; record actual count rather than trusting it. Retain all raw before/after/residual/introduced findings and eleven-site mapped delta; no filtering/suppression/rule/config/reflect/golden/pin/runtime/dependency/download changes. Historical broader419 is not a fresh whole-scope count.
+
+Reuse task29's run-gate.py pattern under task30. Record exact commands/env/cwd/start/end/elapsed/child exit, raw logs/tool/config and stable complete artifact-source hashes; one lean handover/evidence, meaningful baseline/characterization/final receipts and compact protected aggregates (no repeated 1,000-path inventories). Root's source-admission.json binds the protected selection. Keep all existing bytes outside CopyPayload and admitted test cleanup/additions unchanged. Original R13/R18/R19, task12/predecessors/task21, matched original first-baseline fixed identities, full/formal/both patched-native and affected consumer qualification stay open wherever unproved.
+
+Worker owns only these two source/test files and task30 artifacts. Root alone reviews, stages/commits and handles Flow. No worktrees/stash/bridge/push/history rewrite or unrelated writes. Do not call flowctl done or claim formal SHIP. Return with task-unique handover.md/evidence.json only after all owned commands/delegates are terminal. Root verifies/reviews/commits source progress before the next writer.
+
+## Acceptance
+- [ ] Six public-copy and five opened-test cleanup findings are resolved at their existing lifetimes with exactly one destination/source Close attempt and destination-before-source ordering.
+- [ ] Nil-close cleanup preserves exact primary object/type/unwrap shape and current error precedence; single destination-Close error remains direct; added cleanup-failure behavior and missing genuine fault execution are disclosed.
+- [ ] Public signatures, pinned source/private manifest, OpenPayload checks, exclusive destinations, modes, copy/hash/count/EOF/Sync, partial destinations and caller/root ownership remain unchanged; all original test assertions retain their strength.
+- [ ] Actual baseline/characterization/final real-file/package/boundary/lint/errortype/generator evidence has literal expectations, stable source/tool/config/log bindings and terminal receipts, including every residual/introduced diagnostic.
+- [ ] Fresh independent source review has no actionable introduced defect, and root commits progress while original R13/R18/R19/task12/predecessors/task21/fixed-identity/full/native/formal acceptance remains open.
+
+
+## Done summary
+SOURCE_PROGRESS_ONLY; authoritative task status remains blocked, not done.
+
+Public CopyPayload now checks six cleanup sites and the five original opened-test handle cleanup sites. Each payload descriptor gets one Close attempt, destination before source, without closing the Opened root. Nil Close leaves the exact primary error unchanged; a sole cleanup error stays direct; simultaneous errors retain primary, destination and source traversal order. Source validation, exclusive create, modes, copy/hash/count/EOF/Sync and partial-destination policy keep their existing operation body.
+
+Real-file characterization passed against baseline production before implementation. Literal destination collision/missing-parent errors remain raw *os.PathError, preserve destination bytes/mode and permit reuse of the same handle. Source-damage checks retain validation precedence and pinned-directory stdout copies retain the original source. Intentional nil-wrap and second-close mutants fail for the intended reasons; the exact restored candidate passes. These tests demonstrate mutation sensitivity, not genuine first-Close fault execution.
+
+Worker and independent reviewer package, focused real-file, boundary, errortype and static checks pass on developmental stock Go 1.27.1 linux/arm64. Protected generator inputs and the current make validate receipt remain bound to the candidate. Actual unfiltered artifact lint remains red at 10 after exactly eleven mapped repairs from 21, with zero introduced diagnostics. The historical broader 419-finding receipt supplies no new whole-scope count.
+
+Fresh independent source review found zero introduced Critical, Important or Minor findings and permits SOURCE_PROGRESS_COMMIT_ONLY. Root reconstructed all fifteen worker receipt bindings and both mutation hashes without source edits, recovered original test bytes and checked 1,042 protected files. Root also verifies the reviewer's fresh receipts. Genuine first-Close, simultaneous cleanup failure, post-validation, partial-write, Chmod and Sync fault execution remains absent. Original R13/R18/R19, task 12/predecessors, task 21, matched original first-baseline fixed identities and complete/full/formal/both-native qualification remain open.
+
+stage: impl-review - skipped(policy: conductor-deferred; fresh independent source review passed, but full/native qualification remains red)
+stage: plan-sync - skipped(config: disabled; task remains blocked rather than done)
+
+Root commits this verified progress before admitting another source writer. All owned worker/reviewer commands and delegates are terminal. No push, task-done event, formal SHIP or compatibility expansion.
+
+## Evidence
+- Commits: pending root source-progress checkpoint, without task completion.
+- Tests: [worker handover](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/handover.md), [worker evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/evidence.json), [independent source review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/independent-source-review.md), [review checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/independent-source-review-checks.json), [root verification](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/source-checkpoint-verification.json).
+- Open qualification: [acceptance-open.md](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/acceptance-open.md).
+- PRs: none; no push authorized.

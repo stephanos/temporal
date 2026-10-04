@@ -1,6 +1,7 @@
 package artifact
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -38,7 +39,11 @@ func TestPublishedReferenceMatchesOpenedHandle(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer opened.Close()
+	defer func() {
+		if err := opened.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	if opened.Path() != published.Path || opened.StoredBytes() != published.StoredBytes || !reflect.DeepEqual(opened.Manifest(), published.Manifest) {
 		t.Fatalf("opened handle = %s, %d bytes, %#v; want the published reference %#v", opened.Path(), opened.StoredBytes(), opened.Manifest(), published)
 	}
@@ -58,7 +63,11 @@ func TestOpenedArtifactPayloadAccess(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer opened.Close()
+	defer func() {
+		if err := opened.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	stdout, err := opened.ReadPayload("stdout", 64)
 	if err != nil || string(stdout) != "stdout" {
 		t.Fatalf("ReadPayload(stdout) = %q, %v", stdout, err)
@@ -92,6 +101,69 @@ func TestOpenedArtifactPayloadAccess(t *testing.T) {
 	}
 	if _, known := linkCount(info); known && sharing != TargetPrivate {
 		t.Fatalf("TargetSharing() = %q, want %q", sharing, TargetPrivate)
+	}
+}
+
+func TestOpenedArtifactCopyDestinationErrorsPreserveHandle(t *testing.T) {
+	published, err := (Store{Root: t.TempDir()}).PublishArtifact(artifactInput(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	opened, err := OpenArtifact(published.Path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := opened.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
+	directory := t.TempDir()
+	existing := filepath.Join(directory, "existing")
+	mustDo(t, os.WriteFile(existing, []byte("keep destination"), 0o640))
+	mustDo(t, os.Chmod(existing, 0o640))
+	missingParent := filepath.Join(directory, "missing")
+	tests := []struct {
+		name        string
+		destination string
+		want        error
+	}{
+		{name: "collision", destination: existing, want: os.ErrExist},
+		{name: "missing parent", destination: filepath.Join(missingParent, "stdout"), want: os.ErrNotExist},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := opened.CopyPayload("stdout", test.destination, 0o600)
+			pathErr, raw := err.(*os.PathError)
+			if !raw || pathErr.Op != "open" || pathErr.Path != test.destination || !errors.Is(err, test.want) {
+				t.Fatalf("CopyPayload destination error = %T %v, want raw open PathError for %s with %v", err, err, test.destination, test.want)
+			}
+			if content, err := os.ReadFile(existing); err != nil || string(content) != "keep destination" {
+				t.Fatalf("existing destination = %q, %v", content, err)
+			}
+			if info, err := os.Stat(existing); err != nil || info.Mode().Perm() != 0o640 {
+				t.Fatalf("existing destination mode = %v, %v", info, err)
+			}
+			if _, err := os.Stat(missingParent); !errors.Is(err, os.ErrNotExist) {
+				t.Fatalf("missing parent was created: %v", err)
+			}
+			if stdout, err := opened.ReadPayload("stdout", 64); err != nil || string(stdout) != "stdout" {
+				t.Fatalf("ReadPayload after destination error = %q, %v", stdout, err)
+			}
+			copied := filepath.Join(t.TempDir(), "stdout")
+			if err := opened.CopyPayload("stdout", copied, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if content, err := os.ReadFile(copied); err != nil || string(content) != "stdout" {
+				t.Fatalf("copy after destination error = %q, %v", content, err)
+			}
+			if info, err := os.Stat(copied); err != nil || info.Mode().Perm() != 0o600 {
+				t.Fatalf("copy after destination error mode = %v, %v", info, err)
+			}
+			if !reflect.DeepEqual(opened.Manifest(), published.Manifest) {
+				t.Fatal("destination error changed the opened manifest")
+			}
+		})
 	}
 }
 
@@ -142,7 +214,11 @@ func TestManifestCopiesCannotChangeOpenedHandle(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer opened.Close()
+	defer func() {
+		if err := opened.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	want := opened.Manifest()
 	snapshot := opened.Snapshot()
 	copied := opened.Manifest()
@@ -253,7 +329,11 @@ func TestOpenedArtifactReadsPinnedDirectoryAfterReplacement(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer opened.Close()
+	defer func() {
+		if err := opened.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	input := artifactInput(t)
 	replacement := []byte("replacement stdout")
 	input.Payloads[1] = Payload{Path: "stdout", Mode: 0o600, Data: replacement, SHA256: record.HashBytes(replacement), Size: record.Uint64String(len(replacement))}
@@ -275,6 +355,16 @@ func TestOpenedArtifactReadsPinnedDirectoryAfterReplacement(t *testing.T) {
 	}
 	if stdout, err := opened.ReadPayload("stdout", 64); err != nil || string(stdout) != "stdout" {
 		t.Fatalf("ReadPayload after replacement = %q, %v", stdout, err)
+	}
+	copied := filepath.Join(t.TempDir(), "stdout")
+	if err := opened.CopyPayload("stdout", copied, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if content, err := os.ReadFile(copied); err != nil || string(content) != "stdout" {
+		t.Fatalf("CopyPayload after replacement = %q, %v", content, err)
+	}
+	if info, err := os.Stat(copied); err != nil || info.Mode().Perm() != 0o600 {
+		t.Fatalf("copied stdout after replacement mode = %v, %v", info, err)
 	}
 	if opened.Manifest().RecordHash != published.Manifest.RecordHash || opened.Snapshot().Manifest.RecordHash != published.Manifest.RecordHash {
 		t.Fatal("the handle follows the replacement directory instead of its pinned one")
@@ -320,7 +410,11 @@ func TestOpenedArtifactRejectsChangedPayloads(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			defer opened.Close()
+			defer func() {
+				if err := opened.Close(); err != nil {
+					t.Error(err)
+				}
+			}()
 			if test.change != nil {
 				test.change(t, published.Path)
 			}
@@ -329,6 +423,27 @@ func TestOpenedArtifactRejectsChangedPayloads(t *testing.T) {
 			}
 			if _, err := opened.OpenPayload(test.payload, test.maximum); err == nil || !strings.Contains(err.Error(), test.want) {
 				t.Fatalf("OpenPayload(%s) error = %v, want %q", test.payload, err, test.want)
+			}
+			if test.name == "over bound" {
+				return
+			}
+			directory := t.TempDir()
+			existing := filepath.Join(directory, "existing")
+			mustDo(t, os.WriteFile(existing, []byte("keep destination"), 0o600))
+			fresh := filepath.Join(directory, "fresh")
+			for _, destination := range []string{existing, fresh} {
+				if err := opened.CopyPayload(test.payload, destination, 0o600); err == nil || !strings.Contains(err.Error(), test.want) {
+					t.Fatalf("CopyPayload(%s) error = %v, want source error %q before destination creation", test.payload, err, test.want)
+				}
+			}
+			if content, err := os.ReadFile(existing); err != nil || string(content) != "keep destination" {
+				t.Fatalf("destination after source validation error = %q, %v", content, err)
+			}
+			if info, err := os.Stat(existing); err != nil || info.Mode().Perm() != 0o600 {
+				t.Fatalf("destination after source validation error mode = %v, %v", info, err)
+			}
+			if _, err := os.Stat(fresh); !errors.Is(err, os.ErrNotExist) {
+				t.Fatalf("CopyPayload created a destination before validating source: %v", err)
 			}
 		})
 	}

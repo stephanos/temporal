@@ -1,0 +1,15 @@
+{
+  "files": 1042,
+  "aggregate_sha256": "03624cfa72199f66795820c3fe5e6b92734457e3fc88db05b97e1098446ca6a4",
+  "captured": "2026-10-04T16:15:12.973339+00:00",
+  "selection": "tracked Gomad modules, root go.mod/go.sum and lint config excluding only artifact/open.go and artifact/opened_test.go",
+  "pinned_file_close_source": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/file_posix.go": "2e93ac5f812cd7184d3ac3a2eb9a51583911a6261cf9c27772fa7dfedcbe514f",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/file_unix.go": "877dd004355c475e8805b5700061604558422da057037556e0cf6edeb36ab7ec"
+  },
+  "platform": [
+    "linux",
+    "arm64"
+  ],
+  "patched_go_exists": false
+}

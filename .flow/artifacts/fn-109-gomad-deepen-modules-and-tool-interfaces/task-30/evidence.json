@@ -1,0 +1,607 @@
+{
+  "status": "SOURCE_PROGRESS_ONLY",
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.30",
+  "flow_status": "in_progress",
+  "base_commit": "08096389f252e35ff2cd898ca5e381f9b878f46c",
+  "branch": "gomad",
+  "commits": [],
+  "commit_range": "",
+  "requested_model": "gpt-6.1-sol",
+  "requested_effort": "high",
+  "tier": "session (jev-unavailable(no_key))",
+  "actual_model_metadata_available": false,
+  "platform": [
+    "linux",
+    "arm64"
+  ],
+  "source_checks": {
+    "baseline_matches_base": true,
+    "all_gate_sources_stable": true,
+    "final_gate_sources_match_current": true,
+    "protected_inputs_stable": true,
+    "protected_files": 1042,
+    "protected_sha256": "03624cfa72199f66795820c3fe5e6b92734457e3fc88db05b97e1098446ca6a4",
+    "source_outside_CopyPayload_unchanged": true,
+    "copy_operation_unchanged_except_result_and_cleanup": true,
+    "original_test_bytes_recovered": true,
+    "changed_product_paths": [
+      "tools/gomad3/artifact/open.go",
+      "tools/gomad3/artifact/opened_test.go"
+    ],
+    "all_original_documents_unchanged": true
+  },
+  "source_final": {
+    "tools/gomad3/artifact/open.go": "69cd4af287008c5985050b6d9a7a03f3b5c96ad695bc1b005eb9c3fe2431b0de",
+    "tools/gomad3/artifact/opened_test.go": "199a4f734197686f71b00333ec5699b444444ea06cf9407df821e89d4e9f1363"
+  },
+  "gates": {
+    "baseline-package": {
+      "receipt": "baseline-package.json",
+      "log": "baseline-package.log",
+      "exit": 0,
+      "elapsed_seconds": 0.7329426249925746,
+      "stable": true
+    },
+    "baseline-lint": {
+      "receipt": "baseline-lint.json",
+      "log": "baseline-lint.log",
+      "exit": 1,
+      "elapsed_seconds": 0.2723411670012865,
+      "stable": true
+    },
+    "baseline-errortype": {
+      "receipt": "baseline-errortype.json",
+      "log": "baseline-errortype.log",
+      "exit": 0,
+      "elapsed_seconds": 0.4319140419975156,
+      "stable": true
+    },
+    "characterization-baseline": {
+      "receipt": "characterization-baseline.json",
+      "log": "characterization-baseline.log",
+      "exit": 0,
+      "elapsed_seconds": 0.3186150420078775,
+      "stable": true
+    },
+    "final-package": {
+      "receipt": "final-package.json",
+      "log": "final-package.log",
+      "exit": 0,
+      "elapsed_seconds": 0.727426375990035,
+      "stable": true
+    },
+    "final-focused": {
+      "receipt": "final-focused.json",
+      "log": "final-focused.log",
+      "exit": 0,
+      "elapsed_seconds": 0.4784070829919074,
+      "stable": true
+    },
+    "final-retained-private": {
+      "receipt": "final-retained-private.json",
+      "log": "final-retained-private.log",
+      "exit": 0,
+      "elapsed_seconds": 0.22084154099866282,
+      "stable": true
+    },
+    "final-lint": {
+      "receipt": "final-lint.json",
+      "log": "final-lint.log",
+      "exit": 1,
+      "elapsed_seconds": 0.8255497500067577,
+      "stable": true
+    },
+    "final-errortype": {
+      "receipt": "final-errortype.json",
+      "log": "final-errortype.log",
+      "exit": 0,
+      "elapsed_seconds": 0.3863452500081621,
+      "stable": true
+    },
+    "final-boundary": {
+      "receipt": "final-boundary.json",
+      "log": "final-boundary.log",
+      "exit": 0,
+      "elapsed_seconds": 5.57456317001197,
+      "stable": true
+    },
+    "final-validation": {
+      "receipt": "final-validation.json",
+      "log": "final-validation.log",
+      "exit": 0,
+      "elapsed_seconds": 3.263227293995442,
+      "stable": true
+    },
+    "final-static": {
+      "receipt": "final-static.json",
+      "log": "final-static.log",
+      "exit": 0,
+      "elapsed_seconds": 0.013986124991788529,
+      "stable": true
+    }
+  },
+  "test_run_entries": {
+    "baseline-package": 69,
+    "characterization-baseline": 14,
+    "final-package": 72,
+    "final-focused": 46,
+    "final-retained-private": 26,
+    "final-boundary": 15
+  },
+  "tests": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep ./artifact -v",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config /Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --build-tags test_dep --fix=false ./artifact",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype -tags test_dep ./artifact",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep ./artifact -v -run TestOpenedArtifactCopyDestinationErrorsPreserveHandle|TestOpenedArtifactReadsPinnedDirectoryAfterReplacement|TestOpenedArtifactRejectsChangedPayloads|TestOpenedArtifactPayloadAccess|TestClosedArtifactRejectsPayloadAccess",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep ./artifact -v",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep ./artifact -v -run TestArtifactReference|TestPublishedReference|TestOpenedArtifact|TestClosedArtifact|TestManifestCopies|TestCloneManifest|TestPublish|TestStore|TestArtifactStored|TestTarget|TestPrune",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep ./artifact -v -run TestRetained|TestPoolTarget|TestPrivatePayload|TestCopiedArtifact|TestDamagedSharedTarget|TestOpenRejects",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config /Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --build-tags test_dep --fix=false ./artifact",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype -tags test_dep ./artifact",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep . -v -run TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles",
+    "make validate GOFLAGS=-tags=test_dep -count=1",
+    "bash -c git diff --check -- artifact/open.go artifact/opened_test.go && /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l artifact/open.go artifact/opened_test.go"
+  ],
+  "prs": [],
+  "pinned_tools": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "lint_config_sha256": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+  "lint": {
+    "total_before": 21,
+    "total_after": 10,
+    "mapped_before": 11,
+    "mapped_after": 0,
+    "before": [
+      {
+        "path": "tools/gomad3/artifact/manifest_copy.go",
+        "line": 59,
+        "column": 3,
+        "message": "use of `panic` forbidden because \"Please avoid using panic in application code\"",
+        "linter": "forbidigo"
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "line": 270,
+        "column": 20,
+        "message": "Error return value of `source.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "line": 276,
+        "column": 24,
+        "message": "Error return value of `destinationFile.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "line": 283,
+        "column": 24,
+        "message": "Error return value of `destinationFile.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "line": 288,
+        "column": 24,
+        "message": "Error return value of `destinationFile.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "line": 293,
+        "column": 24,
+        "message": "Error return value of `destinationFile.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "line": 297,
+        "column": 24,
+        "message": "Error return value of `destinationFile.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 41,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 61,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 145,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 181,
+        "column": 2,
+        "message": "missing cases in switch of type reflect.Kind: reflect.Invalid, reflect.Uintptr, reflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128, reflect.Chan, reflect.Func, reflect.Interface, reflect.UnsafePointer",
+        "linter": "exhaustive"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 216,
+        "column": 2,
+        "message": "missing cases in switch of type reflect.Kind: reflect.Invalid, reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr, reflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128, reflect.Array, reflect.Chan, reflect.Func, reflect.Interface, reflect.String, reflect.UnsafePointer",
+        "linter": "exhaustive"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 256,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 323,
+        "column": 22,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/publication.go",
+        "line": 39,
+        "column": 22,
+        "message": "ST1005: error strings should not be capitalized",
+        "linter": "staticcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/publication_test.go",
+        "line": 42,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/publication_test.go",
+        "line": 132,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/store.go",
+        "line": 490,
+        "column": 23,
+        "message": "Error return value of `directory.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/target_pool.go",
+        "line": 216,
+        "column": 18,
+        "message": "Error return value of `root.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/target_pool.go",
+        "line": 221,
+        "column": 18,
+        "message": "Error return value of `file.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/target_pool_test.go",
+        "line": 262,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      }
+    ],
+    "after": [
+      {
+        "path": "tools/gomad3/artifact/manifest_copy.go",
+        "line": 59,
+        "column": 3,
+        "message": "use of `panic` forbidden because \"Please avoid using panic in application code\"",
+        "linter": "forbidigo"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 257,
+        "column": 2,
+        "message": "missing cases in switch of type reflect.Kind: reflect.Invalid, reflect.Uintptr, reflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128, reflect.Chan, reflect.Func, reflect.Interface, reflect.UnsafePointer",
+        "linter": "exhaustive"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 292,
+        "column": 2,
+        "message": "missing cases in switch of type reflect.Kind: reflect.Invalid, reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr, reflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128, reflect.Array, reflect.Chan, reflect.Func, reflect.Interface, reflect.String, reflect.UnsafePointer",
+        "linter": "exhaustive"
+      },
+      {
+        "path": "tools/gomad3/artifact/publication.go",
+        "line": 39,
+        "column": 22,
+        "message": "ST1005: error strings should not be capitalized",
+        "linter": "staticcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/publication_test.go",
+        "line": 42,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/publication_test.go",
+        "line": 132,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/store.go",
+        "line": 490,
+        "column": 23,
+        "message": "Error return value of `directory.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/target_pool.go",
+        "line": 216,
+        "column": 18,
+        "message": "Error return value of `root.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/target_pool.go",
+        "line": 221,
+        "column": 18,
+        "message": "Error return value of `file.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/target_pool_test.go",
+        "line": 262,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      }
+    ],
+    "resolved": [
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "line": 270,
+        "column": 20,
+        "message": "Error return value of `source.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "line": 276,
+        "column": 24,
+        "message": "Error return value of `destinationFile.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "line": 283,
+        "column": 24,
+        "message": "Error return value of `destinationFile.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "line": 288,
+        "column": 24,
+        "message": "Error return value of `destinationFile.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "line": 293,
+        "column": 24,
+        "message": "Error return value of `destinationFile.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "line": 297,
+        "column": 24,
+        "message": "Error return value of `destinationFile.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 41,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 61,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 145,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 256,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 323,
+        "column": 22,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      }
+    ],
+    "introduced": [],
+    "cleanup_mapping": [
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "baseline_line": 270
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "baseline_line": 276
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "baseline_line": 283
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "baseline_line": 288
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "baseline_line": 293
+      },
+      {
+        "path": "tools/gomad3/artifact/open.go",
+        "baseline_line": 297
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "baseline_line": 41
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "baseline_line": 61
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "baseline_line": 145
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "baseline_line": 256
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "baseline_line": 323
+      }
+    ],
+    "residual": "All 10 residual path/message/linter identities match baseline; the two unchanged reflection switches shift lines.",
+    "broader_scope": "Historical 419 is not a fresh whole-scope count."
+  },
+  "test_first": {
+    "policy_red": "Actual baseline-lint.log reproduces all eleven admitted unchecked-close findings before production changes",
+    "characterization": "Real-file destination errors, validation precedence, handle reuse and pinned stdout copy pass before production changes",
+    "runtime_close_regression_proof": false
+  },
+  "test_mutations": {
+    "mutation-nil-close-wrap": {
+      "receipt": "mutation-nil-close-wrap.json",
+      "log": "mutation-nil-close-wrap.log",
+      "exit": 1,
+      "elapsed_seconds": 0.32292445900384337,
+      "stable": true
+    },
+    "mutation-destination-second-close": {
+      "receipt": "mutation-destination-second-close.json",
+      "log": "mutation-destination-second-close.log",
+      "exit": 1,
+      "elapsed_seconds": 0.33753258299839217,
+      "stable": true
+    },
+    "mutation-restored": {
+      "receipt": "mutation-restored.json",
+      "log": "mutation-restored.log",
+      "exit": 0,
+      "elapsed_seconds": 0.168800374987768,
+      "stable": true
+    }
+  },
+  "test_mutation_recipes": {
+    "source": "tools/gomad3/artifact/open.go",
+    "encoding": "UTF-8 bytes; literal tabs and LF decoded from JSON strings",
+    "base_sha256": "69cd4af287008c5985050b6d9a7a03f3b5c96ad695bc1b005eb9c3fe2431b0de",
+    "application": "Apply each recipe independently to the final candidate, replacing exactly one occurrence. The nil-wrap mutation was restored before applying the destination mutation; neither recipe builds on the other.",
+    "mutation-nil-close-wrap": {
+      "search": "\t\tif closeErr := source.Close(); closeErr != nil {\n",
+      "replacement": "\t\tif closeErr := source.Close(); closeErr != nil || retErr != nil {\n",
+      "occurrences": 1,
+      "reconstructed_sha256": "28907fbfdbbadda1ac63840f209df3b7718b39271bad493a513668729c5b45dc",
+      "receipt_source_before_and_after_sha256": "28907fbfdbbadda1ac63840f209df3b7718b39271bad493a513668729c5b45dc"
+    },
+    "mutation-destination-second-close": {
+      "search": "\tif err := destinationFile.Sync(); err != nil {\n\t\treturn err\n\t}\n\treturn nil\n}",
+      "replacement": "\tif err := destinationFile.Sync(); err != nil {\n\t\treturn err\n\t}\n\treturn destinationFile.Close()\n}",
+      "occurrences": 1,
+      "reconstructed_sha256": "16e9adf12d9e9ada9a4cbbf54ca4672d3589531fe03cb9f9c99590221f31b8a7",
+      "receipt_source_before_and_after_sha256": "16e9adf12d9e9ada9a4cbbf54ca4672d3589531fe03cb9f9c99590221f31b8a7"
+    },
+    "mutation-restored": {
+      "application": "Reverse the destination recipe exactly once after its run. This restores the final candidate bytes without a formatting rewrite.",
+      "sha256": "69cd4af287008c5985050b6d9a7a03f3b5c96ad695bc1b005eb9c3fe2431b0de"
+    },
+    "verification": "Both mutant source hashes reconstructed in memory from the final source equal the existing receipt source_before and source_after hashes. No gate was rerun for this clarification."
+  },
+  "first_close": {
+    "inspected_sources": {
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/file_posix.go": "2e93ac5f812cd7184d3ac3a2eb9a51583911a6261cf9c27772fa7dfedcbe514f",
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/file_unix.go": "877dd004355c475e8805b5700061604558422da057037556e0cf6edeb36ab7ec"
+    },
+    "genuine_first_close_fault_exercised": false,
+    "limitation": "No legitimate deterministic first-Close or simultaneous operation/destination/source-close fault was reproduced; conditional error identity and traversal order are source-inspected."
+  },
+  "behavior": {
+    "nil_cleanup": "Preserves exact existing returned object/type/unwrap shape",
+    "single_close": "Adopts the exact cleanup error when the existing result is nil; destination success-Close remains direct",
+    "genuine_cleanup_failure": "Formerly ignored source/branch destination cleanup failures become visible; joins preserve primary, destination, source traversal order and add cleanup text"
+  },
+  "generator": {
+    "inputs_inspected": "Makefile VERSION_INPUTS, BOUNDARY_INPUTS, COMPATIBILITY_INPUTS and validate recipes",
+    "source_is_generator_input": false,
+    "disposition": "make validate passes without regeneration; protected generator/runtime/protocol/pin/config/dependency inputs unchanged"
+  },
+  "boundaries": {
+    "historical_test": "TestRecordAndArtifactHaveSeparateOwners is absent; TestPackageArchitecture enforces separate record/artifact owners",
+    "executed": [
+      "TestPackageArchitecture",
+      "TestPublicPackagesDoNotExportTypeAliases",
+      "TestArchitecturePublicSignatureFixtures",
+      "TestRunnerRequestsCompileInExternalModule",
+      "TestRunnerExternalConsumerCompiles"
+    ]
+  },
+  "review": {
+    "owner": "root",
+    "status": "pending fresh independent source review",
+    "formal": "conductor-deferred; no formal SHIP"
+  },
+  "remaining": [
+    "Original R13/R18/R19, task12/predecessors and task21 acceptance",
+    "Matched original first-baseline fixed identities and full/formal qualification",
+    "Patched-runtime native darwin/arm64 and linux/amd64 and affected consumer/integration/qualification gates",
+    "Genuine first-Close and simultaneous operation/destination/source Close faults",
+    "Post-validation growth/hash, partial destination writes, Chmod and Sync fault execution",
+    "10 residual artifact diagnostics and broader lint qualification"
+  ],
+  "handover": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/handover.md",
+  "owned_delegates": 0,
+  "live_command_handles": 0,
+  "pending_commands": 0,
+  "worker_git_writes": 0,
+  "worker_flow_lifecycle_writes": 0
+}

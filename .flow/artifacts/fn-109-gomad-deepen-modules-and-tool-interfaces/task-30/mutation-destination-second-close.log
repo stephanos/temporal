@@ -1,0 +1,17 @@
+=== RUN   TestOpenedArtifactPayloadAccess
+    opened_test.go:89: close /home/agent/.cache/codex-build/tmp/TestOpenedArtifactPayloadAccess3608565950/003/target: file already closed
+--- FAIL: TestOpenedArtifactPayloadAccess (0.01s)
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle/collision
+    opened_test.go:155: close /home/agent/.cache/codex-build/tmp/TestOpenedArtifactCopyDestinationErrorsPreserveHandlecollision2173353573/001/stdout: file already closed
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle/missing_parent
+    opened_test.go:155: close /home/agent/.cache/codex-build/tmp/TestOpenedArtifactCopyDestinationErrorsPreserveHandlemissing_pa128057955/001/stdout: file already closed
+--- FAIL: TestOpenedArtifactCopyDestinationErrorsPreserveHandle (0.00s)
+    --- FAIL: TestOpenedArtifactCopyDestinationErrorsPreserveHandle/collision (0.00s)
+    --- FAIL: TestOpenedArtifactCopyDestinationErrorsPreserveHandle/missing_parent (0.00s)
+=== RUN   TestOpenedArtifactReadsPinnedDirectoryAfterReplacement
+    opened_test.go:361: close /home/agent/.cache/codex-build/tmp/TestOpenedArtifactReadsPinnedDirectoryAfterReplacement2959564684/005/stdout: file already closed
+--- FAIL: TestOpenedArtifactReadsPinnedDirectoryAfterReplacement (0.01s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/artifact	0.019s
+FAIL
