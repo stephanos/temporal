@@ -148,6 +148,17 @@ final private[lift] class Context(val index: Index):
     generatedName = None
     name
 
+  // While the steps of one alternative of a choose are lifted: the choose refuses an alternative of
+  // several steps itself, with its own message, so the refusal of an unnamed list waits for it.
+  var choosing = false // scalafix:ok DisableSyntax.var
+
+  /** `body`, lifted as the steps of one alternative of a choose, or, with `false`, as any others. */
+  def alternativeOf[A](inside: Boolean)(body: => A): A =
+    val was = choosing
+    choosing = inside
+    try body
+    finally choosing = was
+
   // Where each machine declared each of its capabilities, by kind: a machine declares each once.
   val capabilityKinds = mutable.Map.empty[(String, String), String]
   // What each capability declaration expanded into, for the law sidecar beside the IR file.

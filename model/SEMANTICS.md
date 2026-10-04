@@ -117,19 +117,22 @@ reader's table (`tools/umpire/model`, `Table`) over the derived keys.
 
 A step that can go more than one way may name each of its results. The name rides on the step
 record's construct: `construct(umpire.Step, "", outcome, state, facts, because)` with `choice` set
-to the alternative's name, as the lifter writes each alternative of a Scala `choose`. Evaluation
-ignores it. The construct's value is the four-field record above, and the name is metadata the
-record carries: no key, equality, Property, monitor or refinement reads it, and it travels with the
-record through lists, `let`s, calls and branches. A row's result reports the name of the step record
-it was read from, empty for an unnamed one; the redelivery a channel derives from a result
-([Channels](#channels)) is unnamed, as its explanation is its own. The table's rows, their results
-and their order, the Definition IDs, the Behavior Fingerprint, Query answers, exploration and Model
-identities and lowered Cases are the same with and without names. An alternative is a result of its
-action class and never another class, so the names do not enter a Query's total ([Query
-totals](#query-totals)). A `choice` on a construct of any other type is an error of the Model, and
-so are two results of one row with the same name. The Quint export writes the name on the step
-record of the ordered result list (`f_choice`), and its checker action, not the step function, picks
-one result of that list.
+to the alternative's name, as the lifter writes each alternative of a Scala `choose`. An alternative
+that calls a function is lifted as a call of a copy of it, `<function>$<choice>`, whose every step
+record carries the name; the choose is then the concatenation of its alternatives' lists in the
+order written. The lifter writes every branching of a Model this way: it refuses several results
+written without names. Evaluation ignores the name. The construct's value is the four-field record
+above, and the name is metadata the record carries: no key, equality, Property, monitor or
+refinement reads it, and it travels with the record through lists, `let`s, calls and branches. A
+row's result reports the name of the step record it was read from, empty for an unnamed one; the
+redelivery a channel derives from a result ([Channels](#channels)) is unnamed, as its explanation is
+its own. The table's rows, their results and their order, the Definition IDs, the Behavior
+Fingerprint, Query answers, exploration and Model identities and lowered Cases are the same with and
+without names. An alternative is a result of its action class and never another class, so the names
+do not enter a Query's total ([Query totals](#query-totals)). A `choice` on a construct of any other
+type is an error of the Model, and so are two results of one row with the same name. The Quint
+export writes the name on the step record of the ordered result list (`f_choice`), and its checker
+action, not the step function, picks one result of that list.
 
 ## Channels
 

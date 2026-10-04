@@ -929,9 +929,9 @@ val spelledTwice = machine[Lamp, Outcome, Nothing] {
   steps(flip ~> spelledTwiceStep)
 }
 
-/** An alternative a helper function gives, not written out. */
+/** An alternative whose function gives two steps, a choose of its own (lampBothStep, below). */
 def choiceHelperStep(l: Lamp): List[LampStep] =
-  choose(lampOn -> lampStep(l), lampOff -> stay(l))
+  choose(lampOn -> lampBothStep(l), lampOff -> stay(l))
 val choiceHelper = machine[Lamp, Outcome, Nothing] {
   starts(Lamp(false))
   ends(_ => true)
@@ -1015,4 +1015,48 @@ val movedNameTaken = machine[Gauges, Outcome, Nothing] {
   starts(Gauges(Gauge.low, moved.Gauge.empty))
   ends(_ => true)
   steps(gaugeTick ~> gaugeStep)
+}
+
+// ### Unnamed branching (fn-120.2)
+
+/** A function a choose calls that gives two steps, each named already. */
+def lampBothStep(l: Lamp): List[LampStep] = choose(lampOn -> stay(l), lampOff -> accept(Lamp(true)))
+
+/** A function a choose calls that gives a step it keeps in a val, not one written out. */
+def lampKeptStep(l: Lamp): List[LampStep] =
+  val kept = accept(Lamp(!l.lit))
+  if l.lit then kept else disabled
+def choiceKeptHelperStep(l: Lamp): List[LampStep] =
+  choose(lampOn -> lampKeptStep(l), lampOff -> stay(l))
+val choiceKeptHelper = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> choiceKeptHelperStep)
+}
+
+/** Two results written as an unnamed list. */
+def unnamedListStep(l: Lamp): List[LampStep] =
+  List(Step(Outcome.accepted, l), Step(Outcome.accepted, Lamp(!l.lit)))
+val unnamedList = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> unnamedListStep)
+}
+
+/** Two results joined with `++`, here two helpers' steps. */
+def unnamedJoinStep(l: Lamp): List[LampStep] = lampStep(l) ++ stay(l)
+val unnamedJoin = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> unnamedJoinStep)
+}
+
+/** An unnamed list in a function a step function calls, refused where it is written. */
+def lampPairStep(l: Lamp): List[LampStep] =
+  List(Step(Outcome.accepted, l), Step(Outcome.accepted, l))
+def unnamedInHelperStep(l: Lamp): List[LampStep] = if l.lit then lampPairStep(l) else disabled
+val unnamedInHelper = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> unnamedInHelperStep)
 }
