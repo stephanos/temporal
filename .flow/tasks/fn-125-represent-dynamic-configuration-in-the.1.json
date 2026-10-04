@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-04T22:02:08.415156Z",
+  "depends_on": [],
+  "id": "fn-125-represent-dynamic-configuration-in-the.1",
+  "priority": null,
+  "spec": "fn-125-represent-dynamic-configuration-in-the",
+  "spec_path": ".flow/tasks/fn-125-represent-dynamic-configuration-in-the.1.md",
+  "status": "todo",
+  "title": "Fix the Nexus switch, limit it to workflow-scheduled Nexus Cases, and stop deriving schedule-to-close from the instruction timeout",
+  "updated_at": "2026-10-04T22:02:08.415156Z"
+}

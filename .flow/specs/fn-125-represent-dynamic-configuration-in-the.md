@@ -41,7 +41,7 @@ A value a request field can state (retry policy, deadlines, schedule-to-close) i
 | Switch rollout percent; `EnableChasm` override order | task 1 (Go only) | Until both are fixed, no HSM/CHASM evidence exists, and R12's decision depends on that evidence. The fix changes no Case bytes and waits for no spec. |
 | Profile-derived Nexus schedule-to-close (`typed.go:76`) | task 1 (Go only) | It is the one place a Profile value changes server behavior. The Driver passes only the timeouts the command carries. The caller's timeout paths set their deadline explicitly (`nexuscaller/Realization.scala:382-394`), and no Model path has a timeout the default would realize. This answers fn-118's unexplained item 2. |
 | Undeclared operator-commands flag | R7's task, as a precondition on Pause/Unpause | A realization-level setting would land on every activity Case and move again to the methods, changing Case bytes twice. Until then the harness's blanket setting keeps local Runs correct. A Profile without the flag fails these Cases loudly with `Unimplemented`, never vacuously. |
-| ShutdownWorker fan-out race (`MILESTONES.md`, open for the owner) | owner decision Q1; if a setting, R7's precondition on the `workerStop` fault with a reason citing upstream #9424 | Not a Profile choice: `enableMatchingFanOutForPollCancellation` changes who cancels polls, so QLF-01 forbids it. Not an fn-123 fault either: a fault is an environment action the Model admits, and this is a server defect the Model should not admit. |
+| ShutdownWorker fan-out race (`MILESTONES.md`) | Q1 (decided 2026-10-04): R7's precondition `frontend.enableMatchingFanOutForPollCancellation=false` on the `workerStop` fault with a reason citing upstream #9424, removed when the server fix lands; the upstream report is drafted for the owner | Not a Profile choice: `enableMatchingFanOutForPollCancellation` changes who cancels polls, so QLF-01 forbids it. Not an fn-123 fault either: a fault is an environment action the Model admits, and this is a server defect the Model should not admit. |
 
 ## API Contracts
 <!-- scope: technical -->
@@ -102,8 +102,8 @@ CauseKind.timer.boundedBy(WaitBound(250, 3000)).assuming(timerMaxTimeShift atMos
 | --- | --- | --- |
 | task 1: R1, R2 | none | Go harness and Driver only, no Case bytes |
 | framework: R3-R5 | fn-114 closed (paths after fn-114.9, Case freeze); not concurrent with fn-124.8 (package split) | `model/umpire`, irgen, checker, exports |
-| kit and preconditions: R6, R7, R9 | fn-118.2 done (`ApiBehavior` IR) | operator-commands and `workerStop` preconditions; harness table and blanket settings go |
-| encodings and Nexus caller: R8, R12 | R3-R7; fn-118.5 done (caller realization migrated); owner's Q2 | one Case per valuation; fn-121's Case-name golden regenerated |
+| kit and preconditions: R6, R7, R9 (harness half) | fn-118.2 done (`ApiBehavior` IR) | operator-commands and `workerStop` preconditions; harness table and blanket settings go |
+| encodings and Nexus caller: R8, R9 (switch deletion), R12 | R1, R3-R7; fn-118.5 done (caller realization migrated); owner's Q2 for the Model half of R12 only | one Case per valuation; switch deleted; fn-121's Case-name golden regenerated |
 | durations: R10, R11 | fn-118.4 done (derived bounds); coordinated with fn-124.3 | bound assumptions; implicit-assumption inventory |
 | close: R13 | all above | docs, gates |
 
@@ -135,7 +135,7 @@ flowctl records no spec-level dependency, so task 1 can run now; the conductor h
 - No audit of the ~45 global functional-suite overrides (`tests/testcore/dynamic_config_overrides.go`) beyond R11. They stay behavior-neutral by assumption.
 - Environment-specific values (callback URL template, allowed addresses) stay Profile endpoints (QLF-01).
 - Realization guards do not read settings. Evidence that differs per implementation is a Model difference that the Model states.
-- No server fix. Q1 decides whether one is requested.
+- No server fix in this repository. Q1 (decided) requests one upstream; the `workerStop` precondition stands until it lands.
 
 ## Decision Context
 <!-- scope: both -->
@@ -152,10 +152,10 @@ flowctl records no spec-level dependency, so task 1 can run now; the conductor h
 
 ## Open questions for the owner
 
-1. **ShutdownWorker race.** Ask for an upstream server fix (#9424: the early return when the root partition is not loaded), or declare `frontend.enableMatchingFanOutForPollCancellation=false` as a `workerStop` precondition with that reason until the fix lands. Recommended: both. The precondition makes fn-121.3's CI green and is visible in every Case it affects, and it is removed when the fix lands. Never a Profile value.
-2. **If R1 shows the caller's retry Case diverging** (CHASM counts `attempt` at schedule, HSM on failure): is the difference intended and to be modeled (R12, the Model reads `implementation`), or a CHASM defect to report, with the Model kept on HSM semantics and the CHASM retry Case expected to fail?
-3. **Remote Profiles.** Must a canary Profile state every required key's value (fail closed: `PreparationUnavailable` otherwise, recommended), or may it trust the server's registered defaults for keys it does not set?
-4. **One Case per valuation** doubles the caller's Case files and changes their names (recommended, Decision Context). The alternative is one Case listing valuations, with a new Testpilot field.
+1. **ShutdownWorker race. Decided 2026-10-04: both.** Report upstream (#9424: the early return when the root partition is not loaded) and meanwhile declare `frontend.enableMatchingFanOutForPollCancellation=false` as a `workerStop` precondition with that reason (task 6). The precondition makes fn-121.3's CI green, is visible in every Case it affects, and is removed when the server fix lands. Never a Profile value.
+2. **If R1 shows the caller's retry Case diverging** (CHASM counts `attempt` at schedule, HSM on failure): is the difference intended and to be modeled (R12, the Model reads `implementation`), or a CHASM defect to report, with the Model kept on HSM semantics and the CHASM retry Case expected to fail? **Open** until task 1's evidence; task 8 waits for this answer.
+3. **Remote Profiles. Decided 2026-10-04: fail closed.** A remote or canary Profile must state every required key's value; otherwise the Case is `PreparationUnavailable`. No registered default is trusted (task 9).
+4. **One Case per valuation. Decided 2026-10-04: yes.** The caller's Case files double and are renamed (task 7); no Testpilot field lists valuations.
 
 ## Parked unknowns
 
@@ -174,4 +174,18 @@ make umpire-check-live-tests
 
 ## Requirement coverage
 
-Tasks are planned after the owner reviews this spec and answers Q1-Q4. Task 1 (R1, R2) has no gate and may be planned first.
+| Task | Requirements | Gate |
+| --- | --- | --- |
+| .1 Nexus switch, its scope, and Driver schedule-to-close | R1, R2 | none |
+| .2 settings in model/umpire, lifted, one table per valuation | R3 | fn-114 closed; not concurrent with fn-124.8 |
+| .3 Query `under`, one Query per valuation | R4 | as .2; after .2 |
+| .4 Quint and P exports | R5 | as .2; after .3 |
+| .5 kit dynamic-config keys and registry pin | R6 | fn-118.2 done; not concurrent with fn-124.8 |
+| .6 API preconditions, required settings with origin, harness from required settings | R7, R9 (harness half), Q1 | fn-118.2 done; after .5 |
+| .7 Nexus implementation encodings, one Case per valuation, switch deleted | R8, R9 (switch), R12 (binding) | fn-118.5 done; after .1, .3, .6 |
+| .8 caller Model reads `implementation` per the owner | R12 (Model) | owner's Q2 answer; after .7 |
+| .9 bound assumptions checked at preparation | R10, Q3 | fn-118.4 done; coordinated with fn-124.3; after .6 |
+| .10 dispositions of implicit assumptions | R11 | coordinated with fn-124.3; after .7, .9 |
+| .11 docs and close | R13 | after all |
+
+R9 is split because deleting the switch before the caller's encoding exists would run its Cases on server defaults.
