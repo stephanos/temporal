@@ -201,7 +201,9 @@ window); fn-118's derived waits take that up. Task 4 is done: a standalone Nexus
 (`model/temporal/nexusoperation/`, Closable, Terminable, Cancelable, Describable) gives every catalog law two
 instantiating machines, and its two live Cases pass 5 of 5 on hsm and chasm. A realization now declares the
 dynamic-config settings it requires; preparation refuses a Case whose environment differs, naming the setting.
-Tasks 1-4 are merged into `umpire`; task 5 (law lint kinds) is next, then 8 (capability
-vocabulary out of the framework), 6 and 7.
+Tasks 1-4 are merged into `umpire`. Task 8 is done on the branch (merging): the framework names no
+capability or law; the six kinds, every law with its citations and the catalog live in
+`model/temporal/capabilities/`, and each Model declares its capabilities in its own `Capabilities.scala`. Task 5
+(law lint kinds) waits for fn-120.3's model lint and accepted-findings file, so tasks 6 and 7 wait too.
 The Testpilot Driver can reserve a Nexus handler only through a workflow or activity start, so the handler paths
 are modeled and verified but have no live Case.
