@@ -68,7 +68,7 @@ production dispatch fails closed.
 | --- | --- | --- | --- |
 | 1 | fn-114 | Roll the fn-112 showcase constructs, including choices, out to every other Model; then shrink copied fixture text and rename the model/ tool folders | — (in progress) |
 | alongside 1 | fn-122 | Capabilities and their laws: shared Temporal promises stated once, adopted per entity | — (in progress) |
-| alongside 1 | fn-121 | Shard generated Cases per Case in CI, with HSM/CHASM per Nexus Case | tasks 1-2 done (each Case is its own shard unit, names pinned by a golden); task 3 needs GitHub CI |
+| alongside 1 | fn-121 | Shard generated Cases per Case in CI, with HSM/CHASM per Nexus Case | tasks 1-2 done and merged (each Case is its own shard unit, names pinned by a golden); task 3 needs GitHub CI |
 | after 1 | fn-120 rollout and tools | Refuse unnamed branches; add model lint (specification holes, coverage summary) and the IR explorer | fn-114 |
 | after 1 | fn-118 behavior | Derive generated-test waits from API hints, as a separate behavioral change | fn-114 |
 | last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
@@ -122,7 +122,9 @@ report it. Task 2 is done: the Nexus caller Model uses captured names, derivatio
 Case identity, so its pinned Run was re-recorded. Task 3 is done: the caller realization refers to
 its declarations by value through the shared kit (525 lines and 30 literals, from 645 and 60). Tasks 4 and 5
 are done: the close policy uses the final DSL with a new `sticky` monitor form and the four-file layout (58
-literals, from 148). Task 6 (worker Model and lifter fixtures) is next. `leadsTo` has no captured-name form yet,
+literals, from 148). Task 6 is done: the worker Model is `Model.scala`
+with captured names and pinned IDs, and the lifter fixtures use captured names and named choices. Task 7
+(retire the string-named forms) is next, then 11, 10, 9 and 8. `leadsTo` has no captured-name form yet,
 which leaves two literals in the close policy.
 ### fn-118: Declare how Temporal APIs behave once, and let the generated tests use it
 
