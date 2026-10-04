@@ -223,7 +223,7 @@ func (r reader) result(raw any) (result, error) {
 			return result{}, err
 		}
 	}
-	return result{Outcome: outcome.Key(), State: target, Facts: facts, Because: text(fields["f_because"])}, nil
+	return result{Outcome: outcome.Key(), State: target, Facts: facts, Because: text(fields["f_because"]), Choice: text(fields["f_choice"])}, nil
 }
 
 // claims reads what each Property of the machine says of one step.

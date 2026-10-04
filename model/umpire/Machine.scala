@@ -15,6 +15,34 @@ final case class Step[S, O, F](outcome: O, state: S, facts: List[F] = Nil, becau
 extension [S, O, F](steps: List[Step[S, O, F]])
   def because(reason: String): List[Step[S, O, F]] = steps.map(_.copy(because = reason))
 
+/**
+ * The name of one alternative of a step that can go more than one way, declared once by the val that
+ * names it, `val committed = choice`; the lifter names it after that val. A token is compared by
+ * identity, so two tokens are two names, as two input tokens are two inputs.
+ */
+final class Choice private[umpire] ()
+
+/** A new choice token: `val committed = choice`. */
+def choice: Choice = Choice()
+
+/**
+ * `choose(committed -> accept(...), redelivered -> stay(s))`: the results of a step that can go more
+ * than one way, in the order written, each named by its token. The names are metadata no check reads
+ * (model/SEMANTICS.md, Named choices), so the results are the ones the same steps give written as an
+ * unnamed list. Each alternative is one step written out, and each token names one of them; a choose
+ * of one alternative does not compile, since one result is no choice.
+ */
+def choose[S, O, F](
+    first: (Choice, List[Step[S, O, F]]),
+    second: (Choice, List[Step[S, O, F]]),
+    rest: (Choice, List[Step[S, O, F]])*
+): List[Step[S, O, F]] =
+  val alternatives = first +: second +: rest
+  for (token, steps) <- alternatives do
+    require(alternatives.count(_._1 eq token) == 1, "a choice names one alternative of a choose")
+    require(steps.sizeIs == 1, "each alternative of a choose is one step")
+  alternatives.flatMap(_._2).toList
+
 /** A declared, derived or composed machine. */
 trait Model:
   def name: String

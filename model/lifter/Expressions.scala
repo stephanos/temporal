@@ -374,6 +374,10 @@ private[lift] trait Expressions:
         if fn.symbol.fullName == "umpire.Machine$package$.because" =>
       because(lift(steps, expected), constString(reason), t)
 
+    // `choose(a1 -> x1, a2 -> x2, ...)`: the steps of the alternatives, each named by its token.
+    case Apply(TypeApply(fn, _), args) if fn.symbol.fullName == "umpire.Machine$package$.choose" =>
+      list(choose(args.flatMap(varargs), expected), t)
+
     case Apply(Select(recv, "contains"), List(x)) =>
       binary(ir.Binary.Op.OP_CONTAINS, lift(x), lift(recv), t)
     case Apply(TypeApply(Select(recv, "contains"), _), List(x)) =>
@@ -464,6 +468,77 @@ private[lift] trait Expressions:
           "`accept(...)` or `List(Step(...))`: give each other step its explanation where it is written"
       )
     steps.withList(ir.ListOf(explained.flatten))
+
+  /**
+   * The step of each alternative of a choose, in the order written, named after its token's val. An
+   * alternative has its choose's type, so each lifts as the step function's steps do, `accept`,
+   * `stay`, `List(Step(...))` and `because` included, and must give one step written out.
+   */
+  def choose(alternatives: List[Term], expected: Option[TypeRepr]): Seq[ir.Expr] =
+    val named = alternatives.foldLeft(Vector.empty[(Symbol, ir.Expr)]): (done, a) =>
+      val (written, steps) = alternative(a)
+      val token = choiceToken(written)
+      for (other, _) <- done.find(_._1.name == token.name) do
+        val by = if other == token then "" else s", by ${other.fullName} and ${token.fullName}"
+        fail(
+          a,
+          s"choose names ${token.name} twice$by: an alternative is named by its token's val, so " +
+            "give each alternative a name of its own"
+        )
+      val step = lift(steps, expected).kind match
+        case E.List(items) if items.items.sizeIs == 1 =>
+          val item = items.items.head
+          item.kind match
+            case E.Construct(c) if c.`type` == stepType =>
+              Some(item.withConstruct(c.withChoice(token.name)))
+            case _ => None
+        case _ => None
+      val one = step.getOrElse(
+        fail(
+          a,
+          s"the alternative ${token.name} of a choose is not one step written out: write its " +
+            "step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative"
+        )
+      )
+      done :+ (token -> one)
+    named.map(_._2)
+
+  /** An alternative of a choose, `token -> steps`, as the call writes it. */
+  def alternative(t: Term): (Term, Term) = t match
+    case Typed(e, _)        => alternative(e)
+    case Inlined(_, Nil, e) => alternative(e)
+    case Apply(TypeApply(arrow @ Select(Apply(_, List(token)), "->"), _), List(steps))
+        if arrow.symbol.owner.name == "ArrowAssoc" =>
+      (token, steps)
+    case other =>
+      val written = other match
+        case r: Ref => r.symbol.name
+        case _      => other.show
+      fail(
+        other,
+        s"an alternative of a choose is written in the call as `token -> step`, not $written"
+      )
+
+  /** The val of a choice token, `val committed = choice`, which names the alternative. */
+  def choiceToken(token: Term): Symbol =
+    val sym = token match
+      case r: Ref => Some(resolveSymbol(r))
+      case _      => None
+    sym.map(s => s -> defs.get(s)) match
+      case Some((s, Some(ValDef(_, _, Some(rhs: Ref))))) if rhs.symbol.fullName == choiceDef =>
+        capturedName(s, token, "a choice")
+        s
+      case found =>
+        val written = found match
+          case Some((s, Some(_))) => s.name
+          case _                  => "a token no val declares"
+        fail(
+          token,
+          "a choice is named by the token a val declares, as `val committed = choice` and " +
+            s"`choose(committed -> ...)`, not $written"
+        )
+
+  val choiceDef = "umpire.Machine$package$.choice"
 
   def copyOf(base: Term, args: List[Term], at: Tree): ir.Expr =
     val b = lift(base)

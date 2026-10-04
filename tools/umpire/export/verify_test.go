@@ -49,7 +49,7 @@ func counterexampleOf(t *testing.T, s *Slice, c *QuintCheck, trace *umpiremodel.
 				}
 				hist = append(hist, map[string]any{"cls": class, "step": map[string]any{
 					"f_outcome": x.itf(st.Fields[0], named(decl.GetOutcomeType())), "f_state": x.itf(st.Fields[1], named(decl.GetStateType())),
-					"f_facts": facts, "f_because": st.Fields[3].Text}})
+					"f_facts": facts, "f_because": st.Fields[3].Text, "f_choice": st.Choice}})
 			}
 		}
 		state = step.State.Value

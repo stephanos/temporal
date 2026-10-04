@@ -491,7 +491,7 @@ func (b *binding) keyedStep(s *subject, res Result) (Value, error) {
 		facts.Items = append(facts.Items, fact)
 	}
 	return Value{Kind: RecordValue, Type: StepType,
-		Fields: []Value{outcome, state, facts, {Kind: TextValue, Text: res.Because}}}, nil
+		Fields: []Value{outcome, state, facts, {Kind: TextValue, Text: res.Because}}, Choice: res.Choice}, nil
 }
 
 // decide calls a function of a claim that answers yes or no. A value that is no Boolean is an error

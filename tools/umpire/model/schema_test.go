@@ -28,7 +28,7 @@ const (
 	// The fields no frozen migration input sets.
 	schemaSupplement = `{"version":1,"functions":[{"name":"f","params":[{"name":"p","type":{"intRange":{"low":"-3","high":"4"}}}],"body":{"match":{"scrutinee":{"literal":{"record":{"type":"r","fields":[{"list":{"items":[{"int":"-1"},{"bool":true}]}}]}}},"cases":[{"pattern":{"wildcard":{}},"guard":{"literal":{"bool":true}},"body":{"literal":{"text":"x"}}}]}}}]}`
 	// The fields schemaAdded lists, each set. It is current, not captured: no historical bytes have them.
-	schemaAddedSupplement = `{"queries":[{"name":"q","total":"48"}]}`
+	schemaAddedSupplement = `{"queries":[{"name":"q","total":"48"}],"functions":[{"name":"g","body":{"construct":{"type":"umpire.Step","choice":"committed"}}}]}`
 )
 
 // schemaAddedField is a field the schema gained after the capture: the message it was added to, by its
@@ -51,6 +51,10 @@ var (
 		{message: "Query", field: &descriptorpb.FieldDescriptorProto{Name: proto.String("total"), Number: proto.Int32(10),
 			Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
 			TypeName: proto.String(".google.protobuf.Int64Value"), JsonName: proto.String("total")}},
+		// The name of a named choice's alternative on its step record (model/SEMANTICS.md, Named choices).
+		{message: "Construct", field: &descriptorpb.FieldDescriptorProto{Name: proto.String("choice"), Number: proto.Int32(4),
+			Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
+			JsonName: proto.String("choice")}},
 	}
 )
 

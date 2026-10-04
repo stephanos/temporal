@@ -102,9 +102,9 @@ func (p *Plan) lower(key string, priority int64, actions []*umpirespb.ActionClas
 		}
 	}
 	c := &Candidate{Key: key, Priority: priority, Model: m, Actions: actions}
-	// A total is metadata no identity reads: the digest hashes the candidate without totals, so a
-	// corrected source total names the same candidate as before.
-	encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(umpiremodel.WithoutTotals(m))
+	// Totals and named-choice names are metadata no identity reads: the digest hashes the candidate
+	// without them, so a corrected source total or a named result names the same candidate as before.
+	encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(umpiremodel.WithoutChoiceNames(umpiremodel.WithoutTotals(m)))
 	if err != nil {
 		c.Rejection = err.Error()
 		return c

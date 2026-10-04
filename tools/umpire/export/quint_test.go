@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -140,6 +141,11 @@ func TestAgreementRejectsATamperedDump(t *testing.T) {
 			row, _ := firstPair(d, true)
 			steps := row["by"].(map[string]any)["#set"].([]any)[indexOfEnabled(row)].(map[string]any)["steps"].([]any)
 			steps[0].(map[string]any)["f_because"] = "another reason"
+		}, TransitionAgreement, "results"},
+		"a result's name changed": {func(d map[string]any) {
+			row, _ := firstPair(d, true)
+			steps := row["by"].(map[string]any)["#set"].([]any)[indexOfEnabled(row)].(map[string]any)["steps"].([]any)
+			steps[0].(map[string]any)["f_choice"] = "anotherName"
 		}, TransitionAgreement, "results"},
 		"an end that is none": {func(d map[string]any) {
 			d["ends"] = d["reach"]
@@ -761,6 +767,11 @@ func TestAgreementRejectsATamperedComposition(t *testing.T) {
 			})
 		}, TransitionAgreement, "no such pair"},
 		"a composed start missing": {func(d map[string]any) { d["starts"] = []any{} }, TransitionAgreement, "starts"},
+		"a composed result named": {func(d map[string]any) {
+			row, _ := firstPair(d, true)
+			steps := row["by"].(map[string]any)["#set"].([]any)[indexOfEnabled(row)].(map[string]any)["steps"].([]any)
+			steps[0].(map[string]any)["f_choice"] = "aName"
+		}, TransitionAgreement, "results"},
 		"a composition's Property flipped": {func(d map[string]any) {
 			for _, row := range d["claims"].(map[string]any)["#set"].([]any) {
 				for _, by := range row.(map[string]any)["by"].(map[string]any)["#set"].([]any) {
@@ -786,5 +797,177 @@ func TestAgreementRejectsATamperedComposition(t *testing.T) {
 			require.Contains(t, strings.Join(r.Differences, "\n"), c.says)
 			require.Equal(t, Agreed, only(t, receipts, TransitionAgreement, "currentOverQueue").Kind)
 		})
+	}
+}
+
+// admittedSteps are the step records of the two alternatives of the activity system's `admitted`, in
+// the order its result list holds them.
+func admittedSteps(m *umpirespb.Model) []*umpirespb.Construct {
+	var out []*umpirespb.Construct
+	for _, item := range function(m, "temporal.standaloneactivity.System$package$.admitted").GetBody().GetList().GetItems() {
+		out = append(out, item.GetConstruct())
+	}
+	return out
+}
+
+// namedChoices is the activity system with the alternatives of `admitted` named, as the lifter names
+// each alternative of a Scala `choose`.
+func namedChoices(t *testing.T, names ...string) *Slice {
+	t.Helper()
+	m := proto.Clone(loadModel(t, "activity-system")).(*umpirespb.Model)
+	steps := admittedSteps(m)
+	require.Len(t, steps, len(names))
+	for i, c := range steps {
+		c.Choice = names[i]
+	}
+	s := openSlice(t, m)
+	s.Name = "activity-system, named"
+	return s
+}
+
+// A named choice is written whole: the step function keeps every alternative, in order, each with its
+// name on its record, and the check module's step action, not the step function, picks one by index.
+// The dump reports the names, and Quint's agrees with Go's only where every name is Go's.
+func TestQuintKeepsEveryNamedAlternative(t *testing.T) {
+	s := namedChoices(t, "accepts", "rejects")
+	x := exported(t, s)
+	accepts, rejects := strings.Index(x.Text, `f_choice: "accepts"}`), strings.Index(x.Text, `f_choice: "rejects"}`)
+	require.Equal(t, 1, strings.Count(x.Text, `f_choice: "accepts"}`))
+	require.Equal(t, 1, strings.Count(x.Text, `f_choice: "rejects"}`))
+	require.Positive(t, accepts)
+	require.Less(t, accepts, rejects)
+	// One list holds both records: nothing is selected or dropped between them.
+	list := x.Text[strings.LastIndex(x.Text[:accepts], "= [{f_outcome: "):]
+	list = list[:strings.Index(list, "}]")+2]
+	require.Contains(t, list, `f_choice: "accepts"}, {f_outcome: `)
+	require.True(t, strings.HasSuffix(list, `f_choice: "rejects"}]`), list)
+	require.NotContains(t, list, "oneOf")
+
+	// Go's table reports the names, in the order of the list, on the rows that read `admitted`.
+	named := map[string]bool{}
+	for _, name := range x.Machines {
+		for _, row := range s.machines[name].Table.Rows {
+			var choices []string
+			for _, r := range row.Results {
+				if r.Choice != "" {
+					choices = append(choices, r.Choice)
+				}
+			}
+			if len(choices) > 0 {
+				require.Equal(t, []string{"accepts", "rejects"}, choices, name)
+				named[name] = true
+			}
+		}
+	}
+	require.Contains(t, named, "staleAdmission")
+
+	receipts, err := s.QuintAgreement(x, encodeDump(t, s, x, nil))
+	require.NoError(t, err)
+	for _, r := range receipts {
+		if r.Kind != Covered && r.Kind != Unsupported {
+			require.Equal(t, Agreed, r.Kind, "%s %s: %s %v", r.Claim, r.Subject, r.Explanation, r.Differences)
+		}
+	}
+	// Each tampering rewrites the names of every step of staleAdmission's part of the dump.
+	for name, tamper := range map[string]func(st map[string]any){
+		"a wrong name": func(st map[string]any) {
+			if st["f_choice"] == "accepts" {
+				st["f_choice"] = "rejects"
+			}
+		},
+		"a missing name": func(st map[string]any) {
+			if st["f_choice"] == "accepts" {
+				delete(st, "f_choice")
+			}
+		},
+		"an empty name": func(st map[string]any) {
+			if st["f_choice"] == "rejects" {
+				st["f_choice"] = ""
+			}
+		},
+		"the names swapped": func(st map[string]any) {
+			switch st["f_choice"] {
+			case "accepts":
+				st["f_choice"] = "rejects"
+			case "rejects":
+				st["f_choice"] = "accepts"
+			default:
+			}
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			dump := encodeDump(t, s, x, func(m string, d map[string]any) {
+				if m != "staleAdmission" {
+					return
+				}
+				for _, row := range d["rows"].(map[string]any)["#set"].([]any) {
+					for _, pair := range row.(map[string]any)["by"].(map[string]any)["#set"].([]any) {
+						for _, st := range pair.(map[string]any)["steps"].([]any) {
+							tamper(st.(map[string]any))
+						}
+					}
+				}
+			})
+			receipts, err := s.QuintAgreement(x, dump)
+			require.NoError(t, err)
+			r := only(t, receipts, TransitionAgreement, "staleAdmission")
+			require.Equal(t, Disagreed, r.Kind, r.Explanation)
+			require.Contains(t, strings.Join(r.Differences, "\n"), "the results differ")
+			require.Equal(t, Agreed, only(t, receipts, TransitionAgreement, "currentAdmission").Kind)
+		})
+	}
+
+	c, err := x.Check("staleAdmission")
+	require.NoError(t, err)
+	require.Regexp(t, `val rs = m\d+_step\(st, c\)\n    nondet n = oneOf\(rs\.indices\(\)\)\n    val r = rs\[n\]`, c.Text)
+	require.Regexp(t, `var hist: List\[\{cls: K\d+, step: \{f_outcome: [^}]*, f_because: str, f_choice: str\}\}\]`, c.Text)
+}
+
+// Quint evaluates the export of named alternatives and agrees with Go on every result and its name.
+func TestQuintAgreesWithGoOnNamedChoices(t *testing.T) {
+	needs(t, QuintTool)
+	s := namedChoices(t, "accepts", "rejects")
+	x := exported(t, s)
+	receipts, err := s.QuintAgreement(x, quintDump(t, x))
+	require.NoError(t, err)
+	for _, r := range receipts {
+		report(t, r)
+		if r.Kind != Covered && r.Kind != Unsupported {
+			require.Equal(t, Agreed, r.Kind, "%s %s: %v", r.Claim, r.Subject, r.Differences)
+		}
+	}
+}
+
+// A name Quint cannot write as it is refused at the step record that carries it: a Quint string is
+// the text between two double quotes, with no escapes.
+func TestQuintRefusesANameItCannotWrite(t *testing.T) {
+	for _, name := range []string{`say "hi"`, `back\slash`, "two\nlines", "tab\there", "caf\u00e9"} {
+		t.Run(name, func(t *testing.T) {
+			m := proto.Clone(loadModel(t, "activity-system")).(*umpirespb.Model)
+			steps := admittedSteps(m)
+			steps[0].Choice, steps[1].Choice = "accepts", name
+			s, err := Open(m)
+			require.NoError(t, err)
+			_, err = s.Quint()
+			var unsupported *UnsupportedError
+			require.ErrorAs(t, err, &unsupported)
+			require.Equal(t, "model/temporal/standaloneactivity/System.scala:107", unsupported.Position)
+			require.Contains(t, unsupported.Construct, fmt.Sprintf("the choice %q", name))
+		})
+	}
+	// Printable ASCII but for those two is written as it is.
+	x := exported(t, namedChoices(t, "accepts", "it's-a $name_1 (ok)"))
+	require.Contains(t, x.Text, `f_choice: "it's-a $name_1 (ok)"}]`)
+}
+
+// An unnamed Model's step records carry the empty name, and the step type its field.
+func TestUnnamedStepRecordsCarryNoName(t *testing.T) {
+	for _, name := range irFiles {
+		x := exported(t, openNamed(t, name))
+		written := regexp.MustCompile(`f_choice: ([^,}]*)`).FindAllStringSubmatch(x.Text, -1)
+		require.NotEmpty(t, written, name)
+		for _, w := range written {
+			require.Contains(t, []string{`""`, "str"}, w[1], name)
+		}
 	}
 }

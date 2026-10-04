@@ -158,6 +158,9 @@ message Construct {
   // The case, for an enum; empty for a record.
   string case = 2;
   repeated Expr args = 3;
+  // For a step record (`umpire.Step`) only: the name of the alternative of a named choice this
+  // result is. Evaluation ignores it (model/SEMANTICS.md, Named choices); empty for an unnamed step.
+  string choice = 4;
 }
 
 // A record with some fields replaced.

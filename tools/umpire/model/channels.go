@@ -196,6 +196,8 @@ func (in *Interpreter) transfer(decl *umpirespb.Machine, s Value, c Class) ([]Va
 			again.Fields = slices.Clone(step.Fields)
 			again.Fields[1] = next
 			again.Fields[3] = Value{Kind: TextValue, Text: redelivered}
+			// The channel's redelivery is no alternative the receiver named, as its explanation is not.
+			again.Choice = ""
 			steps = append(steps, again)
 		}
 	}

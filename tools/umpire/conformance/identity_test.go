@@ -497,3 +497,58 @@ func TestAQueryTotalMovesNoModelIdentity(t *testing.T) {
 	require.Equal(t, with, without)
 	require.NotEmpty(t, with)
 }
+
+// A named-choice name is inert (model/SEMANTICS.md, Named choices): naming every step record of the
+// admission Model moves no Model identity, while any other change of a step record does.
+func TestAChoiceNameMovesNoModelIdentity(t *testing.T) {
+	plain := lifted(t, "admission")
+	named, changed := proto.CloneOf(plain), proto.CloneOf(plain)
+	steps := 0
+	for i, f := range named.GetFunctions() {
+		eachStepRecord(f.GetBody(), func(c *umpirespb.Construct) {
+			c.Choice = "alternative"
+			steps++
+		})
+		eachStepRecord(changed.GetFunctions()[i].GetBody(), func(c *umpirespb.Construct) { c.Case = "other" })
+	}
+	require.Positive(t, steps)
+	want, err := modelIdentity(plain)
+	require.NoError(t, err)
+	got, err := modelIdentity(named)
+	require.NoError(t, err)
+	require.Equal(t, want, got)
+	other, err := modelIdentity(changed)
+	require.NoError(t, err)
+	require.NotEqual(t, want, other)
+}
+
+func eachStepRecord(x *umpirespb.Expr, visit func(*umpirespb.Construct)) {
+	if x == nil {
+		return
+	}
+	if c := x.GetConstruct(); c != nil && c.GetType() == umpiremodel.StepType {
+		visit(c)
+	}
+	walk := func(xs ...*umpirespb.Expr) {
+		for _, e := range xs {
+			eachStepRecord(e, visit)
+		}
+	}
+	switch k := x.GetKind().(type) {
+	case *umpirespb.Expr_Construct:
+		walk(k.Construct.GetArgs()...)
+	case *umpirespb.Expr_List:
+		walk(k.List.GetItems()...)
+	case *umpirespb.Expr_If:
+		walk(k.If.GetCondition(), k.If.GetThen(), k.If.GetElse())
+	case *umpirespb.Expr_Let:
+		walk(k.Let.GetValue(), k.Let.GetBody())
+	case *umpirespb.Expr_Binary:
+		walk(k.Binary.GetLeft(), k.Binary.GetRight())
+	case *umpirespb.Expr_Match:
+		for _, mc := range k.Match.GetCases() {
+			walk(mc.GetGuard(), mc.GetBody())
+		}
+	default:
+	}
+}

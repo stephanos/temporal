@@ -195,7 +195,7 @@ func transitions(name string, ours, theirs *machineView) Receipt {
 }
 
 func sameResult(a, b result) bool {
-	return a.Outcome == b.Outcome && a.State == b.State && a.Because == b.Because && slices.Equal(a.Facts, b.Facts)
+	return a.Outcome == b.Outcome && a.State == b.State && a.Because == b.Because && a.Choice == b.Choice && slices.Equal(a.Facts, b.Facts)
 }
 
 func sets(d *differences, what string, ours, theirs []string) {

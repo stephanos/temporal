@@ -2266,8 +2266,11 @@ type Construct struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	Type  string                 `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
 	// The case, for an enum; empty for a record.
-	Case          string  `protobuf:"bytes,2,opt,name=case,proto3" json:"case,omitempty"`
-	Args          []*Expr `protobuf:"bytes,3,rep,name=args,proto3" json:"args,omitempty"`
+	Case string  `protobuf:"bytes,2,opt,name=case,proto3" json:"case,omitempty"`
+	Args []*Expr `protobuf:"bytes,3,rep,name=args,proto3" json:"args,omitempty"`
+	// For a step record (`umpire.Step`) only: the name of the alternative of a named choice this
+	// result is. Evaluation ignores it (model/SEMANTICS.md, Named choices); empty for an unnamed step.
+	Choice        string `protobuf:"bytes,4,opt,name=choice,proto3" json:"choice,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2321,6 +2324,13 @@ func (x *Construct) GetArgs() []*Expr {
 		return x.Args
 	}
 	return nil
+}
+
+func (x *Construct) GetChoice() string {
+	if x != nil {
+		return x.Choice
+	}
+	return ""
 }
 
 // A record with some fields replaced.
@@ -9479,11 +9489,12 @@ const file_temporal_server_api_umpire_v1_ir_proto_rawDesc = "" +
 	"\x05field\x18\x02 \x01(\tR\x05field\"[\n" +
 	"\x04Call\x12\x1a\n" +
 	"\bfunction\x18\x01 \x01(\tR\bfunction\x127\n" +
-	"\x04args\x18\x02 \x03(\v2#.temporal.server.api.umpire.v1.ExprR\x04args\"l\n" +
+	"\x04args\x18\x02 \x03(\v2#.temporal.server.api.umpire.v1.ExprR\x04args\"\x84\x01\n" +
 	"\tConstruct\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x12\n" +
 	"\x04case\x18\x02 \x01(\tR\x04case\x127\n" +
-	"\x04args\x18\x03 \x03(\v2#.temporal.server.api.umpire.v1.ExprR\x04args\"\x83\x01\n" +
+	"\x04args\x18\x03 \x03(\v2#.temporal.server.api.umpire.v1.ExprR\x04args\x12\x16\n" +
+	"\x06choice\x18\x04 \x01(\tR\x06choice\"\x83\x01\n" +
 	"\x04Copy\x127\n" +
 	"\x04base\x18\x01 \x01(\v2#.temporal.server.api.umpire.v1.ExprR\x04base\x12B\n" +
 	"\aupdates\x18\x02 \x03(\v2(.temporal.server.api.umpire.v1.NamedExprR\aupdates\"Z\n" +

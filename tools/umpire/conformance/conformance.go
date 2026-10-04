@@ -146,10 +146,11 @@ func (f *Factory) Binding() testpilot.AssessmentBinding { return f.binding }
 // New implements testpilot.AssessmentFactory.
 func (f *Factory) New(context.Context) (testpilot.Assessor, error) { return newAssessor(f.plan), nil }
 
-// modelIdentity is a Model's content with every source position and Query total taken out, so that
-// moving a declaration in its file, or correcting a total no assessment reads, moves no identity.
+// modelIdentity is a Model's content with every source position, Query total and named-choice name
+// taken out, so that moving a declaration in its file, correcting a total no assessment reads, or
+// naming a result (model/SEMANTICS.md, Named choices) moves no identity.
 func modelIdentity(m *umpirespb.Model) (string, error) {
-	bare := umpiremodel.WithoutTotals(m)
+	bare := umpiremodel.WithoutChoiceNames(umpiremodel.WithoutTotals(m))
 	bare.Source = ""
 	clearPositions(bare.ProtoReflect())
 	encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(bare)

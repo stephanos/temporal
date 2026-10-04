@@ -187,7 +187,7 @@ func (q *quint) composition(j int, c *umpiremodel.Composed) (string, error) {
 		}
 		return out
 	})+1)
-	typ := fmt.Sprintf("starts: List[%s], reach: Set[%s], closed: bool, ends: Set[%s], classes: Set[C%d], rows: Set[{src: %s, by: Set[{cls: C%d, steps: List[{f_outcome: str, f_state: %s, f_facts: List[str], f_because: str}]}]}]",
+	typ := fmt.Sprintf("starts: List[%s], reach: Set[%s], closed: bool, ends: Set[%s], classes: Set[C%d], rows: Set[{src: %s, by: Set[{cls: C%d, steps: List[{f_outcome: str, f_state: %s, f_facts: List[str], f_because: str, f_choice: str}]}]}]",
 		state, state, state, j, state, j, state)
 	view := fmt.Sprintf("starts: %s_starts, reach: %s_bfs.seen, closed: %s_bfs.frontier == Set(), ends: %s_bfs.seen.filter(s => %s_ends(s)), classes: %s_classes,\n"+
 		"    rows: %s_bfs.seen.map(s => {src: s, by: %s_classes.map(c => {cls: c, steps: %s_step(s, c)})})", p, p, p, p, p, p, p, p, p)
@@ -234,7 +234,7 @@ func (q *quint) composedClasses(j int, x *composedExport, facts func(m int, resu
 		}
 		variants = append(variants, fmt.Sprintf("%s_o%d(K%d)", tag, m, mb.machine))
 		classes = append(classes, fmt.Sprintf("%s.map(k => %s_o%d(k))", own, tag, m))
-		arms = append(arms, fmt.Sprintf("| %s_o%d(k) => m%d_step(s.f_%s, k).foldl([], (l, r%d) => l.append({f_outcome: %s_o%d(r%d.f_outcome), f_state: {...s, f_%s: r%d.f_state}, f_facts: %s, f_because: \"\"}))",
+		arms = append(arms, fmt.Sprintf("| %s_o%d(k) => m%d_step(s.f_%s, k).foldl([], (l, r%d) => l.append({f_outcome: %s_o%d(r%d.f_outcome), f_state: {...s, f_%s: r%d.f_state}, f_facts: %s, f_because: \"\", f_choice: \"\"}))",
 			tag, m, mb.machine, plain(mb.field), m, p, m, m, plain(mb.field), m, written[m]))
 	}
 	for n, sync := range x.syncs {
@@ -242,7 +242,7 @@ func (q *quint) composedClasses(j int, x *composedExport, facts func(m int, resu
 		variants = append(variants, fmt.Sprintf("%s_s%d({a: K%d, b: K%d})", tag, n, a.machine, b.machine))
 		classes = append(classes, fmt.Sprintf("tuples(%s, %s).map(t => %s_s%d({a: t._1, b: t._2}))", q.classesOf(a, sync.firstAction), q.classesOf(b, sync.secondAction), tag, n))
 		arms = append(arms, fmt.Sprintf("| %s_s%d(k) => m%d_step(s.f_%s, k.a).foldl([], (l, r%d) => m%d_step(s.f_%s, k.b).foldl(l, (l2, r%d) =>\n"+
-			"      l2.append({f_outcome: %s_o%d(r%d.f_outcome), f_state: {...s, f_%s: r%d.f_state, f_%s: r%d.f_state}, f_facts: %s.concat(%s), f_because: \"\"})))",
+			"      l2.append({f_outcome: %s_o%d(r%d.f_outcome), f_state: {...s, f_%s: r%d.f_state, f_%s: r%d.f_state}, f_facts: %s.concat(%s), f_because: \"\", f_choice: \"\"})))",
 			tag, n, a.machine, plain(a.field), sync.first, b.machine, plain(b.field), sync.second,
 			p, sync.first, sync.first, plain(a.field), sync.first, plain(b.field), sync.second, written[sync.first], written[sync.second]))
 	}
@@ -392,5 +392,5 @@ func (r reader) composedResult(raw any) (result, error) {
 		}
 		return f, nil
 	})
-	return result{Outcome: text(fields["f_outcome"]), State: target, Facts: facts, Because: text(fields["f_because"])}, err
+	return result{Outcome: text(fields["f_outcome"]), State: target, Facts: facts, Because: text(fields["f_because"]), Choice: text(fields["f_choice"])}, err
 }

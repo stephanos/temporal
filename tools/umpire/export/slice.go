@@ -187,6 +187,7 @@ type result struct {
 	State   string
 	Facts   []string
 	Because string
+	Choice  string
 }
 
 // machineView is a machine as a backend and Go are compared on it: its starts, the states they
@@ -259,7 +260,7 @@ func (s *Slice) view(mm *umpiremodel.Machine) (*machineView, error) {
 		for _, row := range t.RowsFrom(state) {
 			for _, r := range row.Results {
 				by[row.Action] = append(by[row.Action], result{Outcome: r.Outcome, State: r.State, Facts: slices.Clone(r.Facts),
-					Because: r.Because})
+					Because: r.Because, Choice: r.Choice})
 			}
 		}
 		v.Rows[state] = by
@@ -294,7 +295,7 @@ func composedView(c *umpiremodel.Composed) (*machineView, error) {
 		}
 		for _, row := range t.RowsFrom(state) {
 			for _, r := range row.Results {
-				by[row.Action] = append(by[row.Action], result{Outcome: r.Outcome, State: r.State, Facts: slices.Clone(r.Facts), Because: r.Because})
+				by[row.Action] = append(by[row.Action], result{Outcome: r.Outcome, State: r.State, Facts: slices.Clone(r.Facts), Because: r.Because, Choice: r.Choice})
 				reads, err := composedReads(c.Properties, state, row.Action, r)
 				if err != nil {
 					return nil, err

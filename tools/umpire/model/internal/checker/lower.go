@@ -175,7 +175,7 @@ type alterer struct {
 // result is its keys alone: it carries no step, since no step was taken to it.
 func keyAlterer() alterer {
 	keyed := func(r Result) Result {
-		return Result{Outcome: r.Outcome, State: r.State, Facts: slices.Clone(r.Facts), Because: r.Because}
+		return Result{Outcome: r.Outcome, State: r.State, Facts: slices.Clone(r.Facts), Because: r.Because, Choice: r.Choice}
 	}
 	return alterer{
 		state: func(r Result, key string) Result {

@@ -160,7 +160,7 @@ func (r *Refinement) keyStep(res Result) (Result, error) {
 		return Result{}, err
 	}
 	return Result{Outcome: res.Outcome, State: state, Facts: append([]string{}, mapFacts(res.Facts, r.product.Facts)...),
-		Because: res.Because}, nil
+		Because: res.Because, Choice: res.Choice}, nil
 }
 
 // noteUnknownRows records the unknown pairs at a node the Scenario schedules as its next step.
