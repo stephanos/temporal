@@ -1,0 +1,8 @@
+{
+  "task_title": "Review the environment-bound developmental baseline checkpoint",
+  "task_body": "Independently examine the frozen bound-baseline report, driver, harness, source inventories and verifier for evidence or methodology gaps. Check the explicit environment contract, complete path/hash/mode checks, allocation attribution and honest exclusion of current comparison and native qualification. Return actionable source-evidence findings without modifying production source or frozen evidence.",
+  "acceptance": "Report Critical/Important/Minor findings with concrete evidence. Distinguish baseline preparation from R19 completion; do not issue a formal implementation SHIP verdict. Write only bound-baseline-checkpoint-source-review.md outside the frozen measurement directory.",
+  "touches_count": 1,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

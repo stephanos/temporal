@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "source_files": 675,
+  "complete_source_path_hash_mode_checks": 10,
+  "protected_file_counts": {
+    "original-baseline": 670,
+    "historical-artifacts": 337,
+    "historical-scratch": 675
+  },
+  "successful_commands": 98,
+  "retained_output_hashes_checked": 171,
+  "cases": [
+    {
+      "case": "discard-10",
+      "exit_code": 0,
+      "elapsed_seconds": 9.454405421001866,
+      "binary_sha256": "ac68f6c135acea44de8da96cec08e48e9bcbcac641c5009564492809fd8a8b4b"
+    },
+    {
+      "case": "discard-100",
+      "exit_code": 0,
+      "elapsed_seconds": 74.5013502030015,
+      "binary_sha256": "ac68f6c135acea44de8da96cec08e48e9bcbcac641c5009564492809fd8a8b4b"
+    },
+    {
+      "case": "novel-10",
+      "exit_code": 0,
+      "elapsed_seconds": 12.992838588997984,
+      "binary_sha256": "ac68f6c135acea44de8da96cec08e48e9bcbcac641c5009564492809fd8a8b4b"
+    },
+    {
+      "case": "novel-100",
+      "exit_code": 0,
+      "elapsed_seconds": 69.37484140799643,
+      "binary_sha256": "ac68f6c135acea44de8da96cec08e48e9bcbcac641c5009564492809fd8a8b4b"
+    }
+  ],
+  "driver_snapshot_capture": "post-run; matches executing driver completion hash, not a pre-launch claim",
+  "current_comparison_run": false,
+  "qualification_admitted": false
+}

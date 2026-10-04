@@ -1,0 +1,8 @@
+{
+  "task_title": "Retain explicitly environment-bound original-baseline R19 measurements",
+  "task_body": "Reuse the verified original 670-file reconstructed baseline in a new unique scratch copy. Preserve prior measurements and artifacts unchanged. Bind compiler and runtime environment before execution; retain effective Go environment and binary build metadata. Verify complete source path sets and hashes before and after each campaign. Run separate 10/100-job discard/novel cases with the existing pair-gated fixture and identical limits. This is preparation for task 21, not current comparison or native qualification.",
+  "acceptance": "All four commands pass with identical explicit environment; complete source inventories remain unchanged; per-execution versus per-publication profile attribution is distinguished; original inputs and prior outputs are unchanged; no shared production source, Flow lifecycle or Git mutation occurs; evidence explicitly excludes qualified native and real runtime execution.",
+  "touches_count": 1,
+  "has_quick_commands": true,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

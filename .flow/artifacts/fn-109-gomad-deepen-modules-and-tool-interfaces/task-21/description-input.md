@@ -1,9 +1,3 @@
----
-satisfies: [R2, R3, R18, R19, R20]
----
-# fn-109-gomad-deepen-modules-and-tool-interfaces.21 Run final qualification and retain the finding completion matrix
-
-## Description
 Stage 6, R18-R20, plus the evidence links for R2/R3. Run the complete gates once against the finished tree, compare with the baseline, and write the matrix that maps every finding to its requirement and evidence. This task implements nothing; a gap it finds goes back to the owning task.
 
 **Size:** M
@@ -53,17 +47,3 @@ flowctl validate --spec fn-109-gomad-deepen-modules-and-tool-interfaces
 - fn-105 D12/D14 replay-divergence dispositions stay unchanged. Attribute a failure to those owners with retained evidence instead of relaxing an expectation.
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
-## Acceptance
-- [ ] `completion-matrix.md` maps every F1-F11 and S1-S5 to its R-ID, owning task, implementation evidence and verification evidence, with fn-108 R6/R7 linked for R2/R3 and D1-D5 each mapped exactly once.
-- [ ] The preservation audit shows no feature removal, no public Go change beyond `go-interface-changes.md`, unchanged CLI inventory, preserved comments and unchanged fixed-identity canonical bytes.
-- [ ] Baseline revision and inputs, commands and per-platform results are retained; darwin/arm64 gates (validation, full Gomad tiers, integration, smoke, core qualification, affected suites) pass against unchanged dispositions or each failure is attributed with evidence.
-- [ ] 10-job and 100-job control cases are measured and show bounded policy state and no added full-payload copy.
-- [ ] linux/amd64 gates, unfinished fn-108 evidence and any D12/D14-owned failure are listed as incomplete acceptance with the command to run; nothing is reported as passing that was not run.
-
-## Done summary
-TBD
-
-## Evidence
-- Commits:
-- Tests:
-- PRs:

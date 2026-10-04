@@ -1,0 +1,5 @@
+--- a/deterministicio/profile.go
++++ b/deterministicio/profile.go
+@@ -268,1 +268,1 @@
+-	if host := profile.definition.target.GOOS + "/" + profile.definition.target.GOARCH; !slices.Contains(generatedBoundaryPlatforms, host) {
++	if host := profile.definition.target.GOOS + "/" + profile.definition.target.GOARCH; !slices.Contains(generatedBoundaryPlatforms, host) && host != "linux/arm64" {

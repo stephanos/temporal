@@ -1,0 +1,10 @@
+--- a/runner/internal/execution/bootstrap_unix.go
++++ b/runner/internal/execution/bootstrap_unix.go
+@@ -151,1 +151,1 @@
+-	if err := syscall.Dup2(readDescriptor, targetIOConfigFD); err != nil {
++	if err := r19GuardedDup2(readDescriptor, targetIOConfigFD); err != nil {
+--- a/runner/internal/execution/launch_plan_unix.go
++++ b/runner/internal/execution/launch_plan_unix.go
+@@ -324,1 +324,1 @@
+-		if err := syscall.Dup2(source, binding.fd); err != nil {
++		if err := r19GuardedDup2(source, binding.fd); err != nil {

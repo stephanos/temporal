@@ -1,0 +1,12 @@
+{
+	"CGO_ENABLED": "1",
+	"GOARCH": "arm64",
+	"GOARM64": "v8.0",
+	"GOENV": "",
+	"GOEXPERIMENT": "",
+	"GOFLAGS": "",
+	"GOOS": "linux",
+	"GOTOOLCHAIN": "local",
+	"GOVERSION": "go1.27.1",
+	"GOWORK": "off"
+}
