@@ -60,6 +60,24 @@ def machine[S, O, F](family: Family, name: String)(body: MachineScope[S, O, F] ?
     Finite[S],
     Finite[O],
     Finite[F]
+): Machine[S, O, F] = declare(family, name, body)
+
+/**
+ * Declares a machine named after the `val` that declares it, in the `given Family`. Its three types
+ * are stated once, here or as the `val`'s type: `val m = machine[S, O, F] { ... }`.
+ */
+def machine[S, O, F](body: MachineScope[S, O, F] ?=> Unit)(using
+    family: Family,
+    fs: Finite[S],
+    fo: Finite[O],
+    ff: Finite[F]
+): Machine[S, O, F] = declare(family, "", body)
+
+private def declare[S, O, F](family: Family, name: String, body: MachineScope[S, O, F] ?=> Unit)(
+    using
+    Finite[S],
+    Finite[O],
+    Finite[F]
 ): Machine[S, O, F] =
   val scope = MachineScope[S, O, F]()
   body(using scope)
@@ -94,9 +112,18 @@ def unobservable(timers: Action[EmptyTuple]*)(using m: MachineScope[?, ?, ?]): U
 
 /**
  * `evidence:` as a total function from facts to the recorded event or observation that confirms
- * them. A fact with no evidence is a non-exhaustive match, which `-Werror` makes a compile error.
+ * them, such as a named function over every fact.
  */
 def evidence[F](using m: MachineScope[?, ?, F])(lines: F => String): Unit = m.evidence = Some(lines)
+
+/**
+ * `evidence { case ... }` lists only the facts confirmed by something other than evidence of their
+ * own name. A fact no line names, and every fact of a machine that declares no evidence, is
+ * confirmed by the evidence named after it; a fact with fields needs a line of its own, which the
+ * lifter refuses to leave out.
+ */
+def evidence[F](using m: MachineScope[?, ?, F])(exceptions: PartialFunction[F, String]): Unit =
+  m.evidence = Some(exceptions)
 
 /** The step functions, one per action. */
 def steps[S, O, F](using m: MachineScope[S, O, F])(bindings: StepBinding[S, O, F]*): Unit =
@@ -138,6 +165,13 @@ final class Machine[S, O, F] private[umpire] (
    * and Definition IDs, and does not inherit a refinement.
    */
   def restrict(family: Family, name: String)(keep: Action[?]*): Machine[S, O, F] =
+    restricted(family, name, keep)
+
+  /** A restriction named after the `val` that declares it, in the `given Family`. */
+  def restrict(keep: Action[?]*)(using family: Family): Machine[S, O, F] =
+    restricted(family, "", keep)
+
+  private def restricted(family: Family, name: String, keep: Seq[Action[?]]): Machine[S, O, F] =
     val decls = keep.map(_.decl).toSet
     // It keeps its source's monitors and assumptions, which are about the state and the machine.
     Machine(

@@ -24,23 +24,30 @@ private[lift] trait Declarations:
       channelAction(resolveSymbol(channel), op, ref)
     case _ =>
       val sym = resolveSymbol(ref)
-      if !actions.contains(sym.fullName) then
-        val d = defs.get(sym) match
-          case Some(v: ValDef) => v
-          case _ => fail(ref, s"${sym.fullName} is not an action declared in the lifted sources")
-        actions(sym.fullName) = actionOf(sym.fullName, d.rhs.get)
-      sym.fullName
+      val d = defs.get(sym) match
+        case Some(v: ValDef) => v
+        case _ => fail(ref, s"${sym.fullName} is not an action declared in the lifted sources")
+      val id = definitionId(sym, d)
+      if !actions.contains(id) then actions(id) = actionOf(id, sym, d.rhs.get)
+      id
 
-  def actionOf(id: String, chain: Term): ir.Action =
-    def named(name: Term): ir.Action =
-      ir.Action(id = id, position = Some(pos(chain)), name = constString(name), party = "system")
+  /** An action, from its declaration and the calls chained onto it; `sym` is its val. */
+  def actionOf(id: String, sym: Symbol, chain: Term): ir.Action =
+    def named(name: String): ir.Action =
+      ir.Action(id = id, position = Some(pos(chain)), name = name, party = "system")
+    def captured: ir.Action = named(capturedName(sym, chain, "an action"))
     def walk(t: Term): ir.Action = t match
-      case Apply(Ident("action"), List(name, party)) => named(name).withParty(constString(party))
-      case Apply(Ident("timer"), List(name))         => named(name).withTimer(true)
-      case Apply(Ident("internal"), List(name))      => named(name).withInternal(true)
-      case Apply(Select(inner, "on"), List(e))       => walk(inner).withOn(constString(e))
-      case Apply(Select(inner, "creates"), List(e))  => walk(inner).withCreates(constString(e))
-      case Apply(Select(inner, "results"), List(n))  => walk(inner).withResults(constString(n))
+      case Apply(Ident("action"), List(name, party)) =>
+        named(constString(name)).withParty(constString(party))
+      case Apply(Ident("timer"), List(name))    => named(constString(name)).withTimer(true)
+      case Apply(Ident("internal"), List(name)) => named(constString(name)).withInternal(true)
+      // The forms that take their name from the val.
+      case Apply(Ident("action"), List(party))      => captured.withParty(constString(party))
+      case Ident("timer")                           => captured.withTimer(true)
+      case Ident("internal")                        => captured.withInternal(true)
+      case Apply(Select(inner, "on"), List(e))      => walk(inner).withOn(constString(e))
+      case Apply(Select(inner, "creates"), List(e)) => walk(inner).withCreates(constString(e))
+      case Apply(Select(inner, "results"), List(n)) => walk(inner).withResults(constString(n))
       case Apply(TypeApply(Select(inner, "schema"), List(tpt)), _) =>
         walk(inner).addSchemas(messageDescriptor(tpt.tpe, t).fullName)
       case Apply(Apply(TypeApply(Select(inner, "input"), List(tpt)), List(name)), _) =>
@@ -81,32 +88,44 @@ private[lift] trait Declarations:
       name
     case other => fail(other, "a step binds a function")
 
-  def machine(rhs: Term): ir.Machine =
+  /** A machine, from the right-hand side of `sym`, the val that declares it. */
+  def machine(sym: Symbol, rhs: Term): ir.Machine =
+    def restricted(source: Term, family: Term, name: => String, keep: Term) =
+      val src = machineOf(resolveSymbol(source), source)
+      val kept = varargs(keep).map(action).toSet
+      src.copy(
+        family = constString(family),
+        name = name,
+        position = Some(pos(rhs)),
+        steps = src.steps.filter(s => kept(s.action)),
+        unobservable = Nil,
+        refines = None
+      )
     rhs match
       // `source.restrict(family, name)(keep*)`: the source's steps for the kept actions only.
       case Apply(Apply(Select(source, "restrict"), List(family, newName)), List(keep)) =>
-        val src = machineOf(resolveSymbol(source), source)
-        val kept = varargs(keep).map(action).toSet
-        src.copy(
-          family = constString(family),
-          name = constString(newName),
-          position = Some(pos(rhs)),
-          steps = src.steps.filter(s => kept(s.action)),
-          unobservable = Nil,
-          refines = None
-        )
+        restricted(source, family, constString(newName), keep)
+      // `source.restrict(keep*)`, named after its val, in the given family.
+      case Apply(Apply(Select(source, "restrict"), List(keep)), List(family)) =>
+        restricted(source, family, capturedName(sym, rhs, "a machine"), keep)
       case _ =>
         val (s, o, f, family, mname, body) = rhs match
           case Apply(
                 Apply(Apply(TypeApply(Ident("machine"), List(s, o, f)), List(fam, n)), List(ctx)),
                 _
               ) =>
-            (s.tpe, o.tpe, f.tpe, fam, n, ctx)
+            (s.tpe, o.tpe, f.tpe, fam, Some(n), ctx)
+          // `machine[S, O, F] { ... }`, named after its val, in the given family.
+          case Apply(Apply(TypeApply(Ident("machine"), List(s, o, f)), List(ctx)), fam :: _) =>
+            (s.tpe, o.tpe, f.tpe, fam, None, ctx)
           case other =>
-            fail(other, "a machine is declared by `machine[S, O, F](family, name) { ... }`")
+            fail(
+              other,
+              "a machine is declared by `machine[S, O, F] { ... }` or `machine[S, O, F](family, name) { ... }`"
+            )
         // The family is read first, so a refusal of both is reported at the family, as it always was.
         val familyName = constString(family)
-        val name = constString(mname)
+        val name = mname.fold(capturedName(sym, rhs, "a machine"))(constString)
         val declared = ir.Machine(
           family = familyName,
           name = name,
@@ -122,7 +141,7 @@ private[lift] trait Declarations:
           case other => fail(other, "a machine's body is a block of declarations")
         val visible = mutable.ArrayBuffer.empty[String]
         val visibleOutcomes = mutable.ArrayBuffer.empty[String]
-        val b = stats.foldLeft(declared): (b, stat) =>
+        val folded = stats.foldLeft(declared): (b, stat) =>
           val decl = stat match
             case term: Term => call(term)
             case _          => None
@@ -140,7 +159,8 @@ private[lift] trait Declarations:
                       List(DefDef("$anonfun", List(TermParamClause(params)), _, Some(body))),
                       _: Closure
                     ) =>
-                  functions(evidenceName) = function(evidenceName, params, body, fn)
+                  functions(evidenceName) =
+                    evidenceDefaults(function(evidenceName, params, body, fn), f, fn)
                 case other => fail(other, "evidence is a function of the fact")
               b.withEvidence(evidenceName)
             case Some(("refines", List(_, List(product), List(map)))) =>
@@ -174,6 +194,13 @@ private[lift] trait Declarations:
               stat match
                 case Literal(UnitConstant()) => b // the block's trailing unit
                 case _ => fail(stat, s"not a machine declaration: ${stat.show}")
+        val b =
+          if folded.evidence.nonEmpty || folded.factType.isEmpty then folded
+          else
+            val evidenceName = s"$name.evidence"
+            functions(evidenceName) = defaultEvidence(evidenceName, f, rhs)
+            folded.withEvidence(evidenceName)
+        distinctActionNames(b, rhs)
         if b.refines.isEmpty && visible.nonEmpty then
           fail(rhs, s"$name names the facts a refined machine sees, and declares no refinement")
         if b.refines.isEmpty && visibleOutcomes.nonEmpty then
@@ -224,22 +251,151 @@ private[lift] trait Declarations:
         s"${b.name} binds ${channels(c).name}Loss, and ${channels(c).name} is reliable"
       )
 
+  /** Two actions a machine binds are told apart by name, as its steps, syncs and claims name them. */
+  def distinctActionNames(m: ir.Machine, at: Tree): Unit =
+    for
+      (n, bound) <- m.steps.groupBy(s => actions(s.action).name).toList.sortBy(_._1)
+      if bound.map(_.action).distinct.size > 1
+    do
+      fail(
+        at,
+        s"${m.name} binds two actions named $n, ${bound.map(_.action).distinct.mkString(" and ")}: " +
+          "a machine's actions have distinct names"
+      )
+
+  // ### Evidence: a fact no line names is confirmed by evidence of its own name
+
+  /** A fact type's cases, in catalog order, each with whether it has fields. */
+  def factCases(f: TypeRepr, at: Tree): Seq[(String, Boolean)] =
+    types.get(typeRef(f, at).getNamed).filter(_.shape.isEnum) match
+      case Some(t) => t.getEnum.cases.map(c => c.name -> c.fields.nonEmpty)
+      case None    =>
+        fail(at, s"${f.show} is no enum, so its facts have no names to default their evidence to")
+
+  /** The evidence line of one fact case: the evidence of its own name. */
+  def defaultLine(f: String, c: String, at: Tree): ir.MatchCase =
+    ir.MatchCase(
+      pattern = Some(ir.Pattern(ir.Pattern.Kind.Literal(ir.Value(enumValue(f, c))))),
+      body = Some(text(c, at))
+    )
+
+  /** The evidence of a machine that declares none: each fact confirmed by evidence of its name. */
+  def defaultEvidence(name: String, f: TypeRepr, at: Tree): ir.Function =
+    val cases = factCases(f, at)
+    for (c, _) <- cases.find(_._2) do
+      fail(
+        at,
+        s"fact $c has fields, so the evidence of its name alone does not say what confirms it: " +
+          s"declare `evidence { case ${f.typeSymbol.name}.$c(...) => ... }`"
+      )
+    val p = typeName(f)
+    val fact = typeRef(f, at).getNamed
+    ir.Function(
+      name = name,
+      position = Some(pos(at)),
+      params = Seq(ir.Param(p, Some(typeRef(f, at)))),
+      body = Some(
+        expr(at)(
+          ir.Expr.Kind.Match(
+            ir.Match(
+              Some(expr(at)(ir.Expr.Kind.Var(p))),
+              cases.map(c => defaultLine(fact, c._1, at))
+            )
+          )
+        )
+      )
+    )
+
+  /**
+   * `evidence { case ... }` listing only exceptions: each fact case no line covers is given the line
+   * of its own name, in catalog order among the author's lines. A case with fields needs a line that
+   * covers all of it, since its name alone does not say which of its values the evidence confirms.
+   */
+  def evidenceDefaults(fn: ir.Function, f: TypeRepr, at: Tree): ir.Function =
+    fn.getBody.kind match
+      case ir.Expr.Kind.Match(m)
+          if fn.params.size == 1 && m.getScrutinee.kind.`var`.contains(fn.params.head.name) =>
+        val fact = typeRef(f, at).getNamed
+        val cases = factCases(f, at)
+        val index = cases.map(_._1).zipWithIndex.toMap
+        // The cases each line covers, with whether it covers all of each case's values.
+        def covers(p: ir.Pattern): Map[String, Boolean] = p.kind match
+          case ir.Pattern.Kind.Wildcard(_)        => cases.map(_._1 -> true).toMap
+          case ir.Pattern.Kind.Bind(b)            => covers(b.getPattern)
+          case ir.Pattern.Kind.Alternatives(alts) =>
+            alts.patterns
+              .map(covers)
+              .foldLeft(Map.empty[String, Boolean])((acc, c) =>
+                c.foldLeft(acc) { case (acc, (k, all)) =>
+                  acc.updated(k, acc.getOrElse(k, false) || all)
+                }
+              )
+          case ir.Pattern.Kind.Literal(v) if v.kind.isEnum => Map(v.getEnum.`case` -> true)
+          case ir.Pattern.Kind.Case(c)                     =>
+            def total(p: ir.Pattern): Boolean = p.kind match
+              case ir.Pattern.Kind.Wildcard(_) => true
+              case ir.Pattern.Kind.Bind(b)     => total(b.getPattern)
+              case _                           => false
+            Map(c.`case` -> c.fields.forall(total))
+          case _ => Map.empty
+        val covered = m.cases.map(line =>
+          if line.guard.nonEmpty then covers(line.getPattern).map((k, _) => k -> false)
+          else covers(line.getPattern)
+        )
+        val whole = covered.flatMap(_.collect { case (k, true) => k }).toSet
+        val named = covered.flatMap(_.keys).toSet
+        for (c, fields) <- cases if fields && !whole(c) do
+          fail(
+            at,
+            (if named(c) then s"evidence covers only some values of fact $c"
+             else s"evidence names no line for fact $c") +
+              ", which has fields: its name alone does not say what confirms it, so write a line for all of it"
+          )
+        val missing =
+          for (c, _) <- cases if !named(c) yield (index(c), defaultLine(fact, c, at))
+        if missing.isEmpty then fn
+        else
+          // A line goes where the first case it covers is in the catalog; the defaults fill the rest.
+          val authored = m.cases
+            .zip(covered)
+            .map((line, c) => (c.keys.map(index).minOption.getOrElse(Int.MaxValue), line))
+          val lines = (authored ++ missing).sortBy(_._1).map(_._2)
+          fn.withBody(fn.getBody.withMatch(m.withCases(lines)))
+      case _ => fn
+
   /** A lifted machine, by the name the IR gives it. */
   def machineNamed(name: String): Option[ir.Machine] = machines.values.find(_.name == name)
 
   def machineOf(sym: Symbol, at: Tree): ir.Machine =
-    machines.getOrElseUpdate(
-      sym.fullName,
-      defs.get(sym) match
-        case Some(ValDef(_, _, Some(rhs))) => machine(rhs)
-        case _ => fail(at, s"${sym.fullName} is not a machine of the lifted sources")
-    )
+    machines.get(sym.fullName) match
+      case Some(m) => m
+      case None    =>
+        val m = defs.get(sym) match
+          case Some(ValDef(_, _, Some(rhs))) => machine(sym, rhs)
+          case _ => fail(at, s"${sym.fullName} is not a machine of the lifted sources")
+        distinctModelName(m.name, sym, m.getPosition)
+        machines(sym.fullName) = m
+        m
+
+  /** Claims name a machine or a composition by name, so two of them never share one. */
+  def distinctModelName(name: String, sym: Symbol, at: ir.Position): Unit =
+    val other = machines
+      .collectFirst { case (k, m) if k != sym.fullName && m.name == name => k }
+      .orElse(compositions.collectFirst {
+        case (k, c) if k != sym.fullName && c.name == name => k
+      })
+    for o <- other do
+      throw LiftError(
+        s"${at.file}:${at.line}",
+        s"$o and ${sym.fullName} are both named $name, and claims name a machine or composition by its name"
+      )
 
   // ### Channels, monitors, assumptions and holes
 
   /** A channel, from its `channel[M](name, capacity, order, loss, duplicates)` declaration. */
   def channelOf(sym: Symbol, at: Tree): String =
-    if !channels.contains(sym.fullName) then
+    val id = definitionId(sym, at)
+    if !channels.contains(id) then
       val d = valDef(sym, at, "a channel")
       val (message, name, capacity, order, loss, duplicates, finite) = arguments(d.rhs.get) match
         case Apply(
@@ -254,17 +410,15 @@ private[lift] trait Declarations:
           )
       val (cap, dup) =
         (constInt(capacity), if isDefault(duplicates) then 0L else constInt(duplicates))
+      val n = if isDefault(name) then capturedName(sym, d, "a channel") else constString(name)
       if cap < 1 then
+        fail(d, s"channel $n holds at most $cap messages; a channel holds at least one")
+      if dup < 0 then fail(d, s"channel $n delivers a message $dup more times than once; no fewer")
+      for other <- channels.values if other.name == n do
         fail(
           d,
-          s"channel ${constString(name)} holds at most $cap messages; a channel holds at least one"
+          s"two channels are named $n: ${other.id} and $id, and their steps would share names"
         )
-      if dup < 0 then
-        fail(
-          d,
-          s"channel ${constString(name)} delivers a message $dup more times than once; no fewer"
-        )
-      val n = constString(name)
 
       /** The case of a framework enum a policy argument names; anything computed is refused. */
       def policy[V](arg: Term, enumName: String, cases: Map[String, V]): V = resolve(arg) match
@@ -276,8 +430,8 @@ private[lift] trait Declarations:
             s"channel $n's ${enumName.toLowerCase} is ${other.show}, not a case of $enumName: a channel " +
               s"names its ${enumName.toLowerCase} as ${cases.keys.toList.sorted.map(c => s"$enumName.$c").mkString(" or ")}"
           )
-      channels(sym.fullName) = ir.Channel(
-        id = sym.fullName,
+      channels(id) = ir.Channel(
+        id = id,
         name = n,
         position = Some(pos(d)),
         message = Some(messageRef(message.tpe, finite, d, n)),
@@ -293,7 +447,7 @@ private[lift] trait Declarations:
         lossy = policy(loss, "Loss", Map("reliable" -> false, "lossy" -> true)),
         duplicates = dup.toInt
       )
-    sym.fullName
+    id
 
   /**
    * A channel's message type, as its finite catalog: a named type, the Booleans, an opaque type's
@@ -366,9 +520,20 @@ private[lift] trait Declarations:
    * evaluation point chained onto it.
    */
   def monitorOf(sym: Symbol, at: Tree): String =
-    if !monitors.contains(sym.fullName) then
+    val id = definitionId(sym, at)
+    if !monitors.contains(id) then
       val d = valDef(sym, at, "a monitor")
-      val id = sym.fullName
+      def declared(name: String, m: TypeTree, initial: Term, next: Term, violated: Term, t: Term) =
+        ir.Monitor(
+          id = id,
+          position = Some(pos(d)),
+          name = name,
+          state = Some(typeRef(m.tpe, t)),
+          initial = Some(lift(initial, Some(m.tpe))),
+          next = stepFunction(next, id, "next"),
+          violated = stepFunction(violated, id, "violated"),
+          evaluate = ir.Monitor.Evaluate.EveryStep(ir.Empty())
+        )
       def walk(t: Term): ir.Monitor = t match
         case Select(inner, "readAtEnds")                => walk(inner).withAtEnds(ir.Empty())
         case Apply(Select(inner, "readAfter"), List(f)) =>
@@ -383,16 +548,19 @@ private[lift] trait Declarations:
               ),
               _
             ) =>
-          ir.Monitor(
-            id = id,
-            position = Some(pos(d)),
-            name = constString(name),
-            state = Some(typeRef(m.tpe, t)),
-            initial = Some(lift(initial, Some(m.tpe))),
-            next = stepFunction(next, id, "next"),
-            violated = stepFunction(violated, id, "violated"),
-            evaluate = ir.Monitor.Evaluate.EveryStep(ir.Empty())
-          )
+          declared(constString(name), m, initial, next, violated, t)
+        // `monitor[S, O, F, M](initial)(next)(violated)`, named after its val.
+        case Apply(
+              Apply(
+                Apply(
+                  Apply(TypeApply(Ident("monitor"), List(_, _, _, m)), List(initial)),
+                  List(next)
+                ),
+                List(violated)
+              ),
+              _
+            ) =>
+          declared(capturedName(sym, d, "a monitor"), m, initial, next, violated, t)
         case other => fail(other, s"not a part of a monitor declaration: ${other.show}")
       val m = walk(d.rhs.get)
       if m.getState.ref.isList || m.getState.ref.isInt then
@@ -403,28 +571,39 @@ private[lift] trait Declarations:
           s"two monitors are named ${m.name}: ${other.id} and $id, and would share one Definition ID"
         )
       monitors(id) = m
-    sym.fullName
+    id
 
   /** An assumption, from `assume(name)` and the fairness chained onto it. */
   def assumptionOf(sym: Symbol, at: Tree): String =
-    if !assumptions.contains(sym.fullName) then
+    val id = definitionId(sym, at)
+    if !assumptions.contains(id) then
       val d = valDef(sym, at, "an assumption")
+      def declared(name: String) = ir.Assumption(id = id, position = Some(pos(d)), name = name)
       def walk(t: Term): ir.Assumption = t match
-        case Apply(Ident("assume"), List(name)) =>
-          ir.Assumption(id = sym.fullName, position = Some(pos(d)), name = constString(name))
+        case Apply(Ident("assume"), List(name)) => declared(constString(name))
+        case Ident("assume")                    => declared(capturedName(sym, d, "an assumption"))
         case Apply(Select(inner, "fair"), List(as)) =>
           walk(inner).addAllFair(varargs(as).map(action))
         case other => fail(other, s"not a part of an assumption declaration: ${other.show}")
-      assumptions(sym.fullName) = walk(d.rhs.get)
-    sym.fullName
+      val a = walk(d.rhs.get)
+      for other <- assumptions.values if other.name == a.name do
+        fail(
+          d,
+          s"two assumptions are named ${a.name}: ${other.id} and $id, and every result names them by name"
+        )
+      assumptions(id) = a
+    id
 
-  /** A hole, from `hole(name)`. */
+  /** A hole, from `hole(name)`, or `hole` named after its val. */
   def holeOf(sym: Symbol, at: Tree): String =
-    if !holes.contains(sym.fullName) then
+    val id = definitionId(sym, at)
+    if !holes.contains(id) then
       val d = valDef(sym, at, "a hole")
-      d.rhs.get match
-        case Apply(Ident("hole"), List(name)) =>
-          holes(sym.fullName) =
-            ir.Hole(id = sym.fullName, name = constString(name), position = Some(pos(d)))
-        case other => fail(other, "a hole is declared by `hole(name)`")
-    sym.fullName
+      val name = d.rhs.get match
+        case Apply(Ident("hole"), List(name)) => constString(name)
+        case Ident("hole")                    => capturedName(sym, d, "a hole")
+        case other => fail(other, "a hole is declared by `hole` or `hole(name)`")
+      for other <- holes.values if other.name == name do
+        fail(d, s"two holes are named $name: ${other.id} and $id, and a result names one by name")
+      holes(id) = ir.Hole(id = id, name = name, position = Some(pos(d)))
+    id

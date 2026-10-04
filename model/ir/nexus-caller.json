@@ -4,7 +4,7 @@
     "name": "temporal.nexuscaller.NexusCallerState",
     "position": {
       "file": "model/temporal/nexuscaller/Model.scala",
-      "line": 173
+      "line": 170
     },
     "record": {
       "fields": [ {
@@ -289,7 +289,7 @@
     "name": "nexusCaller.property.repliedByPollingWorker",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 269
+      "line": 268
     },
     "params": [ {
       "name": "step",
@@ -300,32 +300,32 @@
     "body": {
       "position": {
         "file": "model/temporal/nexuscaller/Claims.scala",
-        "line": 269
+        "line": 268
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/nexuscaller/Claims.scala",
-            "line": 269
+            "line": 268
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/nexuscaller/Claims.scala",
-                "line": 269
+                "line": 268
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/Claims.scala",
-                    "line": 269
+                    "line": 268
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/Claims.scala",
-                        "line": 269
+                        "line": 268
                       },
                       "var": "step"
                     },
@@ -341,7 +341,7 @@
         "right": {
           "position": {
             "file": "model/temporal/nexuscaller/Claims.scala",
-            "line": 269
+            "line": 268
           },
           "literal": {
             "enum": {
@@ -5709,7 +5709,7 @@
     "name": "handlerWorker",
     "position": {
       "file": "model/temporal/nexuscaller/Model.scala",
-      "line": 163
+      "line": 160
     },
     "entity": "worker",
     "stateType": "temporal.worker.State",
@@ -6136,7 +6136,7 @@
     "name": "nexusCaller",
     "position": {
       "file": "model/temporal/nexuscaller/Model.scala",
-      "line": 176
+      "line": 173
     },
     "stateType": "temporal.nexuscaller.NexusCallerState",
     "members": [ {
@@ -6170,7 +6170,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/nexuscaller/Model.scala",
-        "line": 182
+        "line": 179
       },
       "lambda": {
         "params": [ {
@@ -6182,26 +6182,26 @@
         "body": {
           "position": {
             "file": "model/temporal/nexuscaller/Model.scala",
-            "line": 182
+            "line": 179
           },
           "call": {
             "function": "temporal.nexuscaller.Protocol$.terminalPhase",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/Model.scala",
-                "line": 182
+                "line": 179
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/nexuscaller/Model.scala",
-                    "line": 182
+                    "line": 179
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/nexuscaller/Model.scala",
-                        "line": 182
+                        "line": 179
                       },
                       "var": "s"
                     },
@@ -6221,7 +6221,7 @@
     "name": "repliedByPollingWorker",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 267
+      "line": 266
     },
     "whenAction": "handlerReply",
     "holds": "nexusCaller.property.repliedByPollingWorker"
@@ -6350,12 +6350,12 @@
     "name": "repliedThenStopped",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 275
+      "line": 274
     },
     "start": {
       "position": {
         "file": "model/temporal/nexuscaller/Claims.scala",
-        "line": 277
+        "line": 276
       },
       "construct": {
         "type": "temporal.nexuscaller.NexusCallerState",
@@ -6423,14 +6423,14 @@
         }, {
           "position": {
             "file": "model/temporal/nexuscaller/Model.scala",
-            "line": 184
+            "line": 181
           },
           "construct": {
             "type": "temporal.worker.State",
             "args": [ {
               "position": {
                 "file": "model/temporal/nexuscaller/Model.scala",
-                "line": 184
+                "line": 181
               },
               "literal": {
                 "enum": {
@@ -7307,7 +7307,7 @@
     "name": "stoppedWorkerRepliesNothing",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 287
+      "line": 286
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -7448,7 +7448,7 @@
     "name": "terminalHolds",
     "position": {
       "file": "model/temporal/nexuscaller/Claims.scala",
-      "line": 246
+      "line": 245
     },
     "form": "FORM_VERIFY",
     "property": {

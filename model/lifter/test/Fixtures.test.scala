@@ -156,8 +156,30 @@ class Fixtures extends munit.FunSuite:
     "counting",
     "batching",
     "shuffling",
-    "guessing"
-  ).map("fixture.rejects.Rejects$package$." + _)
+    "guessing",
+    "sharedIds",
+    "unnamedInList",
+    "unnamedProperty",
+    "twins",
+    "askedTwice",
+    "boundTwice",
+    "tapped",
+    "unstarted",
+    "unstartedPair",
+    "undeclared",
+    "unlisted",
+    "partial",
+    "unrelatedRead",
+    "assumedTwice",
+    "gapTwice"
+  ).map("fixture.rejects.Rejects$package$." + _) ++ Seq(
+    // DefinitionScope pins and a name the compiler made up, refused in objects of their own.
+    "PinnedTwice$.pinnedTwice",
+    "PinsOuter$.pinnedNested",
+    "Self$.pinnedSelf",
+    "Computed$.pinnedComputed",
+    "Anonymous$.anonymous"
+  ).map("fixture.rejects." + _)
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
   private lazy val liftsJars = s"$liftsJar=${stored("lifts")},$modelJar=model/"
@@ -225,7 +247,7 @@ class Fixtures extends munit.FunSuite:
     started.foreach(_())
 
   concurrently("the build refuses a warning -Werror makes an error, at its line"):
-    assertEquals(refusals("werror"), Seq("Evidence.scala:29:16"))
+    assertEquals(refusals("werror"), Seq("Steps.scala:21:58"))
 
   concurrently("the build refuses crossed types, at their lines"):
     assertEquals(
@@ -233,8 +255,7 @@ class Fixtures extends munit.FunSuite:
       Seq(
         "ActionInput.scala:15:28",
         "Crossed.scala:35:14",
-        "Crossed.scala:45:28",
-        "QueryPair.scala:26:69"
+        "Crossed.scala:45:28"
       )
     )
 
@@ -439,6 +460,55 @@ class Fixtures extends munit.FunSuite:
       refused(result).exists(_.contains("expected a generated enum case")),
       result.diagnostics
     )
+
+  // The same Model spelled out (Spelled.scala) and with names taken from vals, a given family, defaulted
+  // starts and evidence and a refinement read with no given (Captured.scala): one IR, but for positions
+  // and the owner of the types and functions each file declares. Captured.scala pins Spelled.scala's
+  // owner, so its symbol-based Definition IDs are Spelled.scala's before anything is substituted.
+  concurrently("captured names, a given family and defaults lift to the IR spelled-out forms do"):
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    def spelledAs(fixture: String): String =
+      val pkg = s"fixture.$fixture.${fixture.capitalize}$$package$$"
+      val out = lifted(fixture)
+      val roots = Seq(
+        "queries",
+        "diskQueries",
+        "localDiskQueries",
+        "relay",
+        "ledger",
+        "putOnly",
+        "durableEventually"
+      ).map(s"$pkg." + _)
+      val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
+      assert(!result.failed, result.diagnostics)
+      Files.readString(out)
+    def strip(n: com.fasterxml.jackson.databind.JsonNode): Unit =
+      n match
+        case o: com.fasterxml.jackson.databind.node.ObjectNode =>
+          o.remove(java.util.List.of("position", "source")): Unit
+        case _ => ()
+      n.elements().asScala.foreach(strip)
+    val captured = spelledAs("captured")
+    val ids = mapper.readTree(captured)
+    for
+      kind <- Seq("actions", "monitors", "assumptions", "holes", "channels", "realizations")
+      id = ids.path(kind)
+    do
+      assert(id.size() > 0, s"Captured.scala declares no $kind")
+      for d <- id.elements().asScala do
+        assert(
+          d.path("id").asText().startsWith("fixture.spelled.Spelled$package$."),
+          s"${d.path("id").asText()} is not pinned to Spelled.scala's owner"
+        )
+    val spelled = mapper.readTree(spelledAs("spelled"))
+    val same = mapper.readTree(
+      captured
+        .replace("fixture.captured.Captured$package$", "fixture.spelled.Spelled$package$")
+        .replace("fixture.captured.", "fixture.spelled.")
+    )
+    strip(spelled)
+    strip(same)
+    assertEquals(same.toPrettyString, spelled.toPrettyString)
 
   concurrently("the lifter refuses unrelated machines with one state type, at the Query line"):
     val jar = packaged("samestate", materialize("samestate"))

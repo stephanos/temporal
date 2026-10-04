@@ -168,9 +168,6 @@ val six: Limits = Limits("six", steps = 6, actions = 6, search = 262144)
 
 // ### The Queries
 
-/** A product Property read on the protocol machine goes through the declared refinement. */
-given Reads[ProtocolState, ProductState] = Reads.through(activityProtocol, activityProduct)
-
 val completion: Query = (query("completion") find completes in completed limits three)
   .expect(RunExpectation(Conformance.conformant, Outcome.satisfied))
 val nonRetryableFailure: Query =

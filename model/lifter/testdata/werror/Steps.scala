@@ -1,12 +1,12 @@
-// A Model the build must refuse: its evidence match leaves a fact without a line, which -Werror makes
-// a compile error (Machine.scala's `evidence`). scala-cli reports it and exits 0, so its build is
-// read by its diagnostics rather than its exit status, and this one is expected at the match's line.
+// A Model the build must refuse: its step function's match leaves a phase without a case, which
+// -Werror makes a compile error. scala-cli reports it and exits 0, so its build is read by its
+// diagnostics rather than its exit status, and this one is expected at the match's line.
 package fixture.werror
 
 import umpire.*
 
 enum Phase derives Finite:
-  case idle, done
+  case idle, working, done
 
 final case class State(phase: Phase) derives Finite
 
@@ -14,18 +14,17 @@ enum Outcome derives Finite:
   case accepted
 
 enum Fact derives Finite:
-  case finished, logged
+  case finished
 
 val go = action("go", Party("fixture"))
 
-def goStep(s: State): List[Step[State, Outcome, Fact]] =
-  if s.phase == Phase.done then Nil
-  else List(Step(Outcome.accepted, State(Phase.done), List(Fact.finished)))
+def goStep(s: State): List[Step[State, Outcome, Fact]] = s.phase match
+  case Phase.idle    => List(Step(Outcome.accepted, State(Phase.working)))
+  case Phase.working => List(Step(Outcome.accepted, State(Phase.done), List(Fact.finished)))
 
-val unconfirmed: Machine[State, Outcome, Fact] =
-  machine[State, Outcome, Fact](Family("fixture.werror"), "unconfirmed") {
+val unfinished: Machine[State, Outcome, Fact] =
+  machine[State, Outcome, Fact](Family("fixture.werror"), "unfinished") {
     starts(State(Phase.idle))
     ends(s => s.phase == Phase.done)
-    evidence { case Fact.finished => "finished" }
     steps(go ~> goStep)
   }

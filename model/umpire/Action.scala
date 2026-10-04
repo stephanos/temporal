@@ -4,7 +4,8 @@ import scalapb.{GeneratedMessage, GeneratedMessageCompanion}
 
 /**
  * The root a model's Definition IDs hang off, such as `temporal.nexus.caller`. A Model names it
- * explicitly; it is not derived from the Scala package.
+ * explicitly; it is not derived from the Scala package. A declaration that takes its name from its
+ * `val` takes its family from the `given Family` in scope.
  */
 final case class Family(root: String):
   override def toString: String = root
@@ -106,13 +107,25 @@ extension [A, B, C](a: Action[(A, B, C)])
 /** Declares an action a party performs. */
 def action(name: String, party: Party): Action[EmptyTuple] = Action(ActionDecl(name, party))
 
+/**
+ * Declares an action a party performs, named after the `val` that declares it. The name is read by
+ * the lifter, so the declaration's own `name` is empty here.
+ */
+def action(party: Party): Action[EmptyTuple] = Action(ActionDecl("", party))
+
 /** Declares a timer: an action with no input that the system performs. */
 def timer(name: String): Action[EmptyTuple] = Action(ActionDecl(name, Party.system, timer = true))
+
+/** Declares a timer named after the `val` that declares it. */
+def timer: Action[EmptyTuple] = timer("")
 
 /** Declares a step of the system that is not a timer, such as a dispatch or a commit. */
 def internal(name: String): Action[EmptyTuple] = Action(
   ActionDecl(name, Party.system, internal = true)
 )
+
+/** Declares a step of the system named after the `val` that declares it. */
+def internal: Action[EmptyTuple] = internal("")
 
 /** One class of an action: the action with one assignment of its inputs. */
 final case class Class(decl: ActionDecl, values: List[Any])

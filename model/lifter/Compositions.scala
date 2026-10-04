@@ -20,17 +20,31 @@ private[lift] trait Compositions:
     case other => fail(other, s"expected `\"member\" -> value`, not ${other.show}")
 
   def compositionOf(sym: Symbol, at: Tree): ir.Composition =
-    compositions.getOrElseUpdate(
-      sym.fullName,
-      composition(valDef(sym, at, "a composition").rhs.get)
-    )
+    compositions.get(sym.fullName) match
+      case Some(c) => c
+      case None    =>
+        val c = composition(sym, valDef(sym, at, "a composition").rhs.get)
+        distinctModelName(c.name, sym, c.getPosition)
+        compositions(sym.fullName) = c
+        c
 
   /**
-   * A composition, from `compose[S](family, name)(members*)` and the syncs, ends and replacements
-   * chained onto it.
+   * A composition, from `compose[S](family, name)(members*)`, or `compose[S](members*)` named after
+   * its val `sym` in the given family, and the syncs, ends and replacements chained onto it.
    */
-  def composition(rhs: Term): ir.Composition =
+  def composition(sym: Symbol, rhs: Term): ir.Composition =
     val replaced = mutable.ArrayBuffer.empty[(String, String)]
+    def declared(s: TypeTree, family: String, name: String, members: Term, t: Term) =
+      ir.Composition(
+        position = Some(pos(rhs)),
+        family = family,
+        name = name,
+        stateType = typeRef(s.tpe, t).getNamed,
+        members = varargs(members).map { m =>
+          val (field, member) = arrow(m)
+          ir.Member(constString(field), machineOf(resolveSymbol(member), member).name)
+        }
+      )
     def move(t: Term): ir.SyncMove =
       val (member, a) = arrow(t)
       ir.SyncMove(constString(member), actions(action(a)).name)
@@ -46,16 +60,9 @@ private[lift] trait Compositions:
             Apply(Apply(TypeApply(Ident("compose"), List(s)), List(family, name)), List(members)),
             _
           ) =>
-        ir.Composition(
-          position = Some(pos(rhs)),
-          family = constString(family),
-          name = constString(name),
-          stateType = typeRef(s.tpe, t).getNamed,
-          members = varargs(members).map { m =>
-            val (field, member) = arrow(m)
-            ir.Member(constString(field), machineOf(resolveSymbol(member), member).name)
-          }
-        )
+        declared(s, constString(family), constString(name), members, t)
+      case Apply(Apply(TypeApply(Ident("compose"), List(s)), List(members)), List(_, family)) =>
+        declared(s, constString(family), capturedName(sym, rhs, "a composition"), members, t)
       case other => fail(other, s"not a part of a composition declaration: ${other.show}")
     val c = walk(rhs)
     val fields = c.members.map(_.field)

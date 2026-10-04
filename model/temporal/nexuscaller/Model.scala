@@ -151,9 +151,6 @@ val nexusProtocol: Machine[ProtocolState, Outcome, ProtocolFact] =
     )
   }
 
-/** A product Property read on the protocol machine goes through the declared refinement. */
-given Reads[ProtocolState, ProductState] = Reads.through(nexusProtocol, nexusProduct)
-
 /**
  * The caller's view of the handler's worker: it stops and it serves. It never resumes, because an
  * action no sync line names would stay executable on its own and admit a stop, a resume and then a

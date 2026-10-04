@@ -1815,7 +1815,7 @@
     "name": "standaloneActivity.property.startedByPollingWorker",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 239
+      "line": 236
     },
     "params": [ {
       "name": "step",
@@ -1826,32 +1826,32 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Claims.scala",
-        "line": 239
+        "line": 236
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Claims.scala",
-            "line": 239
+            "line": 236
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Claims.scala",
-                "line": 239
+                "line": 236
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Claims.scala",
-                    "line": 239
+                    "line": 236
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Claims.scala",
-                        "line": 239
+                        "line": 236
                       },
                       "var": "step"
                     },
@@ -1867,7 +1867,7 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Claims.scala",
-            "line": 239
+            "line": 236
           },
           "literal": {
             "enum": {
@@ -7999,7 +7999,7 @@
     "name": "startedByPollingWorker",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 238
+      "line": 235
     },
     "whenAction": "attemptStart",
     "holds": "standaloneActivity.property.startedByPollingWorker"
@@ -8823,12 +8823,12 @@
     "name": "stoppedBeforeRetry",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 247
+      "line": 244
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/Claims.scala",
-        "line": 249
+        "line": 246
       },
       "construct": {
         "type": "temporal.standaloneactivity.StandaloneActivityState",
@@ -8896,14 +8896,14 @@
         }, {
           "position": {
             "file": "model/temporal/standaloneactivity/Claims.scala",
-            "line": 249
+            "line": 246
           },
           "construct": {
             "type": "temporal.worker.State",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Claims.scala",
-                "line": 249
+                "line": 246
               },
               "literal": {
                 "enum": {
@@ -8922,7 +8922,7 @@
     "name": "cancel",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 187
+      "line": 184
     },
     "form": "FORM_FIND",
     "property": {
@@ -8943,7 +8943,7 @@
     "name": "cancelRequest",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 216
+      "line": 213
     },
     "form": "FORM_FIND",
     "property": {
@@ -8964,7 +8964,7 @@
     "name": "completion",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 174
+      "line": 171
     },
     "form": "FORM_FIND",
     "property": {
@@ -8989,7 +8989,7 @@
     "name": "nonRetryableFailure",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 177
+      "line": 174
     },
     "form": "FORM_FIND",
     "property": {
@@ -9014,7 +9014,7 @@
     "name": "pauseHolds",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 220
+      "line": 217
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -9036,7 +9036,7 @@
     "name": "pauseResume",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 196
+      "line": 193
     },
     "form": "FORM_FIND",
     "property": {
@@ -9061,7 +9061,7 @@
     "name": "retry",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 179
+      "line": 176
     },
     "form": "FORM_FIND",
     "property": {
@@ -9087,7 +9087,7 @@
     "name": "scheduleToStartTimeout",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 199
+      "line": 196
     },
     "form": "FORM_FIND",
     "property": {
@@ -9113,7 +9113,7 @@
     "name": "startToCloseTimeout",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 208
+      "line": 205
     },
     "form": "FORM_FIND",
     "property": {
@@ -9134,7 +9134,7 @@
     "name": "stoppedWorkerStartsNothing",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 261
+      "line": 258
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -9155,7 +9155,7 @@
     "name": "terminalHolds",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 218
+      "line": 215
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -9177,7 +9177,7 @@
     "name": "terminate",
     "position": {
       "file": "model/temporal/standaloneactivity/Claims.scala",
-      "line": 188
+      "line": 185
     },
     "form": "FORM_FIND",
     "property": {

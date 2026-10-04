@@ -41,6 +41,14 @@ def monitor[S, O, F, M](name: String, initial: M)(
 ): Monitor[S, O, F, M] =
   Monitor(name, initial, next, violated, None, atEnds = false)
 
+/** Declares a monitor named after the `val` that declares it. */
+def monitor[S, O, F, M](initial: M)(
+    next: (M, S, Step[S, O, F]) => M
+)(violated: M => Boolean)(using
+    Finite[M]
+): Monitor[S, O, F, M] =
+  monitor[S, O, F, M]("", initial)(next)(violated)
+
 /** The monitors that watch the machine's steps. */
 def monitors[S, O, F](using m: MachineScope[S, O, F])(ms: Monitor[S, O, F, ?]*): Unit =
   m.monitors ++= ms

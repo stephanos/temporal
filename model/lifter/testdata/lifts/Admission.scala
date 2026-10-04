@@ -287,7 +287,7 @@ def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector
     // The product's own Property, read through the design's declared refinement.
     query(s"${m.name}.product.pausedIsNotDispatched")
       .verify(pausedIsNotDispatched)
-      .in(stale)(using Reads.through(m, activityProduct)) limits three
+      .in(stale) limits three
   )
 
 val currentQueries: Vector[Query] = admissionQueries(currentAdmission)

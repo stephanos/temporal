@@ -863,9 +863,18 @@ private[lift] trait Realizations:
         case Some(f) => write(f, args, b.term)
         case None    => fields(into, args, b.term)
 
+  /** A realization, named after its val unless it names itself. */
   def realizationOf(sym: Symbol, at: Tree): ir.Realization =
-    realizations.getOrElseUpdate(
-      sym.fullName,
-      emit(ir.Realization, Bound(valDef(sym, at, "a realization").rhs.get, Map.empty))
-        .withId(sym.fullName)
-    )
+    val id = definitionId(sym, at)
+    realizations.get(id) match
+      case Some(r) => r
+      case None    =>
+        val d = valDef(sym, at, "a realization")
+        val emitted = emit(ir.Realization, Bound(d.rhs.get, Map.empty)).withId(id)
+        val r =
+          if emitted.name.nonEmpty then emitted
+          else emitted.withName(capturedName(sym, d, "a realization"))
+        for other <- realizations.values if other.name == r.name do
+          fail(d, s"two realizations are named ${r.name}: ${other.id} and $id")
+        realizations(id) = r
+        r

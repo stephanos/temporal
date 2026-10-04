@@ -57,3 +57,11 @@ inline def compose[S <: Product](family: Family, name: String)(members: (String,
     _ => false,
     Vector.empty
   )
+
+/** Starts a composition named after the `val` that declares it, in the `given Family`. */
+inline def compose[S <: Product](members: (String, Model)*)(using
+    m: Mirror.ProductOf[S],
+    family: Family
+): Composition[S] =
+  val labels = constValueTuple[m.MirroredElemLabels].toList.map(_.toString).toVector
+  Composition[S](family, "", labels, members.toVector, Vector.empty, _ => false, Vector.empty)

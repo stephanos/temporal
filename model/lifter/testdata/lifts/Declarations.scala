@@ -162,7 +162,7 @@ val queries: Vector[Query] = Vector(
   query("putStores") find putStores in putOnce limits two,
   query("putStoresThroughDisk")
     .verify(putStores)
-    .in(putThenFlush)(using Reads.through(disk, store)) limits two,
+    .in(putThenFlush) limits two,
   query("keptTogether") verify keptTogether in anyPair limits two,
   query("bothPut") find frontHeld in bothPut limits two
 )

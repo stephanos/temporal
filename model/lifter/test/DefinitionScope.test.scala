@@ -8,14 +8,15 @@ import scala.jdk.CollectionConverters.*
 import umpire.gate.{Ran, Tools}
 
 /**
- * The probe behind fn-112's DefinitionScope: a symbol-based Definition ID is the compiler owner of
- * its `val` followed by the captured name, so one pin of the former owner reproduces every ID of a
- * declaration moved under an object or into another package, with no ID written per declaration.
+ * DefinitionScope: a symbol-based Definition ID is the owner of its `val` followed by the captured
+ * name, so one `DefinitionScope` pin of the former owner keeps every ID of declarations moved under an
+ * object or into another package, with no ID written per declaration.
  *
  * The lifted fixtures that declare every symbol-based kind (actions, monitors, assumptions and holes;
- * channels and the actions they derive; realizations) are moved both ways and lifted again. Each ID of
- * the moved IR must carry the new owner, and replacing that one owner by the former one must give
- * exactly the IDs of testdata/lifts/expected.
+ * channels and the actions they derive; realizations) are moved both ways, given one pin of the owner
+ * they left, and lifted again. The functions they declare carry the new owner, so the move took; the
+ * IDs must be exactly those of testdata/lifts/expected and of fn-112.1's owner map,
+ * tools/umpire/internal/golden/testdata/original/owners.json.
  */
 class DefinitionScope extends munit.FunSuite:
   override val munitTimeout: Duration = 20.minutes
@@ -57,8 +58,13 @@ class DefinitionScope extends munit.FunSuite:
   )
   private val kinds = Seq("actions", "monitors", "assumptions", "holes", "channels", "realizations")
 
-  /** Wraps a file's declarations, after its package clause and imports, in `object Moved`. */
-  private def underObject(source: String): String =
+  private def pin(former: String) = s"given DefinitionScope = DefinitionScope(\"$former\")"
+
+  /**
+   * Wraps a file's declarations, after its package clause and imports, in `object Moved`, which pins
+   * the file's owner.
+   */
+  private def underObject(source: String, former: String): String =
     val lines = source.linesIterator.toVector
     // The last line of the header: a package clause, an import, or a line of a multi-line import.
     val header = lines.indices
@@ -70,15 +76,18 @@ class DefinitionScope extends munit.FunSuite:
         else if inImport then (i, line.trim != "}")
         else at
       ._1
-    (lines.take(header + 1) ++ Vector("", "object Moved:") ++
+    (lines.take(header + 1) ++ Vector("", "object Moved:", "  " + pin(former), "") ++
       lines.drop(header + 1).map(line => if line.isBlank then line else "  " + line))
       .mkString("", "\n", "\n")
 
-  /** Moves a file's declarations into the subpackage `moved`, which still sees its parent's members. */
-  private def underPackage(source: String, pkg: String): String =
+  /**
+   * Moves a file's declarations into the subpackage `moved`, which still sees its parent's members,
+   * and pins the file's former owner at its top level.
+   */
+  private def underPackage(source: String, pkg: String, former: String): String =
     source.replaceFirst(
       s"(?m)^package ${java.util.regex.Pattern.quote(pkg)}$$",
-      s"package $pkg\npackage moved"
+      java.util.regex.Matcher.quoteReplacement(s"package $pkg\npackage moved\n\n${pin(former)}\n")
     )
 
   private def lift(arguments: String*): Ran =
@@ -101,7 +110,7 @@ class DefinitionScope extends munit.FunSuite:
   /** Lifts every probed fixture moved by `move`, and its new owner per fixture. */
   private def moved(
       name: String,
-      move: (String, String) => String,
+      move: (String, String, String) => String,
       ownerOf: (String, String) => String
   ): Seq[(String, String, String, String)] =
     val dir = Files.createDirectories(scratch.resolve(name))
@@ -116,7 +125,7 @@ class DefinitionScope extends munit.FunSuite:
         val probe = probed.find((_, stem, _, _) => file == s"$stem.scala")
         Files.writeString(
           dir.resolve(file),
-          probe.fold(source)((_, _, pkg, _) => move(source, pkg))
+          probe.fold(source)((_, stem, pkg, _) => move(source, pkg, s"$pkg.$stem$$package$$"))
         )
     finally stream.close()
     val jar = scratch.resolve(s"$name.jar")
@@ -138,31 +147,41 @@ class DefinitionScope extends munit.FunSuite:
       assert(!ran.failed, s"the $name $fixture probe did not lift:\n${ran.diagnostics}")
       (fixture, s"$pkg.$stem$$package$$", owner, Files.readString(out))
 
+  // fn-112.1's map of every symbol-based ID: former owner, then kind, then captured names.
+  private lazy val owners =
+    mapper.readTree(
+      Files.readString(
+        root.resolve("tools/umpire/internal/golden/testdata/original/owners.json")
+      )
+    )
+
   private def pinned(probes: Seq[(String, String, String, String)]): Unit =
     for (fixture, former, owner, ir) <- probes do
       val expected = ids(Files.readString(lifts.resolve(s"expected/$fixture.json")))
       val now = ids(ir)
-      for kind <- kinds do
-        assert(
-          !now(kind).exists(_.startsWith(former + ".")),
-          s"$fixture $kind kept the owner $former"
-        )
-        // One pin of the former owner, and the captured names it is followed by.
-        val scoped = now(kind).map(id =>
-          if id.startsWith(owner + ".") then former + id.drop(owner.length) else id
-        )
-        assertEquals(
-          scoped.sorted,
-          expected(kind),
-          s"$fixture $kind under the pin $owner -> $former"
-        )
+      val functions = mapper.readTree(ir).path("functions").elements().asScala.map(_.path("name"))
       assert(
-        kinds.exists(kind => now(kind).exists(_.startsWith(owner + "."))),
-        s"$fixture declares nothing under $owner"
+        functions.exists(_.asText().startsWith(owner + ".")),
+        s"$fixture declares no function under $owner, so nothing moved"
       )
+      for kind <- kinds do
+        assertEquals(
+          now(kind),
+          expected(kind),
+          s"$fixture $kind under the pin of $former in $owner"
+        )
+        val names = now(kind).filter(_.startsWith(former + ".")).map(_.drop(former.length + 1))
+        val recorded = owners.path(former).path(kind.stripSuffix("s")).elements().asScala
+        assertEquals(names, recorded.map(_.asText()).toVector.sorted, s"$fixture $kind of $former")
 
   test("a declaration moved under an object keeps its ID under one pin of its former owner"):
-    pinned(moved("object", (source, _) => underObject(source), (_, pkg) => s"$pkg.Moved$$"))
+    pinned(
+      moved(
+        "object",
+        (source, _, former) => underObject(source, former),
+        (_, pkg) => s"$pkg.Moved$$"
+      )
+    )
 
   test("a declaration moved into another package keeps its ID under one pin of its former owner"):
     pinned(

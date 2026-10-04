@@ -14,6 +14,9 @@ final class Assumption private[umpire] (val name: String, val fairness: List[Act
 /** Declares an assumption. */
 def assume(name: String): Assumption = Assumption(name, Nil)
 
+/** Declares an assumption named after the `val` that declares it. */
+def assume: Assumption = assume("")
+
 /** The assumptions every result of a check of this machine names. */
 def assumes(as: Assumption*)(using m: MachineScope[?, ?, ?]): Unit = m.assumptions ++= as
 
@@ -33,6 +36,9 @@ final class Hole private[umpire] (val name: String):
 
 /** Declares a hole. */
 def hole(name: String): Hole = Hole(name)
+
+/** Declares a hole named after the `val` that declares it. */
+def hole: Hole = hole("")
 
 final private[umpire] case class HoleReached(hole: Hole) extends Exception(s"${hole.name} reached")
 

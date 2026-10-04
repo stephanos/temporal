@@ -314,15 +314,58 @@ lint rule forbids where no rewrite keeps the behavior carries a line-scoped
 
 The lifter reads what an author wrote, as written:
 
-- **Declarations:** `machine[S, O, F](family, name) { … }` blocks, with `forEntity`, `starts`,
-  `ends`, `evidence`, `unobservable`, `refines` and `steps(a ~> f, …)`; `restrict`; action chains
-  (`action`, `timer`, `on`, `creates`, `input[T]`, `schema`, `results`, `example`); Properties,
-  Scenarios, Queries, monitors, compositions, progress claims and realizations.
+- **Declarations:** `machine[S, O, F] { … }` blocks, with `forEntity`, `starts`, `ends`,
+  `evidence`, `unobservable`, `refines` and `steps(a ~> f, …)`; `restrict`; action chains
+  (`action`, `timer`, `internal`, `on`, `creates`, `input[T]`, `schema`, `results`, `example`);
+  Properties, Scenarios, Queries, Limits, monitors, assumptions, holes, channels, compositions,
+  progress claims and realizations.
 - **Types:** enums with and without case fields, case classes, and integer fields bounded by the
   `given Finite[Int] = Finite.upTo(…)` beside the state's `Finite`.
 - **Step functions:** `if`, `match` with case, alternative, binding and wildcard patterns, local
   `val`s, `copy`, constructors, comparisons, arithmetic, list literals and `++`, and calls of other
   functions. `require` becomes the function's precondition; `ensuring` is not lifted.
+
+A declaration takes its name from the `val` that declares it, and its family from the
+`given Family` in scope. A machine states its three types once, in `machine[S, O, F]` or as the
+`val`'s type:
+
+```scala
+given Family = Family("fixture.store")
+
+val put = action(Party("client"))
+val store = machine[Store, Outcome, Fact] { … }
+val putOnly = store.restrict(put)
+val putStores = store.property when put holds (after => after.facts.contains(Fact.stored))
+val putOnce = store.scenario.actions(put)
+val two = Limits(steps = 2, actions = 2, search = 64)
+val putStoresOnce = query find putStores in putOnce limits two
+```
+
+The same holds for `timer`, `internal`, `compose[S](members*)`, `monitor[S, O, F, M](initial)…`,
+`assume`, `hole`, `channel[M](capacity = …, …)` and `Realization(machine = …, …)` without `name`.
+The explicit forms, such as `machine[S, O, F](family, name)`, `action(name, party)` and
+`property("…")`, name a declaration whose name differs from its `val`'s. A Property, Scenario or
+Query with no `val`, built in a list or in a function over a machine argument, keeps
+`property("…")`, `scenario("…")` or `query("…")`. A captured form with no `val`, or with a name
+the compiler made up such as an anonymous given's, is refused at its line. So are two declarations
+that would share a name: two machines or compositions, two Properties or two Scenarios of one
+machine, two Queries, monitors, assumptions, holes, channels or realizations, Limits of one name
+with different bounds, and two actions one machine binds.
+
+An action, monitor, assumption, hole, channel with the actions it derives, or realization takes its
+Definition ID from its `val`'s owner and name. Declarations moved to a new owner keep their IDs
+through one `given DefinitionScope = DefinitionScope("pkg.Former$package$")` there, the compiler's
+name for the former owner: each ID is `<former owner>.<val name>`. An owner pins once, not inside
+an owner that pins and not to itself, and no two declarations may share an ID. Owners nested in a
+pinned one keep their own IDs. No declaration names an ID of its own.
+
+A Scenario without `starts` starts in its machine's one declared start, and a composition's in the
+record of its members' starts; where there is not exactly one, it is refused. Evidence is optional.
+A fact no line names is confirmed by evidence of its own name, so `evidence { case … }` lists only
+the exceptions. A fact case with fields needs a line that covers all its values.
+
+`query … in s` takes no given. A Property of the machine the Scenario's machine `refines` is read
+through that refinement; a Property of an unrelated machine is refused at the Query's line.
 
 Anything else, such as a `var` or a loop, stops the lift with its source line. The lifter works on
 the compiler's typed trees (TASTy) and not as a macro, because a macro sees a function's body only

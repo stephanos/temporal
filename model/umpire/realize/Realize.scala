@@ -16,9 +16,12 @@ import scala.util.NotGiven
 import com.google.protobuf.ByteString
 import umpire.{Channel, ClassRef, Machine}
 
-/** How the find Queries of one machine run against a system. */
+/**
+ * How the find Queries of one machine run against a system. Declared with named arguments and no
+ * `name`, it is named after the `val` that declares it.
+ */
 final case class Realization(
-    name: String,
+    name: String = "",
     machine: Machine[?, ?, ?],
     producer: String,
     producerVersion: String,

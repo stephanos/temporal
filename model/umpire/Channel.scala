@@ -84,8 +84,17 @@ final class Channel[M] private[umpire] (
 
   override def toString: String = s"channel $name"
 
-/** Declares a bounded channel of messages of `M`. */
-def channel[M](name: String, capacity: Int, order: Order, loss: Loss, duplicates: Int = 0)(using
+/**
+ * Declares a bounded channel of messages of `M`. Declared with named arguments and no `name`, it is
+ * named after the `val` that declares it: `val wire = channel[Note](capacity = 2, ...)`.
+ */
+def channel[M](
+    name: String = "",
+    capacity: Int,
+    order: Order,
+    loss: Loss,
+    duplicates: Int = 0
+)(using
     Finite[M]
 ): Channel[M] =
   require(

@@ -14,10 +14,7 @@ final class PropertyDecl private[umpire] (
     private[umpire] val holds2: Option[(Nothing, Nothing) => Boolean]
 )
 
-/**
- * A Property over a machine whose state type is `S`. The type parameter is what lets the compiler
- * reject a Query pairing a Property with a Scenario over another machine's states.
- */
+/** A Property over a machine whose state type is `S`. */
 final class Property[S] private[umpire] (val decl: PropertyDecl):
   def name: String = decl.name
 
@@ -77,19 +74,30 @@ final class ScenarioBuilder[S] private[umpire] (name: String, m: Model, start: O
   /** Admits any action at every step, within the Query's step limit. */
   def free: Scenario[S] = Scenario(ScenarioDecl(name, m, start, Vector.empty, free = true))
 
+/**
+ * A Property or a Scenario is named after the `val` that declares it (`val completes =
+ * activityProduct.property holds ...`), or by the name it is given where it is declared without one,
+ * such as in a list or inside a function over a machine. A Scenario that names no start starts in
+ * its machine's one declared start, or for a composition in its members' starts.
+ */
 extension [S, O, F](m: Machine[S, O, F])
+  def property: PropertyBuilder[S, O, F] = PropertyBuilder("", m, None)
   def property(name: String): PropertyBuilder[S, O, F] = PropertyBuilder(name, m, None)
+  def scenario: ScenarioBuilder[S] = ScenarioBuilder("", m, None)
   def scenario(name: String): ScenarioBuilder[S] = ScenarioBuilder(name, m, None)
 
 extension [S <: Product](c: Composition[S])
+  def property: PropertyBuilder[S, String, String] = PropertyBuilder("", c, None)
   def property(name: String): PropertyBuilder[S, String, String] = PropertyBuilder(name, c, None)
+  def scenario: ScenarioBuilder[S] = ScenarioBuilder("", c, None)
   def scenario(name: String): ScenarioBuilder[S] = ScenarioBuilder(name, c, None)
 
 /**
  * Bounds a Query: `steps` is the depth bound, `actions` the schedule length, and `search` the
- * number of product states the search may visit before it reports limit-reached.
+ * number of product states the search may visit before it reports limit-reached. Declared with
+ * named arguments and no `name`, the bounds are named after the `val` that declares them.
  */
-final case class Limits(name: String, steps: Int, actions: Int, search: Int)
+final case class Limits(name: String = "", steps: Int, actions: Int, search: Int)
 
 enum QueryForm:
   /** One trace of the Scenario on which the Property holds. */
@@ -98,26 +106,6 @@ enum QueryForm:
   /** Whether the Property holds on every trace of the Scenario. */
   case verify
 
-/**
- * How a Scenario over `S` reads a Property over `P`: the identity when they are one machine, or a
- * declared refinement. A Query asks for one as a given, so a Property of an unrelated machine does
- * not type-check, and the refinement a Model declares is a value it names once.
- */
-final class Reads[S, P] private[umpire] (private[umpire] val through: Option[Model])
-
-object Reads:
-  given identity[S]: Reads[S, S] = Reads(None)
-
-  /**
-   * The reading of a refining machine's steps as the refined machine's. That the machine declares
-   * this refinement is checked over the IR, where the Query is answered.
-   */
-  def through[S, PS](
-      m: Machine[S, ?, ?],
-      @scala.annotation.unused product: Machine[PS, ?, ?]
-  ): Reads[S, PS] =
-    Reads(Some(m))
-
 /** A bounded question about a machine: a Property, a Scenario and Limits. */
 final class Query private[umpire] (
     val name: String,
@@ -125,35 +113,41 @@ final class Query private[umpire] (
     val property: PropertyDecl,
     val scenario: ScenarioDecl,
     val limits: Limits,
-    private[umpire] val reads: Option[Model],
     val expectedRun: Option[realize.RunExpectation] = None,
     val exploration: Option[realize.Exploration] = None
 ):
   def expect(expected: realize.RunExpectation): Query =
-    Query(name, form, property, scenario, limits, reads, Some(expected), exploration)
+    Query(name, form, property, scenario, limits, Some(expected), exploration)
 
   def explore(space: realize.Exploration): Query =
-    Query(name, form, property, scenario, limits, reads, expectedRun, Some(space))
+    Query(name, form, property, scenario, limits, expectedRun, Some(space))
 
   override def toString: String = name
 
-/** `query("syncCompletion") find syncSucceeds in syncReplied limits two`. */
+/**
+ * `val completion = query find completes in completed limits three`, named after its `val`, or
+ * `query("syncCompletion") find syncSucceeds in syncReplied limits two`.
+ */
 final class QueryDecl private[umpire] (name: String):
   infix def find[P](p: Property[P]): QueryOn[P] = QueryOn(name, QueryForm.find, p)
   infix def verify[P](p: Property[P]): QueryOn[P] = QueryOn(name, QueryForm.verify, p)
 
 final class QueryOn[P] private[umpire] (name: String, form: QueryForm, p: Property[P]):
-  /** The Scenario's machine is the Property's, or refines it through a declared `Reads`. */
-  infix def in[S](s: Scenario[S])(using via: Reads[S, P]): QueryIn =
-    QueryIn(name, form, p.decl, s.decl, via.through)
+  /**
+   * The Scenario's machine is the Property's, or refines it: a Property of the refined machine is
+   * read through the refinement the Scenario's machine declares. `Machine[S, O, F]` does not carry
+   * the type it refines, so the lifter, not the compiler, refuses a pair of unrelated machines.
+   */
+  infix def in[S](s: Scenario[S]): QueryIn = QueryIn(name, form, p.decl, s.decl)
 
 final class QueryIn private[umpire] (
     name: String,
     form: QueryForm,
     p: PropertyDecl,
-    s: ScenarioDecl,
-    reads: Option[Model]
+    s: ScenarioDecl
 ):
-  infix def limits(l: Limits): Query = Query(name, form, p, s, l, reads)
+  infix def limits(l: Limits): Query = Query(name, form, p, s, l)
 
 def query(name: String): QueryDecl = QueryDecl(name)
+
+def query: QueryDecl = QueryDecl("")

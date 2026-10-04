@@ -239,8 +239,7 @@ val startToCloseTimeout: Query =
   )
 
 /**
- * A product claim on a protocol path: the `Reads` given declared beside the protocol machine is what
- * lets this type-check.
+ * A product claim on a protocol path, read through the refinement the protocol machine declares.
  */
 val terminalHolds: Query =
   query("terminalHolds") verify terminalIsFinal in asyncThenSucceeded limits three

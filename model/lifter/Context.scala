@@ -31,8 +31,11 @@ final private[lift] class Context(using val quotes: Quotes)(
   def resolveSymbol(ref: Term): Symbol = ref match
     case r: Ref =>
       defs.get(r.symbol) match
-        case Some(ValDef(_, _, Some(rhs: Ref))) if path(rhs) => resolveSymbol(rhs)
-        case _                                               => r.symbol
+        // A val whose right-hand side calls a parameterless declaration, such as `val tick = timer`,
+        // is that declaration, not an alias.
+        case Some(ValDef(_, _, Some(rhs: Ref))) if path(rhs) && !rhs.symbol.isDefDef =>
+          resolveSymbol(rhs)
+        case _ => r.symbol
     case Typed(e, _) => resolveSymbol(e)
     case other       => fail(other, "expected a reference to a declared value")
 
@@ -102,3 +105,87 @@ final private[lift] class Context(using val quotes: Quotes)(
 
   def where(t: Tree): String = s"${pos(t).file}:${pos(t).line}"
   def fail(t: Tree, message: String): Nothing = throw LiftError(where(t), message)
+
+  // ### Names taken from vals, and the Definition IDs symbol-based declarations take
+
+  /**
+   * The name a declaration takes from the `val` that declares it. A name the compiler made up, such
+   * as an anonymous given's `given_Limits`, names nothing the author wrote, so it is refused.
+   */
+  def capturedName(sym: Symbol, at: Tree, kind: String): String =
+    if sym.name.contains('$') || sym.flags.is(Flags.Synthetic) ||
+      (sym.flags.is(Flags.Given) && sym.name.startsWith("given_"))
+    then
+      fail(
+        at,
+        s"$kind takes its name from the val that declares it, and ${sym.name} is a name the " +
+          "compiler made up: declare it with a val of the name it has"
+      )
+    sym.name
+
+  // Each owner's `DefinitionScope` declarations, by owner, read once from every inspected file.
+  lazy val scopes: Map[Symbol, List[ValDef]] =
+    defs.values
+      .collect { case v: ValDef if v.rhs.nonEmpty && isScope(v.tpt.tpe) => v }
+      .toList
+      .sortBy(v => (where(v), v.name))
+      .groupBy(_.symbol.owner)
+  private def isScope(t: TypeRepr): Boolean =
+    t.widen.dealias.typeSymbol.fullName == "umpire.DefinitionScope"
+
+  // The declaration each symbol-based Definition ID was taken by, so two never share one.
+  private val idTakenBy = mutable.Map.empty[String, Symbol]
+
+  /**
+   * The Definition ID of an action, monitor, assumption, hole, channel or realization: its val's
+   * owner and name, where the owner is the former owner its `DefinitionScope` pins, if it pins one.
+   */
+  def definitionId(sym: Symbol, at: Tree): String =
+    val owner = sym.owner
+    val id = pinOf(owner).fold(sym.fullName)(_ + "." + sym.name)
+    idTakenBy.get(id) match
+      case Some(other) if other != sym =>
+        fail(
+          at,
+          s"${sym.fullName} and ${other.fullName} would share the Definition ID $id: two declarations " +
+            "pinned to one former owner keep the distinct names they had there"
+        )
+      case _ => idTakenBy(id) = sym
+    id
+
+  /** The former owner `owner` pins, refusing a pin that is doubled, nested, or of itself. */
+  private def pinOf(owner: Symbol): Option[String] =
+    scopes.get(owner).map {
+      case List(scope) =>
+        val enclosing = Iterator
+          .iterate(owner.maybeOwner)(_.maybeOwner)
+          .takeWhile(o => !o.isNoSymbol && !o.isPackageDef)
+          .find(scopes.contains)
+        for outer <- enclosing do
+          fail(
+            scope,
+            s"${owner.fullName} pins its Definition IDs inside ${outer.fullName}, which pins its own: " +
+              "a DefinitionScope pins the declarations of one owner, not of the owners nested in it"
+          )
+        val former = scope.rhs.get match
+          case Apply(Select(_, "apply"), List(Literal(StringConstant(s)))) if s.nonEmpty => s
+          case other                                                                     =>
+            fail(
+              scope,
+              s"a DefinitionScope names its former owner as a nonempty string literal, not ${other.show}"
+            )
+        if former == owner.fullName then
+          fail(
+            scope,
+            s"${owner.fullName} pins its Definition IDs to itself, which changes none of them: pin an " +
+              "owner only where its declarations came from another"
+          )
+        former
+      case first :: second :: _ =>
+        fail(
+          second,
+          s"${owner.fullName} pins its Definition IDs twice, at ${where(first)} and here: an owner " +
+            "has one DefinitionScope"
+        )
+      case Nil => sys.error("unreachable: an owner's scopes are grouped from its declarations")
+    }

@@ -129,7 +129,7 @@ val one: Limits = Limits("one", steps = 1, actions = 1, search = 8)
 
 /** A Property read through a refinement its Scenario's machine does not declare. */
 val crossedRead: Query =
-  query("crossedRead").verify(flips).in(flipping)(using Reads.through(refining, second)) limits one
+  query("crossedRead").verify(flips).in(flipping) limits one
 
 /** Limits below zero. */
 val backwards: Limits = Limits("backwards", steps = -1, actions = 1, search = 8)
@@ -241,3 +241,217 @@ val guessing: Machine[Guessing, Outcome, Nothing] =
     starts(Guessing(guessed.empty))
     ends(_ => true)
   }
+
+// The fixtures below take their names from their vals, in the family the given names.
+given umpire.Family = Family
+
+final case class Lamp(lit: Boolean) derives Finite
+
+def lampStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = List(
+  Step(Outcome.accepted, Lamp(!l.lit))
+)
+
+/** An owner that pins its Definition IDs twice. */
+object PinnedTwice:
+  given DefinitionScope = DefinitionScope("fixture.rejects.Former$package$")
+  val again: DefinitionScope = DefinitionScope("fixture.rejects.Former$package$")
+  val twiceTick = action(Party("fixture"))
+  val pinnedTwice = machine[Lamp, Outcome, Nothing] {
+    starts(Lamp(false))
+    ends(_ => true)
+    steps(twiceTick ~> lampStep)
+  }
+
+/** A pin in an object nested in an object that pins its own. */
+object PinsOuter:
+  given DefinitionScope = DefinitionScope("fixture.rejects.Former$package$")
+  object PinsInner:
+    given DefinitionScope = DefinitionScope("fixture.rejects.Other$package$")
+    val innerTick = action(Party("fixture"))
+  val pinnedNested = machine[Lamp, Outcome, Nothing] {
+    starts(Lamp(false))
+    ends(_ => true)
+    steps(PinsInner.innerTick ~> lampStep)
+  }
+
+/** Two owners pinned to one former owner, each with an action of one name. */
+object SharedA:
+  given DefinitionScope = DefinitionScope("fixture.rejects.Shared$")
+  val share = action(Party("fixture"))
+
+object SharedB:
+  given DefinitionScope = DefinitionScope("fixture.rejects.Shared$")
+  val share = action(Party("fixture"))
+
+val sharedIds = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(SharedA.share ~> lampStep, SharedB.share ~> lampStep)
+}
+
+/** An owner pinned to itself. */
+object Self:
+  given DefinitionScope = DefinitionScope("fixture.rejects.Self$")
+  val selfTick = action(Party("fixture"))
+  val pinnedSelf = machine[Lamp, Outcome, Nothing] {
+    starts(Lamp(false))
+    ends(_ => true)
+    steps(selfTick ~> lampStep)
+  }
+
+/** A pin computed rather than written as a literal. */
+object Computed:
+  given DefinitionScope = DefinitionScope("fixture.rejects." + "Former$package$")
+  val computedTick = action(Party("fixture"))
+  val pinnedComputed = machine[Lamp, Outcome, Nothing] {
+    starts(Lamp(false))
+    ends(_ => true)
+    steps(computedTick ~> lampStep)
+  }
+
+/** Limits named after an anonymous given, a name the compiler made up. */
+object Anonymous:
+  given Limits = Limits(steps = 1, actions = 1, search = 8)
+  val anonymous: Query = query("anonymous") verify flips in secondFlips limits summon[Limits]
+
+/** A Query in a list, which no val names. */
+val unnamedInList: Vector[Query] = Vector(query verify flips in secondFlips limits one)
+
+/** A Property in the body of a function, which no val names. */
+def unnamedChecks(m: Machine[Flag, Outcome, Nothing]): Vector[Query] = Vector(
+  query("unnamedProperty") verify (m.property holds (after =>
+    after.outcome == Outcome.accepted
+  )) in secondFlips limits one
+)
+val unnamedProperty: Vector[Query] = unnamedChecks(second)
+
+/** Two machines named alike in two objects. */
+object TwinA:
+  val twin = machine[Lamp, Outcome, Nothing] {
+    starts(Lamp(false))
+    ends(_ => true)
+    steps(flip ~> lampStep)
+  }
+
+object TwinB:
+  val twin = machine[Lamp, Outcome, Nothing] {
+    starts(Lamp(true))
+    ends(_ => true)
+    steps(flip ~> lampStep)
+  }
+
+final case class Lamps(left: Lamp, right: Lamp)
+
+val twins = compose[Lamps]("left" -> TwinA.twin, "right" -> TwinB.twin)
+
+/** Two Queries named alike in two objects. */
+object AskedA:
+  val asked = query verify flips in secondFlips limits one
+
+object AskedB:
+  val asked = query find flips in secondFlips limits one
+
+val askedTwice: Vector[Query] = Vector(AskedA.asked, AskedB.asked)
+
+/** Two Limits named alike in two objects, with different bounds. */
+object BoundA:
+  val bound = Limits(steps = 1, actions = 1, search = 8)
+
+object BoundB:
+  val bound = Limits(steps = 2, actions = 1, search = 8)
+
+val boundTwice: Vector[Query] = Vector(
+  query("boundFirst") verify flips in secondFlips limits BoundA.bound,
+  query("boundSecond") verify flips in secondFlips limits BoundB.bound
+)
+
+/** Two actions named alike in two objects, bound by one machine. */
+object TapA:
+  val tap = action(Party("fixture"))
+
+object TapB:
+  val tap = action(Party("fixture"))
+
+val tapped = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(TapA.tap ~> lampStep, TapB.tap ~> lampStep)
+}
+
+/** A Scenario that names no start, of a machine that declares two. */
+val twoStarts = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false), Lamp(true))
+  ends(_ => true)
+  steps(flip ~> lampStep)
+}
+val twoStartsLit = twoStarts.property holds (after => after.state.lit)
+val eitherStart = twoStarts.scenario.actions(flip)
+val unstarted: Query = query find twoStartsLit in eitherStart limits one
+
+/** A composition's Scenario that names no start, where a member declares two. */
+val oneStart = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> lampStep)
+}
+val startsPair = compose[Lamps]("left" -> twoStarts, "right" -> oneStart)
+val pairLit = startsPair.property holds (after => after.state.left.lit)
+val eitherPair = startsPair.scenario.free
+val unstartedPair: Query = query find pairLit in eitherPair limits one
+
+enum Dropped derives Finite:
+  case kept
+  case lost(hard: Boolean)
+
+/** A machine that declares no evidence, of a fact with fields. */
+val undeclared = machine[Lamp, Outcome, Dropped] {
+  starts(Lamp(false))
+  ends(_ => true)
+}
+
+/** Evidence that names no line for a fact with fields. */
+val unlisted = machine[Lamp, Outcome, Dropped] {
+  starts(Lamp(false))
+  ends(_ => true)
+  evidence { case Dropped.kept => "keptData" }
+}
+
+/** Evidence that covers only some values of a fact with fields. */
+val partial = machine[Lamp, Outcome, Dropped] {
+  starts(Lamp(false))
+  ends(_ => true)
+  evidence { case Dropped.lost(true) => "hardLoss" }
+}
+
+/** A Property read on a machine of another state type, which refines nothing. */
+val lampFlips = oneStart.scenario.actions(flip)
+val unrelatedRead: Query = query verify flips in lampFlips limits one
+
+/** Two assumptions named alike in two objects, assumed by one machine. */
+object OpaqueA:
+  val opaque = assume
+
+object OpaqueB:
+  val opaque = assume
+
+val assumedTwice = machine[Lamp, Outcome, Nothing] {
+  assumes(OpaqueA.opaque, OpaqueB.opaque)
+  starts(Lamp(false))
+  ends(_ => true)
+}
+
+/** Two holes named alike in two objects, reached by one machine. */
+object GapA:
+  val gap = hole
+
+object GapB:
+  val gap = hole
+
+def gapStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] =
+  if l.lit then GapA.gap.reached else GapB.gap.reached
+
+val gapTwice = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> gapStep)
+}
