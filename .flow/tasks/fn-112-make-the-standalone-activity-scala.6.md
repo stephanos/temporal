@@ -28,9 +28,59 @@ Apply the new declaration, derivation, step, evidence, input and counter surface
 - [ ] Result metadata, branch count/order, finite catalogs, IDs, tables, Query answers and Case bytes equal task 1. IR differences are limited to R1's exact source-position/moved-function/function-projection allowances and authored Query.total, inert choice-name and queue-entity metadata deltas; entity-sensitive fingerprints match the approved delta and all other fingerprints remain exact.
 - [ ] Focused feature roots, model gate and relevant Go golden tests pass.
 ## Done summary
-TBD
+Migrated the standalone activity's product, protocol and admission models (and the fn-107 held-delivery and response-loss machines) to the fn-112 DSL. Tables, Definition IDs, fingerprints, Query answers/totals and Case bytes are unchanged; model/cases is byte-identical. Commits f9b2cdf4ea, 5698740e4c, c64ef46e48, 7f3c0c2856.
 
+**What changed**
+- **Model.scala / Claims.scala (product, protocol):**
+  - Captured names for actions, timers, machines, the restriction, the composition (now with typed selectors), Properties, Scenarios, Queries and Limits.
+  - Input tokens live in `object Inputs`, because the timers and the `control` action already own those names; `start(Inputs.scheduleToStart := expires)`.
+  - `attempts: UpTo[2]`; the hand-written `given Finite[ProtocolState]` and the dead `enum Delivery` are gone; `results("Delivery")` stays.
+  - `accept`/`disabled`/`stay`/`.because`/`in`/`records` everywhere; `productStep` and `moves` are gone.
+  - Status sets as named defs: product `terminal`, `paused`, `running`; protocol `terminalPhase`, `live` (was `running`), `held` (was `attemptHeld`).
+  - `terminalIsFinal = once(terminal).keeps(_.phase)`; `pausedIsNotDispatched = never(s => running(s.state)).from(paused)`.
+  - Protocol evidence lists only `statusTimedOut(_)` and `attemptCount`; product has none.
+  - `retryCompletes` states that the count saturates at `attemptBound`.
+  - `protocolControlStep` has no wildcard arm: each phase is an explicit `disabled` arm with its reason.
+  - `stoppedBeforeRetry`/`startedByPollingWorker` use `own`/`synced` instead of string keys.
+- **System.scala (an opus subagent):**
+  - `staleAdmission = currentAdmission.rebind(attemptStart ~> admitStale)`, `currentRecord = currentAdmission.unmonitored`, `staleRecord = staleAdmission.unmonitored`.
+  - `pauses`, `timesOut`, `views` and `behind` are gone; `pauseStep` has explicit arms.
+  - Named choices for `admitted`, `loseAdmissionAnswer`, `enqueueView` and `enqueueDetail`.
+  - Evidence defaults: the three evidence functions are deleted, and admission keeps only `statusTimedOut(_)`.
+  - Captured names, `records`, starts omitted. The queue providers and compositions keep their steps/sync lists and string keys for task 7.
+- **Go:**
+  - fn-115's migration golden reads Function references as tokens (`functions_by_reference`, sharing the baseline's `functionless`), with mutation controls (an opus subagent).
+  - The P export writes `OP_CONTAINS` over a written-out list as equalities.
+  - Test expectations now carry choice names and captured declaration names, and derive a position line from the IR.
+- **README:** how two families share one package.
+
+**Decisions (autonomous)**
+- **Families are object givens imported per file** (`ActivityFamily`, `SystemFamily`). Two package-level givens clash, and a package-level given wins over an imported one. Members.scala imports `SystemFamily.given`.
+- **All-default `start(unset, unset, unset)` stays positional.** `start()` needs a change to core `Action.apply()` (task 5's surface). Deferred to task 10.
+- **R7 exception:** `stoppedBeforeRetry` keeps its explicit start. A defaulted composition start takes the worker's position in Worker.scala, and the migration golden compares each position's file (`positions_by_file`). Task 8, whose file moves meet the same rule, can drop it.
+- **Queue outcome:** `given Accepted[QueueOutcome] = Accepted(internal)` lives in the `QueueOutcome` companion, since a second package-level `Accepted` breaks `choose` inference.
+- **Outside Touches:** `tools/umpire/{internal/golden,model,lower,export}`, `model/lifter/testdata/lifts/{Members.scala,expected}`, `model/README.md`.
+
+**Follow-ups the behavior freeze defers (owner decides their home)**
+- Seven server-rejected caller pairs (168 rows) are explicit `disabled` arms. The server answers each with FailedPrecondition (`operator_commands.go` "non-pausable"/"non-unpausable state"):
+  - `control-pause` in `paused`, `pauseRequested`, `cancelRequested`;
+  - `control-unpause` in `scheduled`, `backingOff`, `started`, `cancelRequested`.
+  - The follow-up is rejecting rows with `because`.
+- `terminated` and `cancelRequestedWhileStarted` are false on the 120 `notFound` stutter rows of the terminal phases and only pinned `find` Queries ask them. Rephrasing them changes Property verdicts, which R1 forbids.
+
+**Review:** claude-opus-5-5 high via `--spec claude:claude-opus-5-5:high`; writer and reviewer are the same family (Opus).
+- Round 1: SHIP with 3 P3s. The pause-arm comment wording was fixed in 7f3c0c2856; P3 2 is recorded above as the R7 exception.
+
+**Deferred P3/FYI**
+- `attemptBound` and `UpTo[2]` both state the bound. A shared alias needs lifter support for type aliases.
+- `accept` answering `internal` for queue steps; tasks 7/12 may prefer a documented queue-local helper.
+- `admitHeld` duplicates `admitCurrent` minus the commit failure (pre-existing).
+- With `functions_by_reference`, `alpha_normalized_parameters` and `function_name_substitutions` are inert (task 10).
+- `TestQuintKeepsEveryNamedAlternative` hard-codes the enqueue names, so task 7 must update it.
+- `idleOverQueue`/`idleOverMatching` are now used only by Members.scala.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f9b2cdf4ea, 5698740e4c, c64ef46e48, 7f3c0c2856
+- Tests: make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks (exit 0; model/cases byte-identical), make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks (exit 0), go test -tags test_dep -count=1 -p 2 -run 'OriginalBaseline|MigrationGoldens|MigrationProjection' ./tools/umpire/internal/golden ./tools/umpire/model ./tools/umpire/lower (exit 0), scala-cli test model/lifter (exit 0), make lint-model (exit 0), go test -tags test_dep -count=1 -p 2 -timeout 40m -json ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/... (exit 0), GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main make lint-code-fast (exit 0)
 - PRs:
