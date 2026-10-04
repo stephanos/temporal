@@ -431,7 +431,8 @@ func TestADescriptorARealizationCrossesIsRejectedWhereItIsWritten(t *testing.T) 
 			require.ErrorContains(t, err, c.want)
 			var located *umpiremodel.Error
 			require.ErrorAs(t, err, &located)
-			require.Contains(t, located.Position, realizationAt)
+			// A poll the realization waits in through the kit's await is placed where the kit writes it.
+			requireDeclaredIn(t, located.Position, realizationAt)
 		})
 	}
 }
