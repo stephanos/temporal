@@ -56,7 +56,13 @@ The five guides and permitted fn-109 milestone status lines have passed the focu
 - [ ] No unmeasured support or performance claim, obsolete delivery-state claim, or failure described as qualification success is present; local links and code fences resolve.
 - [ ] fn-105.5 is closed by reference to this task (one owner).
 ## Done summary
-TBD
+Blocked on inherited D5 integrated qualification after R9 documentation review passed.
+
+All three Codex gpt-6.1-sol/high draws returned SHIP; flowctl finalized the receipt at 2026-10-04T09:11:21.504983Z. Source checkpoint: 2e96c6e17927985f9f72e79c91014d0d32f48850.
+
+[Current review and acceptance evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-20/acceptance-open.md) retains the actual receipt, original fn-102 R6 both-platform/control obligations, and unchanged acceptance boundaries. Fn-105.5 closure and task-21 admission remain open.
+
+stage: impl-review - ran [2026-10-04T09:06:48.573245Z..2026-10-04T09:11:21.504983Z] (model: gpt-6.1-sol)
 
 ## Evidence
 - Commits:

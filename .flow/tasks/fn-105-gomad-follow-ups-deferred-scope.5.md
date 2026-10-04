@@ -22,6 +22,9 @@ qualification limits.
 Do not close fn-105.5 until fn-109.20 supplies its required current guidance and
 evidence; then close by reference exactly once. The prior fn-109.15 adopting-task
 reference is obsolete: task 15 now owns progress characterization/design.
+
+Task 20 current guidance now has formal three-draw SHIP. D5 remains blocked on its inherited original fn-102 R6 native and bounded-control qualification. [Current review and acceptance evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-20/acceptance-open.md) retains the source checkpoint and actual verdict; it grants no qualification waiver or duplicate owner.
+
 ## Evidence
 - Commits:
 - Tests:

@@ -1,0 +1,51 @@
+{
+  "base": "c656d9c61c269cc62684c39031732c029d45fbf7",
+  "draws": [
+    {
+      "axis": "correctness",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a1062a-7794-7372-9b38-3d6769521dc0",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "contracts",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a1062a-7756-7fb3-ae3a-d9313a4641ed",
+      "verdict": "SHIP"
+    },
+    {
+      "axis": "integration",
+      "failed": false,
+      "model": "gpt-6.1-sol",
+      "session_id": "01a1062a-7754-74e3-8a50-51cb637a60c9",
+      "verdict": "SHIP"
+    }
+  ],
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "c656d9c61c269cc62684c39031732c029d45fbf7",
+    "headSha": "7cf8855c5e12280b4ff132e96e43fca9ac6b58c7",
+    "items": [],
+    "reviewKind": "implementation",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-fd4f64fbf7e9eb5caf93f8cd79a35a7fdf82872a1cc7b52f35eb0c8b3eaf2fd9"
+  },
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.20",
+  "introduced_count": 0,
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "pre_existing_count": 0,
+  "review": "No findings.\n\n```json\n{\"classification_counts\": {\"introduced\": 0, \"pre_existing\": 0}, \"unaddressed\": [], \"suppressed_count\": {}}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "22e75a53e12345df9db888ccc682aa1f",
+  "rid": "22e75a53e12345df9db888ccc682aa1f",
+  "session_id": "01a1062a-7794-7372-9b38-3d6769521dc0",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-04T09:11:21.504983Z",
+  "type": "impl_review",
+  "unaddressed": [],
+  "verdict": "SHIP"
+}
