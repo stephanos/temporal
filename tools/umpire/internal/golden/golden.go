@@ -464,28 +464,11 @@ func (c Config) Retired(mapped *umpirespb.Model) (*umpirespb.Model, error) {
 // RootsApply checks that every root retirement names a root of some mapped frozen input, and every
 // root addition and moved root one of some current Model, so the lists stay closed.
 func (c Config) RootsApply(originals, currents map[string]*umpirespb.Model) error {
-	roots := func(models map[string]*umpirespb.Model, migrate bool) (map[string]bool, error) {
-		out := map[string]bool{}
-		for _, m := range models {
-			if migrate {
-				var err error
-				if m, err = c.Migrate(m); err != nil {
-					return nil, err
-				}
-			}
-			if names, ok := strings.CutPrefix(m.GetSource(), "model: "); ok {
-				for _, name := range strings.Split(names, ", ") {
-					out[name] = true
-				}
-			}
-		}
-		return out, nil
-	}
-	frozen, err := roots(originals, true)
+	frozen, err := c.sourceRoots(originals, true)
 	if err != nil {
 		return err
 	}
-	current, err := roots(currents, false)
+	current, err := c.sourceRoots(currents, false)
 	if err != nil {
 		return err
 	}
@@ -506,6 +489,26 @@ func (c Config) RootsApply(originals, currents map[string]*umpirespb.Model) erro
 		}
 	}
 	return errors.Join(errs...)
+}
+
+// sourceRoots are the roots the sources of models name. A frozen input is migrated first, so its
+// roots are read under the names the closed source migration gives them.
+func (c Config) sourceRoots(models map[string]*umpirespb.Model, migrate bool) (map[string]bool, error) {
+	out := map[string]bool{}
+	for _, m := range models {
+		if migrate {
+			var err error
+			if m, err = c.Migrate(m); err != nil {
+				return nil, err
+			}
+		}
+		if names, ok := strings.CutPrefix(m.GetSource(), "model: "); ok {
+			for _, name := range strings.Split(names, ", ") {
+				out[name] = true
+			}
+		}
+	}
+	return out, nil
 }
 
 // Unsplit gives a current Model with every position in a split file naming the file its

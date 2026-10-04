@@ -328,7 +328,7 @@ func TestQuintExportListsWhatItLeavesOut(t *testing.T) {
 	x := exported(t, s)
 	got := kinds(x.Unsupported)
 	require.Equal(t, Unsupported, got["module-refinement matchingQueue"])
-	require.Equal(t, Unsupported, got["query-agreement 84 Queries"])
+	require.Equal(t, Unsupported, got["query-agreement 87 Queries"])
 	// Five of the seven compositions are exported. The two over a provider that does not refine the
 	// queue it replaces have no composed table in Go either: the reader rejects the replacement.
 	require.Equal(t, []string{"currentOverLossyMatching", "currentOverMatching", "currentOverQueue", "staleOverMatching", "staleOverQueue"}, x.Compositions)

@@ -155,9 +155,7 @@ func (d Delta) check() error {
 		}
 	}
 	for _, a := range d.Attachments {
-		valid := a.Entity != "" && (a.Machine == "") != (a.Action == "") &&
-			(a.Machine == "" || a.Field == "entity") && (a.Action == "" || a.Field == "on" || a.Field == "creates")
-		if !valid {
+		if !a.valid() {
 			return fmt.Errorf("entity attachment %+v is not one machine's entity or one action's on or creates", a)
 		}
 	}
@@ -168,43 +166,74 @@ func (d Delta) check() error {
 		}
 		newFiles[key] = true
 	}
+	generated, err := d.checkReplacements(newFiles)
+	if err != nil {
+		return err
+	}
+	cases := map[NewCase]bool{}
+	for _, c := range d.NewCases {
+		// A new Case is a generated Query's, or any named Query's of an IR file the baseline lacks.
+		lowered := generated[c] || newFiles[c.Model] && c.Query != ""
+		if cases[c] || !lowered {
+			return fmt.Errorf("new Case %+v is not one generated Query's, or one Query's of a new IR file", c)
+		}
+		cases[c] = true
+	}
+	return nil
+}
+
+// valid reports whether the attachment sets exactly one field the baseline may leave empty: a
+// machine's entity, or an action's on or creates.
+func (a Attachment) valid() bool {
+	return a.Entity != "" && (a.Machine == "") != (a.Action == "") &&
+		(a.Machine == "" || a.Field == "entity") && (a.Action == "" || a.Field == "on" || a.Field == "creates")
+}
+
+// checkReplacements checks each law replacement and gives the claims they generate. A Query may be
+// retired once and generated once, never both, so the expected Model is the same whatever order the
+// replacements of a file are applied in.
+func (d Delta) checkReplacements(newFiles map[string]bool) (map[NewCase]bool, error) {
 	generated, retired := map[NewCase]bool{}, map[NewCase]bool{}
 	for _, r := range d.Replacements {
 		claim := NewCase{Model: r.Model, Query: r.Generated()}
-		switch {
-		case !irKey(r.Model) || newFiles[r.Model]:
-			return fmt.Errorf("law replacement %+v names no archived IR file", r)
-		case r.Machine == "" || strings.Contains(r.Machine, ".") || r.Law == "" || strings.Contains(r.Law, "."):
-			return fmt.Errorf("law replacement %+v is not one machine's law", r)
-		case !slices.Contains(ReceiptKinds, r.Verdict):
-			return fmt.Errorf("law replacement %+v records no receipt kind", r)
-		case r.Renames == r.Generated():
-			return fmt.Errorf("law replacement %+v renames the Property to its own name", r)
-		case generated[claim]:
-			return fmt.Errorf("law replacement %+v is listed twice", r)
+		if err := r.check(newFiles); err != nil {
+			return nil, err
+		}
+		if generated[claim] {
+			return nil, fmt.Errorf("law replacement %+v is listed twice", r)
 		}
 		generated[claim] = true
 		for _, query := range r.Retires {
 			retirement := NewCase{Model: r.Model, Query: query}
 			if query == "" || retired[retirement] {
-				return fmt.Errorf("law replacement %+v retires Query %q twice or by no name", r, query)
+				return nil, fmt.Errorf("law replacement %+v retires Query %q twice or by no name", r, query)
 			}
 			retired[retirement] = true
 		}
 	}
 	for c := range retired {
 		if generated[c] {
-			return fmt.Errorf("law replacements of %s retire and generate Query %s", c.Model, c.Query)
+			return nil, fmt.Errorf("law replacements of %s retire and generate Query %s", c.Model, c.Query)
 		}
 	}
-	cases := map[NewCase]bool{}
-	for _, c := range d.NewCases {
-		if cases[c] || !(generated[c] || newFiles[c.Model] && c.Query != "") {
-			return fmt.Errorf("new Case %+v is not one generated Query's, or one Query's of a new IR file", c)
-		}
-		cases[c] = true
+	return generated, nil
+}
+
+// check checks what one law replacement names on its own: an archived IR file, one machine's law, a
+// receipt kind and a rename to a different name. That it is listed once is checkReplacements'.
+func (r Replacement) check(newFiles map[string]bool) error {
+	switch {
+	case !irKey(r.Model) || newFiles[r.Model]:
+		return fmt.Errorf("law replacement %+v names no archived IR file", r)
+	case r.Machine == "" || strings.Contains(r.Machine, ".") || r.Law == "" || strings.Contains(r.Law, "."):
+		return fmt.Errorf("law replacement %+v is not one machine's law", r)
+	case !slices.Contains(ReceiptKinds, r.Verdict):
+		return fmt.Errorf("law replacement %+v records no receipt kind", r)
+	case r.Renames == r.Generated():
+		return fmt.Errorf("law replacement %+v renames the Property to its own name", r)
+	default:
+		return nil
 	}
-	return nil
 }
 
 // replacements are the law replacements of the IR file of a key.
@@ -252,27 +281,11 @@ type Applied map[string]bool
 func (d Delta) Expected(key string, baseline *umpirespb.Model, applied Applied) (*umpirespb.Model, error) {
 	m := proto.CloneOf(baseline)
 	for i, a := range d.Attachments {
-		for _, machine := range m.GetMachines() {
-			if a.Machine != "" && machine.GetName() == a.Machine {
-				if machine.GetEntity() != "" {
-					return nil, fmt.Errorf("machine %s already has entity %s", a.Machine, machine.GetEntity())
-				}
-				machine.Entity = a.Entity
-				applied[fmt.Sprint("attachment ", i)] = true
-			}
+		attached, err := a.attach(m)
+		if err != nil {
+			return nil, err
 		}
-		for _, action := range m.GetActions() {
-			if a.Action == "" || action.GetId() != a.Action {
-				continue
-			}
-			target := &action.On
-			if a.Field == "creates" {
-				target = &action.Creates
-			}
-			if *target != "" {
-				return nil, fmt.Errorf("action %s already has %s %s", a.Action, a.Field, *target)
-			}
-			*target = a.Entity
+		if attached {
 			applied[fmt.Sprint("attachment ", i)] = true
 		}
 	}
@@ -291,6 +304,36 @@ func (d Delta) Expected(key string, baseline *umpirespb.Model, applied Applied) 
 		return cmp.Or(strings.Compare(a.GetMachine(), b.GetMachine()), strings.Compare(a.GetName(), b.GetName()))
 	})
 	return m, readsDeclaredProperties(m)
+}
+
+// attach sets the attachment's entity on each declaration of m it names, and reports whether m had
+// one. A field the baseline already sets is no attachment but a change, so it fails.
+func (a Attachment) attach(m *umpirespb.Model) (bool, error) {
+	attached := false
+	for _, machine := range m.GetMachines() {
+		if a.Machine != "" && machine.GetName() == a.Machine {
+			if machine.GetEntity() != "" {
+				return false, fmt.Errorf("machine %s already has entity %s", a.Machine, machine.GetEntity())
+			}
+			machine.Entity = a.Entity
+			attached = true
+		}
+	}
+	for _, action := range m.GetActions() {
+		if a.Action == "" || action.GetId() != a.Action {
+			continue
+		}
+		target := &action.On
+		if a.Field == "creates" {
+			target = &action.Creates
+		}
+		if *target != "" {
+			return false, fmt.Errorf("action %s already has %s %s", a.Action, a.Field, *target)
+		}
+		*target = a.Entity
+		attached = true
+	}
+	return attached, nil
 }
 
 // replace renames the replacement's Property of m to the generated name, with every Query that reads
@@ -370,46 +413,56 @@ func (d Delta) Ungenerated(key string, current *umpirespb.Model) (*umpirespb.Mod
 	}
 	m := proto.CloneOf(current)
 	for _, i := range replacements {
-		r := d.Replacements[i]
-		name := r.Generated()
-		claim := func(ref *umpirespb.ClaimRef) bool { return ref.GetMachine() == r.Machine && ref.GetName() == name }
-		var queries []*umpirespb.Query
-		for _, q := range m.GetQueries() {
-			if q.GetName() == name {
-				queries = append(queries, q)
-			}
-		}
-		if len(queries) != 1 || !claim(queries[0].GetProperty()) || !claim(queries[0].GetScenario()) {
-			return nil, fmt.Errorf("%s: generated Query %s is not declared once, reading Property and Scenario %s of %s", key, name, name, r.Machine)
-		}
-		m.Queries = slices.DeleteFunc(m.Queries, func(q *umpirespb.Query) bool { return q.GetName() == name })
-		n := len(m.GetScenarios())
-		m.Scenarios = slices.DeleteFunc(m.Scenarios, func(s *umpirespb.Scenario) bool { return s.GetMachine() == r.Machine && s.GetName() == name })
-		if n-len(m.GetScenarios()) != 1 {
-			return nil, fmt.Errorf("%s: generated Scenario %s of %s is declared %d times", key, name, r.Machine, n-len(m.GetScenarios()))
-		}
-		holds := ""
-		n = len(m.GetProperties())
-		m.Properties = slices.DeleteFunc(m.Properties, func(p *umpirespb.Property) bool {
-			generated := p.GetMachine() == r.Machine && p.GetName() == name
-			if generated {
-				holds = p.GetHolds()
-			}
-			return generated && r.Renames == ""
-		})
-		if holds == "" {
-			return nil, fmt.Errorf("%s: generated Property %s of %s is not declared", key, name, r.Machine)
-		}
-		if r.Renames == "" {
-			if n-len(m.GetProperties()) != 1 {
-				return nil, fmt.Errorf("%s: generated Property %s of %s is declared %d times", key, name, r.Machine, n-len(m.GetProperties()))
-			}
-			m.Functions = slices.DeleteFunc(m.Functions, func(f *umpirespb.Function) bool {
-				return f.GetName() == holds || strings.HasPrefix(f.GetName(), holds+".")
-			})
+		if err := d.Replacements[i].ungenerate(m); err != nil {
+			return nil, fmt.Errorf("%s: %w", key, err)
 		}
 	}
 	return m, nil
+}
+
+// ungenerate removes the replacement's generated claim from m: the Query and its Scenario, and the
+// Property with the Functions it holds by where it renames none. A renamed Property stays, since the
+// expected Model declares it under the generated name. Each must be there as the lifter generates
+// it, so a claim the lifter stopped generating fails rather than passing unnoticed.
+func (r Replacement) ungenerate(m *umpirespb.Model) error {
+	name := r.Generated()
+	claim := func(ref *umpirespb.ClaimRef) bool { return ref.GetMachine() == r.Machine && ref.GetName() == name }
+	var queries []*umpirespb.Query
+	for _, q := range m.GetQueries() {
+		if q.GetName() == name {
+			queries = append(queries, q)
+		}
+	}
+	if len(queries) != 1 || !claim(queries[0].GetProperty()) || !claim(queries[0].GetScenario()) {
+		return fmt.Errorf("generated Query %s is not declared once, reading Property and Scenario %s of %s", name, name, r.Machine)
+	}
+	m.Queries = slices.DeleteFunc(m.Queries, func(q *umpirespb.Query) bool { return q.GetName() == name })
+	n := len(m.GetScenarios())
+	m.Scenarios = slices.DeleteFunc(m.Scenarios, func(s *umpirespb.Scenario) bool { return s.GetMachine() == r.Machine && s.GetName() == name })
+	if n-len(m.GetScenarios()) != 1 {
+		return fmt.Errorf("generated Scenario %s of %s is declared %d times", name, r.Machine, n-len(m.GetScenarios()))
+	}
+	holds := ""
+	n = len(m.GetProperties())
+	m.Properties = slices.DeleteFunc(m.Properties, func(p *umpirespb.Property) bool {
+		generated := p.GetMachine() == r.Machine && p.GetName() == name
+		if generated {
+			holds = p.GetHolds()
+		}
+		return generated && r.Renames == ""
+	})
+	if holds == "" {
+		return fmt.Errorf("generated Property %s of %s is not declared", name, r.Machine)
+	}
+	if r.Renames == "" {
+		if n-len(m.GetProperties()) != 1 {
+			return fmt.Errorf("generated Property %s of %s is declared %d times", name, r.Machine, n-len(m.GetProperties()))
+		}
+		m.Functions = slices.DeleteFunc(m.Functions, func(f *umpirespb.Function) bool {
+			return f.GetName() == holds || strings.HasPrefix(f.GetName(), holds+".")
+		})
+	}
+	return nil
 }
 
 // ProjectBaseline gives an expected Model as the comparison reads it: without source positions or

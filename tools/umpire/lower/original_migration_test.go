@@ -157,6 +157,8 @@ func ungeneratedCases(delta golden.Delta, cases map[string][]byte) (map[string][
 			errs = append(errs, fmt.Errorf("new Case %s of %s is %s to %q, not lowered to %s", e.Query.Name, e.Model, e.Standing, e.File, file))
 		case !isListed && e.Standing == lower.Lowered:
 			errs = append(errs, fmt.Errorf("generated Query %s of %s lowers to %s, which the delta does not list as a new Case", e.Query.Name, e.Model, e.File))
+		default:
+			// A listed Case lowered to its file, or an unlisted Query lowered to none, is as the delta says.
 		}
 		delete(out, golden.OriginalCases+e.File)
 		return true
