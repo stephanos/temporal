@@ -23,7 +23,23 @@ private[lift] trait Constants:
       defs(r.symbol) match
         case ValDef(_, _, Some(rhs)) if !isEnumCase(r.symbol) => resolve(rhs)
         case _                                                => t
+    // `Entity(key = …, refer = Map(…))`: a call whose arguments after a default the compiler first
+    // binds to synthetic vals, read as the call with each argument in its place.
+    case Block(stats, call @ Apply(fn, args))
+        if stats.nonEmpty && stats.forall(syntheticArgument) =>
+      val bound = stats.collect { case v @ ValDef(_, _, Some(rhs)) => v.symbol -> rhs }.toMap
+      def inPlace(a: Term): Term = a match
+        case NamedArg(n, e)                       => NamedArg.copy(a)(n, inPlace(e))
+        case r: Ident if bound.contains(r.symbol) => bound(r.symbol)
+        case _                                    => a
+      Apply.copy(call)(fn, args.map(inPlace))
     case _ => t
+
+  /** A val the compiler binds a call's argument to, such as `refer$1`, in the order written. */
+  private def syntheticArgument(s: Statement): Boolean = s match
+    case v: ValDef =>
+      v.rhs.nonEmpty && (v.symbol.flags.is(Flags.Synthetic) || v.name.matches(".+\\$\\d+"))
+    case _ => false
 
   def constString(t: Term): String = resolve(t) match
     case Literal(StringConstant(s)) => s
