@@ -43,8 +43,8 @@ make umpire-check-model
 - [ ] The realization-declaration question is answered in the spec's Architecture section.
 - [ ] Gaps found are recorded for R9; existing IR and Cases unchanged; model gate passes.
 ## Done summary
-TBD
-
+Blocked:
+Blocked: deferred by the owner on 2026-10-04 as not needed for the code deliverable (the DSL and its execution). fn-119 (the Go SDK workflow showcase) waits until it is revived; its generic Driver primitives (tasks 1-2) are done.
 ## Evidence
 - Commits:
 - Tests:

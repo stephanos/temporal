@@ -36,8 +36,8 @@ make umpire-check-model && make lint-code-fast && make umpire-check-live-tests
 - [ ] One documented command runs the example; done summary gives its wall time, Scala lines authored, Go lines added and every R9 finding with its disposition.
 - [ ] Full gates and live tests pass.
 ## Done summary
-TBD
-
+Blocked:
+Blocked: deferred by the owner on 2026-10-04 as not needed for the code deliverable (the DSL and its execution). fn-119 (the Go SDK workflow showcase) waits until it is revived; its generic Driver primitives (tasks 1-2) are done.
 ## Evidence
 - Commits:
 - Tests:

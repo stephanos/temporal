@@ -38,8 +38,8 @@ go test -count=1 -tags test_dep ./tools/umpire/export/...
 
 
 ## Done summary
-TBD
-
+Blocked:
+Blocked: deferred by the owner on 2026-10-04 as not needed for the code deliverable (the DSL and its execution). Settings in the Quint/P second-opinion exports are not execution; revive when the backends need them.
 ## Evidence
 - Commits:
 - Tests:

@@ -42,8 +42,8 @@ make umpire-check-live-tests
 - [ ] The example is in the model gate and the existing live test job; no new CI workflow.
 - [ ] Its location under `model/examples` is reflected in the module map.
 ## Done summary
-TBD
-
+Blocked:
+Blocked: deferred by the owner on 2026-10-04 as not needed for the code deliverable (the DSL and its execution). fn-119 (the Go SDK workflow showcase) waits until it is revived; its generic Driver primitives (tasks 1-2) are done.
 ## Evidence
 - Commits:
 - Tests:

@@ -4,7 +4,6 @@
   "claimed_at": null,
   "created_at": "2026-10-04T22:02:11.757630Z",
   "depends_on": [
-    "fn-125-represent-dynamic-configuration-in-the.4",
     "fn-125-represent-dynamic-configuration-in-the.8",
     "fn-125-represent-dynamic-configuration-in-the.10"
   ],

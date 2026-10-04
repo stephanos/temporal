@@ -76,7 +76,6 @@ production dispatch fails closed.
 | alongside 1 | fn-118 behavior | fn-118.3 done (Testpilot waits by condition within declared bounds, read-once evidence, scale factor); fn-118.2 hints in the kit in progress; then derived waits | started early, as above |
 | alongside | fn-124 | Cleanup: delete archives, trim the checker, make the Run judge declare-only, retire the migration harness, split the model package | tasks 1-2 done (archives deleted, checker trimmed); 3 after fn-118; 7 after fn-114/120/122 close; 8 last |
 | alongside | fn-125 | Dynamic configuration in the Models: settings as finite Model inputs bound per Query, API preconditions, bound assumptions, derived required settings | task 1 (switch defects) now; framework after fn-114; preconditions after fn-118.2 |
-| last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
 
 fn-112 (the standalone activity DSL showcase) is closed: the feature is 1,567 lines and 54 string literals
 (targets 1,600 and 60), on captured names, machine derivation, typed compositions, claim patterns, input tokens,
@@ -86,6 +85,11 @@ not new specs. The structural migrations freeze Case bytes, while fn-118 separat
 changes and freezes Contracts. fn-119's generic Driver primitives are done (fn-119.1-.2). Flow records
 dependencies only within a spec, so the conductor holds the cross-spec gates: fn-120.2 and fn-118.2-.5 wait for
 fn-114 to close.
+
+Deferred by the owner on 2026-10-04 as not needed for the code deliverable (the DSL and its execution):
+fn-119 (Go SDK workflow showcase; its generic Driver primitives are done) with fn-122.7, which needs its example;
+fn-123 (faults as environment actions, not yet planned); fn-120.4 (IR explorer); fn-125.4 (settings in the Quint/P
+exports). fn-121 closed without CI verification.
 
 Open for the owner: generated Cases that stop a worker (activity-terminate and activity-pauseResume always,
 the two scheduleToStartTimeout Cases sometimes) come back INCONCLUSIVE because of a matching race, not Model or
@@ -167,18 +171,6 @@ The lint also reports specification holes (a pair disabled only by a
 default arm, an enabled class no Property constrains, a Property only pinned Queries ask), with a
 per-operation rules table and a per-state view of MAY, MUST and MUST NOT. Temporal operators, Scenario combinators and Queries answered
 by Quint, Apalache or TLC are recorded as later work with their own specs.
-
-### fn-119: Show one Go SDK workflow driven end to end from the IRs
-
-A showcase for newcomers: a workflow that runs one activity (completion, retry, timeout) is modeled
-in Scala, and a Go SDK worker executes it against a real server with no hand-written Go for the
-feature. The workflow, the activity answers, the test and the verdict all follow from the two IRs,
-and a check fails if any Go file names the example. A walkthrough follows one Query from its Scala
-declaration to the Verdict. The Testpilot Driver realizes only one workflow command today
-(scheduling a Nexus operation), so the spec adds the general primitives an activity workflow needs.
-The workflow is the Driver's interpreter executing the Case; testing a hand-written workflow
-function is out of scope. Tasks 1 and 2 are done: the Driver schedules an activity, routes its
-retries to the Case's script and can withhold an attempt so the server times it out.
 
 
 ### fn-122: Capabilities and their laws

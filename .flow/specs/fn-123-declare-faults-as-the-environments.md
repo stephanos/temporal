@@ -181,3 +181,7 @@ go test -tags test_dep ./tools/umpire/...
 ## Requirement coverage
 
 Tasks are planned when the spec is unblocked (fn-112 closed and fn-120.1 done). Until then no requirement has a task.
+
+## Status
+
+Deferred by the owner on 2026-10-04 as not needed for the current code deliverable (the DSL and its execution). Plan tasks when it is revived.

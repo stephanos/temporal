@@ -116,3 +116,6 @@ Task fn-119-show-one-go-sdk-workflow-driven-end-to.1 validates the core approach
 | R8 | The example runs in the model gate and in the live test job, so a change that breaks it fails a gate (no error surface). | fn-119-show-one-go-sdk-workflow-driven-end-to.4, fn-119-show-one-go-sdk-workflow-driven-end-to.5 | — |
 | R9 | The done summary lists every place the example needed something the pipeline did not have, with what was done about each: built as a general primitive, or left as a named gap. | fn-119-show-one-go-sdk-workflow-driven-end-to.3, fn-119-show-one-go-sdk-workflow-driven-end-to.6 | — |
 
+## Status
+
+Deferred by the owner on 2026-10-04 after tasks 1-2 (generic Driver primitives); tasks 3-6 are blocked until it is revived.

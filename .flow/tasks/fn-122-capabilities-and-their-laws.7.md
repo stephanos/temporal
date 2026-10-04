@@ -26,8 +26,8 @@ make umpire-gen-model && make umpire-check-model && make umpire-check-live-tests
 - [ ] `pausedIsNotDispatched` lists three instantiating machines in the catalog test.
 - [ ] The example's existing Cases are byte-identical; new Cases and the sidecar are allow-listed by name; fn-119's no-Go-file check passes.
 ## Done summary
-TBD
-
+Blocked:
+Blocked: deferred by the owner on 2026-10-04 as not needed for the code deliverable (the DSL and its execution). It needs fn-119's workflow example, which is deferred.
 ## Evidence
 - Commits:
 - Tests:

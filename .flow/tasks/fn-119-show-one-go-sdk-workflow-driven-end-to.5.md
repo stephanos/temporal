@@ -31,8 +31,8 @@ make umpire-check-model && make umpire-check-live-tests
 - [ ] A gate-run check fails when any non-exempt Go source names the example, its workflow or activity type, or a Query; exemptions are listed by path pattern; a mutation test proves it fires.
 - [ ] Both run in the model gate and the live test job.
 ## Done summary
-TBD
-
+Blocked:
+Blocked: deferred by the owner on 2026-10-04 as not needed for the code deliverable (the DSL and its execution). fn-119 (the Go SDK workflow showcase) waits until it is revived; its generic Driver primitives (tasks 1-2) are done.
 ## Evidence
 - Commits:
 - Tests:
