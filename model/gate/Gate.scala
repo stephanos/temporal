@@ -433,28 +433,21 @@ final class Gate(tools: Tools, log: PrintStream):
     val modelLifts = beside(
       "lift the Nexus caller Model, the activity Models and the Nexus close designs"
     ):
-      // Each lift is its own JVM, so they run side by side.
-      val lifts = Roots.ir.map: (file, roots) =>
-        // The lifter's own arguments follow `--`: an argument after it is a root, and the lifter
-        // refuses a root that names nothing.
-        val arguments = Seq(
-          "run",
-          "model/lifter",
-          "--main-class",
-          "umpire.lift.lift",
-          "--",
-          s"$modelJar=model/",
-          modelClasspath.toString,
-          lifted.resolve(file).toString
-        )
-        file -> Future(blocking(tools.scalaCli(arguments ++ roots)))
-      // Every lift is waited for, so none outlives the gate, and every one that failed is reported.
-      val failures = lifts
-        .map((file, lift) => file -> Await.result(lift, Duration.Inf))
-        .collect:
-          case (file, ran) if ran.failed =>
-            s"the roots of model/ir/$file did not lift:\n${ran.diagnostics}"
-      if failures.nonEmpty then throw GateError(failures.mkString("\n"))
+      // One lifter run reads the Models' TASTy once and writes every IR file they declare with
+      // `irFile`, each lifted apart; its refusals name the file they were lifting.
+      val arguments = Seq(
+        "run",
+        "model/lifter",
+        "--main-class",
+        "umpire.lift.lift",
+        "--",
+        "--ir",
+        s"$modelJar=model/",
+        modelClasspath.toString,
+        lifted.toString
+      )
+      val ran = tools.scalaCli(arguments)
+      if ran.failed then throw GateError(s"the Models' IR files did not lift:\n${ran.diagnostics}")
       ""
     report(Seq(fixtures, modelLifts))
     // After both, so an update rewrites model/ir only once the lifter's fixtures passed too.
@@ -491,7 +484,7 @@ object Gate:
     def name(file: Path) = root.relativize(file)
     val (held, lifted) = (files(tree), files(produced))
     val orphans = (held -- lifted).toSeq.sorted.map(file =>
-      s"${name(tree.resolve(file))} is checked in and nothing produces it: remove it or name its roots"
+      s"${name(tree.resolve(file))} is checked in and nothing produces it: remove it or declare it with irFile"
     )
     if update then
       if orphans.nonEmpty then throw GateError(orphans.mkString("\n"))
