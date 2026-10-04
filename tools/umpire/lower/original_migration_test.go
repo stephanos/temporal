@@ -2,6 +2,7 @@ package lower_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -26,15 +27,17 @@ var captureOriginal = flag.String("capture-original", "", "write the original ba
 const originalLowerOutputs = "lower.json"
 
 type originalLowering struct {
-	root                        string
-	delta                       golden.Delta
-	archived, current           map[string][]byte
-	baselines, expected, models map[string]*umpirespb.Model
+	root              string
+	delta             golden.Delta
+	archived, current map[string][]byte
+	// models are the current Models as produced; ungenerated are them without the generated claims
+	// the delta lists, which must lower and explore as expected, the baselines with the delta applied.
+	baselines, expected, models, ungenerated map[string]*umpirespb.Model
 }
 
 func readOriginalLowering(t *testing.T) originalLowering {
 	t.Helper()
-	in := originalLowering{expected: map[string]*umpirespb.Model{}, models: map[string]*umpirespb.Model{}}
+	in := originalLowering{expected: map[string]*umpirespb.Model{}, models: map[string]*umpirespb.Model{}, ungenerated: map[string]*umpirespb.Model{}}
 	var err error
 	in.root, err = golden.Root()
 	require.NoError(t, err)
@@ -48,12 +51,14 @@ func readOriginalLowering(t *testing.T) originalLowering {
 	require.NoError(t, err)
 	current, err := golden.OriginalModels(in.current)
 	require.NoError(t, err)
-	applied := map[int]bool{}
+	applied := golden.Applied{}
 	for key, baseline := range in.baselines {
-		in.expected[key], err = in.delta.Expected(baseline, applied)
+		in.expected[key], err = in.delta.Expected(key, baseline, applied)
 		require.NoError(t, err, key)
 		require.Contains(t, current, key)
 		in.models[key] = current[key]
+		in.ungenerated[key], err = in.delta.Ungenerated(key, current[key])
+		require.NoError(t, err, key)
 	}
 	require.NoError(t, in.delta.Unapplied(applied))
 	return in
@@ -117,19 +122,109 @@ func sources(models map[string]*umpirespb.Model) []string {
 	return out
 }
 
-// TestOriginalBaselineCases holds every Case lowered from the current model/ir, and every checked-in
-// Case and the manifest, to the archived Cases: when the delta attaches entities, to the Cases the
-// baseline lowers to with exactly those attachments.
+// ungeneratedCases is a complete generated tree of Cases without the generated Queries the delta
+// lists: their manifest entries, and the Case files of those it lists as new Cases, each of which must
+// be lowered to the file `make umpire-gen-cases` names; a generated Query it does not list must not be
+// lowered. Every Query of a new IR file is dropped, and each it lowers must be a listed new Case. The
+// manifest is encoded again as GenerateCases encodes it.
+func ungeneratedCases(delta golden.Delta, cases map[string][]byte) (map[string][]byte, error) {
+	const manifestKey = golden.OriginalCases + "manifest.json"
+	var manifest lower.Manifest
+	decoder := json.NewDecoder(bytes.NewReader(cases[manifestKey]))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&manifest); err != nil {
+		return nil, fmt.Errorf("%s: %w", manifestKey, err)
+	}
+	type query struct{ model, owner, name string }
+	generated, listed := map[query]bool{}, map[query]string{}
+	for _, r := range delta.Replacements {
+		generated[query{strings.TrimPrefix(r.Model, golden.OriginalIR), r.Machine, r.Generated()}] = true
+	}
+	for _, c := range delta.NewCases {
+		listed[query{model: strings.TrimPrefix(c.Model, golden.OriginalIR), name: c.Query}] = strings.TrimPrefix(c.File(), golden.OriginalCases)
+	}
+	out, seen := maps.Clone(cases), map[query]bool{}
+	var errs []error
+	manifest.Queries = slices.DeleteFunc(manifest.Queries, func(e lower.GeneratedCase) bool {
+		q := query{e.Model, e.Query.Owner, e.Query.Name}
+		if !generated[q] && !slices.Contains(delta.NewIRFiles, golden.OriginalIR+e.Model) {
+			return false
+		}
+		seen[q] = true
+		file, isListed := listed[query{model: e.Model, name: e.Query.Name}]
+		switch {
+		case isListed && (e.Standing != lower.Lowered || e.File != file):
+			errs = append(errs, fmt.Errorf("new Case %s of %s is %s to %q, not lowered to %s", e.Query.Name, e.Model, e.Standing, e.File, file))
+		case !isListed && e.Standing == lower.Lowered:
+			errs = append(errs, fmt.Errorf("generated Query %s of %s lowers to %s, which the delta does not list as a new Case", e.Query.Name, e.Model, e.File))
+		}
+		delete(out, golden.OriginalCases+e.File)
+		return true
+	})
+	for _, q := range slices.SortedFunc(maps.Keys(generated), func(a, b query) int { return strings.Compare(a.model+" "+a.name, b.model+" "+b.name) }) {
+		if !seen[q] {
+			errs = append(errs, fmt.Errorf("generated Query %s of %s has no manifest entry", q.name, q.model))
+		}
+	}
+	encoded, err := json.MarshalIndent(manifest, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+	out[manifestKey] = append(encoded, '\n')
+	return out, errors.Join(errs...)
+}
+
+// TestOriginalBaselineCases holds every checked-in Case and the manifest to the Cases the current
+// model/ir lowers to, and those, without the generated Queries the delta lists, to the archived Cases:
+// when the delta attaches entities or replaces claims, to the Cases the baseline lowers to with
+// exactly that delta.
 func TestOriginalBaselineCases(t *testing.T) {
 	in := readOriginalLowering(t)
 	expected := casesOf(in.archived)
-	if len(in.delta.Attachments) > 0 {
+	if in.delta.Rederives() {
 		require.NoError(t, compareOriginalCases(expected, generatedCases(t, in.baselines)), "the archive lowers as it was frozen")
 		expected = generatedCases(t, in.expected)
 	}
 	labels := append(sources(in.baselines), sources(in.models)...)
-	require.NoError(t, compareOriginalCases(expected, generatedCases(t, in.models), labels...), "lowered from the current IR")
-	require.NoError(t, compareOriginalCases(expected, casesOf(in.current), labels...), "checked in")
+	lowered := generatedCases(t, in.models)
+	require.NoError(t, compareOriginalCases(lowered, casesOf(in.current)), "checked in as lowered from the current IR")
+	ungenerated, err := ungeneratedCases(in.delta, lowered)
+	require.NoError(t, err)
+	require.NoError(t, compareOriginalCases(expected, ungenerated, labels...), "lowered from the current IR")
+	require.NoError(t, compareOriginalCases(ungenerated, generatedCases(t, in.ungenerated)), "the generated Queries are all the tree adds")
+}
+
+// TestOriginalBaselineNewCasesAreExact changes which generated Queries the delta lists as new Cases,
+// and the tree they lower to: the tree without them no longer reads as the delta says.
+func TestOriginalBaselineNewCasesAreExact(t *testing.T) {
+	in := readOriginalLowering(t)
+	lowered := casesOf(in.current)
+	_, err := ungeneratedCases(in.delta, lowered)
+	require.NoError(t, err)
+	require.NotEmpty(t, in.delta.NewCases)
+	listed := in.delta.NewCases[0]
+	for name, change := range map[string]func(*golden.Delta, map[string][]byte){
+		"unlisted new Case": func(d *golden.Delta, _ map[string][]byte) { d.NewCases = d.NewCases[1:] },
+		"listed Case not lowered": func(d *golden.Delta, _ map[string][]byte) {
+			d.NewCases = append(d.NewCases, golden.NewCase{Model: "ir/activity.json", Query: "activityProduct.terminalStatesAreFinal"})
+		},
+		"generated Query without an entry": func(d *golden.Delta, _ map[string][]byte) {
+			d.Replacements = append(d.Replacements, golden.Replacement{Model: "ir/activity.json", Machine: "activityProtocol", Law: "missing", Verdict: "found"})
+		},
+		"lowered to another file": func(_ *golden.Delta, m map[string][]byte) {
+			key := golden.OriginalCases + "manifest.json"
+			m[key] = bytes.Replace(m[key], []byte(`"file": "`+strings.TrimPrefix(listed.File(), golden.OriginalCases)+`"`), []byte(`"file": "elsewhere.json"`), 1)
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			d := in.delta
+			d.NewCases, d.Replacements = slices.Clone(d.NewCases), slices.Clone(d.Replacements)
+			changed := maps.Clone(lowered)
+			change(&d, changed)
+			_, err := ungeneratedCases(d, changed)
+			require.Error(t, err)
+		})
+	}
 }
 
 func TestOriginalBaselineCasesRejectChanges(t *testing.T) {
@@ -246,7 +341,8 @@ func TestCaptureOriginalBaseline(t *testing.T) {
 }
 
 // TestOriginalBaselineExplorations holds every exploration of the current Models, its candidates,
-// reductions and their Cases, to the original baseline's.
+// reductions and their Cases, to the original baseline's: of the current Models without the generated
+// claims the delta lists, since a candidate is a whole Model, to the baseline's with the delta.
 func TestOriginalBaselineExplorations(t *testing.T) {
 	if *captureOriginal != "" {
 		t.Skip("capture is separate from verification")
@@ -254,7 +350,7 @@ func TestOriginalBaselineExplorations(t *testing.T) {
 	in := readOriginalLowering(t)
 	expected, err := golden.ReadDerived(in.root, originalLowerOutputs)
 	require.NoError(t, err)
-	if len(in.delta.Attachments) > 0 {
+	if in.delta.Rederives() {
 		require.NoError(t, golden.CompareDerived(expected, explorationDigests(t, in.baselines, in.delta.ProjectBaseline), nil),
 			"the archive explores as it was frozen")
 		expected = explorationDigests(t, in.expected, in.delta.ProjectBaseline)
@@ -265,10 +361,10 @@ func TestOriginalBaselineExplorations(t *testing.T) {
 			if original {
 				return deriveExplorations(in.expected[model], in.delta.ProjectBaseline, s)
 			}
-			return deriveExplorations(in.models[model], in.delta.ProjectCurrent, s)
+			return deriveExplorations(in.ungenerated[model], in.delta.ProjectCurrent, s)
 		})
 	}
-	require.NoError(t, golden.CompareDerived(expected, explorationDigests(t, in.models, in.delta.ProjectCurrent), explain))
+	require.NoError(t, golden.CompareDerived(expected, explorationDigests(t, in.ungenerated, in.delta.ProjectCurrent), explain))
 }
 
 // TestOriginalBaselineExplorationsRejectChanges moves the Nexus caller as a migration may, which the

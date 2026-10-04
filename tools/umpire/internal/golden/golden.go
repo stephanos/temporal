@@ -46,6 +46,12 @@ type Config struct {
 	// RootMoves are the roots whose declarations moved to another owner with them, from the frozen
 	// root to the current one: a current Model's source names each by its frozen root.
 	RootMoves []Substitution `json:"source_root_moves"`
+	// RootRetirements are the frozen roots whose only declarations were Queries a law replacement of
+	// the original baseline retires (original.json): the mapped original's source names none of them.
+	RootRetirements []string `json:"source_root_retirements"`
+	// RootAdditions are the roots added since, each declaring capabilities whose laws generate the
+	// claims a law replacement lists: a current Model's source is compared without them.
+	RootAdditions []string `json:"source_root_additions"`
 	// Merges are the feature directories whose declarations moved between their own files after the
 	// mapped goldens were captured, from the directory (ending in "/") to the one name every position
 	// under it compares as, in the mapped original and in the current Model alike. A feature
@@ -352,7 +358,25 @@ func messages(m protoreflect.Message, visit func(protoreflect.Message) (bool, er
 	return result
 }
 
+// OriginalKey is the original baseline's archive key of an IR inventory path: "ir/activity.json" for
+// model/scalav2/ir/activity.json, "lifts/admission.json" for a lifter fixture.
+func OriginalKey(path string) string {
+	path = strings.TrimPrefix(path, "model/scalav2/")
+	if name, ok := strings.CutPrefix(path, "lifter/testdata/lifts/expected/"); ok {
+		return OriginalLifts + name
+	}
+	return path
+}
+
+// Match is MatchAt of no original-baseline key: what no law replacement names.
 func (c Config) Match(original, current *umpirespb.Model) (bool, error) {
+	return c.MatchAt("", original, current)
+}
+
+// MatchAt checks a current Model against its frozen input, the Model of an original-baseline key
+// (OriginalKey): the frozen input with the original baseline's delta applied (Attached), against the
+// current Model without the generated claims the delta lists (Ungenerated).
+func (c Config) MatchAt(key string, original, current *umpirespb.Model) (bool, error) {
 	if proto.Equal(original, current) {
 		return false, nil
 	}
@@ -363,9 +387,16 @@ func (c Config) Match(original, current *umpirespb.Model) (bool, error) {
 	if mapped, err = c.Rename(mapped); err != nil {
 		return false, err
 	}
-	// fn-112's R20 task-queue entity, the one metadata the original baseline adds, is the frozen
-	// input's too, and a declaration split out of a file compares as one of the file it left.
-	if mapped, err = Attached(mapped); err != nil {
+	// The original baseline's delta, the entity metadata fn-112's R20 adds and the claims fn-122's laws
+	// replace, applies to the frozen input too, and a declaration split out of a file compares as one
+	// of the file it left.
+	if mapped, err = c.Retired(mapped); err != nil {
+		return false, err
+	}
+	if mapped, err = Attached(key, mapped); err != nil {
+		return false, err
+	}
+	if current, err = Ungenerated(key, current); err != nil {
 		return false, err
 	}
 	if current, err = c.Unsplit(current); err != nil {
@@ -393,26 +424,100 @@ func (c Config) Match(original, current *umpirespb.Model) (bool, error) {
 	return true, nil
 }
 
-// Attached gives a frozen input with the original baseline's entity attachments applied
-// (original.json): the entity metadata fn-112's R20 adds to existing declarations.
-func Attached(original *umpirespb.Model) (*umpirespb.Model, error) {
+// Attached gives the frozen input of an original-baseline key with the original baseline's delta
+// applied (original.json, Delta.Expected): the entity metadata fn-112's R20 adds to existing
+// declarations, and the key's law replacements.
+func Attached(key string, original *umpirespb.Model) (*umpirespb.Model, error) {
 	delta, err := OriginalDelta()
 	if err != nil {
 		return nil, err
 	}
-	return delta.Expected(original, map[int]bool{})
+	return delta.Expected(key, original, Applied{})
+}
+
+// Ungenerated gives a current Model of an original-baseline key without the generated claims the
+// original baseline's delta lists for it (Delta.Ungenerated).
+func Ungenerated(key string, current *umpirespb.Model) (*umpirespb.Model, error) {
+	delta, err := OriginalDelta()
+	if err != nil {
+		return nil, err
+	}
+	return delta.Ungenerated(key, current)
+}
+
+// Retired gives a mapped original whose source names no retired root.
+func (c Config) Retired(mapped *umpirespb.Model) (*umpirespb.Model, error) {
+	roots, ok := strings.CutPrefix(mapped.GetSource(), "model: ")
+	if !ok || len(c.RootRetirements) == 0 {
+		return mapped, nil
+	}
+	names := strings.Split(roots, ", ")
+	kept := slices.DeleteFunc(slices.Clone(names), func(name string) bool { return slices.Contains(c.RootRetirements, name) })
+	if len(kept) == len(names) {
+		return mapped, nil
+	}
+	m := proto.CloneOf(mapped)
+	m.Source = "model: " + strings.Join(kept, ", ")
+	return m, nil
+}
+
+// RootsApply checks that every root retirement names a root of some mapped frozen input, and every
+// root addition and moved root one of some current Model, so the lists stay closed.
+func (c Config) RootsApply(originals, currents map[string]*umpirespb.Model) error {
+	roots := func(models map[string]*umpirespb.Model, migrate bool) (map[string]bool, error) {
+		out := map[string]bool{}
+		for _, m := range models {
+			if migrate {
+				var err error
+				if m, err = c.Migrate(m); err != nil {
+					return nil, err
+				}
+			}
+			if names, ok := strings.CutPrefix(m.GetSource(), "model: "); ok {
+				for _, name := range strings.Split(names, ", ") {
+					out[name] = true
+				}
+			}
+		}
+		return out, nil
+	}
+	frozen, err := roots(originals, true)
+	if err != nil {
+		return err
+	}
+	current, err := roots(currents, false)
+	if err != nil {
+		return err
+	}
+	var errs []error
+	for _, name := range c.RootRetirements {
+		if !frozen[name] {
+			errs = append(errs, fmt.Errorf("source root retirement of %q, which no frozen input names", name))
+		}
+	}
+	for _, name := range c.RootAdditions {
+		if !current[name] {
+			errs = append(errs, fmt.Errorf("source root addition of %q, which no current Model names", name))
+		}
+	}
+	for _, move := range c.RootMoves {
+		if !current[move.New] {
+			errs = append(errs, fmt.Errorf("source root move to %q, which no current Model names", move.New))
+		}
+	}
+	return errors.Join(errs...)
 }
 
 // Unsplit gives a current Model with every position in a split file naming the file its
 // declaration came from, and its source naming each moved root by its frozen name, in the sorted
-// order the lifter lists roots in.
+// order the lifter lists roots in, and no added root.
 func (c Config) Unsplit(current *umpirespb.Model) (*umpirespb.Model, error) {
-	if len(c.Splits) == 0 && len(c.RootMoves) == 0 {
+	if len(c.Splits) == 0 && len(c.RootMoves) == 0 && len(c.RootAdditions) == 0 {
 		return current, nil
 	}
 	m := proto.CloneOf(current)
-	if roots, ok := strings.CutPrefix(m.GetSource(), "model: "); ok && len(c.RootMoves) > 0 {
-		names := strings.Split(roots, ", ")
+	if roots, ok := strings.CutPrefix(m.GetSource(), "model: "); ok && len(c.RootMoves)+len(c.RootAdditions) > 0 {
+		names := slices.DeleteFunc(strings.Split(roots, ", "), func(name string) bool { return slices.Contains(c.RootAdditions, name) })
 		for i, name := range names {
 			for _, move := range c.RootMoves {
 				if name == move.New {

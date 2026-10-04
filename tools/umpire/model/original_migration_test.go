@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"maps"
@@ -72,15 +73,18 @@ func originalDigests(t *testing.T, models map[string]*umpirespb.Model, outputs .
 }
 
 type originalInputs struct {
-	root               string
-	delta              golden.Delta
-	baselines, current map[string]*umpirespb.Model
+	root      string
+	delta     golden.Delta
+	baselines map[string]*umpirespb.Model
+	// generated are the current Models as produced; current are them without the generated claims
+	// the delta lists (Ungenerated), which must equal expected, the baselines with the delta applied.
+	generated, current map[string]*umpirespb.Model
 	expected           map[string]*umpirespb.Model
 }
 
 func readOriginal(t *testing.T) originalInputs {
 	t.Helper()
-	in := originalInputs{expected: map[string]*umpirespb.Model{}, current: map[string]*umpirespb.Model{}}
+	in := originalInputs{expected: map[string]*umpirespb.Model{}, current: map[string]*umpirespb.Model{}, generated: map[string]*umpirespb.Model{}}
 	var err error
 	in.root, err = golden.Root()
 	require.NoError(t, err)
@@ -94,12 +98,14 @@ func readOriginal(t *testing.T) originalInputs {
 	require.NoError(t, err)
 	current, err := golden.OriginalModels(files)
 	require.NoError(t, err)
-	applied := map[int]bool{}
+	applied := golden.Applied{}
 	for key, baseline := range in.baselines {
-		in.expected[key], err = in.delta.Expected(baseline, applied)
+		in.expected[key], err = in.delta.Expected(key, baseline, applied)
 		require.NoError(t, err, key)
 		require.Contains(t, current, key)
-		in.current[key] = current[key]
+		in.generated[key] = current[key]
+		in.current[key], err = in.delta.Ungenerated(key, current[key])
+		require.NoError(t, err, key)
 	}
 	require.NoError(t, in.delta.Unapplied(applied))
 	return in
@@ -114,9 +120,12 @@ func TestCaptureOriginalBaseline(t *testing.T) {
 }
 
 // TestOriginalBaselineModel holds what the reader derives from every current IR Model and lifter
-// fixture to what it derived from the original baseline. When the delta attaches entities, the
-// expected outputs are derived again from the baseline with exactly those attachments, so every
-// fingerprint that reads an entity is still compared.
+// fixture to what it derived from the original baseline. When the delta attaches entities or
+// replaces claims by the ones laws generate, the expected outputs are derived again from the
+// baseline with exactly that delta, so every fingerprint that reads an entity, and every row, ID,
+// canonical form, fingerprint and receipt of a renamed Property and of the Queries that read it, is
+// still compared. The current Model is read without the generated claims the delta lists; what those
+// answer is held to the verdicts it records (TestOriginalLawVerdicts).
 func TestOriginalBaselineModel(t *testing.T) {
 	if *captureOriginal != "" {
 		t.Skip("capture is separate from verification")
@@ -127,7 +136,7 @@ func TestOriginalBaselineModel(t *testing.T) {
 	}
 	expected, err := golden.ReadDerived(in.root, originalModelOutputs)
 	require.NoError(t, err)
-	if len(in.delta.Attachments) > 0 {
+	if in.delta.Rederives() {
 		require.NoError(t, golden.CompareDerived(expected, originalDigests(t, in.baselines, originalOutputs...), nil),
 			"the archive derives as it was frozen")
 		expected = originalDigests(t, in.expected, originalOutputs...)
@@ -154,7 +163,7 @@ func TestOriginalBaselineDerivesEntityFingerprintsFromTheBaseline(t *testing.T) 
 	archived, err := golden.ReadDerived(in.root, originalModelOutputs)
 	require.NoError(t, err)
 	delta := golden.Delta{Attachments: []golden.Attachment{{Machine: "matchingQueue", Field: "entity", Entity: "taskQueue"}}}
-	expected, err := delta.Expected(in.baselines[key], map[int]bool{})
+	expected, err := delta.Expected(key, in.baselines[key], golden.Applied{})
 	require.NoError(t, err)
 	attached := proto.CloneOf(expected)
 	attached.Source = "model: moved roots"
@@ -257,4 +266,123 @@ func TestOriginalBaselineRejectsAFlippedGuard(t *testing.T) {
 	step.Function = f.GetName()
 	require.NoError(t, in.delta.MatchOriginal(in.baselines[key], restructured))
 	require.NoError(t, compare(restructured))
+}
+
+// originalVerdicts checks that each law replacement's generated Query answers, on the current Model
+// as produced, the verdict the delta records, and that each Query it retires answered the same on
+// the baseline: a generated claim replaces a Query only with the same answer.
+func originalVerdicts(delta golden.Delta, generated, baselines map[string]*umpirespb.Model) error {
+	verdicts := func(m *umpirespb.Model) map[ClaimKey]ReceiptKind {
+		out := map[ClaimKey]ReceiptKind{}
+		for _, r := range Check(m, DefaultScope).Receipts {
+			if r.Subject == QuerySubject {
+				out[ClaimKey{Owner: r.Key.Owner, Name: r.Key.Name}] = r.Kind
+			}
+		}
+		return out
+	}
+	current, baseline := map[string]map[ClaimKey]ReceiptKind{}, map[string]map[ClaimKey]ReceiptKind{}
+	var errs []error
+	for _, r := range delta.Replacements {
+		if current[r.Model] == nil {
+			current[r.Model], baseline[r.Model] = verdicts(generated[r.Model]), verdicts(baselines[r.Model])
+		}
+		// A generated Query reads the Scenario of its machine, which owns its receipt.
+		if got := current[r.Model][ClaimKey{Owner: r.Machine, Name: r.Generated()}]; got != ReceiptKind(r.Verdict) {
+			errs = append(errs, fmt.Errorf("%s: generated Query %s answers %q, and the delta records %q", r.Model, r.Generated(), got, r.Verdict))
+		}
+		for _, retired := range r.Retires {
+			var answered []ReceiptKind
+			for key, kind := range baseline[r.Model] {
+				if key.Name == retired {
+					answered = append(answered, kind)
+				}
+			}
+			if len(answered) != 1 || answered[0] != ReceiptKind(r.Verdict) {
+				errs = append(errs, fmt.Errorf("%s: retired Query %s answered %v, and its replacement %s %q", r.Model, retired, answered, r.Generated(), r.Verdict))
+			}
+		}
+	}
+	return errors.Join(errs...)
+}
+
+// TestOriginalLawVerdicts holds every generated claim the delta lists to the verdict it records, and
+// to the verdict of each Query it retires. The comparison with the baseline reads the current Model
+// without the generated claims, so this is what holds their answers.
+func TestOriginalLawVerdicts(t *testing.T) {
+	in := readOriginal(t)
+	require.NotEmpty(t, in.delta.Replacements)
+	require.NoError(t, originalVerdicts(in.delta, in.generated, in.baselines))
+	for name, change := range map[string]func(*golden.Replacement){
+		"wrong verdict":        func(r *golden.Replacement) { r.Verdict = string(Counterexample) },
+		"retired another":      func(r *golden.Replacement) { r.Retires = []string{"cancelRequest"} },
+		"retired of no answer": func(r *golden.Replacement) { r.Retires = []string{"nothing"} },
+		"another machine":      func(r *golden.Replacement) { r.Machine = "activityProtocol" },
+	} {
+		t.Run(name, func(t *testing.T) {
+			delta := in.delta
+			i := slices.IndexFunc(delta.Replacements, func(r golden.Replacement) bool {
+				return r.Model == "ir/activity.json" && len(r.Retires) > 0
+			})
+			require.GreaterOrEqual(t, i, 0)
+			r := delta.Replacements[i]
+			r.Retires = slices.Clone(r.Retires)
+			change(&r)
+			delta.Replacements = []golden.Replacement{r}
+			require.Error(t, originalVerdicts(delta, in.generated, in.baselines))
+		})
+	}
+}
+
+// TestOriginalVerdictsAreReceiptKinds holds the verdicts the delta may record to the receipt kinds.
+func TestOriginalVerdictsAreReceiptKinds(t *testing.T) {
+	kinds := []ReceiptKind{AdmissionError, DeclarationError, ResourceLimit, LimitReached, Unresolved, RefinementRejected,
+		Counterexample, Verified, Found, NotFound, Incomplete, Unsupported, ReplayFailed}
+	var want []string
+	for _, kind := range kinds {
+		want = append(want, string(kind))
+	}
+	require.ElementsMatch(t, want, golden.ReceiptKinds)
+}
+
+// TestOriginalBaselineDerivesRenamedClaimsFromTheBaseline renames a Property as a law replacement
+// does: the rename enters Definition IDs and the receipts of the Queries that read it, so they are
+// compared with the baseline's derived again with the rename, never waived, and a rename the delta
+// does not record is refused by the IR comparison and the derived outputs alike.
+func TestOriginalBaselineDerivesRenamedClaimsFromTheBaseline(t *testing.T) {
+	const key = "ir/activity.json"
+	in := readOriginal(t)
+	archived, err := golden.ReadDerived(in.root, originalModelOutputs)
+	require.NoError(t, err)
+	digest := func(output string, m *umpirespb.Model) string {
+		return originalDigests(t, map[string]*umpirespb.Model{key: m}, output)[output+"/"+key]
+	}
+	for _, output := range []string{"semantics", "declarations"} {
+		frozen := archived[output+"/"+key]
+		require.Equal(t, frozen, digest(output, in.baselines[key]), output)
+		rederived := digest(output, in.expected[key])
+		require.NotEqual(t, frozen, rederived, "the rename enters %s", output)
+		require.Equal(t, rederived, digest(output, in.current[key]), output)
+	}
+	unrecorded := proto.CloneOf(in.current[key])
+	for _, p := range unrecorded.GetProperties() {
+		if p.GetName() == "completes" {
+			p.Name = "activityProtocol.completes"
+		}
+	}
+	for _, q := range unrecorded.GetQueries() {
+		if q.GetProperty().GetName() == "completes" {
+			q.Property.Name = "activityProtocol.completes"
+		}
+	}
+	require.Error(t, in.delta.MatchOriginal(in.expected[key], unrecorded))
+	require.NotEqual(t, digest("declarations", in.expected[key]), digest("declarations", unrecorded))
+	repointed := proto.CloneOf(in.current[key])
+	for _, q := range repointed.GetQueries() {
+		if q.GetName() == "completion" {
+			q.Property.Name = "retryCompletes"
+		}
+	}
+	require.Error(t, in.delta.MatchOriginal(in.expected[key], repointed))
+	require.NotEqual(t, digest("semantics", in.expected[key]), digest("semantics", repointed))
 }

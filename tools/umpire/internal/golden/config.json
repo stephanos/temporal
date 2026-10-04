@@ -161,14 +161,6 @@
       "new": "temporal.standaloneactivity.Functional$.all"
     },
     {
-      "old": "temporal.standaloneactivity.Claims$package$.terminalHolds",
-      "new": "temporal.standaloneactivity.Queries$package$.terminalHolds"
-    },
-    {
-      "old": "temporal.standaloneactivity.Claims$package$.pauseHolds",
-      "new": "temporal.standaloneactivity.Queries$package$.pauseHolds"
-    },
-    {
       "old": "temporal.standaloneactivity.Claims$package$.cancelRequest",
       "new": "temporal.standaloneactivity.Queries$package$.cancelRequest"
     },
@@ -244,6 +236,14 @@
       "old": "temporal.nexuscaller.Control$.forgedCompletion",
       "new": "temporal.nexuscaller.Queries$package$.forgedCompletion"
     }
+  ],
+  "source_root_retirements": [
+    "temporal.standaloneactivity.Claims$package$.pauseHolds",
+    "temporal.standaloneactivity.Claims$package$.terminalHolds"
+  ],
+  "source_root_additions": [
+    "temporal.standaloneactivity.Properties$package$.productCapabilities",
+    "temporal.standaloneactivity.Properties$package$.protocolCapabilities"
   ],
   "source_path_merges": [
     {

@@ -276,6 +276,18 @@ deadline, 4 retry, 5 run, fault, control or Nexus-only (`staleDeliveryRejected`,
 `committedDespiteLostResponse`, `failedCommitKeepsTheMessage`, `forgedSuccess`, `asyncStarts`), 3
 queue, 2 active count and 2 cross-entity worker.
 
+**Rolled out (fn-122 task 3).** The standalone activity declares its capabilities
+(`productCapabilities`, `protocolCapabilities`, `admissionCapabilities`, `overQueueCapabilities`,
+`overMatchingCapabilities`). `terminalIsFinal`, `pausedIsNotDispatched`, `terminalStays` and
+`notAdmittedWhilePaused` are no longer written in its files. Each is the generated
+`<machine>.<law>` Property, and its free `verify` Queries (`terminalHolds`, `pauseHolds`, `*.any.*`)
+are retired for the generated twins. The pinned paths and `*.product.pausedIsNotDispatched` read
+the generated Property through `claim`. The designs over a queue waive `closedIsRejectedUniformly`
+with a reason: their queue member keeps stepping after the record closes.
+`model/ir/activity-system.laws.json` lists `activityProduct` and `currentAdmission` as the two
+instantiating machines of each law the record brings. `terminated` and its find stay authored:
+`activityProtocol.terminateSettles` lowers to a Case of its own, not to theirs byte for byte.
+
 **For the owner.** No claim is unclassified. These are the borderline calls, each decided above:
 
 - `terminated` and `cancelRequestedWhileStarted` fix the phase as well as the recorded fact, so they

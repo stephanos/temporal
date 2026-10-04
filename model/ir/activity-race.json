@@ -546,7 +546,7 @@
     "name": "admissionResponseLoss.property.committedDespiteLostResponse",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 46
+      "line": 69
     },
     "params": [ {
       "name": "after",
@@ -557,14 +557,14 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-        "line": 47
+        "line": 70
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 47
+            "line": 70
           },
           "literal": {
             "enum": {
@@ -576,13 +576,13 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 47
+            "line": 70
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-                "line": 47
+                "line": 70
               },
               "var": "after"
             },
@@ -786,7 +786,7 @@
     "name": "heldAdmission.property.staleDeliveryRejected",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 42
+      "line": 65
     },
     "params": [ {
       "name": "step",
@@ -797,14 +797,14 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-        "line": 42
+        "line": 65
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 42
+            "line": 65
           },
           "literal": {
             "enum": {
@@ -816,13 +816,13 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 42
+            "line": 65
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-                "line": 42
+                "line": 65
               },
               "var": "step"
             },
@@ -5527,7 +5527,7 @@
     "name": "committedDespiteLostResponse",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 46
+      "line": 69
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.System$package$.ackLoss"
@@ -5538,7 +5538,7 @@
     "name": "staleDeliveryRejected",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 42
+      "line": 65
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart"
@@ -5550,7 +5550,7 @@
     "name": "oneLostResponse",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 68
+      "line": 67
     },
     "start": {
       "position": {
@@ -5622,7 +5622,7 @@
     "name": "heldStaleDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 51
+      "line": 50
     },
     "start": {
       "position": {
@@ -5685,7 +5685,7 @@
     "name": "admissionResponseLoss.committed",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 70
+      "line": 69
     },
     "form": "FORM_FIND",
     "property": {
@@ -5711,7 +5711,7 @@
     "name": "heldAdmission.staleDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 51
+      "line": 50
     },
     "form": "FORM_FIND",
     "property": {

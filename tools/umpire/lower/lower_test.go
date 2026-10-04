@@ -444,7 +444,12 @@ func TestEveryQueryHasAStanding(t *testing.T) {
 	cases := []struct {
 		model              string
 		verify, unrealized int
-	}{{"activity-system", 61, 23}, {"nexus-close", 84, 72}}
+	}{
+		// The capabilities' generated verifies replace each design's and composition's two `any` ones,
+		// and add the product's three laws; the designs waive closed rejection.
+		{"activity-system", 64, 23},
+		{"nexus-close", 84, 72},
+	}
 	for _, c := range cases {
 		t.Run(c.model, func(t *testing.T) {
 			m := loaded(t, c.model)

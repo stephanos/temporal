@@ -741,7 +741,145 @@
       }
     }
   }, {
-    "name": "activityProduct.property.pausedIsNotDispatched",
+    "name": "activityProduct.property.activityProduct.closedIsRejectedUniformly",
+    "position": {
+      "file": "model/umpire/laws/Laws.scala",
+      "line": 59
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "temporal.standaloneactivity.ProductState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/umpire/laws/Laws.scala",
+        "line": 60
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/umpire/laws/Laws.scala",
+            "line": 60
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/umpire/laws/Laws.scala",
+                "line": 60
+              },
+              "call": {
+                "function": "temporal.standaloneactivity.Product$.terminal",
+                "args": [ {
+                  "position": {
+                    "file": "model/umpire/laws/Laws.scala",
+                    "line": 60
+                  },
+                  "call": {
+                    "function": "temporal.standaloneactivity.Product$.phase",
+                    "args": [ {
+                      "position": {
+                        "file": "model/umpire/laws/Laws.scala",
+                        "line": 60
+                      },
+                      "var": "before"
+                    } ]
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/umpire/laws/Laws.scala",
+            "line": 60
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/umpire/laws/Laws.scala",
+                "line": 60
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/umpire/laws/Laws.scala",
+                    "line": 60
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/umpire/laws/Laws.scala",
+                        "line": 60
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/umpire/laws/Laws.scala",
+                    "line": 60
+                  },
+                  "var": "before"
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/umpire/laws/Laws.scala",
+                "line": 60
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/umpire/laws/Laws.scala",
+                    "line": 60
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/umpire/laws/Laws.scala",
+                        "line": 60
+                      },
+                      "var": "after"
+                    },
+                    "field": "outcome"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/standaloneactivity/Properties.scala",
+                    "line": 20
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.Outcome",
+                      "case": "notFound"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "activityProduct.property.activityProduct.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -802,7 +940,7 @@
                 "line": 25
               },
               "call": {
-                "function": "activityProduct.property.pausedIsNotDispatched.never",
+                "function": "activityProduct.property.activityProduct.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
@@ -817,7 +955,7 @@
       }
     }
   }, {
-    "name": "activityProduct.property.pausedIsNotDispatched.never",
+    "name": "activityProduct.property.activityProduct.pausedIsNotDispatched.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -851,6 +989,116 @@
             "field": "state"
           }
         } ]
+      }
+    }
+  }, {
+    "name": "activityProduct.property.activityProduct.terminalStatesAreFinal",
+    "position": {
+      "file": "model/umpire/laws/Laws.scala",
+      "line": 31
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "temporal.standaloneactivity.ProductState"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/umpire/laws/Laws.scala",
+        "line": 32
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/umpire/laws/Laws.scala",
+            "line": 32
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/umpire/laws/Laws.scala",
+                "line": 32
+              },
+              "call": {
+                "function": "temporal.standaloneactivity.Product$.terminal",
+                "args": [ {
+                  "position": {
+                    "file": "model/umpire/laws/Laws.scala",
+                    "line": 32
+                  },
+                  "call": {
+                    "function": "temporal.standaloneactivity.Product$.phase",
+                    "args": [ {
+                      "position": {
+                        "file": "model/umpire/laws/Laws.scala",
+                        "line": 32
+                      },
+                      "var": "before"
+                    } ]
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/umpire/laws/Laws.scala",
+            "line": 32
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/umpire/laws/Laws.scala",
+                "line": 32
+              },
+              "call": {
+                "function": "temporal.standaloneactivity.Product$.phase",
+                "args": [ {
+                  "position": {
+                    "file": "model/umpire/laws/Laws.scala",
+                    "line": 32
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/umpire/laws/Laws.scala",
+                        "line": 32
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                } ]
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/umpire/laws/Laws.scala",
+                "line": 32
+              },
+              "call": {
+                "function": "temporal.standaloneactivity.Product$.phase",
+                "args": [ {
+                  "position": {
+                    "file": "model/umpire/laws/Laws.scala",
+                    "line": 32
+                  },
+                  "var": "before"
+                } ]
+              }
+            }
+          }
+        }
       }
     }
   }, {
@@ -1066,7 +1314,7 @@
     "name": "activityProtocol.property.scheduleToCloseFires",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 65
+      "line": 96
     },
     "params": [ {
       "name": "s",
@@ -1077,33 +1325,33 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 66
+        "line": 97
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 66
+            "line": 97
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 66
+                "line": 97
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 66
+                    "line": 97
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Properties.scala",
-                        "line": 66
+                        "line": 97
                       },
                       "var": "s"
                     },
@@ -1116,7 +1364,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 66
+                "line": 97
               },
               "literal": {
                 "enum": {
@@ -1130,14 +1378,14 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 67
+            "line": 98
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 67
+                "line": 98
               },
               "construct": {
                 "type": "temporal.standaloneactivity.ProtocolFact",
@@ -1145,7 +1393,7 @@
                 "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 67
+                    "line": 98
                   },
                   "literal": {
                     "enum": {
@@ -1159,13 +1407,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 67
+                "line": 98
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 67
+                    "line": 98
                   },
                   "var": "s"
                 },
@@ -1180,7 +1428,7 @@
     "name": "activityProtocol.property.scheduleToStartFires",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 60
+      "line": 91
     },
     "params": [ {
       "name": "s",
@@ -1191,33 +1439,33 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 61
+        "line": 92
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 61
+            "line": 92
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 61
+                "line": 92
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 61
+                    "line": 92
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Properties.scala",
-                        "line": 61
+                        "line": 92
                       },
                       "var": "s"
                     },
@@ -1230,7 +1478,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 61
+                "line": 92
               },
               "literal": {
                 "enum": {
@@ -1244,14 +1492,14 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 62
+            "line": 93
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 62
+                "line": 93
               },
               "construct": {
                 "type": "temporal.standaloneactivity.ProtocolFact",
@@ -1259,7 +1507,7 @@
                 "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 62
+                    "line": 93
                   },
                   "literal": {
                     "enum": {
@@ -1273,13 +1521,13 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 62
+                "line": 93
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 62
+                    "line": 93
                   },
                   "var": "s"
                 },
@@ -1485,7 +1733,7 @@
     "name": "currentAdmission.property.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "params": [ {
       "name": "after",
@@ -1496,21 +1744,21 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 88
+        "line": 118
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 88
+            "line": 118
           },
           "call": {
             "function": "currentAdmission.property.atMostOneActive.never",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 88
+                "line": 118
               },
               "var": "after"
             } ]
@@ -1522,7 +1770,7 @@
     "name": "currentAdmission.property.atMostOneActive.never",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "params": [ {
       "name": "s",
@@ -1533,20 +1781,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 88
+        "line": 118
       },
       "call": {
         "function": "temporal.standaloneactivity.admission.Admission$.twoActive",
         "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 88
+            "line": 118
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 88
+                "line": 118
               },
               "var": "s"
             },
@@ -1556,7 +1804,7 @@
       }
     }
   }, {
-    "name": "currentAdmission.property.notAdmittedWhilePaused",
+    "name": "currentAdmission.property.currentAdmission.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -1617,7 +1865,7 @@
                 "line": 25
               },
               "call": {
-                "function": "currentAdmission.property.notAdmittedWhilePaused.never",
+                "function": "currentAdmission.property.currentAdmission.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
@@ -1632,7 +1880,7 @@
       }
     }
   }, {
-    "name": "currentAdmission.property.notAdmittedWhilePaused.never",
+    "name": "currentAdmission.property.currentAdmission.pausedIsNotDispatched.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -1669,125 +1917,7 @@
       }
     }
   }, {
-    "name": "currentAdmission.property.scheduleToCloseTimesOut",
-    "position": {
-      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 27
-    },
-    "params": [ {
-      "name": "after",
-      "type": {
-        "named": "umpire.Step"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-        "line": 28
-      },
-      "binary": {
-        "op": "OP_CONTAINS",
-        "left": {
-          "position": {
-            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 28
-          },
-          "construct": {
-            "type": "temporal.standaloneactivity.AdmissionFact",
-            "case": "statusTimedOut",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-                "line": 28
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.standaloneactivity.TimeoutType",
-                  "case": "scheduleToClose"
-                }
-              }
-            } ]
-          }
-        },
-        "right": {
-          "position": {
-            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 28
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-                "line": 28
-              },
-              "var": "after"
-            },
-            "field": "facts"
-          }
-        }
-      }
-    }
-  }, {
-    "name": "currentAdmission.property.scheduleToStartTimesOut",
-    "position": {
-      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 24
-    },
-    "params": [ {
-      "name": "after",
-      "type": {
-        "named": "umpire.Step"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-        "line": 25
-      },
-      "binary": {
-        "op": "OP_CONTAINS",
-        "left": {
-          "position": {
-            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 25
-          },
-          "construct": {
-            "type": "temporal.standaloneactivity.AdmissionFact",
-            "case": "statusTimedOut",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-                "line": 25
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.standaloneactivity.TimeoutType",
-                  "case": "scheduleToStart"
-                }
-              }
-            } ]
-          }
-        },
-        "right": {
-          "position": {
-            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 25
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-                "line": 25
-              },
-              "var": "after"
-            },
-            "field": "facts"
-          }
-        }
-      }
-    }
-  }, {
-    "name": "currentAdmission.property.terminalStays",
+    "name": "currentAdmission.property.currentAdmission.terminalStatesAreFinal",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
       "line": 31
@@ -1897,10 +2027,128 @@
       }
     }
   }, {
+    "name": "currentAdmission.property.scheduleToCloseTimesOut",
+    "position": {
+      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+      "line": 51
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+        "line": 52
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+            "line": 52
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionFact",
+            "case": "statusTimedOut",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+                "line": 52
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.TimeoutType",
+                  "case": "scheduleToClose"
+                }
+              }
+            } ]
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+            "line": 52
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+                "line": 52
+              },
+              "var": "after"
+            },
+            "field": "facts"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "currentAdmission.property.scheduleToStartTimesOut",
+    "position": {
+      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+      "line": 48
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+        "line": 49
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+            "line": 49
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionFact",
+            "case": "statusTimedOut",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+                "line": 49
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.TimeoutType",
+                  "case": "scheduleToStart"
+                }
+              }
+            } ]
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+            "line": 49
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+                "line": 49
+              },
+              "var": "after"
+            },
+            "field": "facts"
+          }
+        }
+      }
+    }
+  }, {
     "name": "currentOverLossyMatching.property.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "params": [ {
       "name": "after",
@@ -1911,21 +2159,21 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 88
+        "line": 118
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 88
+            "line": 118
           },
           "call": {
             "function": "currentOverLossyMatching.property.atMostOneActive.never",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 88
+                "line": 118
               },
               "var": "after"
             } ]
@@ -1937,7 +2185,7 @@
     "name": "currentOverLossyMatching.property.atMostOneActive.never",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "params": [ {
       "name": "s",
@@ -1948,20 +2196,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 88
+        "line": 118
       },
       "call": {
         "function": "temporal.standaloneactivity.compositions.OverMatching$.twoActive",
         "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 88
+            "line": 118
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 88
+                "line": 118
               },
               "var": "s"
             },
@@ -1971,7 +2219,7 @@
       }
     }
   }, {
-    "name": "currentOverLossyMatching.property.notAdmittedWhilePaused",
+    "name": "currentOverLossyMatching.property.currentOverLossyMatching.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -2032,7 +2280,7 @@
                 "line": 25
               },
               "call": {
-                "function": "currentOverLossyMatching.property.notAdmittedWhilePaused.never",
+                "function": "currentOverLossyMatching.property.currentOverLossyMatching.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
@@ -2047,7 +2295,7 @@
       }
     }
   }, {
-    "name": "currentOverLossyMatching.property.notAdmittedWhilePaused.never",
+    "name": "currentOverLossyMatching.property.currentOverLossyMatching.pausedIsNotDispatched.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -2084,7 +2332,7 @@
       }
     }
   }, {
-    "name": "currentOverLossyMatching.property.terminalStays",
+    "name": "currentOverLossyMatching.property.currentOverLossyMatching.terminalStatesAreFinal",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
       "line": 31
@@ -2197,7 +2445,7 @@
     "name": "currentOverMatching.property.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "params": [ {
       "name": "after",
@@ -2208,21 +2456,21 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 88
+        "line": 118
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 88
+            "line": 118
           },
           "call": {
             "function": "currentOverMatching.property.atMostOneActive.never",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 88
+                "line": 118
               },
               "var": "after"
             } ]
@@ -2234,7 +2482,7 @@
     "name": "currentOverMatching.property.atMostOneActive.never",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "params": [ {
       "name": "s",
@@ -2245,20 +2493,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 88
+        "line": 118
       },
       "call": {
         "function": "temporal.standaloneactivity.compositions.OverMatching$.twoActive",
         "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 88
+            "line": 118
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 88
+                "line": 118
               },
               "var": "s"
             },
@@ -2268,7 +2516,7 @@
       }
     }
   }, {
-    "name": "currentOverMatching.property.notAdmittedWhilePaused",
+    "name": "currentOverMatching.property.currentOverMatching.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -2329,7 +2577,7 @@
                 "line": 25
               },
               "call": {
-                "function": "currentOverMatching.property.notAdmittedWhilePaused.never",
+                "function": "currentOverMatching.property.currentOverMatching.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
@@ -2344,7 +2592,7 @@
       }
     }
   }, {
-    "name": "currentOverMatching.property.notAdmittedWhilePaused.never",
+    "name": "currentOverMatching.property.currentOverMatching.pausedIsNotDispatched.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -2381,7 +2629,7 @@
       }
     }
   }, {
-    "name": "currentOverMatching.property.terminalStays",
+    "name": "currentOverMatching.property.currentOverMatching.terminalStatesAreFinal",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
       "line": 31
@@ -2494,7 +2742,7 @@
     "name": "currentOverQueue.property.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "params": [ {
       "name": "after",
@@ -2505,21 +2753,21 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 88
+        "line": 118
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 88
+            "line": 118
           },
           "call": {
             "function": "currentOverQueue.property.atMostOneActive.never",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 88
+                "line": 118
               },
               "var": "after"
             } ]
@@ -2531,7 +2779,7 @@
     "name": "currentOverQueue.property.atMostOneActive.never",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "params": [ {
       "name": "s",
@@ -2542,20 +2790,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 88
+        "line": 118
       },
       "call": {
         "function": "temporal.standaloneactivity.compositions.OverQueue$.twoActive",
         "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 88
+            "line": 118
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 88
+                "line": 118
               },
               "var": "s"
             },
@@ -2565,178 +2813,7 @@
       }
     }
   }, {
-    "name": "currentOverQueue.property.failedCommitKeepsTheMessage",
-    "position": {
-      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-      "line": 23
-    },
-    "params": [ {
-      "name": "after",
-      "type": {
-        "named": "umpire.Step"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-        "line": 24
-      },
-      "binary": {
-        "op": "OP_OR",
-        "left": {
-          "position": {
-            "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-            "line": 24
-          },
-          "unary": {
-            "op": "OP_NOT",
-            "operand": {
-              "position": {
-                "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                "line": 24
-              },
-              "binary": {
-                "op": "OP_CONTAINS",
-                "left": {
-                  "position": {
-                    "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                    "line": 24
-                  },
-                  "literal": {
-                    "text": "activity_admissionCommitFailed"
-                  }
-                },
-                "right": {
-                  "position": {
-                    "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                    "line": 24
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                        "line": 24
-                      },
-                      "var": "after"
-                    },
-                    "field": "facts"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "right": {
-          "position": {
-            "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-            "line": 25
-          },
-          "binary": {
-            "op": "OP_AND",
-            "left": {
-              "position": {
-                "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                "line": 25
-              },
-              "binary": {
-                "op": "OP_NE",
-                "left": {
-                  "position": {
-                    "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                    "line": 25
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                        "line": 25
-                      },
-                      "field": {
-                        "base": {
-                          "position": {
-                            "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                            "line": 25
-                          },
-                          "field": {
-                            "base": {
-                              "position": {
-                                "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                                "line": 25
-                              },
-                              "var": "after"
-                            },
-                            "field": "state"
-                          }
-                        },
-                        "field": "queue"
-                      }
-                    },
-                    "field": "outstanding"
-                  }
-                },
-                "right": {
-                  "position": {
-                    "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                    "line": 25
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.standaloneactivity.Outstanding",
-                      "case": "empty"
-                    }
-                  }
-                }
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                "line": 26
-              },
-              "unary": {
-                "op": "OP_NOT",
-                "operand": {
-                  "position": {
-                    "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                    "line": 26
-                  },
-                  "binary": {
-                    "op": "OP_CONTAINS",
-                    "left": {
-                      "position": {
-                        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                        "line": 26
-                      },
-                      "literal": {
-                        "text": "activity_attemptAdmitted"
-                      }
-                    },
-                    "right": {
-                      "position": {
-                        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                        "line": 26
-                      },
-                      "field": {
-                        "base": {
-                          "position": {
-                            "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                            "line": 26
-                          },
-                          "var": "after"
-                        },
-                        "field": "facts"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }, {
-    "name": "currentOverQueue.property.notAdmittedWhilePaused",
+    "name": "currentOverQueue.property.currentOverQueue.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -2797,7 +2874,7 @@
                 "line": 25
               },
               "call": {
-                "function": "currentOverQueue.property.notAdmittedWhilePaused.never",
+                "function": "currentOverQueue.property.currentOverQueue.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
@@ -2812,7 +2889,7 @@
       }
     }
   }, {
-    "name": "currentOverQueue.property.notAdmittedWhilePaused.never",
+    "name": "currentOverQueue.property.currentOverQueue.pausedIsNotDispatched.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -2849,7 +2926,7 @@
       }
     }
   }, {
-    "name": "currentOverQueue.property.terminalStays",
+    "name": "currentOverQueue.property.currentOverQueue.terminalStatesAreFinal",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
       "line": 31
@@ -2952,6 +3029,177 @@
                   },
                   "var": "before"
                 } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "currentOverQueue.property.failedCommitKeepsTheMessage",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 49
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+        "line": 50
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+            "line": 50
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+                "line": 50
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+                    "line": 50
+                  },
+                  "literal": {
+                    "text": "activity_admissionCommitFailed"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+                    "line": 50
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+                        "line": 50
+                      },
+                      "var": "after"
+                    },
+                    "field": "facts"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+            "line": 51
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+                "line": 51
+              },
+              "binary": {
+                "op": "OP_NE",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+                    "line": 51
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+                        "line": 51
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+                            "line": 51
+                          },
+                          "field": {
+                            "base": {
+                              "position": {
+                                "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+                                "line": 51
+                              },
+                              "var": "after"
+                            },
+                            "field": "state"
+                          }
+                        },
+                        "field": "queue"
+                      }
+                    },
+                    "field": "outstanding"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+                    "line": 51
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.Outstanding",
+                      "case": "empty"
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+                "line": 52
+              },
+              "unary": {
+                "op": "OP_NOT",
+                "operand": {
+                  "position": {
+                    "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+                    "line": 52
+                  },
+                  "binary": {
+                    "op": "OP_CONTAINS",
+                    "left": {
+                      "position": {
+                        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+                        "line": 52
+                      },
+                      "literal": {
+                        "text": "activity_attemptAdmitted"
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+                        "line": 52
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+                            "line": 52
+                          },
+                          "var": "after"
+                        },
+                        "field": "facts"
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -4226,7 +4474,7 @@
     "name": "staleAdmission.property.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "params": [ {
       "name": "after",
@@ -4237,21 +4485,21 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 88
+        "line": 118
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 88
+            "line": 118
           },
           "call": {
             "function": "staleAdmission.property.atMostOneActive.never",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 88
+                "line": 118
               },
               "var": "after"
             } ]
@@ -4263,7 +4511,7 @@
     "name": "staleAdmission.property.atMostOneActive.never",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "params": [ {
       "name": "s",
@@ -4274,20 +4522,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 88
+        "line": 118
       },
       "call": {
         "function": "temporal.standaloneactivity.admission.Admission$.twoActive",
         "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 88
+            "line": 118
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 88
+                "line": 118
               },
               "var": "s"
             },
@@ -4297,7 +4545,125 @@
       }
     }
   }, {
-    "name": "staleAdmission.property.notAdmittedWhilePaused",
+    "name": "staleAdmission.property.scheduleToCloseTimesOut",
+    "position": {
+      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+      "line": 51
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+        "line": 52
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+            "line": 52
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionFact",
+            "case": "statusTimedOut",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+                "line": 52
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.TimeoutType",
+                  "case": "scheduleToClose"
+                }
+              }
+            } ]
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+            "line": 52
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+                "line": 52
+              },
+              "var": "after"
+            },
+            "field": "facts"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "staleAdmission.property.scheduleToStartTimesOut",
+    "position": {
+      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+      "line": 48
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+        "line": 49
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+            "line": 49
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionFact",
+            "case": "statusTimedOut",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+                "line": 49
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.TimeoutType",
+                  "case": "scheduleToStart"
+                }
+              }
+            } ]
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+            "line": 49
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+                "line": 49
+              },
+              "var": "after"
+            },
+            "field": "facts"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "staleAdmission.property.staleAdmission.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -4358,7 +4724,7 @@
                 "line": 25
               },
               "call": {
-                "function": "staleAdmission.property.notAdmittedWhilePaused.never",
+                "function": "staleAdmission.property.staleAdmission.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
@@ -4373,7 +4739,7 @@
       }
     }
   }, {
-    "name": "staleAdmission.property.notAdmittedWhilePaused.never",
+    "name": "staleAdmission.property.staleAdmission.pausedIsNotDispatched.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -4410,125 +4776,7 @@
       }
     }
   }, {
-    "name": "staleAdmission.property.scheduleToCloseTimesOut",
-    "position": {
-      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 27
-    },
-    "params": [ {
-      "name": "after",
-      "type": {
-        "named": "umpire.Step"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-        "line": 28
-      },
-      "binary": {
-        "op": "OP_CONTAINS",
-        "left": {
-          "position": {
-            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 28
-          },
-          "construct": {
-            "type": "temporal.standaloneactivity.AdmissionFact",
-            "case": "statusTimedOut",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-                "line": 28
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.standaloneactivity.TimeoutType",
-                  "case": "scheduleToClose"
-                }
-              }
-            } ]
-          }
-        },
-        "right": {
-          "position": {
-            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 28
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-                "line": 28
-              },
-              "var": "after"
-            },
-            "field": "facts"
-          }
-        }
-      }
-    }
-  }, {
-    "name": "staleAdmission.property.scheduleToStartTimesOut",
-    "position": {
-      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 24
-    },
-    "params": [ {
-      "name": "after",
-      "type": {
-        "named": "umpire.Step"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-        "line": 25
-      },
-      "binary": {
-        "op": "OP_CONTAINS",
-        "left": {
-          "position": {
-            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 25
-          },
-          "construct": {
-            "type": "temporal.standaloneactivity.AdmissionFact",
-            "case": "statusTimedOut",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-                "line": 25
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.standaloneactivity.TimeoutType",
-                  "case": "scheduleToStart"
-                }
-              }
-            } ]
-          }
-        },
-        "right": {
-          "position": {
-            "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-            "line": 25
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-                "line": 25
-              },
-              "var": "after"
-            },
-            "field": "facts"
-          }
-        }
-      }
-    }
-  }, {
-    "name": "staleAdmission.property.terminalStays",
+    "name": "staleAdmission.property.staleAdmission.terminalStatesAreFinal",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
       "line": 31
@@ -4641,7 +4889,7 @@
     "name": "staleOverMatching.property.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "params": [ {
       "name": "after",
@@ -4652,21 +4900,21 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 88
+        "line": 118
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 88
+            "line": 118
           },
           "call": {
             "function": "staleOverMatching.property.atMostOneActive.never",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 88
+                "line": 118
               },
               "var": "after"
             } ]
@@ -4678,7 +4926,7 @@
     "name": "staleOverMatching.property.atMostOneActive.never",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "params": [ {
       "name": "s",
@@ -4689,20 +4937,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 88
+        "line": 118
       },
       "call": {
         "function": "temporal.standaloneactivity.compositions.OverMatching$.twoActive",
         "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 88
+            "line": 118
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 88
+                "line": 118
               },
               "var": "s"
             },
@@ -4712,7 +4960,7 @@
       }
     }
   }, {
-    "name": "staleOverMatching.property.notAdmittedWhilePaused",
+    "name": "staleOverMatching.property.staleOverMatching.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -4773,7 +5021,7 @@
                 "line": 25
               },
               "call": {
-                "function": "staleOverMatching.property.notAdmittedWhilePaused.never",
+                "function": "staleOverMatching.property.staleOverMatching.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
@@ -4788,7 +5036,7 @@
       }
     }
   }, {
-    "name": "staleOverMatching.property.notAdmittedWhilePaused.never",
+    "name": "staleOverMatching.property.staleOverMatching.pausedIsNotDispatched.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -4825,7 +5073,7 @@
       }
     }
   }, {
-    "name": "staleOverMatching.property.terminalStays",
+    "name": "staleOverMatching.property.staleOverMatching.terminalStatesAreFinal",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
       "line": 31
@@ -4938,7 +5186,7 @@
     "name": "staleOverQueue.property.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "params": [ {
       "name": "after",
@@ -4949,21 +5197,21 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 88
+        "line": 118
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 88
+            "line": 118
           },
           "call": {
             "function": "staleOverQueue.property.atMostOneActive.never",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 88
+                "line": 118
               },
               "var": "after"
             } ]
@@ -4975,7 +5223,7 @@
     "name": "staleOverQueue.property.atMostOneActive.never",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "params": [ {
       "name": "s",
@@ -4986,20 +5234,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 88
+        "line": 118
       },
       "call": {
         "function": "temporal.standaloneactivity.compositions.OverQueue$.twoActive",
         "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 88
+            "line": 118
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 88
+                "line": 118
               },
               "var": "s"
             },
@@ -5012,7 +5260,7 @@
     "name": "staleOverQueue.property.failedCommitKeepsTheMessage",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-      "line": 23
+      "line": 49
     },
     "params": [ {
       "name": "after",
@@ -5023,28 +5271,28 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-        "line": 24
+        "line": 50
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-            "line": 24
+            "line": 50
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                "line": 24
+                "line": 50
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                    "line": 24
+                    "line": 50
                   },
                   "literal": {
                     "text": "activity_admissionCommitFailed"
@@ -5053,13 +5301,13 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                    "line": 24
+                    "line": 50
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                        "line": 24
+                        "line": 50
                       },
                       "var": "after"
                     },
@@ -5073,39 +5321,39 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-            "line": 25
+            "line": 51
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                "line": 25
+                "line": 51
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                    "line": 25
+                    "line": 51
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                        "line": 25
+                        "line": 51
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                            "line": 25
+                            "line": 51
                           },
                           "field": {
                             "base": {
                               "position": {
                                 "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                                "line": 25
+                                "line": 51
                               },
                               "var": "after"
                             },
@@ -5121,7 +5369,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                    "line": 25
+                    "line": 51
                   },
                   "literal": {
                     "enum": {
@@ -5135,21 +5383,21 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                "line": 26
+                "line": 52
               },
               "unary": {
                 "op": "OP_NOT",
                 "operand": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                    "line": 26
+                    "line": 52
                   },
                   "binary": {
                     "op": "OP_CONTAINS",
                     "left": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                        "line": 26
+                        "line": 52
                       },
                       "literal": {
                         "text": "activity_attemptAdmitted"
@@ -5158,13 +5406,13 @@
                     "right": {
                       "position": {
                         "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                        "line": 26
+                        "line": 52
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-                            "line": 26
+                            "line": 52
                           },
                           "var": "after"
                         },
@@ -5180,7 +5428,7 @@
       }
     }
   }, {
-    "name": "staleOverQueue.property.notAdmittedWhilePaused",
+    "name": "staleOverQueue.property.staleOverQueue.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -5241,7 +5489,7 @@
                 "line": 25
               },
               "call": {
-                "function": "staleOverQueue.property.notAdmittedWhilePaused.never",
+                "function": "staleOverQueue.property.staleOverQueue.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
@@ -5256,7 +5504,7 @@
       }
     }
   }, {
-    "name": "staleOverQueue.property.notAdmittedWhilePaused.never",
+    "name": "staleOverQueue.property.staleOverQueue.pausedIsNotDispatched.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
@@ -5293,7 +5541,7 @@
       }
     }
   }, {
-    "name": "staleOverQueue.property.terminalStays",
+    "name": "staleOverQueue.property.staleOverQueue.terminalStatesAreFinal",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
       "line": 31
@@ -6886,6 +7134,34 @@
             }
           }
         }
+      }
+    }
+  }, {
+    "name": "temporal.standaloneactivity.Product$.phase",
+    "position": {
+      "file": "model/temporal/standaloneactivity/Model.scala",
+      "line": 112
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.standaloneactivity.ProductState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/Model.scala",
+        "line": 112
+      },
+      "field": {
+        "base": {
+          "position": {
+            "file": "model/temporal/standaloneactivity/Model.scala",
+            "line": 112
+          },
+          "var": "s"
+        },
+        "field": "phase"
       }
     }
   }, {
@@ -20654,19 +20930,37 @@
   } ],
   "properties": [ {
     "machine": "activityProduct",
-    "name": "pausedIsNotDispatched",
+    "name": "activityProduct.closedIsRejectedUniformly",
+    "position": {
+      "file": "model/umpire/laws/Laws.scala",
+      "line": 59
+    },
+    "holds": "activityProduct.property.activityProduct.closedIsRejectedUniformly",
+    "transition": true
+  }, {
+    "machine": "activityProduct",
+    "name": "activityProduct.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
     },
-    "holds": "activityProduct.property.pausedIsNotDispatched",
+    "holds": "activityProduct.property.activityProduct.pausedIsNotDispatched",
+    "transition": true
+  }, {
+    "machine": "activityProduct",
+    "name": "activityProduct.terminalStatesAreFinal",
+    "position": {
+      "file": "model/umpire/laws/Laws.scala",
+      "line": 31
+    },
+    "holds": "activityProduct.property.activityProduct.terminalStatesAreFinal",
     "transition": true
   }, {
     "machine": "activityProtocol",
     "name": "scheduleToCloseFires",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 65
+      "line": 96
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.scheduleToClose"
@@ -20677,7 +20971,7 @@
     "name": "scheduleToStartFires",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 60
+      "line": 91
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.scheduleToStart"
@@ -20688,24 +20982,33 @@
     "name": "atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "holds": "currentAdmission.property.atMostOneActive"
   }, {
     "machine": "currentAdmission",
-    "name": "notAdmittedWhilePaused",
+    "name": "currentAdmission.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
     },
-    "holds": "currentAdmission.property.notAdmittedWhilePaused",
+    "holds": "currentAdmission.property.currentAdmission.pausedIsNotDispatched",
+    "transition": true
+  }, {
+    "machine": "currentAdmission",
+    "name": "currentAdmission.terminalStatesAreFinal",
+    "position": {
+      "file": "model/umpire/laws/Laws.scala",
+      "line": 31
+    },
+    "holds": "currentAdmission.property.currentAdmission.terminalStatesAreFinal",
     "transition": true
   }, {
     "machine": "currentAdmission",
     "name": "scheduleToCloseTimesOut",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 27
+      "line": 51
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.scheduleToClose"
@@ -20716,107 +21019,98 @@
     "name": "scheduleToStartTimesOut",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 24
+      "line": 48
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.scheduleToStart"
     },
     "holds": "currentAdmission.property.scheduleToStartTimesOut"
   }, {
-    "machine": "currentAdmission",
-    "name": "terminalStays",
-    "position": {
-      "file": "model/umpire/laws/Laws.scala",
-      "line": 31
-    },
-    "holds": "currentAdmission.property.terminalStays",
-    "transition": true
-  }, {
     "machine": "currentOverLossyMatching",
     "name": "atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "holds": "currentOverLossyMatching.property.atMostOneActive"
   }, {
     "machine": "currentOverLossyMatching",
-    "name": "notAdmittedWhilePaused",
+    "name": "currentOverLossyMatching.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
     },
-    "holds": "currentOverLossyMatching.property.notAdmittedWhilePaused",
+    "holds": "currentOverLossyMatching.property.currentOverLossyMatching.pausedIsNotDispatched",
     "transition": true
   }, {
     "machine": "currentOverLossyMatching",
-    "name": "terminalStays",
+    "name": "currentOverLossyMatching.terminalStatesAreFinal",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
       "line": 31
     },
-    "holds": "currentOverLossyMatching.property.terminalStays",
+    "holds": "currentOverLossyMatching.property.currentOverLossyMatching.terminalStatesAreFinal",
     "transition": true
   }, {
     "machine": "currentOverMatching",
     "name": "atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "holds": "currentOverMatching.property.atMostOneActive"
   }, {
     "machine": "currentOverMatching",
-    "name": "notAdmittedWhilePaused",
+    "name": "currentOverMatching.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
     },
-    "holds": "currentOverMatching.property.notAdmittedWhilePaused",
+    "holds": "currentOverMatching.property.currentOverMatching.pausedIsNotDispatched",
     "transition": true
   }, {
     "machine": "currentOverMatching",
-    "name": "terminalStays",
+    "name": "currentOverMatching.terminalStatesAreFinal",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
       "line": 31
     },
-    "holds": "currentOverMatching.property.terminalStays",
+    "holds": "currentOverMatching.property.currentOverMatching.terminalStatesAreFinal",
     "transition": true
   }, {
     "machine": "currentOverQueue",
     "name": "atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "holds": "currentOverQueue.property.atMostOneActive"
+  }, {
+    "machine": "currentOverQueue",
+    "name": "currentOverQueue.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/laws/Pause.scala",
+      "line": 25
+    },
+    "holds": "currentOverQueue.property.currentOverQueue.pausedIsNotDispatched",
+    "transition": true
+  }, {
+    "machine": "currentOverQueue",
+    "name": "currentOverQueue.terminalStatesAreFinal",
+    "position": {
+      "file": "model/umpire/laws/Laws.scala",
+      "line": 31
+    },
+    "holds": "currentOverQueue.property.currentOverQueue.terminalStatesAreFinal",
+    "transition": true
   }, {
     "machine": "currentOverQueue",
     "name": "failedCommitKeepsTheMessage",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-      "line": 23
+      "line": 49
     },
     "holds": "currentOverQueue.property.failedCommitKeepsTheMessage"
-  }, {
-    "machine": "currentOverQueue",
-    "name": "notAdmittedWhilePaused",
-    "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
-    },
-    "holds": "currentOverQueue.property.notAdmittedWhilePaused",
-    "transition": true
-  }, {
-    "machine": "currentOverQueue",
-    "name": "terminalStays",
-    "position": {
-      "file": "model/umpire/laws/Laws.scala",
-      "line": 31
-    },
-    "holds": "currentOverQueue.property.terminalStays",
-    "transition": true
   }, {
     "machine": "forgetfulQueue",
     "name": "committedStays",
@@ -20893,24 +21187,15 @@
     "name": "atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "holds": "staleAdmission.property.atMostOneActive"
-  }, {
-    "machine": "staleAdmission",
-    "name": "notAdmittedWhilePaused",
-    "position": {
-      "file": "model/temporal/laws/Pause.scala",
-      "line": 25
-    },
-    "holds": "staleAdmission.property.notAdmittedWhilePaused",
-    "transition": true
   }, {
     "machine": "staleAdmission",
     "name": "scheduleToCloseTimesOut",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 27
+      "line": 51
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.scheduleToClose"
@@ -20921,7 +21206,7 @@
     "name": "scheduleToStartTimesOut",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Properties.scala",
-      "line": 24
+      "line": 48
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.scheduleToStart"
@@ -20929,45 +21214,54 @@
     "holds": "staleAdmission.property.scheduleToStartTimesOut"
   }, {
     "machine": "staleAdmission",
-    "name": "terminalStays",
+    "name": "staleAdmission.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/laws/Pause.scala",
+      "line": 25
+    },
+    "holds": "staleAdmission.property.staleAdmission.pausedIsNotDispatched",
+    "transition": true
+  }, {
+    "machine": "staleAdmission",
+    "name": "staleAdmission.terminalStatesAreFinal",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
       "line": 31
     },
-    "holds": "staleAdmission.property.terminalStays",
+    "holds": "staleAdmission.property.staleAdmission.terminalStatesAreFinal",
     "transition": true
   }, {
     "machine": "staleOverMatching",
     "name": "atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "holds": "staleOverMatching.property.atMostOneActive"
   }, {
     "machine": "staleOverMatching",
-    "name": "notAdmittedWhilePaused",
+    "name": "staleOverMatching.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
     },
-    "holds": "staleOverMatching.property.notAdmittedWhilePaused",
+    "holds": "staleOverMatching.property.staleOverMatching.pausedIsNotDispatched",
     "transition": true
   }, {
     "machine": "staleOverMatching",
-    "name": "terminalStays",
+    "name": "staleOverMatching.terminalStatesAreFinal",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
       "line": 31
     },
-    "holds": "staleOverMatching.property.terminalStays",
+    "holds": "staleOverMatching.property.staleOverMatching.terminalStatesAreFinal",
     "transition": true
   }, {
     "machine": "staleOverQueue",
     "name": "atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 88
+      "line": 118
     },
     "holds": "staleOverQueue.property.atMostOneActive"
   }, {
@@ -20975,26 +21269,26 @@
     "name": "failedCommitKeepsTheMessage",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
-      "line": 23
+      "line": 49
     },
     "holds": "staleOverQueue.property.failedCommitKeepsTheMessage"
   }, {
     "machine": "staleOverQueue",
-    "name": "notAdmittedWhilePaused",
+    "name": "staleOverQueue.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
       "line": 25
     },
-    "holds": "staleOverQueue.property.notAdmittedWhilePaused",
+    "holds": "staleOverQueue.property.staleOverQueue.pausedIsNotDispatched",
     "transition": true
   }, {
     "machine": "staleOverQueue",
-    "name": "terminalStays",
+    "name": "staleOverQueue.terminalStatesAreFinal",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
       "line": 31
     },
-    "holds": "staleOverQueue.property.terminalStays",
+    "holds": "staleOverQueue.property.staleOverQueue.terminalStatesAreFinal",
     "transition": true
   }, {
     "machine": "volatileQueue",
@@ -21018,6 +21312,93 @@
     "holds": "volatileQueue.property.delivers"
   } ],
   "scenarios": [ {
+    "machine": "activityProduct",
+    "name": "activityProduct.closedIsRejectedUniformly",
+    "position": {
+      "file": "model/temporal/standaloneactivity/Properties.scala",
+      "line": 20
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/Model.scala",
+        "line": 178
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.ProductState",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/Model.scala",
+            "line": 178
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.ProductPhase",
+              "case": "scheduled"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "activityProduct",
+    "name": "activityProduct.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/standaloneactivity/Properties.scala",
+      "line": 21
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/Model.scala",
+        "line": 178
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.ProductState",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/Model.scala",
+            "line": 178
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.ProductPhase",
+              "case": "scheduled"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "activityProduct",
+    "name": "activityProduct.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/Properties.scala",
+      "line": 20
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/Model.scala",
+        "line": 178
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.ProductState",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/Model.scala",
+            "line": 178
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.ProductPhase",
+              "case": "scheduled"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
     "machine": "activityProtocol",
     "name": "bothDeadlinesCloseFirst",
     "position": {
@@ -21202,7 +21583,7 @@
     "name": "admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 12
+      "line": 13
     },
     "start": {
       "position": {
@@ -21265,7 +21646,109 @@
     "name": "any",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 18
+      "line": 19
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/admission/Model.scala",
+        "line": 46
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.AdmissionState",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.AdmissionPhase",
+              "case": "scheduled"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.Active",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.Answer",
+              "case": "settled"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "currentAdmission",
+    "name": "currentAdmission.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+      "line": 30
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/admission/Model.scala",
+        "line": 46
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.AdmissionState",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.AdmissionPhase",
+              "case": "scheduled"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.Active",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.Answer",
+              "case": "settled"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "currentAdmission",
+    "name": "currentAdmission.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+      "line": 29
     },
     "start": {
       "position": {
@@ -21316,7 +21799,7 @@
     "name": "duplicateDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 13
+      "line": 14
     },
     "start": {
       "position": {
@@ -21373,7 +21856,7 @@
     "name": "scheduleToCloseFirst",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 17
+      "line": 18
     },
     "start": {
       "position": {
@@ -21428,7 +21911,7 @@
     "name": "scheduleToStartFirst",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 16
+      "line": 17
     },
     "start": {
       "position": {
@@ -21483,7 +21966,7 @@
     "name": "staleDeliveryAfterPause",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 11
+      "line": 12
     },
     "start": {
       "position": {
@@ -21546,7 +22029,7 @@
     "name": "startedAfterCompletion",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 14
+      "line": 15
     },
     "start": {
       "position": {
@@ -21611,12 +22094,12 @@
     "name": "admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 55
+      "line": 53
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 55
+        "line": 53
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -21710,12 +22193,12 @@
     "name": "any",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 82
+      "line": 80
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 82
+        "line": 80
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -21809,12 +22292,12 @@
     "name": "crashAfterAdmissionCommit",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 72
+      "line": 70
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 72
+        "line": 70
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -21905,15 +22388,213 @@
     "keys": [ "dispatch", "queue_addActivityTask", "queue_syncMatch", "admit", "queue_crash", "queue_addActivityTask", "queue_syncMatch", "admit" ]
   }, {
     "machine": "currentOverLossyMatching",
+    "name": "currentOverLossyMatching.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 71
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+        "line": 71
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.OverMatching",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionState",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.AdmissionPhase",
+                  "case": "scheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Active",
+                  "case": "none"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Answer",
+                  "case": "settled"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/taskqueue/Model.scala",
+            "line": 167
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueDetail",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "nowhere"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "bool": false
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Delivered",
+                  "case": "never"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "currentOverLossyMatching",
+    "name": "currentOverLossyMatching.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 70
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+        "line": 70
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.OverMatching",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionState",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.AdmissionPhase",
+                  "case": "scheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Active",
+                  "case": "none"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Answer",
+                  "case": "settled"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/taskqueue/Model.scala",
+            "line": 167
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueDetail",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "nowhere"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "bool": false
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Delivered",
+                  "case": "never"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "currentOverLossyMatching",
     "name": "deliveredAgainAfterLostAck",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 63
+      "line": 61
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 63
+        "line": 61
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -22007,12 +22688,12 @@
     "name": "staleDeliveryAfterPause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 48
+      "line": 46
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 48
+        "line": 46
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -22106,12 +22787,12 @@
     "name": "admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 55
+      "line": 53
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 55
+        "line": 53
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -22205,12 +22886,12 @@
     "name": "any",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 82
+      "line": 80
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 82
+        "line": 80
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -22304,12 +22985,12 @@
     "name": "crashAfterAdmissionCommit",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 72
+      "line": 70
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 72
+        "line": 70
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -22400,15 +23081,213 @@
     "keys": [ "dispatch", "queue_addActivityTask", "queue_syncMatch", "admit", "queue_crash", "queue_addActivityTask", "queue_syncMatch", "admit" ]
   }, {
     "machine": "currentOverMatching",
+    "name": "currentOverMatching.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 71
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+        "line": 71
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.OverMatching",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionState",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.AdmissionPhase",
+                  "case": "scheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Active",
+                  "case": "none"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Answer",
+                  "case": "settled"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/taskqueue/Model.scala",
+            "line": 167
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueDetail",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "nowhere"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "bool": false
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Delivered",
+                  "case": "never"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "currentOverMatching",
+    "name": "currentOverMatching.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 70
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+        "line": 70
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.OverMatching",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionState",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.AdmissionPhase",
+                  "case": "scheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Active",
+                  "case": "none"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Answer",
+                  "case": "settled"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/taskqueue/Model.scala",
+            "line": 167
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueDetail",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "nowhere"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "bool": false
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Delivered",
+                  "case": "never"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "currentOverMatching",
     "name": "deliveredAgainAfterLostAck",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 63
+      "line": 61
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 63
+        "line": 61
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -22502,12 +23381,12 @@
     "name": "staleDeliveryAfterPause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 48
+      "line": 46
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 48
+        "line": 46
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -22687,6 +23566,166 @@
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
         "line": 27
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.OverQueue",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionState",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.AdmissionPhase",
+                  "case": "scheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Active",
+                  "case": "none"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Answer",
+                  "case": "settled"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/taskqueue/Model.scala",
+            "line": 121
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueView",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 121
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Outstanding",
+                  "case": "empty"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "currentOverQueue",
+    "name": "currentOverQueue.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 39
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+        "line": 39
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.OverQueue",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionState",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.AdmissionPhase",
+                  "case": "scheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Active",
+                  "case": "none"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Answer",
+                  "case": "settled"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/taskqueue/Model.scala",
+            "line": 121
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueView",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 121
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Outstanding",
+                  "case": "empty"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "currentOverQueue",
+    "name": "currentOverQueue.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 38
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+        "line": 38
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverQueue",
@@ -24021,7 +25060,7 @@
     "name": "admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 12
+      "line": 13
     },
     "start": {
       "position": {
@@ -24084,7 +25123,7 @@
     "name": "any",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 18
+      "line": 19
     },
     "start": {
       "position": {
@@ -24135,7 +25174,7 @@
     "name": "duplicateDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 13
+      "line": 14
     },
     "start": {
       "position": {
@@ -24192,7 +25231,7 @@
     "name": "scheduleToCloseFirst",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 17
+      "line": 18
     },
     "start": {
       "position": {
@@ -24247,7 +25286,7 @@
     "name": "scheduleToStartFirst",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 16
+      "line": 17
     },
     "start": {
       "position": {
@@ -24299,10 +25338,112 @@
     } ]
   }, {
     "machine": "staleAdmission",
+    "name": "staleAdmission.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+      "line": 30
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/admission/Model.scala",
+        "line": 46
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.AdmissionState",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.AdmissionPhase",
+              "case": "scheduled"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.Active",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.Answer",
+              "case": "settled"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "staleAdmission",
+    "name": "staleAdmission.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+      "line": 29
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/admission/Model.scala",
+        "line": 46
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.AdmissionState",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.AdmissionPhase",
+              "case": "scheduled"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.Active",
+              "case": "none"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.Answer",
+              "case": "settled"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "staleAdmission",
     "name": "staleDeliveryAfterPause",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 11
+      "line": 12
     },
     "start": {
       "position": {
@@ -24365,7 +25506,7 @@
     "name": "startedAfterCompletion",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 14
+      "line": 15
     },
     "start": {
       "position": {
@@ -24430,12 +25571,12 @@
     "name": "admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 55
+      "line": 53
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 55
+        "line": 53
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -24529,12 +25670,12 @@
     "name": "any",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 82
+      "line": 80
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 82
+        "line": 80
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -24628,12 +25769,12 @@
     "name": "crashAfterAdmissionCommit",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 72
+      "line": 70
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 72
+        "line": 70
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -24727,12 +25868,12 @@
     "name": "deliveredAgainAfterLostAck",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 63
+      "line": 61
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 63
+        "line": 61
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -24826,12 +25967,12 @@
     "name": "staleDeliveryAfterPause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 48
+      "line": 46
     },
     "start": {
       "position": {
         "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-        "line": 48
+        "line": 46
       },
       "construct": {
         "type": "temporal.standaloneactivity.OverMatching",
@@ -24920,6 +26061,204 @@
       }
     },
     "keys": [ "dispatch", "queue_addActivityTask", "queue_persistTask", "activity_control-pause", "admit" ]
+  }, {
+    "machine": "staleOverMatching",
+    "name": "staleOverMatching.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 71
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+        "line": 71
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.OverMatching",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionState",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.AdmissionPhase",
+                  "case": "scheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Active",
+                  "case": "none"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Answer",
+                  "case": "settled"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/taskqueue/Model.scala",
+            "line": 167
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueDetail",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "nowhere"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "bool": false
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Delivered",
+                  "case": "never"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "staleOverMatching",
+    "name": "staleOverMatching.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 70
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+        "line": 70
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.OverMatching",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionState",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.AdmissionPhase",
+                  "case": "scheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Active",
+                  "case": "none"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Answer",
+                  "case": "settled"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/taskqueue/Model.scala",
+            "line": 167
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueDetail",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "nowhere"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "bool": false
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Delivered",
+                  "case": "never"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
   }, {
     "machine": "staleOverQueue",
     "name": "admittedBeforePause",
@@ -25240,6 +26579,166 @@
       }
     },
     "keys": [ "dispatch", "activity_control-pause", "admit" ]
+  }, {
+    "machine": "staleOverQueue",
+    "name": "staleOverQueue.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 39
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+        "line": 39
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.OverQueue",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionState",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.AdmissionPhase",
+                  "case": "scheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Active",
+                  "case": "none"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Answer",
+                  "case": "settled"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/taskqueue/Model.scala",
+            "line": 121
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueView",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 121
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Outstanding",
+                  "case": "empty"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "staleOverQueue",
+    "name": "staleOverQueue.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 38
+    },
+    "start": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+        "line": 38
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.OverQueue",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 46
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.AdmissionState",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.AdmissionPhase",
+                  "case": "scheduled"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Active",
+                  "case": "none"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                "line": 46
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Answer",
+                  "case": "settled"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/taskqueue/Model.scala",
+            "line": 121
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueView",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/taskqueue/Model.scala",
+                "line": 121
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Outstanding",
+                  "case": "empty"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
   }, {
     "machine": "volatileQueue",
     "name": "any",
@@ -25590,10 +27089,76 @@
     } ]
   } ],
   "queries": [ {
+    "name": "activityProduct.closedIsRejectedUniformly",
+    "position": {
+      "file": "model/temporal/standaloneactivity/Properties.scala",
+      "line": 20
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "activityProduct",
+      "name": "activityProduct.closedIsRejectedUniformly"
+    },
+    "scenario": {
+      "machine": "activityProduct",
+      "name": "activityProduct.closedIsRejectedUniformly"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 4096
+    },
+    "total": "297"
+  }, {
+    "name": "activityProduct.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/standaloneactivity/Properties.scala",
+      "line": 21
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "activityProduct",
+      "name": "activityProduct.pausedIsNotDispatched"
+    },
+    "scenario": {
+      "machine": "activityProduct",
+      "name": "activityProduct.pausedIsNotDispatched"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 4096
+    },
+    "total": "297"
+  }, {
+    "name": "activityProduct.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/Properties.scala",
+      "line": 20
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "activityProduct",
+      "name": "activityProduct.terminalStatesAreFinal"
+    },
+    "scenario": {
+      "machine": "activityProduct",
+      "name": "activityProduct.terminalStatesAreFinal"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 4096
+    },
+    "total": "297"
+  }, {
     "name": "competingTimers.scheduleToCloseFirst",
     "position": {
       "file": "model/temporal/standaloneactivity/Queries.scala",
-      "line": 144
+      "line": 140
     },
     "form": "FORM_FIND",
     "property": {
@@ -25615,7 +27180,7 @@
     "name": "competingTimers.scheduleToStartFirst",
     "position": {
       "file": "model/temporal/standaloneactivity/Queries.scala",
-      "line": 142
+      "line": 138
     },
     "form": "FORM_FIND",
     "property": {
@@ -25637,12 +27202,12 @@
     "name": "currentAdmission.admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 22
+      "line": 23
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "currentAdmission",
-      "name": "notAdmittedWhilePaused"
+      "name": "currentAdmission.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "currentAdmission",
@@ -25678,54 +27243,10 @@
     },
     "total": "2340"
   }, {
-    "name": "currentAdmission.any.notAdmittedWhilePaused",
-    "position": {
-      "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 31
-    },
-    "form": "FORM_VERIFY",
-    "property": {
-      "machine": "currentAdmission",
-      "name": "notAdmittedWhilePaused"
-    },
-    "scenario": {
-      "machine": "currentAdmission",
-      "name": "any"
-    },
-    "limits": {
-      "name": "five",
-      "steps": 5,
-      "actions": 5,
-      "search": 65536
-    },
-    "total": "2340"
-  }, {
-    "name": "currentAdmission.any.terminalStays",
-    "position": {
-      "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 33
-    },
-    "form": "FORM_VERIFY",
-    "property": {
-      "machine": "currentAdmission",
-      "name": "terminalStays"
-    },
-    "scenario": {
-      "machine": "currentAdmission",
-      "name": "any"
-    },
-    "limits": {
-      "name": "five",
-      "steps": 5,
-      "actions": 5,
-      "search": 65536
-    },
-    "total": "2340"
-  }, {
     "name": "currentAdmission.duplicateDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 24
+      "line": 25
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -25747,12 +27268,12 @@
     "name": "currentAdmission.duplicateDelivery.monitored",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 27
+      "line": 28
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "currentAdmission",
-      "name": "notAdmittedWhilePaused"
+      "name": "currentAdmission.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "currentAdmission",
@@ -25766,15 +27287,37 @@
     },
     "total": "108"
   }, {
+    "name": "currentAdmission.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+      "line": 30
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "currentAdmission",
+      "name": "currentAdmission.pausedIsNotDispatched"
+    },
+    "scenario": {
+      "machine": "currentAdmission",
+      "name": "currentAdmission.pausedIsNotDispatched"
+    },
+    "limits": {
+      "name": "five",
+      "steps": 5,
+      "actions": 5,
+      "search": 65536
+    },
+    "total": "2340"
+  }, {
     "name": "currentAdmission.product.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 40
+      "line": 39
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "activityProduct",
-      "name": "pausedIsNotDispatched"
+      "name": "activityProduct.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "currentAdmission",
@@ -25792,7 +27335,7 @@
     "name": "currentAdmission.scheduleToCloseFirst",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 37
+      "line": 36
     },
     "form": "FORM_FIND",
     "property": {
@@ -25814,7 +27357,7 @@
     "name": "currentAdmission.scheduleToStartFirst",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 35
+      "line": 34
     },
     "form": "FORM_FIND",
     "property": {
@@ -25836,12 +27379,12 @@
     "name": "currentAdmission.staleDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 20
+      "line": 21
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "currentAdmission",
-      "name": "notAdmittedWhilePaused"
+      "name": "currentAdmission.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "currentAdmission",
@@ -25858,7 +27401,7 @@
     "name": "currentAdmission.startedAfterCompletion.monitored",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 29
+      "line": 30
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -25877,15 +27420,37 @@
     },
     "total": "144"
   }, {
+    "name": "currentAdmission.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+      "line": 29
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "currentAdmission",
+      "name": "currentAdmission.terminalStatesAreFinal"
+    },
+    "scenario": {
+      "machine": "currentAdmission",
+      "name": "currentAdmission.terminalStatesAreFinal"
+    },
+    "limits": {
+      "name": "five",
+      "steps": 5,
+      "actions": 5,
+      "search": 65536
+    },
+    "total": "2340"
+  }, {
     "name": "currentOverLossyMatching.admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 86
+      "line": 84
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "currentOverLossyMatching",
-      "name": "notAdmittedWhilePaused"
+      "name": "currentOverLossyMatching.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "currentOverLossyMatching",
@@ -25902,7 +27467,7 @@
     "name": "currentOverLossyMatching.any.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 93
+      "line": 90
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -25921,54 +27486,10 @@
     },
     "total": "246240"
   }, {
-    "name": "currentOverLossyMatching.any.notAdmittedWhilePaused",
-    "position": {
-      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 92
-    },
-    "form": "FORM_VERIFY",
-    "property": {
-      "machine": "currentOverLossyMatching",
-      "name": "notAdmittedWhilePaused"
-    },
-    "scenario": {
-      "machine": "currentOverLossyMatching",
-      "name": "any"
-    },
-    "limits": {
-      "name": "twelve",
-      "steps": 12,
-      "actions": 12,
-      "search": 262144
-    },
-    "total": "246240"
-  }, {
-    "name": "currentOverLossyMatching.any.terminalStays",
-    "position": {
-      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 94
-    },
-    "form": "FORM_VERIFY",
-    "property": {
-      "machine": "currentOverLossyMatching",
-      "name": "terminalStays"
-    },
-    "scenario": {
-      "machine": "currentOverLossyMatching",
-      "name": "any"
-    },
-    "limits": {
-      "name": "twelve",
-      "steps": 12,
-      "actions": 12,
-      "search": 262144
-    },
-    "total": "246240"
-  }, {
     "name": "currentOverLossyMatching.crashAfterAdmissionCommit",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 90
+      "line": 88
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -25990,7 +27511,7 @@
     "name": "currentOverLossyMatching.deliveredAgainAfterLostAck",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 88
+      "line": 86
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26009,15 +27530,37 @@
     },
     "total": "6480"
   }, {
-    "name": "currentOverLossyMatching.staleDelivery",
+    "name": "currentOverLossyMatching.pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 84
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 71
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "currentOverLossyMatching",
-      "name": "notAdmittedWhilePaused"
+      "name": "currentOverLossyMatching.pausedIsNotDispatched"
+    },
+    "scenario": {
+      "machine": "currentOverLossyMatching",
+      "name": "currentOverLossyMatching.pausedIsNotDispatched"
+    },
+    "limits": {
+      "name": "twelve",
+      "steps": 12,
+      "actions": 12,
+      "search": 262144
+    },
+    "total": "246240"
+  }, {
+    "name": "currentOverLossyMatching.staleDelivery",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
+      "line": 82
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "currentOverLossyMatching",
+      "name": "currentOverLossyMatching.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "currentOverLossyMatching",
@@ -26031,15 +27574,37 @@
     },
     "total": "5400"
   }, {
+    "name": "currentOverLossyMatching.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 70
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "currentOverLossyMatching",
+      "name": "currentOverLossyMatching.terminalStatesAreFinal"
+    },
+    "scenario": {
+      "machine": "currentOverLossyMatching",
+      "name": "currentOverLossyMatching.terminalStatesAreFinal"
+    },
+    "limits": {
+      "name": "twelve",
+      "steps": 12,
+      "actions": 12,
+      "search": 262144
+    },
+    "total": "246240"
+  }, {
     "name": "currentOverMatching.admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 86
+      "line": 84
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "currentOverMatching",
-      "name": "notAdmittedWhilePaused"
+      "name": "currentOverMatching.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "currentOverMatching",
@@ -26056,7 +27621,7 @@
     "name": "currentOverMatching.any.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 93
+      "line": 90
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26075,54 +27640,10 @@
     },
     "total": "233280"
   }, {
-    "name": "currentOverMatching.any.notAdmittedWhilePaused",
-    "position": {
-      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 92
-    },
-    "form": "FORM_VERIFY",
-    "property": {
-      "machine": "currentOverMatching",
-      "name": "notAdmittedWhilePaused"
-    },
-    "scenario": {
-      "machine": "currentOverMatching",
-      "name": "any"
-    },
-    "limits": {
-      "name": "twelve",
-      "steps": 12,
-      "actions": 12,
-      "search": 262144
-    },
-    "total": "233280"
-  }, {
-    "name": "currentOverMatching.any.terminalStays",
-    "position": {
-      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 94
-    },
-    "form": "FORM_VERIFY",
-    "property": {
-      "machine": "currentOverMatching",
-      "name": "terminalStays"
-    },
-    "scenario": {
-      "machine": "currentOverMatching",
-      "name": "any"
-    },
-    "limits": {
-      "name": "twelve",
-      "steps": 12,
-      "actions": 12,
-      "search": 262144
-    },
-    "total": "233280"
-  }, {
     "name": "currentOverMatching.crashAfterAdmissionCommit",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 90
+      "line": 88
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26144,7 +27665,7 @@
     "name": "currentOverMatching.deliveredAgainAfterLostAck",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 88
+      "line": 86
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26163,15 +27684,37 @@
     },
     "total": "6480"
   }, {
-    "name": "currentOverMatching.staleDelivery",
+    "name": "currentOverMatching.pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 84
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 71
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "currentOverMatching",
-      "name": "notAdmittedWhilePaused"
+      "name": "currentOverMatching.pausedIsNotDispatched"
+    },
+    "scenario": {
+      "machine": "currentOverMatching",
+      "name": "currentOverMatching.pausedIsNotDispatched"
+    },
+    "limits": {
+      "name": "twelve",
+      "steps": 12,
+      "actions": 12,
+      "search": 262144
+    },
+    "total": "233280"
+  }, {
+    "name": "currentOverMatching.staleDelivery",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
+      "line": 82
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "currentOverMatching",
+      "name": "currentOverMatching.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "currentOverMatching",
@@ -26185,6 +27728,28 @@
     },
     "total": "5400"
   }, {
+    "name": "currentOverMatching.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 70
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "currentOverMatching",
+      "name": "currentOverMatching.terminalStatesAreFinal"
+    },
+    "scenario": {
+      "machine": "currentOverMatching",
+      "name": "currentOverMatching.terminalStatesAreFinal"
+    },
+    "limits": {
+      "name": "twelve",
+      "steps": 12,
+      "actions": 12,
+      "search": 262144
+    },
+    "total": "233280"
+  }, {
     "name": "currentOverQueue.admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
@@ -26193,7 +27758,7 @@
     "form": "FORM_VERIFY",
     "property": {
       "machine": "currentOverQueue",
-      "name": "notAdmittedWhilePaused"
+      "name": "currentOverQueue.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "currentOverQueue",
@@ -26210,56 +27775,12 @@
     "name": "currentOverQueue.any.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 38
-    },
-    "form": "FORM_VERIFY",
-    "property": {
-      "machine": "currentOverQueue",
-      "name": "atMostOneActive"
-    },
-    "scenario": {
-      "machine": "currentOverQueue",
-      "name": "any"
-    },
-    "limits": {
-      "name": "five",
-      "steps": 5,
-      "actions": 5,
-      "search": 65536
-    },
-    "total": "9360"
-  }, {
-    "name": "currentOverQueue.any.notAdmittedWhilePaused",
-    "position": {
-      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
       "line": 37
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "currentOverQueue",
-      "name": "notAdmittedWhilePaused"
-    },
-    "scenario": {
-      "machine": "currentOverQueue",
-      "name": "any"
-    },
-    "limits": {
-      "name": "five",
-      "steps": 5,
-      "actions": 5,
-      "search": 65536
-    },
-    "total": "9360"
-  }, {
-    "name": "currentOverQueue.any.terminalStays",
-    "position": {
-      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 39
-    },
-    "form": "FORM_VERIFY",
-    "property": {
-      "machine": "currentOverQueue",
-      "name": "terminalStays"
+      "name": "atMostOneActive"
     },
     "scenario": {
       "machine": "currentOverQueue",
@@ -26317,6 +27838,28 @@
     },
     "total": "432"
   }, {
+    "name": "currentOverQueue.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 39
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "currentOverQueue",
+      "name": "currentOverQueue.pausedIsNotDispatched"
+    },
+    "scenario": {
+      "machine": "currentOverQueue",
+      "name": "currentOverQueue.pausedIsNotDispatched"
+    },
+    "limits": {
+      "name": "five",
+      "steps": 5,
+      "actions": 5,
+      "search": 65536
+    },
+    "total": "9360"
+  }, {
     "name": "currentOverQueue.staleDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
@@ -26325,7 +27868,7 @@
     "form": "FORM_VERIFY",
     "property": {
       "machine": "currentOverQueue",
-      "name": "notAdmittedWhilePaused"
+      "name": "currentOverQueue.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "currentOverQueue",
@@ -26338,6 +27881,28 @@
       "search": 4096
     },
     "total": "432"
+  }, {
+    "name": "currentOverQueue.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 38
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "currentOverQueue",
+      "name": "currentOverQueue.terminalStatesAreFinal"
+    },
+    "scenario": {
+      "machine": "currentOverQueue",
+      "name": "currentOverQueue.terminalStatesAreFinal"
+    },
+    "limits": {
+      "name": "five",
+      "steps": 5,
+      "actions": 5,
+      "search": 65536
+    },
+    "total": "9360"
   }, {
     "name": "forgetfulQueue.any.committedStays",
     "position": {
@@ -26760,12 +28325,12 @@
     "name": "staleAdmission.admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 22
+      "line": 23
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "staleAdmission",
-      "name": "notAdmittedWhilePaused"
+      "name": "staleAdmission.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "staleAdmission",
@@ -26801,54 +28366,10 @@
     },
     "total": "2340"
   }, {
-    "name": "staleAdmission.any.notAdmittedWhilePaused",
-    "position": {
-      "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 31
-    },
-    "form": "FORM_VERIFY",
-    "property": {
-      "machine": "staleAdmission",
-      "name": "notAdmittedWhilePaused"
-    },
-    "scenario": {
-      "machine": "staleAdmission",
-      "name": "any"
-    },
-    "limits": {
-      "name": "five",
-      "steps": 5,
-      "actions": 5,
-      "search": 65536
-    },
-    "total": "2340"
-  }, {
-    "name": "staleAdmission.any.terminalStays",
-    "position": {
-      "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 33
-    },
-    "form": "FORM_VERIFY",
-    "property": {
-      "machine": "staleAdmission",
-      "name": "terminalStays"
-    },
-    "scenario": {
-      "machine": "staleAdmission",
-      "name": "any"
-    },
-    "limits": {
-      "name": "five",
-      "steps": 5,
-      "actions": 5,
-      "search": 65536
-    },
-    "total": "2340"
-  }, {
     "name": "staleAdmission.duplicateDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 24
+      "line": 25
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -26870,12 +28391,12 @@
     "name": "staleAdmission.duplicateDelivery.monitored",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 27
+      "line": 28
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "staleAdmission",
-      "name": "notAdmittedWhilePaused"
+      "name": "staleAdmission.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "staleAdmission",
@@ -26889,15 +28410,37 @@
     },
     "total": "108"
   }, {
+    "name": "staleAdmission.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+      "line": 30
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "staleAdmission",
+      "name": "staleAdmission.pausedIsNotDispatched"
+    },
+    "scenario": {
+      "machine": "staleAdmission",
+      "name": "staleAdmission.pausedIsNotDispatched"
+    },
+    "limits": {
+      "name": "five",
+      "steps": 5,
+      "actions": 5,
+      "search": 65536
+    },
+    "total": "2340"
+  }, {
     "name": "staleAdmission.product.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 40
+      "line": 39
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "activityProduct",
-      "name": "pausedIsNotDispatched"
+      "name": "activityProduct.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "staleAdmission",
@@ -26915,7 +28458,7 @@
     "name": "staleAdmission.scheduleToCloseFirst",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 37
+      "line": 36
     },
     "form": "FORM_FIND",
     "property": {
@@ -26937,7 +28480,7 @@
     "name": "staleAdmission.scheduleToStartFirst",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 35
+      "line": 34
     },
     "form": "FORM_FIND",
     "property": {
@@ -26959,12 +28502,12 @@
     "name": "staleAdmission.staleDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 20
+      "line": 21
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "staleAdmission",
-      "name": "notAdmittedWhilePaused"
+      "name": "staleAdmission.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "staleAdmission",
@@ -26981,7 +28524,7 @@
     "name": "staleAdmission.startedAfterCompletion.monitored",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Queries.scala",
-      "line": 29
+      "line": 30
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27000,15 +28543,37 @@
     },
     "total": "144"
   }, {
+    "name": "staleAdmission.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/admission/Properties.scala",
+      "line": 29
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "staleAdmission",
+      "name": "staleAdmission.terminalStatesAreFinal"
+    },
+    "scenario": {
+      "machine": "staleAdmission",
+      "name": "staleAdmission.terminalStatesAreFinal"
+    },
+    "limits": {
+      "name": "five",
+      "steps": 5,
+      "actions": 5,
+      "search": 65536
+    },
+    "total": "2340"
+  }, {
     "name": "staleOverMatching.admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 86
+      "line": 84
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "staleOverMatching",
-      "name": "notAdmittedWhilePaused"
+      "name": "staleOverMatching.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "staleOverMatching",
@@ -27025,7 +28590,7 @@
     "name": "staleOverMatching.any.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 93
+      "line": 90
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27044,54 +28609,10 @@
     },
     "total": "233280"
   }, {
-    "name": "staleOverMatching.any.notAdmittedWhilePaused",
-    "position": {
-      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 92
-    },
-    "form": "FORM_VERIFY",
-    "property": {
-      "machine": "staleOverMatching",
-      "name": "notAdmittedWhilePaused"
-    },
-    "scenario": {
-      "machine": "staleOverMatching",
-      "name": "any"
-    },
-    "limits": {
-      "name": "twelve",
-      "steps": 12,
-      "actions": 12,
-      "search": 262144
-    },
-    "total": "233280"
-  }, {
-    "name": "staleOverMatching.any.terminalStays",
-    "position": {
-      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 94
-    },
-    "form": "FORM_VERIFY",
-    "property": {
-      "machine": "staleOverMatching",
-      "name": "terminalStays"
-    },
-    "scenario": {
-      "machine": "staleOverMatching",
-      "name": "any"
-    },
-    "limits": {
-      "name": "twelve",
-      "steps": 12,
-      "actions": 12,
-      "search": 262144
-    },
-    "total": "233280"
-  }, {
     "name": "staleOverMatching.crashAfterAdmissionCommit",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 90
+      "line": 88
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27113,7 +28634,7 @@
     "name": "staleOverMatching.deliveredAgainAfterLostAck",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 88
+      "line": 86
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -27132,15 +28653,37 @@
     },
     "total": "6480"
   }, {
-    "name": "staleOverMatching.staleDelivery",
+    "name": "staleOverMatching.pausedIsNotDispatched",
     "position": {
-      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 84
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 71
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "staleOverMatching",
-      "name": "notAdmittedWhilePaused"
+      "name": "staleOverMatching.pausedIsNotDispatched"
+    },
+    "scenario": {
+      "machine": "staleOverMatching",
+      "name": "staleOverMatching.pausedIsNotDispatched"
+    },
+    "limits": {
+      "name": "twelve",
+      "steps": 12,
+      "actions": 12,
+      "search": 262144
+    },
+    "total": "233280"
+  }, {
+    "name": "staleOverMatching.staleDelivery",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
+      "line": 82
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "staleOverMatching",
+      "name": "staleOverMatching.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "staleOverMatching",
@@ -27154,6 +28697,28 @@
     },
     "total": "5400"
   }, {
+    "name": "staleOverMatching.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 70
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "staleOverMatching",
+      "name": "staleOverMatching.terminalStatesAreFinal"
+    },
+    "scenario": {
+      "machine": "staleOverMatching",
+      "name": "staleOverMatching.terminalStatesAreFinal"
+    },
+    "limits": {
+      "name": "twelve",
+      "steps": 12,
+      "actions": 12,
+      "search": 262144
+    },
+    "total": "233280"
+  }, {
     "name": "staleOverQueue.admittedBeforePause",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
@@ -27162,7 +28727,7 @@
     "form": "FORM_VERIFY",
     "property": {
       "machine": "staleOverQueue",
-      "name": "notAdmittedWhilePaused"
+      "name": "staleOverQueue.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "staleOverQueue",
@@ -27179,56 +28744,12 @@
     "name": "staleOverQueue.any.atMostOneActive",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 38
-    },
-    "form": "FORM_VERIFY",
-    "property": {
-      "machine": "staleOverQueue",
-      "name": "atMostOneActive"
-    },
-    "scenario": {
-      "machine": "staleOverQueue",
-      "name": "any"
-    },
-    "limits": {
-      "name": "five",
-      "steps": 5,
-      "actions": 5,
-      "search": 65536
-    },
-    "total": "9360"
-  }, {
-    "name": "staleOverQueue.any.notAdmittedWhilePaused",
-    "position": {
-      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
       "line": 37
     },
     "form": "FORM_VERIFY",
     "property": {
       "machine": "staleOverQueue",
-      "name": "notAdmittedWhilePaused"
-    },
-    "scenario": {
-      "machine": "staleOverQueue",
-      "name": "any"
-    },
-    "limits": {
-      "name": "five",
-      "steps": 5,
-      "actions": 5,
-      "search": 65536
-    },
-    "total": "9360"
-  }, {
-    "name": "staleOverQueue.any.terminalStays",
-    "position": {
-      "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
-      "line": 39
-    },
-    "form": "FORM_VERIFY",
-    "property": {
-      "machine": "staleOverQueue",
-      "name": "terminalStays"
+      "name": "atMostOneActive"
     },
     "scenario": {
       "machine": "staleOverQueue",
@@ -27286,6 +28807,28 @@
     },
     "total": "432"
   }, {
+    "name": "staleOverQueue.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 39
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "staleOverQueue",
+      "name": "staleOverQueue.pausedIsNotDispatched"
+    },
+    "scenario": {
+      "machine": "staleOverQueue",
+      "name": "staleOverQueue.pausedIsNotDispatched"
+    },
+    "limits": {
+      "name": "five",
+      "steps": 5,
+      "actions": 5,
+      "search": 65536
+    },
+    "total": "9360"
+  }, {
     "name": "staleOverQueue.staleDelivery",
     "position": {
       "file": "model/temporal/standaloneactivity/compositions/Queries.scala",
@@ -27294,7 +28837,7 @@
     "form": "FORM_VERIFY",
     "property": {
       "machine": "staleOverQueue",
-      "name": "notAdmittedWhilePaused"
+      "name": "staleOverQueue.pausedIsNotDispatched"
     },
     "scenario": {
       "machine": "staleOverQueue",
@@ -27307,6 +28850,28 @@
       "search": 4096
     },
     "total": "432"
+  }, {
+    "name": "staleOverQueue.terminalStatesAreFinal",
+    "position": {
+      "file": "model/temporal/standaloneactivity/compositions/Properties.scala",
+      "line": 38
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "staleOverQueue",
+      "name": "staleOverQueue.terminalStatesAreFinal"
+    },
+    "scenario": {
+      "machine": "staleOverQueue",
+      "name": "staleOverQueue.terminalStatesAreFinal"
+    },
+    "limits": {
+      "name": "five",
+      "steps": 5,
+      "actions": 5,
+      "search": 65536
+    },
+    "total": "9360"
   }, {
     "name": "volatileQueue.any.committedStays",
     "position": {

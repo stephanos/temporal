@@ -2,6 +2,7 @@ package golden
 
 import (
 	"bytes"
+	"cmp"
 	"crypto/sha256"
 	_ "embed"
 	"encoding/hex"
@@ -26,6 +27,15 @@ import (
 // The original baseline is the Scala Model's output frozen before fn-112 changed how the Model is
 // written: every IR, every positive lifter fixture, the lifter's refusals and every checked-in Case.
 // Every later change of the author surface is compared with it, never with the change before.
+//
+// What may differ from it is the closed delta of original.json (Delta): inert fields, entity
+// attachments and, since fn-122, the claims the lifter generates from the laws a Model's
+// capabilities bring. A law replacement names one generated claim of one IR file; the expected Model
+// is the baseline with each replacement's retired Queries removed and its renamed Property under the
+// generated name, every Query that read it reading it so; the current Model is compared without the
+// listed generated claims (Ungenerated). What is compared after that is compared exactly: tables,
+// answers, receipts, Definition IDs, canonical forms, fingerprints, refined Properties and Cases are
+// all derived again from the transformed baseline, never waived.
 
 //go:embed original.json
 var originalBytes []byte
@@ -50,7 +60,8 @@ var originalTrees = map[string]string{
 }
 
 // Delta is the closed list of differences from the original baseline that R1 of fn-112 permits
-// beyond source positions and Functions: nothing else may differ.
+// beyond source positions and Functions: nothing else may differ. original.json spells it, and
+// refuses a field it does not name.
 type Delta struct {
 	// InertFields are IR fields, by full protobuf name, that the baseline never sets and that carry
 	// metadata no table, ID, fingerprint, answer or Case reads: Query.total, named-choice names.
@@ -58,6 +69,19 @@ type Delta struct {
 	// Attachments are the entity attachments of fn-112's R20 task-queue entity. Each sets one field the
 	// baseline left empty, so whatever reads it is derived again from the baseline plus the attachment.
 	Attachments []Attachment `json:"entity_attachments"`
+	// Replacements are the claims the lifter generates from laws (fn-122), each with what it replaces
+	// in the baseline: "law_replacements": [{"model": "ir/activity.json", "machine": "activityProduct",
+	// "law": "terminalStatesAreFinal", "verdict": "verified-within-limits", "renames":
+	// "terminalIsFinal", "retires": ["terminalHolds"]}]. Every generated claim of an archived IR file
+	// is listed, so the list is closed: one left out stays in the compared Model and fails.
+	Replacements []Replacement `json:"law_replacements"`
+	// NewCases are the Cases a generated find Query lowers to, which the baseline has no file for:
+	// "new_cases": [{"model": "ir/activity.json", "query": "activityProtocol.terminateSettles"}]. The
+	// Case file is the one `make umpire-gen-cases` names, `<model without .json>-<query>-case.json`.
+	NewCases []NewCase `json:"new_cases"`
+	// NewIRFiles are IR files, by archive key, that the baseline has no Model for: "new_ir_files":
+	// ["ir/nexus-operation.json"]. Each must be produced, and nothing compares it with the baseline.
+	NewIRFiles []string `json:"new_ir_files"`
 }
 
 // Attachment attaches the machine of a name, or the action of an ID, to an entity.
@@ -69,6 +93,45 @@ type Attachment struct {
 	Entity string `json:"entity"`
 }
 
+// Replacement is one claim the lifter generates from a law in one IR file: the Property, the Scenario
+// and the Query it names `<machine>.<law>` (Generated).
+type Replacement struct {
+	// Model is the IR file, by archive key: "ir/activity.json".
+	Model   string `json:"model"`
+	Machine string `json:"machine"`
+	Law     string `json:"law"`
+	// Verdict is the receipt kind the checker gives the generated Query, a model.ReceiptKind such as
+	// "verified-within-limits", "counterexample" or "found".
+	Verdict string `json:"verdict"`
+	// Renames is the baseline Property of the machine the generated Property is, under its old name;
+	// every Query that read it reads the generated one. Empty when the generated Property is new.
+	Renames string `json:"renames,omitempty"`
+	// Retires are the baseline Queries the generated Query takes the place of, which are gone.
+	Retires []string `json:"retires,omitempty"`
+}
+
+// Generated is the name of the Property, Scenario and Query the replacement generates.
+func (r Replacement) Generated() string { return r.Machine + "." + r.Law }
+
+// NewCase is the Case a generated Query of an IR file lowers to.
+type NewCase struct {
+	Model string `json:"model"`
+	Query string `json:"query"`
+}
+
+// File is the Case's key, as `make umpire-gen-cases` names its file (tools/umpire/lower/generated.go).
+func (c NewCase) File() string {
+	return OriginalCases + strings.TrimSuffix(strings.TrimPrefix(c.Model, OriginalIR), ".json") + "-" + c.Query + "-case.json"
+}
+
+// ReceiptKinds are the verdicts a replacement may record: tools/umpire/model.ReceiptKind's values,
+// which this test-only package does not import (TestOriginalVerdictsAreReceiptKinds holds them equal).
+var ReceiptKinds = []string{
+	"admission-error", "declaration-error", "resource-limit", "limit-reached", "unresolved",
+	"refinement-rejected", "counterexample", "verified-within-limits", "found", "not-found",
+	"incomplete", "unsupported", "replay-failed",
+}
+
 func OriginalDelta() (Delta, error) {
 	var d Delta
 	decoder := json.NewDecoder(bytes.NewReader(originalBytes))
@@ -77,6 +140,12 @@ func OriginalDelta() (Delta, error) {
 		return d, err
 	}
 	return d, d.check()
+}
+
+// irKey reports whether key is an IR file's archive key: under ir/, a .json file and no law sidecar.
+func irKey(key string) bool {
+	name, ok := strings.CutPrefix(key, OriginalIR)
+	return ok && name != ".json" && strings.HasSuffix(name, ".json") && !strings.Contains(name, "/") && !IsLawSidecar(name)
 }
 
 func (d Delta) check() error {
@@ -92,8 +161,66 @@ func (d Delta) check() error {
 			return fmt.Errorf("entity attachment %+v is not one machine's entity or one action's on or creates", a)
 		}
 	}
+	newFiles := map[string]bool{}
+	for _, key := range d.NewIRFiles {
+		if !irKey(key) || newFiles[key] {
+			return fmt.Errorf("new IR file %q is not one IR file under %s", key, OriginalIR)
+		}
+		newFiles[key] = true
+	}
+	generated, retired := map[NewCase]bool{}, map[NewCase]bool{}
+	for _, r := range d.Replacements {
+		claim := NewCase{Model: r.Model, Query: r.Generated()}
+		switch {
+		case !irKey(r.Model) || newFiles[r.Model]:
+			return fmt.Errorf("law replacement %+v names no archived IR file", r)
+		case r.Machine == "" || strings.Contains(r.Machine, ".") || r.Law == "" || strings.Contains(r.Law, "."):
+			return fmt.Errorf("law replacement %+v is not one machine's law", r)
+		case !slices.Contains(ReceiptKinds, r.Verdict):
+			return fmt.Errorf("law replacement %+v records no receipt kind", r)
+		case r.Renames == r.Generated():
+			return fmt.Errorf("law replacement %+v renames the Property to its own name", r)
+		case generated[claim]:
+			return fmt.Errorf("law replacement %+v is listed twice", r)
+		}
+		generated[claim] = true
+		for _, query := range r.Retires {
+			retirement := NewCase{Model: r.Model, Query: query}
+			if query == "" || retired[retirement] {
+				return fmt.Errorf("law replacement %+v retires Query %q twice or by no name", r, query)
+			}
+			retired[retirement] = true
+		}
+	}
+	for c := range retired {
+		if generated[c] {
+			return fmt.Errorf("law replacements of %s retire and generate Query %s", c.Model, c.Query)
+		}
+	}
+	cases := map[NewCase]bool{}
+	for _, c := range d.NewCases {
+		if cases[c] || !(generated[c] || newFiles[c.Model] && c.Query != "") {
+			return fmt.Errorf("new Case %+v is not one generated Query's, or one Query's of a new IR file", c)
+		}
+		cases[c] = true
+	}
 	return nil
 }
+
+// replacements are the law replacements of the IR file of a key.
+func (d Delta) replacements(key string) []int {
+	var out []int
+	for i, r := range d.Replacements {
+		if r.Model == key {
+			out = append(out, i)
+		}
+	}
+	return out
+}
+
+// Rederives reports whether the delta changes a baseline Model, so whatever the archive derived from
+// it is derived again from the expected Model.
+func (d Delta) Rederives() bool { return len(d.Attachments) > 0 || len(d.Replacements) > 0 }
 
 func inertField(name string) (protoreflect.FieldDescriptor, error) {
 	i := strings.LastIndex(name, ".")
@@ -115,9 +242,14 @@ func inertField(name string) (protoreflect.FieldDescriptor, error) {
 	return field, nil
 }
 
-// Expected is the baseline Model with the attachments applied: what the current Model must equal.
-// An attachment must find its declaration in some baseline Model, so applied reports each it applied.
-func (d Delta) Expected(baseline *umpirespb.Model, applied map[int]bool) (*umpirespb.Model, error) {
+// Applied records which entries of the delta found their declarations in some baseline Model.
+type Applied map[string]bool
+
+// Expected is the baseline Model of a key with the attachments and the key's law replacements
+// applied: what the current Model, without its generated claims (Ungenerated), must equal. An
+// attachment must find its declaration in some baseline Model, so applied records each it applied. A
+// replacement finds its renamed Property and its retired Queries in its own file, or fails.
+func (d Delta) Expected(key string, baseline *umpirespb.Model, applied Applied) (*umpirespb.Model, error) {
 	m := proto.CloneOf(baseline)
 	for i, a := range d.Attachments {
 		for _, machine := range m.GetMachines() {
@@ -126,7 +258,7 @@ func (d Delta) Expected(baseline *umpirespb.Model, applied map[int]bool) (*umpir
 					return nil, fmt.Errorf("machine %s already has entity %s", a.Machine, machine.GetEntity())
 				}
 				machine.Entity = a.Entity
-				applied[i] = true
+				applied[fmt.Sprint("attachment ", i)] = true
 			}
 		}
 		for _, action := range m.GetActions() {
@@ -141,21 +273,143 @@ func (d Delta) Expected(baseline *umpirespb.Model, applied map[int]bool) (*umpir
 				return nil, fmt.Errorf("action %s already has %s %s", a.Action, a.Field, *target)
 			}
 			*target = a.Entity
-			applied[i] = true
+			applied[fmt.Sprint("attachment ", i)] = true
 		}
 	}
-	return m, nil
+	replacements := d.replacements(key)
+	for _, i := range replacements {
+		if err := d.Replacements[i].replace(m); err != nil {
+			return nil, fmt.Errorf("%s: %w", key, err)
+		}
+		applied[fmt.Sprint("replacement ", i)] = true
+	}
+	if len(replacements) == 0 {
+		return m, nil
+	}
+	// Lift sorts Properties by machine and name, so a renamed one takes its new place in that order.
+	slices.SortStableFunc(m.Properties, func(a, b *umpirespb.Property) int {
+		return cmp.Or(strings.Compare(a.GetMachine(), b.GetMachine()), strings.Compare(a.GetName(), b.GetName()))
+	})
+	return m, readsDeclaredProperties(m)
 }
 
-// Unapplied names the attachments no baseline Model had a declaration for.
-func (d Delta) Unapplied(applied map[int]bool) error {
+// replace renames the replacement's Property of m to the generated name, with every Query that reads
+// it, and removes each Query it retires.
+func (r Replacement) replace(m *umpirespb.Model) error {
+	if r.Renames != "" {
+		var renamed []*umpirespb.Property
+		for _, p := range m.GetProperties() {
+			if p.GetMachine() == r.Machine && p.GetName() == r.Generated() {
+				return fmt.Errorf("law replacement %s renames a Property to the name the baseline gives another", r.Generated())
+			}
+			if p.GetMachine() == r.Machine && p.GetName() == r.Renames {
+				renamed = append(renamed, p)
+			}
+		}
+		if len(renamed) != 1 {
+			return fmt.Errorf("law replacement %s renames Property %s of %s, which the baseline declares %d times", r.Generated(), r.Renames, r.Machine, len(renamed))
+		}
+		renamed[0].Name = r.Generated()
+		for _, q := range m.GetQueries() {
+			if q.GetProperty().GetMachine() == r.Machine && q.GetProperty().GetName() == r.Renames {
+				q.Property.Name = r.Generated()
+			}
+		}
+	}
+	for _, retired := range r.Retires {
+		n := len(m.GetQueries())
+		m.Queries = slices.DeleteFunc(m.Queries, func(q *umpirespb.Query) bool { return q.GetName() == retired })
+		if n-len(m.GetQueries()) != 1 {
+			return fmt.Errorf("law replacement %s retires Query %s, which the baseline declares %d times", r.Generated(), retired, n-len(m.GetQueries()))
+		}
+	}
+	return nil
+}
+
+// readsDeclaredProperties checks that every Query of m reads a Property m declares: a retired or
+// renamed Property no Query is left reading.
+func readsDeclaredProperties(m *umpirespb.Model) error {
+	declared := map[[2]string]bool{}
+	for _, p := range m.GetProperties() {
+		declared[[2]string{p.GetMachine(), p.GetName()}] = true
+	}
+	for _, q := range m.GetQueries() {
+		if !declared[[2]string{q.GetProperty().GetMachine(), q.GetProperty().GetName()}] {
+			return fmt.Errorf("the expected Model does not declare Property %[2]s of %[3]s, which Query %[1]s reads", q.GetName(), q.GetProperty().GetName(), q.GetProperty().GetMachine())
+		}
+	}
+	return nil
+}
+
+// Unapplied names the attachments no baseline Model had a declaration for, and the law replacements
+// whose IR file no baseline Model was.
+func (d Delta) Unapplied(applied Applied) error {
 	var errs []error
 	for i, a := range d.Attachments {
-		if !applied[i] {
+		if !applied[fmt.Sprint("attachment ", i)] {
 			errs = append(errs, fmt.Errorf("entity attachment %+v names no declaration of the baseline", a))
 		}
 	}
+	for i, r := range d.Replacements {
+		if !applied[fmt.Sprint("replacement ", i)] {
+			errs = append(errs, fmt.Errorf("law replacement %+v names no baseline Model", r))
+		}
+	}
 	return errors.Join(errs...)
+}
+
+// Ungenerated is a current Model of a key without the generated claims its law replacements list:
+// each generated Query and its Scenario, and the generated Property where it renames none, with the
+// Function it holds by and every Function named under that. Each must be there, read as the lifter
+// generates it: the Query reads the generated Property and Scenario. A generated claim the delta does
+// not list stays, so the comparison with the baseline fails on it.
+func (d Delta) Ungenerated(key string, current *umpirespb.Model) (*umpirespb.Model, error) {
+	replacements := d.replacements(key)
+	if len(replacements) == 0 {
+		return current, nil
+	}
+	m := proto.CloneOf(current)
+	for _, i := range replacements {
+		r := d.Replacements[i]
+		name := r.Generated()
+		claim := func(ref *umpirespb.ClaimRef) bool { return ref.GetMachine() == r.Machine && ref.GetName() == name }
+		var queries []*umpirespb.Query
+		for _, q := range m.GetQueries() {
+			if q.GetName() == name {
+				queries = append(queries, q)
+			}
+		}
+		if len(queries) != 1 || !claim(queries[0].GetProperty()) || !claim(queries[0].GetScenario()) {
+			return nil, fmt.Errorf("%s: generated Query %s is not declared once, reading Property and Scenario %s of %s", key, name, name, r.Machine)
+		}
+		m.Queries = slices.DeleteFunc(m.Queries, func(q *umpirespb.Query) bool { return q.GetName() == name })
+		n := len(m.GetScenarios())
+		m.Scenarios = slices.DeleteFunc(m.Scenarios, func(s *umpirespb.Scenario) bool { return s.GetMachine() == r.Machine && s.GetName() == name })
+		if n-len(m.GetScenarios()) != 1 {
+			return nil, fmt.Errorf("%s: generated Scenario %s of %s is declared %d times", key, name, r.Machine, n-len(m.GetScenarios()))
+		}
+		holds := ""
+		n = len(m.GetProperties())
+		m.Properties = slices.DeleteFunc(m.Properties, func(p *umpirespb.Property) bool {
+			generated := p.GetMachine() == r.Machine && p.GetName() == name
+			if generated {
+				holds = p.GetHolds()
+			}
+			return generated && r.Renames == ""
+		})
+		if holds == "" {
+			return nil, fmt.Errorf("%s: generated Property %s of %s is not declared", key, name, r.Machine)
+		}
+		if r.Renames == "" {
+			if n-len(m.GetProperties()) != 1 {
+				return nil, fmt.Errorf("%s: generated Property %s of %s is declared %d times", key, name, r.Machine, n-len(m.GetProperties()))
+			}
+			m.Functions = slices.DeleteFunc(m.Functions, func(f *umpirespb.Function) bool {
+				return f.GetName() == holds || strings.HasPrefix(f.GetName(), holds+".")
+			})
+		}
+	}
+	return m, nil
 }
 
 // ProjectBaseline gives an expected Model as the comparison reads it: without source positions or
@@ -363,19 +617,50 @@ func OriginalModels(files map[string][]byte) (map[string]*umpirespb.Model, error
 	return out, nil
 }
 
-// OriginalInventory checks the current files against the archived ones: the same IR Models and
-// Cases, every archived lifter fixture, and every archived refusal at some line. Later fixtures and
-// refusals, for constructs added after the baseline, may be added.
-func OriginalInventory(archived, current map[string][]byte) error {
+// Inventory checks the current files against the archived ones: the same IR Models and Cases, every
+// archived lifter fixture, and every archived refusal at some line. Later fixtures and refusals, for
+// constructs added after the baseline, may be added. Of IR files and Cases only the delta's may be
+// added: its new IR files, its new Cases, and the law sidecar of an IR file that is new or has law
+// replacements, which lists exactly the claims the delta lists for it. Each must be produced.
+func (d Delta) Inventory(archived, current map[string][]byte) error {
 	var errs []error
 	for _, key := range slices.Sorted(maps.Keys(archived)) {
 		if _, ok := current[key]; !ok {
 			errs = append(errs, fmt.Errorf("%s is archived and no longer produced", key))
 		}
 	}
+	// added are the files the delta adds, each of which must be produced; optional are the law
+	// sidecars of new IR files, which a new IR file without capabilities does not have.
+	added, optional := map[string]bool{}, map[string]bool{}
+	for _, key := range d.NewIRFiles {
+		added[key], optional[sidecarKey(key)] = true, true
+	}
+	for _, c := range d.NewCases {
+		added[c.File()] = true
+	}
+	generated := map[string][]string{}
+	for _, r := range d.Replacements {
+		generated[sidecarKey(r.Model)] = append(generated[sidecarKey(r.Model)], r.Generated())
+	}
+	for _, key := range slices.Sorted(maps.Keys(generated)) {
+		added[key] = true
+		if encoded, ok := current[key]; ok {
+			if err := sidecarLists(encoded, generated[key]); err != nil {
+				errs = append(errs, fmt.Errorf("%s: %w", key, err))
+			}
+		}
+	}
+	for _, key := range slices.Sorted(maps.Keys(added)) {
+		if _, ok := archived[key]; ok {
+			errs = append(errs, fmt.Errorf("%s is listed as new and archived", key))
+		} else if _, ok := current[key]; !ok {
+			errs = append(errs, fmt.Errorf("%s is listed as new and not produced", key))
+		}
+	}
+	maps.Copy(added, optional)
 	for _, key := range slices.Sorted(maps.Keys(current)) {
 		closed := strings.HasPrefix(key, OriginalIR) || strings.HasPrefix(key, OriginalCases)
-		if _, ok := archived[key]; !ok && closed {
+		if _, ok := archived[key]; !ok && closed && !added[key] {
 			errs = append(errs, fmt.Errorf("%s is produced and not archived", key))
 		}
 	}
@@ -389,6 +674,31 @@ func OriginalInventory(archived, current map[string][]byte) error {
 		}
 	}
 	return errors.Join(errs...)
+}
+
+// sidecarKey is the law sidecar beside an IR file.
+func sidecarKey(key string) string { return strings.TrimSuffix(key, ".json") + LawSidecarSuffix }
+
+// sidecarLists checks that a law sidecar lists exactly the named generated claims.
+func sidecarLists(encoded []byte, names []string) error {
+	var sidecar struct {
+		Claims []struct {
+			Name string `json:"name"`
+		} `json:"claims"`
+	}
+	if err := json.Unmarshal(encoded, &sidecar); err != nil {
+		return err
+	}
+	var listed []string
+	for _, c := range sidecar.Claims {
+		listed = append(listed, c.Name)
+	}
+	slices.Sort(listed)
+	names = slices.Sorted(slices.Values(names))
+	if !slices.Equal(listed, names) {
+		return fmt.Errorf("the sidecar lists generated claims %v, and the delta %v", listed, names)
+	}
+	return nil
 }
 
 // CaptureOriginal archives the current files exclusively in dir.

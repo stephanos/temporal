@@ -16,7 +16,8 @@ func TestEveryReportedWitnessReplaysUnderItsDefinitionIDs(t *testing.T) {
 	require.NoError(t, err)
 	var queries []*Query
 	expected := map[string][]string{
-		"activity":     {"cancel", "cancelRequest", "completion", "nonRetryableFailure", "pauseResume", "retry", "scheduleToStartTimeout", "startToCloseTimeout", "terminate"},
+		// The two finds the protocol's capabilities generate lead, by their machine's prefix.
+		"activity":     {"activityProtocol.cancelIsRequested", "activityProtocol.terminateSettles", "cancel", "cancelRequest", "completion", "nonRetryableFailure", "pauseResume", "retry", "scheduleToStartTimeout", "startToCloseTimeout", "terminate"},
 		"nexus-caller": {"asyncCompletion", "asyncFailure", "handlerError", "retry", "scheduleToStartTimeout", "startToCloseTimeout", "syncCompletion"},
 	}
 	for _, name := range []string{"activity", "nexus-caller"} {
@@ -37,7 +38,7 @@ func TestEveryReportedWitnessReplaysUnderItsDefinitionIDs(t *testing.T) {
 		slices.Sort(found)
 		require.Equal(t, expected[name], found)
 	}
-	require.Len(t, queries, 16)
+	require.Len(t, queries, 18)
 	for _, q := range queries {
 		a, err := q.Answer()
 		require.NoError(t, err, q.Name)

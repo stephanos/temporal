@@ -42,7 +42,7 @@ object ActivityRealization:
   )
 
   /** The status the activity's description reports while each fact holds. */
-  private val activityStatus = statusTable(
+  val activityStatus = statusTable(
     ProtocolFact.statusPaused -> ACTIVITY_EXECUTION_STATUS_PAUSED,
     ProtocolFact.statusCompleted -> ACTIVITY_EXECUTION_STATUS_COMPLETED,
     ProtocolFact.statusFailed -> ACTIVITY_EXECUTION_STATUS_FAILED,

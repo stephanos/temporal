@@ -10,8 +10,8 @@ val activityFile = irFile("activity")(
   standaloneActivity,
   activityProduct,
   Functional.all,
-  terminalHolds,
-  pauseHolds,
+  productCapabilities,
+  protocolCapabilities,
   cancelRequest,
   stoppedWorkerStartsNothing,
   ActivityRealization.standalone

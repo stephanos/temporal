@@ -4,6 +4,7 @@ package admission
 
 import umpire.*
 import umpire.realize.{Conformance, MonitorExpectation, Outcome as RunOutcome, RunExpectation}
+import temporal.laws.pausedIsNotDispatched
 
 /** Every claim and path, declared on the design `m`, since each belongs to one machine. */
 def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector[Query] =
@@ -28,9 +29,7 @@ def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector
       duplicateDelivery limits three total 108,
     query(s"${m.name}.startedAfterCompletion.monitored") verify claims.oneActive in
       startedAfterCompletion limits four total 144,
-    query verify claims.notPaused in any limits five total 2340,
     query verify claims.oneActive in any limits five total 2340,
-    query verify claims.terminal in any limits five total 2340,
     // Neither deadline is ordered before the other: each firing is a trace of its own.
     query(s"${m.name}.scheduleToStartFirst") find claims.startDeadline in
       scheduleToStartFirst limits three total 72,
@@ -38,7 +37,7 @@ def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector
       scheduleToCloseFirst limits three total 72,
     // The product's own Property, read through the design's declared refinement.
     query(s"${m.name}.product.pausedIsNotDispatched")
-      .verify(pausedIsNotDispatched)
+      .verify(productCapabilities.claim(pausedIsNotDispatched))
       .in(staleDeliveryAfterPause) limits three total 108
   )
 

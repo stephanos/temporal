@@ -572,7 +572,10 @@ Each law is lifted as a Property, a Scenario and a Query, all named `<machine>.<
 parameters) folded with the model and the fields of the capabilities that bring it, bound by
 parameter name. A law of one action class (`when`) is asked by a `find` from the start through
 `reach` and that class; any other is verified over the free Scenario from the start under `limits`.
-The Query's total is computed as below. `except` lifts nothing for its law. The lifter writes what
+The Query's total is computed as below; a find expects of a server the Run its capability's
+`expect` names (Terminable and Cancelable carry one). `except` lifts nothing for its law. A Query of
+the entity's own reads a generated Property by its law, `declared.claim(pausedIsNotDispatched)`, as
+the activity's pinned paths do; a law the declaration waives has none. The lifter writes what
 it expanded beside the IR file, as `<file>.laws.json`: each generated claim with its law and
 bindings, each waiver with its reason and position, and the catalog's laws with what they say and
 the machines, one per state type, that instantiate them. A capability declaration is a root of an IR
