@@ -67,7 +67,11 @@ The matched developmental 10/100 campaigns, sixteen-finding matrix and exact nat
 
 [Checkpoint and remaining acceptance](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/acceptance-open.md) retains the scope, checks and owner handbacks. [Independent review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-checkpoint-independent-review.md) retains actual raw-profile and gate-ledger verification. The frozen worker handover records its earlier in-progress snapshot; current Flow state is blocked. Original acceptance criteria, native expectations and D3-D5 closure remain unchanged.
 
+The [additive R18 accountability supplement](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/accountability.md) binds the named campaign helper/type set to task 5/R6 and its WIP introduction, with task 26's real CLI consumer correction. It links task 20's nine-flag correction and separately owned API/CLI changes. This supersedes only those historical inventory/ownership and missing-flag status statements at checkpoint 0988ab1041c5580b2d02763088d5048d6ee70586; the frozen audit, qualification evidence, measurements and original blocked checkpoint remain unchanged. Format/workload availability, changed guidance defaults, matched first-baseline identities, full/formal/affected-consumer and both native acceptance gates remain required and open.
+
 stage: impl-review - deferred(policy: required lint is red; native qualification and preservation acceptance are incomplete)
+
+stage: plan-sync - skipped(config: disabled; task remains blocked)
 
 ## Evidence
 - Commits:

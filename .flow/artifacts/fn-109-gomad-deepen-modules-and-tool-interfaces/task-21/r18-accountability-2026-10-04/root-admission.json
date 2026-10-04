@@ -1,0 +1,27 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.21",
+  "base_commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+  "branch": "gomad",
+  "scope": "Additive accountability evidence only; no production, test, configuration, archived-proof or acceptance changes",
+  "research_note": ".flow/tmp/r18-accountability-after-corpus-astra.md",
+  "research_note_sha256": "7ba0029eedfdaf35d93e9765cc0e44a6af5ca8c993a193ddf0782f904afe9410",
+  "worker_paths": ["accountability.md", "verify_accountability.py", "evidence.json"],
+  "root_owned": ["root-admission.json", "root-verification.json", "root-scope-gate.py", "independent-review.md", "independent-review.json"],
+  "document_paths": [
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md",
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.json",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.md",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.json",
+    "MILESTONES.md"
+  ],
+  "requested_worker": {"model": "gpt-6.1-sol", "effort": "high"},
+  "requested_reviewer": {"model": "gpt-6.1-sol", "effort": "high"},
+  "actual_worker_model": null,
+  "worker_judge": {"success": true, "available": false, "preset": "tier", "reason": "no_key", "tier_line": "Tier: session (jev-unavailable(no_key))", "spawn_model": null, "implementer": "gpt-6.1-sol"},
+  "parallel_research_judge": {"success": true, "available": false, "preset": "tier", "reason": "no_key", "tier_line": "Tier: session (jev-unavailable(no_key))", "spawn_model": null, "implementer": "gpt-6-astra"},
+  "tracker": {"success": true, "active": false, "type": null, "ops": {}},
+  "original_acceptance": "R18/R19/R20, task21/predecessors, original first-baseline fixed identities, complete/formal/affected-consumer and native darwin/arm64 plus linux/amd64 requirements remain REQUIRED/OPEN",
+  "historical_evidence": "All tracked paths outside document_paths and this newly admitted directory must remain byte-identical to base_commit. Frozen qualification-evidence.md, task21 audit, measurements, acceptance-open.md, task20/task26/task27 proof and task36 proof remain unchanged.",
+  "lifecycle": "Keep task21 blocked and parent open with 2/36 accepted. Root owns Flow and local commit. No done, acceptance waiver, push or history rewrite.",
+  "verification": "Read-only frozen-Git primary comparisons and source binding; document/link/diff/Flow checks. No unchanged native, full, lint or cache failure retry."
+}

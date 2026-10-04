@@ -625,6 +625,20 @@ pass; full staged diff retains only the immutable empty-GOFLAGS archive EOF
 warning. Root commits before another source writer
 ([choice-policy acceptance](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-36/acceptance-open.md)).
 
+Task 21's additive R18 accountability supplement binds the eight named campaign
+helper/type seams to task 5/R6 through an exact retained-patch, WIP and checkpoint
+source-block comparison. The WIP commit remains their first Git introduction;
+whole-file/checkpoint equivalence is not established. The interface inventory
+already lists the set, and task 26 repaired its actual CLI consumers. Task 20's
+nine-flag correction and the separately owned fn112/fn113/fn114 migrations are
+linked without repeating implementation or changing their contracts. Historical
+qualification, audit, baseline and measurement records remain immutable. This
+closes only the named inventory/ownership evidence gap. Choice Trace v2,
+controller-v2 journals, selected v041 availability, changed guidance defaults,
+matched first-baseline bytes and all original full/formal/affected-consumer/
+both-native requirements remain open
+([accountability supplement](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/accountability.md)).
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.

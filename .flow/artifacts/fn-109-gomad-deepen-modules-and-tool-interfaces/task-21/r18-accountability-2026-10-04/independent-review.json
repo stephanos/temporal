@@ -1,0 +1,155 @@
+{
+  "schema": "fn109.r18-accountability.independent-review/v1",
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.21",
+  "verdict": "EVIDENCE_PROGRESS_COMMIT_ONLY",
+  "ready_to_merge": false,
+  "review_scope": "Additive evidence progress only; no SHIP, formal implementation receipt, full source acceptance, original-baseline preservation or native/runtime qualification verdict.",
+  "base_commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+  "head_commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+  "branch": "gomad",
+  "model": {
+    "requested_reviewer": "gpt-6.1-sol",
+    "requested_effort": "high",
+    "actual_reviewer_model": null,
+    "requested_writer_reviewer_family": "same-family",
+    "actual_family_relationship": "unknown; executable metadata unavailable",
+    "tier_line": "Tier: session (jev-unavailable(no_key))",
+    "judge_rerun": false
+  },
+  "file_sha256": {
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/accountability.md": "1692a0be90e2aa27bca1458ebce036cabeb72ad20dbce8f4b26b20de2119c654",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/verify_accountability.py": "5849ded44c2481855ba545a4347344edf213ca8e72485039256cea5e75163f14",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/evidence.json": "4caea7d69c0e181939d039492b092e405c1828acac43240c67c33333cb8ddcf1"
+  },
+  "root_record_at_review_sha256": "06b90b27e8712414a610d9c4dd830de2184b9ccecfe3985dca88488fa458c975",
+  "findings": {
+    "critical": [],
+    "important": [],
+    "minor": []
+  },
+  "strengths": [
+    "The 83-line retained task5 addition block exactly equals WIP and BASE, with the whole-WIP/final-task mismatch explicit.",
+    "Eight seams and both error methods are already inventoried; actual CLI error translation, absent guided defaulting and enabled-zero order match task26's retained source bounds.",
+    "Independent owner records and original Git objects explain fn112/fn113/fn114 differences while all original acceptance requirements stay open.",
+    "HEAD/index/worktree tracked bytes and modes outside admitted paths compare against BASE; original dirty 670-input baseline remains a separate qualification limit.",
+    "Three exact document insertions and two timestamp-only metadata edits preserve original task requirements and historical blocked runtime reason."
+  ],
+  "checks": [
+    {
+      "command": "python3 - <<'PY'\nimport hashlib, json, pathlib, subprocess, time\np=pathlib.Path('.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04')\nt=time.monotonic()\nr=subprocess.run(['python3',str(p/'verify_accountability.py')],capture_output=True)\nassert r.returncode==0,(r.returncode,r.stdout,r.stderr)\nassert r.stdout==(p/'evidence.json').read_bytes(),'stdout mismatch'\ne=json.loads(r.stdout)\nprint(json.dumps({'exit_code':r.returncode,'stdout_exact_match':True,'stdout_sha256':hashlib.sha256(r.stdout).hexdigest(),'assertions':e['assertion_count'],'references':len(e['references']),'protected_paths':e['protected_tracked_path_count'],'gitlinks':e['protected_gitlink_count'],'elapsed_seconds':round(time.monotonic()-t,3)}))\nPY",
+      "exit_code": 0,
+      "result": {
+        "stdout_exact_match": true,
+        "stdout_sha256": "4caea7d69c0e181939d039492b092e405c1828acac43240c67c33333cb8ddcf1",
+        "assertions": 159733,
+        "references": 83,
+        "protected_paths": 31872,
+        "gitlinks": 1,
+        "elapsed_seconds": 6.886
+      }
+    },
+    {
+      "command": "python3 - <<'PY'\nimport hashlib,json,pathlib,re,subprocess\nroot=pathlib.Path.cwd(); here=root/'.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04'\nad=json.loads((here/'root-admission.json').read_bytes()); rec=json.loads((here/'root-verification.json').read_bytes()); base=ad['base_commit']\ndef run(*args): return subprocess.check_output(args,cwd=root)\ndef digest(b): return hashlib.sha256(b).hexdigest()\nassert run('git','rev-parse','HEAD').decode().strip()==base\nassert run('git','branch','--show-current').decode().strip()==ad['branch']\nassert run('git','diff','--cached','--name-only')==b''\nfor p,e in rec['document_insertions'].items():\n before=run('git','show',base+':'+p).decode(); assert before.count(e['anchor'])==1\n assert (root/p).read_text()==before.replace(e['anchor'],e['replacement']),p\nfor p in rec['metadata_paths']:\n a=json.loads(run('git','show',base+':'+p)); b=json.loads((root/p).read_bytes());a.pop('updated_at',None); b.pop('updated_at',None); assert a==b,p\nfor p,h in rec['file_sha256'].items(): assert digest((root/p).read_bytes())==h,p\nassert len(rec['allowed_paths'])==13\nreports={str((here/n).relative_to(root)) for n in ('independent-review.md','independent-review.json')}\nrecord=str((here/'root-verification.json').relative_to(root))\nassert set(rec['file_sha256'])==set(rec['allowed_paths'])-{record}-reports\nassert {str(p.relative_to(root)) for p in here.rglob('*') if p.is_file()}==set(rec['allowed_paths'])-set(ad['document_paths'])-reports\nassert rec['review_verdict']=='PENDING'\ntp='.flow/tasks/'+ad['task']+'.md'; md=(root/tp).read_text(); orig=run('git','show',base+':'+tp).decode()\nassert md.split('## Done summary',1)[0]==orig.split('## Done summary',1)[0]\nfor stage in ('impl-review','plan-sync'): assert md.count('stage: '+stage+' - ')==1\nassert 'TBD' not in md\nflow='/home/agent/.codex/scripts/flowctl'; task=json.loads(run(flow,'show',ad['task'],'--json')); spec=json.loads(run(flow,'show',task['spec'],'--json'))\nassert task['status']=='blocked' and task['blocked_reason']==rec['historical_blocked_reason']\nassert spec['status']=='open' and spec['completion_review_status']=='unknown'\nassert len(spec['tasks'])==36 and sum(t['status']=='done' for t in spec['tasks'])==2\nconf=(root/'.flow/config.json').read_bytes(); assert conf==run('git','show',base+':.flow/config.json'); assert json.loads(conf)['planSync']['enabled'] is False\nassert set(run('git','diff','--name-only',base).decode().splitlines())==set(ad['document_paths'])\nfor path,e in rec['document_insertions'].items():\n for link in re.findall(r'\\[[^\\]]+\\]\\(([^)]+)\\)',e['replacement']):\n  target=((root/path).parent/link).resolve(); assert target.is_relative_to(root) and target.is_file(),link\nidx=pathlib.Path(run('git','rev-parse','--git-path','index').decode().strip()); idx=idx if idx.is_absolute() else root/idx\nprint(json.dumps({'result':'PASS_INDEPENDENT_DOCUMENT_STATE_CHECK','final_scope_gate':'PENDING_NOT_RUN','documents_exactly_reconstructed':3,'metadata_timestamp_only':2,'changed_tracked_paths':5,'intended_paths':13,'missing_reports_before_review':2,'task_status':task['status'],'spec_status':spec['status'],'completion_review_status':spec['completion_review_status'],'accepted':2,'total':36,'historical_blocked_reason_unchanged':True,'task_prefix_unchanged':True,'stage_counts':{'impl-review':1,'plan-sync':1},'head':base,'branch':ad['branch'],'index_sha256':digest(idx.read_bytes()),'config_sha256':digest(conf),'reviewed_input_sha256':{p:digest(p.read_bytes()) for p in []},'root_record_sha256':digest((here/'root-verification.json').read_bytes())},sort_keys=True))\nPY",
+      "exit_code": 0,
+      "result": {
+        "accepted": 2,
+        "branch": "gomad",
+        "changed_tracked_paths": 5,
+        "completion_review_status": "unknown",
+        "config_sha256": "f7647235bfe3ffbbd86c2d88b85816ea67f133a7b23c79a97b55897678cfce23",
+        "documents_exactly_reconstructed": 3,
+        "final_scope_gate": "PENDING_NOT_RUN",
+        "head": "0988ab1041c5580b2d02763088d5048d6ee70586",
+        "historical_blocked_reason_unchanged": true,
+        "index_sha256": "242fda5159a15e79f0f202fea9a128b10f3bc5b31ae08058400759ffd1478e97",
+        "intended_paths": 13,
+        "metadata_timestamp_only": 2,
+        "missing_reports_before_review": 2,
+        "result": "PASS_INDEPENDENT_DOCUMENT_STATE_CHECK",
+        "reviewed_input_sha256": {},
+        "root_record_sha256": "06b90b27e8712414a610d9c4dd830de2184b9ccecfe3985dca88488fa458c975",
+        "spec_status": "open",
+        "stage_counts": {
+          "impl-review": 1,
+          "plan-sync": 1
+        },
+        "task_prefix_unchanged": true,
+        "task_status": "blocked",
+        "total": 36
+      }
+    },
+    {
+      "command": "/home/agent/.codex/scripts/flowctl validate --spec fn-109-gomad-deepen-modules-and-tool-interfaces --json",
+      "exit_code": 0,
+      "result": {
+        "success": true,
+        "valid": true,
+        "task_count": 36,
+        "errors": [],
+        "warnings": []
+      }
+    },
+    {
+      "command": "git diff --check 0988ab1041c5580b2d02763088d5048d6ee70586",
+      "exit_code": 0,
+      "result": "No whitespace diagnostics"
+    },
+    {
+      "command": "python3 - <<'PY'\nimport ast,json,pathlib,subprocess\np=pathlib.Path('.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04')\nfor n in ('verify_accountability.py','root-scope-gate.py'): ast.parse((p/n).read_text(),filename=str(p/n))\nchecks=[]\nfor f in sorted(p.iterdir()):\n r=subprocess.run(['git','diff','--no-index','--check','--','/dev/null',str(f)],capture_output=True)\n assert r.returncode==1 and r.stdout==r.stderr==b'',(str(f),r.returncode,r.stdout,r.stderr)\n checks.append({'path':str(f),'exit_code':r.returncode,'whitespace_diagnostics':False})\nprint(json.dumps({'python_ast':'PASS','new_file_whitespace':checks,'interpretation':'exit 1 is expected content difference; no whitespace errors'}))\nPY",
+      "exit_code": 0,
+      "result": {
+        "python_ast": "PASS",
+        "files_checked_before_report_creation": 6,
+        "per_file_no_index_exit_code": 1,
+        "whitespace_diagnostics": false,
+        "interpretation": "Expected content difference; whitespace errors would fail."
+      }
+    }
+  ],
+  "final_scope_gate": {
+    "state": "PENDING_NOT_RUN_BY_REVIEWER",
+    "current_conditions": {
+      "review_verdict": "PENDING",
+      "report_hash_bindings": "missing",
+      "report_files_before_review": "missing"
+    },
+    "requirement": "Root must bind both reports, set EVIDENCE_PROGRESS_COMMIT_ONLY, and execute the unmodified gate. For --staged, all 13 admitted paths must be staged with identical worktree bytes. No final gate pass is claimed."
+  },
+  "remaining_acceptance": [
+    "R18/R19/R20 and task21/predecessor acceptance",
+    "Choice Trace v2 format availability",
+    "controller-v2 journal availability",
+    "selected v041 fixture/pack/workload availability",
+    "changed guidance defaults",
+    "matched first-baseline fixed-identity bytes",
+    "shared fn108 fulfillment",
+    "full/completion/formal/affected-consumer/native-default qualification",
+    "native darwin/arm64 and linux/amd64 gates"
+  ],
+  "preflight_truth": "Task-text token, Gitlink-as-blob and unsupported AdapterRegeneration ancestry assumptions were rejected during worker attempts. Root disclosure retains the ancestry failure. The final verifier reads the actual source object and does not claim ancestry.",
+  "write_exception": {
+    "authorized_paths": [
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/independent-review.md",
+      ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/independent-review.json"
+    ],
+    "method": "apply_patch",
+    "other_writes": 0
+  },
+  "read_only_preservation": {
+    "head_unchanged": true,
+    "index_sha256_before_reports": "242fda5159a15e79f0f202fea9a128b10f3bc5b31ae08058400759ffd1478e97",
+    "config_sha256": "f7647235bfe3ffbbd86c2d88b85816ea67f133a7b23c79a97b55897678cfce23",
+    "root_record_and_admission_unmodified": true,
+    "worker_three_proof_files_unmodified": true,
+    "source_and_prior_historical_proof_unmodified_against_base": true,
+    "current_root_documents_unmodified_by_reviewer": true,
+    "flow_writes": 0,
+    "native_go_lint_generation_cache_download_network_bridge_or_delegation": 0
+  },
+  "processes": {
+    "live_handles": 0,
+    "delegates": 0,
+    "bridge_calls": 0,
+    "all_commands_terminal": true
+  }
+}

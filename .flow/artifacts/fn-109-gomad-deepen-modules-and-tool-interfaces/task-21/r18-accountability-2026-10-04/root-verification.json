@@ -1,0 +1,85 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.21",
+  "base_commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+  "review_verdict": "EVIDENCE_PROGRESS_COMMIT_ONLY",
+  "reviewer_judge": {
+    "success": true,
+    "available": false,
+    "preset": "tier",
+    "reason": "no_key",
+    "tier_line": "Tier: session (jev-unavailable(no_key))",
+    "spawn_model": null,
+    "implementer": "gpt-6.1-sol"
+  },
+  "actual_reviewer_model": null,
+  "writer_reviewer_requested_family": "same-family",
+  "file_sha256": {
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/independent-review.md": "2d8236c6ac9d8591a86b91b31b9b37a4c8e96f5c08af8bea6809a7a3c2a0b035",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/independent-review.json": "e9ddfeff8b9770e4e6ea7e88cff3add8ddb37ddf589964a040c3447766d1c930",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/root-admission.json": "8dcef14b2cd950d9a457cd9e5d1026f760610b4334d965370b1379d34364fcdd",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/root-scope-gate.py": "4fe5ec0ac601b8c1986a11b1c860b1018299a98948ffacaba4da0276dbbc5cd9",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/accountability.md": "1692a0be90e2aa27bca1458ebce036cabeb72ad20dbce8f4b26b20de2119c654",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/verify_accountability.py": "5849ded44c2481855ba545a4347344edf213ca8e72485039256cea5e75163f14",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/evidence.json": "4caea7d69c0e181939d039492b092e405c1828acac43240c67c33333cb8ddcf1",
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md": "c5540e59bdc9a7a6746934fc0f5e54a848307ef2c72833283b58c8b0d88c012f",
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.json": "365e929c6d5f2c72dbd5f8f21e1590b267e48fff590f0759a4ada12a6505e576",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.md": "8b612447735f5e5780797709ef4a83ceb3aa613e3111b49da57fb53be5fd03c5",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.json": "18dacb93dc31ab91db5cac184a43fd725b4a761af182cf573cf2bdbad26dff1c",
+    "MILESTONES.md": "a5201e6cbdab036068e24d14836a5a2f3a8d46f3e2c0f6089603ddea2e8b304a"
+  },
+  "primary_verification_stdout_sha256": "4caea7d69c0e181939d039492b092e405c1828acac43240c67c33333cb8ddcf1",
+  "primary_check_summary": {
+    "assertions": 159733,
+    "protected_tracked_paths": 31872,
+    "protected_gitlinks": 1,
+    "source_references": 83,
+    "named_seams": 8,
+    "flag_descriptions": 9
+  },
+  "allowed_paths": [
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/accountability.md",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/evidence.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/independent-review.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/independent-review.md",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/root-admission.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/root-scope-gate.py",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/root-verification.json",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/verify_accountability.py",
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.json",
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.json",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.md",
+    "MILESTONES.md"
+  ],
+  "metadata_paths": [
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.json",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.json"
+  ],
+  "document_insertions": {
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md": {
+      "anchor": "## Finding coverage",
+      "replacement": "Task 21's additive R18 accountability supplement binds the eight named campaign\nhelper/type seams to task 5/R6 through an exact retained-patch, WIP and checkpoint\nsource-block comparison. The WIP commit remains their first Git introduction;\nwhole-file/checkpoint equivalence is not established. The interface inventory\nalready lists the set, and task 26 repaired its actual CLI consumers. Task 20's\nnine-flag correction and the separately owned fn112/fn113/fn114 migrations are\nlinked without repeating implementation or changing their contracts. Historical\nqualification, audit, baseline and measurement records remain immutable. This\ncloses only the named inventory/ownership evidence gap. Choice Trace v2,\ncontroller-v2 journals, selected v041 availability, changed guidance defaults,\nmatched first-baseline bytes and all original full/formal/affected-consumer/\nboth-native requirements remain open\n([accountability supplement](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/accountability.md)).\n\n## Finding coverage"
+    },
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.md": {
+      "anchor": "stage: impl-review - deferred(policy: required lint is red; native qualification and preservation acceptance are incomplete)",
+      "replacement": "The [additive R18 accountability supplement](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/accountability.md) binds the named campaign helper/type set to task 5/R6 and its WIP introduction, with task 26's real CLI consumer correction. It links task 20's nine-flag correction and separately owned API/CLI changes. This supersedes only those historical inventory/ownership and missing-flag status statements at checkpoint 0988ab1041c5580b2d02763088d5048d6ee70586; the frozen audit, qualification evidence, measurements and original blocked checkpoint remain unchanged. Format/workload availability, changed guidance defaults, matched first-baseline identities, full/formal/affected-consumer and both native acceptance gates remain required and open.\n\nstage: impl-review - deferred(policy: required lint is red; native qualification and preservation acceptance are incomplete)\n\nstage: plan-sync - skipped(config: disabled; task remains blocked)"
+    },
+    "MILESTONES.md": {
+      "anchor": "workload/default, fixed-identity and both native qualification requirements remain open.\n",
+      "replacement": "workload/default, fixed-identity and both native qualification requirements remain open.\nTask 21's [additive accountability supplement](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/accountability.md)\nbinds the eight named campaign helper/type seams to task 5/R6 and the WIP\nintroduction, with task 26's CLI consumers and task 20's nine-flag correction.\nThe named inventory/ownership gap is resolved within that source block;\nindependent API/CLI migrations retain their existing owners. Historical audit,\nqualification and first-baseline records stay immutable. Format/workload\navailability, changed guidance defaults, matched first-baseline bytes and all\noriginal R18/R19/full/formal/affected-consumer/both-native gates remain open.\n"
+    }
+  },
+  "historical_blocked_reason": "# Task 21 checkpoint and outstanding acceptance\n\nThe frozen evidence checkpoint binds source candidate\n`8604c07def0f97b63cbca3864b4c286d6803c4b1`. It records verified progress,\nnot completed qualification. The worker's handover and evidence JSON preserve\ntheir original `in_progress` snapshot; the conductor owns the later blocked\nlifecycle record and commit. Historical manifests and source remain unchanged.\n\nThe conductor freshly ran `verify_handover.py --read-only` and\n`seal_current_checkpoint.py --check`, both exit 0. These checked sixteen finding\nrows, five obligation mappings, 978 source hashes/modes, 340 preservation-output\nhashes, 89 incomplete native rows and the 363-path / 3,459,910-byte selection.\nThe selection SHA256 is\n`4b8a57aeedcf07e9e781684d95f775fbaf6cac3b0ea0489d1337804db1690857`;\nthe freeze SHA256 is\n`68f32d26cf5cf12292a8a9737240ec4023d0f2beca84059ac93ec9b333443f2f`.\nAn additional conductor check compared the complete tracked nested-module\npath set and all hashes/modes with the 978-entry inventory. All 201 historical\nbaseline handoff hashes also verified, including a separate quiet\n`sha256sum -c --quiet handoff-output.sha256` run. Flow validation passed for all\n22 tasks. These checks preceded the lifecycle write; the frozen verifier's\noriginal artifact-only diff scope is not a claim about later Flow-record edits.\n\nThe [independent review](current-checkpoint-independent-review.md) covers the\nmatched measurements, actual raw profile attribution, preservation reporting,\ngate ledger and lean retention. This is a same-family, fresh-context evidence\nreview, requested as Codex `gpt-6.1-sol` at high effort; executed-model metadata\nis not exposed. It is not a formal implementation-review receipt.\n\nstage: impl-review - deferred(policy: required lint is red; native qualification and preservation acceptance are incomplete)\n\n## Remaining requirements\n\n- R18: reconcile uninventoried campaign helpers/error types with their actual\n  WIP introduction and accountable operation owner; link independently owned\n  API/CLI/variant migrations. Choice Trace v2 refusal and controller-v2 journal\n  refusal are distinct migrations, not unchanged first-baseline identities.\n  Return the nine missing registered-flag descriptions to task 20. Full\n  matched fixed-identity preservation remains incomplete beyond retained\n  projection vectors. The original audit report is immutable.\n- R19: obtain source-bound results for every required native command on both\n  `darwin/arm64` and `linux/amd64`, including runtime/process/overlay,\n  integration, smoke, core, affected suites and the platform-specific gates.\n  The four developmental campaigns supply bounded fixture evidence only.\n- Tooling: the compatible pinned Linux linter executed the unchanged root\n  target and failed on nested-module/fixture package discovery (Make 2,\n  golangci-lint 7). Return that implementation gap to a tooling owner; task 21\n  does not change package selection or policy to manufacture a pass.\n- Task 19 still needs its formal review and native gates. Task 20's guidance\n  SHIP does not close inherited D5 qualification. Fn-105 D3/D4/D5 remain open.\n\nBLOCKED: TOOLING_FAILURE\n\nTask: fn-109-gomad-deepen-modules-and-tool-interfaces.21\n\nThe required lint target fails, R18 preservation reconciliation is unfinished,\nand both qualified native hosts/toolchains are unavailable in this session.\nRetain the checkpoint separately, return gaps to their owners, and resume\nqualification when the relevant source or execution inputs change. Acceptance\ncriteria, dependencies and D12/D14 dispositions are unchanged.",
+  "original_acceptance": "All original R18/R19/R20, availability, fixed-identity, native/default, full/formal/affected-consumer and native darwin/arm64 plus linux/amd64 requirements remain REQUIRED/OPEN.",
+  "root_primary_receipt": {
+    "exit_code": 0,
+    "output_binding": "Fresh deterministic verifier output must equal the frozen evidence.json bytes; its SHA256 is primary_verification_stdout_sha256.",
+    "scope": "Read-only primary Git/accountability and BASE tracked-state preservation; not original first-baseline equivalence or runtime acceptance."
+  },
+  "next_research": {
+    "path": ".flow/tmp/v041-preservation-remedy-astra.md",
+    "sha256": "07a2f06ffbc4108be00d272f3858624035adaf566e8d4ea8583058c22c359e0c",
+    "scope": "Separate next-owner recommendation, not a committed artifact, approval or restored-availability claim."
+  },
+  "preflight_disclosure": "Worker rejected an attempted ancestry guard for the side-branch AdapterRegeneration source origin. Exact object/first-introduction and block proofs are retained; no ancestry claim survives in final evidence."
+}

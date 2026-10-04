@@ -1,0 +1,1473 @@
+{
+  "accountability_sha256": "1692a0be90e2aa27bca1458ebce036cabeb72ad20dbce8f4b26b20de2119c654",
+  "actual_worker_model": null,
+  "admission_sha256": "8dcef14b2cd950d9a457cd9e5d1026f760610b4334d965370b1379d34364fcdd",
+  "assertion_count": 159733,
+  "assertion_labels_sha256": "509c8521d465ebb4023a1ba5d48b31acf7d30de02b5d71e7dae2266cc67a11a8",
+  "base_commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+  "commits": [],
+  "flag_description_lines": {
+    "env": 155,
+    "io-ro-mount": 157,
+    "max-bytes": 278,
+    "min-free-bytes": 325,
+    "observed": 264,
+    "prune-qualified-artifacts": 327,
+    "terminate-grace": 126,
+    "toolchain-root": 72,
+    "world-transition-limit": 159
+  },
+  "gates": "No Go/full/native/formal gate run or pass claimed",
+  "named_seams": [
+    "NotSingleBaseSeedError",
+    "SemanticCoverageRequiredError",
+    "NormalizeStrategy",
+    "NormalizeCoverage",
+    "ValidateCoverage",
+    "ValidateChoiceTraceLimit",
+    "ValidateChoiceCoverage",
+    "ParseSingleBaseSeed"
+  ],
+  "original_acceptance": "REQUIRED/OPEN",
+  "owner_bindings": [
+    {
+      "changed_source_paths": [
+        "tools/gomad3/choice/diagnostic.go",
+        "tools/gomad3/choice/diagnostic_test.go",
+        "tools/gomad3/choice/divergence.go"
+      ],
+      "commit": "df2642da2681b8f677797ec34a8b888530cb2421",
+      "primary_source": "tools/gomad3/choice/diagnostic.go",
+      "task": "fn-112-gomad-determinism-assurance-and-test.3"
+    },
+    {
+      "changed_source_paths": [
+        "tools/gomad3/runner/campaign_shard_execution.go",
+        "tools/gomad3/runner/choice_exploration_campaign.go",
+        "tools/gomad3/runner/choice_exploration_divergence_test.go",
+        "tools/gomad3/runner/choice_exploration_divergence_unix_test.go",
+        "tools/gomad3/runner/coordinator.go",
+        "tools/gomad3/runner/coverage_replay_test.go",
+        "tools/gomad3/runner/diagnostic_identity_test.go",
+        "tools/gomad3/runner/diagnostics.go",
+        "tools/gomad3/runner/diagnostics_test.go",
+        "tools/gomad3/runner/evidence.go",
+        "tools/gomad3/runner/guidance.go",
+        "tools/gomad3/runner/guidance_identity_test.go",
+        "tools/gomad3/runner/inspect.go",
+        "tools/gomad3/runner/internal/campaign/campaign_journal.go",
+        "tools/gomad3/runner/internal/campaign/choice_exploration_divergence_test.go",
+        "tools/gomad3/runner/internal/campaign/choice_exploration_journal.go",
+        "tools/gomad3/runner/internal/campaign/open_campaign.go",
+        "tools/gomad3/runner/internal/campaign/resume_journal.go",
+        "tools/gomad3/runner/internal/corpus/corpus.go",
+        "tools/gomad3/runner/internal/corpus/corpus_test.go",
+        "tools/gomad3/runner/internal/corpus/guide_test.go",
+        "tools/gomad3/runner/internal/corpus/model.go",
+        "tools/gomad3/runner/internal/execution/bootstrap_unix.go",
+        "tools/gomad3/runner/internal/execution/diagnostics_toolchain_test.go",
+        "tools/gomad3/runner/internal/execution/launch_plan_unix.go",
+        "tools/gomad3/runner/internal/execution/model_conformance_compare_test.go",
+        "tools/gomad3/runner/internal/execution/model_conformance_test.go",
+        "tools/gomad3/runner/internal/execution/process.go",
+        "tools/gomad3/runner/internal/execution/process_test.go",
+        "tools/gomad3/runner/internal/execution/process_unix.go",
+        "tools/gomad3/runner/internal/execution/supervisor_unix.go",
+        "tools/gomad3/runner/internal/execution/watchdog_io_test.go",
+        "tools/gomad3/runner/internal/exploration/choice/engine.go",
+        "tools/gomad3/runner/internal/exploration/choice/engine_divergence_test.go",
+        "tools/gomad3/runner/replay_operation.go",
+        "tools/gomad3/runner/resume.go",
+        "tools/gomad3/runner/runner.go",
+        "tools/gomad3/runner/runner_test.go",
+        "tools/gomad3/runner/testdata/diagnostic-identity-choices.json",
+        "tools/gomad3/runner/testdata/diagnostic-identity-plain.json",
+        "tools/gomad3/runner/watchdog_replay_test.go"
+      ],
+      "commit": "e153d05a76083b797525eca6bb685c78f5b623be",
+      "primary_source": "tools/gomad3/runner/campaign_shard_execution.go",
+      "task": "fn-112-gomad-determinism-assurance-and-test.4"
+    },
+    {
+      "changed_source_paths": [
+        "tools/gomad3/qualification/set/soak.go",
+        "tools/gomad3/qualification/soak/ledger.go",
+        "tools/gomad3/qualification/soak/manifest.go",
+        "tools/gomad3/qualification/soak/soak.go",
+        "tools/gomad3/qualification/soak/soak_test.go"
+      ],
+      "commit": "bae373d14736d1e4437f840bbb66a173ab960052",
+      "primary_source": "tools/gomad3/qualification/set/soak.go",
+      "task": "fn-112-gomad-determinism-assurance-and-test.10"
+    },
+    {
+      "changed_source_paths": [
+        "tools/gomad3/deterministicio/adapter_regenerate.go",
+        "tools/gomad3/deterministicio/adapter_regenerate_source.go",
+        "tools/gomad3/deterministicio/adapter_regenerate_test.go",
+        "tools/gomad3/deterministicio/adapter_registry.go",
+        "tools/gomad3/deterministicio/adapter_rewrite.go",
+        "tools/gomad3/deterministicio/cactusstatsd_adapter.go",
+        "tools/gomad3/deterministicio/fx_adapter.go",
+        "tools/gomad3/deterministicio/grpc_adapter.go",
+        "tools/gomad3/deterministicio/grpc_adapter_test.go",
+        "tools/gomad3/deterministicio/grpc_dns_test.go",
+        "tools/gomad3/deterministicio/hashicorpmetrics_adapter.go",
+        "tools/gomad3/deterministicio/libc_adapter.go",
+        "tools/gomad3/deterministicio/memberlist_adapter.go",
+        "tools/gomad3/deterministicio/memory_adapter.go",
+        "tools/gomad3/deterministicio/memory_adapter_test.go",
+        "tools/gomad3/deterministicio/otelsdk_adapter.go",
+        "tools/gomad3/deterministicio/pebble_adapter.go",
+        "tools/gomad3/deterministicio/profile.go",
+        "tools/gomad3/deterministicio/sentry_adapter.go",
+        "tools/gomad3/deterministicio/sockaddr_adapter.go",
+        "tools/gomad3/deterministicio/sprig_adapter.go",
+        "tools/gomad3/deterministicio/temporalsdk_adapter.go",
+        "tools/gomad3/deterministicio/validator_adapter.go",
+        "tools/gomad3/deterministicio/xnet_adapter.go",
+        "tools/gomad3/deterministicio/xnet_adapter_test.go"
+      ],
+      "commit": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+      "primary_source": "tools/gomad3/deterministicio/adapter_regenerate.go",
+      "task": "fn-113-gomad-reduce-version-pin-maintenance.2"
+    },
+    {
+      "changed_source_paths": [
+        "tools/gomad3/internal/compatibilitypack/authoring/generate.go",
+        "tools/gomad3/internal/compatibilitypack/authoring/refresh.go",
+        "tools/gomad3/internal/compatibilitypack/authoring/refresh_test.go",
+        "tools/gomad3/internal/compatibilitypack/authoring/working_directories.go",
+        "tools/gomad3/internal/compatibilitypack/evidence_test.go",
+        "tools/gomad3/internal/compatibilitypack/generation.json",
+        "tools/gomad3/internal/compatibilitypack/packs/modernc-libc-xsys-v041.json",
+        "tools/gomad3/internal/compatibilitypack/packs_generated_test.go",
+        "tools/gomad3/internal/compatibilitypack/policy_test.go",
+        "tools/gomad3/internal/compatibilitypack/reports/modernc-libc-xsys-v041.md",
+        "tools/gomad3/internal/compatibilitypack/requests/modernc-libc-xsys-v041.json",
+        "tools/gomad3/internal/compatibilitypack/testdata/v041/go.mod",
+        "tools/gomad3/internal/compatibilitypack/testdata/v041/go.sum",
+        "tools/gomad3/internal/compatibilitypack/testdata/v041/libc_test.go",
+        "tools/gomad3/internal/compatibilitypack/working-directories.json"
+      ],
+      "commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+      "primary_source": "tools/gomad3/internal/compatibilitypack/authoring/generate.go",
+      "task": "fn-113-gomad-reduce-version-pin-maintenance.3"
+    },
+    {
+      "changed_source_paths": [
+        "tools/gomad3/runner/campaign_plan.go",
+        "tools/gomad3/runner/choice_exploration_campaign.go",
+        "tools/gomad3/runner/coordinator.go",
+        "tools/gomad3/runner/inspect.go",
+        "tools/gomad3/runner/internal/campaign/choice_exploration_start_test.go",
+        "tools/gomad3/runner/internal/campaign/open_campaign.go",
+        "tools/gomad3/runner/internal/campaign/resume_plan.go",
+        "tools/gomad3/runner/internal/campaign/testdata/pre-start-ordinal-journal/choice-exploration/plan.json",
+        "tools/gomad3/runner/internal/campaign/testdata/pre-start-ordinal-journal/choice-exploration/rounds/00000000000000000000/executions/00000000000000000000.json",
+        "tools/gomad3/runner/internal/campaign/testdata/pre-start-ordinal-journal/choice-exploration/rounds/00000000000000000000/round.json",
+        "tools/gomad3/runner/internal/campaign/testdata/pre-start-ordinal-journal/choice-exploration/rounds/00000000000000000000/segment.json",
+        "tools/gomad3/runner/internal/exploration/choice/engine.go",
+        "tools/gomad3/runner/internal/exploration/choice/engine_test.go",
+        "tools/gomad3/runner/resume.go",
+        "tools/gomad3/runner/runner.go",
+        "tools/gomad3/runner/runner_test.go"
+      ],
+      "commit": "80fcf2cb449e326d983d404dcf31286c0b8b905f",
+      "primary_source": "tools/gomad3/runner/campaign_plan.go",
+      "task": "fn-114-gomad-correct-search-path-defects-and.6"
+    },
+    {
+      "changed_source_paths": [
+        "tools/gomad3/runner/campaign_merge.go",
+        "tools/gomad3/runner/campaign_plan.go",
+        "tools/gomad3/runner/campaign_shard_execution.go",
+        "tools/gomad3/runner/coordinator.go",
+        "tools/gomad3/runner/guidance.go",
+        "tools/gomad3/runner/guided_selection_test.go",
+        "tools/gomad3/runner/internal/campaign/campaign_journal.go",
+        "tools/gomad3/runner/internal/campaign/merge.go",
+        "tools/gomad3/runner/internal/campaign/open_campaign.go",
+        "tools/gomad3/runner/internal/campaign/resume_journal.go",
+        "tools/gomad3/runner/internal/campaign/resume_plan.go",
+        "tools/gomad3/runner/internal/campaign/segmented_journal.go",
+        "tools/gomad3/runner/portable_plan.go",
+        "tools/gomad3/runner/resume.go",
+        "tools/gomad3/runner/runner.go",
+        "tools/gomad3/runner/runner_test.go",
+        "tools/gomad3/runner/seeds.go"
+      ],
+      "commit": "2c3de4c98256eed39e7a8421669f753400c6dd7a",
+      "primary_source": "tools/gomad3/runner/campaign_merge.go",
+      "task": "fn-114-gomad-correct-search-path-defects-and.7"
+    },
+    {
+      "changed_source_paths": [
+        "tools/gomad3/CLI.md",
+        "tools/gomad3/README.md",
+        "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+        "tools/gomad3/cmd/gomad/internal/cli/explore_output.go",
+        "tools/gomad3/cmd/gomad/internal/cli/guidance_test.go",
+        "tools/gomad3/cmd/gomad/internal/cli/resume.go",
+        "tools/gomad3/runner/campaign_merge.go",
+        "tools/gomad3/runner/campaign_plan.go",
+        "tools/gomad3/runner/campaign_shard_execution.go",
+        "tools/gomad3/runner/coordinator.go",
+        "tools/gomad3/runner/guidance.go",
+        "tools/gomad3/runner/guided_selection_test.go",
+        "tools/gomad3/runner/internal/campaign/campaign_journal.go",
+        "tools/gomad3/runner/internal/campaign/merge.go",
+        "tools/gomad3/runner/internal/campaign/open_campaign.go",
+        "tools/gomad3/runner/internal/campaign/resume_journal.go",
+        "tools/gomad3/runner/internal/campaign/resume_plan.go",
+        "tools/gomad3/runner/internal/campaign/segmented_journal.go",
+        "tools/gomad3/runner/portable_plan.go",
+        "tools/gomad3/runner/resume.go",
+        "tools/gomad3/runner/runner.go",
+        "tools/gomad3/runner/runner_test.go",
+        "tools/gomad3/runner/seeds.go"
+      ],
+      "commit": "74a53f05b952ad95ceb522e9d8137e1314aa6ee0",
+      "primary_source": "tools/gomad3/CLI.md",
+      "task": "fn-114-gomad-correct-search-path-defects-and.7"
+    },
+    {
+      "changed_source_paths": [
+        "tools/gomad3/runner/internal/minimizer/minimizer.go",
+        "tools/gomad3/runner/internal/minimizer/workspace.go",
+        "tools/gomad3/runner/internal/minimizer/workspace_unix_test.go",
+        "tools/gomad3/runner/minimize_operation.go",
+        "tools/gomad3/runner/minimize_operation_test.go"
+      ],
+      "commit": "d00f8038434b007ae8cef7d240efdd2f7e16e9a2",
+      "primary_source": "tools/gomad3/runner/internal/minimizer/minimizer.go",
+      "task": "fn-114-gomad-correct-search-path-defects-and.8"
+    },
+    {
+      "changed_source_paths": [
+        "tools/gomad3/runner/internal/minimizer/workspace.go",
+        "tools/gomad3/runner/internal/minimizer/workspace_unix_test.go",
+        "tools/gomad3/runner/minimize_operation.go",
+        "tools/gomad3/runner/minimize_operation_test.go"
+      ],
+      "commit": "406a354f20546d4cdbada1cafdddd8d5d2b5374d",
+      "primary_source": "tools/gomad3/runner/internal/minimizer/workspace.go",
+      "task": "fn-114-gomad-correct-search-path-defects-and.15"
+    },
+    {
+      "changed_source_paths": [
+        "tools/gomad3/artifact/open.go",
+        "tools/gomad3/artifact/store.go",
+        "tools/gomad3/artifact/target_pool.go",
+        "tools/gomad3/artifact/target_pool_test.go",
+        "tools/gomad3/artifact/target_pool_unix_test.go"
+      ],
+      "commit": "bc2e970b5306aa09f594657a8d42c159cf4a1270",
+      "primary_source": "tools/gomad3/artifact/open.go",
+      "task": "fn-114-gomad-correct-search-path-defects-and.9"
+    },
+    {
+      "changed_source_paths": [
+        "tools/gomad3/artifact/link_count_other.go",
+        "tools/gomad3/artifact/link_count_unix.go",
+        "tools/gomad3/artifact/retained_bytes.go",
+        "tools/gomad3/artifact/retained_bytes_test.go",
+        "tools/gomad3/artifact/store.go",
+        "tools/gomad3/artifact/target_pool.go",
+        "tools/gomad3/artifact/target_pool_unix_test.go"
+      ],
+      "commit": "6f66f744ddafb65412ee94c818c5fed4aa9b1ee3",
+      "primary_source": "tools/gomad3/artifact/link_count_other.go",
+      "task": "fn-114-gomad-correct-search-path-defects-and.10"
+    },
+    {
+      "changed_source_paths": [
+        "tools/gomad3/choice/internal/wire/wire_generated.go",
+        "tools/gomad3/choice/internal/wire/wire_generated_test.go",
+        "tools/gomad3/choice/readiness_test.go",
+        "tools/gomad3/choice/schema/choicewire.go.tmpl",
+        "tools/gomad3/choice/schema/choicewire.json",
+        "tools/gomad3/choice/schema/choicewire_runtime.go.tmpl",
+        "tools/gomad3/choice/schema/choicewire_test.go.tmpl",
+        "tools/gomad3/choice/session_test.go",
+        "tools/gomad3/choice/tape.go",
+        "tools/gomad3/choice/tape_test.go",
+        "tools/gomad3/choice/trace.go",
+        "tools/gomad3/choice/trace_test.go",
+        "tools/gomad3/choice/wire.go"
+      ],
+      "commit": "00633b2b558beb1c762decffe9d55b14631200c1",
+      "primary_source": "tools/gomad3/choice/internal/wire/wire_generated.go",
+      "task": "fn-114-gomad-correct-search-path-defects-and.11"
+    },
+    {
+      "changed_source_paths": [
+        "tools/gomad3/runner/internal/exploration/choice/select_readiness.go",
+        "tools/gomad3/runner/runner.go",
+        "tools/gomad3/runner/runner_test.go"
+      ],
+      "commit": "1b970bc1444f4da6428c843a91d3d0fa998dbde3",
+      "primary_source": "tools/gomad3/runner/internal/exploration/choice/select_readiness.go",
+      "task": "fn-114-gomad-correct-search-path-defects-and.12"
+    },
+    {
+      "changed_source_paths": [
+        "tools/gomad3/runner/internal/campaign/choice_exploration_start_test.go",
+        "tools/gomad3/runner/internal/campaign/testdata/pre-start-ordinal-journal/choice-exploration/plan.json",
+        "tools/gomad3/runner/internal/campaign/testdata/pre-start-ordinal-journal/choice-exploration/rounds/00000000000000000000/executions/00000000000000000000.json",
+        "tools/gomad3/runner/internal/campaign/testdata/pre-start-ordinal-journal/choice-exploration/rounds/00000000000000000000/round.json",
+        "tools/gomad3/runner/internal/campaign/testdata/pre-start-ordinal-journal/choice-exploration/rounds/00000000000000000000/segment.json",
+        "tools/gomad3/runner/internal/exploration/choice/engine.go",
+        "tools/gomad3/runner/internal/exploration/choice/engine_test.go",
+        "tools/gomad3/runner/internal/exploration/choice/select_readiness.go",
+        "tools/gomad3/runner/runner_test.go"
+      ],
+      "commit": "b666b41c09ed152417e44b6c9738e16a58b8b43a",
+      "primary_source": "tools/gomad3/runner/internal/campaign/choice_exploration_start_test.go",
+      "task": "fn-114-gomad-correct-search-path-defects-and.12"
+    }
+  ],
+  "preservation_scope": "HEAD/index/worktree tracked paths and modes outside admitted documents/directory vs BASE only; gitlinks bind recorded identity and initialized clean HEAD or empty uninitialized directory; unrelated untracked files excluded; no original first-baseline preservation verdict",
+  "protected_gitlink_count": 1,
+  "protected_tracked_path_count": 31872,
+  "prs": [],
+  "references": [
+    {
+      "blob_id": "db60ec685eea9f7275a42e0fe7e2f38759eed846",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "2b9a7297476286148e41278b7790c19ef0c0d33dea551643682759cab640897a",
+      "lines": [
+        551,
+        633
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/task-only.patch",
+      "required_tokens": [],
+      "sha256": "a0f0b6c5c3b5963740b0aaab28f66d2f2d97b91ed972d16cfbe20266f670ffda"
+    },
+    {
+      "blob_id": "8d79cc211e24a9b617687f74f7b3eb1187292d36",
+      "commit": "a3b9f80efab9356c0be2080779133337e2471ac0",
+      "interval_sha256": "6a393b209153a114ba174e9a9e7212ff6df2f15039cbdcff58d858dc33800de1",
+      "lines": [
+        109,
+        191
+      ],
+      "path": "tools/gomad3/runner/campaign_options.go",
+      "required_tokens": [],
+      "sha256": "d44433d2d17754ba846a4c8d71964e44736b1da04ccc8d132d0b2e2851393aed"
+    },
+    {
+      "blob_id": "580ab9a62a1c2d5a64d9502bd824fedcc5fe98d9",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "6a393b209153a114ba174e9a9e7212ff6df2f15039cbdcff58d858dc33800de1",
+      "lines": [
+        109,
+        191
+      ],
+      "path": "tools/gomad3/runner/campaign_options.go",
+      "required_tokens": [],
+      "sha256": "7f2eb52921e6aaf2f34d5f3ec9da79b83979627dd45bf40e57f2e9400862aeb0"
+    },
+    {
+      "blob_id": "8450ef08ed9249d7b4767dfb80829417f2134362",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "1fed1368fe7b4dcce55d8160fbed671e4d1011b6c1903981beeb46600f91df32",
+      "lines": [
+        1,
+        88
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/final-source.json",
+      "required_tokens": [],
+      "sha256": "1fed1368fe7b4dcce55d8160fbed671e4d1011b6c1903981beeb46600f91df32"
+    },
+    {
+      "blob_id": "91ec943fe47be8ef89ad1aed1897494a67c3101c",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "50619413d472a5979dd46b30105db8e6242ae979c64f3692d13c7414e322d2f5",
+      "lines": [
+        1,
+        28
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/parent-source-verification.json",
+      "required_tokens": [],
+      "sha256": "50619413d472a5979dd46b30105db8e6242ae979c64f3692d13c7414e322d2f5"
+    },
+    {
+      "blob_id": "3cc8885624313efe12f12324fecc20f6a07198d2",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "a6509889521020edf1fe5c3a09f01bb3fc672361a1052a08ee1972145f1cb7f8",
+      "lines": [
+        1,
+        129
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-5/review-fix.patch",
+      "required_tokens": [],
+      "sha256": "a6509889521020edf1fe5c3a09f01bb3fc672361a1052a08ee1972145f1cb7f8"
+    },
+    {
+      "blob_id": "a5575887ab342da1b2febf82d4d86c282da4aa09",
+      "commit": "7fe6c833c0f03b46d9b2876d9f6a1b59d5f7c2ac",
+      "interval_sha256": "62e6adc6f00194fc40dd0e914678e60574c399de577ac34374cb1c04f0cf6a7d",
+      "lines": [
+        1,
+        169
+      ],
+      "path": "tools/gomad3/runner/campaign_options.go",
+      "required_tokens": [],
+      "sha256": "62e6adc6f00194fc40dd0e914678e60574c399de577ac34374cb1c04f0cf6a7d"
+    },
+    {
+      "blob_id": "08e435ad85745ab6c809f954dba0dc30875744c0",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "63239faad209096aedb7ba454b076f077fcce7c27a7f7859b7d051b763759d67",
+      "lines": [
+        187,
+        210
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md",
+      "required_tokens": [],
+      "sha256": "f311c315800857f814dcbf1f1e7445f19df9ae4e5b4da6f8c7da1065399f324c"
+    },
+    {
+      "blob_id": "6669bb8d2fecf385b90e4280ddade7d117af6fd3",
+      "commit": "f608449c016b751a8fd4e19561518e979ebfc31e",
+      "interval_sha256": "5154e2244aa50b7c4d2b5cc7957b95446d4e4d1697a0b8bb5179780d1aecf439",
+      "lines": [
+        1,
+        133
+      ],
+      "path": "tools/gomad3/runner/campaign_plan.go",
+      "required_tokens": [
+        "func ParseStrategy(",
+        "func ParseCoverageMode("
+      ],
+      "sha256": "5154e2244aa50b7c4d2b5cc7957b95446d4e4d1697a0b8bb5179780d1aecf439"
+    },
+    {
+      "blob_id": "e5a8a89552a4258f0ea071451c76f87cc6a9e6fa",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "e2467194ee439c14b537ddb38eba22de1ee3763609cb43150c6dbc578f9b0f36",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.5.md",
+      "required_tokens": [
+        "second half of R6",
+        "options owner from task 2",
+        "Semantic rules"
+      ],
+      "sha256": "0fe742312f4711bf7829c8a6bf05720d90f4b58e6f7b555faea77cad0e09fb33"
+    },
+    {
+      "blob_id": "d1087c202d7905a002941b8dceada21a63d857c3",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "aab65f1691767b7ec37e0941388e651d76c881540f6eabb21afdf53979708984",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.2.md",
+      "required_tokens": [
+        "One private serializable options",
+        "One normalization function"
+      ],
+      "sha256": "6128d71ba4536d9119ffc9d3064767a59ccb0e0a4cf88b439182a29b915c118b"
+    },
+    {
+      "blob_id": "2bf3900f0e3a5d1d9101f6c92b928a91add84030",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "78a3b5aff6389aafda93962a679425f5390cd0789328db217e9223dada7c6fa7",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.26.md",
+      "required_tokens": [
+        "current check point",
+        "ParseSingleBaseSeed",
+        "NormalizeCoverage"
+      ],
+      "sha256": "277c3c1e0d00ef0948fe1825c5dbb891564678180d0fb202eecab9227b64a128"
+    },
+    {
+      "blob_id": "618858d72d603d0193709c51915a474e3f3faccd",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "60fde02b2d82211652122d0c033d77a87b3c4f139e1e29d1b11ce9acd39d49aa",
+      "lines": [
+        9,
+        35
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/independent-source-review.md",
+      "required_tokens": [
+        "33 behavioral tests",
+        "all eight",
+        "unknown external consumers"
+      ],
+      "sha256": "77b317f27641c2aac426319210da601b4568f8f7b5703e30bb9654915ba88601"
+    },
+    {
+      "blob_id": "d64b6ab3d8dc6ca70d1cbe40d8b9a1983052f03b",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "ba3bc84d1a057de9db7ab96fbbb3960b5947f5c31869aebf219a4e9ab738d8d0",
+      "lines": [
+        724,
+        733
+      ],
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "required_tokens": [
+        "runner.ValidateChoiceCoverage(coverageMode, resolvedChoiceLimit)",
+        "parseTarget"
+      ],
+      "sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277"
+    },
+    {
+      "blob_id": "d64b6ab3d8dc6ca70d1cbe40d8b9a1983052f03b",
+      "commit": "fec3ce56e7ea2f1498617148cb2c6d47f1297bc0",
+      "interval_sha256": "ba3bc84d1a057de9db7ab96fbbb3960b5947f5c31869aebf219a4e9ab738d8d0",
+      "lines": [
+        724,
+        733
+      ],
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "required_tokens": [
+        "runner.ValidateChoiceCoverage(coverageMode, resolvedChoiceLimit)",
+        "parseTarget"
+      ],
+      "sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277"
+    },
+    {
+      "blob_id": "d64b6ab3d8dc6ca70d1cbe40d8b9a1983052f03b",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "43abe0bea6cd0e2b1aec7b0b84563c5e42167d671916a3d9f379252b8346dead",
+      "lines": [
+        838,
+        846
+      ],
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "required_tokens": [
+        "runner.ParseSingleBaseSeed(options.Seeds)",
+        "runner.NotSingleBaseSeedError",
+        "errors.As"
+      ],
+      "sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277"
+    },
+    {
+      "blob_id": "d64b6ab3d8dc6ca70d1cbe40d8b9a1983052f03b",
+      "commit": "fec3ce56e7ea2f1498617148cb2c6d47f1297bc0",
+      "interval_sha256": "43abe0bea6cd0e2b1aec7b0b84563c5e42167d671916a3d9f379252b8346dead",
+      "lines": [
+        838,
+        846
+      ],
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "required_tokens": [
+        "runner.ParseSingleBaseSeed(options.Seeds)",
+        "runner.NotSingleBaseSeedError",
+        "errors.As"
+      ],
+      "sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277"
+    },
+    {
+      "blob_id": "d64b6ab3d8dc6ca70d1cbe40d8b9a1983052f03b",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "a8d83d7a5d14c4f1e6d59b7d6de3b2b9857fd5657af1907c2249077085d6cc6f",
+      "lines": [
+        862,
+        870
+      ],
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "required_tokens": [
+        "runner.ParseSingleBaseSeed(options.Seeds)",
+        "runner.NotSingleBaseSeedError",
+        "errors.As"
+      ],
+      "sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277"
+    },
+    {
+      "blob_id": "d64b6ab3d8dc6ca70d1cbe40d8b9a1983052f03b",
+      "commit": "fec3ce56e7ea2f1498617148cb2c6d47f1297bc0",
+      "interval_sha256": "a8d83d7a5d14c4f1e6d59b7d6de3b2b9857fd5657af1907c2249077085d6cc6f",
+      "lines": [
+        862,
+        870
+      ],
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "required_tokens": [
+        "runner.ParseSingleBaseSeed(options.Seeds)",
+        "runner.NotSingleBaseSeedError",
+        "errors.As"
+      ],
+      "sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277"
+    },
+    {
+      "blob_id": "d64b6ab3d8dc6ca70d1cbe40d8b9a1983052f03b",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "5f47893cc49abda686413add6626e11d0ee3cff4d7f9d9216f137ec8e2a31669",
+      "lines": [
+        919,
+        925
+      ],
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "required_tokens": [
+        "runner.NormalizeCoverage(\"\", true)"
+      ],
+      "sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277"
+    },
+    {
+      "blob_id": "d64b6ab3d8dc6ca70d1cbe40d8b9a1983052f03b",
+      "commit": "fec3ce56e7ea2f1498617148cb2c6d47f1297bc0",
+      "interval_sha256": "5f47893cc49abda686413add6626e11d0ee3cff4d7f9d9216f137ec8e2a31669",
+      "lines": [
+        919,
+        925
+      ],
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "required_tokens": [
+        "runner.NormalizeCoverage(\"\", true)"
+      ],
+      "sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277"
+    },
+    {
+      "blob_id": "d64b6ab3d8dc6ca70d1cbe40d8b9a1983052f03b",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "cf8f3bcb8b994029dc6a9a2f5707662b6c6ca49c285f86321481f8fb18c8fe94",
+      "lines": [
+        945,
+        958
+      ],
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "required_tokens": [
+        "runner.ValidateCoverage(mode, required)",
+        "runner.SemanticCoverageRequiredError",
+        "errors.As"
+      ],
+      "sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277"
+    },
+    {
+      "blob_id": "d64b6ab3d8dc6ca70d1cbe40d8b9a1983052f03b",
+      "commit": "fec3ce56e7ea2f1498617148cb2c6d47f1297bc0",
+      "interval_sha256": "cf8f3bcb8b994029dc6a9a2f5707662b6c6ca49c285f86321481f8fb18c8fe94",
+      "lines": [
+        945,
+        958
+      ],
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "required_tokens": [
+        "runner.ValidateCoverage(mode, required)",
+        "runner.SemanticCoverageRequiredError",
+        "errors.As"
+      ],
+      "sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277"
+    },
+    {
+      "blob_id": "d64b6ab3d8dc6ca70d1cbe40d8b9a1983052f03b",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "04042d24eed57dada3776da672dbda500106df9d147fb8debe043f5e55e08914",
+      "lines": [
+        961,
+        974
+      ],
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "required_tokens": [
+        "if limit == 0",
+        "runner.ValidateChoiceTraceLimit(uint64(limit))"
+      ],
+      "sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277"
+    },
+    {
+      "blob_id": "d64b6ab3d8dc6ca70d1cbe40d8b9a1983052f03b",
+      "commit": "fec3ce56e7ea2f1498617148cb2c6d47f1297bc0",
+      "interval_sha256": "04042d24eed57dada3776da672dbda500106df9d147fb8debe043f5e55e08914",
+      "lines": [
+        961,
+        974
+      ],
+      "path": "tools/gomad3/cmd/gomad/internal/cli/cli.go",
+      "required_tokens": [
+        "if limit == 0",
+        "runner.ValidateChoiceTraceLimit(uint64(limit))"
+      ],
+      "sha256": "2552263399fc975fd5a8c2e125f30f8494bf74a6da8b7e19e27138382ec5a277"
+    },
+    {
+      "blob_id": "580ab9a62a1c2d5a64d9502bd824fedcc5fe98d9",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "753c2aa0e667c72692974c743f2fd8fb723be9b8a6dda3ca19583f2b6a08613c",
+      "lines": [
+        271,
+        273
+      ],
+      "path": "tools/gomad3/runner/campaign_options.go",
+      "required_tokens": [
+        "NormalizeStrategy(options.Strategy)"
+      ],
+      "sha256": "7f2eb52921e6aaf2f34d5f3ec9da79b83979627dd45bf40e57f2e9400862aeb0"
+    },
+    {
+      "blob_id": "a4bb03474fdd16d1bdbb102f80b6a07b38671102",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "454f33381c04968e31e84ac2366e2d0a7c535fdf56be7dd331744df840856c75",
+      "lines": [
+        90,
+        97
+      ],
+      "path": "tools/gomad3/runner/campaign_plan.go",
+      "required_tokens": [
+        "NormalizeStrategy(Strategy(value))"
+      ],
+      "sha256": "a3980afd105cab495e1ccd0558dfd9dfc4a5520f059723f06bc62915ace816a1"
+    },
+    {
+      "blob_id": "485800c65dc1550015e5334811bbcf5c479add4c",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "a4fe6742bc1ea38da3e7f3024b32acdba47d0069290aff0e74d759fe0eaeea4b",
+      "lines": [
+        1298,
+        1331
+      ],
+      "path": "tools/gomad3/runner/runner.go",
+      "required_tokens": [
+        "ValidateCoverage(config.Coverage, config.RequiredSemanticProbes)",
+        "ValidateChoiceTraceLimit(config.ChoiceTraceLimit)",
+        "ValidateChoiceCoverage(config.Coverage, config.ChoiceTraceLimit)",
+        "NormalizeCoverage(config.Coverage, false)",
+        "guided exploration requires a corpus and coverage"
+      ],
+      "sha256": "bdf6d21c8e09713446a803bc112b48db4eb50718827129bd53d4617ce4ff606b"
+    },
+    {
+      "blob_id": "1e644e5f4b00285578762f221a4cefc331a474e3",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "7c2d39154b966614b042bc09a1d824cebd3e67edbe6f6344765ff2d6f22c23e4",
+      "lines": [
+        36,
+        61
+      ],
+      "path": "tools/gomad3/testdata/runnerconsumer/consumer.go",
+      "required_tokens": [
+        "runner.NotSingleBaseSeedError",
+        "runner.SemanticCoverageRequiredError",
+        "runner.NormalizeStrategy",
+        "runner.NormalizeCoverage",
+        "runner.ValidateCoverage",
+        "runner.ValidateChoiceTraceLimit",
+        "runner.ValidateChoiceCoverage",
+        "runner.ParseSingleBaseSeed"
+      ],
+      "sha256": "34f3df3aed388c243eb94bcc2d0448f8aee03e6d7104269e10e4b06dd0cefd27"
+    },
+    {
+      "blob_id": "102ec99f0c3f6fc17db278fe1c45e1d50d99e7f9",
+      "commit": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+      "interval_sha256": "b267667d91f22f53c9542dded17b4a6029352818a849dfda395bd8b794367d22",
+      "lines": [
+        76,
+        86
+      ],
+      "path": "tools/gomad3/deterministicio/adapter_regenerate.go",
+      "required_tokens": [
+        "type AdapterRegeneration struct"
+      ],
+      "sha256": "1d5e1b8cfaa2250acd2afbe63498d1bb67470a57495b48ec7b39c6dced97d32f"
+    },
+    {
+      "blob_id": "ffa2629c0ff4d4cc6393a1568f5d4bc56c506a3a",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "3c6458aeb3445f4f69902f31f0f5058acb14abe7012273002e36825b496cd44c",
+      "lines": [
+        124,
+        152
+      ],
+      "path": "tools/gomad3/runner/guidance.go",
+      "required_tokens": [
+        "if !regression",
+        "selection = excludeAnsweredSeeds(base, answered)"
+      ],
+      "sha256": "97e6fdf68dbdf756d2dc61e805ac4db07c5a985113d72119c66766639b9f7b6a"
+    },
+    {
+      "blob_id": "08e435ad85745ab6c809f954dba0dc30875744c0",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "5b3a1a17f778c426e1a129ecfa17b9db7c7e4278e0ac51eb53d4bf8fda0e057a",
+      "lines": [
+        24,
+        128
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md",
+      "required_tokens": [],
+      "sha256": "f311c315800857f814dcbf1f1e7445f19df9ae4e5b4da6f8c7da1065399f324c"
+    },
+    {
+      "blob_id": "08e435ad85745ab6c809f954dba0dc30875744c0",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "b7d87d6404d28f1d1938db37bf4f2f32536e0f64ac29a92be49fbac8b3e22bb6",
+      "lines": [
+        241,
+        449
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/go-interface-changes.md",
+      "required_tokens": [],
+      "sha256": "f311c315800857f814dcbf1f1e7445f19df9ae4e5b4da6f8c7da1065399f324c"
+    },
+    {
+      "blob_id": "b78272219ea8c17a02900828e84af78d2210cbbb",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "e2da8680788079a0df2996dd116ed495478827de6364d574d0ed89a8e986e924",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.6.md",
+      "required_tokens": [],
+      "sha256": "735bdbd268c6f32fe4c9f294e8f45427e44213831b3cf4f07352b1461b7fc9df"
+    },
+    {
+      "blob_id": "c61501450e998620a918a170544734d3793ab368",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "c7fec8f43ed2827f3c456b0554fe3b62e8f042c8a4c9ec3b540d80cffc444dd2",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md",
+      "required_tokens": [],
+      "sha256": "ed73b16b6bf0581cdfb0a93d6483daf3b550018e0c70839c2214165a46772230"
+    },
+    {
+      "blob_id": "419c6ec2e2a68af5704646d1f3eaf9c99e74b28d",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "253672c476e62ee19f3cf87d77500de18d9cdd9c0bfab1f21aeb57b306ab6642",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.11.md",
+      "required_tokens": [],
+      "sha256": "4e85527abf0ed2c4038dd9e3b8efdf92a486c93e5c063c57027252896bf1eb9a"
+    },
+    {
+      "blob_id": "4c2b5d628ebc0a5606bb41871ac37a12a18f5de1",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "3ee0b7c086a7f5680fe6a5a8c7e0d311590661f549c7d74e7c403ef2f6ebf570",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.19.md",
+      "required_tokens": [],
+      "sha256": "2417301fb9dbec2b1e0869834df1fa8ae9ea1f5ee029f304e5dbbdb83d61160a"
+    },
+    {
+      "blob_id": "33708a8e0e5262b68dbbbeb8e823d02e4a98074c",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "481a5f50057aa072ae813793d47ab03395252ea9a36a739052785947d6f5736c",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.3.md",
+      "required_tokens": [],
+      "sha256": "e48fe209748718c900021da580c3d28ce8a5c536f85fb8eb529034fbce0cb906"
+    },
+    {
+      "blob_id": "a38c1d8e43426e19155870f062f20572262da78d",
+      "commit": "df2642da2681b8f677797ec34a8b888530cb2421",
+      "interval_sha256": "f9fb532dd99695d035e58e94c92ea352688d5df0fd5023513721e66b7317ac27",
+      "lines": [
+        1,
+        202
+      ],
+      "path": "tools/gomad3/choice/diagnostic.go",
+      "required_tokens": [],
+      "sha256": "f9fb532dd99695d035e58e94c92ea352688d5df0fd5023513721e66b7317ac27"
+    },
+    {
+      "blob_id": "a356f1ff7f0ae128d48bea58d7afb6b8b7cc9d92",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "9faaf305ca9d48d4bb6f8b3d4cde6b1597df2b05c86767b89cebe06f3494efb5",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.4.md",
+      "required_tokens": [],
+      "sha256": "7acc3620e50a9a934b26aa02cfbafd7d10619b31f08e3bedd9a8243f5463bf58"
+    },
+    {
+      "blob_id": "d8ddab785128c16ff3930f21ce0164685c9b2905",
+      "commit": "e153d05a76083b797525eca6bb685c78f5b623be",
+      "interval_sha256": "12a4b48478f21d514aa0345186e8720c60233315ec4801f101bce18635c7eb44",
+      "lines": [
+        1,
+        191
+      ],
+      "path": "tools/gomad3/runner/campaign_shard_execution.go",
+      "required_tokens": [],
+      "sha256": "12a4b48478f21d514aa0345186e8720c60233315ec4801f101bce18635c7eb44"
+    },
+    {
+      "blob_id": "ae6ce9dc0132723162210020e96624f764c0b08f",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "3e716397bc246d6c7d5df8a39dfa28723008805b01ff0e15ebc7ee3811119839",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.10.md",
+      "required_tokens": [],
+      "sha256": "33475218742b0f68253a53f0f2cb8df268b58030b42ffb09b48ab77d6e65fd29"
+    },
+    {
+      "blob_id": "f9085ed41a174a32f7947e72207d330f1f3825af",
+      "commit": "bae373d14736d1e4437f840bbb66a173ab960052",
+      "interval_sha256": "5eb061d4904731234620adf553b01b3a6685a63e2c8dde81ab4db8a54fa1a6eb",
+      "lines": [
+        1,
+        22
+      ],
+      "path": "tools/gomad3/qualification/set/soak.go",
+      "required_tokens": [],
+      "sha256": "5eb061d4904731234620adf553b01b3a6685a63e2c8dde81ab4db8a54fa1a6eb"
+    },
+    {
+      "blob_id": "9f6dcc594403d07e368c3a78c52a6b231115b918",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "19662568ccf925f00df26774061670d3b0ccdf5d705c7d38a2fc8f9abb89b221",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.2.md",
+      "required_tokens": [],
+      "sha256": "66f323ece2036240152686a6e5a20d89ad3b0a2638e5615fdd781a67539a3148"
+    },
+    {
+      "blob_id": "102ec99f0c3f6fc17db278fe1c45e1d50d99e7f9",
+      "commit": "076cdcc344ced6e1f6e195df84540c8ca74ca2f1",
+      "interval_sha256": "1d5e1b8cfaa2250acd2afbe63498d1bb67470a57495b48ec7b39c6dced97d32f",
+      "lines": [
+        1,
+        358
+      ],
+      "path": "tools/gomad3/deterministicio/adapter_regenerate.go",
+      "required_tokens": [],
+      "sha256": "1d5e1b8cfaa2250acd2afbe63498d1bb67470a57495b48ec7b39c6dced97d32f"
+    },
+    {
+      "blob_id": "42bb61b3035c858d4720876c2748fb89319c871b",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "d25ac8c0c1ba68dad24eae4f319c770d1160d90098c6651a05bc08b33e4d0d94",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.3.md",
+      "required_tokens": [],
+      "sha256": "14bd647957952a4b512b064a9d6362f656a4584d98a062ec320907c1bd109c53"
+    },
+    {
+      "blob_id": "c73d17f09d204115c7e241309885a458893d55d3",
+      "commit": "7fd67d5aaeca5d658ca45d571b7671a67ddbfc31",
+      "interval_sha256": "2e32583203a6ffbb6d305b6d237c946e39c9a5d96d6b340d9403185d8a965266",
+      "lines": [
+        1,
+        314
+      ],
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/generate.go",
+      "required_tokens": [],
+      "sha256": "2e32583203a6ffbb6d305b6d237c946e39c9a5d96d6b340d9403185d8a965266"
+    },
+    {
+      "blob_id": "c0468a116e9e045fa21f002565e60579e52028d9",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "2f8648f939404954054ccae81d80ac7cfdca9acaee9cd6feddd8ecf8211bdc6c",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.6.md",
+      "required_tokens": [],
+      "sha256": "c6d7005831d538f1df4242473c8d7ccbc03db3f4d5ad00a38f74a833872e4546"
+    },
+    {
+      "blob_id": "ee119daa05ae247f7b5c64613ae7b08e1fbfcc45",
+      "commit": "80fcf2cb449e326d983d404dcf31286c0b8b905f",
+      "interval_sha256": "d3c662b5bbf100ba83b19d782822b0bf12c969b9840a2290bbb2ef457794209b",
+      "lines": [
+        1,
+        109
+      ],
+      "path": "tools/gomad3/runner/campaign_plan.go",
+      "required_tokens": [],
+      "sha256": "d3c662b5bbf100ba83b19d782822b0bf12c969b9840a2290bbb2ef457794209b"
+    },
+    {
+      "blob_id": "2537f8e3073e90e55a82475196c83ceb73447f6b",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "36fabafe1562e86ed47a7c40daef63f11c037d3f57d7cdc877d8ef9c2f0636a0",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.7.md",
+      "required_tokens": [],
+      "sha256": "70e8534df3af03b06b0b5d2d2e1c98467c0e12e952c9d8aeddc1cd7d553b1a52"
+    },
+    {
+      "blob_id": "5b753b3b9dd1e748e4b9d2e175cd830657021d61",
+      "commit": "2c3de4c98256eed39e7a8421669f753400c6dd7a",
+      "interval_sha256": "f4a5967dbe50adf62d4a96800f20861c83dee6b8708456768587bde1fc1c1024",
+      "lines": [
+        1,
+        75
+      ],
+      "path": "tools/gomad3/runner/campaign_merge.go",
+      "required_tokens": [],
+      "sha256": "f4a5967dbe50adf62d4a96800f20861c83dee6b8708456768587bde1fc1c1024"
+    },
+    {
+      "blob_id": "ce29197dfb54e73a88b9571e8d3d7a43c132cee3",
+      "commit": "74a53f05b952ad95ceb522e9d8137e1314aa6ee0",
+      "interval_sha256": "9ab048c0da4aa52dfe8a4f32c9859f87ee580c4eb3851dd725f8ca52eb816e6d",
+      "lines": [
+        1,
+        632
+      ],
+      "path": "tools/gomad3/CLI.md",
+      "required_tokens": [],
+      "sha256": "9ab048c0da4aa52dfe8a4f32c9859f87ee580c4eb3851dd725f8ca52eb816e6d"
+    },
+    {
+      "blob_id": "3f80f156bde0b116ad9bd569dcf42ab3c9e5844a",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "763f1a4f77bbabc10e92f6fcb6f31b8a0ea61fe316d0b14debc0ec97746d675b",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.8.md",
+      "required_tokens": [],
+      "sha256": "f37c83ab32977438947e7c7c371595badd0f3b0ba63f884549b9098a012f2729"
+    },
+    {
+      "blob_id": "99503b58dfefefc3b2be4d19a85482d8059cee33",
+      "commit": "d00f8038434b007ae8cef7d240efdd2f7e16e9a2",
+      "interval_sha256": "5c47f0e9766c9f48aea9f3e1cff428b93b5bf7b556a6a55286e07f0f6a94d7ca",
+      "lines": [
+        1,
+        331
+      ],
+      "path": "tools/gomad3/runner/internal/minimizer/minimizer.go",
+      "required_tokens": [],
+      "sha256": "5c47f0e9766c9f48aea9f3e1cff428b93b5bf7b556a6a55286e07f0f6a94d7ca"
+    },
+    {
+      "blob_id": "a93423445df5ebbd7f5d3919b7b1ae2277d1b0f8",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "fd2643dc3e5fb9f7b20d8669e40ef7ae8b8d37adf28f675bce080f3c49d41084",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.15.md",
+      "required_tokens": [],
+      "sha256": "ea5c3d36cfb8528b19926b4bf6b1e3d378bda460d17dda4316650a06e938e00d"
+    },
+    {
+      "blob_id": "1c3c993aca5659a5c12bb3c29cf3cdcfb41535dc",
+      "commit": "406a354f20546d4cdbada1cafdddd8d5d2b5374d",
+      "interval_sha256": "eb2690654061251b0d9cfb2432211c417f13ea24477aa3db0a133d400f4950f0",
+      "lines": [
+        1,
+        515
+      ],
+      "path": "tools/gomad3/runner/internal/minimizer/workspace.go",
+      "required_tokens": [],
+      "sha256": "eb2690654061251b0d9cfb2432211c417f13ea24477aa3db0a133d400f4950f0"
+    },
+    {
+      "blob_id": "e08a5269ae277feaebdc3b5e48e6da274b8aae71",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "12d8f60eaea227b9b14f2c29eea77015513df40d627701b55b0abde3dc14d4e7",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.9.md",
+      "required_tokens": [],
+      "sha256": "b290e780cb69cf90c486d8cfa56e193e868f2e4a37940273b8e45f207f98cfcb"
+    },
+    {
+      "blob_id": "e5b0dd6bb02bb595afbbdb4d1ed41ee54963c8ba",
+      "commit": "bc2e970b5306aa09f594657a8d42c159cf4a1270",
+      "interval_sha256": "d5b92e6c5cc22c76582a27b25ae92e1f5a3c70a3a9234209b70a7f686f0599b0",
+      "lines": [
+        1,
+        327
+      ],
+      "path": "tools/gomad3/artifact/open.go",
+      "required_tokens": [],
+      "sha256": "d5b92e6c5cc22c76582a27b25ae92e1f5a3c70a3a9234209b70a7f686f0599b0"
+    },
+    {
+      "blob_id": "8f0468966ff69f6cc5383ababcd322c95fd27716",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "86dc8953a50546653853c4986e04770f4577d96469e9f263237372d0ae40e525",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.10.md",
+      "required_tokens": [],
+      "sha256": "186bc6f4b4276495e5bb445ae1038d5d5b93834f0f5f7eee010fc4769f28ea29"
+    },
+    {
+      "blob_id": "14d98fef5187d1821af38a096d9909bddd275432",
+      "commit": "6f66f744ddafb65412ee94c818c5fed4aa9b1ee3",
+      "interval_sha256": "8aca408979003f57af2a663b1ab7a9de901f9efa346e76e8c8eda00b10633575",
+      "lines": [
+        1,
+        9
+      ],
+      "path": "tools/gomad3/artifact/link_count_other.go",
+      "required_tokens": [],
+      "sha256": "8aca408979003f57af2a663b1ab7a9de901f9efa346e76e8c8eda00b10633575"
+    },
+    {
+      "blob_id": "c1a8f5a0272907e463224d4b0de4e10811b1c980",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "9ba03aa182aed59bca8da69af4459212787ba1fdf5dad09464f55f01f0d2d3c8",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.11.md",
+      "required_tokens": [],
+      "sha256": "3c6d2240c69775ed8ce71c5abfbe3cbefbacccd9b389f00959b794403fa80c11"
+    },
+    {
+      "blob_id": "59e314a3dbd7a6569c40458b5ba09c1ed9035d33",
+      "commit": "00633b2b558beb1c762decffe9d55b14631200c1",
+      "interval_sha256": "cc35cff7247d3f000d60e1c99cabd6b4177e86bd1b37c2b680ac5b33deb7c4e6",
+      "lines": [
+        1,
+        596
+      ],
+      "path": "tools/gomad3/choice/internal/wire/wire_generated.go",
+      "required_tokens": [],
+      "sha256": "cc35cff7247d3f000d60e1c99cabd6b4177e86bd1b37c2b680ac5b33deb7c4e6"
+    },
+    {
+      "blob_id": "af3c0ca265ab944495f2bd7d4691fe12e08706b4",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "b0a8428951197cd3d129164d45a649996c9556939b140ff4e0b46ae8e002ca76",
+      "lines": [
+        4,
+        30
+      ],
+      "path": ".flow/tasks/fn-114-gomad-correct-search-path-defects-and.12.md",
+      "required_tokens": [],
+      "sha256": "bed42c6cd767051157bad926aa4ea16e191af39a93cbf12c24512c0a73da0552"
+    },
+    {
+      "blob_id": "366b308893b7fda5f0d03c5f5ee236de6ce116d5",
+      "commit": "1b970bc1444f4da6428c843a91d3d0fa998dbde3",
+      "interval_sha256": "1cd7163d21fddb7638c233045b97994a641e829e54f4756d973d067594ee29b1",
+      "lines": [
+        1,
+        49
+      ],
+      "path": "tools/gomad3/runner/internal/exploration/choice/select_readiness.go",
+      "required_tokens": [],
+      "sha256": "1cd7163d21fddb7638c233045b97994a641e829e54f4756d973d067594ee29b1"
+    },
+    {
+      "blob_id": "8051a1e80311d8cab56320ecf42d65281cad3e59",
+      "commit": "b666b41c09ed152417e44b6c9738e16a58b8b43a",
+      "interval_sha256": "6b59bb7945cf404a95687a83caae2936167b56650eeebd018017d6855eeab29d",
+      "lines": [
+        1,
+        178
+      ],
+      "path": "tools/gomad3/runner/internal/campaign/choice_exploration_start_test.go",
+      "required_tokens": [],
+      "sha256": "6b59bb7945cf404a95687a83caae2936167b56650eeebd018017d6855eeab29d"
+    },
+    {
+      "blob_id": "b69e104d396aa6461184d78a934eac08528df112",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "69e3404e3d74f51e153e9924715d3b1713f647b0ea9a2722f3c8c8a5f9f46c83",
+      "lines": [
+        72,
+        72
+      ],
+      "path": "tools/gomad3/CLI.md",
+      "required_tokens": [
+        "--toolchain-root"
+      ],
+      "sha256": "8184291764fed265523cb9407a288987210a6270293265dce3a152899c81aa47"
+    },
+    {
+      "blob_id": "b69e104d396aa6461184d78a934eac08528df112",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "fe590e3848bdade3bde17b8f17da3683f9ef2e632e5a2235e779b3872a096ea2",
+      "lines": [
+        126,
+        126
+      ],
+      "path": "tools/gomad3/CLI.md",
+      "required_tokens": [
+        "--terminate-grace"
+      ],
+      "sha256": "8184291764fed265523cb9407a288987210a6270293265dce3a152899c81aa47"
+    },
+    {
+      "blob_id": "b69e104d396aa6461184d78a934eac08528df112",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "e8de2489e12555b7614b32224bc387fe727719622e9b2de03ffc8c56401cbe42",
+      "lines": [
+        155,
+        155
+      ],
+      "path": "tools/gomad3/CLI.md",
+      "required_tokens": [
+        "--env"
+      ],
+      "sha256": "8184291764fed265523cb9407a288987210a6270293265dce3a152899c81aa47"
+    },
+    {
+      "blob_id": "b69e104d396aa6461184d78a934eac08528df112",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "e45266ee05bd50b6347e812a053770f089b47b889e3e33730779be75eb455a2b",
+      "lines": [
+        157,
+        157
+      ],
+      "path": "tools/gomad3/CLI.md",
+      "required_tokens": [
+        "--io-ro-mount"
+      ],
+      "sha256": "8184291764fed265523cb9407a288987210a6270293265dce3a152899c81aa47"
+    },
+    {
+      "blob_id": "b69e104d396aa6461184d78a934eac08528df112",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "9e10bc27fb3be1fbb151bd52e5357e4843b2716cf3e9fbb83ba44221ba350b6c",
+      "lines": [
+        159,
+        159
+      ],
+      "path": "tools/gomad3/CLI.md",
+      "required_tokens": [
+        "--world-transition-limit"
+      ],
+      "sha256": "8184291764fed265523cb9407a288987210a6270293265dce3a152899c81aa47"
+    },
+    {
+      "blob_id": "b69e104d396aa6461184d78a934eac08528df112",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "8c58162b204dd82c4a2e7c569504d228687438d46c87a0c701093dfcc17c1558",
+      "lines": [
+        264,
+        264
+      ],
+      "path": "tools/gomad3/CLI.md",
+      "required_tokens": [
+        "--observed"
+      ],
+      "sha256": "8184291764fed265523cb9407a288987210a6270293265dce3a152899c81aa47"
+    },
+    {
+      "blob_id": "b69e104d396aa6461184d78a934eac08528df112",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "6a84e67c17ad6407bc1e554de58ccfb03699f69a4f04b814c97cfaa5b1cb9413",
+      "lines": [
+        278,
+        278
+      ],
+      "path": "tools/gomad3/CLI.md",
+      "required_tokens": [
+        "--max-bytes"
+      ],
+      "sha256": "8184291764fed265523cb9407a288987210a6270293265dce3a152899c81aa47"
+    },
+    {
+      "blob_id": "b69e104d396aa6461184d78a934eac08528df112",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "cd07f8e763dd11a300554c68a9d487d4dbba1ea53a628d343d54e6f3b3696170",
+      "lines": [
+        325,
+        325
+      ],
+      "path": "tools/gomad3/CLI.md",
+      "required_tokens": [
+        "--min-free-bytes"
+      ],
+      "sha256": "8184291764fed265523cb9407a288987210a6270293265dce3a152899c81aa47"
+    },
+    {
+      "blob_id": "b69e104d396aa6461184d78a934eac08528df112",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "d331865dbdb23b368c310098578128731912672065fcf2a67b882cd3c93fe0b9",
+      "lines": [
+        327,
+        327
+      ],
+      "path": "tools/gomad3/CLI.md",
+      "required_tokens": [
+        "--prune-qualified-artifacts"
+      ],
+      "sha256": "8184291764fed265523cb9407a288987210a6270293265dce3a152899c81aa47"
+    },
+    {
+      "blob_id": "dd46b814a6939356abd401c604b872c313fee2c3",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "9f2bbfce51c392b99f6a7ffbb38f4c3be01e8ebe38195dc7875802cdaf2ff766",
+      "lines": [
+        3,
+        35
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-20/cli-inventory-correction/acceptance-open.md",
+      "required_tokens": [
+        "all 19 checks passed",
+        "open",
+        "nine"
+      ],
+      "sha256": "76ff46cda5b2e2a3d3c04bd33f39eb716a990bc37aa3346614b9d454b0c2248a"
+    },
+    {
+      "blob_id": "b69e104d396aa6461184d78a934eac08528df112",
+      "commit": "b43aeb5b15d438eebab65f2ce48eecb19e76e55c",
+      "interval_sha256": "8184291764fed265523cb9407a288987210a6270293265dce3a152899c81aa47",
+      "lines": [
+        1,
+        764
+      ],
+      "path": "tools/gomad3/CLI.md",
+      "required_tokens": [
+        "--toolchain-root",
+        "--terminate-grace",
+        "--env",
+        "--io-ro-mount",
+        "--world-transition-limit",
+        "--observed",
+        "--max-bytes",
+        "--min-free-bytes",
+        "--prune-qualified-artifacts"
+      ],
+      "sha256": "8184291764fed265523cb9407a288987210a6270293265dce3a152899c81aa47"
+    },
+    {
+      "blob_id": "15e5829d7ec01fbeca06cea87908a6e6b2819067",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "d78601b3176195f8cc06860f5499e757a2d04333b9211f0ed13a92976b017845",
+      "lines": [
+        1,
+        670
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-reconstruction/source.sha256",
+      "required_tokens": [],
+      "sha256": "d78601b3176195f8cc06860f5499e757a2d04333b9211f0ed13a92976b017845"
+    },
+    {
+      "blob_id": "209f3407b3c1d7eac774f0dc21369318ab636cb3",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "b52e26c1acf8d58df714a43cf858053c2c7a39dfdad0ca6ec4dfcefb327352e7",
+      "lines": [
+        3,
+        46
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-reconstruction/reconstruction.md",
+      "required_tokens": [
+        "6782b55f49a0317b230e827ea2a63a37d116d502",
+        "dirty",
+        "670"
+      ],
+      "sha256": "a81841baa733d66f828a4de63d43cb0782b23f8b39d59659fd1a4764833dca49"
+    },
+    {
+      "blob_id": "209f3407b3c1d7eac774f0dc21369318ab636cb3",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "5233c1f285c04113857edae1a067a1fc6d7b892129e003ca55a0fc4fbf48ee78",
+      "lines": [
+        79,
+        90
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-reconstruction/reconstruction.md",
+      "required_tokens": [
+        "entire dirty repository"
+      ],
+      "sha256": "a81841baa733d66f828a4de63d43cb0782b23f8b39d59659fd1a4764833dca49"
+    },
+    {
+      "blob_id": "c5d25a6a3a9bef6bb5ee971958aac5c30959afba",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "eadccfdd45f8a8ae745abf8c6aee55de9499945753af8c7cebccf873bc17674a",
+      "lines": [
+        17,
+        75
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/report.md",
+      "required_tokens": [
+        "18 top-level tests",
+        "55",
+        "did not execute a matched first-task baseline"
+      ],
+      "sha256": "0fc86685ce46a6a2f4b1f1d4550f93e307ca6086216bc1b8d8e881d57d3bfd33"
+    },
+    {
+      "blob_id": "50f050ede477c1b09aac088fbf1207d27cd7f1d9",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "88e9fddd0822df03cc4d599e731c1abb92edde73e782a4f833a910c38db96380",
+      "lines": [
+        1,
+        8635
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/provenance.json",
+      "required_tokens": [],
+      "sha256": "88e9fddd0822df03cc4d599e731c1abb92edde73e782a4f833a910c38db96380"
+    },
+    {
+      "blob_id": "f79002f76f0cd6ac19de1c86357cbcf867b02c5c",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "17c83139473206b92cd037ec8c93aef823146e77d607aca9312557e4b1769123",
+      "lines": [
+        1,
+        37
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-disclosure-2026-10-04.md",
+      "required_tokens": [
+        "controller-v2",
+        "v041",
+        "v2",
+        "incomplete"
+      ],
+      "sha256": "17c83139473206b92cd037ec8c93aef823146e77d607aca9312557e4b1769123"
+    },
+    {
+      "blob_id": "070a503acd914e4829ca85d28ca18d8ab974f3e9",
+      "commit": "0988ab1041c5580b2d02763088d5048d6ee70586",
+      "interval_sha256": "3b35e3ca1e544818e14b2e341c53a8e874fd0ebc7faaff590670ad5be284e2c6",
+      "lines": [
+        1,
+        225
+      ],
+      "path": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/qualification-evidence.md",
+      "required_tokens": [],
+      "sha256": "3b35e3ca1e544818e14b2e341c53a8e874fd0ebc7faaff590670ad5be284e2c6"
+    }
+  ],
+  "required_parent_state": "open",
+  "required_task_state": "blocked",
+  "research_note_policy": "If present, hash checked; optional non-shipping research is not primary authority",
+  "research_note_sha256": "7ba0029eedfdaf35d93e9765cc0e44a6af5ca8c993a193ddf0782f904afe9410",
+  "review": "host-deferred; no verdict",
+  "success": true,
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.21",
+  "tests": [
+    "python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/verify_accountability.py"
+  ],
+  "tier_line": "Tier: session (jev-unavailable(no_key))",
+  "verifier_sha256": "5849ded44c2481855ba545a4347344edf213ca8e72485039256cea5e75163f14"
+}

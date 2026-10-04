@@ -348,6 +348,14 @@ The [2026-10-04 R18 disclosure supplement](.flow/artifacts/fn-109-gomad-deepen-m
 records Choice Trace v2 refusal, controller-v2 journal refusal and retirement
 of a previously selected v041 fixture. Original R18/R19 availability,
 workload/default, fixed-identity and both native qualification requirements remain open.
+Task 21's [additive accountability supplement](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/accountability.md)
+binds the eight named campaign helper/type seams to task 5/R6 and the WIP
+introduction, with task 26's CLI consumers and task 20's nine-flag correction.
+The named inventory/ownership gap is resolved within that source block;
+independent API/CLI migrations retain their existing owners. Historical audit,
+qualification and first-baseline records stay immutable. Format/workload
+availability, changed guidance defaults, matched first-baseline bytes and all
+original R18/R19/full/formal/affected-consumer/both-native gates remain open.
 Task 23's lint-routing correction and reproducible nested host gates are
 independently source-reviewed and committed as ce80d2425c. Actual lint remains
 red. Task 24's one-line path-base repair is independently source-reviewed,
