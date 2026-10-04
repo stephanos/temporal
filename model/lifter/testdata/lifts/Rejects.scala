@@ -700,6 +700,35 @@ val watchUnwatched: Query = (query verify flips in secondFlips limits one).expec
   )
 )
 
+/** A monitor a Query's expected Run names by value, which another machine watches. */
+val elsewhereWatch: Monitor[Flag, Outcome, Nothing, Boolean] =
+  monitor[Flag, Outcome, Nothing, Boolean]("elsewhereWatch", false)((seen, _, _) => seen)(seen =>
+    seen
+  )
+val watchingElsewhere: Machine[Flag, Outcome, Nothing] =
+  machine[Flag, Outcome, Nothing](Family, "watchingElsewhere") {
+    monitors(elsewhereWatch)
+    starts(Flag(false))
+    ends(_ => true)
+    steps(flip ~> flipStep)
+  }
+val elsewhereFlips: Property[Flag] =
+  watchingElsewhere.property("elsewhereFlips") holds (after => after.outcome == Outcome.accepted)
+val watchElsewhere: Vector[Query] = Vector(
+  query("watchedThere") verify elsewhereFlips in watchingElsewhere
+    .scenario("there")
+    .starts(Flag(false))
+    .actions(flip) limits one total 2,
+  (query("watchedHere") verify flips in secondFlips limits one total 2).expect(
+    umpire.realize.RunExpectation(
+      umpire.realize.Conformance.conformant,
+      umpire.realize.Outcome.satisfied,
+      monitors =
+        Vector(umpire.realize.MonitorExpectation(elsewhereWatch, umpire.realize.Outcome.satisfied))
+    )
+  )
+)
+
 /** `own` of a member action a sync pairs. */
 val ownFlip = flipPair.scenario.actions(flipPair.own(_.left, flip))
 val ownSynced: Query = query verify flipPairLit in ownFlip limits one

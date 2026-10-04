@@ -218,6 +218,7 @@ class Fixtures extends munit.FunSuite:
       "omittedEmpty",
       "watchUnnamed",
       "watchUnwatched",
+      "watchElsewhere",
       "partyUnnamedLamp"
     )
 

@@ -323,8 +323,19 @@ private[lift] trait Claims:
     case Apply(Select(q, "expect"), List(expected)) =>
       fold(q, env, named) match
         case Decl.Declared(name) if queries.contains(name) =>
-          queries(name) =
-            queries(name).withExpectedRun(emit(ir.RunExpectation, Bound(expected, Map.empty)))
+          val run = emit(ir.RunExpectation, Bound(expected, Map.empty))
+          val machine = queries(name).getScenario.machine
+          // A monitor the expected Run names is one the Query's machine watches.
+          for
+            watched <- machines.values.find(_.name == machine)
+            m <- run.monitors if !watched.monitors.exists(monitors.get(_).exists(_.name == m.name))
+          do
+            fail(
+              expected,
+              s"${m.name} is a monitor $machine does not watch: name one the Query's machine " +
+                "lists under `monitors`"
+            )
+          queries(name) = queries(name).withExpectedRun(run)
           Decl.Declared(name)
         case other => fail(t, s"expect declares a Query's live assessment, not $other")
     case Apply(Select(q, "total"), List(n)) =>

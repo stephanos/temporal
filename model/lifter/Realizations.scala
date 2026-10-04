@@ -672,7 +672,7 @@ private[lift] trait Realizations:
   /**
    * The name of a monitor written by value, `MonitorExpectation(terminalFinality, …)`: the one the
    * declaration of its val gives it. A monitor no val declares, or that no lifted machine watches,
-   * names none a Query's expected Run can read.
+   * names none a Query's expected Run can read; Claims refuses one its Query's machine does not watch.
    */
   private def monitorName(t: Term): String =
     val sym = t match

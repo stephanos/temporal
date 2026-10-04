@@ -411,8 +411,8 @@ given's, is refused at its line. So are two declarations that would share a name
 compositions, two Properties or two Scenarios of one machine, two Queries (two unnamed Queries of
 one Scenario and Property among them), two syncs of one composition, monitors, assumptions, holes,
 channels or realizations, Limits of one name with different bounds, and two actions one machine
-binds. A monitor a Query's expected Run names by value is refused where no `val` declares it or no
-lifted machine watches it, and a `given Family` whose root is not a string literal.
+binds. A monitor a Query's expected Run names by value is refused where no `val` declares it or the
+Query's machine does not watch it, and a `given Family` whose root is not a string literal.
 
 A feature's files are split by kind, and its larger subjects into folders that repeat the same
 file names. The standalone activity is the example:
