@@ -289,6 +289,7 @@ func (a *admission) bindReadEvidence(g *graph, n *node) error {
 		return ir.Invalid(ir.Malformed, intervalPath, "ReadEvidence requires a positive poll interval")
 	case read.PollIntervalMilliseconds > timeout:
 		return ir.Invalid(ir.LimitExceeded, intervalPath, "poll interval exceeds the instruction timeout")
+	default:
 	}
 	cardinality := testpilotspb.READ_CARDINALITY_EMIT_EACH
 	if declaration.single {
