@@ -113,7 +113,7 @@
     "name": "temporal.standaloneactivity.AttemptResult",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 65
+      "line": 37
     },
     "enum": {
       "cases": [ {
@@ -134,7 +134,7 @@
     "name": "temporal.standaloneactivity.Control",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 71
+      "line": 42
     },
     "enum": {
       "cases": [ {
@@ -151,7 +151,7 @@
     "name": "temporal.standaloneactivity.Outcome",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 133
+      "line": 88
     },
     "enum": {
       "cases": [ {
@@ -164,7 +164,7 @@
     "name": "temporal.standaloneactivity.ProductFact",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 151
+      "line": 102
     },
     "enum": {
       "cases": [ {
@@ -191,7 +191,7 @@
     "name": "temporal.standaloneactivity.ProductPhase",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 144
+      "line": 96
     },
     "enum": {
       "cases": [ {
@@ -218,7 +218,7 @@
     "name": "temporal.standaloneactivity.ProductState",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 148
+      "line": 100
     },
     "record": {
       "fields": [ {
@@ -233,7 +233,7 @@
     "name": "activityProduct.evidence",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 246
+      "line": 172
     },
     "params": [ {
       "name": "productFact",
@@ -244,13 +244,13 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 246
+        "line": 172
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 246
+            "line": 172
           },
           "var": "productFact"
         },
@@ -266,7 +266,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/Model.scala",
-              "line": 246
+              "line": 172
             },
             "literal": {
               "text": "statusScheduled"
@@ -284,7 +284,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/Model.scala",
-              "line": 246
+              "line": 172
             },
             "literal": {
               "text": "statusStarted"
@@ -302,7 +302,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/Model.scala",
-              "line": 246
+              "line": 172
             },
             "literal": {
               "text": "statusPaused"
@@ -320,7 +320,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/Model.scala",
-              "line": 246
+              "line": 172
             },
             "literal": {
               "text": "statusCancelRequested"
@@ -338,7 +338,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/Model.scala",
-              "line": 246
+              "line": 172
             },
             "literal": {
               "text": "statusCompleted"
@@ -356,7 +356,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/Model.scala",
-              "line": 246
+              "line": 172
             },
             "literal": {
               "text": "statusFailed"
@@ -374,7 +374,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/Model.scala",
-              "line": 246
+              "line": 172
             },
             "literal": {
               "text": "statusCanceled"
@@ -392,7 +392,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/Model.scala",
-              "line": 246
+              "line": 172
             },
             "literal": {
               "text": "statusTerminated"
@@ -410,7 +410,7 @@
           "body": {
             "position": {
               "file": "model/temporal/standaloneactivity/Model.scala",
-              "line": 246
+              "line": 172
             },
             "literal": {
               "text": "statusTimedOut"
@@ -423,7 +423,7 @@
     "name": "activityProduct.property.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 28
+      "line": 19
     },
     "params": [ {
       "name": "before",
@@ -439,28 +439,28 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 28
+        "line": 19
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 28
+            "line": 19
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 28
+                "line": 19
               },
               "call": {
                 "function": "temporal.standaloneactivity.Product$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 28
+                    "line": 19
                   },
                   "var": "before"
                 } ]
@@ -471,21 +471,21 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 28
+            "line": 19
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 28
+                "line": 19
               },
               "call": {
                 "function": "activityProduct.property.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Properties.scala",
-                    "line": 28
+                    "line": 19
                   },
                   "var": "after"
                 } ]
@@ -499,7 +499,7 @@
     "name": "activityProduct.property.pausedIsNotDispatched.never",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 28
+      "line": 19
     },
     "params": [ {
       "name": "s",
@@ -510,20 +510,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Properties.scala",
-        "line": 28
+        "line": 19
       },
       "call": {
         "function": "temporal.standaloneactivity.Product$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Properties.scala",
-            "line": 28
+            "line": 19
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Properties.scala",
-                "line": 28
+                "line": 19
               },
               "var": "s"
             },
@@ -3305,7 +3305,7 @@
     "name": "temporal.standaloneactivity.Product$.attemptResult",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 198
+      "line": 134
     },
     "params": [ {
       "name": "s",
@@ -3321,27 +3321,27 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 199
+        "line": 135
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 199
+            "line": 135
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 199
+                "line": 135
               },
               "call": {
                 "function": "temporal.standaloneactivity.Product$.held",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
-                    "line": 199
+                    "line": 135
                   },
                   "var": "s"
                 } ]
@@ -3352,20 +3352,20 @@
         "then": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 199
+            "line": 135
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 201
+            "line": 137
           },
           "match": {
             "scrutinee": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 201
+                "line": 137
               },
               "var": "result"
             },
@@ -3381,20 +3381,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/standaloneactivity/Model.scala",
-                  "line": 203
+                  "line": 138
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
-                      "line": 203
+                      "line": 138
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 136
+                          "line": 91
                         },
                         "literal": {
                           "enum": {
@@ -3405,14 +3405,14 @@
                       }, {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 203
+                          "line": 138
                         },
                         "construct": {
                           "type": "temporal.standaloneactivity.ProductState",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 203
+                              "line": 138
                             },
                             "literal": {
                               "enum": {
@@ -3425,13 +3425,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 203
+                          "line": 138
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 203
+                              "line": 138
                             },
                             "literal": {
                               "enum": {
@@ -3444,7 +3444,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 203
+                          "line": 138
                         },
                         "literal": {
                           "text": ""
@@ -3472,20 +3472,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/standaloneactivity/Model.scala",
-                  "line": 205
+                  "line": 140
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
-                      "line": 205
+                      "line": 140
                     },
                     "unary": {
                       "op": "OP_NOT",
                       "operand": {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 205
+                          "line": 140
                         },
                         "var": "retryable"
                       }
@@ -3494,20 +3494,20 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
-                      "line": 205
+                      "line": 140
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 205
+                          "line": 140
                         },
                         "construct": {
                           "type": "umpire.Step",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 136
+                              "line": 91
                             },
                             "literal": {
                               "enum": {
@@ -3518,14 +3518,14 @@
                           }, {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 205
+                              "line": 140
                             },
                             "construct": {
                               "type": "temporal.standaloneactivity.ProductState",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 205
+                                  "line": 140
                                 },
                                 "literal": {
                                   "enum": {
@@ -3538,13 +3538,13 @@
                           }, {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 205
+                              "line": 140
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 205
+                                  "line": 140
                                 },
                                 "literal": {
                                   "enum": {
@@ -3557,7 +3557,7 @@
                           }, {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 205
+                              "line": 140
                             },
                             "literal": {
                               "text": ""
@@ -3570,26 +3570,26 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
-                      "line": 206
+                      "line": 141
                     },
                     "if": {
                       "condition": {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 206
+                          "line": 141
                         },
                         "binary": {
                           "op": "OP_EQ",
                           "left": {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 206
+                              "line": 141
                             },
                             "field": {
                               "base": {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 206
+                                  "line": 141
                                 },
                                 "var": "s"
                               },
@@ -3599,7 +3599,7 @@
                           "right": {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 206
+                              "line": 141
                             },
                             "literal": {
                               "enum": {
@@ -3613,20 +3613,20 @@
                       "then": {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 207
+                          "line": 141
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 207
+                              "line": 141
                             },
                             "construct": {
                               "type": "umpire.Step",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 136
+                                  "line": 91
                                 },
                                 "literal": {
                                   "enum": {
@@ -3637,14 +3637,14 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 207
+                                  "line": 141
                                 },
                                 "construct": {
                                   "type": "temporal.standaloneactivity.ProductState",
                                   "args": [ {
                                     "position": {
                                       "file": "model/temporal/standaloneactivity/Model.scala",
-                                      "line": 207
+                                      "line": 141
                                     },
                                     "literal": {
                                       "enum": {
@@ -3657,13 +3657,13 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 207
+                                  "line": 141
                                 },
                                 "list": {
                                   "items": [ {
                                     "position": {
                                       "file": "model/temporal/standaloneactivity/Model.scala",
-                                      "line": 207
+                                      "line": 141
                                     },
                                     "literal": {
                                       "enum": {
@@ -3676,7 +3676,7 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 207
+                                  "line": 141
                                 },
                                 "literal": {
                                   "text": ""
@@ -3689,20 +3689,20 @@
                       "else": {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 208
+                          "line": 142
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 208
+                              "line": 142
                             },
                             "construct": {
                               "type": "umpire.Step",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 136
+                                  "line": 91
                                 },
                                 "literal": {
                                   "enum": {
@@ -3713,14 +3713,14 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 208
+                                  "line": 142
                                 },
                                 "construct": {
                                   "type": "temporal.standaloneactivity.ProductState",
                                   "args": [ {
                                     "position": {
                                       "file": "model/temporal/standaloneactivity/Model.scala",
-                                      "line": 208
+                                      "line": 142
                                     },
                                     "literal": {
                                       "enum": {
@@ -3733,13 +3733,13 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 208
+                                  "line": 142
                                 },
                                 "list": {
                                   "items": [ {
                                     "position": {
                                       "file": "model/temporal/standaloneactivity/Model.scala",
-                                      "line": 208
+                                      "line": 142
                                     },
                                     "literal": {
                                       "enum": {
@@ -3752,7 +3752,7 @@
                               }, {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 208
+                                  "line": 142
                                 },
                                 "literal": {
                                   "text": ""
@@ -3778,26 +3778,26 @@
               "body": {
                 "position": {
                   "file": "model/temporal/standaloneactivity/Model.scala",
-                  "line": 210
+                  "line": 144
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
-                      "line": 210
+                      "line": 144
                     },
                     "binary": {
                       "op": "OP_EQ",
                       "left": {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 210
+                          "line": 144
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 210
+                              "line": 144
                             },
                             "var": "s"
                           },
@@ -3807,7 +3807,7 @@
                       "right": {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 210
+                          "line": 144
                         },
                         "literal": {
                           "enum": {
@@ -3821,20 +3821,20 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
-                      "line": 211
+                      "line": 144
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 211
+                          "line": 144
                         },
                         "construct": {
                           "type": "umpire.Step",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 136
+                              "line": 91
                             },
                             "literal": {
                               "enum": {
@@ -3845,14 +3845,14 @@
                           }, {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 211
+                              "line": 144
                             },
                             "construct": {
                               "type": "temporal.standaloneactivity.ProductState",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 211
+                                  "line": 144
                                 },
                                 "literal": {
                                   "enum": {
@@ -3865,13 +3865,13 @@
                           }, {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 211
+                              "line": 144
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 211
+                                  "line": 144
                                 },
                                 "literal": {
                                   "enum": {
@@ -3884,7 +3884,7 @@
                           }, {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 211
+                              "line": 144
                             },
                             "literal": {
                               "text": ""
@@ -3897,7 +3897,7 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
-                      "line": 212
+                      "line": 145
                     },
                     "list": { }
                   }
@@ -3912,7 +3912,7 @@
     "name": "temporal.standaloneactivity.Product$.attemptStart",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 187
+      "line": 126
     },
     "params": [ {
       "name": "s",
@@ -3923,26 +3923,26 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 188
+        "line": 127
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 188
+            "line": 127
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 188
+                "line": 127
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
-                    "line": 188
+                    "line": 127
                   },
                   "var": "s"
                 },
@@ -3952,7 +3952,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 188
+                "line": 127
               },
               "literal": {
                 "enum": {
@@ -3966,27 +3966,27 @@
         "then": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 188
+            "line": 127
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 189
+            "line": 127
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 189
+                "line": 127
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
-                    "line": 136
+                    "line": 91
                   },
                   "literal": {
                     "enum": {
@@ -3997,14 +3997,14 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
-                    "line": 189
+                    "line": 127
                   },
                   "construct": {
                     "type": "temporal.standaloneactivity.ProductState",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Model.scala",
-                        "line": 189
+                        "line": 127
                       },
                       "literal": {
                         "enum": {
@@ -4017,13 +4017,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
-                    "line": 189
+                    "line": 127
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Model.scala",
-                        "line": 189
+                        "line": 127
                       },
                       "literal": {
                         "enum": {
@@ -4036,7 +4036,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
-                    "line": 189
+                    "line": 127
                   },
                   "literal": {
                     "text": ""
@@ -4052,7 +4052,7 @@
     "name": "temporal.standaloneactivity.Product$.control",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 219
+      "line": 151
     },
     "params": [ {
       "name": "s",
@@ -4068,20 +4068,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 220
+        "line": 152
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 220
+            "line": 152
           },
           "call": {
             "function": "temporal.standaloneactivity.Product$.terminal",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 220
+                "line": 152
               },
               "var": "s"
             } ]
@@ -4090,20 +4090,20 @@
         "then": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 220
+            "line": 152
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 220
+                "line": 152
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
-                    "line": 220
+                    "line": 152
                   },
                   "literal": {
                     "enum": {
@@ -4114,19 +4114,19 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
-                    "line": 220
+                    "line": 152
                   },
                   "var": "s"
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
-                    "line": 220
+                    "line": 152
                   },
                   "list": { }
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
-                    "line": 220
+                    "line": 152
                   },
                   "literal": {
                     "text": ""
@@ -4139,13 +4139,13 @@
         "else": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 222
+            "line": 154
           },
           "match": {
             "scrutinee": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 222
+                "line": 154
               },
               "var": "c"
             },
@@ -4161,20 +4161,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/standaloneactivity/Model.scala",
-                  "line": 224
+                  "line": 156
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
-                      "line": 224
+                      "line": 156
                     },
                     "call": {
                       "function": "temporal.standaloneactivity.Product$.pausable",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 224
+                          "line": 156
                         },
                         "var": "s"
                       } ]
@@ -4183,20 +4183,20 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
-                      "line": 224
+                      "line": 156
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 224
+                          "line": 156
                         },
                         "construct": {
                           "type": "umpire.Step",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 136
+                              "line": 91
                             },
                             "literal": {
                               "enum": {
@@ -4207,14 +4207,14 @@
                           }, {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 224
+                              "line": 156
                             },
                             "construct": {
                               "type": "temporal.standaloneactivity.ProductState",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 224
+                                  "line": 156
                                 },
                                 "literal": {
                                   "enum": {
@@ -4227,13 +4227,13 @@
                           }, {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 224
+                              "line": 156
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 224
+                                  "line": 156
                                 },
                                 "literal": {
                                   "enum": {
@@ -4246,7 +4246,7 @@
                           }, {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 224
+                              "line": 156
                             },
                             "literal": {
                               "text": ""
@@ -4259,7 +4259,7 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
-                      "line": 225
+                      "line": 156
                     },
                     "list": { }
                   }
@@ -4277,20 +4277,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/standaloneactivity/Model.scala",
-                  "line": 227
+                  "line": 158
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
-                      "line": 227
+                      "line": 158
                     },
                     "call": {
                       "function": "temporal.standaloneactivity.Product$.paused",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 227
+                          "line": 158
                         },
                         "var": "s"
                       } ]
@@ -4299,20 +4299,20 @@
                   "then": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
-                      "line": 228
+                      "line": 158
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 228
+                          "line": 158
                         },
                         "construct": {
                           "type": "umpire.Step",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 136
+                              "line": 91
                             },
                             "literal": {
                               "enum": {
@@ -4323,14 +4323,14 @@
                           }, {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 228
+                              "line": 158
                             },
                             "construct": {
                               "type": "temporal.standaloneactivity.ProductState",
                               "args": [ {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 228
+                                  "line": 158
                                 },
                                 "literal": {
                                   "enum": {
@@ -4343,13 +4343,13 @@
                           }, {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 228
+                              "line": 158
                             },
                             "list": {
                               "items": [ {
                                 "position": {
                                   "file": "model/temporal/standaloneactivity/Model.scala",
-                                  "line": 228
+                                  "line": 158
                                 },
                                 "literal": {
                                   "enum": {
@@ -4362,7 +4362,7 @@
                           }, {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 228
+                              "line": 158
                             },
                             "literal": {
                               "text": ""
@@ -4375,7 +4375,7 @@
                   "else": {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
-                      "line": 229
+                      "line": 158
                     },
                     "list": { }
                   }
@@ -4393,20 +4393,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/standaloneactivity/Model.scala",
-                  "line": 231
+                  "line": 159
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
-                      "line": 231
+                      "line": 159
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 136
+                          "line": 91
                         },
                         "literal": {
                           "enum": {
@@ -4417,14 +4417,14 @@
                       }, {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 231
+                          "line": 159
                         },
                         "construct": {
                           "type": "temporal.standaloneactivity.ProductState",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 231
+                              "line": 159
                             },
                             "literal": {
                               "enum": {
@@ -4437,13 +4437,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 231
+                          "line": 159
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 231
+                              "line": 159
                             },
                             "literal": {
                               "enum": {
@@ -4456,7 +4456,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 231
+                          "line": 159
                         },
                         "literal": {
                           "text": ""
@@ -4478,20 +4478,20 @@
               "body": {
                 "position": {
                   "file": "model/temporal/standaloneactivity/Model.scala",
-                  "line": 233
+                  "line": 160
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/temporal/standaloneactivity/Model.scala",
-                      "line": 233
+                      "line": 160
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 136
+                          "line": 91
                         },
                         "literal": {
                           "enum": {
@@ -4502,14 +4502,14 @@
                       }, {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 233
+                          "line": 160
                         },
                         "construct": {
                           "type": "temporal.standaloneactivity.ProductState",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 233
+                              "line": 160
                             },
                             "literal": {
                               "enum": {
@@ -4522,13 +4522,13 @@
                       }, {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 233
+                          "line": 160
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/temporal/standaloneactivity/Model.scala",
-                              "line": 233
+                              "line": 160
                             },
                             "literal": {
                               "enum": {
@@ -4541,7 +4541,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/standaloneactivity/Model.scala",
-                          "line": 233
+                          "line": 160
                         },
                         "literal": {
                           "text": ""
@@ -4560,7 +4560,7 @@
     "name": "temporal.standaloneactivity.Product$.held",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 180
+      "line": 121
     },
     "params": [ {
       "name": "s",
@@ -4571,20 +4571,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 181
+        "line": 121
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 181
+            "line": 121
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 181
+                "line": 121
               },
               "var": "s"
             },
@@ -4594,13 +4594,13 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 181
+            "line": 121
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 181
+                "line": 121
               },
               "literal": {
                 "enum": {
@@ -4611,7 +4611,7 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 181
+                "line": 121
               },
               "literal": {
                 "enum": {
@@ -4628,7 +4628,7 @@
     "name": "temporal.standaloneactivity.Product$.pausable",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 184
+      "line": 124
     },
     "params": [ {
       "name": "s",
@@ -4639,20 +4639,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 184
+        "line": 124
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 184
+            "line": 124
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 184
+                "line": 124
               },
               "var": "s"
             },
@@ -4662,13 +4662,13 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 184
+            "line": 124
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 184
+                "line": 124
               },
               "literal": {
                 "enum": {
@@ -4679,7 +4679,7 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 184
+                "line": 124
               },
               "literal": {
                 "enum": {
@@ -4696,7 +4696,7 @@
     "name": "temporal.standaloneactivity.Product$.paused",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 174
+      "line": 116
     },
     "params": [ {
       "name": "s",
@@ -4707,20 +4707,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 174
+        "line": 116
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 174
+            "line": 116
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 174
+                "line": 116
               },
               "var": "s"
             },
@@ -4730,7 +4730,7 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 174
+            "line": 116
           },
           "literal": {
             "enum": {
@@ -4745,7 +4745,7 @@
     "name": "temporal.standaloneactivity.Product$.running",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 177
+      "line": 118
     },
     "params": [ {
       "name": "s",
@@ -4756,20 +4756,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 177
+        "line": 118
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 177
+            "line": 118
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 177
+                "line": 118
               },
               "var": "s"
             },
@@ -4779,7 +4779,7 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 177
+            "line": 118
           },
           "literal": {
             "enum": {
@@ -4794,7 +4794,7 @@
     "name": "temporal.standaloneactivity.Product$.terminal",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 164
+      "line": 112
     },
     "params": [ {
       "name": "s",
@@ -4805,20 +4805,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 165
+        "line": 113
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 165
+            "line": 113
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 165
+                "line": 113
               },
               "var": "s"
             },
@@ -4828,13 +4828,13 @@
         "right": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 165
+            "line": 113
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 166
+                "line": 113
               },
               "literal": {
                 "enum": {
@@ -4845,7 +4845,7 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 167
+                "line": 113
               },
               "literal": {
                 "enum": {
@@ -4856,7 +4856,7 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 168
+                "line": 113
               },
               "literal": {
                 "enum": {
@@ -4867,7 +4867,7 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 169
+                "line": 113
               },
               "literal": {
                 "enum": {
@@ -4878,7 +4878,7 @@
             }, {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 170
+                "line": 113
               },
               "literal": {
                 "enum": {
@@ -4895,7 +4895,7 @@
     "name": "temporal.standaloneactivity.Product$.timeout",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 239
+      "line": 166
     },
     "params": [ {
       "name": "s",
@@ -4906,20 +4906,20 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 240
+        "line": 167
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 240
+            "line": 167
           },
           "call": {
             "function": "temporal.standaloneactivity.Product$.terminal",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 240
+                "line": 167
               },
               "var": "s"
             } ]
@@ -4928,27 +4928,27 @@
         "then": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 240
+            "line": 167
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 241
+            "line": 167
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 241
+                "line": 167
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
-                    "line": 136
+                    "line": 91
                   },
                   "literal": {
                     "enum": {
@@ -4959,14 +4959,14 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
-                    "line": 241
+                    "line": 167
                   },
                   "construct": {
                     "type": "temporal.standaloneactivity.ProductState",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Model.scala",
-                        "line": 241
+                        "line": 167
                       },
                       "literal": {
                         "enum": {
@@ -4979,13 +4979,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
-                    "line": 241
+                    "line": 167
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/standaloneactivity/Model.scala",
-                        "line": 241
+                        "line": 167
                       },
                       "literal": {
                         "enum": {
@@ -4998,7 +4998,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/standaloneactivity/Model.scala",
-                    "line": 241
+                    "line": 167
                   },
                   "literal": {
                     "text": ""
@@ -5014,7 +5014,7 @@
     "name": "temporal.standaloneactivity.Product$.workerStop",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 236
+      "line": 163
     },
     "params": [ {
       "name": "s",
@@ -5025,7 +5025,7 @@
     "body": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 236
+        "line": 163
       },
       "list": { }
     }
@@ -5044,7 +5044,7 @@
     "name": "attemptResult",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 99
+      "line": 63
     },
     "party": "worker",
     "inputs": [ {
@@ -5083,7 +5083,7 @@
     "name": "attemptStart",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 95
+      "line": 61
     },
     "party": "worker",
     "on": "activity",
@@ -5093,7 +5093,7 @@
     "name": "control",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 113
+      "line": 74
     },
     "party": "caller",
     "inputs": [ {
@@ -5110,7 +5110,7 @@
     "name": "timeout",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 243
+      "line": 169
     },
     "party": "system",
     "timer": true
@@ -5128,7 +5128,7 @@
     "name": "activityProduct",
     "position": {
       "file": "model/temporal/standaloneactivity/Model.scala",
-      "line": 246
+      "line": 172
     },
     "entity": "activity",
     "stateType": "temporal.standaloneactivity.ProductState",
@@ -5137,14 +5137,14 @@
     "starts": [ {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 248
+        "line": 174
       },
       "construct": {
         "type": "temporal.standaloneactivity.ProductState",
         "args": [ {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 248
+            "line": 174
           },
           "literal": {
             "enum": {
@@ -5158,7 +5158,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 249
+        "line": 175
       },
       "lambda": {
         "params": [ {
@@ -5170,14 +5170,14 @@
         "body": {
           "position": {
             "file": "model/temporal/standaloneactivity/Model.scala",
-            "line": 249
+            "line": 175
           },
           "call": {
             "function": "temporal.standaloneactivity.Product$.terminal",
             "args": [ {
               "position": {
                 "file": "model/temporal/standaloneactivity/Model.scala",
-                "line": 249
+                "line": 175
               },
               "var": "s"
             } ]
@@ -5190,35 +5190,35 @@
       "function": "temporal.standaloneactivity.Product$.attemptStart",
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 251
+        "line": 177
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptResult",
       "function": "temporal.standaloneactivity.Product$.attemptResult",
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 252
+        "line": 178
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.control",
       "function": "temporal.standaloneactivity.Product$.control",
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 253
+        "line": 179
       }
     }, {
       "action": "temporal.worker.Worker$package$.workerStop",
       "function": "temporal.standaloneactivity.Product$.workerStop",
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 254
+        "line": 180
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.timeout",
       "function": "temporal.standaloneactivity.Product$.timeout",
       "position": {
         "file": "model/temporal/standaloneactivity/Model.scala",
-        "line": 255
+        "line": 181
       }
     } ],
     "evidence": "activityProduct.evidence"
@@ -5517,7 +5517,7 @@
     "name": "pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/standaloneactivity/Properties.scala",
-      "line": 28
+      "line": 19
     },
     "holds": "activityProduct.property.pausedIsNotDispatched",
     "transition": true

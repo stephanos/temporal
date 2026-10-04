@@ -6,9 +6,10 @@ import umpire.*
 import taskqueue.Outstanding
 import admission.AdmissionFact
 
-// ### What a design over the opaque queue promises
-
-/** The claims a design over the opaque queue is held to, declared once by `overQueueClaims`. */
+/**
+ * The claims a design over the opaque queue is held to: the system contract's three promises over
+ * the record's member, and that a failed commit admits nothing and leaves its message queued.
+ */
 final case class OverQueueClaims(
     notPaused: Property[OverQueue],
     oneActive: Property[OverQueue],
@@ -16,24 +17,19 @@ final case class OverQueueClaims(
     failedCommit: Property[OverQueue]
 )
 
-/**
- * The three promises of the system contract over the record's member, and a failed commit, which
- * admits nothing and leaves its message with the queue.
- */
-def overQueueClaims(c: Composition[OverQueue]): OverQueueClaims = OverQueueClaims(
-  notAdmittedWhilePaused(c)(OverQueue.paused, OverQueue.running),
-  atMostOneActive(c)(OverQueue.twoActive),
-  terminalStays(c)(OverQueue.terminal, OverQueue.phase),
-  c.property("failedCommitKeepsTheMessage") holds (after =>
+def overQueueClaims(c: Composition[OverQueue]): OverQueueClaims =
+  val failedCommitKeepsTheMessage = c.property holds (after =>
     after.records(_.activity, AdmissionFact.admissionCommitFailed) implies
       (after.state.queue.outstanding != Outstanding.empty &&
         !after.records(_.activity, AdmissionFact.attemptAdmitted))
   )
-)
+  OverQueueClaims(
+    notAdmittedWhilePaused(c)(OverQueue.paused, OverQueue.running),
+    atMostOneActive(c)(OverQueue.twoActive),
+    terminalStays(c)(OverQueue.terminal, OverQueue.phase),
+    failedCommitKeepsTheMessage
+  )
 
-// ### What a design over the detailed queue promises
-
-/** The claims a design over the detailed queue is held to, declared once by `overMatchingClaims`. */
 final case class OverMatchingClaims(
     notPaused: Property[OverMatching],
     oneActive: Property[OverMatching],

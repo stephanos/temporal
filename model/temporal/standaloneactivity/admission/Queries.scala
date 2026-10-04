@@ -5,48 +5,42 @@ package admission
 import umpire.*
 import umpire.realize.{Conformance, MonitorExpectation, Outcome as RunOutcome, RunExpectation}
 
-// ### Each design's Queries
-//
-// A Property or Scenario belongs to one machine, so every claim and path is declared on one design.
-
-/** Every claim and path, declared on the design `m`. */
+/** Every claim and path, declared on the design `m`, since each belongs to one machine. */
 def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector[Query] =
   val claims = admissionClaims(m)
-  val stale =
-    m.scenario("staleDeliveryAfterPause").actions(dispatch, control(Control.pause), attemptStart)
-  val prePause =
-    m.scenario("admittedBeforePause").actions(dispatch, attemptStart, control(Control.pause))
-  val duplicate = m.scenario("duplicateDelivery").actions(dispatch, attemptStart, attemptStart)
-  val reopened = m
-    .scenario("startedAfterCompletion")
+  val staleDeliveryAfterPause = m.scenario.actions(dispatch, control(Control.pause), attemptStart)
+  val admittedBeforePause = m.scenario.actions(dispatch, attemptStart, control(Control.pause))
+  val duplicateDelivery = m.scenario.actions(dispatch, attemptStart, attemptStart)
+  val startedAfterCompletion = m.scenario
     .actions(dispatch, attemptStart, attemptResult(AttemptResult.completed), attemptStart)
-  val startFirst = m.scenario("scheduleToStartFirst").actions(dispatch, scheduleToStart)
-  val closeFirst = m.scenario("scheduleToCloseFirst").actions(dispatch, scheduleToClose)
-  val any = m.scenario("any").free
+  val scheduleToStartFirst = m.scenario.actions(dispatch, scheduleToStart)
+  val scheduleToCloseFirst = m.scenario.actions(dispatch, scheduleToClose)
+  val any = m.scenario.free
   Vector(
-    query(s"${m.name}.staleDelivery") verify claims.notPaused in stale limits three total 108,
+    query(s"${m.name}.staleDelivery") verify claims.notPaused in
+      staleDeliveryAfterPause limits three total 108,
     query(s"${m.name}.admittedBeforePause") verify claims.notPaused in
-      prePause limits three total 108,
+      admittedBeforePause limits three total 108,
     query(s"${m.name}.duplicateDelivery") verify claims.oneActive in
-      duplicate limits three total 108,
+      duplicateDelivery limits three total 108,
     // Each asks a Property its path keeps, so a violation is the watching monitor's alone.
     query(s"${m.name}.duplicateDelivery.monitored") verify claims.notPaused in
-      duplicate limits three total 108,
+      duplicateDelivery limits three total 108,
     query(s"${m.name}.startedAfterCompletion.monitored") verify claims.oneActive in
-      reopened limits four total 144,
+      startedAfterCompletion limits four total 144,
     query(s"${m.name}.any.notAdmittedWhilePaused") verify claims.notPaused in
       any limits five total 2340,
     query(s"${m.name}.any.atMostOneActive") verify claims.oneActive in any limits five total 2340,
     query(s"${m.name}.any.terminalStays") verify claims.terminal in any limits five total 2340,
     // Neither deadline is ordered before the other: each firing is a trace of its own.
     query(s"${m.name}.scheduleToStartFirst") find claims.startDeadline in
-      startFirst limits three total 72,
+      scheduleToStartFirst limits three total 72,
     query(s"${m.name}.scheduleToCloseFirst") find claims.closeDeadline in
-      closeFirst limits three total 72,
+      scheduleToCloseFirst limits three total 72,
     // The product's own Property, read through the design's declared refinement.
     query(s"${m.name}.product.pausedIsNotDispatched")
       .verify(pausedIsNotDispatched)
-      .in(stale) limits three total 108
+      .in(staleDeliveryAfterPause) limits three total 108
   )
 
 val currentQueries: Vector[Query] = admissionQueries(currentAdmission)
@@ -72,10 +66,8 @@ val heldStaleDelivery =
     )
   )
 
+val oneLostResponse = admissionResponseLoss.scenario.actions(dispatch, taskqueue.ackLoss)
 val lostAdmissionResponseQuery =
   (query("admissionResponseLoss.committed") find committedDespiteLostResponse in
-    admissionResponseLoss
-      .scenario("oneLostResponse")
-      .actions(dispatch, taskqueue.ackLoss) limits three total 144).expect(
-    RunExpectation(Conformance.conformant, RunOutcome.satisfied)
-  )
+    oneLostResponse limits three total 144)
+    .expect(RunExpectation(Conformance.conformant, RunOutcome.satisfied))
