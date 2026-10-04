@@ -26,8 +26,8 @@ changes, change the spec and summarize the change here.
 | F10 | [fn-105](.flow/specs/fn-105-gomad-follow-ups-deferred-scope.md) | D12 native Linux replay fix; D26 combined runtime candidate and D27 host-clock candidate awaiting native qualification; D3–D5 architecture, downstream D8–D10, and deferred D6/D11/D15 |
 | Downstream cell | [fn-107](.flow/specs/fn-107-gomad-finish-downstream-cell.md) | Task 5: consumer and both-platform exact replay; blocked by the absent `../downstream` checkout and qualified hosts |
 | Code-size cleanup | [fn-108](.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md) | Task 8: native linux/amd64 qualification for R9 |
-| Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | Tasks 2–6 have merged candidates awaiting acceptance; tasks 7–21 retain installation/capability ownership, resources/protocols, simulation interfaces, architecture, and final qualification |
-| Runtime patch minimization | [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | Task 2 is in the combined candidate awaiting native gates; tasks 3–5 retain canonical patch regeneration and both-platform qualification |
+| Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | Tasks 2–12 have merged candidates awaiting acceptance; tasks 13–21 retain protocols, simulation interfaces, architecture, and final qualification |
+| Runtime patch minimization | [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | Tasks 2–4 have merged candidates awaiting native gates; task 5 retains final measurements and both-platform qualification |
 | Determinism assurance and test strategy | [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) | Tasks 5, 9, and 16 have merged candidates awaiting qualification; task 10's soak gate and contract documentation are delivered and await one retained scheduled or dispatched soak run per platform |
 | Version-pin maintenance | [fn-113](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md) | Tasks 1–4 have merged candidates; final native gates and both-host acceptance remain |
 | Search-path qualification | [fn-114](.flow/specs/fn-114-gomad-correct-search-path-defects-and.md) | Task 13 candidate awaits native qualification; task 14 and R12 retain combined-candidate qualification on native linux/amd64 |
@@ -45,7 +45,7 @@ The collector-file patch prohibition and absent downstream checkout remain separ
 1. Verify the combined D26/fn-110 candidate, then qualify fn-114 task 13, fn-112 task 5, D26, D27, and fn-110 task 2 on both native platforms; run fn-114 task 14 against that same candidate.
 2. Qualify the merged fn-112 tasks 16 and 9, fn-113 tasks 1–4, and fn-109 tasks 2–6 against the integrated source; retain each task's acceptance checks.
 3. Investigate D12 with loaded native linux/amd64 cohorts and the existing diagnostics, then restore strict replay expectations when a causal fix qualifies.
-4. Continue fn-109 tasks 7–21 and fn-110 tasks 3–5 in their delivery order. Complete fn-108 task 8 and other platform-only gates when native hosts or CI are available.
+4. Qualify the merged fn-109 tasks 7–12 and fn-110 tasks 3–4, and continue fn-109 tasks 13–21 and fn-110 task 5 in their delivery order. Source implementation may advance after its predecessor candidate is integrated and reviewed; keep acceptance open until its required native gates pass. Complete fn-108 task 8 and other platform-only gates when native hosts or CI are available.
 5. Resume fn-107's downstream cell when its checkout is available, and run the final both-platform consumer gates.
 
 ## Verification instructions for agents
@@ -297,8 +297,11 @@ Artifact-handle interface with explicit ownership and lifetime. D12 retains its
 separate owner; unavailable hosts or unexplained regressions leave affected
 acceptance incomplete.
 
-**Status.** Tasks 2–6 are merged but remain open pending their acceptance
-checks and native qualification. Tasks 7–21 remain; native Linux qualification
+**Status.** Tasks 2–12 are merged but remain open pending their acceptance
+checks and native qualification. The preparation owner, host-command seam,
+installation description, capability ownership, and detached Artifact/opened-handle
+migration are implemented; their task artifacts retain developmental checks and
+review evidence. Tasks 13–21 remain; native Linux qualification
 is part of task 21's final gate. Reuse accepted task evidence where its source
 identity still matches, without repeating implementations.
 
@@ -337,10 +340,12 @@ initialization, and interception redesign remain outside this spec. D12 fixes
 retain their separate owner; patch minimization cannot change their dispositions
 to obtain a passing gate.
 
-**Status.** Task 2's scheduler/quiescence extraction is integrated with D26.
-Local generation, validation, and focused conformance evidence belongs to the
-source candidate; required native darwin/arm64 and linux/amd64 gates remain.
-Tasks 3–5 remain. Re-anchor the task 1 baseline (`8d28bd44`) to the final
+**Status.** Task 2's scheduler/quiescence extraction is integrated with D26;
+task 3's crypto/syscall overlay relocation and task 4's descriptor-bound canonical
+`-U1` regeneration are also merged. Local generation, validation, and focused
+conformance evidence belongs to the source candidate; required native
+darwin/arm64 and linux/amd64 gates remain for all three tasks.
+Task 5 remains. Re-anchor the task 1 baseline (`8d28bd44`) to the final
 inputs before reporting patch-size measurements.
 
 ## Quality assessment (2026-10-01)
@@ -349,8 +354,8 @@ inputs before reporting patch-size measurements.
 findings from the 2026-10-01 assessment. Flow tasks and their artifacts own completed outcomes.
 
 **Spec.** [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) has four open tasks.
-Tasks 5, 9, and 16 are merged but remain open pending qualification; task 9 also
-defers overlapping CLI and Runner work until fn-109 lands. Task 10 delivered the soak gate
+Tasks 5, 9, and 16 are merged but remain open pending qualification; task 9's
+CLI and Runner consolidation is integrated with fn-109. Task 10 delivered the soak gate
 (`gomadtool soak`, `make gomad3-soak`, `tools/gomad3integration/qualification/soak.json`, and the
 scheduled `determinism-soak-darwin` and `determinism-soak-linux` jobs of `gomad3.yml`) and the
 contract documentation in `tools/gomad3/README.md`, SPEC, CLI, ARCHITECTURE, and TUTORIAL; it stays
@@ -386,7 +391,7 @@ and cgroup controls. The informational linux/amd64 soak jobs retain such cohorts
 
 - Qualify task 5's seeded-stream inventory and runtime check on both native platforms.
 - Retain one completed scheduled or dispatched soak run per platform with its report (task 10).
-- Qualify task 9's suite consolidation and finish its fn-109-dependent CLI and Runner mapping.
+- Qualify task 9's suite consolidation, including its integrated CLI and Runner mapping.
 - Qualify task 16's retained-success collision handling.
 
 Retain runtime/model conformance and real CLI recovery coverage while
