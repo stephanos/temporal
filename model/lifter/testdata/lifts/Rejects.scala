@@ -309,6 +309,15 @@ object Computed:
     steps(computedTick ~> lampStep)
   }
 
+/** A family whose root is computed rather than written as a literal. */
+object ComputedFamily:
+  given umpire.Family = umpire.Family("fixture." + "rejects")
+  val familyComputed = machine[Lamp, Outcome, Nothing] {
+    starts(Lamp(false))
+    ends(_ => true)
+    steps(flip ~> lampStep)
+  }
+
 /** Limits named after an anonymous given, a name the compiler made up. */
 object Anonymous:
   given Limits = Limits(steps = 1, actions = 1, search = 8)
@@ -330,6 +339,11 @@ def unnamedChecks(m: Machine[Flag, Outcome, Nothing]): Vector[Query] = Vector(
   )) in secondFlips limits one
 )
 val unnamedProperty: Vector[Query] = unnamedChecks(second)
+
+/** A Scenario in a list, which no val names. */
+val unnamedScenario: Vector[Query] = Vector(
+  query("unnamedScenario") verify flips in second.scenario.actions(flip) limits one
+)
 
 /** Two machines named alike in two objects. */
 object TwinA:
@@ -593,6 +607,15 @@ val spareless = compose[Trio](_.left -> oneStart, _.right -> dimmer)
 val withNoMember = spareless.withMember(_.spare -> oneStart)
 val withIncompatible = spareless.withMember(_.left -> first)
 
+/** `synced` and `own` of a field no member fills, and `synced` of a field's field. */
+val sparelessLit = spareless.property holds (after => after.state.left.lit)
+val sparelessStart = Trio(Lamp(false), Lamp(false), Lamp(false))
+val syncedSpare =
+  spareless.scenario.starts(sparelessStart).actions(spareless.synced(_.spare -> flip))
+val syncedNoMember: Query = query verify sparelessLit in syncedSpare limits one
+val ownSpare = spareless.scenario.starts(sparelessStart).actions(spareless.own(_.spare, flip))
+val ownNoMember: Query = query verify sparelessLit in ownSpare limits one
+
 /** A member that stands in for a machine, replaced by a machine that refines none. */
 val standIn = compose[Lamps](_.left -> flagLamp, _.right -> oneStart).replaces(_.left, first)
 val withUnrefined = standIn.withMember(_.left -> oneStart)
@@ -672,6 +695,9 @@ val watchUnwatched: Query = (query verify flips in secondFlips limits one).expec
 /** `own` of a member action a sync pairs. */
 val ownFlip = flipPair.scenario.actions(flipPair.own(_.left, flip))
 val ownSynced: Query = query verify flipPairLit in ownFlip limits one
+
+val syncedLit = flipPair.scenario.actions(flipPair.synced(_.left.lit -> flip))
+val syncedNoField: Query = query verify flipPairLit in syncedLit limits one
 
 /** `own` of an action spelled as the one its member binds, of another declaration. */
 val tapPair = compose[Lamps](_.left -> tapLamp, _.right -> oneStart)

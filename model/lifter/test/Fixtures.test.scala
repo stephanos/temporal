@@ -162,7 +162,10 @@ class Fixtures extends munit.FunSuite:
     "bareInputs",
     "whenClassInputs",
     "replacesSpare",
-    "loopPair"
+    "loopPair",
+    "syncedNoMember",
+    "ownNoMember",
+    "syncedNoField"
   )
   // The refusals of fn-112.4's claim patterns, records over a member and function-valued arguments.
   private val patternRejects: Seq[String] = Seq(
@@ -224,7 +227,9 @@ class Fixtures extends munit.FunSuite:
     "onNoPath",
     "unlistedStatus",
     "statusTwice",
-    "notAField"
+    "notAField",
+    "notAPolledField",
+    "foreignFact"
   ).map("fixture.scriptrejects.ScriptRejects$package$." + _)
 
   private val rejected = Seq(
@@ -246,6 +251,7 @@ class Fixtures extends munit.FunSuite:
     "guessing",
     "sharedIds",
     "unnamedProperty",
+    "unnamedScenario",
     "twins",
     "askedTwice",
     "boundTwice",
@@ -279,6 +285,7 @@ class Fixtures extends munit.FunSuite:
     "PinsOuter$.pinnedNested",
     "Self$.pinnedSelf",
     "Computed$.pinnedComputed",
+    "ComputedFamily$.familyComputed",
     "Anonymous$.anonymous",
     "ComputedAccepted$.computedAccept"
   ).map("fixture.rejects." + _) ++ scriptRejects

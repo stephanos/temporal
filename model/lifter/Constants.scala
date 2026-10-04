@@ -35,7 +35,13 @@ private[lift] trait Constants:
           val i = cls.caseFields.indexWhere(_.name == field)
           if i < 0 then fail(t, s"cannot read .$field of this value") else constString(args(i))
         case other => fail(t, s"cannot fold ${other.show} to a string")
-    // Party(...), Entity(...), Family(...), Observation(...): the name is the first argument.
+    // A family's root, which every Definition ID it names hangs off, written out.
+    case Apply(Select(companion, "apply"), List(root))
+        if companion.tpe.typeSymbol.companionClass.fullName == "umpire.Family" =>
+      resolve(root) match
+        case Literal(StringConstant(s)) => s
+        case other => fail(root, s"a Family names its root as a string literal, not ${other.show}")
+    // Party(...), Entity(...), Observation(...): the name is the first argument.
     case Apply(Select(_, "apply"), first :: _) => constString(first)
     case other                                 => fail(t, s"expected a string, got ${other.show}")
 

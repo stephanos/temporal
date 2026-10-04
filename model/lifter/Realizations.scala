@@ -755,6 +755,9 @@ private[lift] trait Realizations:
       // The term as written, not reduced: a command is named after the val that declares it, and a
       // fact by its case.
       case ScalaType.String if !isNamed(follow(b0).term.tpe, "umpire.realize.Field") =>
+        follow(b0).term match
+          case r: Ref if f.name == "records" && factCase(r.symbol) => factsNamed += r
+          case _                                                   => ()
         PString(textOfBound(b0))
       case _ => valueOf0(f, b0)
 
@@ -941,10 +944,12 @@ private[lift] trait Realizations:
       case Some(r) => r
       case None    =>
         val d = valDef(sym, at, "a realization")
+        factsNamed.clear()
         // A realization is where its val declares it, though a kit function may write its record.
         val emitted = emit(ir.Realization, Bound(d.rhs.get, Map.empty))
           .withId(id)
           .withPosition(pos(d.rhs.get))
+        ownFacts(emitted)
         val r =
           if emitted.name.nonEmpty then emitted
           else emitted.withName(capturedName(sym, d, "a realization"))
@@ -1047,6 +1052,26 @@ private[lift] trait Realizations:
     def ours(s: Symbol) = !s.fullName.startsWith("umpire.") && !s.fullName.startsWith("scala.")
     (isEnumCase(sym) && ours(sym)) ||
     (sym.flags.is(Flags.Module) && isEnumCase(sym.companionClass) && ours(sym.companionClass))
+
+  // The facts the evidence of the realization being emitted records, named by value, each where it
+  // is written.
+  private val factsNamed = mutable.ArrayBuffer.empty[Ref]
+
+  /**
+   * Refuses evidence that records a fact named by value that is no case of the facts its machine
+   * records: it would confirm a fact no step of the machine records. A status table's keys are
+   * lookups, not facts the evidence records.
+   */
+  private def ownFacts(r: ir.Realization): Unit =
+    for m <- machineNamed(r.machine); f <- factsNamed do
+      val e = enumOf(f.symbol)
+      if typeRef(e.typeRef, f).getNamed != m.factType then
+        val recorded = if m.factType.isEmpty then "no facts" else s"facts of ${m.factType}"
+        fail(
+          f,
+          s"${f.symbol.name} is a case of ${e.name}, and ${m.name} records $recorded: a realization " +
+            "names the facts its machine records"
+        )
 
   /** The value a status table gives a fact, which it must list once. */
   private def looked(table: Bound, fact: Bound, at: Term): Bound =

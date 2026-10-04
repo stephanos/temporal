@@ -90,3 +90,24 @@ private val inputInScope = rpc(workflowService, METHOD_PAUSE_ACTIVITY_EXECUTION)
 
 /** A line of a request scope that assigns no field of the request. */
 val notAField: Realization = realizing(perform(control(Control.pause) -> inputInScope))
+
+private val inputInPoll = await(described, workflowService)(
+  Condition.equal(
+    Field[io.temporal.api.activity.v1.ActivityExecutionInfo, ActivityExecutionStatus](_.status),
+    Operand.enumValue(ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED)
+  )
+) {
+  Inputs.scheduleToStart := Timeout.expires
+}
+
+/** A line of a poll's request scope that assigns no field of the request. */
+val notAPolledField: Realization = realizing(always(inputInPoll))
+
+/** Evidence of a case of another enum than the facts the machine records. */
+val foreignFact: Realization = temporalRealization(
+  machine = activityProtocol,
+  operation = activity,
+  roles = Vector(workflowService, taskQueue),
+  scripts = Vector(controller(always(stopWorker))),
+  evidence = Vector(answered(Control.pause, stopWorker))
+)
