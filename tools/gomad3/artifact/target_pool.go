@@ -208,17 +208,35 @@ func createPoolEntry(ctx context.Context, pool, entry string, payload Payload) (
 	return nil
 }
 
-func verifySharedPayload(ctx context.Context, path string, payload Payload) (record.File, error) {
+func verifySharedPayload(ctx context.Context, path string, payload Payload) (verified record.File, retErr error) {
 	root, err := os.OpenRoot(filepath.Dir(path))
 	if err != nil {
 		return record.File{}, err
 	}
-	defer root.Close()
+	defer func() {
+		if closeErr := root.Close(); closeErr != nil {
+			verified = record.File{}
+			if retErr == nil {
+				retErr = closeErr
+			} else {
+				retErr = errors.Join(retErr, closeErr)
+			}
+		}
+	}()
 	file, info, err := openSharedFile(root, filepath.Base(path))
 	if err != nil {
 		return record.File{}, err
 	}
-	defer file.Close()
+	defer func() {
+		if closeErr := file.Close(); closeErr != nil {
+			verified = record.File{}
+			if retErr == nil {
+				retErr = closeErr
+			} else {
+				retErr = errors.Join(retErr, closeErr)
+			}
+		}
+	}()
 	if info.Mode().Perm() != payload.Mode || info.Size() < 0 || uint64(info.Size()) != uint64(payload.Size) {
 		return record.File{}, errors.New("metadata does not match its identity")
 	}

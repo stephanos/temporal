@@ -1,0 +1,429 @@
+{
+  "status": "SOURCE_PROGRESS_ONLY",
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.31",
+  "flow_status": "in_progress",
+  "base_commit": "39fc19c4618322b6a939f5b603d9ba69aab00b9b",
+  "branch": "gomad",
+  "commits": [],
+  "commit_range": "",
+  "prs": [],
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "requested_model": "gpt-6.1-sol",
+  "requested_effort": "high",
+  "platform": [
+    "linux",
+    "arm64"
+  ],
+  "tests": [
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./artifact/...",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config /Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --build-tags test_dep --fix=false ./artifact",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype -tags test_dep ./artifact",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./artifact -run TestSyncDirectoryContextPreservesPrimaryResults|TestVerifySharedPayloadPreservesLiteralTarget|TestVerifySharedPayloadPreservesMissingTargetError|TestDamagedSharedTargetFailsOpenAndLaterPublication",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./artifact/...",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./artifact -run TestSyncDirectoryContextPreservesPrimaryResults|TestVerifySharedPayloadPreserves|TestPublish|TestDamagedSharedTarget|TestCopiedArtifact|TestOpenRejects|TestPruneTargetPool",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./artifact -run TestRetainedBytes|TestPoolTarget|TestPrivatePayload|TestOpenedArtifact",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config /Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --build-tags test_dep --fix=false ./artifact",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype -tags test_dep ./artifact",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v . -run ^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$",
+    "make validate GOFLAGS=-tags=test_dep -count=1",
+    "bash -c git diff --check -- artifact/store.go artifact/target_pool.go artifact/store_test.go artifact/target_pool_test.go artifact/publication_test.go && /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l artifact/store.go artifact/target_pool.go artifact/store_test.go artifact/target_pool_test.go artifact/publication_test.go",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./artifact -run ^TestVerifySharedPayloadPreserves",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./artifact -run ^TestVerifySharedPayloadPreserves",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -v ./artifact -run ^TestVerifySharedPayloadPreserves"
+  ],
+  "gates": {
+    "baseline-package": {
+      "receipt": "baseline-package.json",
+      "log": "baseline-package.log",
+      "exit": 0,
+      "elapsed_seconds": 0.9998515420011245,
+      "log_sha256": "13f9e2da8edb3badb9f3036f496c88a9e81e83dc11a2b026ff3cccb6a7d1cfca"
+    },
+    "baseline-lint": {
+      "receipt": "baseline-lint.json",
+      "log": "baseline-lint.log",
+      "exit": 1,
+      "elapsed_seconds": 0.5964952089998405,
+      "log_sha256": "d22d176ac9106830347939a5c892000c599d34ec56efc8a6ce595872749b930f"
+    },
+    "baseline-errortype": {
+      "receipt": "baseline-errortype.json",
+      "log": "baseline-errortype.log",
+      "exit": 0,
+      "elapsed_seconds": 0.7458851669944124,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "characterization-baseline": {
+      "receipt": "characterization-baseline.json",
+      "log": "characterization-baseline.log",
+      "exit": 0,
+      "elapsed_seconds": 0.32144595800491516,
+      "log_sha256": "2b5b3452e918cbd2e10d5102d4b35bf8ee6e1c88fabe6663609edad5d1557b58"
+    },
+    "final-package": {
+      "receipt": "final-package.json",
+      "log": "final-package.log",
+      "exit": 0,
+      "elapsed_seconds": 2.4298495010007173,
+      "log_sha256": "d7c164ead59a0f6ca5173fec8f2dc0f2f9724f8f485e36123f3240a3ddfce5a6"
+    },
+    "final-focused": {
+      "receipt": "final-focused.json",
+      "log": "final-focused.log",
+      "exit": 0,
+      "elapsed_seconds": 2.349858335001045,
+      "log_sha256": "3bbf18bed84e041b509c90c6c9db34c08218939f9eb8f3bceb4042a1da91f13d"
+    },
+    "final-retained-private-public": {
+      "receipt": "final-retained-private-public.json",
+      "log": "final-retained-private-public.log",
+      "exit": 0,
+      "elapsed_seconds": 1.5832959169929381,
+      "log_sha256": "f5c6b4a9b11d46a272763c15124a61c02b6cac7382eae4e208bd37bf6aba0cc8"
+    },
+    "final-lint": {
+      "receipt": "final-lint.json",
+      "log": "final-lint.log",
+      "exit": 1,
+      "elapsed_seconds": 2.3153557510086102,
+      "log_sha256": "029d6a8963c9a61ea5b13368a7c96a9f1073a94d5f46daab3fec04105d85d1d5"
+    },
+    "final-errortype": {
+      "receipt": "final-errortype.json",
+      "log": "final-errortype.log",
+      "exit": 0,
+      "elapsed_seconds": 1.3728529590007383,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-boundary": {
+      "receipt": "final-boundary.json",
+      "log": "final-boundary.log",
+      "exit": 0,
+      "elapsed_seconds": 8.293048338004155,
+      "log_sha256": "1673c07c0a8d1e38a011fc596d4289c8dc16f35ecae291512a55f4ec29a204ba"
+    },
+    "final-validation": {
+      "receipt": "final-validation.json",
+      "log": "final-validation.log",
+      "exit": 0,
+      "elapsed_seconds": 5.661196627988829,
+      "log_sha256": "23526df5ff015aa7ea83d107d454d6e79f077c768dd884efbc2fb73e7903b679"
+    },
+    "final-static": {
+      "receipt": "final-static.json",
+      "log": "final-static.log",
+      "exit": 0,
+      "elapsed_seconds": 0.13174745900323614,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "mutation-nil-close-wrap": {
+      "receipt": "mutation-nil-close-wrap.json",
+      "log": "mutation-nil-close-wrap.log",
+      "exit": 1,
+      "elapsed_seconds": 0.7529246249905555,
+      "log_sha256": "ee7a4f1e3366740a328d658d1ad122ee681c62efd8f9a11667c03af7b833a276"
+    },
+    "mutation-file-second-close": {
+      "receipt": "mutation-file-second-close.json",
+      "log": "mutation-file-second-close.log",
+      "exit": 1,
+      "elapsed_seconds": 0.8810174169921083,
+      "log_sha256": "f92de9bac22e613c2a6aa0578f9e19f6d0945b7e788af4417ce6b925794c2252"
+    },
+    "mutation-restored": {
+      "receipt": "mutation-restored.json",
+      "log": "mutation-restored.log",
+      "exit": 0,
+      "elapsed_seconds": 0.22920637499191798,
+      "log_sha256": "e59adfcdd8c9ee229eeeda360532189368ca02fc7f15baf8e966b603585f0107"
+    }
+  },
+  "test_run_entries": {
+    "baseline-package": 72,
+    "characterization-baseline": 11,
+    "final-package": 77,
+    "final-focused": 42,
+    "final-retained-private-public": 31,
+    "final-boundary": 15,
+    "mutation-nil-close-wrap": 4,
+    "mutation-file-second-close": 4,
+    "mutation-restored": 4
+  },
+  "source_final": {
+    "tools/gomad3/artifact/link_count_other.go": "8aca408979003f57af2a663b1ab7a9de901f9efa346e76e8c8eda00b10633575",
+    "tools/gomad3/artifact/link_count_unix.go": "140c38ceb4f2287b73ae0b55b02c4e970a7ed9b62fbb1fa7041a4e374625cfb8",
+    "tools/gomad3/artifact/manifest_copy.go": "f1dad686d9f2fc59ebde1f0f484bafa6dcfad7fb1f84d1d3fe7878eeb44d7dae",
+    "tools/gomad3/artifact/open.go": "69cd4af287008c5985050b6d9a7a03f3b5c96ad695bc1b005eb9c3fe2431b0de",
+    "tools/gomad3/artifact/opened_test.go": "199a4f734197686f71b00333ec5699b444444ea06cf9407df821e89d4e9f1363",
+    "tools/gomad3/artifact/publication.go": "44d9d007b0b09397654e62e24596f8321e14366a6797a6f31fc63ec1fb827671",
+    "tools/gomad3/artifact/publication_test.go": "70b3ec64231a7543e2a6961318bc26ac95be6988a6b94cb31601c8a2ac47b410",
+    "tools/gomad3/artifact/rename_noreplace.go": "96303429e8e3fb8e14147030cc25e1ad1f069a83f33e3f7e010558f399ec3220",
+    "tools/gomad3/artifact/rename_noreplace_darwin.go": "63476b6fbb846c45e014fefea9c0860e6873f75eb129d18e67a13c9b27c78cef",
+    "tools/gomad3/artifact/rename_noreplace_linux.go": "356979e8d1e247fcabc5cfe053c34198d8b10b38bd777f66946663673a47e98c",
+    "tools/gomad3/artifact/rename_noreplace_linux_other.go": "1d1bf61bb99b86cff1a9173d78a2ba095bfb5548a7e0ee611e38586028b7cf6d",
+    "tools/gomad3/artifact/rename_noreplace_other.go": "f82cac130d687d72287a31c0d3c3cdd520cf0672f4b0441b47b08936eb6cdf44",
+    "tools/gomad3/artifact/rename_noreplace_windows.go": "77ce2197589e2577930ab5b8872b30501123592e611f1e11b01581bd91f889ac",
+    "tools/gomad3/artifact/rename_sysnum_linux_amd64.go": "ac57734e39f476bf365706ec63aee7aea191b8aae6458cf1ae4f235d9944566c",
+    "tools/gomad3/artifact/rename_sysnum_linux_arm64.go": "3a2a51354a595e230f9919d395bc267d4689dd86ca3ab81a39ae7f60c1c86667",
+    "tools/gomad3/artifact/retained_bytes.go": "c5948571149053c27c116b3c122ab0f76e736ff312bd3194ca8f8c0b29dc47f0",
+    "tools/gomad3/artifact/retained_bytes_test.go": "6b848dfeb47df6047625d536c8aed3906910759d84b5db16ba4e9762bd6649fd",
+    "tools/gomad3/artifact/store.go": "f93601eccc225ab158f3c6f922b95e85deb4358de34cd7ff889b7d5533acddab",
+    "tools/gomad3/artifact/store_mode_unix_test.go": "8ecc1a6675e92f092b6f6a7060d6fb48325221f2517af2d9dbbd3199832c4088",
+    "tools/gomad3/artifact/store_test.go": "e81dd018aa4d6bd5cb20e46d381bc2e10681820b4b6f83768ddc6bd83c8beae1",
+    "tools/gomad3/artifact/target_pool.go": "2f16b5c0ec47226bd80b63d309f37e28ccfe55c24a6e2b54e2118a7fd0b12b8e",
+    "tools/gomad3/artifact/target_pool_test.go": "f1f16a966c6195cc094de8cc5ffca7d8d837e23faa3d2e02fa727465daf2c41b",
+    "tools/gomad3/artifact/target_pool_unix_test.go": "b424f0ba58e1b1a1f8e27d8fcfa700fb3afcf130ed7ee4f7c24bf196a484fac8"
+  },
+  "preservation_audit": {
+    "recipe": "python3 /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-31/audit.py",
+    "recovered_baseline_sha256": {
+      "store.go": "a41297665317751bef4d62264eb8c68bdf0ea5cc3d79f234424ff8946978a7d1",
+      "target_pool.go": "171d9a1ee1769879aa9e7e1bfd9dd8995795dacd6114d303f1aa4366695aa402",
+      "store_test.go": "fad48f38fe5344b4f6767321580bdf3af79c3245dd68cbc355fecfaf5e535d6d",
+      "target_pool_test.go": "7e71c66b29f2fc5d0bc434126bf5941b59bb5913253ff0b3c82e094634c148f6",
+      "publication_test.go": "e751e1da5606bed91d30353f820a8c1457836983c258d46a43059625bfa91b67"
+    },
+    "protected_files": 1039,
+    "protected_aggregate_sha256": "3e5fbd96cfea07cce2f2c2296a0e5064820f3167a17f0eb7c06f353dfa1e5e4c",
+    "documents": {
+      ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md": "ed73b16b6bf0581cdfb0a93d6483daf3b550018e0c70839c2214165a46772230",
+      "tools/gomad3/README.md": "8b95e9d3ae6103f120f6cadacbeffcc17f27bac6636b923279461fe13ec6e61a",
+      "AGENTS.md": "1d1647deacf876fd634c64c2760194e210f67198fd31194fd4e464be6bc80f0d",
+      ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43"
+    },
+    "changed_product_paths": [
+      "tools/gomad3/artifact/publication_test.go",
+      "tools/gomad3/artifact/store.go",
+      "tools/gomad3/artifact/store_test.go",
+      "tools/gomad3/artifact/target_pool.go",
+      "tools/gomad3/artifact/target_pool_test.go"
+    ]
+  },
+  "lint": {
+    "before": [
+      {
+        "path": "tools/gomad3/artifact/manifest_copy.go",
+        "line": 59,
+        "column": 3,
+        "message": "use of `panic` forbidden because \"Please avoid using panic in application code\"",
+        "linter": "forbidigo"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 257,
+        "column": 2,
+        "message": "missing cases in switch of type reflect.Kind: reflect.Invalid, reflect.Uintptr, reflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128, reflect.Chan, reflect.Func, reflect.Interface, reflect.UnsafePointer",
+        "linter": "exhaustive"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 292,
+        "column": 2,
+        "message": "missing cases in switch of type reflect.Kind: reflect.Invalid, reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr, reflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128, reflect.Array, reflect.Chan, reflect.Func, reflect.Interface, reflect.String, reflect.UnsafePointer",
+        "linter": "exhaustive"
+      },
+      {
+        "path": "tools/gomad3/artifact/publication.go",
+        "line": 39,
+        "column": 22,
+        "message": "ST1005: error strings should not be capitalized",
+        "linter": "staticcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/publication_test.go",
+        "line": 42,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/publication_test.go",
+        "line": 132,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/store.go",
+        "line": 490,
+        "column": 23,
+        "message": "Error return value of `directory.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/target_pool.go",
+        "line": 216,
+        "column": 18,
+        "message": "Error return value of `root.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/target_pool.go",
+        "line": 221,
+        "column": 18,
+        "message": "Error return value of `file.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/target_pool_test.go",
+        "line": 262,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      }
+    ],
+    "after": [
+      {
+        "path": "tools/gomad3/artifact/manifest_copy.go",
+        "line": 59,
+        "column": 3,
+        "message": "use of `panic` forbidden because \"Please avoid using panic in application code\"",
+        "linter": "forbidigo"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 257,
+        "column": 2,
+        "message": "missing cases in switch of type reflect.Kind: reflect.Invalid, reflect.Uintptr, reflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128, reflect.Chan, reflect.Func, reflect.Interface, reflect.UnsafePointer",
+        "linter": "exhaustive"
+      },
+      {
+        "path": "tools/gomad3/artifact/opened_test.go",
+        "line": 292,
+        "column": 2,
+        "message": "missing cases in switch of type reflect.Kind: reflect.Invalid, reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr, reflect.Float32, reflect.Float64, reflect.Complex64, reflect.Complex128, reflect.Array, reflect.Chan, reflect.Func, reflect.Interface, reflect.String, reflect.UnsafePointer",
+        "linter": "exhaustive"
+      },
+      {
+        "path": "tools/gomad3/artifact/publication.go",
+        "line": 39,
+        "column": 22,
+        "message": "ST1005: error strings should not be capitalized",
+        "linter": "staticcheck"
+      }
+    ],
+    "resolved": [
+      {
+        "path": "tools/gomad3/artifact/publication_test.go",
+        "line": 42,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/publication_test.go",
+        "line": 132,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/store.go",
+        "line": 490,
+        "column": 23,
+        "message": "Error return value of `directory.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/target_pool.go",
+        "line": 216,
+        "column": 18,
+        "message": "Error return value of `root.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/target_pool.go",
+        "line": 221,
+        "column": 18,
+        "message": "Error return value of `file.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/artifact/target_pool_test.go",
+        "line": 262,
+        "column": 20,
+        "message": "Error return value of `opened.Close` is not checked",
+        "linter": "errcheck"
+      }
+    ],
+    "introduced": [],
+    "total_before": 10,
+    "total_after": 4,
+    "mapped_before": 6,
+    "mapped_after": 0,
+    "historical_scope": "419 is historical, not a fresh whole-Gomad count"
+  },
+  "baseline": "package and errortype green; unfiltered lint red on 10 inherited findings, including six admitted policy violations",
+  "test_first": "Real-file controls passed against original production; policy RED is the actual six baseline errcheck findings.",
+  "mutations": {
+    "mutation-nil-close-wrap": {
+      "path": "tools/gomad3/artifact/target_pool.go",
+      "origin_sha256": "2f16b5c0ec47226bd80b63d309f37e28ccfe55c24a6e2b54e2118a7fd0b12b8e",
+      "search": "\tdefer func() {\n\t\tif closeErr := root.Close(); closeErr != nil {\n\t\t\tverified = record.File{}\n\t\t\tif retErr == nil {\n\t\t\t\tretErr = closeErr\n\t\t\t} else {\n\t\t\t\tretErr = errors.Join(retErr, closeErr)\n\t\t\t}\n\t\t}\n\t}()\n",
+      "replacement": "\tdefer func() {\n\t\tretErr = errors.Join(retErr, root.Close())\n\t}()\n",
+      "occurrences": 1,
+      "mutant_sha256": "2132e530befa961bd5599b140211c2ccbbdfa6f598fcde21e79a36e4e4964546",
+      "receipt": "mutation-nil-close-wrap.json",
+      "limitation": "Mutation sensitivity only; no first-Close OS-fault proof."
+    },
+    "mutation-file-second-close": {
+      "path": "tools/gomad3/artifact/target_pool.go",
+      "origin_sha256": "2f16b5c0ec47226bd80b63d309f37e28ccfe55c24a6e2b54e2118a7fd0b12b8e",
+      "search": "\tdefer func() {\n\t\tif closeErr := file.Close(); closeErr != nil {\n\t\t\tverified = record.File{}\n\t\t\tif retErr == nil {\n\t\t\t\tretErr = closeErr\n\t\t\t} else {\n\t\t\t\tretErr = errors.Join(retErr, closeErr)\n\t\t\t}\n\t\t}\n\t}()\n",
+      "replacement": "\tdefer func() {\n\t\tif closeErr := file.Close(); closeErr != nil {\n\t\t\tverified = record.File{}\n\t\t\tif retErr == nil {\n\t\t\t\tretErr = closeErr\n\t\t\t} else {\n\t\t\t\tretErr = errors.Join(retErr, closeErr)\n\t\t\t}\n\t\t}\n\t\tretErr = errors.Join(retErr, file.Close())\n\t}()\n",
+      "occurrences": 1,
+      "mutant_sha256": "b703b8bf6d30e2cc413db662e9626ae51fe59ec0053bc2af394dc764761fa3cc",
+      "receipt": "mutation-file-second-close.json",
+      "limitation": "Mutation sensitivity only; no first-Close OS-fault proof."
+    }
+  },
+  "restored_receipt": "mutation-restored.json",
+  "source_inspected": [
+    "directory operation/post-context selected before conditional cleanup merge; inner Close precedes post-context",
+    "nil cleanup preserves primary identity; sole cleanup adopts raw error; dual cleanup joins primary first",
+    "verifier file-before-root single release; cleanup failure clears metadata; caller keeps zero result/sharing and wrapper",
+    "existing staging cleanup removes failed verifier link; renamed artifact and independently published pool winner remain owned"
+  ],
+  "unexecuted": [
+    "genuine first-Close OS fault",
+    "simultaneous operation/Close fault",
+    "verifier first-Close failure clearing metadata",
+    "post-Sync cancellation timing and Close/post-context simultaneous failure"
+  ],
+  "generator": "Makefile input lists and check recipes inspected; no artifact source is a generator input; make validate passed without regeneration",
+  "boundaries": {
+    "executed": [
+      "TestPackageArchitecture",
+      "TestPublicPackagesDoNotExportTypeAliases",
+      "TestArchitecturePublicSignatureFixtures",
+      "TestRunnerRequestsCompileInExternalModule",
+      "TestRunnerExternalConsumerCompiles"
+    ],
+    "absent_historical_test": "TestRecordAndArtifactHaveSeparateOwners was not run"
+  },
+  "pinned_tools": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "config_sha256": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+  "pinned_sources": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/file_posix.go": "2e93ac5f812cd7184d3ac3a2eb9a51583911a6261cf9c27772fa7dfedcbe514f",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/file_unix.go": "877dd004355c475e8805b5700061604558422da057037556e0cf6edeb36ab7ec",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/root_openat.go": "1896b0feba64b0e6dccf7c8cb1543919cd78fb05f7b110662e313caeab22d2b7",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/errors/join.go": "87da7c120f71d17e37f110ae1dc6af6493ec841a22ee825e13a6a8024a014dba"
+  },
+  "review": "Root owns fresh independent source review and commits; no formal review verdict claimed",
+  "remaining": [
+    "Original R13/R18/R19/task12/predecessors/task21 acceptance",
+    "matched original first-baseline fixed identities",
+    "complete/full/formal and native darwin/arm64 plus linux/amd64 qualification",
+    "affected consumer/integration/qualification gates",
+    "four inherited artifact lint findings; no new whole-Gomad count"
+  ],
+  "owned_delegates": 0,
+  "live_command_handles": 0,
+  "worker_git_writes": 0,
+  "worker_flow_lifecycle_writes": 0,
+  "handover": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-31/handover.md"
+}

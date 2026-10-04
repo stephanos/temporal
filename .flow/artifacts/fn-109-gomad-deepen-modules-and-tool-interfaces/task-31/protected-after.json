@@ -1,0 +1,17 @@
+{
+  "files": 1039,
+  "aggregate_sha256": "3e5fbd96cfea07cce2f2c2296a0e5064820f3167a17f0eb7c06f353dfa1e5e4c",
+  "captured": "2026-10-04T17:03:59.645164+00:00",
+  "selection": "tracked Gomad modules, root go.mod/go.sum and lint config excluding only five admitted artifact source/test files",
+  "pinned_close_join_sources": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/file_posix.go": "2e93ac5f812cd7184d3ac3a2eb9a51583911a6261cf9c27772fa7dfedcbe514f",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/file_unix.go": "877dd004355c475e8805b5700061604558422da057037556e0cf6edeb36ab7ec",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/root_openat.go": "1896b0feba64b0e6dccf7c8cb1543919cd78fb05f7b110662e313caeab22d2b7",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/errors/join.go": "87da7c120f71d17e37f110ae1dc6af6493ec841a22ee825e13a6a8024a014dba"
+  },
+  "platform": [
+    "linux",
+    "arm64"
+  ],
+  "patched_go_exists": false
+}

@@ -1,0 +1,49 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.31",
+  "base_commit": "39fc19c4618322b6a939f5b603d9ba69aab00b9b",
+  "branch": "gomad",
+  "protected_files": 1039,
+  "protected_aggregate_sha256": "3e5fbd96cfea07cce2f2c2296a0e5064820f3167a17f0eb7c06f353dfa1e5e4c",
+  "protected_exclusions": [
+    "tools/gomad3/artifact/store.go",
+    "tools/gomad3/artifact/target_pool.go",
+    "tools/gomad3/artifact/store_test.go",
+    "tools/gomad3/artifact/target_pool_test.go",
+    "tools/gomad3/artifact/publication_test.go"
+  ],
+  "protected_original_documents": {
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md": "ed73b16b6bf0581cdfb0a93d6483daf3b550018e0c70839c2214165a46772230",
+    "tools/gomad3/README.md": "8b95e9d3ae6103f120f6cadacbeffcc17f27bac6636b923279461fe13ec6e61a",
+    "AGENTS.md": "1d1647deacf876fd634c64c2760194e210f67198fd31194fd4e464be6bc80f0d",
+    ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43"
+  },
+  "source_plan_bounds": {
+    "tools/gomad3/artifact/store.go": "a41297665317751bef4d62264eb8c68bdf0ea5cc3d79f234424ff8946978a7d1",
+    "tools/gomad3/artifact/target_pool.go": "171d9a1ee1769879aa9e7e1bfd9dd8995795dacd6114d303f1aa4366695aa402",
+    "tools/gomad3/artifact/store_test.go": "fad48f38fe5344b4f6767321580bdf3af79c3245dd68cbc355fecfaf5e535d6d",
+    "tools/gomad3/artifact/target_pool_test.go": "7e71c66b29f2fc5d0bc434126bf5941b59bb5913253ff0b3c82e094634c148f6",
+    "tools/gomad3/artifact/publication_test.go": "e751e1da5606bed91d30353f820a8c1457836983c258d46a43059625bfa91b67",
+    "tools/gomad3/artifact/open.go": "69cd4af287008c5985050b6d9a7a03f3b5c96ad695bc1b005eb9c3fe2431b0de",
+    "tools/gomad3/artifact/opened_test.go": "199a4f734197686f71b00333ec5699b444444ea06cf9407df821e89d4e9f1363",
+    ".flow/tmp/artifact-directory-verifier-cleanup-owner-plan.md": "9eb29361e5da9998e93ff62e3848c545110886218ee703d2748e16530ddd971f",
+    ".flow/tmp/artifact-cleanup-source-mapping.md": "3fa6fb04bcee2a6c31cbe3167850170fa46165bb5277a263b709dc7da91b8397"
+  },
+  "index_empty": true,
+  "selection": "tracked Gomad modules, root go.mod/go.sum and lint config excluding only five admitted artifact source/test files",
+  "encoding": "sorted-key JSON with ordinary comma/colon separator spaces",
+  "requested_worker": {
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "tier_line": "Tier: session (jev-unavailable(no_key))",
+    "actual_model": null
+  },
+  "scheduling": "wave: one source writer in authorized current checkout; read-only architecture error-provenance scout overlaps on stable disjoint files",
+  "root_owned": [
+    "Git/index/commit",
+    "Flow/lifecycle/parent",
+    "MILESTONES",
+    "fresh independent source review"
+  ],
+  "review_backend": "conductor-deferred source progress; formal review only on qualified green tree",
+  "qualification_limits": "Original R13/R18/R19/task12/predecessors/task21/first-baseline/full/native/formal remain open; no push or compatibility expansion"
+}

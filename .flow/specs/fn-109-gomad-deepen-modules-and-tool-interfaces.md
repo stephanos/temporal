@@ -525,6 +525,20 @@ task 12/predecessors, matched first-baseline fixed identities and complete/full/
 formal/both-native qualification remain open. Root commits reviewed progress
 before the next source writer.
 
+Task 31's directory/verifier cleanup candidate checks three production and three
+test-handle cleanup returns at their original lifetimes. Directory operation/
+post-context precedence remains primary and the inner Close precedes the post
+check. Verifier cleanup releases file before root and clears metadata on a
+genuine cleanup failure. Original helper operations, assertions, transaction
+owners and public/private payload APIs retain their bytes. Developmental
+package, focused, boundaries, errortype and generator checks pass. Actual
+unfiltered artifact lint falls from 10 to four unchanged findings, with six
+repairs and none introduced. Fresh independent source review permits only a
+source-progress commit. Genuine first-Close and post-Sync cancellation timing
+proof remain unexecuted. Original R13/R18/R19, task 12/predecessors, task 21,
+matched first-baseline fixed identities and complete/full/formal/both-native
+qualification remain open. Root commits progress before another source writer.
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.

@@ -2,6 +2,7 @@ package artifact
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -66,6 +67,52 @@ func poolEntries(t *testing.T, pool string) []string {
 		paths = append(paths, filepath.Join(pool, entry.Name()))
 	}
 	return paths
+}
+
+func TestVerifySharedPayloadPreservesLiteralTarget(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	for _, test := range []struct {
+		name string
+		ctx  context.Context
+		want record.File
+		err  error
+	}{
+		{"live", context.Background(), record.File{Path: "target", Mode: "0700", Size: 12, SHA256: "sha256:0350a9d9ffa2b933c2e6a8d73d4ee7398415e547178881241eca6bb865de5393"}, nil},
+		{"cancelled", ctx, record.File{}, context.Canceled},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "target")
+			if err := os.WriteFile(path, []byte("target bytes"), 0o700); err != nil {
+				t.Fatal(err)
+			}
+			payload := Payload{Path: "target", Mode: 0o700, Size: 12, SHA256: "sha256:0350a9d9ffa2b933c2e6a8d73d4ee7398415e547178881241eca6bb865de5393"}
+			file, err := verifySharedPayload(test.ctx, path, payload)
+			if file != test.want || err != test.err {
+				t.Fatalf("verifySharedPayload() = %#v, %T %v, want %#v, %v", file, err, err, test.want, test.err)
+			}
+			data, err := os.ReadFile(path)
+			if err != nil || string(data) != "target bytes" {
+				t.Fatalf("target bytes = %q, %v", data, err)
+			}
+			info, err := os.Stat(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if info.Mode().Perm() != 0o700 {
+				t.Fatalf("target mode = %#o, want 0700", info.Mode().Perm())
+			}
+		})
+	}
+}
+
+func TestVerifySharedPayloadPreservesMissingTargetError(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "missing")
+	file, err := verifySharedPayload(context.Background(), path, Payload{Path: "target"})
+	pathErr, ok := err.(*os.PathError)
+	if file != (record.File{}) || !ok || pathErr.Path != "missing" || !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("verifySharedPayload() = %#v, %T %v, want zero metadata and raw missing-target error", file, err, err)
+	}
 }
 
 func TestPublishSharesOneTargetAcrossTheStoresOfOnePool(t *testing.T) {
@@ -228,6 +275,7 @@ func TestDamagedSharedTargetFailsOpenAndLaterPublication(t *testing.T) {
 			owner := t.TempDir()
 			store := Store{Root: filepath.Join(owner, "failures"), Key: StoreKeyRecord, TargetPool: TargetPool(owner)}
 			published := publishSeed(t, store, 7)
+			originalEntry := poolEntries(t, store.TargetPool)[0]
 			test.damage(t, published.Path, poolEntries(t, store.TargetPool)[0])
 			if opened, err := OpenArtifact(published.Path); err == nil {
 				t.Fatalf("OpenArtifact() opened a damaged artifact: %#v", opened.Manifest().Target)
@@ -238,6 +286,18 @@ func TestDamagedSharedTargetFailsOpenAndLaterPublication(t *testing.T) {
 			}
 			if !test.poisoned && err != nil {
 				t.Fatal(err)
+			}
+			if test.poisoned {
+				entries, err := os.ReadDir(store.Root)
+				if err != nil || len(entries) != 1 || entries[0].Name() != filepath.Base(published.Path) {
+					t.Fatalf("store entries after failed shared verification = %v, %v, want only original artifact", entries, err)
+				}
+				if info, err := os.Stat(published.Path); err != nil || !info.IsDir() {
+					t.Fatalf("original artifact after failed shared verification = %v, %v", info, err)
+				}
+				if entries := poolEntries(t, store.TargetPool); len(entries) != 1 || entries[0] != originalEntry {
+					t.Fatalf("pool entries after failed shared verification = %v, want original winner", entries)
+				}
 			}
 		})
 	}
@@ -259,7 +319,11 @@ func TestCopiedArtifactOpensWithoutItsStore(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer opened.Close()
+	defer func() {
+		if err := opened.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	content, err := opened.ReadPayload("target", 64)
 	if err != nil || string(content) != "target bytes" {
 		t.Fatalf("exported target = %q, %v", content, err)

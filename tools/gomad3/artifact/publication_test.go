@@ -39,7 +39,11 @@ func TestPublishArtifactWritesAndValidatesChoiceTrace(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer opened.Close()
+	defer func() {
+		if err := opened.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	if opened.Manifest().ChoiceProfile == nil || opened.Manifest().ChoiceProfile.Trace.File != "choices.bin" || opened.Manifest().ChoiceProfile.Trace.TapeSHA256 != tapeSHA256 || opened.Manifest().ChoiceProfile.Trace.Decisions != 1 {
 		t.Fatalf("choice profile = %#v", opened.Manifest().ChoiceProfile)
 	}
@@ -129,7 +133,11 @@ func TestPublishArtifactWritesSimulationExplorationEvidence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer opened.Close()
+	defer func() {
+		if err := opened.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	for name, want := range map[string][]byte{
 		"simulation/plan.json":   plan,
 		"simulation/record.json": record,

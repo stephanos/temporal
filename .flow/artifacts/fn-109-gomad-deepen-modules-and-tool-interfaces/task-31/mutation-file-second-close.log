@@ -1,0 +1,14 @@
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget/live
+    target_pool_test.go:92: verifySharedPayload() = record.File{Path:"target", Mode:"0700", Size:0xc, SHA256:"sha256:0350a9d9ffa2b933c2e6a8d73d4ee7398415e547178881241eca6bb865de5393"}, *errors.joinError close /home/agent/.cache/codex-build/tmp/TestVerifySharedPayloadPreservesLiteralTargetlive1090240036/001/target: file already closed, want record.File{Path:"target", Mode:"0700", Size:0xc, SHA256:"sha256:0350a9d9ffa2b933c2e6a8d73d4ee7398415e547178881241eca6bb865de5393"}, <nil>
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget/cancelled
+    target_pool_test.go:92: verifySharedPayload() = record.File{Path:"", Mode:"", Size:0x0, SHA256:""}, *errors.joinError context canceled
+        close /home/agent/.cache/codex-build/tmp/TestVerifySharedPayloadPreservesLiteralTargetcancelled3056184205/001/target: file already closed, want record.File{Path:"", Mode:"", Size:0x0, SHA256:""}, context canceled
+--- FAIL: TestVerifySharedPayloadPreservesLiteralTarget (0.00s)
+    --- FAIL: TestVerifySharedPayloadPreservesLiteralTarget/live (0.00s)
+    --- FAIL: TestVerifySharedPayloadPreservesLiteralTarget/cancelled (0.00s)
+=== RUN   TestVerifySharedPayloadPreservesMissingTargetError
+--- PASS: TestVerifySharedPayloadPreservesMissingTargetError (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/artifact	0.004s
+FAIL

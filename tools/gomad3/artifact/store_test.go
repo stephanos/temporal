@@ -13,6 +13,23 @@ import (
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
+func TestSyncDirectoryContextPreservesPrimaryResults(t *testing.T) {
+	missing := filepath.Join(t.TempDir(), "missing")
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := syncDirectoryContext(ctx, missing); err != context.Canceled {
+		t.Fatalf("syncDirectoryContext() = %T %v, want exact cancellation before open", err, err)
+	}
+	err := syncDirectoryContext(context.Background(), missing)
+	pathErr, ok := err.(*os.PathError)
+	if !ok || pathErr.Op != "open" || pathErr.Path != missing || !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("syncDirectoryContext() = %T %v, want raw missing-path open error", err, err)
+	}
+	if err := syncDirectoryContext(context.Background(), t.TempDir()); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestPrivatePayloadWritesLiteralMetadataAndBytes(t *testing.T) {
 	source := filepath.Join(t.TempDir(), "source")
 	if err := os.WriteFile(source, []byte("target bytes"), 0o600); err != nil {

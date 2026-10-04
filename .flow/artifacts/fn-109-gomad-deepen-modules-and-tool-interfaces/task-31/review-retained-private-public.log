@@ -1,0 +1,64 @@
+=== RUN   TestOpenedArtifactPayloadAccess
+--- PASS: TestOpenedArtifactPayloadAccess (0.09s)
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle/collision
+=== RUN   TestOpenedArtifactCopyDestinationErrorsPreserveHandle/missing_parent
+--- PASS: TestOpenedArtifactCopyDestinationErrorsPreserveHandle (0.02s)
+    --- PASS: TestOpenedArtifactCopyDestinationErrorsPreserveHandle/collision (0.00s)
+    --- PASS: TestOpenedArtifactCopyDestinationErrorsPreserveHandle/missing_parent (0.00s)
+=== RUN   TestOpenedArtifactReadsPinnedDirectoryAfterReplacement
+--- PASS: TestOpenedArtifactReadsPinnedDirectoryAfterReplacement (0.03s)
+=== RUN   TestOpenedArtifactRejectsChangedPayloads
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/unlisted
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/over_bound
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/mode
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/size
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/hash
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/symbolic_link
+=== RUN   TestOpenedArtifactRejectsChangedPayloads/escaping_directory
+--- PASS: TestOpenedArtifactRejectsChangedPayloads (0.11s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/unlisted (0.01s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/over_bound (0.01s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/mode (0.02s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/size (0.02s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/hash (0.01s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/symbolic_link (0.03s)
+    --- PASS: TestOpenedArtifactRejectsChangedPayloads/escaping_directory (0.01s)
+=== RUN   TestRetainedBytesCountsASharedTargetOnce
+--- PASS: TestRetainedBytesCountsASharedTargetOnce (0.00s)
+=== RUN   TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact
+=== RUN   TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/target_without_an_identity
+=== RUN   TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/sum_past_uint64
+=== RUN   TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/target_as_large_as_the_artifact
+=== RUN   TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/target_without_bytes
+--- PASS: TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact (0.00s)
+    --- PASS: TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/target_without_an_identity (0.00s)
+    --- PASS: TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/sum_past_uint64 (0.00s)
+    --- PASS: TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/target_as_large_as_the_artifact (0.00s)
+    --- PASS: TestRetainedBytesRejectsATargetThatIsNotPartOfTheArtifact/target_without_bytes (0.00s)
+=== RUN   TestPoolTargetIsTheTargetOnlyOfAnArtifactLinkedToThePool
+--- PASS: TestPoolTargetIsTheTargetOnlyOfAnArtifactLinkedToThePool (0.03s)
+=== RUN   TestPrivatePayloadWritesLiteralMetadataAndBytes
+=== RUN   TestPrivatePayloadWritesLiteralMetadataAndBytes/target
+=== RUN   TestPrivatePayloadWritesLiteralMetadataAndBytes/stdout
+--- PASS: TestPrivatePayloadWritesLiteralMetadataAndBytes (0.01s)
+    --- PASS: TestPrivatePayloadWritesLiteralMetadataAndBytes/target (0.00s)
+    --- PASS: TestPrivatePayloadWritesLiteralMetadataAndBytes/stdout (0.00s)
+=== RUN   TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination
+=== RUN   TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/target
+=== RUN   TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/stdout
+--- PASS: TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination (0.00s)
+    --- PASS: TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/target (0.00s)
+    --- PASS: TestPrivatePayloadCancellationKeepsPrimaryErrorAndPartialDestination/stdout (0.00s)
+=== RUN   TestPrivatePayloadCollisionPreservesDestinationAndPathError
+=== RUN   TestPrivatePayloadCollisionPreservesDestinationAndPathError/target
+=== RUN   TestPrivatePayloadCollisionPreservesDestinationAndPathError/stdout
+--- PASS: TestPrivatePayloadCollisionPreservesDestinationAndPathError (0.00s)
+    --- PASS: TestPrivatePayloadCollisionPreservesDestinationAndPathError/target (0.00s)
+    --- PASS: TestPrivatePayloadCollisionPreservesDestinationAndPathError/stdout (0.00s)
+=== RUN   TestPrivatePayloadRejectsNonregularSourceBeforeCreatingDestination
+--- PASS: TestPrivatePayloadRejectsNonregularSourceBeforeCreatingDestination (0.00s)
+=== RUN   TestOpenedArtifactRemainsPinnedAcrossPathReplacement
+--- PASS: TestOpenedArtifactRemainsPinnedAcrossPathReplacement (0.01s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/artifact	0.298s

@@ -482,23 +482,32 @@ func formatMode(mode os.FileMode) string {
 	return fmt.Sprintf("%04o", mode.Perm())
 }
 
-func syncDirectory(path string) error {
+func syncDirectory(path string) (operationErr, closeErr error) {
 	directory, err := os.Open(path)
 	if err != nil {
-		return err
+		return err, nil
 	}
-	defer directory.Close()
-	return directory.Sync()
+	defer func() {
+		closeErr = directory.Close()
+	}()
+	return directory.Sync(), nil
 }
 
 func syncDirectoryContext(ctx context.Context, path string) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if err := syncDirectory(path); err != nil {
-		return err
+	err, closeErr := syncDirectory(path)
+	if err == nil {
+		err = ctx.Err()
 	}
-	return ctx.Err()
+	if closeErr != nil {
+		if err == nil {
+			return closeErr
+		}
+		return errors.Join(err, closeErr)
+	}
+	return err
 }
 
 func syncFileContext(ctx context.Context, file *os.File) error {

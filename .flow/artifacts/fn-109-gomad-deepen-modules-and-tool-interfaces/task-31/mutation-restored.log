@@ -1,0 +1,10 @@
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget/live
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget/cancelled
+--- PASS: TestVerifySharedPayloadPreservesLiteralTarget (0.00s)
+    --- PASS: TestVerifySharedPayloadPreservesLiteralTarget/live (0.00s)
+    --- PASS: TestVerifySharedPayloadPreservesLiteralTarget/cancelled (0.00s)
+=== RUN   TestVerifySharedPayloadPreservesMissingTargetError
+--- PASS: TestVerifySharedPayloadPreservesMissingTargetError (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/artifact	0.003s

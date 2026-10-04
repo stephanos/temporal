@@ -1,0 +1,13 @@
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget/live
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget/cancelled
+    target_pool_test.go:92: verifySharedPayload() = record.File{Path:"", Mode:"", Size:0x0, SHA256:""}, *errors.joinError context canceled, want record.File{Path:"", Mode:"", Size:0x0, SHA256:""}, context canceled
+--- FAIL: TestVerifySharedPayloadPreservesLiteralTarget (0.00s)
+    --- PASS: TestVerifySharedPayloadPreservesLiteralTarget/live (0.00s)
+    --- FAIL: TestVerifySharedPayloadPreservesLiteralTarget/cancelled (0.00s)
+=== RUN   TestVerifySharedPayloadPreservesMissingTargetError
+    target_pool_test.go:114: verifySharedPayload() = record.File{Path:"", Mode:"", Size:0x0, SHA256:""}, *errors.joinError statat missing: no such file or directory, want zero metadata and raw missing-target error
+--- FAIL: TestVerifySharedPayloadPreservesMissingTargetError (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/artifact	0.003s
+FAIL

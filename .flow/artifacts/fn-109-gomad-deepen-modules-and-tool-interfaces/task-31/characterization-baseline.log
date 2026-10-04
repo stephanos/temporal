@@ -1,0 +1,24 @@
+=== RUN   TestSyncDirectoryContextPreservesPrimaryResults
+--- PASS: TestSyncDirectoryContextPreservesPrimaryResults (0.00s)
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget/live
+=== RUN   TestVerifySharedPayloadPreservesLiteralTarget/cancelled
+--- PASS: TestVerifySharedPayloadPreservesLiteralTarget (0.00s)
+    --- PASS: TestVerifySharedPayloadPreservesLiteralTarget/live (0.00s)
+    --- PASS: TestVerifySharedPayloadPreservesLiteralTarget/cancelled (0.00s)
+=== RUN   TestVerifySharedPayloadPreservesMissingTargetError
+--- PASS: TestVerifySharedPayloadPreservesMissingTargetError (0.00s)
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication/altered
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication/truncated
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication/mode_changed
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication/missing
+=== RUN   TestDamagedSharedTargetFailsOpenAndLaterPublication/symbolic_link
+--- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication (0.02s)
+    --- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication/altered (0.01s)
+    --- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication/truncated (0.00s)
+    --- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication/mode_changed (0.00s)
+    --- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication/missing (0.00s)
+    --- PASS: TestDamagedSharedTargetFailsOpenAndLaterPublication/symbolic_link (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/artifact	0.027s
