@@ -117,7 +117,7 @@ activity, and no `Claims.scala` remains. The Temporal realization vocabulary lea
 (fn-114.12), type annotations the compiler and lifter do not need are dropped from the Models (fn-114.11), lifter fixtures that copy live Model text shrink to minimal fixture-local Models (fn-114.10), and a final rename (fn-114.9, owner request 2026-10-04) gives the tool folders
 names that say what they hold: `model/lifter` becomes `model/irgen`, `model/gate` becomes `model/check`
 (absorbing `model/metrics`), and the `model/gen` build cache becomes `model/build`. The same pass groups `model/temporal` into `features/`
-(standalone activity, Nexus caller, Nexus operation) and `entities/` (task queue, worker) beside `capabilities/` and
+(standalone activity, Nexus caller, Nexus operation) and `shared/` (task queue, worker) beside `capabilities/` and
 `realize/`.
 
 
