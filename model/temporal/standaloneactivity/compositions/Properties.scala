@@ -19,7 +19,10 @@ final case class OverQueueClaims(
     failedCommit: Property[OverQueue]
 )
 
-/** The composed outcome of the record's answer to a control of a closed activity. */
+/**
+ * The composed outcome of the record's answer to a control of a closed activity: Closable's
+ * `rejected`, which only closedIsRejectedUniformly reads, and the designs over a queue waive it.
+ */
 val closedAnswer = "activity_notFound"
 
 /**

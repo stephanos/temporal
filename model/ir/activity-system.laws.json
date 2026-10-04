@@ -59,7 +59,7 @@
       "paused": "temporal.standaloneactivity.compositions.OverMatching$.paused",
       "running": "temporal.standaloneactivity.compositions.OverMatching$.running"
     },
-    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:71"
+    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:74"
   }, {
     "machine": "currentOverLossyMatching",
     "name": "currentOverLossyMatching.terminalStatesAreFinal",
@@ -69,7 +69,7 @@
       "status": "temporal.standaloneactivity.compositions.OverMatching$.phase",
       "terminal": "temporal.standaloneactivity.admission.Admission$.terminal"
     },
-    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:70"
+    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:73"
   }, {
     "machine": "currentOverMatching",
     "name": "currentOverMatching.pausedIsNotDispatched",
@@ -79,7 +79,7 @@
       "paused": "temporal.standaloneactivity.compositions.OverMatching$.paused",
       "running": "temporal.standaloneactivity.compositions.OverMatching$.running"
     },
-    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:71"
+    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:74"
   }, {
     "machine": "currentOverMatching",
     "name": "currentOverMatching.terminalStatesAreFinal",
@@ -89,7 +89,7 @@
       "status": "temporal.standaloneactivity.compositions.OverMatching$.phase",
       "terminal": "temporal.standaloneactivity.admission.Admission$.terminal"
     },
-    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:70"
+    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:73"
   }, {
     "machine": "currentOverQueue",
     "name": "currentOverQueue.pausedIsNotDispatched",
@@ -99,7 +99,7 @@
       "paused": "temporal.standaloneactivity.compositions.OverQueue$.paused",
       "running": "temporal.standaloneactivity.compositions.OverQueue$.running"
     },
-    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:39"
+    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:42"
   }, {
     "machine": "currentOverQueue",
     "name": "currentOverQueue.terminalStatesAreFinal",
@@ -109,7 +109,7 @@
       "status": "temporal.standaloneactivity.compositions.OverQueue$.phase",
       "terminal": "temporal.standaloneactivity.admission.Admission$.terminal"
     },
-    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:38"
+    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:41"
   }, {
     "machine": "staleAdmission",
     "name": "staleAdmission.pausedIsNotDispatched",
@@ -139,7 +139,7 @@
       "paused": "temporal.standaloneactivity.compositions.OverMatching$.paused",
       "running": "temporal.standaloneactivity.compositions.OverMatching$.running"
     },
-    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:71"
+    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:74"
   }, {
     "machine": "staleOverMatching",
     "name": "staleOverMatching.terminalStatesAreFinal",
@@ -149,7 +149,7 @@
       "status": "temporal.standaloneactivity.compositions.OverMatching$.phase",
       "terminal": "temporal.standaloneactivity.admission.Admission$.terminal"
     },
-    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:70"
+    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:73"
   }, {
     "machine": "staleOverQueue",
     "name": "staleOverQueue.pausedIsNotDispatched",
@@ -159,7 +159,7 @@
       "paused": "temporal.standaloneactivity.compositions.OverQueue$.paused",
       "running": "temporal.standaloneactivity.compositions.OverQueue$.running"
     },
-    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:39"
+    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:42"
   }, {
     "machine": "staleOverQueue",
     "name": "staleOverQueue.terminalStatesAreFinal",
@@ -169,7 +169,7 @@
       "status": "temporal.standaloneactivity.compositions.OverQueue$.phase",
       "terminal": "temporal.standaloneactivity.admission.Admission$.terminal"
     },
-    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:38"
+    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:41"
   } ],
   "waivers": [ {
     "machine": "currentAdmission",
@@ -182,19 +182,19 @@
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:77"
+    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:80"
   }, {
     "machine": "currentOverMatching",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:77"
+    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:80"
   }, {
     "machine": "currentOverQueue",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:45"
+    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:48"
   }, {
     "machine": "staleAdmission",
     "law": "closedIsRejectedUniformly",
@@ -206,13 +206,13 @@
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:77"
+    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:80"
   }, {
     "machine": "staleOverQueue",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:45"
+    "position": "model/temporal/standaloneactivity/compositions/Properties.scala:48"
   } ],
   "catalog": [ {
     "law": "closedIsRejectedUniformly",

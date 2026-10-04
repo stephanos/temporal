@@ -79,8 +79,9 @@ var activityCases = map[string]activityCase{
 	"scheduleToStartTimeout": {[]string{"stop-worker", "start-activity", "await-timed-out"}, []string{},
 		map[string][]string{"statusScheduled": {"start-unset-expires-unset"}, "statusTimedOut": {"workerStop", "scheduleToStart"}}, []string{"workerStop"}},
 	// The finds Properties.scala's protocol capabilities generate, each over the Scenario its law's
-	// `reach` writes before the control: start, workerStop, then the control. Terminable's is
-	// terminatedWhileScheduled's path, and lowers to terminate's Case.
+	// `reach` writes before the control: start, workerStop, then the control. Terminable's takes
+	// terminatedWhileScheduled's path and the same instructions as terminate's Case, but is a Case of
+	// its own (its Property and fingerprints differ), so `terminated` and `terminate` stay authored.
 	"activityProtocol.terminateSettles": {[]string{"stop-worker", "start-activity", "terminate-activity", "await-terminated"}, []string{},
 		map[string][]string{"statusScheduled": {plainStart}, "statusTerminated": {"workerStop", "control-terminate"}}, []string{"workerStop"}},
 	// Cancelable's: start, workerStop, control(requestCancel). The request's answer confirms it, so
