@@ -4,7 +4,7 @@ package admission
 
 import umpire.*
 import umpire.realize.{Conformance, MonitorExpectation, Outcome as RunOutcome, RunExpectation}
-import temporal.laws.pausedIsNotDispatched
+import temporal.capabilities.pausedIsNotDispatched
 
 /** Every claim and path, declared on the design `m`, since each belongs to one machine. */
 def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector[Query] =

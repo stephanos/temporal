@@ -130,9 +130,8 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
  */
 // `lift <jar=prefix>,... <classpath file> <out.json> <root>...` reads several jars, each with the
 // prefix of its own sources. Either way a root may also name a composition, a Query, a list of Queries
-// or a progress claim; every jar's TASTy but the framework's is read, apart from the framework's
-// entity-neutral laws (umpire/laws), whose bodies a Model's claims fold like its own defs; and every
-// root is lifted and every refusal reported before anything is written.
+// or a progress claim; every jar's TASTy but the framework's is read; and every root is lifted and
+// every refusal reported before anything is written.
 //
 // `lift --ir <jar=prefix>,... <classpath file> <out directory> [<IR file>...]` lifts the IR files
 // the jars declare with `irFile` instead, each into <out directory>/<name>.json: every one, or the
@@ -211,9 +210,8 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
       for (file, laws) <- lifter.sidecars do
         Files.writeString(directory.resolve(s"$file.laws.json"), json(laws))
 
-/** Whether a jar entry is of the lifted sources: a Model's, or a law of the framework's. */
-private def lifted(entry: String): Boolean =
-  !entry.startsWith("umpire/") || entry.startsWith("umpire/laws/")
+/** Whether a jar entry is of the lifted sources: a Model's, never the framework's. */
+private def lifted(entry: String): Boolean = !entry.startsWith("umpire/")
 
 /** Jackson's indented layout, with a field's value after `": "` as ProtoJSON is usually written. */
 final private class Pretty extends DefaultPrettyPrinter:

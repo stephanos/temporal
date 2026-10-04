@@ -270,6 +270,7 @@ class Fixtures extends munit.FunSuite:
     "noReason",
     "otherSignature",
     "waivedClaim",
+    "unkinded",
     "lambdaQuery"
   ).map("fixture.capabilityrejects.CapabilityRejects$package$." + _)
 

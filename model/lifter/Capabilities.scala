@@ -121,9 +121,32 @@ private[lift] trait Capabilities:
   /** A waiver chained onto a declaration: `except(law, because)` or `overriding(law -> def, …)`. */
   final private case class Waived(kind: String, law: Term, by: Option[Term], because: Term)
 
-  private val kinds =
-    Set("Closable", "Terminable", "Pausable", "Cancelable", "Pollable", "Describable")
-  private val actionFields = Set("terminate", "pause", "unpause", "requestCancel", "dispatch")
+  /**
+   * Whether a field's type is an action class: a class, an action with no input or a composed one,
+   * alone or in a union. A capability names the actions it is about by such fields.
+   */
+  private def actionType(tpe: TypeRepr): Boolean = tpe.dealias match
+    case OrType(a, b) => actionType(a) || actionType(b)
+    case other        =>
+      Seq("umpire.Class", "umpire.Action", "umpire.Composed").contains(other.typeSymbol.fullName)
+
+  /** Whether a field's type is a list of action classes: the path a functional law's find takes. */
+  private def pathType(tpe: TypeRepr): Boolean =
+    val t = tpe.dealias
+    isList(t.typeSymbol) && t.typeArgs.headOption.exists(actionType)
+
+  /** Whether a field's type is the Run a functional law's find expects of a server. */
+  private def expectationType(tpe: TypeRepr): Boolean =
+    isNamed(tpe, "umpire.realize.RunExpectation")
+
+  /** The field of a capability whose type `is` is, if it has one. */
+  private def fieldOf(d: Declared, is: TypeRepr => Boolean): Option[Term] =
+    d.fieldTypes.collectFirst { case (field, tpe) if is(tpe) => d.fields(field) }
+
+  /** Whether a module, a capability's companion or a catalog's key, is a capability kind. */
+  private def capabilityKind(module: Symbol): Boolean =
+    !module.isNoSymbol && module.moduleClass.typeRef.baseClasses
+      .exists(_.fullName == "umpire.CapabilityKind")
 
   /** Whether a declaration is a capability declaration or a waiver chained onto one. */
   def capable(t: Term): Boolean = t match
@@ -287,8 +310,12 @@ private[lift] trait Capabilities:
   private def declaredOf(t: Term): Declared =
     val term = arguments(plain(t))
     val cls = term.tpe.widen.dealias.typeSymbol
-    if !kinds(cls.name) || cls.maybeOwner.fullName != "umpire" then
-      fail(t, s"a capability is one of ${kinds.toSeq.sorted.mkString(", ")}, not ${t.show}")
+    if !capabilityKind(cls.companionModule) then
+      fail(
+        t,
+        s"${cls.name} is no capability kind: a capability's companion object extends " +
+          "umpire.CapabilityKind, which the catalog keys its laws by"
+      )
     val args = term match
       case Apply(_, args) => args.map(plain)
       case other => fail(other, s"a capability is built by its constructor, not ${other.show}")
@@ -314,9 +341,10 @@ private[lift] trait Capabilities:
           s"$field of ${d.kind} names a def of the lifted sources, which the lifter binds, not " +
             s"${a.show}: declare it as `def $field(...)` and pass that"
         )
-      if actionFields(field) then boundAction(machine, a, s"$field of ${d.kind}", env)
-      if field == "reach" then
-        for step <- reached(a) do boundAction(machine, step, s"reach of ${d.kind}", env)
+      val tpe = d.fieldTypes.get(field)
+      if tpe.exists(actionType) then boundAction(machine, a, s"$field of ${d.kind}", env)
+      if tpe.exists(pathType) then
+        for step <- reached(a) do boundAction(machine, step, s"$field of ${d.kind}", env)
 
   private def reached(a: Term): List[Term] = call(plain(a)) match
     case Some((_, args)) if args.nonEmpty => args.last.flatMap(varargs).map(plain)
@@ -351,7 +379,7 @@ private[lift] trait Capabilities:
   private def catalogOf(t: Term): Vector[(Set[String], LawRef)] = arguments(plain(t)) match
     case Apply(Select(a, "++"), List(b)) => catalogOf(a) ++ catalogOf(b)
     case c @ Apply(Apply(Select(_, "single" | "pair"), capabilities), laws)
-        if c.symbol.maybeOwner.fullName == "umpire.laws.Catalog$" =>
+        if c.symbol.maybeOwner.fullName == "umpire.Catalog$" =>
       val by = capabilities.map(kindOf).toSet
       laws.flatMap(varargs).map(l => by -> lawOf(l)).toVector
     case r: Ref =>
@@ -366,9 +394,9 @@ private[lift] trait Capabilities:
       )
 
   private def kindOf(t: Term): String = plain(t) match
-    case r: Ref if isEnumCase(r.symbol) && enumOf(r.symbol).fullName == "umpire.laws.Capability" =>
-      r.symbol.name
-    case other => fail(other, s"expected a capability of umpire.laws.Capability, not ${other.show}")
+    case r: Ref if r.symbol.flags.is(Flags.Module) && capabilityKind(r.symbol) => r.symbol.name
+    case other                                                                 =>
+      fail(other, s"expected a capability kind, an umpire.CapabilityKind, not ${other.show}")
 
   /** A law, from the object that is one: its `apply` and what its `Law` arguments say. */
   private def lawOf(t: Term): LawRef =
@@ -376,11 +404,11 @@ private[lift] trait Capabilities:
     val cls = if sym.flags.is(Flags.Module) then sym.moduleClass else Symbol.noSymbol
     val parent = cls.tree match
       case c: ClassDef =>
-        c.parents.collectFirst { case p: Term if isNamed(p.tpe, "umpire.laws.Law") => p }
+        c.parents.collectFirst { case p: Term if isNamed(p.tpe, "umpire.Law") => p }
       case _ => None
     val args = parent match
       case Some(Apply(_, args)) => args
-      case _ => fail(t, s"${t.show} is no law: a law is an object that extends umpire.laws.Law")
+      case _ => fail(t, s"${t.show} is no law: a law is an object that extends umpire.Law")
     val byName = args.collect { case NamedArg(n, v) => n -> v }.toMap
     def arg(name: String, i: Int) = byName.getOrElse(name, args(i))
     val cites = call(plain(arg("cites", 0))) match
@@ -499,12 +527,12 @@ private[lift] trait Capabilities:
         if machineNamed(machine).isEmpty then
           fail(at, s"${law.name} is asked of one class, which a composition's Scenario keys apart")
         val reach = bringing
-          .flatMap(_.fields.get("reach"))
+          .flatMap(fieldOf(_, pathType))
           .headOption
           .getOrElse(
             fail(
               at,
-              s"${law.name} is asked from a live state, and nothing that brings it declares `reach`"
+              s"${law.name} is asked from a live state, and nothing that brings it declares the path to one"
             )
           )
         ir.Scenario(
@@ -520,7 +548,7 @@ private[lift] trait Capabilities:
     queries(name) = queries(name).withTotal(staticTotal(machine, scenario, bounds, at))
     // A find expects of a server the Run its capability's `expect` names.
     if !scenario.free then
-      for expected <- bringing.flatMap(_.fields.get("expect")).headOption do
+      for expected <- bringing.flatMap(fieldOf(_, expectationType)).headOption do
         expectedRun(name, expected)
     lawClaims += LawClaim(
       machine,

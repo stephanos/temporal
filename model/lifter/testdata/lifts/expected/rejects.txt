@@ -6,6 +6,7 @@ lift: model/lifter/testdata/lifts/CapabilityRejects.scala:54: except of terminal
 lift: model/lifter/testdata/lifts/CapabilityRejects.scala:50: job is brought no law terminateSettles to waive: for Pollable the catalog brings it none
 lift: model/lifter/testdata/lifts/CapabilityRejects.scala:58: reordered takes (m)(terminal, status, rejected), and the law closedIsRejectedUniformly it overrides takes (m)(status, terminal, rejected): an overriding def takes the law's parameters
 lift: model/lifter/testdata/lifts/CapabilityRejects.scala:32: terminate of Terminable is kill, which pollOnly does not bind: name an action it binds among its steps
+lift: model/lifter/testdata/lifts/CapabilityRejects.scala:85: Unkinded is no capability kind: a capability's companion object extends umpire.CapabilityKind, which the catalog keys its laws by
 lift: model/lifter/testdata/lifts/CapabilityRejects.scala:73: legacyJob generates no terminalStatesAreFinal: its capabilities do not bring it, or it waives it
 lift: model/lifter/testdata/lifts/Rejects.scala:323: Limits takes its name from the val that declares it, and given_Limits is a name the compiler made up: declare it with a val of the name it has
 lift: model/lifter/testdata/lifts/Rejects.scala:304: a DefinitionScope names its former owner as a nonempty string literal, not umpire.DefinitionScope.apply("fixture.rejects.".+("Former$package$"))
