@@ -105,6 +105,11 @@ activity, and no `Claims.scala` remains. Lifter fixtures that copy live Model te
 names that say what they hold: `model/lifter` becomes `model/irgen`, `model/gate` becomes `model/check`
 (absorbing `model/metrics`), and the `model/gen` build cache becomes `model/build`.
 
+
+Task 1 is done: each Model folder declares its IR files in Scala (`val x = irFile("name")(roots...)` in
+`IrFiles.scala`), one lifter run writes all six, and the gate's root lists are gone; the lift step went from
+8-16 s to 5 s. The new files put standaloneactivity at 1,614 lines, above fn-112's 1,600; fn-114.8's counts
+report it. Task 2 (Nexus caller) is next; tasks 3 and 4 then run in parallel.
 ### fn-118: Declare how Temporal APIs behave once, and let the generated tests use it
 
 Task 1 is done: the inventory (16 Cases, 17 polls, 52 waits, 440 s declared wait budget) and the
