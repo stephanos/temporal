@@ -154,6 +154,73 @@ func TestSDKScheduleCommandCarriesItsOwnTimeouts(t *testing.T) {
 	require.Equal(t, time.Second, environment.Now().Sub(before))
 }
 
+// A Profile value changes nothing the server is asked to do (QLF-01): a schedule command whose
+// instruction takes the Profile's default timeout is issued with the same options under Profiles
+// that differ only in that default and in their bound scale, its timeouts exactly the carried ones,
+// an unset schedule-to-close left unset rather than filled from the instruction's timeout.
+func TestSDKScheduleCommandTimeoutsDoNotDependOnTheProfile(t *testing.T) {
+	profiles := []struct {
+		name                string
+		timeoutMilliseconds int64
+		scale               testpilot.BoundScale
+	}{
+		{"short default unscaled", 2000, 0},
+		{"long default scaled", 9000, 300},
+		{"longer default scaled", 20000, 150},
+	}
+	for _, tc := range []struct {
+		name       string
+		attributes *commandpb.ScheduleNexusOperationCommandAttributes
+		want       workflow.NexusOperationOptions
+	}{
+		{"no timeouts carried", &commandpb.ScheduleNexusOperationCommandAttributes{}, workflow.NexusOperationOptions{}},
+		{"schedule-to-start and start-to-close carried", &commandpb.ScheduleNexusOperationCommandAttributes{
+			ScheduleToStartTimeout: durationpb.New(3 * time.Second), StartToCloseTimeout: durationpb.New(5 * time.Second),
+		}, workflow.NexusOperationOptions{ScheduleToStartTimeout: 3 * time.Second, StartToCloseTimeout: 5 * time.Second}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.want.CancellationType = workflow.NexusOperationCancellationTypeWaitRequested
+			instructionTimeouts := make(map[int64]bool)
+			for _, profile := range profiles {
+				attributes := proto.CloneOf(tc.attributes)
+				attributes.Endpoint, attributes.Service, attributes.Operation = "nexus-endpoint", "service", "operation"
+				prepared := preparedRuntimeFixtureWithProfile(t, replySynchronous, func(spec *testpilot.ProfileSpec) {
+					typedProfile(spec)
+					spec.InstructionDefaults = testpilot.InstructionDefaults{TimeoutMilliseconds: profile.timeoutMilliseconds, MaxAttempts: 1}
+					spec.BoundScale = profile.scale
+				}, scheduleCommandProgram(t, attributes), func(program *testpilotspb.Program) {
+					// The schedule instruction writes no timeout, so it takes the Profile's default.
+					program.Entrypoints[1].Instructions[0].Limits.Timeout = nil
+				})
+				instructionTimeouts[prepared.Entrypoints()[1].Instructions()[0].TimeoutMilliseconds()] = true
+				host, definition := runtimeTestDriver(t, prepared)
+				host.options.client = &recordingClient{}
+				binding := delivery.WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "profile-workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
+				_, _, start := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "default-test-run-id", binding, SessionOptions{Bridge: newTestBridge()})
+
+				var suite testsuite.WorkflowTestSuite
+				environment := suite.NewTestWorkflowEnvironment()
+				environment.SetWorkerOptions(sdkworker.Options{Interceptors: []interceptor.WorkerInterceptor{&sdkWorkerInterceptor{host: host, queue: "task-queue", registration: definition.registrations[0]}}})
+				environment.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: binding.WorkflowID, TaskQueue: binding.TaskQueue})
+				environment.SetHeader(start.GetHeader())
+				operation := nexus.NewOperationReference[converter.RawValue, converter.RawValue]("operation")
+				var options workflow.NexusOperationOptions
+				environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Run(func(arguments mock.Arguments) {
+					options = arguments.Get(2).(workflow.NexusOperationOptions)
+				}).Return(&nexus.HandlerStartOperationResultSync[converter.RawValue]{Value: converter.NewRawValue(jsonPayload(t, "done"))}, nil)
+				environment.RegisterDynamicWorkflow(host.dynamicWorkflow, workflow.DynamicRegisterOptions{})
+				environment.ExecuteWorkflow("workflow-type", "untouched")
+				require.NoError(t, environment.GetWorkflowError(), profile.name)
+				environment.AssertNexusOperationCalled(t, "service", "operation", mock.Anything, mock.Anything)
+				require.Equal(t, tc.want, options, profile.name)
+			}
+			// The Profiles do reach the instruction, so the identical options are not an accident of
+			// the fixture.
+			require.Len(t, instructionTimeouts, len(profiles))
+		})
+	}
+}
+
 // Each typed reply reaches the SDK as the handler's return: a synchronous payload unconverted, an
 // asynchronous reply through the completion authority the Driver publishes under the Driver's
 // own token, a handler error with its type, message and retry behavior, and a failed start as the

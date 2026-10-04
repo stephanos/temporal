@@ -107,7 +107,8 @@ No Driver code configures a gRPC retry policy (`temporal/server/driver.go:72-79`
 2. **`worker/typed.go:68`: the Nexus schedule-to-close timer is the Profile's default instruction
    timeout** when the schedule command sets none, so a Profile change, or fn-118 R5's bound scale
    factor, changes server behavior. Recommendation: the Nexus realization sets schedule-to-close
-   explicitly, or the Driver stops deriving it; the owner decides which.
+   explicitly, or the Driver stops deriving it; the owner decides which. Resolved by fn-125.1: the
+   Driver passes the carried timeouts only, an unset one left unset.
 3. **W-18: `wait_new_event` on the closing `history` read** is inert.
 4. **W-10 rests on two server facts beyond visibility.** The poll sees `attempt == 1` only inside the
    retry backoff (at least 0.8 s), so its interval must stay well below that. And `attempt`
