@@ -75,7 +75,8 @@ production dispatch fails closed.
 | alongside 1 | fn-121 | Shard generated Cases per Case in CI, with HSM/CHASM per Nexus Case | tasks 1-2 done and merged (each Case is its own shard unit, names pinned by a golden); task 3 needs GitHub CI |
 | alongside 1 | fn-120 rollout and tools | fn-120.2 done (unnamed branching refused; `choose` accepts helper calls); fn-120.3 model lint in progress; then the IR explorer | started early: fn-114's remaining tasks are cleanup |
 | alongside 1 | fn-118 behavior | fn-118.3 done (Testpilot waits by condition within declared bounds, read-once evidence, scale factor); fn-118.2 hints in the kit in progress; then derived waits | started early, as above |
-| alongside | fn-124 | Cleanup: delete archives, trim the checker, make the Run judge declare-only, retire the migration harness, split the model package | task 1 done (archives deleted); task 2 in progress; 3 after fn-118; 7 after fn-114/120/122 close; 8 last |
+| alongside | fn-124 | Cleanup: delete archives, trim the checker, make the Run judge declare-only, retire the migration harness, split the model package | tasks 1-2 done (archives deleted, checker trimmed); 3 after fn-118; 7 after fn-114/120/122 close; 8 last |
+| alongside | fn-125 | Dynamic configuration in the Models: settings as finite Model inputs bound per Query, API preconditions, bound assumptions, derived required settings | task 1 (switch defects) now; framework after fn-114; preconditions after fn-118.2 |
 | last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
 
 fn-112 (the standalone activity DSL showcase) is closed: the feature is 1,567 lines and 54 string literals
@@ -221,3 +222,17 @@ hard-codes (attempt rules, start carriers, lost admissions, causal parents, defa
 realization declarations, defines verdict aggregation once, compares expected outcomes by declared ids, makes Model
 assessment the command-line judge, retires the migration harness once fn-114, fn-120 and fn-122 close (~8k lines,
 ~26 MB), and splits `tools/umpire/model` into `ir/`, `interp/`, `check/` and `realization/`.
+
+### fn-125: Represent dynamic configuration in the Models
+
+Dynamic configuration decides both whether behavior exists (feature switches) and how it is timed. A
+setting is one of four kinds: a Model setting (`setting[T]`, a finite input steps read, bound per Query
+with `under` and multiplying its total), an API precondition declared next to fn-118's behavior hints, a
+bound assumption under a declared wait bound checked at preparation, or a behavior-neutral Profile value.
+A Case's required settings are derived from its Query's valuation, its preconditions and its bounds;
+the live harness builds each cluster from exactly those, and the hard-coded HSM/CHASM switch goes. Task 1
+fixes two verified switch defects: the CHASM value never set the workflow-operations rollout percent, and
+the HSM value ran with CHASM on. Evidence: `.plans/DYNAMIC_CONFIG.md`. Decided 2026-10-04: the
+ShutdownWorker race is reported upstream and meanwhile declared as a `workerStop` precondition; remote
+Profiles fail closed; one Case per valuation. Open: whether HSM and CHASM may count Nexus attempts
+differently, once task 1 shows the evidence.
