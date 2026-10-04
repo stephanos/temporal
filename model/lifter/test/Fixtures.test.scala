@@ -376,7 +376,11 @@ class Fixtures extends munit.FunSuite:
         "NamedInput.scala:24:27",
         "NamedInput.scala:27:49",
         "NamedInput.scala:30:31",
-        "OneChoice.scala:18:62"
+        "OneChoice.scala:18:62",
+        "Sugar.scala:10:27",
+        "Sugar.scala:13:76",
+        "Sugar.scala:16:73",
+        "Sugar.scala:19:68"
       )
     )
 

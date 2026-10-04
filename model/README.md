@@ -479,7 +479,8 @@ A composition is written with field selectors, and one derives from another by r
 
 ```scala
 val currentOverQueue = compose[OverQueue](_.activity -> currentRecord, _.queue -> dispatchQueue)
-  .sync("dispatch", _.activity -> dispatch, _.queue -> enqueue)
+  .sync(_.activity -> dispatch, _.queue -> enqueue)
+  .sync("admit", _.activity -> attemptStart, _.queue -> deliver)
   .ends(s => Admission.ends(s.activity))
 val staleOverQueue = currentOverQueue.withMember(_.activity -> staleRecord)
 val stale = currentOverQueue.scenario.actions(
@@ -488,12 +489,11 @@ val stale = currentOverQueue.scenario.actions(
 )
 ```
 
-`->` pairs a member with its value; it never means a transition. A sync with no name,
-`.sync(_.activity -> dispatch, _.queue -> enqueue)`, is named after its first member's action, here
-`dispatch`; one written with its name is that name. A selector, a sync and a
-member's action are resolved by the field and the action's declaration, not by the strings the IR
-keys them with: `synced` finds the one sync that pairs that member's action, and `own` an action
-that member binds and no sync pairs. `withMember` keeps the syncs, ends and member order and names
+`->` pairs a member with its value; it never means a transition. A sync with no name is named
+after its first member's action, here `dispatch`; one written with its name, `admit`, is that name.
+A selector, a sync and a member's action are resolved by the field and the action's declaration,
+not by the strings the IR keys them with: `synced` finds the one sync that pairs that member's
+action, and `own` an action that member binds and no sync pairs. `withMember` keeps the syncs, ends and member order and names
 the derived composition after its `val`; a member that replaces a machine replaces, in the derived
 one, the machine its new machine declares it refines. The lifter refuses a selector that names no
 field or no member, a member of another state type, a sync of an action the member does not bind,
