@@ -25,7 +25,7 @@ val party: Party = Party("worker")
  * Named by the task queue it polls: the handler's worker and the workflow's worker are two
  * instances of this entity, told apart by their queue.
  */
-val workerEntity: Entity = Entity("worker", key = "taskQueue")
+val entity: Entity = Entity("worker", key = "taskQueue")
 
 enum Phase derives Finite:
   case polling, stopped
@@ -48,10 +48,15 @@ type WorkerStep = Step[State, Outcome, Fact]
 // The two faults are the worker party's and name no entity, as the outage machine spells them. The
 // serve action is the worker's own and takes no input, so a composition may synchronize it with an
 // action of any class.
+//
+// The names keep their `worker` prefix although a feature could read them as `worker.stop`: an
+// action's Definition ID is its val's owner and name (umpire.DefinitionScope pins the owner, never
+// the name), and every Case that stops a worker carries these IDs. A feature imports them by name
+// (`import worker.{serve, workerStop}`) rather than writing `worker.workerStop` or an alias.
 
 val workerStop = action("workerStop", party)
 val workerResume = action("workerResume", party)
-val serve = action("serve", party) on workerEntity
+val serve = action("serve", party) on entity
 
 // ### The machine
 
@@ -69,7 +74,7 @@ def serveStep(s: State): List[WorkerStep] =
 
 /** The worker. A worker has no natural end: it may be left polling or stopped. */
 val polling: Machine[State, Outcome, Fact] = machine[State, Outcome, Fact](Family, "polling") {
-  forEntity(workerEntity)
+  forEntity(entity)
   starts(State(Phase.polling))
   ends(_ => true)
   steps(workerStop ~> stopStep, workerResume ~> resumeStep, serve ~> serveStep)
