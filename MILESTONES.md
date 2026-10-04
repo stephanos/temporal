@@ -190,4 +190,9 @@ Cancelable and Describable, its law claims are generated and every generated twi
 retired, with two new generated Cases. `closedIsRejectedUniformly` is false for the admission record (a delivery
 to a timed-out record is accepted and recorded as `admissionRejected`), so the designs waive it with that reason.
 The new live Cases and the authored terminate Case time out inconclusive under shared load (10 s Contract
-window); fn-118's derived waits take that up. Task 4 (standalone Nexus operation Model) is next.
+window); fn-118's derived waits take that up. Task 4 is built on the branch: a standalone Nexus operation Model
+(`model/temporal/nexusoperation/`, Closable, Terminable, Cancelable, Describable) gives every catalog law two
+instantiating machines, and its two live Cases pass 5 of 5 on hsm and chasm. It is finishing a required-settings
+field so a Case that needs `nexusoperation.Enabled` fails at preparation, naming the flag, when the flag is off.
+The Testpilot Driver can reserve a Nexus handler only through a workflow or activity start, so the handler paths
+are modeled and verified but have no live Case.
