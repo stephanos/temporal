@@ -1,9 +1,9 @@
 {
   "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.32",
-  "status": "blocked; verified source progress only",
+  "status": "blocked; verified source progress committed, original acceptance open",
   "original_base": "f931c9879e3017b346562667b9f6fbcc4db458ec",
   "precheckpoint_head": "e95d9fa1b61951388818715677e5c42b0c03ee0f",
-  "source_progress_commit": null,
+  "source_progress_commit": "e429f0a7230ea2d1c56c60fb49cc5cf4c81fa02d",
   "source": {
     "tools/gomad3/internal/gomadtool/architecture/effects.go": "42828ad3f181b87f9e857db067a5474c3c947721bdb40cdb751fb1f3f0c7844b",
     "tools/gomad3/internal/gomadtool/architecture/standard.go": "efad9411c3876b452d4d2f4905a4ba1cb92b43a0428ea2f039c94b3e5d9fd88d",

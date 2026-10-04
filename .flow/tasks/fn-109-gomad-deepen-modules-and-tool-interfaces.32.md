@@ -70,7 +70,7 @@ general assignment/parameter-copy limitations remain; no universal completeness.
 
 Original R8/R18/R19, task19/fn105D4, predecessors/task21, fixed first-baseline
 identities, complete/full/completion/formal and both patched-native/affected-
-consumer qualification stay open. Source-progress checkpoint pending root commit.
+consumer qualification stay open. Verified source-progress checkpoint: e429f0a7230ea2d1c56c60fb49cc5cf4c81fa02d. Original acceptance remains open.
 
 Tier: session (jev-unavailable(no_key)).
 Requested writer/reviewer: gpt-6.1-sol at high; same configured Codex family.
@@ -121,6 +121,6 @@ Evidence: [handover](../artifacts/fn-109-gomad-deepen-modules-and-tool-interface
 [review checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/allocation-source-review-checks.json) and
 [root bindings](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/root-source-checks.json).
 ## Evidence
-- Commits: source-progress checkpoint pending root commit; AGENTS-only e95d9fa1b61951388818715677e5c42b0c03ee0f is separate.
+- Commits: source-progress e429f0a7230ea2d1c56c60fb49cc5cf4c81fa02d; AGENTS-only e95d9fa1b61951388818715677e5c42b0c03ee0f is separate.
 - Tests: See task-32/allocation-repair-evidence.json and allocation-source-review-checks.json for exact commands, exits, logs, tools and source bindings.
 - PRs: none; no push authorized.
