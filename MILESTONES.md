@@ -128,8 +128,9 @@ Case identity, so its pinned Run was re-recorded. Task 3 is done: the caller rea
 its declarations by value through the shared kit (525 lines and 30 literals, from 645 and 60). Tasks 4 and 5
 are done: the close policy uses the final DSL with a new `sticky` monitor form and the four-file layout (58
 literals, from 148). Task 6 is done: the worker Model is `Model.scala`
-with captured names and pinned IDs, and the lifter fixtures use captured names and named choices. Task 7
-(retire the string-named forms) is next, then 11, 10, 9 and 8. `leadsTo` has no captured-name form yet,
+with captured names and pinned IDs, and the lifter fixtures use captured names and named choices. Task 7 is done:
+the string-named and string-keyed declaration forms are gone from the DSL and the lifter, each refused at
+compile time. Tasks 11 and 12 come next, then 10, 9 and 8. `leadsTo` has no captured-name form yet,
 which leaves two literals in the close policy.
 
 ### fn-118: Declare how Temporal APIs behave once, and let the generated tests use it
@@ -198,7 +199,8 @@ to a timed-out record is accepted and recorded as `admissionRejected`), so the d
 The new live Cases and the authored terminate Case time out inconclusive under shared load (10 s Contract
 window); fn-118's derived waits take that up. Task 4 is built on the branch: a standalone Nexus operation Model
 (`model/temporal/nexusoperation/`, Closable, Terminable, Cancelable, Describable) gives every catalog law two
-instantiating machines, and its two live Cases pass 5 of 5 on hsm and chasm. It is finishing a required-settings
-field so a Case that needs `nexusoperation.Enabled` fails at preparation, naming the flag, when the flag is off.
+instantiating machines, and its two live Cases pass 5 of 5 on hsm and chasm. A realization now declares the
+dynamic-config settings it requires; preparation refuses a Case whose environment differs, naming the setting.
+The branch is merging into `umpire`.
 The Testpilot Driver can reserve a Nexus handler only through a workflow or activity start, so the handler paths
 are modeled and verified but have no live Case.
