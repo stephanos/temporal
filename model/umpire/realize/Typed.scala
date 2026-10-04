@@ -35,7 +35,11 @@ final class TypedEvidence[Root] private[realize] (
     val fields: Vector[TypedEvidenceField[Root, ?]]
 )
 
-final class HistoryRef[Root] private[realize] (val recorded: Recorded)
+/**
+ * Recorded data of message type `Root` from a record of the system's that its kit declares, which
+ * `Evidence.keyed` reads: the kit's own factory writes one.
+ */
+final class KeyedRef[Root](val recorded: Recorded)
 
 final class RunEventRef[Root] private[realize] (val recorded: Recorded)
 

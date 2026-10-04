@@ -26,12 +26,12 @@ the functional fixtures and the canary.
 | Module and destination | One job | Public interface | Permitted domain dependencies |
 | --- | --- | --- | --- |
 | Umpire IR, `api/umpire/v1`, `proto/internal/temporal/server/api/umpire/v1` | Represent a lifted Model. | Existing protobuf messages under the new package names. | Protobuf support; no Testpilot schema dependency added. |
-| DSL, `model/umpire` | Declare finite Models in Scala. | Authoring and realization declarations, with the realization script helpers in `umpire/realize`; no native evaluator. | Scala standard library and generic ScalaPB typing/runtime metadata; no Temporal-specific, lifter or gate import. |
+| DSL, `model/umpire` | Declare finite Models in Scala. | Authoring and realization declarations, with the realization script helpers and the open traits a system's kit extends (`Addressee`, `Activation`, `Instruction`, `Recorded`, `Setting`) in `umpire/realize`; no native evaluator. | Scala standard library and generic ScalaPB typing/runtime metadata; no Temporal-specific, lifter or gate import, and no Temporal name (`TestFrameworkNamesNoTemporal`). |
 | Models, `model/temporal` | Declare Temporal behavior. A feature splits its files by kind (`Model.scala`, `Properties.scala`, `Queries.scala`) and its subjects into subpackage folders that repeat them, as `standaloneactivity/admission` and `standaloneactivity/compositions` do. | Existing machine, claim, Query and realization roots, and one `irFile` declaration per checked-in IR file (each folder's `IrFiles.scala`). | DSL and shared feature kit; generated Temporal API, Testpilot and well-known message classes with their ScalaPB/gRPC compile-time runtime. |
 | Standalone Nexus operation, `model/temporal/nexusoperation` | Declare one operation started through StartNexusOperationExecution, the laws' second entity. | `nexusOperation`, `operationCapabilities` (Closable, Terminable, Cancelable, Describable, overriding closedIsRejectedUniformly), `OperationRealization.standalone`, `irFile("nexus-operation")`. | DSL, the laws and the shared realization kit; no feature import. |
 | Task queue, `model/temporal/taskqueue` (shared Temporal kit) | Declare the durable task queue a feature composes as an entity of its own. | The opaque contract `dispatchQueue`, the providers refining it (`matchingQueue`, `lossyMatchingQueue`, the violating controls), `queueLaws`, `storageLossDrops` and the provider Queries. | DSL only; no feature import. |
-| Realization kit, `model/temporal/realize` (shared Temporal kit) | Declare what every Temporal realization says alike, once. | Roles, environment bindings, the correlation window, the controller script, the kit's poll interval and deadlines, run-record evidence helpers, `temporalRealization`; sugar `field(_.name) :=` in its `Syntax.scala`. | DSL and its realization declarations, generated Temporal API and Testpilot messages; no feature import. |
-| Lifter, `model/lifter` | Translate typed trees into Umpire IR. | `Lifter`, `LiftError`, existing CLI root/prefix arguments, and `--ir`, which lifts every declared IR file (or the ones named) in one run. | Generated ScalaPB IR and linked API metadata, ScalaPB runtime/ProtoJSON support, TASTy/Quotes and compiler libraries; Models read as TASTy, never source imports. |
+| Realization kit, `model/temporal/realize` (shared Temporal kit) | Declare what every Temporal realization says alike, once. | Temporal's realization vocabulary in `Realize.scala`: `Role`, `RoleKind`, `RequiredSetting`, `WorkerActivation`, `WorkerInstruction`, `FaultKind`, `WorkflowHistory`. In `Kit.scala`: roles, environment bindings, the correlation window, the controller script, the kit's poll interval and deadlines, run-record evidence helpers, `temporalRealization`; sugar `field(_.name) :=` in its `Syntax.scala`. | DSL and its realization declarations, generated Temporal API and Testpilot messages; no feature import. |
+| Lifter, `model/lifter` | Translate typed trees into Umpire IR. | `Lifter`, `LiftError`, existing CLI root/prefix arguments, and `--ir`, which lifts every declared IR file (or the ones named) in one run. | Generated ScalaPB IR and linked API metadata, ScalaPB runtime/ProtoJSON support, TASTy/Quotes and compiler libraries; Models and the Temporal kit read as TASTy, never source imports; the kit's vocabulary matched by fully qualified name. |
 | Gate, `model/gate` | Verify the authored model pipeline. | One Scala program, `--update`; internal schema-generation modes `--generate-ir [--if-stale]` and `--generate-api [--if-stale]`. It names no Model declaration: one `lift --ir` run writes every IR file the Models declare. | Processes/files, stamped ScalaPB generation, lifter outputs, Go checks; no authoring dependency on the gate. |
 | Reader, `tools/umpire/model` | Interpret the meaning of one admitted Model. | `Load`, `Validate`, `Check`, `Build`, `NewInterpreter`, `NewRealizer`, `TypeOf`, `PayloadFields`, `GuardProblem`, `Unknown`; existing value, receipt, scope, table and bound-claim data needed by consumers. | Umpire IR and its private checker; no Testpilot package or schema. |
 | Checker, `tools/umpire/model/internal/checker` | Evaluate finite table claims. | Private to the reader; retained implementation declarations only. | No Testpilot or lower/conformance/export imports. |
@@ -65,6 +65,38 @@ them in `model/temporal`. The DSL exposes typed schema, selector, operand and co
 constructors; it has no public string form for protobuf messages, methods, paths or enum names.
 The gate checks Model source for remaining proto-name literals. The lifter writes those typed
 selections back into the unchanged text-bearing IR, which Go validates independently at lowering.
+
+The framework `model/umpire` names no Temporal concept (fn-114.12). Its `umpire/realize` keeps what
+a realization of any system needs and open traits a system's kit extends; Temporal's realization
+vocabulary is in `model/temporal/realize/Realize.scala`. `TestFrameworkNamesNoTemporal`
+(`tools/umpire/model/framework_test.go`) checks every file under `model/umpire`, prose and
+identifiers, against a word list (temporal, workflow, activity, nexus, namespace, task queue,
+worker, history, chasm, matching, frontend and the six capability kinds). A mention stays only under
+an allowance that names its path and reason, and an allowance that keeps no mention fails, so the
+list only shrinks. Its two entries are temporary: `model/umpire/Capabilities.scala` and
+`model/umpire/laws/`, which fn-122.8 removes when it moves the capability vocabulary and its laws to
+`model/temporal`.
+
+Temporal's driver tooling names Temporal concepts by design:
+
+- The lifter as a whole writes Temporal realizations into the IR. `Realizations.scala` accepts
+  `umpire.realize.` and `temporal.realize.` as the realization vocabulary (`vocabularyPackages`),
+  matches the kit's `WorkflowHistory.event` by fully qualified name, and writes each vocabulary
+  class by its simple name to the IR oneof member of that name, which is Temporal's
+  (`Workflow`, `Fault`, `NexusReply`, …). It writes a member of a vocabulary class or
+  object by name without following its body, and follows the kit's top-level helpers like a
+  Model's own defs. `Lift.scala`'s `lifted()` reads every jar's TASTy except the framework's, apart
+  from `umpire/laws/`, so the kit is lifted source. `Syntax.scala`'s `requestAssignment` hook lifts
+  the kit's `field(_.name) :=`. `Capabilities.scala` expands the capability kinds (`Closable` …
+  `Describable`), by their `umpire.` names until fn-122.8 moves them.
+- The IR schema `proto/internal/temporal/server/api/umpire/v1/ir.proto`: its realization messages
+  are Temporal's (`Role` and its kinds, `RequiredSetting`, the script activations
+  `WorkflowActivation`, `NexusHandlerActivation` and `ActivityActivation`, `Fault`,
+  `WorkflowCommand`, `NexusReply`, `NexusCompletion`, `AttemptFailure`, and `Evidence.history`); its
+  machine, claim and table messages are not.
+- The reader's realization admission (`tools/umpire/model/validate_realization.go`), lowering
+  (`tools/umpire/lower`) and Testpilot (`common/testing/testpilot`, with the Temporal Driver in
+  `common/testing/testpilot/temporal`) are the Temporal driver.
 
 The [parity claim inventory](umpire-migration-claims.json) maps retired oracle comparisons to
 frozen evidence and surviving checks, and preserves their original commentary with source attribution.

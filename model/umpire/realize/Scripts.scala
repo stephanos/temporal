@@ -2,8 +2,8 @@
  *
  * A step is a command every Case carries (`always`), a command only the Cases whose path takes one
  * of some classes carry (`onPath`), or the place where a path's steps of the classes it binds land,
- * in path order (`perform`). A command is a `val`, named after it in kebab case (`val pauseActivity`
- * is the command `pause-activity`), and other declarations refer to it by value: an instruction
+ * in path order (`perform`). A command is a `val`, named after it in kebab case (`val pauseOrder`
+ * is the command `pause-order`), and other declarations refer to it by value: an instruction
  * stands for the command with no options, and `command(instruction, …)` is one with options. A call
  * opens a scope with its request type fixed, and the request's fields are assigned inside it.
  *
@@ -31,7 +31,7 @@ def script(id: String, activation: Activation)(items: Item*): Script =
 
 /**
  * Where the steps of a path that take one of the classes land, each performed by its command, in
- * path order: `perform(control(Control.pause) -> pauseActivity)`. At least one class. IR: an Item
+ * path order: `perform(control(Control.pause) -> pauseOrder)`. At least one class. IR: an Item
  * of `performs`, each a Performance.
  */
 def perform(bindings: (ClassRef, Command | Instruction)*): Item =
@@ -73,10 +73,10 @@ final class RequestScope[Req] private[realize] ()
 
 /**
  * A unary call of `method` on `role`, its request's fields assigned in the scope it opens:
- * `rpc(workflowService, METHOD_PAUSE_ACTIVITY_EXECUTION) { … }`. IR: Rpc.
+ * `rpc(orderService, METHOD_PAUSE_ORDER) { … }`. IR: Rpc.
  */
 def rpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
-    role: String | Role,
+    role: String | Addressee,
     method: MethodDescriptor[Req, Rsp]
 )(assign: RequestScope[Req] ?=> Unit): Instruction.TypedRpc[Req, Rsp] =
   assign(using RequestScope())
@@ -88,7 +88,7 @@ def rpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
  */
 def poll[Req, Projected](
     evidence: EvidenceRef[Req, Projected],
-    role: String | Role,
+    role: String | Addressee,
     until: Condition[Projected],
     intervalMs: Long
 )(assign: RequestScope[Req] ?=> Unit): Instruction =

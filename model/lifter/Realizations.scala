@@ -21,6 +21,29 @@ private[lift] trait Realizations:
 
   // ### Realizations: declarations written as data, emitted by name
 
+  /**
+   * The packages of the realization vocabulary: the framework's, which knows no system, and the
+   * Temporal kit's, which extends its open traits with what only Temporal has. The lifter and the
+   * Testpilot IR it writes are Temporal's driver tooling, so the kit's names are matched here by
+   * their fully qualified names (.plans/UMPIRE_MODULES.md).
+   */
+  private val vocabularyPackages = Seq("umpire.realize.", "temporal.realize.")
+
+  private def inVocabulary(sym: Symbol): Boolean =
+    vocabularyPackages.exists(sym.fullName.startsWith)
+
+  /**
+   * A member of a class or an object of the vocabulary, such as a case class's `apply` or the kit's
+   * `WorkflowHistory.event`: written by name, never followed into its body. The kit's top-level
+   * helpers, such as `perCase`, are followed like a Model's own defs.
+   */
+  private def vocabularyMember(sym: Symbol): Boolean =
+    inVocabulary(sym) && !sym.maybeOwner.fullName.endsWith("$package$")
+
+  /** A case object of the vocabulary, such as `Activation.Controller`, written as an enum case is. */
+  private def caseObject(sym: Symbol): Boolean =
+    sym.flags.is(Flags.Module) && sym.flags.is(Flags.Case) && inVocabulary(sym)
+
   /** A term, and what the helper function parameters and local vals it names are bound to. */
   final class Bound(val term: Term, val env: Map[Symbol, Bound])
 
@@ -83,7 +106,7 @@ private[lift] trait Realizations:
           r.tpe
         ) && r.symbol.isValDef && defs.contains(
           resolveSymbol(r)
-        ) =>
+        ) && !vocabularyMember(resolveSymbol(r)) =>
       defs(resolveSymbol(r)) match
         case ValDef(_, _, Some(rhs)) => reduce(Bound(rhs, Map.empty))
         case _                       => b
@@ -95,7 +118,7 @@ private[lift] trait Realizations:
         case Some((sel @ Select(table, "apply"), List(fact)))
             if sel.symbol.owner.fullName == "umpire.realize.StatusTable" =>
           reduce(looked(Bound(table, b.env), Bound(fact, b.env), t))
-        case Some((fn, args)) if isFunction(fn.symbol) =>
+        case Some((fn, args)) if isFunction(fn.symbol) && !vocabularyMember(fn.symbol) =>
           defs(fn.symbol) match
             // A constructor has no body to follow: a module's, or a class's.
             case d: DefDef if d.rhs.nonEmpty =>
@@ -511,13 +534,13 @@ private[lift] trait Realizations:
    */
   def written(b: Bound): (String, List[(String, Bound)]) =
     def vocabulary(sym: Symbol): Unit =
-      if !sym.fullName.startsWith("umpire.realize.") then
-        fail(b.term, s"not a realization declaration: ${b.term.show}")
+      if !inVocabulary(sym) then fail(b.term, s"not a realization declaration: ${b.term.show}")
+    def factoryOf(fn: Term, owner: String, name: String): Boolean =
+      fn.symbol.name == name && fn.symbol.owner.fullName.stripSuffix("$") == owner
     def factory(fn: Term, owner: String, name: String): Boolean =
-      fn.symbol.name == name && fn.symbol.owner.fullName.stripSuffix("$") ==
-        s"umpire.realize.$owner"
+      factoryOf(fn, s"umpire.realize.$owner", name)
     b.term match
-      case r: Ref if isEnumCase(r.symbol) =>
+      case r: Ref if isEnumCase(r.symbol) || caseObject(r.symbol) =>
         vocabulary(r.symbol)
         (r.symbol.name, Nil)
       case t if scriptCall(t).nonEmpty || performed(t).nonEmpty => scriptWritten(Bound(t, b.env))
@@ -539,7 +562,7 @@ private[lift] trait Realizations:
                   case (p, a) if !isDefault(a) => p -> Bound(a, b.env)
                 }
             )
-          case Some((fn, args)) if factory(fn, "Recorded", "history") =>
+          case Some((fn, args)) if factoryOf(fn, "temporal.realize.WorkflowHistory", "event") =>
             ("History", List("attributes" -> Bound(args.head, b.env)))
           case Some((fn, args)) if factory(fn, "Recorded", "read") =>
             ("Read", List("method", "path").zip(args.map(Bound(_, b.env))))
@@ -573,7 +596,7 @@ private[lift] trait Realizations:
                   case (p, a) if !isDefault(a) => p -> Bound(a, b.env)
                 }
             )
-          case Some((fn, args)) if factory(fn, "Evidence", "history") =>
+          case Some((fn, args)) if factory(fn, "Evidence", "keyed") =>
             (
               "Evidence",
               List(
@@ -705,8 +728,8 @@ private[lift] trait Realizations:
             isNamed(t.tpe, "umpire.realize.TypedEvidence") =>
         val (_, args) = written(b)
         textOfBound(args.find(_._1 == "id").get._2)
-      case t if identified.exists(isNamed(t.tpe, _)) => idOf(b)
-      case r: Ref if factCase(r.symbol)              => r.symbol.name
+      case t if identified.exists(declares(t.tpe, _)) => idOf(b)
+      case r: Ref if factCase(r.symbol)               => r.symbol.name
       // A party's, entity's or observation's name, which its val gives where it states none.
       case Select(qual, "name") if namedByVal(qual.tpe.widen.dealias.typeSymbol) =>
         constString(follow(Bound(qual, b.env)).term)
@@ -1020,10 +1043,13 @@ private[lift] trait Realizations:
   private def commandLike(tpe: TypeRepr): Boolean =
     declares(tpe, "umpire.realize.Command") || declares(tpe, "umpire.realize.Instruction")
 
-  /** The declarations other declarations refer to by value, each by its `id`. */
+  /**
+   * The declarations other declarations refer to by value, each by its `id`: a role, whichever kit
+   * declares it, a script, an actuator or a learned value.
+   */
   private val identified =
     Set(
-      "umpire.realize.Role",
+      "umpire.realize.Addressee",
       "umpire.realize.Script",
       "umpire.realize.Actuator",
       "umpire.realize.Learned"
@@ -1052,7 +1078,8 @@ private[lift] trait Realizations:
    * fields, which names every value of it.
    */
   private def factCase(sym: Symbol): Boolean =
-    def ours(s: Symbol) = !s.fullName.startsWith("umpire.") && !s.fullName.startsWith("scala.")
+    def ours(s: Symbol) =
+      !s.fullName.startsWith("umpire.") && !s.fullName.startsWith("scala.") && !inVocabulary(s)
     (isEnumCase(sym) && ours(sym)) ||
     (sym.flags.is(Flags.Module) && isEnumCase(sym.companionClass) && ours(sym.companionClass))
 

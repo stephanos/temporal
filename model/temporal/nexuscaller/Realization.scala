@@ -18,15 +18,8 @@ package nexuscaller
 
 import umpire.*
 import umpire.realize.*
-import umpire.realize.Instruction.{
-  AwaitCommand,
-  AwaitLearned,
-  Fault,
-  Finish,
-  NexusCompletion,
-  NexusReply,
-  WorkflowCommand
-}
+import umpire.realize.Instruction.{AwaitCommand, AwaitLearned, Finish}
+import temporal.realize.WorkerInstruction.{Fault, NexusCompletion, NexusReply, WorkflowCommand}
 import temporal.realize.{
   await,
   caseWorker,
@@ -44,7 +37,10 @@ import temporal.realize.{
   taskQueueName,
   temporalRealization,
   workerNamespace,
-  workflowService
+  workflowService,
+  FaultKind,
+  WorkerActivation,
+  WorkflowHistory
 }
 import io.temporal.api.workflowservice.v1.*
 import io.temporal.api.history.v1.*
@@ -96,11 +92,11 @@ object NexusRealization:
       records: Fact,
       attributes: Field[HistoryEvent, Option[Attributes]],
       operation: Field[HistoryEvent, Long]
-  ) = Evidence.history(
+  ) = Evidence.keyed(
     id = evidenceId(kind),
     records = records,
     source = sourceId("history"),
-    from = Recorded.history(attributes),
+    from = WorkflowHistory.event(attributes),
     operation = operation,
     commitment = Commitment.reported,
     exhaustive = true
@@ -382,7 +378,7 @@ object NexusRealization:
     command(Finish(Operand.Literal(ProtoValue.Text("done"))), timeoutMs = 5000, regardless = true)
 
   private val workflowScript =
-    script("workflow", Activation.Workflow(workflowType, caseWorker, taskQueue))(
+    script("workflow", WorkerActivation.Workflow(workflowType, caseWorker, taskQueue))(
       // The schedule command once per class of deadline a path of the caller Model sets.
       perform(
         schedule() -> startNexusOperation,
@@ -489,7 +485,10 @@ object NexusRealization:
   )
 
   private val handlerScript =
-    script("handler", Activation.NexusHandler(service, operation, caseWorker, handlerTaskQueue))(
+    script(
+      "handler",
+      WorkerActivation.NexusHandler(service, operation, caseWorker, handlerTaskQueue)
+    )(
       perform(
         handlerReply(Reply.async) -> respondAsync,
         handlerReply(Reply.syncSuccess) -> respondSync,

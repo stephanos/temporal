@@ -3,7 +3,7 @@ package umpire
 import scalapb.{GeneratedMessage, GeneratedMessageCompanion}
 
 /**
- * The root a model's Definition IDs hang off, such as `temporal.nexus.caller`. A Model names it
+ * The root a model's Definition IDs hang off, such as `example.orders`. A Model names it
  * explicitly; it is not derived from the Scala package. A declaration that takes its name from its
  * `val` takes its family from the `given Family` in scope.
  */
@@ -27,8 +27,8 @@ object Party:
 final case class Entity(name: String = "", key: String = "", refer: Map[String, Entity] = Map.empty)
 
 /**
- * A derived read used as evidence where no history event exists, named after its `val` unless
- * `name` names it: `val attemptCount = Observation(on = activity, read = "attempt")`.
+ * A derived read used as evidence where no recorded event exists, named after its `val` unless
+ * `name` names it: `val attemptCount = Observation(on = order, read = "attempt")`.
  */
 final case class Observation(name: String = "", on: Entity, read: String)
 

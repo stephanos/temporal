@@ -5,7 +5,7 @@ package fixture.scriptrejects
 
 import umpire.*
 import umpire.realize.*
-import umpire.realize.Instruction.Fault
+import temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
 import temporal.standaloneactivity.{
   activity,

@@ -26,8 +26,8 @@ import fixture.specimens.admission.{
 import temporal.nexuscaller.{handlerReply, nexusProtocol, schedule, Reply, Timeout}
 import temporal.standaloneactivity.{attemptStart, control, Control as ActivityControl}
 import umpire.*
-import umpire.realize.*
-import umpire.realize.Instruction.*
+import umpire.realize.*, temporal.realize.{Role, RoleKind, WorkerActivation, WorkflowHistory}
+import umpire.realize.Instruction.*, temporal.realize.WorkerInstruction.*
 import umpire.realize.Operand.*
 import umpire.realize.ProtoValue.*
 import io.temporal.api.workflowservice.v1.*
@@ -92,11 +92,11 @@ private val scheduledEvidence = Evidence.read(
   commitment = Commitment.reported
 )
 
-private val completedEvidence = Evidence.history(
+private val completedEvidence = Evidence.keyed(
   id = "fixture.realizations.evidence.completed",
   records = "nexusOperationCompleted",
   source = "fixture.realizations.source.history",
-  from = Recorded.history(
+  from = WorkflowHistory.event(
     Field[HistoryEvent, Option[NexusOperationCompletedEventAttributes]](
       _.attributes.nexusOperationCompletedEventAttributes
     )
@@ -228,7 +228,7 @@ val learnedRun: Realization = Realization(
     ),
     Script(
       "workflow",
-      Activation.Workflow(workflowType, workerRole, taskQueue),
+      WorkerActivation.Workflow(workflowType, workerRole, taskQueue),
       Vector(
         Item(performs =
           Vector(
@@ -285,7 +285,7 @@ val learnedRun: Realization = Realization(
     ),
     Script(
       "handler",
-      Activation.NexusHandler("fixture.service", "probe", workerRole, taskQueue),
+      WorkerActivation.NexusHandler("fixture.service", "probe", workerRole, taskQueue),
       Vector(
         Item(performs =
           Vector(
@@ -471,7 +471,7 @@ val pauseRace: Realization = Realization(
     ),
     Script(
       "activity",
-      Activation
+      WorkerActivation
         .Activity(Name("umpire-", fixture = true, suffix = "-activity"), workerRole, taskQueue),
       Vector(
         Item(performs =
@@ -628,11 +628,11 @@ val doorRealization: Realization = Realization(
   ),
   observations = Vector(Observed[CorrelatedEvidence]("correlated-evidence")),
   evidence = Vector(
-    Evidence.history(
+    Evidence.keyed(
       id = "fixture.realizations.door.evidence.opened",
       records = "doorOpened",
       source = "fixture.realizations.door.source.history",
-      from = Recorded.history(
+      from = WorkflowHistory.event(
         Field[HistoryEvent, Option[WorkflowExecutionStartedEventAttributes]](
           _.attributes.workflowExecutionStartedEventAttributes
         )
@@ -906,7 +906,7 @@ val errandRealization: Realization = Realization(
     ),
     Script(
       "errand",
-      Activation.Activity(errandType, workerRole, taskQueue, starts = Vector(deliver)),
+      WorkerActivation.Activity(errandType, workerRole, taskQueue, starts = Vector(deliver)),
       Vector(
         Item(performs =
           Vector(

@@ -16,7 +16,7 @@ import io.temporal.api.workflowservice.v1.GetWorkflowExecutionHistoryResponse
 import temporal.server.api.testpilot.v1.{CorrelatedEvidence, InstructionOutcome}
 import temporal.server.api.testpilot.v1.DeliveryAdmissionDecision
 import umpire.*
-import umpire.realize.*
+import umpire.realize.*, temporal.realize.{Role, RoleKind, WorkerInstruction, WorkflowHistory}
 
 val one = action(Party("caller")).schema[StartActivityExecutionRequest]
 val two = action(Party("caller"))
@@ -125,14 +125,14 @@ val historyCall = Instruction.rpc(
     )
   )
 )
-val historySource = Recorded.history(
+val historySource = WorkflowHistory.event(
   Field[HistoryEvent, Option[
     io.temporal.api.history.v1.NexusOperationScheduledEventAttributes
   ]](
     _.attributes.nexusOperationScheduledEventAttributes
   )
 )
-val historyEvidence = Evidence.history(
+val historyEvidence = Evidence.keyed(
   "fixture.typed.evidence.history",
   "history",
   "fixture.typed.source.history",
@@ -317,13 +317,15 @@ val typedRealization = Realization(
         Item(command = Some(Command("call", call))),
         Item(command = Some(Command("poll", poll))),
         Item(command = Some(Command("history", historyCall))),
-        Item(command = Some(Command("payload", Instruction.NexusReply(typedPayload)))),
-        Item(command = Some(Command("failure", Instruction.AttemptFailure(typedFailure(true))))),
+        Item(command = Some(Command("payload", WorkerInstruction.NexusReply(typedPayload)))),
+        Item(command =
+          Some(Command("failure", WorkerInstruction.AttemptFailure(typedFailure(true))))
+        ),
         Item(command =
           Some(
             Command(
               "command",
-              Instruction.WorkflowCommand(
+              WorkerInstruction.WorkflowCommand(
                 typedCommand(
                   io.temporal.api.enums.v1.CommandType.COMMAND_TYPE_SCHEDULE_NEXUS_OPERATION
                 )
@@ -335,7 +337,7 @@ val typedRealization = Realization(
           Some(
             Command(
               "response",
-              Instruction.NexusReply(
+              WorkerInstruction.NexusReply(
                 typedResponse(responseVariant)
               )
             )
@@ -395,7 +397,7 @@ val unknownEnumRealization = Realization(
           Some(
             Command(
               "unknown",
-              Instruction.WorkflowCommand(
+              WorkerInstruction.WorkflowCommand(
                 typedCommand(
                   io.temporal.api.enums.v1.CommandType.Unrecognized(999)
                 )
