@@ -68,7 +68,7 @@ production dispatch fails closed.
 | --- | --- | --- | --- |
 | 1 | fn-114 | Roll the fn-112 showcase constructs, including choices, out to every other Model; then shrink copied fixture text and rename the model/ tool folders | — (in progress) |
 | alongside 1 | fn-122 | Capabilities and their laws: shared Temporal promises stated once, adopted per entity | — (in progress) |
-| alongside 1 | fn-121 | Shard generated Cases per Case in CI, with HSM/CHASM per Nexus Case | — (in progress; task 3 needs GitHub CI) |
+| alongside 1 | fn-121 | Shard generated Cases per Case in CI, with HSM/CHASM per Nexus Case | tasks 1-2 done (each Case is its own shard unit, names pinned by a golden); task 3 needs GitHub CI |
 | after 1 | fn-120 rollout and tools | Refuse unnamed branches; add model lint (specification holes, coverage summary) and the IR explorer | fn-114 |
 | after 1 | fn-118 behavior | Derive generated-test waits from API hints, as a separate behavioral change | fn-114 |
 | last | fn-119 | Example: one Go SDK workflow driven end to end from the IRs, with no hand-written Go | fn-118, fn-120 |
@@ -81,6 +81,14 @@ not new specs. The structural migrations freeze Case bytes, while fn-118 separat
 changes and freezes Contracts. fn-119's generic Driver primitives are done (fn-119.1-.2). Flow records
 dependencies only within a spec, so the conductor holds the cross-spec gates: fn-120.2 and fn-118.2-.5 wait for
 fn-114 to close.
+
+Open for the owner: generated Cases that stop a worker (activity-terminate and activity-pauseResume always,
+the two scheduleToStartTimeout Cases sometimes) come back INCONCLUSIVE because of a matching race, not Model or
+test-shape changes. `ShutdownWorker` returns early when the task queue's root partition is not loaded yet
+(`service/matching/matching_engine.go`, upstream #9424), never records the worker as shut down, and later polls
+hang until `stop-worker` runs out its 10 s limit. With `frontend.enableMatchingFanOutForPollCancellation=false`
+the same Cases are satisfied in 20 of 20 Runs. The choice is a server fix or that setting in the generated
+test's Profile; fn-121.3's sharded CI run stays red on these Cases until then.
 
 Open for the owner (deferred by fn-112's behavior freeze): the witness-only Properties `terminated` and
 `cancelRequestedWhileStarted` (false on 120 rows each) and seven pause/unpause rows the server rejects (pause in
