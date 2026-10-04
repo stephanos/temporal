@@ -173,4 +173,9 @@ citations; the inventory classifies 76 claims as 8 law instances and 68 feature-
 task 2's binding of plain value arguments. Task 2 is done on the same branch: `capabilities(m, limits)(...)`
 with `except` and `overriding` (each with a reason) lifts each law into a Property, Scenario and Query named
 `<machine>.<law>`, a `<file>.laws.json` sidecar sits beside each IR file that declares capabilities, and all five
-laws now lift. Task 3 (the activity's capabilities) is next.
+laws now lift. Task 3 is done on the branch: the activity declares Closable, Pausable, Pollable, Terminable,
+Cancelable and Describable, its law claims are generated and every generated twin answers as the claim it
+retired, with two new generated Cases. `closedIsRejectedUniformly` is false for the admission record (a delivery
+to a timed-out record is accepted and recorded as `admissionRejected`), so the designs waive it with that reason.
+The new live Cases and the authored terminate Case time out inconclusive under shared load (10 s Contract
+window); fn-118's derived waits take that up. Task 4 (standalone Nexus operation Model) is next.
