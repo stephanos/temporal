@@ -49,9 +49,23 @@ make umpire-check-cases
 - [ ] With five local shards every shard is green, every Case name runs in exactly one shard and skips as a whole in the others, both switch subtests of a Nexus Case run together, and `-run` on a single value subtest passes on its own; the unsharded run passes.
 - [ ] The switch-name comment no longer claims a `repeat:` declaration; `make umpire-check-cases` and lint-code-fast pass; no Case byte changed.
 ## Done summary
-TBD
+# fn-121.1 done summary
 
+**What changed** (commits 9c65536753, 275efdadbf; base 5e6961b91a):
+- `TestTestpilotGeneratedCases` runs each lowered manifest Case as `TestTestpilotGeneratedCases/<model>-<query>` (name from the new `testpilotcore.GeneratedCaseName`, the file stem), with `testcore.CheckTestShard(t)` first. Nexus Cases (`bindsNexusEndpoint`) run `/hsm` and `/chasm`, one dedicated cluster each (value settings + EnableChasm), append one `SwitchVerdict` (first life's round-0 Verdict) and the Case subtest runs `CheckSwitchAgreement` over what was collected, counting nothing. A Nexus value rejected at preparation fails naming the value; non-Nexus Cases run once (activity.Enabled, operator commands, EnableChasm) and keep the skip. One helper `runGeneratedCaseOnCluster` holds the per-cluster body; artifacts are `<name>[-<value>].html`; the Profile records exactly the settings the cluster was built with.
+- `checkTestShard` -> exported `CheckTestShard`, hashing the depth-2 prefix (`shardKey`) + salt; Fatal paths kept; comments cross-reference `defaultLevel = 2` in the optimizer (comment only there). `tests/testcore/test_shard_test.go` proves a depth-3 child is skipped/run exactly as its depth-2 parent for all 5 indices.
+- `NexusImplementationSwitchName` doc no longer claims a `repeat:` declaration.
+
+**Evidence** (`.flow/tmp/fn121-1/`): `make umpire-check-cases` exit 0, `git diff 5e6961b91a..HEAD -- model/` empty; lint-code-fast exit 0 (72 s); shard unit test pass; smoke (activity-completion + nexus-caller-syncCompletion hsm/chasm) pass; `-run .../nexus-caller-asyncCompletion/chasm` alone passes. Five local shards: every one of the 16 Case names RUN in exactly one shard and SKIP in the other four (2+3+5+2+4), both switch subtests of each Nexus Case in the same shard. Wall-clock unsharded: before (old shape, 2 clusters, 128 Runs) 93 s; after (24 clusters, 96 Runs) 71 s; per shard 2/10/25/3/24 s.
+
+**Pre-existing failure, not fixed (outside this task's boundary):** activity-terminate and activity-pauseResume fail deterministically and activity/nexus-caller-scheduleToStartTimeout intermittently, in BOTH the base shape and the new shape (shards 2 and 4 red). Diagnosis: the Case's first instruction `stop-worker` times out at the default 10 s instruction limit because `worker.Stop()` waits 2x5 s `WorkerStopTimeout`; matching's ShutdownWorker returns early with "Skipping poll cancellation fan-out: root partition not loaded" (`service/matching/matching_engine.go:1311-1324`, upstream 2220cf011a #9424) without recording the shutdown, so polls landing 1 ms later hang. Disabling `frontend.enableMatchingFanOutForPollCancellation` makes all four pass (20/20 Runs SATISFIED). Present since the Cases were introduced (reproduced at 08832883de). Decision: not masked here, since the boundary forbids changing how a Case is run and the finding is a real server race; left for the conductor (server fix, or a recorded setting in the generated test).
+
+**Decisions:** shard check and name derivation as specified; Prepare check stays after cluster construction (reviewer FYI: a rejected Case now builds its own cluster before skipping; no lowered Case is rejected today).
+
+**Review:** `flowctl claude impl-review --spec claude:claude-opus-5-5:high`, round 1 SHIP with one P3 (derive the artifact name in the helper), applied in 275efdadbf. Writer and reviewer are the same family (Opus 5.5).
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9c65536753, 275efdadbf
+- Tests: make umpire-check-cases (exit 0), go test -count=1 -tags test_dep ./tests/testcore/ -run Shard (exit 0), GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main make lint-code-fast (exit 0), tests.test -run '^TestTestpilotGeneratedCases$/^(nexus-caller-syncCompletion|activity-completion)$' (exit 0), tests.test -run '^TestTestpilotGeneratedCases$/^nexus-caller-asyncCompletion$/^chasm$' (exit 0), TEST_TOTAL_SHARDS=5 TEST_SHARD_INDEX=0..4 tests.test -run '^TestTestpilotGeneratedCases$' (shards 0,1,3 exit 0; 2,4 exit 1 on pre-existing stop-worker timeout, same as base), tests.test -run '^TestTestpilotGeneratedCases$' unsharded (exit 1, pre-existing; base also exit 1)
 - PRs:

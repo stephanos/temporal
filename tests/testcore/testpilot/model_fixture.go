@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"time"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -102,6 +103,13 @@ func LoadGeneratedCase(directory string, entry lower.GeneratedCase) (*ModelCase,
 	}
 	fixture.Bytes, fixture.Expected = encoded, entry.Expected
 	return fixture, nil
+}
+
+// GeneratedCaseName is the name a lowered Case runs under in the functional tests: its file's stem,
+// `<model>-<query>`. It is the depth-2 test name the functional job shards and the salt optimizer
+// times, so a renamed Query renames a shard unit.
+func GeneratedCaseName(entry lower.GeneratedCase) string {
+	return strings.TrimSuffix(entry.File, "-case.json")
 }
 
 func GeneratedCases(directory string) ([]lower.GeneratedCase, error) {
