@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-04T20:02:38.305177Z",
+  "depends_on": [
+    "fn-124-shrink-and-simplify-the-umpire-go.2",
+    "fn-124-shrink-and-simplify-the-umpire-go.6",
+    "fn-124-shrink-and-simplify-the-umpire-go.7"
+  ],
+  "id": "fn-124-shrink-and-simplify-the-umpire-go.8",
+  "priority": null,
+  "spec": "fn-124-shrink-and-simplify-the-umpire-go",
+  "spec_path": ".flow/tasks/fn-124-shrink-and-simplify-the-umpire-go.8.md",
+  "status": "todo",
+  "title": "Split tools/umpire/model into ir, interp, check and realization packages",
+  "updated_at": "2026-10-04T20:02:38.305177Z"
+}

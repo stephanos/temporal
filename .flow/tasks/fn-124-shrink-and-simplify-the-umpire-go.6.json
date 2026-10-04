@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-04T20:02:38.304867Z",
+  "depends_on": [
+    "fn-124-shrink-and-simplify-the-umpire-go.4",
+    "fn-124-shrink-and-simplify-the-umpire-go.5"
+  ],
+  "id": "fn-124-shrink-and-simplify-the-umpire-go.6",
+  "priority": null,
+  "spec": "fn-124-shrink-and-simplify-the-umpire-go",
+  "spec_path": ".flow/tasks/fn-124-shrink-and-simplify-the-umpire-go.6.md",
+  "status": "todo",
+  "title": "Make Model assessment the command-line judge and derive or retire the Evaluation Profile",
+  "updated_at": "2026-10-04T20:02:38.304867Z"
+}
