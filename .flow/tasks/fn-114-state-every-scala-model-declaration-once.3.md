@@ -39,9 +39,34 @@ make umpire-check-model
 - [ ] A refusal fixture proves a reference to a missing declaration fails at its source.
 - [ ] Literal waits are untouched and listed as fn-118's; all IR and Case bytes match the baseline; model gate passes.
 ## Done summary
-TBD
+Rewrote the Nexus caller realization by value with the shared script helpers. Commit 3f642f6a87.
 
+**What changed**
+- **Realization.scala (645 lines / 60 literals -> 525 / 30).** The private id constants are gone: the 3 source ids, 7 evidence ids, the observation id, the learned id and the command ids. Two vals remain, `service` and `operation`. Each is written once and referred to by value, in both the handler activation and the schedule attributes. The commit message's "28 constants" is the task file's count from before fn-112.9; at the base there were 16.
+  - Commands are vals named in kebab case. `rpc {}`, `await`, `command(...)`, the kit's `controller`, and `script`/`perform`/`onPath`/`always` are the only forms. There is no `Item(`, `Performance(`, `Script(` or `Control as _` left.
+  - Evidence ids come from `evidenceId(kind)` and `sourceId(name)`. `pending` uses `evidenceId(ProtocolFact.pendingAttempts)`. Facts are named by value. The history command closes `Vector(started, completed, failed, canceled, timedOut)`, in the order the task requires.
+  - Learned value, observation and command ids are referenced as `completionAuthority.id`, `historyEvent.id`, `correlated.id` and `startNexusOperation.id`. A misspelling fails to compile.
+  - The positional `schedule(unset, …)` calls became `schedule()` and `schedule(Inputs.x := expires)`. `(using CallerFamily.family)` became `import CallerFamily.given`.
+- **R4 refusal fixture** `model/lifter/testdata/referenceInvalid/Invalid.scala`, with a test in Fixtures.test.scala. It has 7 misspelled references, one per form: command, perform, learned, observed, closes, command id and role. Each is a compiler error at its line and column.
+- **tools/umpire/lower/lower_test.go:434** now accepts the kit file for the poll-condition case (`requireDeclaredIn`). This follows fn-112.9's activity precedent: `await` places the poll at Kit.scala.
+
+**IR and Cases.** nexus-caller.json and nexus-control.json differ only in positions. The controller script and the two polls are now placed at Kit.scala, and the golden merges already cover that. model/cases is unchanged, umpire-check-fixtures and canary-check-case pass, and the canary identity did not move, so there was no re-pin. Golden config and original.json are untouched.
+
+**Exceptions (R6) and findings for fn-112 or a later spec**
+- **`history` keeps `Instruction.rpc(assign, reads)` with `Assignment.typed`.** The `rpc {}` scope cannot read a response. So the four history request fields are written both there and in `awaitClose` (reviewer P3, accepted as a finding). The fix would be a generic `.reading(...)` helper.
+- **`start-nexus-operation` stays a written-out `Command(id, …)` inside `scheduling`.** Three deadline variants share the id and there is no `setting` for workflow commands. `"start-nexus-operation"` is written once.
+- **Ids are read as `.id`.** Widening `AwaitLearned`, `AwaitCommand`, `NexusReply.binds`, `NexusCompletion.handle` and `Target.*` to `String | X` would remove the `.id`. That is a framework change outside this task's Touches.
+- **The metrics counter calls the evidence kinds "own name".** That covers `"started"` and the others, where the val equals the kind. Each is an id written once; no construct names an evidence kind after its val.
+- **Kit positions (reviewer P2, pre-existing).** Polls and the controller are located at Kit.scala, not the call site.
+
+**Literal waits, untouched, fn-118's:** `timeoutMs = 5000` in `replying` (5 replies) and in `finishWorkflow`, and the kit's 250 ms `await` interval used by `awaitScheduled` and `pendingAttempts`.
+
+**Deviation from Touches:** the fixture lives in its own dir, not under `realizationRefusals/`. That dir is packaged as a jar and must compile.
+
+**Review:** claude-opus-5-5 at high via `--spec claude:claude-opus-5-5:high`. Writer and reviewer are the same family (Opus). Round 1 was SHIP with one P3, recorded above.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3f642f6a87
+- Tests: make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks (exit 0), go test -tags test_dep -count=1 -p 2 -run 'OriginalBaseline|Migration' ./tools/umpire/internal/golden ./tools/umpire/model ./tools/umpire/lower (exit 0), make umpire-check-fixtures && make canary-check-case (exit 0), make lint-model (exit 0), scala-cli test model/lifter (exit 0), make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks (exit 0), go test -tags test_dep -count=1 -p 2 -timeout 40m ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/... (exit 1 in tools/umpire/lower only: kit position in lower_test.go:434; fixed, then go test ./tools/umpire/lower/... exit 0; all other packages ok), GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main make lint-code-fast (exit 0, twice)
 - PRs:
