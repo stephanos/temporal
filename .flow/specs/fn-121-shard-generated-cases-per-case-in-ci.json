@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-121-shard-generated-cases-per-case-in-ci",
   "impl_review_rounds": {
-    "fn-121-shard-generated-cases-per-case-in-ci.1": 0
+    "fn-121-shard-generated-cases-per-case-in-ci.1": 0,
+    "fn-121-shard-generated-cases-per-case-in-ci.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -187,10 +188,40 @@
       "task": "fn-121-shard-generated-cases-per-case-in-ci.1",
       "timestamp": "2026-10-04T15:32:03.924636Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "fd20590833970776c74fc624f44fbb232264132ca563f34e1453dffa211e183a",
+      "backend": "claude",
+      "base_sha": "a61bcee9ec17989b04a7bef5861a0affcfd768d2",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "339ed9c0b03715e5a0b5f1607a38a40bd96e4d46",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-opus-5-5",
+      "outcome": "verdict",
+      "output_bytes": 3095,
+      "output_sha256": "6c968b34a5f31582e816c2c48723b4b67c7738ed942d94b8a69e7a22256953b4",
+      "reservation_id": "f49f051e0a8c421db4ba0240bdb0d761",
+      "round_consumed": true,
+      "scope": "impl:fn-121-shard-generated-cases-per-case-in-ci.2",
+      "superseded_by": null,
+      "task": "fn-121-shard-generated-cases-per-case-in-ci.2",
+      "timestamp": "2026-10-04T16:26:42.670889Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-121-shard-generated-cases-per-case-in-ci.1": 1,
+    "impl:fn-121-shard-generated-cases-per-case-in-ci.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -198,6 +229,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-121-shard-generated-cases-per-case-in-ci.1": 0,
+    "impl:fn-121-shard-generated-cases-per-case-in-ci.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-121-shard-generated-cases-per-case-in-ci.md",
@@ -214,5 +246,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-04T15:32:03.927630Z"
+  "updated_at": "2026-10-04T16:26:42.674537Z"
 }
