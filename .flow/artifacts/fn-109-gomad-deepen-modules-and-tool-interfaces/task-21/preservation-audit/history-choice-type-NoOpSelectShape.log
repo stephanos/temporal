@@ -1,0 +1,30 @@
+1b970bc1444f4da6428c843a91d3d0fa998dbde3
+2026-10-02T17:42:00-07:00
+gomad: report the select-readiness counter and share the no-op shape list
+- runner.ChoiceExplorationSummary, its projection, and the explore and
+  inspect exploration lines carry omitted_by_select_readiness beside the
+  depth, execution-bound, and capacity counters; the runner test asserts
+  it on the public summary as well as the journal record.
+- The no-op shape list moves to choice.NoOpSelectShapes so the fixture can
+  read it: requireNoOpShapesListed holds the fixture's proven shapes and
+  the explorer's list to the same set before exploring.
+
+Task: fn-114-gomad-correct-search-path-defects-and.12
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+
+779a1744037c2cf3aee37f2794992b1d405117dc
+2026-10-02T17:42:00-07:00
+gomad: report the select-readiness counter and share the no-op shape list
+- runner.ChoiceExplorationSummary, its projection, and the explore and
+  inspect exploration lines carry omitted_by_select_readiness beside the
+  depth, execution-bound, and capacity counters; the runner test asserts
+  it on the public summary as well as the journal record.
+- The no-op shape list moves to choice.NoOpSelectShapes so the fixture can
+  read it: requireNoOpShapesListed holds the fixture's proven shapes and
+  the explorer's list to the same set before exploring.
+
+Task: fn-114-gomad-correct-search-path-defects-and.12
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+

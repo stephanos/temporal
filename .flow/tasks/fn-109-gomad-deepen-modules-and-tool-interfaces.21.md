@@ -61,7 +61,13 @@ flowctl validate --spec fn-109-gomad-deepen-modules-and-tool-interfaces
 - [ ] linux/amd64 gates, unfinished fn-108 evidence and any D12/D14-owned failure are listed as incomplete acceptance with the command to run; nothing is reported as passing that was not run.
 
 ## Done summary
-TBD
+Blocked on R18 preservation reconciliation, required lint and both native platform gates.
+
+The matched developmental 10/100 campaigns, sixteen-finding matrix and exact native-command ledger are frozen against source candidate 8604c07def0f97b63cbca3864b4c286d6803c4b1. Fresh read-only integrity checks passed. Independent evidence review found no introduced findings and recommends committing verified progress; it is not a formal SHIP or qualification verdict.
+
+[Checkpoint and remaining acceptance](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/acceptance-open.md) retains the scope, checks and owner handbacks. [Independent review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-checkpoint-independent-review.md) retains actual raw-profile and gate-ledger verification. The frozen worker handover records its earlier in-progress snapshot; current Flow state is blocked. Original acceptance criteria, native expectations and D3-D5 closure remain unchanged.
+
+stage: impl-review - deferred(policy: required lint is red; native qualification and preservation acceptance are incomplete)
 
 ## Evidence
 - Commits:

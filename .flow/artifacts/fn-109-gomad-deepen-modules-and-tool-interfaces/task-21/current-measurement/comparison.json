@@ -1,0 +1,802 @@
+{
+  "scope": "Same paired injected seed fixture on stock linux/arm64. Site attribution is not native qualification, universal copy absence, or private-map cardinality.",
+  "cases": {
+    "discard-10": {
+      "command_seconds": 11.04393108899967,
+      "exit_code": 0,
+      "baseline_binary_sha256": "ac68f6c135acea44de8da96cec08e48e9bcbcac641c5009564492809fd8a8b4b",
+      "current_binary_sha256": "da0e4e84f0437eb20851a62b7f65aaeeb9c98b10164f13061ece5fc119b8171b",
+      "completed_categories": {
+        "fixture_stream_producer": {
+          "baseline": {
+            "alloc_objects": 24,
+            "alloc_bytes": 20971776,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 2097177.6
+          },
+          "current": {
+            "alloc_objects": 24,
+            "alloc_bytes": 20971776,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 2097177.6
+          }
+        },
+        "fixture_transcript_encoder": {
+          "baseline": {
+            "alloc_objects": 20,
+            "alloc_bytes": 10487040,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1048704.0
+          },
+          "current": {
+            "alloc_objects": 20,
+            "alloc_bytes": 10487040,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1048704.0
+          }
+        },
+        "coverage_outcome_assessment": {
+          "baseline": {
+            "alloc_objects": 82160,
+            "alloc_bytes": 11478816,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1147881.6
+          },
+          "current": {
+            "alloc_objects": 82173,
+            "alloc_bytes": 11480056,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1148005.6
+          }
+        },
+        "world_assessment": {
+          "baseline": {
+            "alloc_objects": 66770,
+            "alloc_bytes": 4423896,
+            "inuse_objects": 124,
+            "inuse_bytes": 8976,
+            "alloc_bytes_per_completed_execution": 442389.6
+          },
+          "current": {
+            "alloc_objects": 66730,
+            "alloc_bytes": 4413184,
+            "inuse_objects": 127,
+            "inuse_bytes": 9344,
+            "alloc_bytes_per_completed_execution": 441318.4
+          }
+        },
+        "artifact_publication": {
+          "baseline": {},
+          "current": {}
+        },
+        "named_campaign_policy_sites": {
+          "baseline": {
+            "alloc_objects": 20,
+            "alloc_bytes": 10696,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 1069.6
+          },
+          "current": {
+            "alloc_objects": 20,
+            "alloc_bytes": 11976,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 1197.6
+          }
+        },
+        "direct_runLocal_allocation_sites": {
+          "baseline": {
+            "alloc_objects": 34,
+            "alloc_bytes": 7128,
+            "inuse_objects": 5,
+            "inuse_bytes": 688,
+            "alloc_bytes_per_completed_execution": 712.8
+          },
+          "current": {
+            "alloc_objects": 34,
+            "alloc_bytes": 7752,
+            "inuse_objects": 5,
+            "inuse_bytes": 672,
+            "alloc_bytes_per_completed_execution": 775.2
+          }
+        }
+      },
+      "baseline_snapshots": [
+        {
+          "Name": "early-pair",
+          "Returned": 0,
+          "Committed": 0,
+          "Active": 2,
+          "HeapAlloc": 6784112,
+          "HeapObjects": 4026,
+          "TotalAlloc": 9463392,
+          "NumGC": 4
+        },
+        {
+          "Name": "late-pair",
+          "Returned": 8,
+          "Committed": 8,
+          "Active": 2,
+          "HeapAlloc": 6829032,
+          "HeapObjects": 4581,
+          "TotalAlloc": 133562624,
+          "NumGC": 26
+        },
+        {
+          "Name": "completed",
+          "Returned": 10,
+          "Committed": 10,
+          "Active": 0,
+          "HeapAlloc": 538464,
+          "HeapObjects": 4708,
+          "TotalAlloc": 170080536,
+          "NumGC": 37
+        }
+      ],
+      "current_snapshots": [
+        {
+          "Name": "early-pair",
+          "Returned": 0,
+          "Committed": 0,
+          "Active": 2,
+          "HeapAlloc": 6796320,
+          "HeapObjects": 4057,
+          "TotalAlloc": 9502752,
+          "NumGC": 4
+        },
+        {
+          "Name": "late-pair",
+          "Returned": 8,
+          "Committed": 8,
+          "Active": 2,
+          "HeapAlloc": 6852752,
+          "HeapObjects": 4639,
+          "TotalAlloc": 125997848,
+          "NumGC": 27
+        },
+        {
+          "Name": "completed",
+          "Returned": 10,
+          "Committed": 10,
+          "Active": 0,
+          "HeapAlloc": 564456,
+          "HeapObjects": 4772,
+          "TotalAlloc": 159592552,
+          "NumGC": 37
+        }
+      ]
+    },
+    "discard-100": {
+      "command_seconds": 71.93023111700313,
+      "exit_code": 0,
+      "baseline_binary_sha256": "ac68f6c135acea44de8da96cec08e48e9bcbcac641c5009564492809fd8a8b4b",
+      "current_binary_sha256": "da0e4e84f0437eb20851a62b7f65aaeeb9c98b10164f13061ece5fc119b8171b",
+      "completed_categories": {
+        "fixture_stream_producer": {
+          "baseline": {
+            "alloc_objects": 204,
+            "alloc_bytes": 209715456,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 2097154.56
+          },
+          "current": {
+            "alloc_objects": 204,
+            "alloc_bytes": 209715456,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 2097154.56
+          }
+        },
+        "fixture_transcript_encoder": {
+          "baseline": {
+            "alloc_objects": 200,
+            "alloc_bytes": 104870400,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1048704.0
+          },
+          "current": {
+            "alloc_objects": 200,
+            "alloc_bytes": 104870400,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1048704.0
+          }
+        },
+        "coverage_outcome_assessment": {
+          "baseline": {
+            "alloc_objects": 821649,
+            "alloc_bytes": 114792408,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1147924.08
+          },
+          "current": {
+            "alloc_objects": 821673,
+            "alloc_bytes": 114795232,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1147952.32
+          }
+        },
+        "world_assessment": {
+          "baseline": {
+            "alloc_objects": 666065,
+            "alloc_bytes": 44048088,
+            "inuse_objects": 126,
+            "inuse_bytes": 9296,
+            "alloc_bytes_per_completed_execution": 440480.88
+          },
+          "current": {
+            "alloc_objects": 666230,
+            "alloc_bytes": 44060368,
+            "inuse_objects": 126,
+            "inuse_bytes": 9184,
+            "alloc_bytes_per_completed_execution": 440603.68
+          }
+        },
+        "artifact_publication": {
+          "baseline": {},
+          "current": {}
+        },
+        "named_campaign_policy_sites": {
+          "baseline": {
+            "alloc_objects": 110,
+            "alloc_bytes": 102856,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 1028.56
+          },
+          "current": {
+            "alloc_objects": 110,
+            "alloc_bytes": 115656,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 1156.56
+          }
+        },
+        "direct_runLocal_allocation_sites": {
+          "baseline": {
+            "alloc_objects": 124,
+            "alloc_bytes": 8568,
+            "inuse_objects": 5,
+            "inuse_bytes": 688,
+            "alloc_bytes_per_completed_execution": 85.68
+          },
+          "current": {
+            "alloc_objects": 124,
+            "alloc_bytes": 9208,
+            "inuse_objects": 5,
+            "inuse_bytes": 688,
+            "alloc_bytes_per_completed_execution": 92.08
+          }
+        }
+      },
+      "baseline_snapshots": [
+        {
+          "Name": "early-pair",
+          "Returned": 0,
+          "Committed": 0,
+          "Active": 2,
+          "HeapAlloc": 6785120,
+          "HeapObjects": 4032,
+          "TotalAlloc": 9463960,
+          "NumGC": 4
+        },
+        {
+          "Name": "late-pair",
+          "Returned": 98,
+          "Committed": 98,
+          "Active": 2,
+          "HeapAlloc": 6842016,
+          "HeapObjects": 4617,
+          "TotalAlloc": 1499476504,
+          "NumGC": 256
+        },
+        {
+          "Name": "completed",
+          "Returned": 100,
+          "Committed": 100,
+          "Active": 0,
+          "HeapAlloc": 551944,
+          "HeapObjects": 4748,
+          "TotalAlloc": 1536578064,
+          "NumGC": 268
+        }
+      ],
+      "current_snapshots": [
+        {
+          "Name": "early-pair",
+          "Returned": 0,
+          "Committed": 0,
+          "Active": 2,
+          "HeapAlloc": 6801640,
+          "HeapObjects": 4061,
+          "TotalAlloc": 9506360,
+          "NumGC": 4
+        },
+        {
+          "Name": "late-pair",
+          "Returned": 98,
+          "Committed": 98,
+          "Active": 2,
+          "HeapAlloc": 6857264,
+          "HeapObjects": 4656,
+          "TotalAlloc": 1406830736,
+          "NumGC": 241
+        },
+        {
+          "Name": "completed",
+          "Returned": 100,
+          "Committed": 100,
+          "Active": 0,
+          "HeapAlloc": 568808,
+          "HeapObjects": 4789,
+          "TotalAlloc": 1441304312,
+          "NumGC": 252
+        }
+      ]
+    },
+    "novel-10": {
+      "command_seconds": 9.24692692100507,
+      "exit_code": 0,
+      "baseline_binary_sha256": "ac68f6c135acea44de8da96cec08e48e9bcbcac641c5009564492809fd8a8b4b",
+      "current_binary_sha256": "da0e4e84f0437eb20851a62b7f65aaeeb9c98b10164f13061ece5fc119b8171b",
+      "completed_categories": {
+        "fixture_stream_producer": {
+          "baseline": {
+            "alloc_objects": 24,
+            "alloc_bytes": 20971776,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 2097177.6
+          },
+          "current": {
+            "alloc_objects": 24,
+            "alloc_bytes": 20971776,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 2097177.6
+          }
+        },
+        "fixture_transcript_encoder": {
+          "baseline": {
+            "alloc_objects": 20,
+            "alloc_bytes": 10487040,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1048704.0
+          },
+          "current": {
+            "alloc_objects": 20,
+            "alloc_bytes": 10487040,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1048704.0
+          }
+        },
+        "coverage_outcome_assessment": {
+          "baseline": {
+            "alloc_objects": 82166,
+            "alloc_bytes": 11479224,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1147922.4
+          },
+          "current": {
+            "alloc_objects": 82168,
+            "alloc_bytes": 11479896,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1147989.6
+          }
+        },
+        "world_assessment": {
+          "baseline": {
+            "alloc_objects": 66806,
+            "alloc_bytes": 4426168,
+            "inuse_objects": 126,
+            "inuse_bytes": 9184,
+            "alloc_bytes_per_completed_execution": 442616.8
+          },
+          "current": {
+            "alloc_objects": 66746,
+            "alloc_bytes": 4415568,
+            "inuse_objects": 126,
+            "inuse_bytes": 9344,
+            "alloc_bytes_per_completed_execution": 441556.8
+          }
+        },
+        "artifact_publication": {
+          "baseline": {
+            "alloc_objects": 11258,
+            "alloc_bytes": 1401640,
+            "inuse_objects": 823,
+            "inuse_bytes": 63616,
+            "publication_denominator": 1,
+            "alloc_bytes_per_publication": 1401640.0
+          },
+          "current": {
+            "alloc_objects": 11323,
+            "alloc_bytes": 1476008,
+            "inuse_objects": 828,
+            "inuse_bytes": 64384,
+            "publication_denominator": 1,
+            "alloc_bytes_per_publication": 1476008.0
+          }
+        },
+        "named_campaign_policy_sites": {
+          "baseline": {
+            "alloc_objects": 20,
+            "alloc_bytes": 10696,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 1069.6
+          },
+          "current": {
+            "alloc_objects": 20,
+            "alloc_bytes": 11976,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 1197.6
+          }
+        },
+        "direct_runLocal_allocation_sites": {
+          "baseline": {
+            "alloc_objects": 36,
+            "alloc_bytes": 7160,
+            "inuse_objects": 6,
+            "inuse_bytes": 704,
+            "alloc_bytes_per_completed_execution": 716.0
+          },
+          "current": {
+            "alloc_objects": 36,
+            "alloc_bytes": 7784,
+            "inuse_objects": 6,
+            "inuse_bytes": 688,
+            "alloc_bytes_per_completed_execution": 778.4
+          }
+        }
+      },
+      "baseline_snapshots": [
+        {
+          "Name": "early-pair",
+          "Returned": 0,
+          "Committed": 0,
+          "Active": 2,
+          "HeapAlloc": 6783600,
+          "HeapObjects": 4020,
+          "TotalAlloc": 9467968,
+          "NumGC": 4
+        },
+        {
+          "Name": "late-pair",
+          "Returned": 8,
+          "Committed": 8,
+          "Active": 2,
+          "HeapAlloc": 6900632,
+          "HeapObjects": 5597,
+          "TotalAlloc": 135612208,
+          "NumGC": 27
+        },
+        {
+          "Name": "completed",
+          "Returned": 10,
+          "Committed": 10,
+          "Active": 0,
+          "HeapAlloc": 607168,
+          "HeapObjects": 5529,
+          "TotalAlloc": 173314032,
+          "NumGC": 38
+        }
+      ],
+      "current_snapshots": [
+        {
+          "Name": "early-pair",
+          "Returned": 0,
+          "Committed": 0,
+          "Active": 2,
+          "HeapAlloc": 6801576,
+          "HeapObjects": 4061,
+          "TotalAlloc": 9511832,
+          "NumGC": 4
+        },
+        {
+          "Name": "late-pair",
+          "Returned": 8,
+          "Committed": 8,
+          "Active": 2,
+          "HeapAlloc": 6924392,
+          "HeapObjects": 5887,
+          "TotalAlloc": 128046800,
+          "NumGC": 26
+        },
+        {
+          "Name": "completed",
+          "Returned": 10,
+          "Committed": 10,
+          "Active": 0,
+          "HeapAlloc": 629136,
+          "HeapObjects": 5592,
+          "TotalAlloc": 163328440,
+          "NumGC": 37
+        }
+      ]
+    },
+    "novel-100": {
+      "command_seconds": 64.12488361400028,
+      "exit_code": 0,
+      "baseline_binary_sha256": "ac68f6c135acea44de8da96cec08e48e9bcbcac641c5009564492809fd8a8b4b",
+      "current_binary_sha256": "da0e4e84f0437eb20851a62b7f65aaeeb9c98b10164f13061ece5fc119b8171b",
+      "completed_categories": {
+        "fixture_stream_producer": {
+          "baseline": {
+            "alloc_objects": 204,
+            "alloc_bytes": 209715456,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 2097154.56
+          },
+          "current": {
+            "alloc_objects": 204,
+            "alloc_bytes": 209715456,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 2097154.56
+          }
+        },
+        "fixture_transcript_encoder": {
+          "baseline": {
+            "alloc_objects": 200,
+            "alloc_bytes": 104870400,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1048704.0
+          },
+          "current": {
+            "alloc_objects": 200,
+            "alloc_bytes": 104870400,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1048704.0
+          }
+        },
+        "coverage_outcome_assessment": {
+          "baseline": {
+            "alloc_objects": 821674,
+            "alloc_bytes": 114795160,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1147951.6
+          },
+          "current": {
+            "alloc_objects": 821644,
+            "alloc_bytes": 114792248,
+            "inuse_objects": 0,
+            "inuse_bytes": 0,
+            "alloc_bytes_per_completed_execution": 1147922.48
+          }
+        },
+        "world_assessment": {
+          "baseline": {
+            "alloc_objects": 666366,
+            "alloc_bytes": 44088760,
+            "inuse_objects": 127,
+            "inuse_bytes": 9344,
+            "alloc_bytes_per_completed_execution": 440887.6
+          },
+          "current": {
+            "alloc_objects": 666103,
+            "alloc_bytes": 44054208,
+            "inuse_objects": 127,
+            "inuse_bytes": 9456,
+            "alloc_bytes_per_completed_execution": 440542.08
+          }
+        },
+        "artifact_publication": {
+          "baseline": {
+            "alloc_objects": 11264,
+            "alloc_bytes": 1413328,
+            "inuse_objects": 827,
+            "inuse_bytes": 64256,
+            "publication_denominator": 1,
+            "alloc_bytes_per_publication": 1413328.0
+          },
+          "current": {
+            "alloc_objects": 11331,
+            "alloc_bytes": 1480488,
+            "inuse_objects": 821,
+            "inuse_bytes": 63296,
+            "publication_denominator": 1,
+            "alloc_bytes_per_publication": 1480488.0
+          }
+        },
+        "named_campaign_policy_sites": {
+          "baseline": {
+            "alloc_objects": 110,
+            "alloc_bytes": 102856,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 1028.56
+          },
+          "current": {
+            "alloc_objects": 110,
+            "alloc_bytes": 115656,
+            "inuse_objects": 1,
+            "inuse_bytes": 112,
+            "alloc_bytes_per_completed_execution": 1156.56
+          }
+        },
+        "direct_runLocal_allocation_sites": {
+          "baseline": {
+            "alloc_objects": 126,
+            "alloc_bytes": 8600,
+            "inuse_objects": 6,
+            "inuse_bytes": 704,
+            "alloc_bytes_per_completed_execution": 86.0
+          },
+          "current": {
+            "alloc_objects": 126,
+            "alloc_bytes": 9224,
+            "inuse_objects": 6,
+            "inuse_bytes": 688,
+            "alloc_bytes_per_completed_execution": 92.24
+          }
+        }
+      },
+      "baseline_snapshots": [
+        {
+          "Name": "early-pair",
+          "Returned": 0,
+          "Committed": 0,
+          "Active": 2,
+          "HeapAlloc": 6783440,
+          "HeapObjects": 4019,
+          "TotalAlloc": 9459688,
+          "NumGC": 4
+        },
+        {
+          "Name": "late-pair",
+          "Returned": 98,
+          "Committed": 98,
+          "Active": 2,
+          "HeapAlloc": 6907224,
+          "HeapObjects": 5742,
+          "TotalAlloc": 1508771704,
+          "NumGC": 255
+        },
+        {
+          "Name": "completed",
+          "Returned": 100,
+          "Committed": 100,
+          "Active": 0,
+          "HeapAlloc": 612032,
+          "HeapObjects": 5551,
+          "TotalAlloc": 1547839880,
+          "NumGC": 266
+        }
+      ],
+      "current_snapshots": [
+        {
+          "Name": "early-pair",
+          "Returned": 0,
+          "Committed": 0,
+          "Active": 2,
+          "HeapAlloc": 6801880,
+          "HeapObjects": 4065,
+          "TotalAlloc": 9508472,
+          "NumGC": 4
+        },
+        {
+          "Name": "late-pair",
+          "Returned": 98,
+          "Committed": 98,
+          "Active": 2,
+          "HeapAlloc": 6928792,
+          "HeapObjects": 5788,
+          "TotalAlloc": 1414834528,
+          "NumGC": 241
+        },
+        {
+          "Name": "completed",
+          "Returned": 100,
+          "Committed": 100,
+          "Active": 0,
+          "HeapAlloc": 635632,
+          "HeapObjects": 5624,
+          "TotalAlloc": 1450668440,
+          "NumGC": 251
+        }
+      ]
+    }
+  },
+  "logical_policy_both_roles": {
+    "baseline": {
+      "10": {
+        "completion_order_done_handle": 8,
+        "controller": 128,
+        "controller_iterator": 48,
+        "controller_job_source": 40,
+        "one_shared_range_backing": 16,
+        "ordering_iterator": 48,
+        "ordering_job_source": 40,
+        "selection_header": 32,
+        "total_named_logical_bytes_both_roles": 4120,
+        "two_channel_handles": 16,
+        "two_completion_channel_slots": 3744
+      },
+      "100": {
+        "completion_order_done_handle": 8,
+        "controller": 128,
+        "controller_iterator": 48,
+        "controller_job_source": 40,
+        "one_shared_range_backing": 16,
+        "ordering_iterator": 48,
+        "ordering_job_source": 40,
+        "selection_header": 32,
+        "total_named_logical_bytes_both_roles": 4120,
+        "two_channel_handles": 16,
+        "two_completion_channel_slots": 3744
+      }
+    },
+    "current": {
+      "10": {
+        "completion_order_done_handle": 8,
+        "controller": 128,
+        "controller_iterator": 48,
+        "controller_job_source": 40,
+        "one_shared_range_backing": 16,
+        "ordering_iterator": 48,
+        "ordering_job_source": 40,
+        "selection_header": 32,
+        "total_named_logical_bytes_both_roles": 4472,
+        "two_channel_handles": 16,
+        "two_completion_channel_slots": 4096
+      },
+      "100": {
+        "completion_order_done_handle": 8,
+        "controller": 128,
+        "controller_iterator": 48,
+        "controller_job_source": 40,
+        "one_shared_range_backing": 16,
+        "ordering_iterator": 48,
+        "ordering_job_source": 40,
+        "selection_header": 32,
+        "total_named_logical_bytes_both_roles": 4472,
+        "two_channel_handles": 16,
+        "two_completion_channel_slots": 4096
+      }
+    },
+    "differences": {
+      "total_named_logical_bytes_both_roles": {
+        "baseline": 4120,
+        "current": 4472,
+        "delta": 352
+      },
+      "two_completion_channel_slots": {
+        "baseline": 3744,
+        "current": 4096,
+        "delta": 352
+      }
+    }
+  },
+  "verification": {
+    "passed": true,
+    "source_files": 982,
+    "shipped_files": 978,
+    "complete_source_inventories": 10,
+    "successful_commands": 98,
+    "current_output_hashes": 174,
+    "baseline_handoff_hashes": 201,
+    "driver_prelaunch_sha256": "8252784ee6b75db8038ff3616ba4d12e4ec543a0b6eebe891c688a70c21ec031",
+    "qualification_complete": false
+  }
+}

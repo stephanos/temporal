@@ -1,0 +1,21 @@
+a3b9f80efab9356c0be2080779133337e2471ac0
+2026-10-03T08:07:10-07:00
+wip
+
+076cdcc344ced6e1f6e195df84540c8ca74ca2f1
+2026-10-02T20:35:03-07:00
+gomad: regenerate adapter anchors for a new module version behind an approval digest
+gomadtool adapter-regenerate re-applies an adapter's rewrites by their
+exact-occurrence anchors to a candidate module version, prints the changed
+upstream source, the proposed anchors, and stale pack bindings, and applies
+only with the review's approval digest. The apply stages the adapter
+constants, version descriptor, fixture modules, and generated outputs in a
+scratch copy, verifies them, and publishes under a lock through a committed
+journal that the next run completes.
+
+Adapters are now declared as rewrittenModule specs (gRPC and x/net included,
+with base-file rewrites), and prepared source-set pins are computed from
+source for every platform, reproducing all 30 checked-in pins on any host.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+

@@ -1,0 +1,272 @@
+[
+  {
+    "baseline": "toolchain/clock_inventory_test.go:32",
+    "comment": "// clockImplementation declares or implements the host clock itself.",
+    "current_exact_occurrences": []
+  },
+  {
+    "baseline": "toolchain/clock_inventory_test.go:34",
+    "comment": "// clockGuarded is reached only after the gomadEnabled check returned.",
+    "current_exact_occurrences": []
+  },
+  {
+    "baseline": "target/capability.go:700",
+    "comment": "// Headers remain source-set evidence, but cannot execute without a separately reviewed compiled foreign input.",
+    "current_exact_occurrences": [
+      "target/internal/capabilitypolicy/policy.go:103"
+    ]
+  },
+  {
+    "baseline": "target/capability.go:1055",
+    "comment": "// Replacements live either in the private preparation root or in the",
+    "current_exact_occurrences": [
+      "target/capability_collection.go:297"
+    ]
+  },
+  {
+    "baseline": "target/capability.go:1056",
+    "comment": "// toolchain's adapter cache, which the deterministic I/O profile owns.",
+    "current_exact_occurrences": [
+      "target/capability_collection.go:298"
+    ]
+  },
+  {
+    "baseline": "runner/completion_characterization_test.go:343",
+    "comment": "// A context cancelled while exploration candidates run fails the round as a",
+    "current_exact_occurrences": []
+  },
+  {
+    "baseline": "runner/completion_characterization_test.go:344",
+    "comment": "// cancellation, ahead of the cancelled results the candidates then report.",
+    "current_exact_occurrences": []
+  },
+  {
+    "baseline": "runner/completion_characterization_test.go:354",
+    "comment": "// The round returns while its candidate is still exiting, so the",
+    "current_exact_occurrences": [
+      "runner/completion_characterization_test.go:368"
+    ]
+  },
+  {
+    "baseline": "runner/completion_characterization_test.go:355",
+    "comment": "// candidate's partial state is not settled yet.",
+    "current_exact_occurrences": [
+      "runner/completion_characterization_test.go:369"
+    ]
+  },
+  {
+    "baseline": "deterministicio/adapter_rewrite.go:30",
+    "comment": "// evidence names as the adapter's source.",
+    "current_exact_occurrences": []
+  },
+  {
+    "baseline": "qualification/set/execution.go:124",
+    "comment": "// (today the collector's view of live memory, GOMAD_MILESTONES.md F5) only",
+    "current_exact_occurrences": []
+  },
+  {
+    "baseline": "qualification/set/prune.go:17",
+    "comment": "// recorded path can never delete anything outside that root.",
+    "current_exact_occurrences": []
+  },
+  {
+    "baseline": "qualification/set/manifestgen/manifestgen_test.go:553",
+    "comment": "// Its open finding (GOMAD_MILESTONES.md F10 D14) is a replay divergence,",
+    "current_exact_occurrences": []
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/runtime/gomad.go:123",
+    "comment": "// gomadClockForward advances what time.Now reports at every read so that two",
+    "current_exact_occurrences": []
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/runtime/gomad.go:125",
+    "comment": "// advance accumulates in its own offset rather than in faketime: timers, the",
+    "current_exact_occurrences": []
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/runtime/gomad.go:126",
+    "comment": "// scheduler, and the simulation time transport keep the idle-driven clock, and",
+    "current_exact_occurrences": []
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/runtime/gomad.go:127",
+    "comment": "// only time.Now runs ahead of it. The draw comes from its own stream derived",
+    "current_exact_occurrences": []
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/runtime/gomad.go:128",
+    "comment": "// from the seed, so it neither consumes nor perturbs the scheduling choices,",
+    "current_exact_occurrences": []
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/runtime/gomad.go:129",
+    "comment": "// and replay derives the same draws.",
+    "current_exact_occurrences": []
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/runtime/gomad.go:162",
+    "comment": "// gomadTimeNow serves time.Now while Gomad is enabled.",
+    "current_exact_occurrences": []
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/runtime/gomad.go:1166",
+    "comment": "//go:nosplit",
+    "current_exact_occurrences": [
+      "toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go:29",
+      "toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go:38",
+      "toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go:47",
+      "toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go:64",
+      "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go:18",
+      "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go:30",
+      "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go:56",
+      "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go:64",
+      "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go:72",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:81",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:634",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:654",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:669",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:686",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:700",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:710",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:717",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:743",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1619",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1659",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1671",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1684",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1707",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1716"
+    ]
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/runtime/gomad.go:1174",
+    "comment": "//go:nosplit",
+    "current_exact_occurrences": [
+      "toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go:29",
+      "toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go:38",
+      "toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go:47",
+      "toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go:64",
+      "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go:18",
+      "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go:30",
+      "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go:56",
+      "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go:64",
+      "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go:72",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:81",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:634",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:654",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:669",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:686",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:700",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:710",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:717",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:743",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1619",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1659",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1671",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1684",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1707",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1716"
+    ]
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/runtime/gomad.go:1182",
+    "comment": "//go:nosplit",
+    "current_exact_occurrences": [
+      "toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go:29",
+      "toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go:38",
+      "toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go:47",
+      "toolchain/runtime/overlay/src/runtime/gomad_aslr_darwin.go:64",
+      "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go:18",
+      "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go:30",
+      "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go:56",
+      "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go:64",
+      "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go:72",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:81",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:634",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:654",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:669",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:686",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:700",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:710",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:717",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:743",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1619",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1659",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1671",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1684",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1707",
+      "toolchain/runtime/overlay/src/runtime/gomad.go:1716"
+    ]
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/internal/gomadfs/fs.go:100",
+    "comment": "// Mapping is a memory view of one file region. Mappings of the same region",
+    "current_exact_occurrences": [
+      "toolchain/runtime/overlay/src/internal/gomadfs/handles.go:30"
+    ]
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/internal/gomadfs/fs.go:101",
+    "comment": "// share one buffer, so a store through one is visible through every other and,",
+    "current_exact_occurrences": [
+      "toolchain/runtime/overlay/src/internal/gomadfs/handles.go:31"
+    ]
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/internal/gomadfs/fs.go:102",
+    "comment": "// once flushed, through the file itself; that is the shared-memory contract",
+    "current_exact_occurrences": [
+      "toolchain/runtime/overlay/src/internal/gomadfs/handles.go:32"
+    ]
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/internal/gomadfs/fs.go:103",
+    "comment": "// SQLite's WAL index relies on. A writable mapping is available only for a",
+    "current_exact_occurrences": [
+      "toolchain/runtime/overlay/src/internal/gomadfs/handles.go:33"
+    ]
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/internal/gomadfs/fs.go:104",
+    "comment": "// volatile file, because stores through memory bypass the volume journal.",
+    "current_exact_occurrences": [
+      "toolchain/runtime/overlay/src/internal/gomadfs/handles.go:34"
+    ]
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/internal/gomadfs/fs.go:1283",
+    "comment": "// The buffer stays alive while an alias still maps it; the accounting",
+    "current_exact_occurrences": [
+      "toolchain/runtime/overlay/src/internal/gomadfs/local_handles.go:461"
+    ]
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/internal/gomadfs/fs.go:1284",
+    "comment": "// moves to the first surviving alias.",
+    "current_exact_occurrences": [
+      "toolchain/runtime/overlay/src/internal/gomadfs/local_handles.go:462"
+    ]
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/internal/gomadfs/fs.go:1322",
+    "comment": "// flushMappingsLocked makes stores through writable mappings of n visible to",
+    "current_exact_occurrences": [
+      "toolchain/runtime/overlay/src/internal/gomadfs/local_handles.go:500"
+    ]
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/internal/gomadfs/fs.go:1323",
+    "comment": "// file reads. Bytes beyond the file's size stay in the mapping only, as they",
+    "current_exact_occurrences": [
+      "toolchain/runtime/overlay/src/internal/gomadfs/local_handles.go:501"
+    ]
+  },
+  {
+    "baseline": "toolchain/runtime/overlay/src/internal/gomadfs/fs.go:1324",
+    "comment": "// would beyond a real file's end.",
+    "current_exact_occurrences": [
+      "toolchain/runtime/overlay/src/internal/gomadfs/local_handles.go:502"
+    ]
+  }
+]

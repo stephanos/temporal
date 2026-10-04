@@ -1,0 +1,80 @@
+package artifact // import "go.temporal.io/server/tools/gomad3/artifact"
+
+
+FUNCTIONS
+
+func CopyPayload(opened Artifact, relativePath, destination string, destinationMode os.FileMode) error
+func OpenPayload(opened Artifact, relativePath string, maximum uint64) (*os.File, error)
+func ReadPayload(opened Artifact, relativePath string, maximum uint64) ([]byte, error)
+func RenameNoReplace(oldPath, newPath string) error
+
+TYPES
+
+type Artifact struct {
+	Path        string
+	Manifest    record.ExecutionRecord
+	StoredBytes uint64
+	// Has unexported fields.
+}
+
+func OpenArtifact(path string) (Artifact, error)
+
+func PublishArtifact(store Store, input ArtifactInput) (Artifact, error)
+
+func (opened *Artifact) Close() error
+
+func (opened Artifact) Detached() Artifact
+
+type ArtifactInput struct {
+	Manifest       record.ExecutionRecord
+	TargetPath     string
+	Stdout         []byte
+	Stderr         []byte
+	IOTranscript   []byte
+	ChoiceTrace    []byte
+	ReadOnlyMounts *readonlymount.CapturedInputs
+	World          record.WorldPayloads
+	Simulation     *SimulationPayloads
+}
+
+type CapacityError struct {
+	Required uint64
+	Maximum  uint64
+}
+
+func (err *CapacityError) Error() string
+
+type Payload struct {
+	Path       string
+	Mode       os.FileMode
+	SourcePath string
+	Data       []byte
+	SHA256     record.SHA256
+	Size       record.Uint64String
+}
+
+type Publication struct {
+	Record   record.ExecutionRecord
+	Payloads []Payload
+}
+
+type SimulationPayloads struct {
+	Plan   []byte
+	Record []byte
+}
+
+type Store struct {
+	Root         string
+	Context      context.Context
+	MaximumBytes uint64
+	Key          StoreKey
+}
+
+func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr error)
+
+type StoreKey uint8
+
+const (
+	StoreKeyFailureSignature StoreKey = iota
+	StoreKeyRecord
+)

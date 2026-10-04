@@ -1,0 +1,122 @@
+=== RUN   TestR19BoundedSeedCampaignMeasurement
+    r19_measurement_test.go:315: {
+          "actual_per_execution_transcript_bytes": 1048576,
+          "actual_per_execution_transcript_records": 8192,
+          "artifact_count": 1,
+          "attempted": 10,
+          "campaign_file_bytes": 3160199,
+          "campaign_file_count": 11,
+          "cumulative_stream_transcript_bytes": 31457280,
+          "cumulative_transcript_bytes": 10485760,
+          "cumulative_world_record_bytes": 13682,
+          "derived_artifact_capacity": {
+            "failure_artifacts": "10",
+            "failure_bytes": "11485184400",
+            "success_artifacts": "3",
+            "success_bytes": "67108864",
+            "total_bytes": "11552293264",
+            "transcript_bytes": "67108864",
+            "failure_outcome": "infrastructure_failure",
+            "success_outcome": "infrastructure_failure"
+          },
+          "diagnostic_artifact_input_field": "present in current ArtifactInput; diagnostics disabled identically",
+          "elapsed_nanos": 8179124379,
+          "excluded_transport_calls": 0,
+          "go_version": "go1.27.1",
+          "internal_novelty_map_cardinality_directly_observed": false,
+          "jobs": 10,
+          "journal": {
+            "Schema": "gomad3.execution-journal/v1",
+            "IndexSHA256": "sha256:989c02c580984a9ececa425b23aa9ecba4ee5fa56cb6e93bce8bc262e9bba815",
+            "Segments": 1,
+            "Records": 10,
+            "Bytes": 3520,
+            "Limits": {
+              "maximum_executions": "10",
+              "maximum_bytes": "10485760",
+              "segment_bytes": "1048576",
+              "segment_records": "1024",
+              "maximum_segments": "10",
+              "maximum_partial_executions": "2",
+              "capacity_outcome": "infrastructure_failure"
+            }
+          },
+          "journal_unique_novel_choice_features": 0,
+          "journal_unique_novel_semantic_probes": 1,
+          "limits": {
+            "execution_timeout": "5m0s",
+            "io_transcript": 67108864,
+            "output": 1048576,
+            "overall_timeout": "5m0s",
+            "success_bytes": 67108864,
+            "success_count": 3,
+            "world_transition": 1048576
+          },
+          "logical_policy_bytes": {
+            "completion_order_done_handle": 8,
+            "controller": 128,
+            "iterator": 48,
+            "job_source": 40,
+            "one_shared_range_backing": 16,
+            "selection_header": 32,
+            "total_named_logical_bytes": 4384,
+            "two_channel_handles": 16,
+            "two_completion_channel_slots": 4096
+          },
+          "maximum_active": 2,
+          "mode": "novel",
+          "observed_runtime_settings": {
+            "gogc_percent": 100,
+            "gomaxprocs_threads": 2,
+            "gomemlimit_bytes": 9223372036854775807
+          },
+          "observed_semantic_probe_vocabulary_count": 1,
+          "parallel": 2,
+          "per_execution_stream_bytes": 1048576,
+          "platform": "linux/arm64",
+          "retained_success_bytes": 3155327,
+          "retained_success_count": 1,
+          "snapshots": [
+            {
+              "Name": "early-pair",
+              "Returned": 0,
+              "Committed": 0,
+              "Active": 2,
+              "HeapAlloc": 6801576,
+              "HeapObjects": 4061,
+              "TotalAlloc": 9511832,
+              "NumGC": 4
+            },
+            {
+              "Name": "late-pair",
+              "Returned": 8,
+              "Committed": 8,
+              "Active": 2,
+              "HeapAlloc": 6924392,
+              "HeapObjects": 5887,
+              "TotalAlloc": 128046800,
+              "NumGC": 26
+            },
+            {
+              "Name": "completed",
+              "Returned": 10,
+              "Committed": 10,
+              "Active": 0,
+              "HeapAlloc": 629136,
+              "HeapObjects": 5592,
+              "TotalAlloc": 163328440,
+              "NumGC": 37
+            }
+          ],
+          "succeeded": 10,
+          "transcript_vocabulary": {
+            "boundary.probe": 1,
+            "host.hostname": 8191,
+            "semantic_probes": [
+              "stdlib.os.openfile"
+            ]
+          }
+        }
+--- PASS: TestR19BoundedSeedCampaignMeasurement (8.40s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner	8.582s

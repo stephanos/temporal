@@ -1,0 +1,3665 @@
+--- darwin/arm64/baseline/runner
++++ darwin/arm64/current/runner
+@@ -23,8 +23,24 @@
+ func DispatchPrivateMode(mode string, stdin io.Reader, stdout io.Writer) error
+ func IsCapacityError(err error) bool
+ func IsInvalidRecoveryError(err error) bool
++func ValidateChoiceCoverage(mode CoverageMode, choiceTraceLimit uint64) error
++func ValidateChoiceTraceLimit(limit uint64) error
++func ValidateCoverage(mode CoverageMode, required []string) error
+ 
+ TYPES
++
++type ArtifactCapacityInspection struct {
++	FailureArtifacts record.Uint64String `json:"failure_artifacts"`
++	FailureBytes     record.Uint64String `json:"failure_bytes"`
++	SuccessArtifacts record.Uint64String `json:"success_artifacts"`
++	SuccessBytes     record.Uint64String `json:"success_bytes"`
++	TotalBytes       record.Uint64String `json:"total_bytes"`
++	TranscriptBytes  record.Uint64String `json:"transcript_bytes"`
++	FailureOutcome   string              `json:"failure_outcome"`
++	SuccessOutcome   string              `json:"success_outcome"`
++}
++    ArtifactCapacityInspection is the detached published artifact capacity
++    evidence.
+ 
+ type ArtifactInspection struct {
+ 	ArtifactKind     string                  `json:"artifact_kind"`
+@@ -70,6 +86,7 @@
+ 	CorpusPath            string
+ 	CorpusEntries         uint64
+ 	CorpusAdded           uint64
++	Guidance              *GuidanceSummary `json:"guidance,omitempty"`
+ 	ChoiceTrace           *ChoiceTraceSummary
+ 	ChoiceExploration     *ChoiceExplorationSummary
+ 	SimulationExploration *SimulationExplorationSummary
+@@ -79,33 +96,34 @@
+ type CampaignEventFunc func(CampaignEvent) error
+ 
+ type CampaignInspection struct {
+-	CampaignID                                string                         `json:"campaign_id"`
+-	PlanSHA256                                record.SHA256                  `json:"plan_sha256,omitempty"`
+-	Shard                                     *CampaignShard                 `json:"shard,omitempty"`
+-	Strategy                                  string                         `json:"strategy"`
+-	Selection                                 string                         `json:"selection"`
+-	SelectionCount                            uint64                         `json:"selection_count"`
+-	Attempted                                 uint64                         `json:"attempted"`
+-	Succeeded                                 uint64                         `json:"succeeded"`
+-	Failures                                  uint64                         `json:"failures"`
+-	Watchdogs                                 uint64                         `json:"watchdogs"`
+-	Cancelled                                 uint64                         `json:"cancelled"`
+-	DistinctFailures                          uint64                         `json:"distinct_failures"`
+-	RetainedSuccesses                         uint64                         `json:"retained_successes"`
+-	RetainedSuccessBytes                      uint64                         `json:"retained_success_bytes"`
+-	StopReason                                string                         `json:"stop_reason"`
+-	Journal                                   *ExecutionJournalInspection    `json:"journal,omitempty"`
+-	ArtifactCapacity                          *campaign.ArtifactCapacityPlan `json:"artifact_capacity,omitempty"`
+-	Executions                                []ExecutionInspection          `json:"executions"`
+-	FailureArtifacts                          []FailureArtifact              `json:"failure_artifacts"`
+-	SuccessArtifacts                          []SuccessArtifact              `json:"success_artifacts"`
+-	ChoiceExploration                         *ChoiceExplorationSummary      `json:"choice_exploration,omitempty"`
+-	ChoiceExplorationImplementationSHA256     record.SHA256                  `json:"choice_exploration_implementation_sha256,omitempty"`
+-	ChoiceExplorationChainSHA256              record.SHA256                  `json:"choice_exploration_chain_sha256,omitempty"`
+-	SimulationExploration                     *SimulationExplorationSummary  `json:"simulation_exploration,omitempty"`
+-	SimulationExplorationImplementationSHA256 record.SHA256                  `json:"simulation_exploration_implementation_sha256,omitempty"`
+-	SimulationExplorationChainSHA256          record.SHA256                  `json:"simulation_exploration_chain_sha256,omitempty"`
+-	RecoveryExecutions                        uint64                         `json:"recovery_executions,omitempty"`
++	CampaignID                                string                        `json:"campaign_id"`
++	PlanSHA256                                record.SHA256                 `json:"plan_sha256,omitempty"`
++	Shard                                     *CampaignShard                `json:"shard,omitempty"`
++	Strategy                                  string                        `json:"strategy"`
++	Selection                                 string                        `json:"selection"`
++	SelectionCount                            uint64                        `json:"selection_count"`
++	Attempted                                 uint64                        `json:"attempted"`
++	Succeeded                                 uint64                        `json:"succeeded"`
++	Failures                                  uint64                        `json:"failures"`
++	ReplayDivergences                         uint64                        `json:"replay_divergences,omitempty"`
++	Watchdogs                                 uint64                        `json:"watchdogs"`
++	Cancelled                                 uint64                        `json:"cancelled"`
++	DistinctFailures                          uint64                        `json:"distinct_failures"`
++	RetainedSuccesses                         uint64                        `json:"retained_successes"`
++	RetainedSuccessBytes                      uint64                        `json:"retained_success_bytes"`
++	StopReason                                string                        `json:"stop_reason"`
++	Journal                                   *ExecutionJournalInspection   `json:"journal,omitempty"`
++	ArtifactCapacity                          *ArtifactCapacityInspection   `json:"artifact_capacity,omitempty"`
++	Executions                                []ExecutionInspection         `json:"executions"`
++	FailureArtifacts                          []FailureArtifact             `json:"failure_artifacts"`
++	SuccessArtifacts                          []SuccessArtifact             `json:"success_artifacts"`
++	ChoiceExploration                         *ChoiceExplorationSummary     `json:"choice_exploration,omitempty"`
++	ChoiceExplorationImplementationSHA256     record.SHA256                 `json:"choice_exploration_implementation_sha256,omitempty"`
++	ChoiceExplorationChainSHA256              record.SHA256                 `json:"choice_exploration_chain_sha256,omitempty"`
++	SimulationExploration                     *SimulationExplorationSummary `json:"simulation_exploration,omitempty"`
++	SimulationExplorationImplementationSHA256 record.SHA256                 `json:"simulation_exploration_implementation_sha256,omitempty"`
++	SimulationExplorationChainSHA256          record.SHA256                 `json:"simulation_exploration_chain_sha256,omitempty"`
++	RecoveryExecutions                        uint64                        `json:"recovery_executions,omitempty"`
+ }
+ 
+ type CampaignLifecycleInspection struct {
+@@ -160,21 +178,21 @@
+ 	ProgressComplete  CampaignPhase = "complete"
+ )
+ type CampaignPlanInspection struct {
+-	SHA256           record.SHA256                 `json:"sha256"`
+-	BundlePath       string                        `json:"bundle_path"`
+-	Mapping          string                        `json:"mapping"`
+-	Strategy         string                        `json:"strategy"`
+-	Selection        string                        `json:"selection"`
+-	SelectionCount   uint64                        `json:"selection_count"`
+-	Parallel         uint64                        `json:"parallel"`
+-	RunnerBuild      string                        `json:"runner_build"`
+-	Toolchain        record.Toolchain              `json:"toolchain"`
+-	Target           TargetReport                  `json:"target"`
+-	Environment      []record.Environment          `json:"environment"`
+-	ReadOnlyMounts   []string                      `json:"io_ro_mounts"`
+-	MountSHA256      record.SHA256                 `json:"mount_sha256,omitempty"`
+-	Journal          campaign.ExecutionJournalPlan `json:"journal"`
+-	ArtifactCapacity campaign.ArtifactCapacityPlan `json:"artifact_capacity"`
++	SHA256           record.SHA256                    `json:"sha256"`
++	BundlePath       string                           `json:"bundle_path"`
++	Mapping          string                           `json:"mapping"`
++	Strategy         string                           `json:"strategy"`
++	Selection        string                           `json:"selection"`
++	SelectionCount   uint64                           `json:"selection_count"`
++	Parallel         uint64                           `json:"parallel"`
++	RunnerBuild      string                           `json:"runner_build"`
++	Toolchain        record.Toolchain                 `json:"toolchain"`
++	Target           TargetReport                     `json:"target"`
++	Environment      []record.Environment             `json:"environment"`
++	ReadOnlyMounts   []string                         `json:"io_ro_mounts"`
++	MountSHA256      record.SHA256                    `json:"mount_sha256,omitempty"`
++	Journal          ExecutionJournalLimitsInspection `json:"journal"`
++	ArtifactCapacity ArtifactCapacityInspection       `json:"artifact_capacity"`
+ }
+ 
+ type CampaignPlanResult struct {
+@@ -210,9 +228,11 @@
+ 	SemanticCoverage      *deterministicio.SemanticCoverage
+ 	ExecutionEvidence     *ExecutionEvidence `json:"execution_evidence"`
+ 	ExecutionElapsedNanos uint64
++	Diagnostics           *DiagnosticTraceReference `json:"diagnostics,omitempty"`
+ 	CorpusPath            string
+ 	CorpusEntries         uint64
+ 	CorpusAdded           uint64
++	Guidance              *GuidanceSummary `json:"guidance,omitempty"`
+ 	ChoiceTrace           *ChoiceTraceSummary
+ 	ChoiceExploration     *ChoiceExplorationSummary
+ 	SimulationExploration *SimulationExplorationSummary
+@@ -248,7 +268,6 @@
+ 	SupervisorCommand []string
+ 	Progress          CampaignEventFunc
+ 	ProgressInterval  time.Duration
+-	Executor          Executor
+ 	Replayer          ArtifactReplayer
+ }
+ 
+@@ -266,6 +285,7 @@
+ 	FailureBudget        uint64
+ 	OutputLimit          uint64
+ 	WorldTransitionLimit uint64
++	Diagnostics          bool
+ 	ChoiceTraceLimit     uint64
+ 	// IOTranscriptLimit bounds the I/O transcript; zero means
+ 	// deterministicio.DefaultTranscriptBytes.
+@@ -274,6 +294,7 @@
+ 	ClockTick                 string
+ 	MaxExecutions             uint64
+ 	MaxChoiceDepth            uint64
++	ChoiceStartOrdinal        uint64
+ 	MaxForcedDecisions        uint64
+ 	MaxExplorationBytes       uint64
+ 	MaxExplorationResultBytes uint64
+@@ -293,13 +314,15 @@
+ 	SuccessArtifactLimit      uint64
+ 	SuccessBytesLimit         uint64
+ 	Guide                     bool
+-	Corpus                    string
+-	GuideSnapshotSHA256       record.SHA256
+-	Progress                  CampaignEventFunc
+-	ProgressInterval          time.Duration
+-	Preparer                  Preparer
+-	Executor                  Executor
+-	Replayer                  ArtifactReplayer
++	GuideRegression           bool
++	GuideRegressionOverride   *bool
++
++	Corpus              string
++	GuideSnapshotSHA256 record.SHA256
++	Progress            CampaignEventFunc
++	ProgressInterval    time.Duration
++	Preparer            Preparer
++	Replayer            ArtifactReplayer
+ 
+ 	// Has unexported fields.
+ }
+@@ -310,6 +333,17 @@
+ 	NotExist   uint64   `json:"not_exist"`
+ 	TotalBytes uint64   `json:"total_bytes"`
+ }
++
++type ChoiceDecision struct {
++	Ordinal      uint64 `json:"ordinal"`
++	Kind         string `json:"kind"`
++	SiteOffset   uint64 `json:"site_offset"`
++	SiteMissing  bool   `json:"site_missing,omitempty"`
++	Alternatives uint32 `json:"alternatives"`
++	Selected     uint32 `json:"selected"`
++}
++    ChoiceDecision is one decision of the exact replay plan. Its ordinal is the
++    numbering choice exploration uses for its start ordinal and forced depth.
+ 
+ type ChoiceEvidence struct {
+ 	Profile                string              `json:"profile"`
+@@ -341,22 +375,24 @@
+ }
+ 
+ type ChoiceExplorationSummary struct {
+-	Parallel                int    `json:"parallel"`
+-	MaxExecutions           uint64 `json:"max_executions"`
+-	MaxChoiceDepth          uint64 `json:"max_choice_depth"`
+-	MaxExplorationBytes     uint64 `json:"max_exploration_bytes"`
+-	LogicalExecutions       uint64 `json:"logical_executions"`
+-	CommittedRounds         uint64 `json:"committed_rounds"`
+-	Pending                 uint64 `json:"pending"`
+-	PendingBytes            uint64 `json:"pending_bytes"`
+-	SeenPrefixes            uint64 `json:"seen_prefixes"`
+-	DeduplicatedOutcomes    uint64 `json:"deduplicated_outcomes"`
+-	DeepestPrefix           uint64 `json:"deepest_prefix"`
+-	OmittedByExecutionBound uint64 `json:"omitted_by_execution_bound"`
+-	OmittedByDepth          uint64 `json:"omitted_by_depth"`
+-	OmittedByCapacity       uint64 `json:"omitted_by_capacity"`
+-	StopReason              string `json:"stop_reason,omitempty"`
+-	BoundedComplete         bool   `json:"bounded_complete"`
++	Parallel                 int    `json:"parallel"`
++	MaxExecutions            uint64 `json:"max_executions"`
++	MaxChoiceDepth           uint64 `json:"max_choice_depth"`
++	StartOrdinal             uint64 `json:"start_ordinal,omitempty"`
++	MaxExplorationBytes      uint64 `json:"max_exploration_bytes"`
++	LogicalExecutions        uint64 `json:"logical_executions"`
++	CommittedRounds          uint64 `json:"committed_rounds"`
++	Pending                  uint64 `json:"pending"`
++	PendingBytes             uint64 `json:"pending_bytes"`
++	SeenPrefixes             uint64 `json:"seen_prefixes"`
++	DeduplicatedOutcomes     uint64 `json:"deduplicated_outcomes"`
++	DeepestPrefix            uint64 `json:"deepest_prefix"`
++	OmittedByExecutionBound  uint64 `json:"omitted_by_execution_bound"`
++	OmittedByDepth           uint64 `json:"omitted_by_depth"`
++	OmittedByCapacity        uint64 `json:"omitted_by_capacity"`
++	OmittedBySelectReadiness uint64 `json:"omitted_by_select_readiness"`
++	StopReason               string `json:"stop_reason,omitempty"`
++	BoundedComplete          bool   `json:"bounded_complete"`
+ }
+ 
+ type ChoiceSite struct {
+@@ -383,22 +419,23 @@
+ }
+ 
+ type Choices struct {
+-	Schema               string        `json:"schema"`
+-	Profile              string        `json:"profile"`
+-	ImplementationSHA256 record.SHA256 `json:"implementation_sha256"`
+-	Limit                uint64        `json:"limit"`
+-	PayloadBytes         uint64        `json:"payload_bytes"`
+-	SHA256               record.SHA256 `json:"sha256"`
+-	Records              uint64        `json:"records"`
+-	BranchingRecords     uint64        `json:"branching_records"`
+-	TerminalState        string        `json:"terminal_state"`
+-	TapeSHA256           record.SHA256 `json:"tape_sha256,omitempty"`
+-	Decisions            uint64        `json:"decisions"`
+-	ExactReplayAvailable bool          `json:"exact_replay_available"`
+-	Runnable             uint64        `json:"runnable"`
+-	SelectPoll           uint64        `json:"select_poll"`
+-	SelectResult         uint64        `json:"select_result"`
+-	Sites                []ChoiceSite  `json:"sites"`
++	Schema               string           `json:"schema"`
++	Profile              string           `json:"profile"`
++	ImplementationSHA256 record.SHA256    `json:"implementation_sha256"`
++	Limit                uint64           `json:"limit"`
++	PayloadBytes         uint64           `json:"payload_bytes"`
++	SHA256               record.SHA256    `json:"sha256"`
++	Records              uint64           `json:"records"`
++	BranchingRecords     uint64           `json:"branching_records"`
++	TerminalState        string           `json:"terminal_state"`
++	TapeSHA256           record.SHA256    `json:"tape_sha256,omitempty"`
++	Decisions            uint64           `json:"decisions"`
++	ExactReplayAvailable bool             `json:"exact_replay_available"`
++	Runnable             uint64           `json:"runnable"`
++	SelectPoll           uint64           `json:"select_poll"`
++	SelectResult         uint64           `json:"select_result"`
++	Sites                []ChoiceSite     `json:"sites"`
++	ReplayDecisions      []ChoiceDecision `json:"replay_decisions,omitempty"`
+ }
+ 
+ type CoverageMode string
+@@ -409,6 +446,21 @@
+ 	CoverageChoice         CoverageMode = "choice"
+ 	CoverageSemanticChoice CoverageMode = "semantic+choice"
+ )
++func NormalizeCoverage(mode CoverageMode, guided bool) CoverageMode
++
++func ParseCoverageMode(value string) (CoverageMode, error)
++
++type DiagnosticEvidence struct {
++	Profile string              `json:"profile"`
++	SHA256  record.SHA256       `json:"sha256"`
++	Records record.Uint64String `json:"records"`
++}
++
++type DiagnosticTraceReference struct {
++	Path string `json:"path"`
++	DiagnosticEvidence
++}
++
+ type ExecutionEvidence struct {
+ 	Schema                  string                           `json:"schema"`
+ 	Seed                    record.Uint64String              `json:"seed"`
+@@ -426,6 +478,7 @@
+ 	IOTranscriptRecords     record.Uint64String              `json:"io_transcript_records"`
+ 	IOTranscriptComplete    bool                             `json:"io_transcript_complete"`
+ 	VirtualTimeElapsedNanos record.Uint64String              `json:"virtual_time_elapsed_nanos"`
++	Diagnostics             *DiagnosticEvidence              `json:"diagnostics,omitempty"`
+ 	Choices                 *ChoiceEvidence                  `json:"choices,omitempty"`
+ 	World                   record.World                     `json:"world"`
+ 	ReadOnlyMountsSHA256    *record.SHA256                   `json:"read_only_mounts_sha256,omitempty"`
+@@ -434,41 +487,54 @@
+ }
+ 
+ type ExecutionInspection struct {
+-	Strategy                    string         `json:"strategy,omitempty"`
+-	Round                       *uint64        `json:"round,omitempty"`
+-	CandidateSHA256             record.SHA256  `json:"candidate_sha256,omitempty"`
+-	ParentCandidateSHA256       record.SHA256  `json:"parent_candidate_sha256,omitempty"`
+-	PrefixSHA256                record.SHA256  `json:"prefix_sha256,omitempty"`
+-	ForcedDepth                 *uint64        `json:"forced_depth,omitempty"`
+-	OutcomeSHA256               record.SHA256  `json:"outcome_sha256,omitempty"`
+-	SelectionOrdinal            uint64         `json:"selection_ordinal"`
+-	Seed                        uint64         `json:"seed"`
+-	Domain                      string         `json:"domain"`
+-	Reason                      string         `json:"reason"`
+-	Termination                 string         `json:"termination"`
+-	ElapsedNanos                uint64         `json:"elapsed_nanos"`
+-	FailureSignature            *record.SHA256 `json:"failure_signature,omitempty"`
+-	Artifact                    *string        `json:"artifact,omitempty"`
+-	SuccessArtifact             *string        `json:"success_artifact,omitempty"`
+-	SuccessArtifactBytes        *uint64        `json:"success_artifact_bytes,omitempty"`
+-	SemanticProbes              []string       `json:"semantic_probes,omitempty"`
+-	NovelSemanticProbes         []string       `json:"novel_semantic_probes,omitempty"`
+-	TranscriptSHA256            *record.SHA256 `json:"transcript_sha256,omitempty"`
+-	TranscriptRecords           *uint64        `json:"transcript_records,omitempty"`
+-	ChoiceTraceSHA256           *record.SHA256 `json:"choice_trace_sha256,omitempty"`
+-	ChoiceTraceRecords          *uint64        `json:"choice_trace_records,omitempty"`
+-	ChoiceTraceBranchingRecords *uint64        `json:"choice_trace_branching_records,omitempty"`
+-	ChoiceTraceTerminalState    *string        `json:"choice_trace_terminal_state,omitempty"`
++	Strategy                    string                     `json:"strategy,omitempty"`
++	Round                       *uint64                    `json:"round,omitempty"`
++	CandidateSHA256             record.SHA256              `json:"candidate_sha256,omitempty"`
++	ParentCandidateSHA256       record.SHA256              `json:"parent_candidate_sha256,omitempty"`
++	PrefixSHA256                record.SHA256              `json:"prefix_sha256,omitempty"`
++	ForcedDepth                 *uint64                    `json:"forced_depth,omitempty"`
++	OutcomeSHA256               record.SHA256              `json:"outcome_sha256,omitempty"`
++	Divergence                  *choice.DivergenceEvidence `json:"divergence,omitempty"`
++	SelectionOrdinal            uint64                     `json:"selection_ordinal"`
++	Seed                        uint64                     `json:"seed"`
++	Domain                      string                     `json:"domain"`
++	Reason                      string                     `json:"reason"`
++	Termination                 string                     `json:"termination"`
++	ElapsedNanos                uint64                     `json:"elapsed_nanos"`
++	FailureSignature            *record.SHA256             `json:"failure_signature,omitempty"`
++	Artifact                    *string                    `json:"artifact,omitempty"`
++	SuccessArtifact             *string                    `json:"success_artifact,omitempty"`
++	SuccessArtifactBytes        *uint64                    `json:"success_artifact_bytes,omitempty"`
++	SemanticProbes              []string                   `json:"semantic_probes,omitempty"`
++	NovelSemanticProbes         []string                   `json:"novel_semantic_probes,omitempty"`
++	TranscriptSHA256            *record.SHA256             `json:"transcript_sha256,omitempty"`
++	TranscriptRecords           *uint64                    `json:"transcript_records,omitempty"`
++	ChoiceTraceSHA256           *record.SHA256             `json:"choice_trace_sha256,omitempty"`
++	ChoiceTraceRecords          *uint64                    `json:"choice_trace_records,omitempty"`
++	ChoiceTraceBranchingRecords *uint64                    `json:"choice_trace_branching_records,omitempty"`
++	ChoiceTraceTerminalState    *string                    `json:"choice_trace_terminal_state,omitempty"`
+ }
+ 
+ type ExecutionJournalInspection struct {
+-	Schema      string                        `json:"schema"`
+-	IndexSHA256 record.SHA256                 `json:"index_sha256"`
+-	Segments    uint64                        `json:"segments"`
+-	Records     uint64                        `json:"records"`
+-	Bytes       uint64                        `json:"bytes"`
+-	Limits      campaign.ExecutionJournalPlan `json:"limits"`
+-}
++	Schema      string                           `json:"schema"`
++	IndexSHA256 record.SHA256                    `json:"index_sha256"`
++	Segments    uint64                           `json:"segments"`
++	Records     uint64                           `json:"records"`
++	Bytes       uint64                           `json:"bytes"`
++	Limits      ExecutionJournalLimitsInspection `json:"limits"`
++}
++
++type ExecutionJournalLimitsInspection struct {
++	MaximumExecutions        record.Uint64String `json:"maximum_executions"`
++	MaximumBytes             record.Uint64String `json:"maximum_bytes"`
++	SegmentBytes             record.Uint64String `json:"segment_bytes"`
++	SegmentRecords           record.Uint64String `json:"segment_records"`
++	MaximumSegments          record.Uint64String `json:"maximum_segments"`
++	MaximumPartialExecutions record.Uint64String `json:"maximum_partial_executions"`
++	CapacityOutcome          string              `json:"capacity_outcome"`
++}
++    ExecutionJournalLimitsInspection is the detached published journal capacity
++    evidence.
+ 
+ type ExecutionLimitsEvidence struct {
+ 	ExecutionTimeoutNanos record.Uint64String `json:"execution_timeout_nanos"`
+@@ -479,10 +545,6 @@
+ 	ChoiceTraceBytes      record.Uint64String `json:"choice_trace_bytes,omitempty"`
+ }
+ 
+-type Executor interface {
+-	Run(context.Context, execution.Spec) (execution.Result, error)
+-}
+-
+ type FailureArtifact struct {
+ 	Signature record.SHA256 `json:"signature"`
+ 	Path      string        `json:"path"`
+@@ -495,6 +557,14 @@
+ 	PolicyBudget FailurePolicy = "budget"
+ 	PolicyAll    FailurePolicy = "all"
+ )
++type GuidanceSummary struct {
++	Regression    bool   `json:"regression"`
++	Requested     uint64 `json:"requested"`
++	Answered      uint64 `json:"answered"`
++	Guided        uint64 `json:"guided"`
++	NewExecutions uint64 `json:"new_executions"`
++}
++
+ type HostError struct {
+ 	Reason string
+ 	Err    error
+@@ -587,7 +657,7 @@
+ 	StopReason    string                         `json:"stop_reason"`
+ }
+ 
+-func Minimize(ctx context.Context, config MinimizeSpec) (result MinimizeResult, retErr error)
++func Minimize(ctx context.Context, config MinimizeSpec) (MinimizeResult, error)
+ 
+ type MinimizeSpec struct {
+ 	ArtifactPath      string
+@@ -597,9 +667,14 @@
+ 	ToolchainRoot     string
+ 	SupervisorCommand []string
+ 	BootstrapCommand  []string
+-	Executor          Executor
+ 	Replayer          ArtifactReplayer
+-}
++	// Resume continues from the state an interrupted run left under OutputRoot.
++	Resume bool
++}
++
++type NotSingleBaseSeedError struct{}
++
++func (*NotSingleBaseSeedError) Error() string
+ 
+ type OutcomeEvidence struct {
+ 	Domain      string               `json:"domain"`
+@@ -636,10 +711,6 @@
+ 
+ func Recover(ctx context.Context, path string) (Recovery, error)
+ 
+-type ReplayExecutor interface {
+-	Run(context.Context, execution.Spec) (execution.Result, error)
+-}
+-
+ type ReplayPreflightError struct {
+ 	Err error
+ }
+@@ -657,7 +728,7 @@
+ 	ChoiceReplayStatus string
+ }
+ 
+-func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr error)
++func Replay(ctx context.Context, config ReplaySpec) (ReplayResult, error)
+ 
+ type ReplaySpec struct {
+ 	ArtifactPath  string
+@@ -668,7 +739,6 @@
+ 	ObservedDir       string
+ 	SupervisorCommand []string
+ 	BootstrapCommand  []string
+-	Executor          ReplayExecutor
+ }
+ 
+ type ResumeSpec struct {
+@@ -679,8 +749,8 @@
+ 	CoordinatorCommand []string
+ 	Progress           CampaignEventFunc
+ 	ProgressInterval   time.Duration
+-	Executor           Executor
+ 	Replayer           ArtifactReplayer
++	GuideRegression    *bool
+ }
+ 
+ type SeedIterator struct {
+@@ -695,6 +765,8 @@
+ 
+ func ParseSeeds(input string) (SeedSelection, error)
+ 
++func ParseSingleBaseSeed(seeds string) (SeedSelection, error)
++
+ func (selection SeedSelection) Count() uint64
+ 
+ func (selection SeedSelection) Iterator() *SeedIterator
+@@ -702,6 +774,10 @@
+ func (selection SeedSelection) SeedAt(ordinal uint64) (uint64, bool)
+ 
+ func (selection SeedSelection) String() string
++
++type SemanticCoverageRequiredError struct{}
++
++func (*SemanticCoverageRequiredError) Error() string
+ 
+ type SimulationCandidateInspection struct {
+ 	SHA256       record.SHA256                  `json:"sha256"`
+@@ -806,6 +882,7 @@
+ 	StopDimensionDepthComplete  StopReason = "dimension_depth_complete"
+ 	StopMaxExecutions           StopReason = "max_executions"
+ 	StopExplorationCapacity     StopReason = "exploration_capacity"
++	StopChoiceStartUnreached    StopReason = "choice_start_unreached"
+ )
+ type Strategy string
+ 
+@@ -814,6 +891,10 @@
+ 	StrategyChoiceExploration     Strategy = "choice-exploration"
+ 	StrategySimulationExploration Strategy = "simulation-exploration"
+ )
++func NormalizeStrategy(strategy Strategy) Strategy
++
++func ParseStrategy(value string) (Strategy, error)
++
+ type StreamReport struct {
+ 	FullSHA256     record.SHA256 `json:"full_sha256"`
+ 	TotalBytes     uint64        `json:"total_bytes"`
+@@ -840,6 +921,11 @@
+ 	BuildInfo          record.BuildInfo                 `json:"build_info"`
+ 	CapabilityMode     string                           `json:"capability_mode"`
+ 	CapabilityManifest *record.TargetCapabilityManifest `json:"capability_manifest,omitempty"`
++	// Sharing is "shared" when the inspected artifact's target file has other
++	// hard links, as a target linked to a store's pool has, and "private" when
++	// the artifact holds the only link. It is read from the link count alone:
++	// the pool is not looked up, so a pooled store's fallback copy is "private".
++	Sharing string `json:"sharing,omitempty"`
+ }
+ 
+ type Transcript struct {
+
+--- linux/amd64/baseline/runner
++++ linux/amd64/current/runner
+@@ -23,8 +23,24 @@
+ func DispatchPrivateMode(mode string, stdin io.Reader, stdout io.Writer) error
+ func IsCapacityError(err error) bool
+ func IsInvalidRecoveryError(err error) bool
++func ValidateChoiceCoverage(mode CoverageMode, choiceTraceLimit uint64) error
++func ValidateChoiceTraceLimit(limit uint64) error
++func ValidateCoverage(mode CoverageMode, required []string) error
+ 
+ TYPES
++
++type ArtifactCapacityInspection struct {
++	FailureArtifacts record.Uint64String `json:"failure_artifacts"`
++	FailureBytes     record.Uint64String `json:"failure_bytes"`
++	SuccessArtifacts record.Uint64String `json:"success_artifacts"`
++	SuccessBytes     record.Uint64String `json:"success_bytes"`
++	TotalBytes       record.Uint64String `json:"total_bytes"`
++	TranscriptBytes  record.Uint64String `json:"transcript_bytes"`
++	FailureOutcome   string              `json:"failure_outcome"`
++	SuccessOutcome   string              `json:"success_outcome"`
++}
++    ArtifactCapacityInspection is the detached published artifact capacity
++    evidence.
+ 
+ type ArtifactInspection struct {
+ 	ArtifactKind     string                  `json:"artifact_kind"`
+@@ -70,6 +86,7 @@
+ 	CorpusPath            string
+ 	CorpusEntries         uint64
+ 	CorpusAdded           uint64
++	Guidance              *GuidanceSummary `json:"guidance,omitempty"`
+ 	ChoiceTrace           *ChoiceTraceSummary
+ 	ChoiceExploration     *ChoiceExplorationSummary
+ 	SimulationExploration *SimulationExplorationSummary
+@@ -79,33 +96,34 @@
+ type CampaignEventFunc func(CampaignEvent) error
+ 
+ type CampaignInspection struct {
+-	CampaignID                                string                         `json:"campaign_id"`
+-	PlanSHA256                                record.SHA256                  `json:"plan_sha256,omitempty"`
+-	Shard                                     *CampaignShard                 `json:"shard,omitempty"`
+-	Strategy                                  string                         `json:"strategy"`
+-	Selection                                 string                         `json:"selection"`
+-	SelectionCount                            uint64                         `json:"selection_count"`
+-	Attempted                                 uint64                         `json:"attempted"`
+-	Succeeded                                 uint64                         `json:"succeeded"`
+-	Failures                                  uint64                         `json:"failures"`
+-	Watchdogs                                 uint64                         `json:"watchdogs"`
+-	Cancelled                                 uint64                         `json:"cancelled"`
+-	DistinctFailures                          uint64                         `json:"distinct_failures"`
+-	RetainedSuccesses                         uint64                         `json:"retained_successes"`
+-	RetainedSuccessBytes                      uint64                         `json:"retained_success_bytes"`
+-	StopReason                                string                         `json:"stop_reason"`
+-	Journal                                   *ExecutionJournalInspection    `json:"journal,omitempty"`
+-	ArtifactCapacity                          *campaign.ArtifactCapacityPlan `json:"artifact_capacity,omitempty"`
+-	Executions                                []ExecutionInspection          `json:"executions"`
+-	FailureArtifacts                          []FailureArtifact              `json:"failure_artifacts"`
+-	SuccessArtifacts                          []SuccessArtifact              `json:"success_artifacts"`
+-	ChoiceExploration                         *ChoiceExplorationSummary      `json:"choice_exploration,omitempty"`
+-	ChoiceExplorationImplementationSHA256     record.SHA256                  `json:"choice_exploration_implementation_sha256,omitempty"`
+-	ChoiceExplorationChainSHA256              record.SHA256                  `json:"choice_exploration_chain_sha256,omitempty"`
+-	SimulationExploration                     *SimulationExplorationSummary  `json:"simulation_exploration,omitempty"`
+-	SimulationExplorationImplementationSHA256 record.SHA256                  `json:"simulation_exploration_implementation_sha256,omitempty"`
+-	SimulationExplorationChainSHA256          record.SHA256                  `json:"simulation_exploration_chain_sha256,omitempty"`
+-	RecoveryExecutions                        uint64                         `json:"recovery_executions,omitempty"`
++	CampaignID                                string                        `json:"campaign_id"`
++	PlanSHA256                                record.SHA256                 `json:"plan_sha256,omitempty"`
++	Shard                                     *CampaignShard                `json:"shard,omitempty"`
++	Strategy                                  string                        `json:"strategy"`
++	Selection                                 string                        `json:"selection"`
++	SelectionCount                            uint64                        `json:"selection_count"`
++	Attempted                                 uint64                        `json:"attempted"`
++	Succeeded                                 uint64                        `json:"succeeded"`
++	Failures                                  uint64                        `json:"failures"`
++	ReplayDivergences                         uint64                        `json:"replay_divergences,omitempty"`
++	Watchdogs                                 uint64                        `json:"watchdogs"`
++	Cancelled                                 uint64                        `json:"cancelled"`
++	DistinctFailures                          uint64                        `json:"distinct_failures"`
++	RetainedSuccesses                         uint64                        `json:"retained_successes"`
++	RetainedSuccessBytes                      uint64                        `json:"retained_success_bytes"`
++	StopReason                                string                        `json:"stop_reason"`
++	Journal                                   *ExecutionJournalInspection   `json:"journal,omitempty"`
++	ArtifactCapacity                          *ArtifactCapacityInspection   `json:"artifact_capacity,omitempty"`
++	Executions                                []ExecutionInspection         `json:"executions"`
++	FailureArtifacts                          []FailureArtifact             `json:"failure_artifacts"`
++	SuccessArtifacts                          []SuccessArtifact             `json:"success_artifacts"`
++	ChoiceExploration                         *ChoiceExplorationSummary     `json:"choice_exploration,omitempty"`
++	ChoiceExplorationImplementationSHA256     record.SHA256                 `json:"choice_exploration_implementation_sha256,omitempty"`
++	ChoiceExplorationChainSHA256              record.SHA256                 `json:"choice_exploration_chain_sha256,omitempty"`
++	SimulationExploration                     *SimulationExplorationSummary `json:"simulation_exploration,omitempty"`
++	SimulationExplorationImplementationSHA256 record.SHA256                 `json:"simulation_exploration_implementation_sha256,omitempty"`
++	SimulationExplorationChainSHA256          record.SHA256                 `json:"simulation_exploration_chain_sha256,omitempty"`
++	RecoveryExecutions                        uint64                        `json:"recovery_executions,omitempty"`
+ }
+ 
+ type CampaignLifecycleInspection struct {
+@@ -160,21 +178,21 @@
+ 	ProgressComplete  CampaignPhase = "complete"
+ )
+ type CampaignPlanInspection struct {
+-	SHA256           record.SHA256                 `json:"sha256"`
+-	BundlePath       string                        `json:"bundle_path"`
+-	Mapping          string                        `json:"mapping"`
+-	Strategy         string                        `json:"strategy"`
+-	Selection        string                        `json:"selection"`
+-	SelectionCount   uint64                        `json:"selection_count"`
+-	Parallel         uint64                        `json:"parallel"`
+-	RunnerBuild      string                        `json:"runner_build"`
+-	Toolchain        record.Toolchain              `json:"toolchain"`
+-	Target           TargetReport                  `json:"target"`
+-	Environment      []record.Environment          `json:"environment"`
+-	ReadOnlyMounts   []string                      `json:"io_ro_mounts"`
+-	MountSHA256      record.SHA256                 `json:"mount_sha256,omitempty"`
+-	Journal          campaign.ExecutionJournalPlan `json:"journal"`
+-	ArtifactCapacity campaign.ArtifactCapacityPlan `json:"artifact_capacity"`
++	SHA256           record.SHA256                    `json:"sha256"`
++	BundlePath       string                           `json:"bundle_path"`
++	Mapping          string                           `json:"mapping"`
++	Strategy         string                           `json:"strategy"`
++	Selection        string                           `json:"selection"`
++	SelectionCount   uint64                           `json:"selection_count"`
++	Parallel         uint64                           `json:"parallel"`
++	RunnerBuild      string                           `json:"runner_build"`
++	Toolchain        record.Toolchain                 `json:"toolchain"`
++	Target           TargetReport                     `json:"target"`
++	Environment      []record.Environment             `json:"environment"`
++	ReadOnlyMounts   []string                         `json:"io_ro_mounts"`
++	MountSHA256      record.SHA256                    `json:"mount_sha256,omitempty"`
++	Journal          ExecutionJournalLimitsInspection `json:"journal"`
++	ArtifactCapacity ArtifactCapacityInspection       `json:"artifact_capacity"`
+ }
+ 
+ type CampaignPlanResult struct {
+@@ -210,9 +228,11 @@
+ 	SemanticCoverage      *deterministicio.SemanticCoverage
+ 	ExecutionEvidence     *ExecutionEvidence `json:"execution_evidence"`
+ 	ExecutionElapsedNanos uint64
++	Diagnostics           *DiagnosticTraceReference `json:"diagnostics,omitempty"`
+ 	CorpusPath            string
+ 	CorpusEntries         uint64
+ 	CorpusAdded           uint64
++	Guidance              *GuidanceSummary `json:"guidance,omitempty"`
+ 	ChoiceTrace           *ChoiceTraceSummary
+ 	ChoiceExploration     *ChoiceExplorationSummary
+ 	SimulationExploration *SimulationExplorationSummary
+@@ -248,7 +268,6 @@
+ 	SupervisorCommand []string
+ 	Progress          CampaignEventFunc
+ 	ProgressInterval  time.Duration
+-	Executor          Executor
+ 	Replayer          ArtifactReplayer
+ }
+ 
+@@ -266,6 +285,7 @@
+ 	FailureBudget        uint64
+ 	OutputLimit          uint64
+ 	WorldTransitionLimit uint64
++	Diagnostics          bool
+ 	ChoiceTraceLimit     uint64
+ 	// IOTranscriptLimit bounds the I/O transcript; zero means
+ 	// deterministicio.DefaultTranscriptBytes.
+@@ -274,6 +294,7 @@
+ 	ClockTick                 string
+ 	MaxExecutions             uint64
+ 	MaxChoiceDepth            uint64
++	ChoiceStartOrdinal        uint64
+ 	MaxForcedDecisions        uint64
+ 	MaxExplorationBytes       uint64
+ 	MaxExplorationResultBytes uint64
+@@ -293,13 +314,15 @@
+ 	SuccessArtifactLimit      uint64
+ 	SuccessBytesLimit         uint64
+ 	Guide                     bool
+-	Corpus                    string
+-	GuideSnapshotSHA256       record.SHA256
+-	Progress                  CampaignEventFunc
+-	ProgressInterval          time.Duration
+-	Preparer                  Preparer
+-	Executor                  Executor
+-	Replayer                  ArtifactReplayer
++	GuideRegression           bool
++	GuideRegressionOverride   *bool
++
++	Corpus              string
++	GuideSnapshotSHA256 record.SHA256
++	Progress            CampaignEventFunc
++	ProgressInterval    time.Duration
++	Preparer            Preparer
++	Replayer            ArtifactReplayer
+ 
+ 	// Has unexported fields.
+ }
+@@ -310,6 +333,17 @@
+ 	NotExist   uint64   `json:"not_exist"`
+ 	TotalBytes uint64   `json:"total_bytes"`
+ }
++
++type ChoiceDecision struct {
++	Ordinal      uint64 `json:"ordinal"`
++	Kind         string `json:"kind"`
++	SiteOffset   uint64 `json:"site_offset"`
++	SiteMissing  bool   `json:"site_missing,omitempty"`
++	Alternatives uint32 `json:"alternatives"`
++	Selected     uint32 `json:"selected"`
++}
++    ChoiceDecision is one decision of the exact replay plan. Its ordinal is the
++    numbering choice exploration uses for its start ordinal and forced depth.
+ 
+ type ChoiceEvidence struct {
+ 	Profile                string              `json:"profile"`
+@@ -341,22 +375,24 @@
+ }
+ 
+ type ChoiceExplorationSummary struct {
+-	Parallel                int    `json:"parallel"`
+-	MaxExecutions           uint64 `json:"max_executions"`
+-	MaxChoiceDepth          uint64 `json:"max_choice_depth"`
+-	MaxExplorationBytes     uint64 `json:"max_exploration_bytes"`
+-	LogicalExecutions       uint64 `json:"logical_executions"`
+-	CommittedRounds         uint64 `json:"committed_rounds"`
+-	Pending                 uint64 `json:"pending"`
+-	PendingBytes            uint64 `json:"pending_bytes"`
+-	SeenPrefixes            uint64 `json:"seen_prefixes"`
+-	DeduplicatedOutcomes    uint64 `json:"deduplicated_outcomes"`
+-	DeepestPrefix           uint64 `json:"deepest_prefix"`
+-	OmittedByExecutionBound uint64 `json:"omitted_by_execution_bound"`
+-	OmittedByDepth          uint64 `json:"omitted_by_depth"`
+-	OmittedByCapacity       uint64 `json:"omitted_by_capacity"`
+-	StopReason              string `json:"stop_reason,omitempty"`
+-	BoundedComplete         bool   `json:"bounded_complete"`
++	Parallel                 int    `json:"parallel"`
++	MaxExecutions            uint64 `json:"max_executions"`
++	MaxChoiceDepth           uint64 `json:"max_choice_depth"`
++	StartOrdinal             uint64 `json:"start_ordinal,omitempty"`
++	MaxExplorationBytes      uint64 `json:"max_exploration_bytes"`
++	LogicalExecutions        uint64 `json:"logical_executions"`
++	CommittedRounds          uint64 `json:"committed_rounds"`
++	Pending                  uint64 `json:"pending"`
++	PendingBytes             uint64 `json:"pending_bytes"`
++	SeenPrefixes             uint64 `json:"seen_prefixes"`
++	DeduplicatedOutcomes     uint64 `json:"deduplicated_outcomes"`
++	DeepestPrefix            uint64 `json:"deepest_prefix"`
++	OmittedByExecutionBound  uint64 `json:"omitted_by_execution_bound"`
++	OmittedByDepth           uint64 `json:"omitted_by_depth"`
++	OmittedByCapacity        uint64 `json:"omitted_by_capacity"`
++	OmittedBySelectReadiness uint64 `json:"omitted_by_select_readiness"`
++	StopReason               string `json:"stop_reason,omitempty"`
++	BoundedComplete          bool   `json:"bounded_complete"`
+ }
+ 
+ type ChoiceSite struct {
+@@ -383,22 +419,23 @@
+ }
+ 
+ type Choices struct {
+-	Schema               string        `json:"schema"`
+-	Profile              string        `json:"profile"`
+-	ImplementationSHA256 record.SHA256 `json:"implementation_sha256"`
+-	Limit                uint64        `json:"limit"`
+-	PayloadBytes         uint64        `json:"payload_bytes"`
+-	SHA256               record.SHA256 `json:"sha256"`
+-	Records              uint64        `json:"records"`
+-	BranchingRecords     uint64        `json:"branching_records"`
+-	TerminalState        string        `json:"terminal_state"`
+-	TapeSHA256           record.SHA256 `json:"tape_sha256,omitempty"`
+-	Decisions            uint64        `json:"decisions"`
+-	ExactReplayAvailable bool          `json:"exact_replay_available"`
+-	Runnable             uint64        `json:"runnable"`
+-	SelectPoll           uint64        `json:"select_poll"`
+-	SelectResult         uint64        `json:"select_result"`
+-	Sites                []ChoiceSite  `json:"sites"`
++	Schema               string           `json:"schema"`
++	Profile              string           `json:"profile"`
++	ImplementationSHA256 record.SHA256    `json:"implementation_sha256"`
++	Limit                uint64           `json:"limit"`
++	PayloadBytes         uint64           `json:"payload_bytes"`
++	SHA256               record.SHA256    `json:"sha256"`
++	Records              uint64           `json:"records"`
++	BranchingRecords     uint64           `json:"branching_records"`
++	TerminalState        string           `json:"terminal_state"`
++	TapeSHA256           record.SHA256    `json:"tape_sha256,omitempty"`
++	Decisions            uint64           `json:"decisions"`
++	ExactReplayAvailable bool             `json:"exact_replay_available"`
++	Runnable             uint64           `json:"runnable"`
++	SelectPoll           uint64           `json:"select_poll"`
++	SelectResult         uint64           `json:"select_result"`
++	Sites                []ChoiceSite     `json:"sites"`
++	ReplayDecisions      []ChoiceDecision `json:"replay_decisions,omitempty"`
+ }
+ 
+ type CoverageMode string
+@@ -409,6 +446,21 @@
+ 	CoverageChoice         CoverageMode = "choice"
+ 	CoverageSemanticChoice CoverageMode = "semantic+choice"
+ )
++func NormalizeCoverage(mode CoverageMode, guided bool) CoverageMode
++
++func ParseCoverageMode(value string) (CoverageMode, error)
++
++type DiagnosticEvidence struct {
++	Profile string              `json:"profile"`
++	SHA256  record.SHA256       `json:"sha256"`
++	Records record.Uint64String `json:"records"`
++}
++
++type DiagnosticTraceReference struct {
++	Path string `json:"path"`
++	DiagnosticEvidence
++}
++
+ type ExecutionEvidence struct {
+ 	Schema                  string                           `json:"schema"`
+ 	Seed                    record.Uint64String              `json:"seed"`
+@@ -426,6 +478,7 @@
+ 	IOTranscriptRecords     record.Uint64String              `json:"io_transcript_records"`
+ 	IOTranscriptComplete    bool                             `json:"io_transcript_complete"`
+ 	VirtualTimeElapsedNanos record.Uint64String              `json:"virtual_time_elapsed_nanos"`
++	Diagnostics             *DiagnosticEvidence              `json:"diagnostics,omitempty"`
+ 	Choices                 *ChoiceEvidence                  `json:"choices,omitempty"`
+ 	World                   record.World                     `json:"world"`
+ 	ReadOnlyMountsSHA256    *record.SHA256                   `json:"read_only_mounts_sha256,omitempty"`
+@@ -434,41 +487,54 @@
+ }
+ 
+ type ExecutionInspection struct {
+-	Strategy                    string         `json:"strategy,omitempty"`
+-	Round                       *uint64        `json:"round,omitempty"`
+-	CandidateSHA256             record.SHA256  `json:"candidate_sha256,omitempty"`
+-	ParentCandidateSHA256       record.SHA256  `json:"parent_candidate_sha256,omitempty"`
+-	PrefixSHA256                record.SHA256  `json:"prefix_sha256,omitempty"`
+-	ForcedDepth                 *uint64        `json:"forced_depth,omitempty"`
+-	OutcomeSHA256               record.SHA256  `json:"outcome_sha256,omitempty"`
+-	SelectionOrdinal            uint64         `json:"selection_ordinal"`
+-	Seed                        uint64         `json:"seed"`
+-	Domain                      string         `json:"domain"`
+-	Reason                      string         `json:"reason"`
+-	Termination                 string         `json:"termination"`
+-	ElapsedNanos                uint64         `json:"elapsed_nanos"`
+-	FailureSignature            *record.SHA256 `json:"failure_signature,omitempty"`
+-	Artifact                    *string        `json:"artifact,omitempty"`
+-	SuccessArtifact             *string        `json:"success_artifact,omitempty"`
+-	SuccessArtifactBytes        *uint64        `json:"success_artifact_bytes,omitempty"`
+-	SemanticProbes              []string       `json:"semantic_probes,omitempty"`
+-	NovelSemanticProbes         []string       `json:"novel_semantic_probes,omitempty"`
+-	TranscriptSHA256            *record.SHA256 `json:"transcript_sha256,omitempty"`
+-	TranscriptRecords           *uint64        `json:"transcript_records,omitempty"`
+-	ChoiceTraceSHA256           *record.SHA256 `json:"choice_trace_sha256,omitempty"`
+-	ChoiceTraceRecords          *uint64        `json:"choice_trace_records,omitempty"`
+-	ChoiceTraceBranchingRecords *uint64        `json:"choice_trace_branching_records,omitempty"`
+-	ChoiceTraceTerminalState    *string        `json:"choice_trace_terminal_state,omitempty"`
++	Strategy                    string                     `json:"strategy,omitempty"`
++	Round                       *uint64                    `json:"round,omitempty"`
++	CandidateSHA256             record.SHA256              `json:"candidate_sha256,omitempty"`
++	ParentCandidateSHA256       record.SHA256              `json:"parent_candidate_sha256,omitempty"`
++	PrefixSHA256                record.SHA256              `json:"prefix_sha256,omitempty"`
++	ForcedDepth                 *uint64                    `json:"forced_depth,omitempty"`
++	OutcomeSHA256               record.SHA256              `json:"outcome_sha256,omitempty"`
++	Divergence                  *choice.DivergenceEvidence `json:"divergence,omitempty"`
++	SelectionOrdinal            uint64                     `json:"selection_ordinal"`
++	Seed                        uint64                     `json:"seed"`
++	Domain                      string                     `json:"domain"`
++	Reason                      string                     `json:"reason"`
++	Termination                 string                     `json:"termination"`
++	ElapsedNanos                uint64                     `json:"elapsed_nanos"`
++	FailureSignature            *record.SHA256             `json:"failure_signature,omitempty"`
++	Artifact                    *string                    `json:"artifact,omitempty"`
++	SuccessArtifact             *string                    `json:"success_artifact,omitempty"`
++	SuccessArtifactBytes        *uint64                    `json:"success_artifact_bytes,omitempty"`
++	SemanticProbes              []string                   `json:"semantic_probes,omitempty"`
++	NovelSemanticProbes         []string                   `json:"novel_semantic_probes,omitempty"`
++	TranscriptSHA256            *record.SHA256             `json:"transcript_sha256,omitempty"`
++	TranscriptRecords           *uint64                    `json:"transcript_records,omitempty"`
++	ChoiceTraceSHA256           *record.SHA256             `json:"choice_trace_sha256,omitempty"`
++	ChoiceTraceRecords          *uint64                    `json:"choice_trace_records,omitempty"`
++	ChoiceTraceBranchingRecords *uint64                    `json:"choice_trace_branching_records,omitempty"`
++	ChoiceTraceTerminalState    *string                    `json:"choice_trace_terminal_state,omitempty"`
+ }
+ 
+ type ExecutionJournalInspection struct {
+-	Schema      string                        `json:"schema"`
+-	IndexSHA256 record.SHA256                 `json:"index_sha256"`
+-	Segments    uint64                        `json:"segments"`
+-	Records     uint64                        `json:"records"`
+-	Bytes       uint64                        `json:"bytes"`
+-	Limits      campaign.ExecutionJournalPlan `json:"limits"`
+-}
++	Schema      string                           `json:"schema"`
++	IndexSHA256 record.SHA256                    `json:"index_sha256"`
++	Segments    uint64                           `json:"segments"`
++	Records     uint64                           `json:"records"`
++	Bytes       uint64                           `json:"bytes"`
++	Limits      ExecutionJournalLimitsInspection `json:"limits"`
++}
++
++type ExecutionJournalLimitsInspection struct {
++	MaximumExecutions        record.Uint64String `json:"maximum_executions"`
++	MaximumBytes             record.Uint64String `json:"maximum_bytes"`
++	SegmentBytes             record.Uint64String `json:"segment_bytes"`
++	SegmentRecords           record.Uint64String `json:"segment_records"`
++	MaximumSegments          record.Uint64String `json:"maximum_segments"`
++	MaximumPartialExecutions record.Uint64String `json:"maximum_partial_executions"`
++	CapacityOutcome          string              `json:"capacity_outcome"`
++}
++    ExecutionJournalLimitsInspection is the detached published journal capacity
++    evidence.
+ 
+ type ExecutionLimitsEvidence struct {
+ 	ExecutionTimeoutNanos record.Uint64String `json:"execution_timeout_nanos"`
+@@ -479,10 +545,6 @@
+ 	ChoiceTraceBytes      record.Uint64String `json:"choice_trace_bytes,omitempty"`
+ }
+ 
+-type Executor interface {
+-	Run(context.Context, execution.Spec) (execution.Result, error)
+-}
+-
+ type FailureArtifact struct {
+ 	Signature record.SHA256 `json:"signature"`
+ 	Path      string        `json:"path"`
+@@ -495,6 +557,14 @@
+ 	PolicyBudget FailurePolicy = "budget"
+ 	PolicyAll    FailurePolicy = "all"
+ )
++type GuidanceSummary struct {
++	Regression    bool   `json:"regression"`
++	Requested     uint64 `json:"requested"`
++	Answered      uint64 `json:"answered"`
++	Guided        uint64 `json:"guided"`
++	NewExecutions uint64 `json:"new_executions"`
++}
++
+ type HostError struct {
+ 	Reason string
+ 	Err    error
+@@ -587,7 +657,7 @@
+ 	StopReason    string                         `json:"stop_reason"`
+ }
+ 
+-func Minimize(ctx context.Context, config MinimizeSpec) (result MinimizeResult, retErr error)
++func Minimize(ctx context.Context, config MinimizeSpec) (MinimizeResult, error)
+ 
+ type MinimizeSpec struct {
+ 	ArtifactPath      string
+@@ -597,9 +667,14 @@
+ 	ToolchainRoot     string
+ 	SupervisorCommand []string
+ 	BootstrapCommand  []string
+-	Executor          Executor
+ 	Replayer          ArtifactReplayer
+-}
++	// Resume continues from the state an interrupted run left under OutputRoot.
++	Resume bool
++}
++
++type NotSingleBaseSeedError struct{}
++
++func (*NotSingleBaseSeedError) Error() string
+ 
+ type OutcomeEvidence struct {
+ 	Domain      string               `json:"domain"`
+@@ -636,10 +711,6 @@
+ 
+ func Recover(ctx context.Context, path string) (Recovery, error)
+ 
+-type ReplayExecutor interface {
+-	Run(context.Context, execution.Spec) (execution.Result, error)
+-}
+-
+ type ReplayPreflightError struct {
+ 	Err error
+ }
+@@ -657,7 +728,7 @@
+ 	ChoiceReplayStatus string
+ }
+ 
+-func Replay(ctx context.Context, config ReplaySpec) (result ReplayResult, retErr error)
++func Replay(ctx context.Context, config ReplaySpec) (ReplayResult, error)
+ 
+ type ReplaySpec struct {
+ 	ArtifactPath  string
+@@ -668,7 +739,6 @@
+ 	ObservedDir       string
+ 	SupervisorCommand []string
+ 	BootstrapCommand  []string
+-	Executor          ReplayExecutor
+ }
+ 
+ type ResumeSpec struct {
+@@ -679,8 +749,8 @@
+ 	CoordinatorCommand []string
+ 	Progress           CampaignEventFunc
+ 	ProgressInterval   time.Duration
+-	Executor           Executor
+ 	Replayer           ArtifactReplayer
++	GuideRegression    *bool
+ }
+ 
+ type SeedIterator struct {
+@@ -695,6 +765,8 @@
+ 
+ func ParseSeeds(input string) (SeedSelection, error)
+ 
++func ParseSingleBaseSeed(seeds string) (SeedSelection, error)
++
+ func (selection SeedSelection) Count() uint64
+ 
+ func (selection SeedSelection) Iterator() *SeedIterator
+@@ -702,6 +774,10 @@
+ func (selection SeedSelection) SeedAt(ordinal uint64) (uint64, bool)
+ 
+ func (selection SeedSelection) String() string
++
++type SemanticCoverageRequiredError struct{}
++
++func (*SemanticCoverageRequiredError) Error() string
+ 
+ type SimulationCandidateInspection struct {
+ 	SHA256       record.SHA256                  `json:"sha256"`
+@@ -806,6 +882,7 @@
+ 	StopDimensionDepthComplete  StopReason = "dimension_depth_complete"
+ 	StopMaxExecutions           StopReason = "max_executions"
+ 	StopExplorationCapacity     StopReason = "exploration_capacity"
++	StopChoiceStartUnreached    StopReason = "choice_start_unreached"
+ )
+ type Strategy string
+ 
+@@ -814,6 +891,10 @@
+ 	StrategyChoiceExploration     Strategy = "choice-exploration"
+ 	StrategySimulationExploration Strategy = "simulation-exploration"
+ )
++func NormalizeStrategy(strategy Strategy) Strategy
++
++func ParseStrategy(value string) (Strategy, error)
++
+ type StreamReport struct {
+ 	FullSHA256     record.SHA256 `json:"full_sha256"`
+ 	TotalBytes     uint64        `json:"total_bytes"`
+@@ -840,6 +921,11 @@
+ 	BuildInfo          record.BuildInfo                 `json:"build_info"`
+ 	CapabilityMode     string                           `json:"capability_mode"`
+ 	CapabilityManifest *record.TargetCapabilityManifest `json:"capability_manifest,omitempty"`
++	// Sharing is "shared" when the inspected artifact's target file has other
++	// hard links, as a target linked to a store's pool has, and "private" when
++	// the artifact holds the only link. It is read from the link count alone:
++	// the pool is not looked up, so a pooled store's fallback copy is "private".
++	Sharing string `json:"sharing,omitempty"`
+ }
+ 
+ type Transcript struct {
+
+--- darwin/arm64/baseline/artifact
++++ darwin/arm64/current/artifact
+@@ -3,27 +3,44 @@
+ 
+ FUNCTIONS
+ 
+-func CopyPayload(opened Artifact, relativePath, destination string, destinationMode os.FileMode) error
+-func OpenPayload(opened Artifact, relativePath string, maximum uint64) (*os.File, error)
+-func ReadPayload(opened Artifact, relativePath string, maximum uint64) ([]byte, error)
++func PruneTargetPool(pool string, exclusive bool) (retErr error)
++    PruneTargetPool removes the pool entries that no artifact shares. An entry
++    is shared while it has another link, wherever that link is, so pruning
++    never takes the target of a retained artifact and needs no list of them.
++    Entries whose link count the platform does not report are kept.
++
++    exclusive says the caller is the pool owner's only writer. Staging
++    directories are then leftovers of a publisher that died and are removed too;
++    without it they may belong to a live publisher and stay.
++
+ func RenameNoReplace(oldPath, newPath string) error
++func TargetPool(owner string) string
++    TargetPool is the pool of the directory that owns one: the artifacts
++    root that holds every campaign, a corpus, or a minimizer output root.
++    It is never below a store root that is staged and renamed on commit,
++    because the rename would carry the pool away from the stores that share it.
++    A store that publishes in place, as the minimizer's output root does,
++    may hold its pool.
++
+ 
+ TYPES
+ 
+ type Artifact struct {
+-	Path        string
+-	Manifest    record.ExecutionRecord
++	Path     string
++	Manifest record.ExecutionRecord
++	// StoredBytes counts the manifest and every listed file, the target
++	// included, whether or not the store shares that target. RetainedBytes
++	// states the rule and sums artifacts that are kept together.
+ 	StoredBytes uint64
+-	// Has unexported fields.
+-}
+-
+-func OpenArtifact(path string) (Artifact, error)
++	// TargetSharing is set by publication and is empty on an opened artifact.
++	TargetSharing TargetSharing
++}
++    Artifact is a detached reference to an artifact in a store: where it is and
++    what its manifest records. It holds no open resource, so copying or dropping
++    it releases nothing; OpenArtifact returns the owned handle (Opened) that
++    reads payloads.
+ 
+ func PublishArtifact(store Store, input ArtifactInput) (Artifact, error)
+-
+-func (opened *Artifact) Close() error
+-
+-func (opened Artifact) Detached() Artifact
+ 
+ type ArtifactInput struct {
+ 	Manifest       record.ExecutionRecord
+@@ -44,6 +61,57 @@
+ 
+ func (err *CapacityError) Error() string
+ 
++type Opened struct {
++	// Has unexported fields.
++}
++    Opened is an artifact whose directory is pinned open for validated payload
++    access. The caller that opened it owns it and must Close it. Its manifest is
++    private: Manifest and Snapshot return copies, so no caller can change what
++    payload access validates against. Path, Manifest, StoredBytes and Snapshot
++    stay available after Close; payload access fails.
++
++func OpenArtifact(path string) (*Opened, error)
++    OpenArtifact validates the artifact directory at path against its manifest
++    and returns a handle pinned to that directory.
++
++func (opened *Opened) Close() error
++    Close releases the pinned directory. Closing again, or closing a nil handle,
++    does nothing.
++
++func (opened *Opened) CopyPayload(relativePath, destination string, destinationMode os.FileMode) error
++    CopyPayload copies a listed payload to a new file at destination and checks
++    the copy against the manifest.
++
++func (opened *Opened) Manifest() record.ExecutionRecord
++    Manifest returns a copy of the validated manifest that shares no memory with
++    the handle.
++
++func (opened *Opened) OpenPayload(relativePath string, maximum uint64) (*os.File, error)
++    OpenPayload opens a listed payload of at most maximum bytes after checking
++    its mode, size and SHA-256 against the manifest.
++
++func (opened *Opened) Path() string
++    Path is the directory the artifact was opened at.
++
++func (opened *Opened) ReadPayload(relativePath string, maximum uint64) ([]byte, error)
++    ReadPayload reads a listed payload of at most maximum bytes and checks it
++    against the manifest.
++
++func (opened *Opened) Snapshot() Artifact
++    Snapshot returns a detached reference to the opened artifact. It holds no
++    open resource and its manifest is a copy, so changing it cannot change the
++    handle. Its TargetSharing is empty, as only publication sets it.
++
++func (opened *Opened) StoredBytes() uint64
++    StoredBytes counts the manifest and every listed file
++    (Artifact.StoredBytes).
++
++func (opened *Opened) TargetSharing() (TargetSharing, error)
++    TargetSharing reports how the opened artifact holds its target on disk:
++    TargetShared when the file has other links, as a pool entry and the
++    artifacts linked to it do, and TargetPrivate when the artifact holds the
++    only link. It is empty where the platform does not report link counts.
++
+ type Payload struct {
+ 	Path       string
+ 	Mode       os.FileMode
+@@ -58,6 +126,65 @@
+ 	Payloads []Payload
+ }
+ 
++type RetainedBytes struct {
++	// Has unexported fields.
++}
++    RetainedBytes applies the stored-bytes rule to artifacts that are kept
++    together.
++
++    An artifact's stored bytes (Artifact.StoredBytes) are its manifest and every
++    file the manifest lists, the target included. They are a property of the
++    artifact alone: an artifact whose target is a link to its store's pool has
++    the same stored bytes as one that owns its copy, so manifests, identities,
++    and every bound on one artifact are the same with and without sharing.
++
++    A bound on several artifacts sums them here, and a target the artifacts
++    share is counted once: the first artifact of a shared target adds all of its
++    stored bytes, and each later one adds its stored bytes without the target.
++
++    The caller says which artifacts share a target, and the callers differ:
++
++      - A corpus shares a target among the cases whose target file is its pool's
++        entry on disk (PoolTarget). A case with a private copy counts in full.
++      - A merged campaign shares a target among all evidence that records the
++        same target SHA-256, whether or not the shard stores share the file on
++        disk. It accounts for one store that holds all of the merged evidence.
++        Merge copies no evidence, so shards of two artifacts roots keep one copy
++        per root while the merged limits count one.
++      - The byte limits inside one campaign do not sum here: every retained
++        artifact counts its full stored bytes, linked to the pool or not.
++        The campaign record states retained_success_bytes as the sum of
++        its executions' success_artifact_bytes and holds that sum to the
++        success-byte limit beside it. Counting a shared target once would change
++        that recorded sum or let it pass its recorded limit, and neither the
++        record nor its journal says which artifacts share a target. A campaign's
++        limits therefore bound what its artifacts take as standalone copies,
++        which is more than they take in a store that shares their target.
++
++func (retained *RetainedBytes) Add(storedBytes uint64, shared SharedTarget) (uint64, error)
++    Add accounts for one artifact and returns the bytes it added.
++
++func (retained *RetainedBytes) Cost(storedBytes uint64, shared SharedTarget) (uint64, error)
++    Cost is what Add would add for this artifact.
++
++func (retained *RetainedBytes) Total() uint64
++    Total is the sum of the artifacts added so far.
++
++type SharedTarget struct {
++	SHA256 record.SHA256
++	Bytes  uint64
++}
++    SharedTarget names the target copy an artifact has in common with the other
++    artifacts it is kept with. The zero value is an artifact that owns its copy.
++
++func PoolTarget(pool, artifactPath string, manifest record.ExecutionRecord) SharedTarget
++    PoolTarget is the target an artifact shares through the pool: its target
++    when that file is the pool's entry, and the zero value when the artifact
++    owns a private copy.
++
++func TargetOf(manifest record.ExecutionRecord) SharedTarget
++    TargetOf is the target of a manifest as the copy its artifact would share.
++
+ type SimulationPayloads struct {
+ 	Plan   []byte
+ 	Record []byte
+@@ -68,6 +195,10 @@
+ 	Context      context.Context
+ 	MaximumBytes uint64
+ 	Key          StoreKey
++	// TargetPool is the directory holding the one copy of each target that
++	// artifacts of this and every other store given the same pool share. The
++	// caller chooses it; an empty pool gives every artifact a private copy.
++	TargetPool string
+ }
+ 
+ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr error)
+@@ -77,4 +208,23 @@
+ const (
+ 	StoreKeyFailureSignature StoreKey = iota
+ 	StoreKeyRecord
++	// StoreKeyExecution keeps one artifact per execution because a retained
++	// success must replay as itself even when another seed completed with the
++	// same outcome signature. The first keeps the signature's directory, so
++	// campaigns without a collision keep their references.
++	StoreKeyExecution
+ )
++type TargetSharing string
++    TargetSharing says how a published artifact holds its target.
++
++const (
++	// TargetPrivate is an artifact of a store without a target pool: it owns
++	// its copy of the target.
++	TargetPrivate TargetSharing = "private"
++	// TargetShared is an artifact whose target is a hard link to its store's
++	// pool entry, the one copy every artifact of that target in the pool shares.
++	TargetShared TargetSharing = "shared"
++	// TargetUnshared is an artifact of a store with a target pool that could
++	// not be linked to it, so sharing is off and it owns a private copy.
++	TargetUnshared TargetSharing = "unshared"
++)
+
+--- linux/amd64/baseline/artifact
++++ linux/amd64/current/artifact
+@@ -3,27 +3,44 @@
+ 
+ FUNCTIONS
+ 
+-func CopyPayload(opened Artifact, relativePath, destination string, destinationMode os.FileMode) error
+-func OpenPayload(opened Artifact, relativePath string, maximum uint64) (*os.File, error)
+-func ReadPayload(opened Artifact, relativePath string, maximum uint64) ([]byte, error)
++func PruneTargetPool(pool string, exclusive bool) (retErr error)
++    PruneTargetPool removes the pool entries that no artifact shares. An entry
++    is shared while it has another link, wherever that link is, so pruning
++    never takes the target of a retained artifact and needs no list of them.
++    Entries whose link count the platform does not report are kept.
++
++    exclusive says the caller is the pool owner's only writer. Staging
++    directories are then leftovers of a publisher that died and are removed too;
++    without it they may belong to a live publisher and stay.
++
+ func RenameNoReplace(oldPath, newPath string) error
++func TargetPool(owner string) string
++    TargetPool is the pool of the directory that owns one: the artifacts
++    root that holds every campaign, a corpus, or a minimizer output root.
++    It is never below a store root that is staged and renamed on commit,
++    because the rename would carry the pool away from the stores that share it.
++    A store that publishes in place, as the minimizer's output root does,
++    may hold its pool.
++
+ 
+ TYPES
+ 
+ type Artifact struct {
+-	Path        string
+-	Manifest    record.ExecutionRecord
++	Path     string
++	Manifest record.ExecutionRecord
++	// StoredBytes counts the manifest and every listed file, the target
++	// included, whether or not the store shares that target. RetainedBytes
++	// states the rule and sums artifacts that are kept together.
+ 	StoredBytes uint64
+-	// Has unexported fields.
+-}
+-
+-func OpenArtifact(path string) (Artifact, error)
++	// TargetSharing is set by publication and is empty on an opened artifact.
++	TargetSharing TargetSharing
++}
++    Artifact is a detached reference to an artifact in a store: where it is and
++    what its manifest records. It holds no open resource, so copying or dropping
++    it releases nothing; OpenArtifact returns the owned handle (Opened) that
++    reads payloads.
+ 
+ func PublishArtifact(store Store, input ArtifactInput) (Artifact, error)
+-
+-func (opened *Artifact) Close() error
+-
+-func (opened Artifact) Detached() Artifact
+ 
+ type ArtifactInput struct {
+ 	Manifest       record.ExecutionRecord
+@@ -44,6 +61,57 @@
+ 
+ func (err *CapacityError) Error() string
+ 
++type Opened struct {
++	// Has unexported fields.
++}
++    Opened is an artifact whose directory is pinned open for validated payload
++    access. The caller that opened it owns it and must Close it. Its manifest is
++    private: Manifest and Snapshot return copies, so no caller can change what
++    payload access validates against. Path, Manifest, StoredBytes and Snapshot
++    stay available after Close; payload access fails.
++
++func OpenArtifact(path string) (*Opened, error)
++    OpenArtifact validates the artifact directory at path against its manifest
++    and returns a handle pinned to that directory.
++
++func (opened *Opened) Close() error
++    Close releases the pinned directory. Closing again, or closing a nil handle,
++    does nothing.
++
++func (opened *Opened) CopyPayload(relativePath, destination string, destinationMode os.FileMode) error
++    CopyPayload copies a listed payload to a new file at destination and checks
++    the copy against the manifest.
++
++func (opened *Opened) Manifest() record.ExecutionRecord
++    Manifest returns a copy of the validated manifest that shares no memory with
++    the handle.
++
++func (opened *Opened) OpenPayload(relativePath string, maximum uint64) (*os.File, error)
++    OpenPayload opens a listed payload of at most maximum bytes after checking
++    its mode, size and SHA-256 against the manifest.
++
++func (opened *Opened) Path() string
++    Path is the directory the artifact was opened at.
++
++func (opened *Opened) ReadPayload(relativePath string, maximum uint64) ([]byte, error)
++    ReadPayload reads a listed payload of at most maximum bytes and checks it
++    against the manifest.
++
++func (opened *Opened) Snapshot() Artifact
++    Snapshot returns a detached reference to the opened artifact. It holds no
++    open resource and its manifest is a copy, so changing it cannot change the
++    handle. Its TargetSharing is empty, as only publication sets it.
++
++func (opened *Opened) StoredBytes() uint64
++    StoredBytes counts the manifest and every listed file
++    (Artifact.StoredBytes).
++
++func (opened *Opened) TargetSharing() (TargetSharing, error)
++    TargetSharing reports how the opened artifact holds its target on disk:
++    TargetShared when the file has other links, as a pool entry and the
++    artifacts linked to it do, and TargetPrivate when the artifact holds the
++    only link. It is empty where the platform does not report link counts.
++
+ type Payload struct {
+ 	Path       string
+ 	Mode       os.FileMode
+@@ -58,6 +126,65 @@
+ 	Payloads []Payload
+ }
+ 
++type RetainedBytes struct {
++	// Has unexported fields.
++}
++    RetainedBytes applies the stored-bytes rule to artifacts that are kept
++    together.
++
++    An artifact's stored bytes (Artifact.StoredBytes) are its manifest and every
++    file the manifest lists, the target included. They are a property of the
++    artifact alone: an artifact whose target is a link to its store's pool has
++    the same stored bytes as one that owns its copy, so manifests, identities,
++    and every bound on one artifact are the same with and without sharing.
++
++    A bound on several artifacts sums them here, and a target the artifacts
++    share is counted once: the first artifact of a shared target adds all of its
++    stored bytes, and each later one adds its stored bytes without the target.
++
++    The caller says which artifacts share a target, and the callers differ:
++
++      - A corpus shares a target among the cases whose target file is its pool's
++        entry on disk (PoolTarget). A case with a private copy counts in full.
++      - A merged campaign shares a target among all evidence that records the
++        same target SHA-256, whether or not the shard stores share the file on
++        disk. It accounts for one store that holds all of the merged evidence.
++        Merge copies no evidence, so shards of two artifacts roots keep one copy
++        per root while the merged limits count one.
++      - The byte limits inside one campaign do not sum here: every retained
++        artifact counts its full stored bytes, linked to the pool or not.
++        The campaign record states retained_success_bytes as the sum of
++        its executions' success_artifact_bytes and holds that sum to the
++        success-byte limit beside it. Counting a shared target once would change
++        that recorded sum or let it pass its recorded limit, and neither the
++        record nor its journal says which artifacts share a target. A campaign's
++        limits therefore bound what its artifacts take as standalone copies,
++        which is more than they take in a store that shares their target.
++
++func (retained *RetainedBytes) Add(storedBytes uint64, shared SharedTarget) (uint64, error)
++    Add accounts for one artifact and returns the bytes it added.
++
++func (retained *RetainedBytes) Cost(storedBytes uint64, shared SharedTarget) (uint64, error)
++    Cost is what Add would add for this artifact.
++
++func (retained *RetainedBytes) Total() uint64
++    Total is the sum of the artifacts added so far.
++
++type SharedTarget struct {
++	SHA256 record.SHA256
++	Bytes  uint64
++}
++    SharedTarget names the target copy an artifact has in common with the other
++    artifacts it is kept with. The zero value is an artifact that owns its copy.
++
++func PoolTarget(pool, artifactPath string, manifest record.ExecutionRecord) SharedTarget
++    PoolTarget is the target an artifact shares through the pool: its target
++    when that file is the pool's entry, and the zero value when the artifact
++    owns a private copy.
++
++func TargetOf(manifest record.ExecutionRecord) SharedTarget
++    TargetOf is the target of a manifest as the copy its artifact would share.
++
+ type SimulationPayloads struct {
+ 	Plan   []byte
+ 	Record []byte
+@@ -68,6 +195,10 @@
+ 	Context      context.Context
+ 	MaximumBytes uint64
+ 	Key          StoreKey
++	// TargetPool is the directory holding the one copy of each target that
++	// artifacts of this and every other store given the same pool share. The
++	// caller chooses it; an empty pool gives every artifact a private copy.
++	TargetPool string
+ }
+ 
+ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr error)
+@@ -77,4 +208,23 @@
+ const (
+ 	StoreKeyFailureSignature StoreKey = iota
+ 	StoreKeyRecord
++	// StoreKeyExecution keeps one artifact per execution because a retained
++	// success must replay as itself even when another seed completed with the
++	// same outcome signature. The first keeps the signature's directory, so
++	// campaigns without a collision keep their references.
++	StoreKeyExecution
+ )
++type TargetSharing string
++    TargetSharing says how a published artifact holds its target.
++
++const (
++	// TargetPrivate is an artifact of a store without a target pool: it owns
++	// its copy of the target.
++	TargetPrivate TargetSharing = "private"
++	// TargetShared is an artifact whose target is a hard link to its store's
++	// pool entry, the one copy every artifact of that target in the pool shares.
++	TargetShared TargetSharing = "shared"
++	// TargetUnshared is an artifact of a store with a target pool that could
++	// not be linked to it, so sharing is off and it owns a private copy.
++	TargetUnshared TargetSharing = "unshared"
++)
+
+--- darwin/arm64/baseline/target
++++ darwin/arm64/current/target
+@@ -18,7 +18,21 @@
+ 
+ FUNCTIONS
+ 
+-func DigestAdapterSourceInventory(root string) (string, error)
++func AdapterPreparedSourceSetSHA256(ctx context.Context, goCommand, packageDirectory, importPath, goos, goarch string) (string, error)
++    AdapterPreparedSourceSetSHA256 computes the prepared source-set identity
++    that capability review pins for an adapter's prepared package when a target
++    builds for goos/goarch. The go command selects the package's Go and foreign
++    files for that platform under the target build environment (cgo disabled,
++    the target experiment), and the files are hashed the way review hashes them.
++    File selection reads only build constraints, so any host computes every
++    platform's identity; the go command must be the pinned Go release, whose
++    release tags decide version constraints.
++
++    The package is listed by directory outside module mode, so neither the
++    adapter module's requirements nor a network connection are needed.
++    The import comment check that mode applies is the only error accepted,
++    and only when the comment names importPath.
++
+ func DownloadModule(ctx context.Context, root string, module ModuleIdentity) (retErr error)
+     DownloadModule places module in the pinned Go command's module cache, so a
+     build input read from the cache does not depend on an earlier build having
+@@ -26,6 +40,7 @@
+     It runs outside every module, because inside one the go command records the
+     downloaded module's sums in that module's go.sum.
+ 
++func HasCoverageInstrumentation(info record.BuildInfo) bool
+ func IsInvalidCapabilityReview(err error) bool
+ func IsUnsupportedCapability(err error) bool
+ func ModuleDirectory(spec Spec) (string, error)
+@@ -100,11 +115,11 @@
+ type CapabilityFindingKind string
+ 
+ const (
+-	FindingForbiddenImport    CapabilityFindingKind = "forbidden_import"
+-	FindingForeignSource      CapabilityFindingKind = "foreign_source"
+-	FindingUnapprovedLinkname CapabilityFindingKind = "unapproved_linkname"
+-	FindingMalformedLinkname  CapabilityFindingKind = "malformed_linkname"
+-	FindingNoReviewedGoSource CapabilityFindingKind = "no_reviewed_go_source"
++	FindingForbiddenImport    CapabilityFindingKind = CapabilityFindingKind(capabilitypolicy.KindForbiddenImport)
++	FindingForeignSource      CapabilityFindingKind = CapabilityFindingKind(capabilitypolicy.KindForeignSource)
++	FindingUnapprovedLinkname CapabilityFindingKind = CapabilityFindingKind(capabilitypolicy.KindUnapprovedLinkname)
++	FindingMalformedLinkname  CapabilityFindingKind = CapabilityFindingKind(capabilitypolicy.KindMalformedLinkname)
++	FindingNoReviewedGoSource CapabilityFindingKind = CapabilityFindingKind(capabilitypolicy.KindNoReviewedGoSource)
+ 	FindingDeniedBoundary     CapabilityFindingKind = "denied_boundary"
+ )
+ type CapabilityForeignSource struct {
+@@ -194,7 +209,71 @@
+ 
+ type CompatibilityIdentity compatibility.Identity
+ 
+-type CompatibilityPackEvidence compatibility.PackEvidence
++type CompatibilityLinknameEvidence struct {
++	Source     string   `json:"source"`
++	SHA256     string   `json:"sha256"`
++	Directives []string `json:"directives"`
++}
++
++type CompatibilityModuleEvidence struct {
++	Path        string                    `json:"path"`
++	Version     string                    `json:"version"`
++	Sum         string                    `json:"sum"`
++	Replacement string                    `json:"replacement"`
++	Adapter     *CompatibilityPackAdapter `json:"adapter,omitempty"`
++}
++
++type CompatibilityPackAdapter struct {
++	ProfileName                      string `json:"profile_name"`
++	ProfileImplementationSHA256      string `json:"profile_implementation_sha256"`
++	Module                           string `json:"module"`
++	Version                          string `json:"version"`
++	Sum                              string `json:"sum"`
++	OriginalSourceInventorySHA256    string `json:"original_source_inventory_sha256"`
++	ReplacementSourceInventorySHA256 string `json:"replacement_source_inventory_sha256"`
++	PreparedSourceSetSHA256          string `json:"prepared_source_set_sha256"`
++}
++
++type CompatibilityPackEvidence struct {
++	ID            string                             `json:"id"`
++	SHA256        string                             `json:"sha256"`
++	RequestSHA256 string                             `json:"request_sha256,omitempty"`
++	Governance    *CompatibilityPackGovernance       `json:"governance,omitempty"`
++	Activation    []CompatibilityModuleEvidence      `json:"activation"`
++	Rules         []CompatibilityPackageRuleEvidence `json:"rules"`
++}
++    CompatibilityPackEvidence is the complete detached evidence selected by
++    policy.
++
++type CompatibilityPackForeignSource struct {
++	Kind   string `json:"kind"`
++	Name   string `json:"name"`
++	SHA256 string `json:"sha256"`
++}
++
++type CompatibilityPackGovernance struct {
++	Owner          string   `json:"owner"`
++	ReviewedAt     string   `json:"reviewed_at"`
++	Justification  string   `json:"justification"`
++	Workloads      []string `json:"workloads"`
++	Platforms      []string `json:"platforms"`
++	ApprovalSHA256 string   `json:"approval_sha256"`
++}
++
++type CompatibilityPackSource struct {
++	Name   string `json:"name"`
++	SHA256 string `json:"sha256"`
++}
++
++type CompatibilityPackageRuleEvidence struct {
++	ImportPath      string                           `json:"import_path"`
++	Module          CompatibilityModuleEvidence      `json:"module"`
++	SourceSetSHA256 string                           `json:"source_set_sha256,omitempty"`
++	GoSources       []CompatibilityPackSource        `json:"go_sources,omitempty"`
++	ForeignSources  []CompatibilityPackForeignSource `json:"foreign_sources,omitempty"`
++	Capabilities    []string                         `json:"capabilities"`
++	Linknames       []CompatibilityLinknameEvidence  `json:"linknames"`
++}
+ 
+ type CompatibilityRemediation compatibility.RemediationCategory
+ 
+@@ -238,7 +317,7 @@
+ 	CapabilityManifest *CapabilityManifest
+ }
+ 
+-func Prepare(ctx context.Context, spec Spec) (prepared Prepared, retErr error)
++func Prepare(ctx context.Context, spec Spec) (Prepared, error)
+ 
+ func (prepared Prepared) RecordTarget() record.Target
+ 
+
+--- linux/amd64/baseline/target
++++ linux/amd64/current/target
+@@ -18,7 +18,21 @@
+ 
+ FUNCTIONS
+ 
+-func DigestAdapterSourceInventory(root string) (string, error)
++func AdapterPreparedSourceSetSHA256(ctx context.Context, goCommand, packageDirectory, importPath, goos, goarch string) (string, error)
++    AdapterPreparedSourceSetSHA256 computes the prepared source-set identity
++    that capability review pins for an adapter's prepared package when a target
++    builds for goos/goarch. The go command selects the package's Go and foreign
++    files for that platform under the target build environment (cgo disabled,
++    the target experiment), and the files are hashed the way review hashes them.
++    File selection reads only build constraints, so any host computes every
++    platform's identity; the go command must be the pinned Go release, whose
++    release tags decide version constraints.
++
++    The package is listed by directory outside module mode, so neither the
++    adapter module's requirements nor a network connection are needed.
++    The import comment check that mode applies is the only error accepted,
++    and only when the comment names importPath.
++
+ func DownloadModule(ctx context.Context, root string, module ModuleIdentity) (retErr error)
+     DownloadModule places module in the pinned Go command's module cache, so a
+     build input read from the cache does not depend on an earlier build having
+@@ -26,6 +40,7 @@
+     It runs outside every module, because inside one the go command records the
+     downloaded module's sums in that module's go.sum.
+ 
++func HasCoverageInstrumentation(info record.BuildInfo) bool
+ func IsInvalidCapabilityReview(err error) bool
+ func IsUnsupportedCapability(err error) bool
+ func ModuleDirectory(spec Spec) (string, error)
+@@ -100,11 +115,11 @@
+ type CapabilityFindingKind string
+ 
+ const (
+-	FindingForbiddenImport    CapabilityFindingKind = "forbidden_import"
+-	FindingForeignSource      CapabilityFindingKind = "foreign_source"
+-	FindingUnapprovedLinkname CapabilityFindingKind = "unapproved_linkname"
+-	FindingMalformedLinkname  CapabilityFindingKind = "malformed_linkname"
+-	FindingNoReviewedGoSource CapabilityFindingKind = "no_reviewed_go_source"
++	FindingForbiddenImport    CapabilityFindingKind = CapabilityFindingKind(capabilitypolicy.KindForbiddenImport)
++	FindingForeignSource      CapabilityFindingKind = CapabilityFindingKind(capabilitypolicy.KindForeignSource)
++	FindingUnapprovedLinkname CapabilityFindingKind = CapabilityFindingKind(capabilitypolicy.KindUnapprovedLinkname)
++	FindingMalformedLinkname  CapabilityFindingKind = CapabilityFindingKind(capabilitypolicy.KindMalformedLinkname)
++	FindingNoReviewedGoSource CapabilityFindingKind = CapabilityFindingKind(capabilitypolicy.KindNoReviewedGoSource)
+ 	FindingDeniedBoundary     CapabilityFindingKind = "denied_boundary"
+ )
+ type CapabilityForeignSource struct {
+@@ -194,7 +209,71 @@
+ 
+ type CompatibilityIdentity compatibility.Identity
+ 
+-type CompatibilityPackEvidence compatibility.PackEvidence
++type CompatibilityLinknameEvidence struct {
++	Source     string   `json:"source"`
++	SHA256     string   `json:"sha256"`
++	Directives []string `json:"directives"`
++}
++
++type CompatibilityModuleEvidence struct {
++	Path        string                    `json:"path"`
++	Version     string                    `json:"version"`
++	Sum         string                    `json:"sum"`
++	Replacement string                    `json:"replacement"`
++	Adapter     *CompatibilityPackAdapter `json:"adapter,omitempty"`
++}
++
++type CompatibilityPackAdapter struct {
++	ProfileName                      string `json:"profile_name"`
++	ProfileImplementationSHA256      string `json:"profile_implementation_sha256"`
++	Module                           string `json:"module"`
++	Version                          string `json:"version"`
++	Sum                              string `json:"sum"`
++	OriginalSourceInventorySHA256    string `json:"original_source_inventory_sha256"`
++	ReplacementSourceInventorySHA256 string `json:"replacement_source_inventory_sha256"`
++	PreparedSourceSetSHA256          string `json:"prepared_source_set_sha256"`
++}
++
++type CompatibilityPackEvidence struct {
++	ID            string                             `json:"id"`
++	SHA256        string                             `json:"sha256"`
++	RequestSHA256 string                             `json:"request_sha256,omitempty"`
++	Governance    *CompatibilityPackGovernance       `json:"governance,omitempty"`
++	Activation    []CompatibilityModuleEvidence      `json:"activation"`
++	Rules         []CompatibilityPackageRuleEvidence `json:"rules"`
++}
++    CompatibilityPackEvidence is the complete detached evidence selected by
++    policy.
++
++type CompatibilityPackForeignSource struct {
++	Kind   string `json:"kind"`
++	Name   string `json:"name"`
++	SHA256 string `json:"sha256"`
++}
++
++type CompatibilityPackGovernance struct {
++	Owner          string   `json:"owner"`
++	ReviewedAt     string   `json:"reviewed_at"`
++	Justification  string   `json:"justification"`
++	Workloads      []string `json:"workloads"`
++	Platforms      []string `json:"platforms"`
++	ApprovalSHA256 string   `json:"approval_sha256"`
++}
++
++type CompatibilityPackSource struct {
++	Name   string `json:"name"`
++	SHA256 string `json:"sha256"`
++}
++
++type CompatibilityPackageRuleEvidence struct {
++	ImportPath      string                           `json:"import_path"`
++	Module          CompatibilityModuleEvidence      `json:"module"`
++	SourceSetSHA256 string                           `json:"source_set_sha256,omitempty"`
++	GoSources       []CompatibilityPackSource        `json:"go_sources,omitempty"`
++	ForeignSources  []CompatibilityPackForeignSource `json:"foreign_sources,omitempty"`
++	Capabilities    []string                         `json:"capabilities"`
++	Linknames       []CompatibilityLinknameEvidence  `json:"linknames"`
++}
+ 
+ type CompatibilityRemediation compatibility.RemediationCategory
+ 
+@@ -238,7 +317,7 @@
+ 	CapabilityManifest *CapabilityManifest
+ }
+ 
+-func Prepare(ctx context.Context, spec Spec) (prepared Prepared, retErr error)
++func Prepare(ctx context.Context, spec Spec) (Prepared, error)
+ 
+ func (prepared Prepared) RecordTarget() record.Target
+ 
+
+--- darwin/arm64/baseline/deterministicio
++++ darwin/arm64/current/deterministicio
+@@ -16,7 +16,15 @@
+ 	// TranscriptBytesGranularity keeps requested limits on whole mebibytes.
+ 	TranscriptBytesGranularity = 1 << 20
+ )
++const AdapterRegenerationSchema = "gomad3.adapter-regeneration-review/v1"
++    AdapterRegenerationSchema names the canonical review an adapter
++    regeneration's approval digest covers.
++
+ const SemanticCoverageSchema = "gomad3.semantic-coverage/v1"
++
++VARIABLES
++
++var ErrTranscriptUnterminated = errors.New("I/O transcript terminal is absent")
+ 
+ FUNCTIONS
+ 
+@@ -29,14 +37,29 @@
+ func EncodeTranscript(operations []Operation) ([]byte, error)
+ func ExpectedTranscriptBytes(records uint64) (uint64, error)
+ func HashArgument(encoded []byte) [sha256.Size]byte
++func IsAdapterRegenerationBlocked(err error) bool
++    IsAdapterRegenerationBlocked reports whether err means the candidate cannot
++    be regenerated without a person editing the adapter: an anchor that no
++    longer matches exactly once, or a rewritten file that is gone.
++
+ func IsInvalidBuildAdapterConfiguration(err error) bool
+ func MissingRequiredSemanticProbes(coverage SemanticCoverage, required []string) ([]string, error)
++func RegenerableAdapters() []string
++    RegenerableAdapters lists the registered adapters whose anchors the
++    regeneration command can re-derive.
++
+ func RequiredSemanticProbes() []string
+ func TranscriptRecordCount(encoded []byte) (uint64, error)
+ func ValidateSessionSpec(spec SessionSpec) error
+ func ValidateTranscriptLimit(limit uint64) error
+     ValidateTranscriptLimit checks a campaign's requested I/O transcript bound.
+ 
++func VerifyRegisteredAdapter(ctx context.Context, module, moduleDirectory, goCommand string) error
++    VerifyRegisteredAdapter checks a checkout's adapter for module against the
++    module source in moduleDirectory: the registered identity from the version
++    descriptor, every pinned digest the preparation checks, and each platform's
++    prepared source-set pin, recomputed from the prepared replacement.
++
+ func WriteCompletion(writer io.Writer, transcript Transcript) error
+ 
+ TYPES
+@@ -49,12 +72,110 @@
+ 
+ func SelectedAdapters(adapters []BuildAdapter) []Adapter
+ 
++type AdapterAnchors struct {
++	Version                          string            `json:"version"`
++	Sum                              string            `json:"sum"`
++	GoModSum                         string            `json:"go_mod_sum,omitempty"`
++	OriginalSourceInventorySHA256    string            `json:"original_source_inventory_sha256"`
++	ReplacementSourceInventorySHA256 string            `json:"replacement_source_inventory_sha256"`
++	PreparedPackage                  string            `json:"prepared_package"`
++	PreparedSourceSetSHA256          map[string]string `json:"prepared_source_set_sha256"`
++	Rewrites                         []RewriteAnchors  `json:"rewrites"`
++}
++    AdapterAnchors are the exact identities an adapter pins for one module
++    version.
++
+ type AdapterCapacityError struct {
+ 	Resource string
+ 	Limit    uint64
+ }
+ 
+ func (err *AdapterCapacityError) Error() string
++
++type AdapterNotRegenerableError struct {
++	Module string
++}
++    AdapterNotRegenerableError reports an adapter whose preparation is not
++    expressed as anchored rewrites, so its anchors are re-derived by hand.
++
++func (err *AdapterNotRegenerableError) Error() string
++
++type AdapterRegeneration struct {
++	Schema         string          `json:"schema"`
++	Module         string          `json:"module"`
++	Previous       AdapterAnchors  `json:"previous"`
++	Proposed       AdapterAnchors  `json:"proposed"`
++	Sources        []ChangedSource `json:"sources"`
++	ApprovalSHA256 string          `json:"-"`
++}
++    AdapterRegeneration is the reviewed outcome of re-deriving an adapter's
++    anchors. ApprovalSHA256 covers everything but the source bytes, which the
++    source digests bind.
++
++func RegenerateAdapter(ctx context.Context, request AdapterRegenerationRequest) (AdapterRegeneration, error)
++    RegenerateAdapter re-derives the registered adapter's anchors for the
++    candidate module. Each rewrite is applied by its existing exact-occurrence
++    anchors; nothing is written outside request.Scratch.
++
++func (regeneration AdapterRegeneration) SourceEdits(root string) (map[string][]byte, error)
++    SourceEdits returns the deterministic I/O package files under root,
++    the Gomad source module root, rewritten from the previous anchors to the
++    proposed ones, keyed by slash path relative to root. Only string literals
++    change:
++
++      - each pinned digest and the module sum, wherever the exact literal
++        occurs;
++      - each platform's prepared source-set pin, where a map keys it by
++        platform;
++      - the version, in the adapter's own file and in records that name the
++        module (Module or Path fields);
++      - "module version", "module@version", and module-cache directory names
++        inside longer literals, such as test go.mod and go.sum fixtures.
++
++    Every anchor the adapter declares must be replaced, so an anchor that is
++    computed rather than written as a literal fails instead of staying stale.
++
++type AdapterRegenerationBlockedError struct{ Err error }
++
++func (err *AdapterRegenerationBlockedError) Error() string
++
++func (err *AdapterRegenerationBlockedError) Unwrap() error
++
++type AdapterRegenerationRequest struct {
++	Module string
++	// Version, Sum, and GoModSum identify the candidate module exactly.
++	Version, Sum, GoModSum string
++	// PreviousGoModSum is the pinned version's go.mod hash, so pinned test
++	// data that records it can be updated.
++	PreviousGoModSum string
++	// PreviousModule holds the pinned version; CandidateModule the new one.
++	PreviousModule, CandidateModule string
++	// GoCommand is the pinned Go release, which selects each platform's
++	// prepared package files.
++	GoCommand string
++	// Scratch is an empty directory for the candidate replacement copy.
++	Scratch string
++}
++    AdapterRegenerationRequest names an adapter and the exact module version its
++    anchors are re-derived for. Both module directories hold extracted module
++    sources, for example from a private module cache.
++
++type AdapterSourceMissingError struct {
++	Module, Version, Path string
++}
++    AdapterSourceMissingError reports a rewritten file that the candidate
++    version no longer provides as a regular file.
++
++func (err *AdapterSourceMissingError) Error() string
++
++type AnchorMismatchError struct {
++	Module, Path, Anchor string
++	Count                int
++}
++    AnchorMismatchError reports an adapter rewrite anchor that does not occur
++    exactly once in the source it edits.
++
++func (err *AnchorMismatchError) Error() string
+ 
+ type Bootstrap struct {
+ 	Profile              string
+@@ -84,6 +205,17 @@
+ 	PreparedSourceSetSHA256          string
+ }
+ 
++type ChangedSource struct {
++	Path            string `json:"path"`
++	PreviousSHA256  string `json:"previous_sha256"`
++	CandidateSHA256 string `json:"candidate_sha256"`
++	Previous        []byte `json:"-"`
++	Candidate       []byte `json:"-"`
++}
++    ChangedSource is one upstream file an adapter rewrite reads, in the pinned
++    and the candidate version. Unchanged files are listed too, so the review
++    names every input of the rewrite.
++
+ type Contract struct {
+ 	ImplementationSHA256 Digest `json:"implementation_sha256"`
+ 	InventorySHA256      Digest `json:"inventory_sha256"`
+@@ -129,6 +261,15 @@
+ 	Packages []target.CapabilityPackageReference `json:"packages"`
+ }
+ 
++type RewriteAnchors struct {
++	Path              string `json:"path"`
++	SourceSHA256      string `json:"source_sha256"`
++	Base              string `json:"base,omitempty"`
++	BaseSHA256        string `json:"base_sha256,omitempty"`
++	ReplacementSHA256 string `json:"replacement_sha256"`
++}
++    RewriteAnchors are one rewritten file's identities.
++
+ type SemanticCoverage struct {
+ 	Schema string   `json:"schema"`
+ 	Digest Digest   `json:"digest"`
+
+--- linux/amd64/baseline/deterministicio
++++ linux/amd64/current/deterministicio
+@@ -16,7 +16,15 @@
+ 	// TranscriptBytesGranularity keeps requested limits on whole mebibytes.
+ 	TranscriptBytesGranularity = 1 << 20
+ )
++const AdapterRegenerationSchema = "gomad3.adapter-regeneration-review/v1"
++    AdapterRegenerationSchema names the canonical review an adapter
++    regeneration's approval digest covers.
++
+ const SemanticCoverageSchema = "gomad3.semantic-coverage/v1"
++
++VARIABLES
++
++var ErrTranscriptUnterminated = errors.New("I/O transcript terminal is absent")
+ 
+ FUNCTIONS
+ 
+@@ -29,14 +37,29 @@
+ func EncodeTranscript(operations []Operation) ([]byte, error)
+ func ExpectedTranscriptBytes(records uint64) (uint64, error)
+ func HashArgument(encoded []byte) [sha256.Size]byte
++func IsAdapterRegenerationBlocked(err error) bool
++    IsAdapterRegenerationBlocked reports whether err means the candidate cannot
++    be regenerated without a person editing the adapter: an anchor that no
++    longer matches exactly once, or a rewritten file that is gone.
++
+ func IsInvalidBuildAdapterConfiguration(err error) bool
+ func MissingRequiredSemanticProbes(coverage SemanticCoverage, required []string) ([]string, error)
++func RegenerableAdapters() []string
++    RegenerableAdapters lists the registered adapters whose anchors the
++    regeneration command can re-derive.
++
+ func RequiredSemanticProbes() []string
+ func TranscriptRecordCount(encoded []byte) (uint64, error)
+ func ValidateSessionSpec(spec SessionSpec) error
+ func ValidateTranscriptLimit(limit uint64) error
+     ValidateTranscriptLimit checks a campaign's requested I/O transcript bound.
+ 
++func VerifyRegisteredAdapter(ctx context.Context, module, moduleDirectory, goCommand string) error
++    VerifyRegisteredAdapter checks a checkout's adapter for module against the
++    module source in moduleDirectory: the registered identity from the version
++    descriptor, every pinned digest the preparation checks, and each platform's
++    prepared source-set pin, recomputed from the prepared replacement.
++
+ func WriteCompletion(writer io.Writer, transcript Transcript) error
+ 
+ TYPES
+@@ -49,12 +72,110 @@
+ 
+ func SelectedAdapters(adapters []BuildAdapter) []Adapter
+ 
++type AdapterAnchors struct {
++	Version                          string            `json:"version"`
++	Sum                              string            `json:"sum"`
++	GoModSum                         string            `json:"go_mod_sum,omitempty"`
++	OriginalSourceInventorySHA256    string            `json:"original_source_inventory_sha256"`
++	ReplacementSourceInventorySHA256 string            `json:"replacement_source_inventory_sha256"`
++	PreparedPackage                  string            `json:"prepared_package"`
++	PreparedSourceSetSHA256          map[string]string `json:"prepared_source_set_sha256"`
++	Rewrites                         []RewriteAnchors  `json:"rewrites"`
++}
++    AdapterAnchors are the exact identities an adapter pins for one module
++    version.
++
+ type AdapterCapacityError struct {
+ 	Resource string
+ 	Limit    uint64
+ }
+ 
+ func (err *AdapterCapacityError) Error() string
++
++type AdapterNotRegenerableError struct {
++	Module string
++}
++    AdapterNotRegenerableError reports an adapter whose preparation is not
++    expressed as anchored rewrites, so its anchors are re-derived by hand.
++
++func (err *AdapterNotRegenerableError) Error() string
++
++type AdapterRegeneration struct {
++	Schema         string          `json:"schema"`
++	Module         string          `json:"module"`
++	Previous       AdapterAnchors  `json:"previous"`
++	Proposed       AdapterAnchors  `json:"proposed"`
++	Sources        []ChangedSource `json:"sources"`
++	ApprovalSHA256 string          `json:"-"`
++}
++    AdapterRegeneration is the reviewed outcome of re-deriving an adapter's
++    anchors. ApprovalSHA256 covers everything but the source bytes, which the
++    source digests bind.
++
++func RegenerateAdapter(ctx context.Context, request AdapterRegenerationRequest) (AdapterRegeneration, error)
++    RegenerateAdapter re-derives the registered adapter's anchors for the
++    candidate module. Each rewrite is applied by its existing exact-occurrence
++    anchors; nothing is written outside request.Scratch.
++
++func (regeneration AdapterRegeneration) SourceEdits(root string) (map[string][]byte, error)
++    SourceEdits returns the deterministic I/O package files under root,
++    the Gomad source module root, rewritten from the previous anchors to the
++    proposed ones, keyed by slash path relative to root. Only string literals
++    change:
++
++      - each pinned digest and the module sum, wherever the exact literal
++        occurs;
++      - each platform's prepared source-set pin, where a map keys it by
++        platform;
++      - the version, in the adapter's own file and in records that name the
++        module (Module or Path fields);
++      - "module version", "module@version", and module-cache directory names
++        inside longer literals, such as test go.mod and go.sum fixtures.
++
++    Every anchor the adapter declares must be replaced, so an anchor that is
++    computed rather than written as a literal fails instead of staying stale.
++
++type AdapterRegenerationBlockedError struct{ Err error }
++
++func (err *AdapterRegenerationBlockedError) Error() string
++
++func (err *AdapterRegenerationBlockedError) Unwrap() error
++
++type AdapterRegenerationRequest struct {
++	Module string
++	// Version, Sum, and GoModSum identify the candidate module exactly.
++	Version, Sum, GoModSum string
++	// PreviousGoModSum is the pinned version's go.mod hash, so pinned test
++	// data that records it can be updated.
++	PreviousGoModSum string
++	// PreviousModule holds the pinned version; CandidateModule the new one.
++	PreviousModule, CandidateModule string
++	// GoCommand is the pinned Go release, which selects each platform's
++	// prepared package files.
++	GoCommand string
++	// Scratch is an empty directory for the candidate replacement copy.
++	Scratch string
++}
++    AdapterRegenerationRequest names an adapter and the exact module version its
++    anchors are re-derived for. Both module directories hold extracted module
++    sources, for example from a private module cache.
++
++type AdapterSourceMissingError struct {
++	Module, Version, Path string
++}
++    AdapterSourceMissingError reports a rewritten file that the candidate
++    version no longer provides as a regular file.
++
++func (err *AdapterSourceMissingError) Error() string
++
++type AnchorMismatchError struct {
++	Module, Path, Anchor string
++	Count                int
++}
++    AnchorMismatchError reports an adapter rewrite anchor that does not occur
++    exactly once in the source it edits.
++
++func (err *AnchorMismatchError) Error() string
+ 
+ type Bootstrap struct {
+ 	Profile              string
+@@ -84,6 +205,17 @@
+ 	PreparedSourceSetSHA256          string
+ }
+ 
++type ChangedSource struct {
++	Path            string `json:"path"`
++	PreviousSHA256  string `json:"previous_sha256"`
++	CandidateSHA256 string `json:"candidate_sha256"`
++	Previous        []byte `json:"-"`
++	Candidate       []byte `json:"-"`
++}
++    ChangedSource is one upstream file an adapter rewrite reads, in the pinned
++    and the candidate version. Unchanged files are listed too, so the review
++    names every input of the rewrite.
++
+ type Contract struct {
+ 	ImplementationSHA256 Digest `json:"implementation_sha256"`
+ 	InventorySHA256      Digest `json:"inventory_sha256"`
+@@ -129,6 +261,15 @@
+ 	Packages []target.CapabilityPackageReference `json:"packages"`
+ }
+ 
++type RewriteAnchors struct {
++	Path              string `json:"path"`
++	SourceSHA256      string `json:"source_sha256"`
++	Base              string `json:"base,omitempty"`
++	BaseSHA256        string `json:"base_sha256,omitempty"`
++	ReplacementSHA256 string `json:"replacement_sha256"`
++}
++    RewriteAnchors are one rewritten file's identities.
++
+ type SemanticCoverage struct {
+ 	Schema string   `json:"schema"`
+ 	Digest Digest   `json:"digest"`
+
+
+
+
+
+--- darwin/arm64/baseline/choice
++++ darwin/arm64/current/choice
+@@ -20,7 +20,16 @@
+ 
+ 	Version1 = wire.Version1
+ 	Version2 = wire.Version2
+-)
++	Version3 = wire.Version3
++
++	// SupersededProfile is the v2 profile, whose select results recorded no
++	// readiness. Its traces are refused by name; LegacyProfile keeps v1
++	// inspectable.
++	SupersededProfile = "gomad3-choice-trace/v2"
++)
++const DiagnosticProfile = wire.DiagnosticProfile
++const DiagnosticProfileEnvironment = "GOMAD3_DIAGNOSTIC_PROFILE"
++const MaximumDiagnosticBytes = wire.DiagnosticMaximumBytes
+ 
+ VARIABLES
+ 
+@@ -35,10 +44,12 @@
+ 	ErrDiverged     = errors.New("choice replay divergence")
+ 	ErrUnterminated = errors.New("unterminated choice trace")
+ )
++var ErrDiagnosticIncomplete = errors.New("diagnostic trace incomplete")
+ 
+ FUNCTIONS
+ 
+ func AlternativeSetDigest(alternatives [][sha256.Size]byte) ([sha256.Size]byte, error)
++func DiagnosticLimit(choiceLimit uint64) (uint64, error)
+ func DivergenceReasonName(reason DivergenceReason) string
+ func ImplementationIdentity(toolchainBuildKey string) ([sha256.Size]byte, error)
+ func TraceBytes(records uint64) (uint64, error)
+@@ -46,6 +57,7 @@
+ func TraceRecordCount(encoded []byte) (uint64, error)
+ func ValidateController(mode Mode, replayPlanBytes uint64) error
+ func ValidateExecutionIdentity(identity ExecutionIdentity) error
++func ValidatePrefixReplayDivergence(tape ReplayPlan, divergence Divergence) error
+ func ValidateTraceLimit(limit uint64) error
+ 
+ TYPES
+@@ -81,6 +93,53 @@
+ 
+ func (decision Decision) Record() Record
+ 
++type DecisionEvidence struct {
++	Ordinal              uint64            `json:"ordinal"`
++	Kind                 Kind              `json:"kind"`
++	SiteOffset           uint64            `json:"site_offset"`
++	SiteMissing          bool              `json:"site_missing"`
++	RankOverride         bool              `json:"rank_override"`
++	Alternatives         uint32            `json:"alternatives"`
++	Selected             uint32            `json:"selected"`
++	Data                 uint32            `json:"data"`
++	SelectedIdentity     [sha256.Size]byte `json:"selected_identity"`
++	AlternativeSetDigest [sha256.Size]byte `json:"alternative_set_digest"`
++}
++
++type DiagnosticDivergence struct {
++	Ordinal  uint64            `json:"ordinal"`
++	Fields   []string          `json:"fields"`
++	Expected *DiagnosticRecord `json:"expected,omitempty"`
++	Actual   *DiagnosticRecord `json:"actual,omitempty"`
++}
++
++func DiffDiagnostics(expectedBytes, actualBytes []byte) (*DiagnosticDivergence, error)
++
++type DiagnosticRecord wire.DiagnosticRecord
++
++type DiagnosticSession struct {
++	// Has unexported fields.
++}
++
++func NewDiagnosticSession(limit uint64) (_ *DiagnosticSession, retErr error)
++
++func (session *DiagnosticSession) Close() error
++
++func (session *DiagnosticSession) Collect() (DiagnosticTrace, error)
++
++func (session *DiagnosticSession) File() *os.File
++
++type DiagnosticTrace struct {
++	Bytes    []byte
++	SHA256   [sha256.Size]byte
++	Records  []DiagnosticRecord
++	Capacity uint64
++}
++
++func DecodeDiagnosticTrace(data []byte) (DiagnosticTrace, error)
++
++func ReadDiagnosticTrace(path string) (DiagnosticTrace, error)
++
+ type Divergence struct {
+ 	Ordinal     uint64
+ 	Reason      DivergenceReason
+@@ -88,6 +147,20 @@
+ 	Observed    *Decision
+ 	TapeRecords uint64
+ }
++
++type DivergenceEvidence struct {
++	Ordinal     uint64            `json:"ordinal"`
++	Reason      DivergenceReason  `json:"reason"`
++	Expected    *DecisionEvidence `json:"expected,omitempty"`
++	Observed    *DecisionEvidence `json:"observed,omitempty"`
++	TapeRecords uint64            `json:"tape_records"`
++}
++
++func ProjectDivergenceEvidence(divergence Divergence) DivergenceEvidence
++
++func (evidence DivergenceEvidence) Divergence() Divergence
++
++func (evidence DivergenceEvidence) ReasonName() string
+ 
+ type DivergenceReason uint8
+ 
+@@ -158,6 +231,25 @@
+ 	ModeReplay Mode = Mode(wire.ModeReplay)
+ 	ModePrefix Mode = Mode(wire.ModePrefix)
+ )
++type NoOpSelectShape struct {
++	PolledCases uint32
++	Readiness   SelectReadiness
++}
++    NoOpSelectShape is the evidence a select-poll decision carries: how many
++    cases its select polled, which is the alternatives of the select's last poll
++    step, and the readiness the runtime recorded with the select's result.
++
++func NoOpSelectShapes() []NoOpSelectShape
++    NoOpSelectShapes lists the shapes whose poll order cannot change
++    behavior. Poll order matters only when at least two cases are ready,
++    but a shape is listed only after the select-readiness fixture
++    (internal/gomadtool/conformance) explored it to exhaustion
++    with and without its poll decisions expanded and reached the
++    same outcomes and deadlocks; the comparison is retained under
++    .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/select-reduction/.
++    The fixture requires its proven shapes and this list to be the same set,
++    and the explorer expands every select-poll decision of a shape off the list.
++
+ type Projection struct {
+ 	Profile      string
+ 	Limit        uint64
+@@ -174,6 +266,28 @@
+ 
+ func ProjectTrace(trace Trace, limit uint64, targetIdentity [sha256.Size]byte) (Projection, error)
+ 
++type Readiness uint16
++    Readiness is the packed select readiness word: flag bits below the count,
++    which is the number of cases that could proceed. Zero means unknown; a known
++    word carries ReadinessKnown.
++
++const (
++	ReadinessKnown           Readiness = Readiness(wire.ReadinessKnown)
++	ReadinessDefault         Readiness = Readiness(wire.ReadinessDefault)
++	ReadinessNilChannel      Readiness = Readiness(wire.ReadinessNilChannel)
++	ReadinessTimerChannel    Readiness = Readiness(wire.ReadinessTimerChannel)
++	ReadinessClosedChannel   Readiness = Readiness(wire.ReadinessClosedChannel)
++	ReadinessRepeatedChannel Readiness = Readiness(wire.ReadinessRepeatedChannel)
++	ReadinessMaximumCount              = wire.ReadinessMaximumCount
++)
++func NewReadiness(ready uint32, flags Readiness) (Readiness, error)
++    NewReadiness packs a known ready count and its shape flags.
++
++func (readiness Readiness) Known() bool
++
++func (readiness Readiness) Ready() uint32
++    Ready is the number of cases that could proceed; zero when unknown.
++
+ type Record struct {
+ 	Ordinal              uint64
+ 	Kind                 Kind
+@@ -182,9 +296,15 @@
+ 	Selected             uint32
+ 	Data                 uint32
+ 	SiteOffset           uint64
++	Readiness            Readiness
++	Origin               uint64
+ 	SelectedIdentity     [sha256.Size]byte
+ 	AlternativeSetDigest [sha256.Size]byte
+ }
++    Record mirrors wire.Record. Readiness is set on a select_result observation
++    by the runtime and on a select_poll decision only by the replay-plan
++    projection; Origin is an observation's field: the trace ordinal the runtime
++    would have assigned next when the observed select began polling.
+ 
+ type ReplayDivergenceError struct {
+ 	Divergence Divergence
+@@ -198,9 +318,15 @@
+ 	Identity          ExecutionIdentity
+ 	SourceTraceSHA256 [sha256.Size]byte
+ 	Decisions         []Decision
++	Readiness         []SelectReadiness
+ 	Bytes             []byte
+ 	SHA256            [sha256.Size]byte
+ }
++    ReplayPlan is a decision tape. Readiness has one entry per decision and is
++    encoded in each decision's record, so it survives the tape's byte form;
++    it is kept beside Decisions rather than inside Decision because a decision's
++    identity and replay comparison exclude it: a child whose select never
++    resumes still forced the same decision its parent recorded.
+ 
+ func BuildForcedRankPrefix(source ReplayPlan, decisionOrdinal uint64, rank uint32) (ReplayPlan, error)
+ 
+@@ -215,6 +341,27 @@
+ func (tape ReplayPlan) Branching() []Decision
+ 
+ func (tape ReplayPlan) Prefix(records uint64) (ReplayPlan, error)
++
++type SelectReadiness struct {
++	Known bool `json:"known"`
++	// Ready counts the cases that could proceed; the default is not a case.
++	Ready           uint32 `json:"ready"`
++	Default         bool   `json:"default"`
++	NilChannel      bool   `json:"nil_channel"`
++	TimerChannel    bool   `json:"timer_channel"`
++	ClosedChannel   bool   `json:"closed_channel"`
++	RepeatedChannel bool   `json:"repeated_channel"`
++}
++    SelectReadiness is what a select observed once it had locked its channels:
++    how many of its cases could proceed, and the shape properties that tell the
++    fixture shapes apart. The projection carries a select's readiness onto each
++    of its select-poll decisions. Known is false for a runnable decision and for
++    a select-poll decision whose select recorded no result because it blocked
++    and never resumed.
++
++func (readiness SelectReadiness) Word() (Readiness, error)
++    Word packs the readiness for a record; an unknown readiness is the zero
++    word.
+ 
+ type Session struct {
+ 	// Has unexported fields.
+
+--- linux/amd64/baseline/choice
++++ linux/amd64/current/choice
+@@ -20,7 +20,16 @@
+ 
+ 	Version1 = wire.Version1
+ 	Version2 = wire.Version2
+-)
++	Version3 = wire.Version3
++
++	// SupersededProfile is the v2 profile, whose select results recorded no
++	// readiness. Its traces are refused by name; LegacyProfile keeps v1
++	// inspectable.
++	SupersededProfile = "gomad3-choice-trace/v2"
++)
++const DiagnosticProfile = wire.DiagnosticProfile
++const DiagnosticProfileEnvironment = "GOMAD3_DIAGNOSTIC_PROFILE"
++const MaximumDiagnosticBytes = wire.DiagnosticMaximumBytes
+ 
+ VARIABLES
+ 
+@@ -35,10 +44,12 @@
+ 	ErrDiverged     = errors.New("choice replay divergence")
+ 	ErrUnterminated = errors.New("unterminated choice trace")
+ )
++var ErrDiagnosticIncomplete = errors.New("diagnostic trace incomplete")
+ 
+ FUNCTIONS
+ 
+ func AlternativeSetDigest(alternatives [][sha256.Size]byte) ([sha256.Size]byte, error)
++func DiagnosticLimit(choiceLimit uint64) (uint64, error)
+ func DivergenceReasonName(reason DivergenceReason) string
+ func ImplementationIdentity(toolchainBuildKey string) ([sha256.Size]byte, error)
+ func TraceBytes(records uint64) (uint64, error)
+@@ -46,6 +57,7 @@
+ func TraceRecordCount(encoded []byte) (uint64, error)
+ func ValidateController(mode Mode, replayPlanBytes uint64) error
+ func ValidateExecutionIdentity(identity ExecutionIdentity) error
++func ValidatePrefixReplayDivergence(tape ReplayPlan, divergence Divergence) error
+ func ValidateTraceLimit(limit uint64) error
+ 
+ TYPES
+@@ -81,6 +93,53 @@
+ 
+ func (decision Decision) Record() Record
+ 
++type DecisionEvidence struct {
++	Ordinal              uint64            `json:"ordinal"`
++	Kind                 Kind              `json:"kind"`
++	SiteOffset           uint64            `json:"site_offset"`
++	SiteMissing          bool              `json:"site_missing"`
++	RankOverride         bool              `json:"rank_override"`
++	Alternatives         uint32            `json:"alternatives"`
++	Selected             uint32            `json:"selected"`
++	Data                 uint32            `json:"data"`
++	SelectedIdentity     [sha256.Size]byte `json:"selected_identity"`
++	AlternativeSetDigest [sha256.Size]byte `json:"alternative_set_digest"`
++}
++
++type DiagnosticDivergence struct {
++	Ordinal  uint64            `json:"ordinal"`
++	Fields   []string          `json:"fields"`
++	Expected *DiagnosticRecord `json:"expected,omitempty"`
++	Actual   *DiagnosticRecord `json:"actual,omitempty"`
++}
++
++func DiffDiagnostics(expectedBytes, actualBytes []byte) (*DiagnosticDivergence, error)
++
++type DiagnosticRecord wire.DiagnosticRecord
++
++type DiagnosticSession struct {
++	// Has unexported fields.
++}
++
++func NewDiagnosticSession(limit uint64) (_ *DiagnosticSession, retErr error)
++
++func (session *DiagnosticSession) Close() error
++
++func (session *DiagnosticSession) Collect() (DiagnosticTrace, error)
++
++func (session *DiagnosticSession) File() *os.File
++
++type DiagnosticTrace struct {
++	Bytes    []byte
++	SHA256   [sha256.Size]byte
++	Records  []DiagnosticRecord
++	Capacity uint64
++}
++
++func DecodeDiagnosticTrace(data []byte) (DiagnosticTrace, error)
++
++func ReadDiagnosticTrace(path string) (DiagnosticTrace, error)
++
+ type Divergence struct {
+ 	Ordinal     uint64
+ 	Reason      DivergenceReason
+@@ -88,6 +147,20 @@
+ 	Observed    *Decision
+ 	TapeRecords uint64
+ }
++
++type DivergenceEvidence struct {
++	Ordinal     uint64            `json:"ordinal"`
++	Reason      DivergenceReason  `json:"reason"`
++	Expected    *DecisionEvidence `json:"expected,omitempty"`
++	Observed    *DecisionEvidence `json:"observed,omitempty"`
++	TapeRecords uint64            `json:"tape_records"`
++}
++
++func ProjectDivergenceEvidence(divergence Divergence) DivergenceEvidence
++
++func (evidence DivergenceEvidence) Divergence() Divergence
++
++func (evidence DivergenceEvidence) ReasonName() string
+ 
+ type DivergenceReason uint8
+ 
+@@ -158,6 +231,25 @@
+ 	ModeReplay Mode = Mode(wire.ModeReplay)
+ 	ModePrefix Mode = Mode(wire.ModePrefix)
+ )
++type NoOpSelectShape struct {
++	PolledCases uint32
++	Readiness   SelectReadiness
++}
++    NoOpSelectShape is the evidence a select-poll decision carries: how many
++    cases its select polled, which is the alternatives of the select's last poll
++    step, and the readiness the runtime recorded with the select's result.
++
++func NoOpSelectShapes() []NoOpSelectShape
++    NoOpSelectShapes lists the shapes whose poll order cannot change
++    behavior. Poll order matters only when at least two cases are ready,
++    but a shape is listed only after the select-readiness fixture
++    (internal/gomadtool/conformance) explored it to exhaustion
++    with and without its poll decisions expanded and reached the
++    same outcomes and deadlocks; the comparison is retained under
++    .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/select-reduction/.
++    The fixture requires its proven shapes and this list to be the same set,
++    and the explorer expands every select-poll decision of a shape off the list.
++
+ type Projection struct {
+ 	Profile      string
+ 	Limit        uint64
+@@ -174,6 +266,28 @@
+ 
+ func ProjectTrace(trace Trace, limit uint64, targetIdentity [sha256.Size]byte) (Projection, error)
+ 
++type Readiness uint16
++    Readiness is the packed select readiness word: flag bits below the count,
++    which is the number of cases that could proceed. Zero means unknown; a known
++    word carries ReadinessKnown.
++
++const (
++	ReadinessKnown           Readiness = Readiness(wire.ReadinessKnown)
++	ReadinessDefault         Readiness = Readiness(wire.ReadinessDefault)
++	ReadinessNilChannel      Readiness = Readiness(wire.ReadinessNilChannel)
++	ReadinessTimerChannel    Readiness = Readiness(wire.ReadinessTimerChannel)
++	ReadinessClosedChannel   Readiness = Readiness(wire.ReadinessClosedChannel)
++	ReadinessRepeatedChannel Readiness = Readiness(wire.ReadinessRepeatedChannel)
++	ReadinessMaximumCount              = wire.ReadinessMaximumCount
++)
++func NewReadiness(ready uint32, flags Readiness) (Readiness, error)
++    NewReadiness packs a known ready count and its shape flags.
++
++func (readiness Readiness) Known() bool
++
++func (readiness Readiness) Ready() uint32
++    Ready is the number of cases that could proceed; zero when unknown.
++
+ type Record struct {
+ 	Ordinal              uint64
+ 	Kind                 Kind
+@@ -182,9 +296,15 @@
+ 	Selected             uint32
+ 	Data                 uint32
+ 	SiteOffset           uint64
++	Readiness            Readiness
++	Origin               uint64
+ 	SelectedIdentity     [sha256.Size]byte
+ 	AlternativeSetDigest [sha256.Size]byte
+ }
++    Record mirrors wire.Record. Readiness is set on a select_result observation
++    by the runtime and on a select_poll decision only by the replay-plan
++    projection; Origin is an observation's field: the trace ordinal the runtime
++    would have assigned next when the observed select began polling.
+ 
+ type ReplayDivergenceError struct {
+ 	Divergence Divergence
+@@ -198,9 +318,15 @@
+ 	Identity          ExecutionIdentity
+ 	SourceTraceSHA256 [sha256.Size]byte
+ 	Decisions         []Decision
++	Readiness         []SelectReadiness
+ 	Bytes             []byte
+ 	SHA256            [sha256.Size]byte
+ }
++    ReplayPlan is a decision tape. Readiness has one entry per decision and is
++    encoded in each decision's record, so it survives the tape's byte form;
++    it is kept beside Decisions rather than inside Decision because a decision's
++    identity and replay comparison exclude it: a child whose select never
++    resumes still forced the same decision its parent recorded.
+ 
+ func BuildForcedRankPrefix(source ReplayPlan, decisionOrdinal uint64, rank uint32) (ReplayPlan, error)
+ 
+@@ -215,6 +341,27 @@
+ func (tape ReplayPlan) Branching() []Decision
+ 
+ func (tape ReplayPlan) Prefix(records uint64) (ReplayPlan, error)
++
++type SelectReadiness struct {
++	Known bool `json:"known"`
++	// Ready counts the cases that could proceed; the default is not a case.
++	Ready           uint32 `json:"ready"`
++	Default         bool   `json:"default"`
++	NilChannel      bool   `json:"nil_channel"`
++	TimerChannel    bool   `json:"timer_channel"`
++	ClosedChannel   bool   `json:"closed_channel"`
++	RepeatedChannel bool   `json:"repeated_channel"`
++}
++    SelectReadiness is what a select observed once it had locked its channels:
++    how many of its cases could proceed, and the shape properties that tell the
++    fixture shapes apart. The projection carries a select's readiness onto each
++    of its select-poll decisions. Known is false for a runnable decision and for
++    a select-poll decision whose select recorded no result because it blocked
++    and never resumed.
++
++func (readiness SelectReadiness) Word() (Readiness, error)
++    Word packs the readiness for a record; an unknown readiness is the zero
++    word.
+ 
+ type Session struct {
+ 	// Has unexported fields.
+
+--- darwin/arm64/baseline/world
++++ darwin/arm64/current/world
+@@ -19,23 +19,28 @@
+ VARIABLES
+ 
+ var (
+-	ErrInvalidConfig    = errors.New("invalid World config")
+-	ErrInvalidRequest   = errors.New("invalid World request")
+-	ErrUnknownRequest   = errors.New("unknown World request")
+-	ErrRequestState     = errors.New("invalid World request state")
+-	ErrTimeRegression   = errors.New("World time regression")
+-	ErrCapacity         = errors.New("World capacity exhausted")
+-	ErrInvalidSnapshot  = errors.New("invalid World snapshot")
+-	ErrReplayDivergence = errors.New("World replay divergence")
++	ErrInvalidConfig    error = invalidConfig
++	ErrInvalidRequest   error = invalidRequest
++	ErrUnknownRequest   error = unknownRequest
++	ErrRequestState     error = invalidRequestState
++	ErrTimeRegression   error = timeRegression
++	ErrCapacity         error = capacityExhausted
++	ErrInvalidSnapshot  error = invalidSnapshotSentinel
++	ErrReplayDivergence error = replayDivergence
+ )
+ 
+ FUNCTIONS
+ 
++func DecodeRecording(data []byte) (Recording, error)
++func DecodeReplayPlan(data []byte) (ReplayPlan, error)
++func DecodeSnapshot(data []byte) (Snapshot, error)
+ func EncodeRecording(recording Recording) ([]byte, error)
+ func EncodeReplayPlan(plan ReplayPlan) ([]byte, error)
+ func EncodeSnapshot(snapshot Snapshot) ([]byte, error)
+ func EncodeTransitions(transitions []Transition) ([]byte, error)
++func New(config Config) (*Model, error)
+ func RecordingHeader() [8]byte
++func Restore(snapshot Snapshot, replay *ReplayPlan) (*Model, error)
+ func ValidateRecording(recording Recording) error
+ 
+ TYPES
+@@ -122,10 +127,6 @@
+ 	// Has unexported fields.
+ }
+ 
+-func New(config Config) (*Model, error)
+-
+-func Restore(snapshot Snapshot, replay *ReplayPlan) (*Model, error)
+-
+ func (w *Model) Cancel(requestID RequestID) (Cancellation, error)
+ 
+ func (w *Model) Quiesce() (Quiescence, error)
+@@ -184,13 +185,15 @@
+ 
+ func (recorder *Recorder) FinishError(terminalErr error) (Recording, error)
+ 
++func (recorder *Recorder) FinishTerminal(terminal Terminal) (Recording, error)
++    FinishTerminal accepts detached error reporting data. General error
++    callbacks must be normalized by the caller outside the pure World model.
++
+ type Recording struct {
+ 	Initial  Snapshot
+ 	Final    Snapshot
+ 	Terminal Terminal
+ }
+-
+-func DecodeRecording(data []byte) (Recording, error)
+ 
+ type RegisterTransition struct {
+ 	Request   Request   `json:"request"`
+@@ -216,8 +219,6 @@
+ 	Transitions   []Transition `json:"transitions"`
+ 	FinalDigest   Digest       `json:"finalDigest"`
+ }
+-
+-func DecodeReplayPlan(data []byte) (ReplayPlan, error)
+ 
+ type ReplayProgress struct {
+ 	Cursor   uint64 `json:"cursor"`
+@@ -286,8 +287,6 @@
+ 	StateDigest      Digest            `json:"stateDigest"`
+ }
+ 
+-func DecodeSnapshot(data []byte) (Snapshot, error)
+-
+ type Terminal struct {
+ 	Kind   TerminalKind `json:"kind"`
+ 	Detail string       `json:"detail,omitempty"`
+
+--- linux/amd64/baseline/world
++++ linux/amd64/current/world
+@@ -19,23 +19,28 @@
+ VARIABLES
+ 
+ var (
+-	ErrInvalidConfig    = errors.New("invalid World config")
+-	ErrInvalidRequest   = errors.New("invalid World request")
+-	ErrUnknownRequest   = errors.New("unknown World request")
+-	ErrRequestState     = errors.New("invalid World request state")
+-	ErrTimeRegression   = errors.New("World time regression")
+-	ErrCapacity         = errors.New("World capacity exhausted")
+-	ErrInvalidSnapshot  = errors.New("invalid World snapshot")
+-	ErrReplayDivergence = errors.New("World replay divergence")
++	ErrInvalidConfig    error = invalidConfig
++	ErrInvalidRequest   error = invalidRequest
++	ErrUnknownRequest   error = unknownRequest
++	ErrRequestState     error = invalidRequestState
++	ErrTimeRegression   error = timeRegression
++	ErrCapacity         error = capacityExhausted
++	ErrInvalidSnapshot  error = invalidSnapshotSentinel
++	ErrReplayDivergence error = replayDivergence
+ )
+ 
+ FUNCTIONS
+ 
++func DecodeRecording(data []byte) (Recording, error)
++func DecodeReplayPlan(data []byte) (ReplayPlan, error)
++func DecodeSnapshot(data []byte) (Snapshot, error)
+ func EncodeRecording(recording Recording) ([]byte, error)
+ func EncodeReplayPlan(plan ReplayPlan) ([]byte, error)
+ func EncodeSnapshot(snapshot Snapshot) ([]byte, error)
+ func EncodeTransitions(transitions []Transition) ([]byte, error)
++func New(config Config) (*Model, error)
+ func RecordingHeader() [8]byte
++func Restore(snapshot Snapshot, replay *ReplayPlan) (*Model, error)
+ func ValidateRecording(recording Recording) error
+ 
+ TYPES
+@@ -122,10 +127,6 @@
+ 	// Has unexported fields.
+ }
+ 
+-func New(config Config) (*Model, error)
+-
+-func Restore(snapshot Snapshot, replay *ReplayPlan) (*Model, error)
+-
+ func (w *Model) Cancel(requestID RequestID) (Cancellation, error)
+ 
+ func (w *Model) Quiesce() (Quiescence, error)
+@@ -184,13 +185,15 @@
+ 
+ func (recorder *Recorder) FinishError(terminalErr error) (Recording, error)
+ 
++func (recorder *Recorder) FinishTerminal(terminal Terminal) (Recording, error)
++    FinishTerminal accepts detached error reporting data. General error
++    callbacks must be normalized by the caller outside the pure World model.
++
+ type Recording struct {
+ 	Initial  Snapshot
+ 	Final    Snapshot
+ 	Terminal Terminal
+ }
+-
+-func DecodeRecording(data []byte) (Recording, error)
+ 
+ type RegisterTransition struct {
+ 	Request   Request   `json:"request"`
+@@ -216,8 +219,6 @@
+ 	Transitions   []Transition `json:"transitions"`
+ 	FinalDigest   Digest       `json:"finalDigest"`
+ }
+-
+-func DecodeReplayPlan(data []byte) (ReplayPlan, error)
+ 
+ type ReplayProgress struct {
+ 	Cursor   uint64 `json:"cursor"`
+@@ -286,8 +287,6 @@
+ 	StateDigest      Digest            `json:"stateDigest"`
+ }
+ 
+-func DecodeSnapshot(data []byte) (Snapshot, error)
+-
+ type Terminal struct {
+ 	Kind   TerminalKind `json:"kind"`
+ 	Detail string       `json:"detail,omitempty"`
+
+
+
+
+
+--- darwin/arm64/baseline/qualification
++++ darwin/arm64/current/qualification
+@@ -9,6 +9,8 @@
+ 	ChoiceReplayExact         = "exact"
+ 	ChoiceReplayDiverged      = "diverged"
+ 	ChoiceReplayUnavailable   = "unavailable"
++	DiagnosticComplete        = "complete"
++	DiagnosticUnavailable     = "unavailable"
+ )
+ const ExecutionEvidenceDigestDomain = "gomad3.qualification-evidence/v1"
+ const QualificationEventSchema = "gomad3.qualify-event/v1"
+@@ -24,20 +26,30 @@
+ 
+ TYPES
+ 
++type QualificationDiagnosticDivergence struct {
++	BaselineIteration record.Uint64String `json:"baseline_iteration"`
++	Iteration         record.Uint64String `json:"iteration"`
++	choice.DiagnosticDivergence
++}
++
+ type QualificationExecution struct {
+ 	CampaignPath     string
+ 	ArtifactPath     string
+ 	WallElapsedNanos uint64
+ 	Evidence         runner.ExecutionEvidence
+ 	Replay           *QualificationReplay
++	Diagnostics      *runner.DiagnosticTraceReference
+ }
+ 
+ type QualificationExecutionReport struct {
+-	CampaignPath     string               `json:"campaign_path"`
+-	ArtifactPath     string               `json:"artifact_path,omitempty"`
+-	EvidenceDigest   record.SHA256        `json:"evidence_digest"`
+-	WallElapsedNanos record.Uint64String  `json:"wall_elapsed_nanos"`
+-	Replay           *QualificationReplay `json:"replay,omitempty"`
++	Evidence         *runner.ExecutionEvidence        `json:"evidence,omitempty"`
++	DiagnosticStatus string                           `json:"diagnostic_status,omitempty"`
++	CampaignPath     string                           `json:"campaign_path"`
++	ArtifactPath     string                           `json:"artifact_path,omitempty"`
++	EvidenceDigest   record.SHA256                    `json:"evidence_digest"`
++	WallElapsedNanos record.Uint64String              `json:"wall_elapsed_nanos"`
++	Diagnostics      *runner.DiagnosticTraceReference `json:"diagnostics,omitempty"`
++	Replay           *QualificationReplay             `json:"replay,omitempty"`
+ }
+ 
+ type QualificationFailure struct {
+@@ -63,18 +75,19 @@
+ }
+ 
+ type QualificationReport struct {
+-	Schema          string                         `json:"schema"`
+-	Qualified       bool                           `json:"qualified"`
+-	Deterministic   bool                           `json:"deterministic"`
+-	TargetSuccess   bool                           `json:"target_success"`
+-	Seed            record.Uint64String            `json:"seed"`
+-	Repeat          record.Uint64String            `json:"repeat"`
+-	Command         []string                       `json:"command"`
+-	EvidenceDigest  record.SHA256                  `json:"evidence_digest,omitempty"`
+-	Evidence        *runner.ExecutionEvidence      `json:"evidence,omitempty"`
+-	Executions      []QualificationExecutionReport `json:"executions"`
+-	FirstDivergence string                         `json:"first_divergence,omitempty"`
+-	Failure         *QualificationFailure          `json:"failure,omitempty"`
++	Schema               string                             `json:"schema"`
++	Qualified            bool                               `json:"qualified"`
++	Deterministic        bool                               `json:"deterministic"`
++	TargetSuccess        bool                               `json:"target_success"`
++	Seed                 record.Uint64String                `json:"seed"`
++	Repeat               record.Uint64String                `json:"repeat"`
++	Command              []string                           `json:"command"`
++	EvidenceDigest       record.SHA256                      `json:"evidence_digest,omitempty"`
++	Evidence             *runner.ExecutionEvidence          `json:"evidence,omitempty"`
++	Executions           []QualificationExecutionReport     `json:"executions"`
++	DiagnosticDivergence *QualificationDiagnosticDivergence `json:"diagnostic_divergence,omitempty"`
++	FirstDivergence      string                             `json:"first_divergence,omitempty"`
++	Failure              *QualificationFailure              `json:"failure,omitempty"`
+ }
+ 
+ func BuildQualificationFailure(command []string, seed uint64, repeat uint64, completed []QualificationExecution, failure QualificationFailure) (QualificationReport, error)
+
+--- linux/amd64/baseline/qualification
++++ linux/amd64/current/qualification
+@@ -9,6 +9,8 @@
+ 	ChoiceReplayExact         = "exact"
+ 	ChoiceReplayDiverged      = "diverged"
+ 	ChoiceReplayUnavailable   = "unavailable"
++	DiagnosticComplete        = "complete"
++	DiagnosticUnavailable     = "unavailable"
+ )
+ const ExecutionEvidenceDigestDomain = "gomad3.qualification-evidence/v1"
+ const QualificationEventSchema = "gomad3.qualify-event/v1"
+@@ -24,20 +26,30 @@
+ 
+ TYPES
+ 
++type QualificationDiagnosticDivergence struct {
++	BaselineIteration record.Uint64String `json:"baseline_iteration"`
++	Iteration         record.Uint64String `json:"iteration"`
++	choice.DiagnosticDivergence
++}
++
+ type QualificationExecution struct {
+ 	CampaignPath     string
+ 	ArtifactPath     string
+ 	WallElapsedNanos uint64
+ 	Evidence         runner.ExecutionEvidence
+ 	Replay           *QualificationReplay
++	Diagnostics      *runner.DiagnosticTraceReference
+ }
+ 
+ type QualificationExecutionReport struct {
+-	CampaignPath     string               `json:"campaign_path"`
+-	ArtifactPath     string               `json:"artifact_path,omitempty"`
+-	EvidenceDigest   record.SHA256        `json:"evidence_digest"`
+-	WallElapsedNanos record.Uint64String  `json:"wall_elapsed_nanos"`
+-	Replay           *QualificationReplay `json:"replay,omitempty"`
++	Evidence         *runner.ExecutionEvidence        `json:"evidence,omitempty"`
++	DiagnosticStatus string                           `json:"diagnostic_status,omitempty"`
++	CampaignPath     string                           `json:"campaign_path"`
++	ArtifactPath     string                           `json:"artifact_path,omitempty"`
++	EvidenceDigest   record.SHA256                    `json:"evidence_digest"`
++	WallElapsedNanos record.Uint64String              `json:"wall_elapsed_nanos"`
++	Diagnostics      *runner.DiagnosticTraceReference `json:"diagnostics,omitempty"`
++	Replay           *QualificationReplay             `json:"replay,omitempty"`
+ }
+ 
+ type QualificationFailure struct {
+@@ -63,18 +75,19 @@
+ }
+ 
+ type QualificationReport struct {
+-	Schema          string                         `json:"schema"`
+-	Qualified       bool                           `json:"qualified"`
+-	Deterministic   bool                           `json:"deterministic"`
+-	TargetSuccess   bool                           `json:"target_success"`
+-	Seed            record.Uint64String            `json:"seed"`
+-	Repeat          record.Uint64String            `json:"repeat"`
+-	Command         []string                       `json:"command"`
+-	EvidenceDigest  record.SHA256                  `json:"evidence_digest,omitempty"`
+-	Evidence        *runner.ExecutionEvidence      `json:"evidence,omitempty"`
+-	Executions      []QualificationExecutionReport `json:"executions"`
+-	FirstDivergence string                         `json:"first_divergence,omitempty"`
+-	Failure         *QualificationFailure          `json:"failure,omitempty"`
++	Schema               string                             `json:"schema"`
++	Qualified            bool                               `json:"qualified"`
++	Deterministic        bool                               `json:"deterministic"`
++	TargetSuccess        bool                               `json:"target_success"`
++	Seed                 record.Uint64String                `json:"seed"`
++	Repeat               record.Uint64String                `json:"repeat"`
++	Command              []string                           `json:"command"`
++	EvidenceDigest       record.SHA256                      `json:"evidence_digest,omitempty"`
++	Evidence             *runner.ExecutionEvidence          `json:"evidence,omitempty"`
++	Executions           []QualificationExecutionReport     `json:"executions"`
++	DiagnosticDivergence *QualificationDiagnosticDivergence `json:"diagnostic_divergence,omitempty"`
++	FirstDivergence      string                             `json:"first_divergence,omitempty"`
++	Failure              *QualificationFailure              `json:"failure,omitempty"`
+ }
+ 
+ func BuildQualificationFailure(command []string, seed uint64, repeat uint64, completed []QualificationExecution, failure QualificationFailure) (QualificationReport, error)
+
+--- darwin/arm64/baseline/qualification/analysis
++++ darwin/arm64/current/qualification/analysis
+@@ -11,6 +11,15 @@
+ FUNCTIONS
+ 
+ func FormatText(report Report) string
++func HostDeterministicProfile() (name, implementationSHA256 string, ok bool)
++    HostDeterministicProfile returns the identity of the deterministic I/O
++    profile adapter bindings carry on this host, or ok false when the host has
++    no deterministic I/O boundary.
++
++func ReviewCompatibilityTarget(ctx context.Context, spec target.Spec) (target.CapabilityReview, error)
++    ReviewCompatibilityTarget prepares spec's adapters, reviews its target,
++    and releases the preparation, as compatibility-pack discovery does.
++
+ 
+ TYPES
+ 
+@@ -47,7 +56,7 @@
+ 	// Has unexported fields.
+ }
+ 
+-func PrepareCapabilityReview(ctx context.Context, spec target.Spec) (_ PreparedCapabilityReview, retErr error)
++func PrepareCapabilityReview(ctx context.Context, spec target.Spec) (PreparedCapabilityReview, error)
+ 
+ func (prepared *PreparedCapabilityReview) Close() error
+ 
+
+--- linux/amd64/baseline/qualification/analysis
++++ linux/amd64/current/qualification/analysis
+@@ -11,6 +11,15 @@
+ FUNCTIONS
+ 
+ func FormatText(report Report) string
++func HostDeterministicProfile() (name, implementationSHA256 string, ok bool)
++    HostDeterministicProfile returns the identity of the deterministic I/O
++    profile adapter bindings carry on this host, or ok false when the host has
++    no deterministic I/O boundary.
++
++func ReviewCompatibilityTarget(ctx context.Context, spec target.Spec) (target.CapabilityReview, error)
++    ReviewCompatibilityTarget prepares spec's adapters, reviews its target,
++    and releases the preparation, as compatibility-pack discovery does.
++
+ 
+ TYPES
+ 
+@@ -47,7 +56,7 @@
+ 	// Has unexported fields.
+ }
+ 
+-func PrepareCapabilityReview(ctx context.Context, spec target.Spec) (_ PreparedCapabilityReview, retErr error)
++func PrepareCapabilityReview(ctx context.Context, spec target.Spec) (PreparedCapabilityReview, error)
+ 
+ func (prepared *PreparedCapabilityReview) Close() error
+ 
+
+
+
+--- darwin/arm64/baseline/qualification/set
++++ darwin/arm64/current/qualification/set
+@@ -19,6 +19,14 @@
+ FUNCTIONS
+ 
+ func IsInvalidReport(err error) bool
++func SoakQualifyArguments(manifest Manifest, workload Workload, seed, repeat uint64, overallTimeout time.Duration, artifactRoot string) []string
++    SoakQualifyArguments returns the gomad qualify arguments of one determinism
++    soak batch of a workload: the arguments this set runs for the workload and
++    seed, with the batch's repetition count and overall deadline, the diagnostic
++    trace on, and successful-execution replay off. A soak compares fresh runs,
++    so it does not spend a replay on every success; the diagnostic trace is
++    retained in each Campaign whether or not a success Artifact is.
++
+ func ValidateManifest(manifest Manifest) error
+     ValidateManifest applies the checks LoadManifest enforces, so a generator
+     can refuse to write a manifest the qualification set would reject.
+
+--- linux/amd64/baseline/qualification/set
++++ linux/amd64/current/qualification/set
+@@ -19,6 +19,14 @@
+ FUNCTIONS
+ 
+ func IsInvalidReport(err error) bool
++func SoakQualifyArguments(manifest Manifest, workload Workload, seed, repeat uint64, overallTimeout time.Duration, artifactRoot string) []string
++    SoakQualifyArguments returns the gomad qualify arguments of one determinism
++    soak batch of a workload: the arguments this set runs for the workload and
++    seed, with the batch's repetition count and overall deadline, the diagnostic
++    trace on, and successful-execution replay off. A soak compares fresh runs,
++    so it does not spend a replay on every success; the diagnostic trace is
++    retained in each Campaign whether or not a success Artifact is.
++
+ func ValidateManifest(manifest Manifest) error
+     ValidateManifest applies the checks LoadManifest enforces, so a generator
+     can refuse to write a manifest the qualification set would reject.
+
+
+
+--- darwin/arm64/baseline/qualification/soak
++++ darwin/arm64/current/qualification/soak
+@@ -0,0 +1,279 @@
++package soak // import "go.temporal.io/server/tools/gomad3/qualification/soak"
++
++Package soak runs the scheduled determinism soak: N fresh same-seed repetitions
++per seed of a named workload selection, in gomad qualify batches of at most 32,
++under bounded unrelated CPU load, with choice tracing and the diagnostic trace
++on.
++
++A qualify batch compares its repetitions only with its own first execution, so
++the soak also compares each batch's evidence baseline with the baseline of its
++cohort (workload, seed, platform, execution identity), within one run and across
++the retained runs of a cumulative ledger. Any disagreement is a divergence;
++a trace overflow, a target failure, and an infrastructure failure are reported
++separately and none of them is a pass.
++
++CONSTANTS
++
++const (
++	OutcomeClean          = "clean"
++	OutcomeDivergence     = "divergence"
++	OutcomeOverflow       = "overflow"
++	OutcomeTargetFailure  = "target_failure"
++	OutcomeInfrastructure = "infrastructure"
++)
++    Batch outcomes. Only a clean batch is a pass; overflow, target failure,
++    and infrastructure failure are kept apart from divergence because none of
++    them can support or refute a determinism claim.
++
++const (
++	ComparisonEstablished = "baseline_established"
++	ComparisonMatches     = "matches_baseline"
++	ComparisonDiffers     = "differs_from_baseline"
++)
++    Cross-batch comparisons of a clean batch with its cohort baseline.
++
++const (
++	GateStrict        = "strict"
++	GateInformational = "informational"
++)
++    Gates. A strict gate fails on any divergence; an informational gate reports
++    divergences without failing because an open finding names the channel.
++
++const LedgerSchema = "gomad3.determinism-soak-ledger/v1"
++const ManifestSchema = "gomad3.determinism-soak/v1"
++const ReportSchema = "gomad3.determinism-soak-report/v1"
++
++FUNCTIONS
++
++func ExitStatus(report Report) int
++    ExitStatus maps a report to gomadtool soak's status: 0 for a pass or an
++    informational divergence, 1 for a divergence or target failure, and 3 when
++    an overflow or infrastructure failure left the soak unable to conclude.
++
++func Summary(report Report) string
++    Summary renders the report as the Markdown a workflow step summary shows.
++
++func ValidateManifest(manifest Manifest) error
++
++TYPES
++
++type Baseline struct {
++	EvidenceDigest record.SHA256 `json:"evidence_digest"`
++	Evidence       string        `json:"evidence"`
++	Trace          string        `json:"trace,omitempty"`
++	Run            string        `json:"run"`
++	Batch          uint64        `json:"batch"`
++}
++    Baseline is the evidence every later batch of the cohort is compared with.
++    Its files are relative to the ledger directory and travel with the ledger.
++
++type BatchReport struct {
++	Workload    string              `json:"workload"`
++	Seed        record.Uint64String `json:"seed"`
++	Batch       uint64              `json:"batch"`
++	Outcome     string              `json:"outcome"`
++	Comparison  string              `json:"comparison,omitempty"`
++	Qualify     string              `json:"qualify_classification,omitempty"`
++	Repetitions uint64              `json:"repetitions"`
++	// EvidenceDigest is the batch's evidence baseline, the digest of its
++	// first execution.
++	EvidenceDigest record.SHA256 `json:"evidence_digest,omitempty"`
++	Cohort         string        `json:"cohort,omitempty"`
++	Message        string        `json:"message,omitempty"`
++	ElapsedNanos   uint64        `json:"elapsed_nanos"`
++	// ExecutionWallNanos sums the wall time of the batch's executions, the
++	// per-run cost that sizes N.
++	ExecutionWallNanos uint64                       `json:"execution_wall_nanos"`
++	Report             string                       `json:"report,omitempty"`
++	Retained           string                       `json:"retained,omitempty"`
++	Divergence         *choice.DiagnosticDivergence `json:"diagnostic_divergence,omitempty"`
++}
++
++type Cohort struct {
++	ID        string           `json:"id"`
++	Key       CohortKey        `json:"key"`
++	Toolchain record.Toolchain `json:"toolchain"`
++	Baseline  *Baseline        `json:"baseline,omitempty"`
++	// Counts accumulate across every retained run that executed this cohort.
++	Counts Counts   `json:"counts"`
++	Runs   []string `json:"runs"`
++}
++
++type CohortKey struct {
++	Workload          string              `json:"workload"`
++	Seed              record.Uint64String `json:"seed"`
++	Platform          string              `json:"platform"`
++	ExecutionIdentity record.SHA256       `json:"execution_identity"`
++}
++    CohortKey is the unit whose batches must agree. A changed execution
++    identity, including a changed toolchain build key, is a different cohort.
++
++type CohortReport struct {
++	ID        string           `json:"id"`
++	Key       CohortKey        `json:"key"`
++	Toolchain record.Toolchain `json:"toolchain"`
++	// Run counts this run's batches; Cumulative counts every retained run.
++	Run        Counts `json:"run"`
++	Cumulative Counts `json:"cumulative"`
++	Runs       uint64 `json:"runs"`
++	// Bound is the quotable result: the cohort's repetitions in clean batches,
++	// zero once the cohort has diverged.
++	Bound uint64 `json:"bound"`
++}
++
++type Command struct {
++	Executable string
++	Args       []string
++	Dir        string
++	Timeout    time.Duration
++	Grace      time.Duration
++}
++    Command is one gomad qualify batch invocation.
++
++type CommandResult struct {
++	ExitCode int
++	Stdout   []byte
++	Stderr   []byte
++	Err      error
++}
++
++type Counts struct {
++	Batches uint64 `json:"batches"`
++	// Repetitions counts every completed execution; CleanRepetitions only
++	// those of clean batches, the repetitions a bound may quote.
++	Repetitions            uint64 `json:"repetitions"`
++	CleanRepetitions       uint64 `json:"clean_repetitions"`
++	Divergences            uint64 `json:"divergences"`
++	Overflows              uint64 `json:"overflows"`
++	TargetFailures         uint64 `json:"target_failures"`
++	InfrastructureFailures uint64 `json:"infrastructure_failures"`
++}
++
++type Ledger struct {
++	Schema  string      `json:"schema"`
++	Runs    []LedgerRun `json:"runs"`
++	Cohorts []*Cohort   `json:"cohorts"`
++}
++    Ledger is the cumulative record a scheduled run restores from the previous
++    run and retains for the next.
++
++func LoadLedger(directory string) (*Ledger, error)
++    LoadLedger reads the ledger in directory, or returns an empty ledger when
++    the directory holds none.
++
++type LedgerRun struct {
++	ID             string        `json:"id"`
++	Platform       string        `json:"platform"`
++	ManifestSHA256 record.SHA256 `json:"manifest_sha256"`
++	Started        string        `json:"started"`
++}
++
++type Load struct {
++	Workers  uint64 `json:"workers"`
++	HostCPUs uint64 `json:"host_cpus"`
++}
++
++type Manifest struct {
++	Schema      string   `json:"schema"`
++	Name        string   `json:"name"`
++	Description string   `json:"description"`
++	Seeds       []uint64 `json:"seeds"`
++	// BatchRepeat is the repetition count of one gomad qualify batch.
++	BatchRepeat uint64 `json:"repeat"`
++	// A run executes rounds of one batch per workload and seed. It always runs
++	// MinimumBatches rounds and starts each further round, up to Batches, only
++	// while the previous round's measured cost still fits the budget, so N is
++	// the largest multiple of BatchRepeat that fits the scheduled job.
++	MinimumBatches uint64 `json:"minimum_batches"`
++	Batches        uint64 `json:"batches"`
++	// BatchTimeout bounds one batch; Budget bounds the whole run. A batch
++	// that cannot start inside the budget is reported, not skipped silently.
++	BatchTimeout string `json:"qualify_timeout"`
++	Budget       string `json:"budget"`
++	// LoadWorkers is the number of busy host threads the soak runs beside
++	// the workload for its whole duration.
++	LoadWorkers uint64 `json:"load_workers"`
++	// Sizing records how N was chosen, so the bound can be quoted with it.
++	Sizing string `json:"sizing"`
++	// InformationalPlatforms maps a platform to the open finding that keeps
++	// its divergences from failing the gate. Every other platform is strict.
++	InformationalPlatforms map[string]string `json:"informational_platforms,omitempty"`
++	Selections             []Selection       `json:"selections"`
++}
++    Manifest names a soak selection and its size. Selection manifests and
++    working directories are relative to the soak manifest's directory.
++
++func LoadManifest(path string) (Manifest, error)
++
++type Report struct {
++	Schema         string        `json:"schema"`
++	Name           string        `json:"name"`
++	ManifestSHA256 record.SHA256 `json:"manifest_sha256"`
++	RunID          string        `json:"run_id"`
++	Platform       string        `json:"platform"`
++	Gate           string        `json:"gate"`
++	// InformationalReason names the open finding of an informational gate.
++	InformationalReason string                `json:"informational_reason,omitempty"`
++	Toolchains          []record.Toolchain    `json:"toolchains"`
++	Seeds               []record.Uint64String `json:"seeds"`
++	Workloads           []string              `json:"workloads"`
++	BatchRepeat         uint64                `json:"repeat"`
++	MinimumBatches      uint64                `json:"minimum_batches"`
++	MaximumBatches      uint64                `json:"maximum_batches"`
++	// Batches is the number of rounds this run executed and StopReason why it
++	// stopped: "maximum_batches", or "budget" when the previous round's cost
++	// no longer fit.
++	Batches    uint64 `json:"batches"`
++	StopReason string `json:"stop_reason"`
++	// RepetitionsPerSeed is N, the fresh repetitions per workload and seed
++	// this run scheduled.
++	RepetitionsPerSeed uint64         `json:"repetitions_per_seed"`
++	Diagnostics        bool           `json:"diagnostics"`
++	Choices            bool           `json:"choices"`
++	Load               Load           `json:"load"`
++	Sizing             string         `json:"sizing"`
++	Started            string         `json:"started"`
++	ElapsedNanos       uint64         `json:"elapsed_nanos"`
++	Totals             Counts         `json:"totals"`
++	LedgerRuns         uint64         `json:"ledger_runs"`
++	Passed             bool           `json:"passed"`
++	Verdict            string         `json:"verdict"`
++	BatchReports       []BatchReport  `json:"results"`
++	Cohorts            []CohortReport `json:"cohorts"`
++}
++
++func Run(ctx context.Context, spec Spec) (Report, error)
++
++type Selection struct {
++	Manifest   string   `json:"manifest"`
++	WorkingDir string   `json:"working_dir"`
++	Suites     []string `json:"suites"`
++}
++
++type Spec struct {
++	ManifestPath string
++	GomadPath    string
++	// WorkRoot holds each batch's Campaigns; a batch's directory is removed
++	// once its evidence is retained unless KeepBatches is set.
++	WorkRoot string
++	// LedgerDir holds the cumulative ledger and cohort baselines carried from
++	// one scheduled run to the next.
++	LedgerDir string
++	// OutputDir receives the report, the summary, every batch's qualification
++	// report, and the traces and differ output of each divergence.
++	OutputDir string
++	RunID     string
++	// Workloads and Seeds restrict the run to part of the manifest selection.
++	Workloads []string
++	Seeds     []uint64
++	// Batches and Budget override the manifest's maximum rounds and budget
++	// when nonzero; Batches also lowers the minimum to at most itself.
++	Batches     uint64
++	Budget      time.Duration
++	KeepBatches bool
++	// Platform overrides the host GOOS/GOARCH; tests set it.
++	Platform string
++	Execute  func(context.Context, Command) CommandResult
++	Now      func() time.Time
++}
++
+
+--- linux/amd64/baseline/qualification/soak
++++ linux/amd64/current/qualification/soak
+@@ -0,0 +1,279 @@
++package soak // import "go.temporal.io/server/tools/gomad3/qualification/soak"
++
++Package soak runs the scheduled determinism soak: N fresh same-seed repetitions
++per seed of a named workload selection, in gomad qualify batches of at most 32,
++under bounded unrelated CPU load, with choice tracing and the diagnostic trace
++on.
++
++A qualify batch compares its repetitions only with its own first execution, so
++the soak also compares each batch's evidence baseline with the baseline of its
++cohort (workload, seed, platform, execution identity), within one run and across
++the retained runs of a cumulative ledger. Any disagreement is a divergence;
++a trace overflow, a target failure, and an infrastructure failure are reported
++separately and none of them is a pass.
++
++CONSTANTS
++
++const (
++	OutcomeClean          = "clean"
++	OutcomeDivergence     = "divergence"
++	OutcomeOverflow       = "overflow"
++	OutcomeTargetFailure  = "target_failure"
++	OutcomeInfrastructure = "infrastructure"
++)
++    Batch outcomes. Only a clean batch is a pass; overflow, target failure,
++    and infrastructure failure are kept apart from divergence because none of
++    them can support or refute a determinism claim.
++
++const (
++	ComparisonEstablished = "baseline_established"
++	ComparisonMatches     = "matches_baseline"
++	ComparisonDiffers     = "differs_from_baseline"
++)
++    Cross-batch comparisons of a clean batch with its cohort baseline.
++
++const (
++	GateStrict        = "strict"
++	GateInformational = "informational"
++)
++    Gates. A strict gate fails on any divergence; an informational gate reports
++    divergences without failing because an open finding names the channel.
++
++const LedgerSchema = "gomad3.determinism-soak-ledger/v1"
++const ManifestSchema = "gomad3.determinism-soak/v1"
++const ReportSchema = "gomad3.determinism-soak-report/v1"
++
++FUNCTIONS
++
++func ExitStatus(report Report) int
++    ExitStatus maps a report to gomadtool soak's status: 0 for a pass or an
++    informational divergence, 1 for a divergence or target failure, and 3 when
++    an overflow or infrastructure failure left the soak unable to conclude.
++
++func Summary(report Report) string
++    Summary renders the report as the Markdown a workflow step summary shows.
++
++func ValidateManifest(manifest Manifest) error
++
++TYPES
++
++type Baseline struct {
++	EvidenceDigest record.SHA256 `json:"evidence_digest"`
++	Evidence       string        `json:"evidence"`
++	Trace          string        `json:"trace,omitempty"`
++	Run            string        `json:"run"`
++	Batch          uint64        `json:"batch"`
++}
++    Baseline is the evidence every later batch of the cohort is compared with.
++    Its files are relative to the ledger directory and travel with the ledger.
++
++type BatchReport struct {
++	Workload    string              `json:"workload"`
++	Seed        record.Uint64String `json:"seed"`
++	Batch       uint64              `json:"batch"`
++	Outcome     string              `json:"outcome"`
++	Comparison  string              `json:"comparison,omitempty"`
++	Qualify     string              `json:"qualify_classification,omitempty"`
++	Repetitions uint64              `json:"repetitions"`
++	// EvidenceDigest is the batch's evidence baseline, the digest of its
++	// first execution.
++	EvidenceDigest record.SHA256 `json:"evidence_digest,omitempty"`
++	Cohort         string        `json:"cohort,omitempty"`
++	Message        string        `json:"message,omitempty"`
++	ElapsedNanos   uint64        `json:"elapsed_nanos"`
++	// ExecutionWallNanos sums the wall time of the batch's executions, the
++	// per-run cost that sizes N.
++	ExecutionWallNanos uint64                       `json:"execution_wall_nanos"`
++	Report             string                       `json:"report,omitempty"`
++	Retained           string                       `json:"retained,omitempty"`
++	Divergence         *choice.DiagnosticDivergence `json:"diagnostic_divergence,omitempty"`
++}
++
++type Cohort struct {
++	ID        string           `json:"id"`
++	Key       CohortKey        `json:"key"`
++	Toolchain record.Toolchain `json:"toolchain"`
++	Baseline  *Baseline        `json:"baseline,omitempty"`
++	// Counts accumulate across every retained run that executed this cohort.
++	Counts Counts   `json:"counts"`
++	Runs   []string `json:"runs"`
++}
++
++type CohortKey struct {
++	Workload          string              `json:"workload"`
++	Seed              record.Uint64String `json:"seed"`
++	Platform          string              `json:"platform"`
++	ExecutionIdentity record.SHA256       `json:"execution_identity"`
++}
++    CohortKey is the unit whose batches must agree. A changed execution
++    identity, including a changed toolchain build key, is a different cohort.
++
++type CohortReport struct {
++	ID        string           `json:"id"`
++	Key       CohortKey        `json:"key"`
++	Toolchain record.Toolchain `json:"toolchain"`
++	// Run counts this run's batches; Cumulative counts every retained run.
++	Run        Counts `json:"run"`
++	Cumulative Counts `json:"cumulative"`
++	Runs       uint64 `json:"runs"`
++	// Bound is the quotable result: the cohort's repetitions in clean batches,
++	// zero once the cohort has diverged.
++	Bound uint64 `json:"bound"`
++}
++
++type Command struct {
++	Executable string
++	Args       []string
++	Dir        string
++	Timeout    time.Duration
++	Grace      time.Duration
++}
++    Command is one gomad qualify batch invocation.
++
++type CommandResult struct {
++	ExitCode int
++	Stdout   []byte
++	Stderr   []byte
++	Err      error
++}
++
++type Counts struct {
++	Batches uint64 `json:"batches"`
++	// Repetitions counts every completed execution; CleanRepetitions only
++	// those of clean batches, the repetitions a bound may quote.
++	Repetitions            uint64 `json:"repetitions"`
++	CleanRepetitions       uint64 `json:"clean_repetitions"`
++	Divergences            uint64 `json:"divergences"`
++	Overflows              uint64 `json:"overflows"`
++	TargetFailures         uint64 `json:"target_failures"`
++	InfrastructureFailures uint64 `json:"infrastructure_failures"`
++}
++
++type Ledger struct {
++	Schema  string      `json:"schema"`
++	Runs    []LedgerRun `json:"runs"`
++	Cohorts []*Cohort   `json:"cohorts"`
++}
++    Ledger is the cumulative record a scheduled run restores from the previous
++    run and retains for the next.
++
++func LoadLedger(directory string) (*Ledger, error)
++    LoadLedger reads the ledger in directory, or returns an empty ledger when
++    the directory holds none.
++
++type LedgerRun struct {
++	ID             string        `json:"id"`
++	Platform       string        `json:"platform"`
++	ManifestSHA256 record.SHA256 `json:"manifest_sha256"`
++	Started        string        `json:"started"`
++}
++
++type Load struct {
++	Workers  uint64 `json:"workers"`
++	HostCPUs uint64 `json:"host_cpus"`
++}
++
++type Manifest struct {
++	Schema      string   `json:"schema"`
++	Name        string   `json:"name"`
++	Description string   `json:"description"`
++	Seeds       []uint64 `json:"seeds"`
++	// BatchRepeat is the repetition count of one gomad qualify batch.
++	BatchRepeat uint64 `json:"repeat"`
++	// A run executes rounds of one batch per workload and seed. It always runs
++	// MinimumBatches rounds and starts each further round, up to Batches, only
++	// while the previous round's measured cost still fits the budget, so N is
++	// the largest multiple of BatchRepeat that fits the scheduled job.
++	MinimumBatches uint64 `json:"minimum_batches"`
++	Batches        uint64 `json:"batches"`
++	// BatchTimeout bounds one batch; Budget bounds the whole run. A batch
++	// that cannot start inside the budget is reported, not skipped silently.
++	BatchTimeout string `json:"qualify_timeout"`
++	Budget       string `json:"budget"`
++	// LoadWorkers is the number of busy host threads the soak runs beside
++	// the workload for its whole duration.
++	LoadWorkers uint64 `json:"load_workers"`
++	// Sizing records how N was chosen, so the bound can be quoted with it.
++	Sizing string `json:"sizing"`
++	// InformationalPlatforms maps a platform to the open finding that keeps
++	// its divergences from failing the gate. Every other platform is strict.
++	InformationalPlatforms map[string]string `json:"informational_platforms,omitempty"`
++	Selections             []Selection       `json:"selections"`
++}
++    Manifest names a soak selection and its size. Selection manifests and
++    working directories are relative to the soak manifest's directory.
++
++func LoadManifest(path string) (Manifest, error)
++
++type Report struct {
++	Schema         string        `json:"schema"`
++	Name           string        `json:"name"`
++	ManifestSHA256 record.SHA256 `json:"manifest_sha256"`
++	RunID          string        `json:"run_id"`
++	Platform       string        `json:"platform"`
++	Gate           string        `json:"gate"`
++	// InformationalReason names the open finding of an informational gate.
++	InformationalReason string                `json:"informational_reason,omitempty"`
++	Toolchains          []record.Toolchain    `json:"toolchains"`
++	Seeds               []record.Uint64String `json:"seeds"`
++	Workloads           []string              `json:"workloads"`
++	BatchRepeat         uint64                `json:"repeat"`
++	MinimumBatches      uint64                `json:"minimum_batches"`
++	MaximumBatches      uint64                `json:"maximum_batches"`
++	// Batches is the number of rounds this run executed and StopReason why it
++	// stopped: "maximum_batches", or "budget" when the previous round's cost
++	// no longer fit.
++	Batches    uint64 `json:"batches"`
++	StopReason string `json:"stop_reason"`
++	// RepetitionsPerSeed is N, the fresh repetitions per workload and seed
++	// this run scheduled.
++	RepetitionsPerSeed uint64         `json:"repetitions_per_seed"`
++	Diagnostics        bool           `json:"diagnostics"`
++	Choices            bool           `json:"choices"`
++	Load               Load           `json:"load"`
++	Sizing             string         `json:"sizing"`
++	Started            string         `json:"started"`
++	ElapsedNanos       uint64         `json:"elapsed_nanos"`
++	Totals             Counts         `json:"totals"`
++	LedgerRuns         uint64         `json:"ledger_runs"`
++	Passed             bool           `json:"passed"`
++	Verdict            string         `json:"verdict"`
++	BatchReports       []BatchReport  `json:"results"`
++	Cohorts            []CohortReport `json:"cohorts"`
++}
++
++func Run(ctx context.Context, spec Spec) (Report, error)
++
++type Selection struct {
++	Manifest   string   `json:"manifest"`
++	WorkingDir string   `json:"working_dir"`
++	Suites     []string `json:"suites"`
++}
++
++type Spec struct {
++	ManifestPath string
++	GomadPath    string
++	// WorkRoot holds each batch's Campaigns; a batch's directory is removed
++	// once its evidence is retained unless KeepBatches is set.
++	WorkRoot string
++	// LedgerDir holds the cumulative ledger and cohort baselines carried from
++	// one scheduled run to the next.
++	LedgerDir string
++	// OutputDir receives the report, the summary, every batch's qualification
++	// report, and the traces and differ output of each divergence.
++	OutputDir string
++	RunID     string
++	// Workloads and Seeds restrict the run to part of the manifest selection.
++	Workloads []string
++	Seeds     []uint64
++	// Batches and Budget override the manifest's maximum rounds and budget
++	// when nonzero; Batches also lowers the minimum to at most itself.
++	Batches     uint64
++	Budget      time.Duration
++	KeepBatches bool
++	// Platform overrides the host GOOS/GOARCH; tests set it.
++	Platform string
++	Execute  func(context.Context, Command) CommandResult
++	Now      func() time.Time
++}
++
+
+

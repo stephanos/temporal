@@ -1,0 +1,38 @@
+bc2e970b5306aa09f594657a8d42c159cf4a1270
+2026-10-02T12:19:03-07:00
+gomad: keep one copy of each prepared target per artifact store
+- artifact.Store takes a target pool from its caller and makes each
+  artifact's target a hard link to the pool entry sha256-<hex>
+- the entry is published with a no-replace rename and verified through
+  the new link, so concurrent publishers end with one entry
+- a store whose filesystem cannot link publishes a private copy and the
+  result says unshared; any other link failure fails the publication
+- the artifact reader opens the manifest's target without the
+  single-link check and keeps that check for every other payload
+- campaign, exploration-round, corpus, and minimizer stores pass the
+  pool of their owner: the artifacts root, the corpus, the output root
+- the sharing form and its reasons are recorded in the spec
+
+Task: fn-114-gomad-correct-search-path-defects-and.9
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+577003f9833bbb0163b5e2a9c39851552f98bf42
+2026-10-02T12:19:03-07:00
+gomad: keep one copy of each prepared target per artifact store
+- artifact.Store takes a target pool from its caller and makes each
+  artifact's target a hard link to the pool entry sha256-<hex>
+- the entry is published with a no-replace rename and verified through
+  the new link, so concurrent publishers end with one entry
+- a store whose filesystem cannot link publishes a private copy and the
+  result says unshared; any other link failure fails the publication
+- the artifact reader opens the manifest's target without the
+  single-link check and keeps that check for every other payload
+- campaign, exploration-round, corpus, and minimizer stores pass the
+  pool of their owner: the artifacts root, the corpus, the output root
+- the sharing form and its reasons are recorded in the spec
+
+Task: fn-114-gomad-correct-search-path-defects-and.9
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+

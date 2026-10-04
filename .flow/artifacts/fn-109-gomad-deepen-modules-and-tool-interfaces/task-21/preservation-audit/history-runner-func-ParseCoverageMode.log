@@ -1,0 +1,8 @@
+f608449c016b751a8fd4e19561518e979ebfc31e
+2026-10-02T21:36:30-07:00
+gomad: parse plan and explore once, call each Runner operation directly and let Runner own strategy and coverage reading
+The hidden --__plan explore flag is gone: plan fixes on-failure=all on the
+shared flag set, and --__plan is now an unknown flag on both commands.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+

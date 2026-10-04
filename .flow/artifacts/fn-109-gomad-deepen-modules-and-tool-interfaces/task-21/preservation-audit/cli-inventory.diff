@@ -1,0 +1,142 @@
+--- baseline/gomad
++++ current/gomad
+@@ -7,9 +7,9 @@
+ baselinePath := flags.String("baseline", "", "baseline qualification-set report")
+ candidatePath := flags.String("candidate", "", "candidate qualification-set report")
+ capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure, linked, or guarded capability assessment")
+-case "__coordinator", "__target_bootstrap", "__supervisor":
+ case "analyze":
+ case "choice-bytes":
++case "choice-start-ordinal":
+ case "compare-support":
+ case "count":
+ case "coverage":
+@@ -41,12 +41,15 @@
+ case "seeds":
+ case "semantic_coverage_failure":
+ check := flags.Bool("check", false, "validate the manifest without executing targets")
++choiceStartOrdinal := flags.Uint64("choice-start-ordinal", 0, "first replay-plan decision ordinal choice exploration expands; inspect --choices lists ordinals")
+ choices := flags.Bool("choices", false, "project a validated runtime choice trace")
+ choices := flags.Bool("choices", false, "record bounded runtime choices")
+ clockTick := flags.String("clock-tick", record.ClockTickStrict, "virtual-clock tick policy: strict or forward")
+ corpus := flags.String("corpus", "", "guided coverage corpus directory")
+ count := flags.Uint64("count", 0, "explore seeds 0 through N-1")
+ coverage := flags.String("coverage", string(runner.CoverageNone), "none, semantic, choice, or semantic+choice")
++diagnostics := flags.Bool("diagnostics", false, "record runtime-state diagnostics for fresh runs; implies --choices")
++diagnostics := flags.Bool("diagnostics", false, "record runtime-state diagnostics; implies --choices")
+ failureBudget := flags.Uint64("failure-budget", 1, "distinct failure signature threshold")
+ flags.Var(&buildTags, "build-tag", "validated Go build tag")
+ flags.Var(&choiceLimit, "choice-bytes", "runtime choice trace capacity")
+@@ -64,7 +67,9 @@
+ flags.Var(&transcriptLimit, "io-transcript-bytes", "I/O transcript capacity (64MiB to 1GiB, whole MiB)")
+ flags.Var(&worldLimit, "world-transition-limit", "World transition capacity")
+ format := flags.String("format", "text", "text or json")
+-guide := flags.Bool("guide", false, "guide selection from a bounded coverage corpus")
++guide := flags.Bool("guide", false, "exclude answered seeds using a bounded coverage corpus")
++guideRegression := flags.Bool("guide-regression", false, "re-run corpus seeds with --guide; fully answered default requests execute zero seeds and exit 0")
++guideRegression := flags.Bool("guide-regression", false, "require the recorded guidance regression mode")
+ jsonOutput := flags.Bool("json", false, "emit stable JSON events")
+ jsonOutput := flags.Bool("json", false, "emit stable JSON")
+ keepSuccesses := flags.String("keep-successes", string(runner.KeepSuccessesNone), "none, novel, or all")
+@@ -88,11 +93,11 @@
+ overallTimeout := flags.Duration("overall-timeout", 10*time.Minute, "complete qualification host deadline")
+ parallel := flags.Int("parallel", min(runtime.NumCPU(), 8), "maximum active targets")
+ partial := flags.Bool("partial", false, "publish an aggregate with explicit missing ordinals")
+-planOnly := flags.Bool("__plan", false, "create a campaign plan")
+ planOutput := flags.String("output", "", "campaign plan output")
+ pruneQualified := flags.Bool("prune-qualified-artifacts", false, "delete each qualified seed's retained Campaigns once its evidence is final")
+ repeat := flags.Uint64("repeat", 2, "fresh same-seed repetitions")
+ replaySuccesses := flags.Bool("replay-successes", false, "retain and replay every successful repetition")
++resume := flags.Bool("resume", false, "continue this artifact's interrupted minimization from its state under the artifact root")
+ runTimeout := flags.Duration("execution-timeout", 30*time.Second, "per-execution host deadline")
+ seed := flags.Uint64("seed", 1, "schedule seed")
+ seeds := flags.String("seeds", "1", "seed set or inclusive ranges")
+--- baseline/gomadtool
++++ current/gomadtool
+@@ -1,21 +1,36 @@
++all := flags.Bool("all", false, "qualify every request that names the host platform in the working directory its table entry names")
+ approval := flags.String("approve-review", "", "exact canonical review SHA-256")
++approval := flags.String("approve-review", "", "review digest a dry run printed; applies the regeneration")
++approveAlias := flags.String("approve", "", "alias for --approve-review")
+ approvedBoundaryDiff := flags.String("approve-boundary-diff", "", "approve the exact canonical boundary diff SHA-256")
++baselineModule := flags.String("baseline-module", "", "baseline module directory")
++baselinePath := flags.String("baseline", "", "baseline go.mod path, with adjacent go.sum")
+ baselineRef := flags.String("baseline-ref", "", "Git revision containing the baseline boundary manifest")
++baselineRef := flags.String("baseline-ref", "", "Git revision holding the baseline go.mod and go.sum (default: HEAD)")
++baselineRef := flags.String("baseline-ref", "HEAD", "Git revision holding each working directory's go.mod and go.sum before the bump")
++candidatePath := flags.String("candidate", "", "candidate go.mod path, with adjacent go.sum")
++case "adapter-regenerate":
+ case "boundary-generate":
+ case "build-key":
+ case "check":
+ case "checked-run":
+ case "compatibility-pack":
++case "diagnostic-diff":
+ case "discover":
+ case "generate":
++case "invalidated", "unknown":
+ case "patch-materialize":
+ case "patch-regenerate":
+ case "patch-validate":
++case "pin-impact":
+ case "protocol-generate":
+ case "qualification-manifest-generate":
+ case "qualify":
++case "refresh":
+ case "review":
+ case "script-validate":
++case "soak":
++case "stale":
+ case "test":
+ case "toolchain-build":
+ case "upgrade-dossier":
+@@ -27,6 +42,8 @@
+ compilerTestOverlay := flags.String("compiler-test-overlay", "", "emit a compiler conformance-test overlay")
+ corpusReport := flags.String("corpus-report", "", "retained-corpus qualification report")
+ discover := flags.Bool("discover", false, "list source-discovered host-capability entry points")
++flags.BoolVar(&spec.KeepBatches, "keep-batches", false, "keep each batch's Campaigns")
++flags.DurationVar(&spec.Budget, "budget", 0, "run budget (default: the manifest)")
+ flags.StringVar(&bootstrapGo, "bootstrap-go", "", "bootstrap Go executable")
+ flags.StringVar(&config.Archive, "archive", "", "verified Go source archive override")
+ flags.StringVar(&config.BootstrapGo, "bootstrap-go", os.Getenv("GOMAD3_BOOTSTRAP_GO"), "bootstrap Go executable")
+@@ -58,15 +75,40 @@
+ flags.StringVar(&input.RecipeVersion, "recipe-version", "", "build recipe version")
+ flags.StringVar(&overlay, "overlay", os.Getenv("GOMAD3_OVERLAY_DIR"), "overlay root override")
+ flags.StringVar(&patch, "patch", os.Getenv("GOMAD3_PATCH_FILE"), "versioned patch override")
++flags.StringVar(&spec.GomadPath, "gomad", "", "gomad executable")
++flags.StringVar(&spec.LedgerDir, "ledger", "", "cumulative ledger directory restored from the previous run")
++flags.StringVar(&spec.ManifestPath, "manifest", "", "determinism soak manifest")
++flags.StringVar(&spec.OutputDir, "output", "", "report, summary, batch reports, and divergence evidence directory")
++flags.StringVar(&spec.RunID, "run-id", "", "identity of this run in the ledger")
++flags.StringVar(&spec.WorkRoot, "work", "", "directory for each batch's Campaigns, pruned after the batch")
++flags.Uint64Var(&spec.Batches, "batches", 0, "batches per workload and seed (default: the manifest)")
++format := flags.String("format", "human", "human or json output")
++goCommand := flags.String("go", os.Getenv("GOMAD3_BOOTSTRAP_GO"), "go command that resolves module graphs")
++goCommand := flags.String("go", os.Getenv("GOMAD3_BOOTSTRAP_GO"), "pinned Go release command")
+ goroot := flags.String("goroot", "", "installed production GOROOT for the compiler test overlay")
++impactPath := flags.String("impact-report", "", "existing pin-impact JSON report for the bumped checkout")
++jsonOutput := flags.Bool("json", false, "emit the first divergent ordinal and fields as JSON")
++jsonOutput := flags.Bool("json", false, "write the canonical JSON report to stdout")
++jsonOutput := flags.Bool("json", false, "write the review as JSON")
++module := flags.String("module", "", "adapted module path")
++moduleDirectory := flags.String("module", "", "candidate module directory (default: the repository root module)")
++moduleDirectory := flags.String("module-dir", "", "module source directory for --verify")
++output := flags.String("output", "", "also write the canonical JSON report to this file")
+ output := flags.String("output", "", "generated qualification-set manifest")
+ output := flags.String("output", ".toolchain/upgrade-dossier.json", "qualification dossier output")
+ outputPath := flags.String("output", "", "review report path")
+ qualify := flags.Bool("qualify", false, "type-check manifest signatures against this Go toolchain")
++recoverOnly := flags.Bool("recover", false, "complete an interrupted publication and exit")
+ refresh := flags.Bool("refresh", false, "refresh source fingerprints in the manifest")
+ requestPath := flags.String("request", "", "compatibility-pack request path")
+ root := flags.String("root", "", "Gomad v3 module root")
+ root := flags.String("root", ".", "Gomad v3 module root")
+ root := flags.String("root", ".", "root the spec, output, and enumerated package resolve against")
++seeds := flags.String("seed", "", "comma-separated seeds to run (default: the manifest seeds)")
+ spec := flags.String("spec", "", "generator spec: defaults, per-test overrides, and exclusions")
++stageOnly := flags.Bool("stage-only", false, "with --approve-review, stage and verify the regeneration and list every file the apply publishes, without publishing")
++stagedCopy := flags.Bool("staged-copy", false, "root is a staged copy of the module without its repository: require the working-directory table but not a go.mod in the directories it maps outside the copy")
++verify := flags.Bool("verify", false, "check the compiled adapter against --module-dir")
++version := flags.String("version", "", "exact candidate module version")
+ workingDirectory := flags.String("working-dir", "", "target working directory")
++workload := flags.String("workload", "", "comma-separated workloads to run (default: the whole selection)")

@@ -1,0 +1,359 @@
+package deterministicio // import "go.temporal.io/server/tools/gomad3/deterministicio"
+
+
+CONSTANTS
+
+const (
+	Deterministic = "gomad3-deterministic/v1"
+)
+const (
+	// DefaultTranscriptBytes is the I/O transcript a campaign gets unless it
+	// asks for more; a cluster-sized target can exceed it.
+	DefaultTranscriptBytes = 64 << 20
+	// MaximumTranscriptBytes bounds any requested transcript; the runtime
+	// refuses a larger backing.
+	MaximumTranscriptBytes = 1 << 30
+	// TranscriptBytesGranularity keeps requested limits on whole mebibytes.
+	TranscriptBytesGranularity = 1 << 20
+)
+const AdapterRegenerationSchema = "gomad3.adapter-regeneration-review/v1"
+    AdapterRegenerationSchema names the canonical review an adapter
+    regeneration's approval digest covers.
+
+const SemanticCoverageSchema = "gomad3.semantic-coverage/v1"
+
+VARIABLES
+
+var ErrTranscriptUnterminated = errors.New("I/O transcript terminal is absent")
+
+FUNCTIONS
+
+func BoundaryManifestIdentity() (string, Digest)
+func BoundaryPlatforms() []string
+    BoundaryPlatforms lists the GOOS/GOARCH pairs the boundary manifest
+    qualifies.
+
+func EncodeOperation(operation Operation) ([]byte, error)
+func EncodeTranscript(operations []Operation) ([]byte, error)
+func ExpectedTranscriptBytes(records uint64) (uint64, error)
+func HashArgument(encoded []byte) [sha256.Size]byte
+func IsAdapterRegenerationBlocked(err error) bool
+    IsAdapterRegenerationBlocked reports whether err means the candidate cannot
+    be regenerated without a person editing the adapter: an anchor that no
+    longer matches exactly once, or a rewritten file that is gone.
+
+func IsInvalidBuildAdapterConfiguration(err error) bool
+func MissingRequiredSemanticProbes(coverage SemanticCoverage, required []string) ([]string, error)
+func RegenerableAdapters() []string
+    RegenerableAdapters lists the registered adapters whose anchors the
+    regeneration command can re-derive.
+
+func RequiredSemanticProbes() []string
+func TranscriptRecordCount(encoded []byte) (uint64, error)
+func ValidateSessionSpec(spec SessionSpec) error
+func ValidateTranscriptLimit(limit uint64) error
+    ValidateTranscriptLimit checks a campaign's requested I/O transcript bound.
+
+func VerifyRegisteredAdapter(ctx context.Context, module, moduleDirectory, goCommand string) error
+    VerifyRegisteredAdapter checks a checkout's adapter for module against the
+    module source in moduleDirectory: the registered identity from the version
+    descriptor, every pinned digest the preparation checks, and each platform's
+    prepared source-set pin, recomputed from the prepared replacement.
+
+func WriteCompletion(writer io.Writer, transcript Transcript) error
+
+TYPES
+
+type Adapter struct {
+	Module  string `json:"module"`
+	Sum     string `json:"sum"`
+	Version string `json:"version"`
+}
+
+func SelectedAdapters(adapters []BuildAdapter) []Adapter
+
+type AdapterAnchors struct {
+	Version                          string            `json:"version"`
+	Sum                              string            `json:"sum"`
+	GoModSum                         string            `json:"go_mod_sum,omitempty"`
+	OriginalSourceInventorySHA256    string            `json:"original_source_inventory_sha256"`
+	ReplacementSourceInventorySHA256 string            `json:"replacement_source_inventory_sha256"`
+	PreparedPackage                  string            `json:"prepared_package"`
+	PreparedSourceSetSHA256          map[string]string `json:"prepared_source_set_sha256"`
+	Rewrites                         []RewriteAnchors  `json:"rewrites"`
+}
+    AdapterAnchors are the exact identities an adapter pins for one module
+    version.
+
+type AdapterCapacityError struct {
+	Resource string
+	Limit    uint64
+}
+
+func (err *AdapterCapacityError) Error() string
+
+type AdapterNotRegenerableError struct {
+	Module string
+}
+    AdapterNotRegenerableError reports an adapter whose preparation is not
+    expressed as anchored rewrites, so its anchors are re-derived by hand.
+
+func (err *AdapterNotRegenerableError) Error() string
+
+type AdapterRegeneration struct {
+	Schema         string          `json:"schema"`
+	Module         string          `json:"module"`
+	Previous       AdapterAnchors  `json:"previous"`
+	Proposed       AdapterAnchors  `json:"proposed"`
+	Sources        []ChangedSource `json:"sources"`
+	ApprovalSHA256 string          `json:"-"`
+}
+    AdapterRegeneration is the reviewed outcome of re-deriving an adapter's
+    anchors. ApprovalSHA256 covers everything but the source bytes, which the
+    source digests bind.
+
+func RegenerateAdapter(ctx context.Context, request AdapterRegenerationRequest) (AdapterRegeneration, error)
+    RegenerateAdapter re-derives the registered adapter's anchors for the
+    candidate module. Each rewrite is applied by its existing exact-occurrence
+    anchors; nothing is written outside request.Scratch.
+
+func (regeneration AdapterRegeneration) SourceEdits(root string) (map[string][]byte, error)
+    SourceEdits returns the deterministic I/O package files under root,
+    the Gomad source module root, rewritten from the previous anchors to the
+    proposed ones, keyed by slash path relative to root. Only string literals
+    change:
+
+      - each pinned digest and the module sum, wherever the exact literal
+        occurs;
+      - each platform's prepared source-set pin, where a map keys it by
+        platform;
+      - the version, in the adapter's own file and in records that name the
+        module (Module or Path fields);
+      - "module version", "module@version", and module-cache directory names
+        inside longer literals, such as test go.mod and go.sum fixtures.
+
+    Every anchor the adapter declares must be replaced, so an anchor that is
+    computed rather than written as a literal fails instead of staying stale.
+
+type AdapterRegenerationBlockedError struct{ Err error }
+
+func (err *AdapterRegenerationBlockedError) Error() string
+
+func (err *AdapterRegenerationBlockedError) Unwrap() error
+
+type AdapterRegenerationRequest struct {
+	Module string
+	// Version, Sum, and GoModSum identify the candidate module exactly.
+	Version, Sum, GoModSum string
+	// PreviousGoModSum is the pinned version's go.mod hash, so pinned test
+	// data that records it can be updated.
+	PreviousGoModSum string
+	// PreviousModule holds the pinned version; CandidateModule the new one.
+	PreviousModule, CandidateModule string
+	// GoCommand is the pinned Go release, which selects each platform's
+	// prepared package files.
+	GoCommand string
+	// Scratch is an empty directory for the candidate replacement copy.
+	Scratch string
+}
+    AdapterRegenerationRequest names an adapter and the exact module version its
+    anchors are re-derived for. Both module directories hold extracted module
+    sources, for example from a private module cache.
+
+type AdapterSourceMissingError struct {
+	Module, Version, Path string
+}
+    AdapterSourceMissingError reports a rewritten file that the candidate
+    version no longer provides as a regular file.
+
+func (err *AdapterSourceMissingError) Error() string
+
+type AnchorMismatchError struct {
+	Module, Path, Anchor string
+	Count                int
+}
+    AnchorMismatchError reports an adapter rewrite anchor that does not occur
+    exactly once in the source it edits.
+
+func (err *AnchorMismatchError) Error() string
+
+type Bootstrap struct {
+	Profile              string
+	InventorySHA256      Digest
+	ImplementationSHA256 Digest
+	TargetSHA256         string
+	RunnerSHA256         string
+	ArgvSHA256           Digest
+	Seed                 uint64
+}
+
+func DecodeBootstrapFrame(frame []byte) (Bootstrap, error)
+
+type BuildAdapter struct {
+	Module                           string
+	Version                          string
+	Sum                              string
+	BuildModFile                     string
+	Source                           string
+	ReplacementRoot                  string
+	Replacement                      string
+	PreparedPackage                  string
+	SourceSHA256                     string
+	ReplacementSHA256                string
+	OriginalSourceInventorySHA256    string
+	ReplacementSourceInventorySHA256 string
+	PreparedSourceSetSHA256          string
+}
+
+type ChangedSource struct {
+	Path            string `json:"path"`
+	PreviousSHA256  string `json:"previous_sha256"`
+	CandidateSHA256 string `json:"candidate_sha256"`
+	Previous        []byte `json:"-"`
+	Candidate       []byte `json:"-"`
+}
+    ChangedSource is one upstream file an adapter rewrite reads, in the pinned
+    and the candidate version. Unchanged files are listed too, so the review
+    names every input of the rewrite.
+
+type Contract struct {
+	ImplementationSHA256 Digest `json:"implementation_sha256"`
+	InventorySHA256      Digest `json:"inventory_sha256"`
+	Name                 string `json:"name"`
+}
+
+type Digest string
+
+func SemanticInstrumentationIdentity() Digest
+
+func (identity Digest) Bytes() ([sha256.Size]byte, error)
+
+type InvalidBuildAdapterConfigurationError struct {
+	Err error
+}
+
+func (err *InvalidBuildAdapterConfigurationError) Error() string
+
+func (err *InvalidBuildAdapterConfigurationError) Unwrap() error
+
+type MissingSemanticProbesError struct {
+	Probes []string
+}
+
+func (err *MissingSemanticProbesError) Error() string
+
+type Operation struct {
+	Ordinal      uint64
+	Name         string
+	ArgumentHash [sha256.Size]byte
+	ContentHash  [sha256.Size]byte
+	Count        uint64
+	Result       uint32
+	EntropyStart uint64
+	EntropyEnd   uint64
+}
+
+func DecodeTranscript(encoded []byte) ([]Operation, error)
+
+type Requirement struct {
+	Feature  string                              `json:"feature"`
+	Modeled  bool                                `json:"modeled"`
+	Packages []target.CapabilityPackageReference `json:"packages"`
+}
+
+type RewriteAnchors struct {
+	Path              string `json:"path"`
+	SourceSHA256      string `json:"source_sha256"`
+	Base              string `json:"base,omitempty"`
+	BaseSHA256        string `json:"base_sha256,omitempty"`
+	ReplacementSHA256 string `json:"replacement_sha256"`
+}
+    RewriteAnchors are one rewritten file's identities.
+
+type SemanticCoverage struct {
+	Schema string   `json:"schema"`
+	Digest Digest   `json:"digest"`
+	Probes []string `json:"probes"`
+}
+
+func DecodeSemanticCoverage(transcript []byte) (SemanticCoverage, error)
+
+func SummarizeSemanticProbes(probes []string) (SemanticCoverage, error)
+
+type Session struct {
+	// Has unexported fields.
+}
+
+func NewSession(spec SessionSpec) (_ *Session, retErr error)
+
+func (session *Session) Close() error
+
+func (session *Session) Collect() (Transcript, error)
+
+func (session *Session) Files() SessionFiles
+
+type SessionFiles struct {
+	Transcript *os.File
+	Terminal   *os.File
+	Expected   *os.File
+}
+
+type SessionSpec struct {
+	Limit    uint64
+	Replay   bool
+	Expected []byte
+}
+
+type Spec struct {
+	// Has unexported fields.
+}
+
+func Default() Spec
+
+func (profile Spec) Adapters() []gomadversion.AdapterIdentity
+
+func (profile Spec) BootstrapFrame(prepared target.Prepared, runnerSHA256 string, seed uint64) ([]byte, error)
+
+func (profile Spec) Identity() Contract
+
+func (profile Spec) ImplementationSHA256() Digest
+
+func (profile Spec) Inventory() []byte
+
+func (profile Spec) InventorySHA256() Digest
+
+func (profile Spec) Matches(identity Contract) bool
+
+func (profile Spec) MatchesRecorded(name, implementationSHA256, inventorySHA256, encodedInventory string) bool
+
+func (profile Spec) Name() string
+
+func (profile Spec) PrepareBuildAdapters(spec target.Spec, moduleCache string) (target.Spec, []BuildAdapter, error)
+
+func (profile Spec) PrepareTargetBuildAdapters(ctx context.Context, spec target.Spec) (target.Spec, []BuildAdapter, error)
+    PrepareTargetBuildAdapters prepares spec's build adapters from the module
+    cache of spec's pinned toolchain after downloading each selected adapter's
+    pinned module into it, so a clean module cache prepares the same adapters.
+
+func (profile Spec) Requirements(closure target.CapabilityClosure, adapters []Adapter) ([]Requirement, error)
+
+func (profile Spec) TargetContract() TargetContract
+
+func (profile Spec) ValidatePreparedTarget(spec target.Spec, prepared target.Prepared, environment []string) error
+
+func (profile Spec) VerifyAdapters(adapters []Adapter) error
+
+type TargetContract struct {
+	GoVersion string
+	GOOS      string
+	GOARCH    string
+}
+
+type Transcript struct {
+	Bytes            []byte
+	SHA256           [sha256.Size]byte
+	Records          uint64
+	Complete         bool
+	ReplayDivergence *uint64
+}
+

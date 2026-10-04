@@ -1,0 +1,18 @@
+{
+  "frozen_utc": "2026-10-04T10:03:37.227823+00:00",
+  "source_candidate": "8604c07def0f97b63cbca3864b4c286d6803c4b1",
+  "acceptance_complete": false,
+  "selected_files": 363,
+  "selected_bytes": 3459910,
+  "current_shipped_source_paths": 978,
+  "artifact_sha256": {
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-checkpoint-selection.json": "4b8a57aeedcf07e9e781684d95f775fbaf6cac3b0ea0489d1337804db1690857",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-qualification-evidence.json": "ded67eae210cf6bd95ab7decbe577f22a0e3366d4050d54226d103419dc1276a",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-qualification-handover.md": "de5c76606ff2ef01b4c85b99d756dc1dca75f27354794267ccd628a90acdecb4",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/handover-verification.json": "34fbf075b9401b47bf4146e70fe7522543ec9ef3eaa4a5a7a36a7cc97468d4ed",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/completion-matrix.md": "7e4f997e75168cc29320bb694d3acfbf8d711a2d62a8dea18abc177313b879e3",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/qualification-evidence.md": "3b35e3ca1e544818e14b2e341c53a8e874fd0ebc7faaff590670ad5be284e2c6",
+    "MILESTONES.md": "098b68d8668c0137284cc3c73cecab6bb00a200f9396d446ac55c1351935ac9a"
+  },
+  "retention": "Retain this seal, the checkpoint selection and handover-verification receipt in addition to the listed lean paths. Bulk outputs remain local and manifest-hash identified. No staging or lifecycle write performed."
+}

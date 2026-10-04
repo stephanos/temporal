@@ -1,0 +1,230 @@
+package artifact // import "go.temporal.io/server/tools/gomad3/artifact"
+
+
+FUNCTIONS
+
+func PruneTargetPool(pool string, exclusive bool) (retErr error)
+    PruneTargetPool removes the pool entries that no artifact shares. An entry
+    is shared while it has another link, wherever that link is, so pruning
+    never takes the target of a retained artifact and needs no list of them.
+    Entries whose link count the platform does not report are kept.
+
+    exclusive says the caller is the pool owner's only writer. Staging
+    directories are then leftovers of a publisher that died and are removed too;
+    without it they may belong to a live publisher and stay.
+
+func RenameNoReplace(oldPath, newPath string) error
+func TargetPool(owner string) string
+    TargetPool is the pool of the directory that owns one: the artifacts
+    root that holds every campaign, a corpus, or a minimizer output root.
+    It is never below a store root that is staged and renamed on commit,
+    because the rename would carry the pool away from the stores that share it.
+    A store that publishes in place, as the minimizer's output root does,
+    may hold its pool.
+
+
+TYPES
+
+type Artifact struct {
+	Path     string
+	Manifest record.ExecutionRecord
+	// StoredBytes counts the manifest and every listed file, the target
+	// included, whether or not the store shares that target. RetainedBytes
+	// states the rule and sums artifacts that are kept together.
+	StoredBytes uint64
+	// TargetSharing is set by publication and is empty on an opened artifact.
+	TargetSharing TargetSharing
+}
+    Artifact is a detached reference to an artifact in a store: where it is and
+    what its manifest records. It holds no open resource, so copying or dropping
+    it releases nothing; OpenArtifact returns the owned handle (Opened) that
+    reads payloads.
+
+func PublishArtifact(store Store, input ArtifactInput) (Artifact, error)
+
+type ArtifactInput struct {
+	Manifest       record.ExecutionRecord
+	TargetPath     string
+	Stdout         []byte
+	Stderr         []byte
+	IOTranscript   []byte
+	ChoiceTrace    []byte
+	ReadOnlyMounts *readonlymount.CapturedInputs
+	World          record.WorldPayloads
+	Simulation     *SimulationPayloads
+}
+
+type CapacityError struct {
+	Required uint64
+	Maximum  uint64
+}
+
+func (err *CapacityError) Error() string
+
+type Opened struct {
+	// Has unexported fields.
+}
+    Opened is an artifact whose directory is pinned open for validated payload
+    access. The caller that opened it owns it and must Close it. Its manifest is
+    private: Manifest and Snapshot return copies, so no caller can change what
+    payload access validates against. Path, Manifest, StoredBytes and Snapshot
+    stay available after Close; payload access fails.
+
+func OpenArtifact(path string) (*Opened, error)
+    OpenArtifact validates the artifact directory at path against its manifest
+    and returns a handle pinned to that directory.
+
+func (opened *Opened) Close() error
+    Close releases the pinned directory. Closing again, or closing a nil handle,
+    does nothing.
+
+func (opened *Opened) CopyPayload(relativePath, destination string, destinationMode os.FileMode) error
+    CopyPayload copies a listed payload to a new file at destination and checks
+    the copy against the manifest.
+
+func (opened *Opened) Manifest() record.ExecutionRecord
+    Manifest returns a copy of the validated manifest that shares no memory with
+    the handle.
+
+func (opened *Opened) OpenPayload(relativePath string, maximum uint64) (*os.File, error)
+    OpenPayload opens a listed payload of at most maximum bytes after checking
+    its mode, size and SHA-256 against the manifest.
+
+func (opened *Opened) Path() string
+    Path is the directory the artifact was opened at.
+
+func (opened *Opened) ReadPayload(relativePath string, maximum uint64) ([]byte, error)
+    ReadPayload reads a listed payload of at most maximum bytes and checks it
+    against the manifest.
+
+func (opened *Opened) Snapshot() Artifact
+    Snapshot returns a detached reference to the opened artifact. It holds no
+    open resource and its manifest is a copy, so changing it cannot change the
+    handle. Its TargetSharing is empty, as only publication sets it.
+
+func (opened *Opened) StoredBytes() uint64
+    StoredBytes counts the manifest and every listed file
+    (Artifact.StoredBytes).
+
+func (opened *Opened) TargetSharing() (TargetSharing, error)
+    TargetSharing reports how the opened artifact holds its target on disk:
+    TargetShared when the file has other links, as a pool entry and the
+    artifacts linked to it do, and TargetPrivate when the artifact holds the
+    only link. It is empty where the platform does not report link counts.
+
+type Payload struct {
+	Path       string
+	Mode       os.FileMode
+	SourcePath string
+	Data       []byte
+	SHA256     record.SHA256
+	Size       record.Uint64String
+}
+
+type Publication struct {
+	Record   record.ExecutionRecord
+	Payloads []Payload
+}
+
+type RetainedBytes struct {
+	// Has unexported fields.
+}
+    RetainedBytes applies the stored-bytes rule to artifacts that are kept
+    together.
+
+    An artifact's stored bytes (Artifact.StoredBytes) are its manifest and every
+    file the manifest lists, the target included. They are a property of the
+    artifact alone: an artifact whose target is a link to its store's pool has
+    the same stored bytes as one that owns its copy, so manifests, identities,
+    and every bound on one artifact are the same with and without sharing.
+
+    A bound on several artifacts sums them here, and a target the artifacts
+    share is counted once: the first artifact of a shared target adds all of its
+    stored bytes, and each later one adds its stored bytes without the target.
+
+    The caller says which artifacts share a target, and the callers differ:
+
+      - A corpus shares a target among the cases whose target file is its pool's
+        entry on disk (PoolTarget). A case with a private copy counts in full.
+      - A merged campaign shares a target among all evidence that records the
+        same target SHA-256, whether or not the shard stores share the file on
+        disk. It accounts for one store that holds all of the merged evidence.
+        Merge copies no evidence, so shards of two artifacts roots keep one copy
+        per root while the merged limits count one.
+      - The byte limits inside one campaign do not sum here: every retained
+        artifact counts its full stored bytes, linked to the pool or not.
+        The campaign record states retained_success_bytes as the sum of
+        its executions' success_artifact_bytes and holds that sum to the
+        success-byte limit beside it. Counting a shared target once would change
+        that recorded sum or let it pass its recorded limit, and neither the
+        record nor its journal says which artifacts share a target. A campaign's
+        limits therefore bound what its artifacts take as standalone copies,
+        which is more than they take in a store that shares their target.
+
+func (retained *RetainedBytes) Add(storedBytes uint64, shared SharedTarget) (uint64, error)
+    Add accounts for one artifact and returns the bytes it added.
+
+func (retained *RetainedBytes) Cost(storedBytes uint64, shared SharedTarget) (uint64, error)
+    Cost is what Add would add for this artifact.
+
+func (retained *RetainedBytes) Total() uint64
+    Total is the sum of the artifacts added so far.
+
+type SharedTarget struct {
+	SHA256 record.SHA256
+	Bytes  uint64
+}
+    SharedTarget names the target copy an artifact has in common with the other
+    artifacts it is kept with. The zero value is an artifact that owns its copy.
+
+func PoolTarget(pool, artifactPath string, manifest record.ExecutionRecord) SharedTarget
+    PoolTarget is the target an artifact shares through the pool: its target
+    when that file is the pool's entry, and the zero value when the artifact
+    owns a private copy.
+
+func TargetOf(manifest record.ExecutionRecord) SharedTarget
+    TargetOf is the target of a manifest as the copy its artifact would share.
+
+type SimulationPayloads struct {
+	Plan   []byte
+	Record []byte
+}
+
+type Store struct {
+	Root         string
+	Context      context.Context
+	MaximumBytes uint64
+	Key          StoreKey
+	// TargetPool is the directory holding the one copy of each target that
+	// artifacts of this and every other store given the same pool share. The
+	// caller chooses it; an empty pool gives every artifact a private copy.
+	TargetPool string
+}
+
+func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr error)
+
+type StoreKey uint8
+
+const (
+	StoreKeyFailureSignature StoreKey = iota
+	StoreKeyRecord
+	// StoreKeyExecution keeps one artifact per execution because a retained
+	// success must replay as itself even when another seed completed with the
+	// same outcome signature. The first keeps the signature's directory, so
+	// campaigns without a collision keep their references.
+	StoreKeyExecution
+)
+type TargetSharing string
+    TargetSharing says how a published artifact holds its target.
+
+const (
+	// TargetPrivate is an artifact of a store without a target pool: it owns
+	// its copy of the target.
+	TargetPrivate TargetSharing = "private"
+	// TargetShared is an artifact whose target is a hard link to its store's
+	// pool entry, the one copy every artifact of that target in the pool shares.
+	TargetShared TargetSharing = "shared"
+	// TargetUnshared is an artifact of a store with a target pool that could
+	// not be linked to it, so sharing is off and it owns a private copy.
+	TargetUnshared TargetSharing = "unshared"
+)

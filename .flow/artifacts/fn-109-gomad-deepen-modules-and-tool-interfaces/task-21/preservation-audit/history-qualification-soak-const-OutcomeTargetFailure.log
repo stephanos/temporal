@@ -1,0 +1,17 @@
+bae373d14736d1e4437f840bbb66a173ab960052
+2026-10-03T13:06:05-07:00
+gomad: add the scheduled determinism soak gate
+gomadtool soak runs the soak.json selection (the functional smoke suites
+and the guarded-mode frontend probe, seeds 11 and 17) in gomad qualify
+batches of 32 fresh repetitions with diagnostics on, under two busy host
+threads. Each clean batch is compared with its cohort baseline (workload,
+seed, platform, execution identity) in a ledger carried between scheduled
+runs; a changed toolchain identity starts a new cohort. Overflow, target
+failure, and infrastructure failure are reported apart from divergence,
+and a divergence retains both diagnostic traces and the differ output.
+Rounds past the minimum two run only while the measured round cost fits
+the budget. gomad3.yml gains scheduled darwin/arm64 (strict) and
+linux/amd64 (informational while fn-105 D12 is open) soak jobs.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+

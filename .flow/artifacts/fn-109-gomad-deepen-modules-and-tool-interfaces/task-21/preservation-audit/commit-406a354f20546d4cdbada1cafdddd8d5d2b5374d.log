@@ -1,0 +1,14 @@
+406a354f20546d4cdbada1cafdddd8d5d2b5374d
+2026-10-02T10:40:05-07:00
+gomad: scope minimizer workspace state per parent artifact
+- Key the minimizer state, lock, and accepted artifact by the parent record
+  hash under OUTPUT/.minimize/, so an interrupted run for one parent no longer
+  blocks minimizing another parent into the same output root
+- Reject a state root that is not a real directory before taking the lock
+- Split the reduction loop and the final publication out of Minimize, and
+  test a kill between the final publication and its checkpoint
+
+Task: fn-114-gomad-correct-search-path-defects-and.15
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+

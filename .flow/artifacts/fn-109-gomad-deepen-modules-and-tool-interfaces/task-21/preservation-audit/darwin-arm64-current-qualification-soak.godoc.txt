@@ -1,0 +1,279 @@
+package soak // import "go.temporal.io/server/tools/gomad3/qualification/soak"
+
+Package soak runs the scheduled determinism soak: N fresh same-seed repetitions
+per seed of a named workload selection, in gomad qualify batches of at most 32,
+under bounded unrelated CPU load, with choice tracing and the diagnostic trace
+on.
+
+A qualify batch compares its repetitions only with its own first execution, so
+the soak also compares each batch's evidence baseline with the baseline of its
+cohort (workload, seed, platform, execution identity), within one run and across
+the retained runs of a cumulative ledger. Any disagreement is a divergence;
+a trace overflow, a target failure, and an infrastructure failure are reported
+separately and none of them is a pass.
+
+CONSTANTS
+
+const (
+	OutcomeClean          = "clean"
+	OutcomeDivergence     = "divergence"
+	OutcomeOverflow       = "overflow"
+	OutcomeTargetFailure  = "target_failure"
+	OutcomeInfrastructure = "infrastructure"
+)
+    Batch outcomes. Only a clean batch is a pass; overflow, target failure,
+    and infrastructure failure are kept apart from divergence because none of
+    them can support or refute a determinism claim.
+
+const (
+	ComparisonEstablished = "baseline_established"
+	ComparisonMatches     = "matches_baseline"
+	ComparisonDiffers     = "differs_from_baseline"
+)
+    Cross-batch comparisons of a clean batch with its cohort baseline.
+
+const (
+	GateStrict        = "strict"
+	GateInformational = "informational"
+)
+    Gates. A strict gate fails on any divergence; an informational gate reports
+    divergences without failing because an open finding names the channel.
+
+const LedgerSchema = "gomad3.determinism-soak-ledger/v1"
+const ManifestSchema = "gomad3.determinism-soak/v1"
+const ReportSchema = "gomad3.determinism-soak-report/v1"
+
+FUNCTIONS
+
+func ExitStatus(report Report) int
+    ExitStatus maps a report to gomadtool soak's status: 0 for a pass or an
+    informational divergence, 1 for a divergence or target failure, and 3 when
+    an overflow or infrastructure failure left the soak unable to conclude.
+
+func Summary(report Report) string
+    Summary renders the report as the Markdown a workflow step summary shows.
+
+func ValidateManifest(manifest Manifest) error
+
+TYPES
+
+type Baseline struct {
+	EvidenceDigest record.SHA256 `json:"evidence_digest"`
+	Evidence       string        `json:"evidence"`
+	Trace          string        `json:"trace,omitempty"`
+	Run            string        `json:"run"`
+	Batch          uint64        `json:"batch"`
+}
+    Baseline is the evidence every later batch of the cohort is compared with.
+    Its files are relative to the ledger directory and travel with the ledger.
+
+type BatchReport struct {
+	Workload    string              `json:"workload"`
+	Seed        record.Uint64String `json:"seed"`
+	Batch       uint64              `json:"batch"`
+	Outcome     string              `json:"outcome"`
+	Comparison  string              `json:"comparison,omitempty"`
+	Qualify     string              `json:"qualify_classification,omitempty"`
+	Repetitions uint64              `json:"repetitions"`
+	// EvidenceDigest is the batch's evidence baseline, the digest of its
+	// first execution.
+	EvidenceDigest record.SHA256 `json:"evidence_digest,omitempty"`
+	Cohort         string        `json:"cohort,omitempty"`
+	Message        string        `json:"message,omitempty"`
+	ElapsedNanos   uint64        `json:"elapsed_nanos"`
+	// ExecutionWallNanos sums the wall time of the batch's executions, the
+	// per-run cost that sizes N.
+	ExecutionWallNanos uint64                       `json:"execution_wall_nanos"`
+	Report             string                       `json:"report,omitempty"`
+	Retained           string                       `json:"retained,omitempty"`
+	Divergence         *choice.DiagnosticDivergence `json:"diagnostic_divergence,omitempty"`
+}
+
+type Cohort struct {
+	ID        string           `json:"id"`
+	Key       CohortKey        `json:"key"`
+	Toolchain record.Toolchain `json:"toolchain"`
+	Baseline  *Baseline        `json:"baseline,omitempty"`
+	// Counts accumulate across every retained run that executed this cohort.
+	Counts Counts   `json:"counts"`
+	Runs   []string `json:"runs"`
+}
+
+type CohortKey struct {
+	Workload          string              `json:"workload"`
+	Seed              record.Uint64String `json:"seed"`
+	Platform          string              `json:"platform"`
+	ExecutionIdentity record.SHA256       `json:"execution_identity"`
+}
+    CohortKey is the unit whose batches must agree. A changed execution
+    identity, including a changed toolchain build key, is a different cohort.
+
+type CohortReport struct {
+	ID        string           `json:"id"`
+	Key       CohortKey        `json:"key"`
+	Toolchain record.Toolchain `json:"toolchain"`
+	// Run counts this run's batches; Cumulative counts every retained run.
+	Run        Counts `json:"run"`
+	Cumulative Counts `json:"cumulative"`
+	Runs       uint64 `json:"runs"`
+	// Bound is the quotable result: the cohort's repetitions in clean batches,
+	// zero once the cohort has diverged.
+	Bound uint64 `json:"bound"`
+}
+
+type Command struct {
+	Executable string
+	Args       []string
+	Dir        string
+	Timeout    time.Duration
+	Grace      time.Duration
+}
+    Command is one gomad qualify batch invocation.
+
+type CommandResult struct {
+	ExitCode int
+	Stdout   []byte
+	Stderr   []byte
+	Err      error
+}
+
+type Counts struct {
+	Batches uint64 `json:"batches"`
+	// Repetitions counts every completed execution; CleanRepetitions only
+	// those of clean batches, the repetitions a bound may quote.
+	Repetitions            uint64 `json:"repetitions"`
+	CleanRepetitions       uint64 `json:"clean_repetitions"`
+	Divergences            uint64 `json:"divergences"`
+	Overflows              uint64 `json:"overflows"`
+	TargetFailures         uint64 `json:"target_failures"`
+	InfrastructureFailures uint64 `json:"infrastructure_failures"`
+}
+
+type Ledger struct {
+	Schema  string      `json:"schema"`
+	Runs    []LedgerRun `json:"runs"`
+	Cohorts []*Cohort   `json:"cohorts"`
+}
+    Ledger is the cumulative record a scheduled run restores from the previous
+    run and retains for the next.
+
+func LoadLedger(directory string) (*Ledger, error)
+    LoadLedger reads the ledger in directory, or returns an empty ledger when
+    the directory holds none.
+
+type LedgerRun struct {
+	ID             string        `json:"id"`
+	Platform       string        `json:"platform"`
+	ManifestSHA256 record.SHA256 `json:"manifest_sha256"`
+	Started        string        `json:"started"`
+}
+
+type Load struct {
+	Workers  uint64 `json:"workers"`
+	HostCPUs uint64 `json:"host_cpus"`
+}
+
+type Manifest struct {
+	Schema      string   `json:"schema"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Seeds       []uint64 `json:"seeds"`
+	// BatchRepeat is the repetition count of one gomad qualify batch.
+	BatchRepeat uint64 `json:"repeat"`
+	// A run executes rounds of one batch per workload and seed. It always runs
+	// MinimumBatches rounds and starts each further round, up to Batches, only
+	// while the previous round's measured cost still fits the budget, so N is
+	// the largest multiple of BatchRepeat that fits the scheduled job.
+	MinimumBatches uint64 `json:"minimum_batches"`
+	Batches        uint64 `json:"batches"`
+	// BatchTimeout bounds one batch; Budget bounds the whole run. A batch
+	// that cannot start inside the budget is reported, not skipped silently.
+	BatchTimeout string `json:"qualify_timeout"`
+	Budget       string `json:"budget"`
+	// LoadWorkers is the number of busy host threads the soak runs beside
+	// the workload for its whole duration.
+	LoadWorkers uint64 `json:"load_workers"`
+	// Sizing records how N was chosen, so the bound can be quoted with it.
+	Sizing string `json:"sizing"`
+	// InformationalPlatforms maps a platform to the open finding that keeps
+	// its divergences from failing the gate. Every other platform is strict.
+	InformationalPlatforms map[string]string `json:"informational_platforms,omitempty"`
+	Selections             []Selection       `json:"selections"`
+}
+    Manifest names a soak selection and its size. Selection manifests and
+    working directories are relative to the soak manifest's directory.
+
+func LoadManifest(path string) (Manifest, error)
+
+type Report struct {
+	Schema         string        `json:"schema"`
+	Name           string        `json:"name"`
+	ManifestSHA256 record.SHA256 `json:"manifest_sha256"`
+	RunID          string        `json:"run_id"`
+	Platform       string        `json:"platform"`
+	Gate           string        `json:"gate"`
+	// InformationalReason names the open finding of an informational gate.
+	InformationalReason string                `json:"informational_reason,omitempty"`
+	Toolchains          []record.Toolchain    `json:"toolchains"`
+	Seeds               []record.Uint64String `json:"seeds"`
+	Workloads           []string              `json:"workloads"`
+	BatchRepeat         uint64                `json:"repeat"`
+	MinimumBatches      uint64                `json:"minimum_batches"`
+	MaximumBatches      uint64                `json:"maximum_batches"`
+	// Batches is the number of rounds this run executed and StopReason why it
+	// stopped: "maximum_batches", or "budget" when the previous round's cost
+	// no longer fit.
+	Batches    uint64 `json:"batches"`
+	StopReason string `json:"stop_reason"`
+	// RepetitionsPerSeed is N, the fresh repetitions per workload and seed
+	// this run scheduled.
+	RepetitionsPerSeed uint64         `json:"repetitions_per_seed"`
+	Diagnostics        bool           `json:"diagnostics"`
+	Choices            bool           `json:"choices"`
+	Load               Load           `json:"load"`
+	Sizing             string         `json:"sizing"`
+	Started            string         `json:"started"`
+	ElapsedNanos       uint64         `json:"elapsed_nanos"`
+	Totals             Counts         `json:"totals"`
+	LedgerRuns         uint64         `json:"ledger_runs"`
+	Passed             bool           `json:"passed"`
+	Verdict            string         `json:"verdict"`
+	BatchReports       []BatchReport  `json:"results"`
+	Cohorts            []CohortReport `json:"cohorts"`
+}
+
+func Run(ctx context.Context, spec Spec) (Report, error)
+
+type Selection struct {
+	Manifest   string   `json:"manifest"`
+	WorkingDir string   `json:"working_dir"`
+	Suites     []string `json:"suites"`
+}
+
+type Spec struct {
+	ManifestPath string
+	GomadPath    string
+	// WorkRoot holds each batch's Campaigns; a batch's directory is removed
+	// once its evidence is retained unless KeepBatches is set.
+	WorkRoot string
+	// LedgerDir holds the cumulative ledger and cohort baselines carried from
+	// one scheduled run to the next.
+	LedgerDir string
+	// OutputDir receives the report, the summary, every batch's qualification
+	// report, and the traces and differ output of each divergence.
+	OutputDir string
+	RunID     string
+	// Workloads and Seeds restrict the run to part of the manifest selection.
+	Workloads []string
+	Seeds     []uint64
+	// Batches and Budget override the manifest's maximum rounds and budget
+	// when nonzero; Batches also lowers the minimum to at most itself.
+	Batches     uint64
+	Budget      time.Duration
+	KeepBatches bool
+	// Platform overrides the host GOOS/GOARCH; tests set it.
+	Platform string
+	Execute  func(context.Context, Command) CommandResult
+	Now      func() time.Time
+}
+

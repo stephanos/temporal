@@ -1,0 +1,108 @@
+{
+  "verified_at": "2026-10-04T09:49:04.266567+00:00",
+  "source_inventories": [
+    {
+      "role": "baseline",
+      "root": "/tmp/fn109-baseline-reconstruction.lDSSw8Gx/tools/gomad3",
+      "files": 670,
+      "canonical_inventory_sha256": "d6a3ceda47860671d402967c8d0b6c5cf0fca3c41a1601cf495b4f4e1601d398",
+      "mismatches": []
+    },
+    {
+      "role": "current",
+      "root": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "files": 978,
+      "canonical_inventory_sha256": "d9f39f659228f4ef814c9d710e379526ad77b8b8300eea211551562b91736edd",
+      "mismatches": []
+    }
+  ],
+  "retained_manifests": [
+    {
+      "manifest": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/round4-command-logs.sha256",
+      "manifest_sha256": "f432cbf3c4afd4afa95494fcb312ef22afd4acbba853a2f461f6a88de449f87d",
+      "entries": 138,
+      "mismatches": []
+    },
+    {
+      "manifest": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-reconstruction/input.sha256",
+      "manifest_sha256": "5b1904a15a5e11dd93926465d97c5467ab2a008f48b20610d9b0ffcfa4e8d0e6",
+      "entries": 84,
+      "mismatches": [
+        {
+          "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.md",
+          "expected": "4aba7e49a41f5567dceed8c81c038351af45ddb258cc577e753c341eaa30176b",
+          "current": "19c1b6843a0aa3603e6508096b1984c89939a7d2987a641e785955b76f1e3c56"
+        }
+      ]
+    }
+  ],
+  "pack_semantic_diffs": [
+    {
+      "path": "internal/compatibilitypack/packs/modernc-libc-xsys-v047-linux-amd64.json",
+      "leaf_changes": [
+        {
+          "path": "/activation/1/replacement/adapter/profile_implementation_sha256",
+          "baseline": "sha256:964874354d1ad2f46f00e3d1b1109f89b0d1747b399a97ea867ff29c48eda8e1",
+          "current": "sha256:84b27e6227508fda72c8be6b0ae588e4f4f052a07bc35a27d6feff729b22d50b"
+        },
+        {
+          "path": "/activation/2/replacement/adapter/profile_implementation_sha256",
+          "baseline": "sha256:964874354d1ad2f46f00e3d1b1109f89b0d1747b399a97ea867ff29c48eda8e1",
+          "current": "sha256:84b27e6227508fda72c8be6b0ae588e4f4f052a07bc35a27d6feff729b22d50b"
+        },
+        {
+          "path": "/governance/approval_sha256",
+          "baseline": "sha256:9bdb99de5b50acb47a0fffca214fc21fc2a7e9ade762607d83d71345c48fbacc",
+          "current": "sha256:04b24975b4ea5da738c5e5339d682b9db64deb62c31e9673f824b7893b48c195"
+        },
+        {
+          "path": "/request_sha256",
+          "baseline": "sha256:f835de48b5d461ff135ab0e59734deccf1f3ed8935be8030d8857a8209afd1a1",
+          "current": "sha256:c843f1c6333a359f4132245772fd14d79076547af9124b67d19b76126357e301"
+        },
+        {
+          "path": "/rules/2/module/replacement/adapter/profile_implementation_sha256",
+          "baseline": "sha256:964874354d1ad2f46f00e3d1b1109f89b0d1747b399a97ea867ff29c48eda8e1",
+          "current": "sha256:84b27e6227508fda72c8be6b0ae588e4f4f052a07bc35a27d6feff729b22d50b"
+        },
+        {
+          "path": "/rules/3/module/replacement/adapter/profile_implementation_sha256",
+          "baseline": "sha256:964874354d1ad2f46f00e3d1b1109f89b0d1747b399a97ea867ff29c48eda8e1",
+          "current": "sha256:84b27e6227508fda72c8be6b0ae588e4f4f052a07bc35a27d6feff729b22d50b"
+        }
+      ]
+    },
+    {
+      "path": "internal/compatibilitypack/requests/modernc-libc-xsys-v047-linux-amd64.json",
+      "leaf_changes": [
+        {
+          "path": "/activation/1/evidence/replacement/adapter/profile_implementation_sha256",
+          "baseline": "sha256:964874354d1ad2f46f00e3d1b1109f89b0d1747b399a97ea867ff29c48eda8e1",
+          "current": "sha256:84b27e6227508fda72c8be6b0ae588e4f4f052a07bc35a27d6feff729b22d50b"
+        },
+        {
+          "path": "/activation/2/evidence/replacement/adapter/profile_implementation_sha256",
+          "baseline": "sha256:964874354d1ad2f46f00e3d1b1109f89b0d1747b399a97ea867ff29c48eda8e1",
+          "current": "sha256:84b27e6227508fda72c8be6b0ae588e4f4f052a07bc35a27d6feff729b22d50b"
+        },
+        {
+          "path": "/approval_sha256",
+          "baseline": "sha256:9bdb99de5b50acb47a0fffca214fc21fc2a7e9ade762607d83d71345c48fbacc",
+          "current": "sha256:04b24975b4ea5da738c5e5339d682b9db64deb62c31e9673f824b7893b48c195"
+        },
+        {
+          "path": "/packages/2/evidence/module/replacement/adapter/profile_implementation_sha256",
+          "baseline": "sha256:964874354d1ad2f46f00e3d1b1109f89b0d1747b399a97ea867ff29c48eda8e1",
+          "current": "sha256:84b27e6227508fda72c8be6b0ae588e4f4f052a07bc35a27d6feff729b22d50b"
+        },
+        {
+          "path": "/packages/3/evidence/module/replacement/adapter/profile_implementation_sha256",
+          "baseline": "sha256:964874354d1ad2f46f00e3d1b1109f89b0d1747b399a97ea867ff29c48eda8e1",
+          "current": "sha256:84b27e6227508fda72c8be6b0ae588e4f4f052a07bc35a27d6feff729b22d50b"
+        }
+      ]
+    }
+  ],
+  "patched_toolchain_launcher_exists": false,
+  "native_qualification": false
+}

@@ -1,0 +1,18 @@
+6f66f744ddafb65412ee94c818c5fed4aa9b1ee3
+2026-10-02T12:43:22-07:00
+gomad: count a shared target once and prune unshared pool entries
+- artifact.RetainedBytes states the stored-bytes rule: per-artifact stored
+  bytes keep the target, and a sum over artifacts kept together counts a
+  shared target once
+- the corpus byte cap, the shard-merge evidence limits, and the minimized
+  artifact default follow the rule; no limit changes
+- PruneTargetPool removes pool entries no artifact links to; qualification
+  pruning and the corpus call it after they remove artifacts
+- a publisher creates its pool entry again when a pruner took it before
+  the link
+- gomad inspect reports whether an artifact's target is shared
+
+Task: fn-114-gomad-correct-search-path-defects-and.10
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+

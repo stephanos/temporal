@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/verify_current.py", line 101, in <module>
+    assert policy_old == policy_now
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

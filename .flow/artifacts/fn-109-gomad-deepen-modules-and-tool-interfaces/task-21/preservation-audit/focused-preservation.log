@@ -1,0 +1,124 @@
+=== RUN   TestCloneManifestSharesNoMemory
+--- PASS: TestCloneManifestSharesNoMemory (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/artifact	0.003s
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05Z
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+00:00
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05-00:00
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+01:30
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05-08:00
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05.123456789Z
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05,25Z
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T3:04:05Z
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+24:00
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+00:60
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T25:04:05Z
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-02-30T03:04:05Z
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05Z_trailing
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/#00
+=== RUN   TestTimestampValidationPreservesGrammarAndParseErrors/not-a-time
+--- PASS: TestTimestampValidationPreservesGrammarAndParseErrors (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05Z (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+00:00 (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05-00:00 (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+01:30 (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05-08:00 (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05.123456789Z (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05,25Z (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T3:04:05Z (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+24:00 (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05+00:60 (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T25:04:05Z (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-02-30T03:04:05Z (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/2026-01-02T03:04:05Z_trailing (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/#00 (0.00s)
+    --- PASS: TestTimestampValidationPreservesGrammarAndParseErrors/not-a-time (0.00s)
+=== RUN   TestTimestampFinalizeRetainsOriginalStringsAndIdentities
+--- PASS: TestTimestampFinalizeRetainsOriginalStringsAndIdentities (0.00s)
+=== RUN   TestOwnedWorldComposedManifestPreservesIdentity
+--- PASS: TestOwnedWorldComposedManifestPreservesIdentity (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/record	0.010s
+=== RUN   TestRecorderRejectsExternalCallbacksWithoutMutation
+=== RUN   TestRecorderRejectsExternalCallbacksWithoutMutation/error
+=== RUN   TestRecorderRejectsExternalCallbacksWithoutMutation/is
+=== RUN   TestRecorderRejectsExternalCallbacksWithoutMutation/single
+=== RUN   TestRecorderRejectsExternalCallbacksWithoutMutation/multi
+=== RUN   TestRecorderRejectsExternalCallbacksWithoutMutation/wrapper
+=== RUN   TestRecorderRejectsExternalCallbacksWithoutMutation/unknown
+--- PASS: TestRecorderRejectsExternalCallbacksWithoutMutation (0.00s)
+    --- PASS: TestRecorderRejectsExternalCallbacksWithoutMutation/error (0.00s)
+    --- PASS: TestRecorderRejectsExternalCallbacksWithoutMutation/is (0.00s)
+    --- PASS: TestRecorderRejectsExternalCallbacksWithoutMutation/single (0.00s)
+    --- PASS: TestRecorderRejectsExternalCallbacksWithoutMutation/multi (0.00s)
+    --- PASS: TestRecorderRejectsExternalCallbacksWithoutMutation/wrapper (0.00s)
+    --- PASS: TestRecorderRejectsExternalCallbacksWithoutMutation/unknown (0.00s)
+=== RUN   TestRecorderAndModelIgnoreSentinelRebinding
+--- PASS: TestRecorderAndModelIgnoreSentinelRebinding (0.00s)
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_config
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_request
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/unknown_World_request
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_request_state
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_time_regression
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_snapshot
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_capacity_exhausted
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_replay_divergence
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_capacity_exhausted:_雪"_xxxxxxxxxxxxxxxxxxx
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_replay_divergence:_transition=5_field=digest
+--- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_config (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_request (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/unknown_World_request (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_request_state (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_time_regression (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_snapshot (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_capacity_exhausted (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_replay_divergence (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_capacity_exhausted:_雪"_xxxxxxxxxxxxxxxxxxx (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_replay_divergence:_transition=5_field=digest (0.00s)
+=== RUN   TestDetachedTerminalRejectsInvalidDataAndTypedNilWithoutClosing
+--- PASS: TestDetachedTerminalRejectsInvalidDataAndTypedNilWithoutClosing (0.00s)
+=== RUN   TestOwnedModelErrorPreservesMessagesAndCauseIdentity
+--- PASS: TestOwnedModelErrorPreservesMessagesAndCauseIdentity (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/world	0.008s
+=== RUN   TestSessionNormalizesDetailBeforeOrderedClassification
+--- PASS: TestSessionNormalizesDetailBeforeOrderedClassification (0.00s)
+=== RUN   TestSessionRetainsJoinedErrorPrecedenceAndUnknownIdentity
+--- PASS: TestSessionRetainsJoinedErrorPrecedenceAndUnknownIdentity (0.00s)
+=== RUN   TestSessionValidatesBeforeCallingErrors
+--- PASS: TestSessionValidatesBeforeCallingErrors (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/world/process	0.004s
+=== RUN   TestCapabilityReviewGoldenCanonicalBytes
+=== RUN   TestCapabilityReviewGoldenCanonicalBytes/closure-findings
+=== RUN   TestCapabilityReviewGoldenCanonicalBytes/closure-sources
+=== RUN   TestCapabilityReviewGoldenCanonicalBytes/closure-adapter
+=== RUN   TestCapabilityReviewGoldenCanonicalBytes/linked
+=== RUN   TestCapabilityReviewGoldenCanonicalBytes/guarded
+=== RUN   TestCapabilityReviewGoldenCanonicalBytes/recorded-closure
+--- PASS: TestCapabilityReviewGoldenCanonicalBytes (0.04s)
+    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/closure-findings (0.00s)
+    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/closure-sources (0.00s)
+    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/closure-adapter (0.00s)
+    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/linked (0.00s)
+    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/guarded (0.00s)
+    --- PASS: TestCapabilityReviewGoldenCanonicalBytes/recorded-closure (0.00s)
+=== RUN   TestCompatibilityPackProjectionPreservesCompleteEvidence
+--- PASS: TestCompatibilityPackProjectionPreservesCompleteEvidence (0.00s)
+=== RUN   TestCompatibilityPackProjectionPreservesNilAndEmpty
+--- PASS: TestCompatibilityPackProjectionPreservesNilAndEmpty (0.00s)
+=== RUN   TestCompatibilityPackProjectionPreservesOrderAndDetachesNestedStorage
+--- PASS: TestCompatibilityPackProjectionPreservesOrderAndDetachesNestedStorage (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/target	0.046s
+=== RUN   TestInspectionCapacityProjectionPreservesReports
+--- PASS: TestInspectionCapacityProjectionPreservesReports (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner	0.004s
+=== RUN   TestDiagnosticsOffReportFieldsRemainAbsent
+--- PASS: TestDiagnosticsOffReportFieldsRemainAbsent (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/qualification	0.003s

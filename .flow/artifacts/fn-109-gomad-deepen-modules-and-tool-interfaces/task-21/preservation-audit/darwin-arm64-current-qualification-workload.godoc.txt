@@ -1,0 +1,32 @@
+package workload // import "go.temporal.io/server/tools/gomad3/qualification/workload"
+
+
+TYPES
+
+type Progress struct {
+	Iteration uint64
+	Repeat    uint64
+}
+
+type Result struct {
+	Report      qualification.QualificationReport
+	ReportPath  string
+	ChoiceTrace *runner.ChoiceTraceSummary
+}
+
+func Run(ctx context.Context, spec Spec) (Result, error)
+
+type Spec struct {
+	Command         []string
+	Seed            uint64
+	Repeat          uint64
+	ArtifactRoot    string
+	Campaign        runner.CampaignSpec
+	Replay          runner.ReplaySpec
+	ReplaySuccesses bool
+	Progress        func(Progress) error
+	Explore         func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error)
+	ReplayArtifact  func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error)
+	Write           func(string, qualification.QualificationReport) (string, error)
+}
+

@@ -1,0 +1,118 @@
+{
+  "actual_per_execution_transcript_bytes": 1048576,
+  "actual_per_execution_transcript_records": 8192,
+  "artifact_count": 0,
+  "attempted": 10,
+  "campaign_file_bytes": 4652,
+  "campaign_file_count": 3,
+  "cumulative_stream_transcript_bytes": 31457280,
+  "cumulative_transcript_bytes": 10485760,
+  "cumulative_world_record_bytes": 13682,
+  "derived_artifact_capacity": {
+    "failure_artifacts": "10",
+    "failure_bytes": "11485184400",
+    "success_artifacts": "0",
+    "success_bytes": "0",
+    "total_bytes": "11485184400",
+    "transcript_bytes": "67108864",
+    "failure_outcome": "infrastructure_failure",
+    "success_outcome": "infrastructure_failure"
+  },
+  "diagnostic_artifact_input_field": "present in current ArtifactInput; diagnostics disabled identically",
+  "elapsed_nanos": 7488569337,
+  "excluded_transport_calls": 0,
+  "go_version": "go1.27.1",
+  "internal_novelty_map_cardinality_directly_observed": false,
+  "jobs": 10,
+  "journal": {
+    "Schema": "gomad3.execution-journal/v1",
+    "IndexSHA256": "sha256:cdedc542ae8922d3d298797712daaa4d031d4796d7e403e4c3a5b15aa131081c",
+    "Segments": 1,
+    "Records": 10,
+    "Bytes": 3367,
+    "Limits": {
+      "maximum_executions": "10",
+      "maximum_bytes": "10485760",
+      "segment_bytes": "1048576",
+      "segment_records": "1024",
+      "maximum_segments": "10",
+      "maximum_partial_executions": "2",
+      "capacity_outcome": "infrastructure_failure"
+    }
+  },
+  "journal_unique_novel_choice_features": 0,
+  "journal_unique_novel_semantic_probes": 0,
+  "limits": {
+    "execution_timeout": "5m0s",
+    "io_transcript": 67108864,
+    "output": 1048576,
+    "overall_timeout": "5m0s",
+    "success_bytes": 0,
+    "success_count": 0,
+    "world_transition": 1048576
+  },
+  "logical_policy_bytes": {
+    "completion_order_done_handle": 8,
+    "controller": 128,
+    "iterator": 48,
+    "job_source": 40,
+    "one_shared_range_backing": 16,
+    "selection_header": 32,
+    "total_named_logical_bytes": 4384,
+    "two_channel_handles": 16,
+    "two_completion_channel_slots": 4096
+  },
+  "maximum_active": 2,
+  "mode": "discard",
+  "observed_runtime_settings": {
+    "gogc_percent": 100,
+    "gomaxprocs_threads": 2,
+    "gomemlimit_bytes": 9223372036854775807
+  },
+  "observed_semantic_probe_vocabulary_count": 1,
+  "parallel": 2,
+  "per_execution_stream_bytes": 1048576,
+  "platform": "linux/arm64",
+  "retained_success_bytes": 0,
+  "retained_success_count": 0,
+  "snapshots": [
+    {
+      "Name": "early-pair",
+      "Returned": 0,
+      "Committed": 0,
+      "Active": 2,
+      "HeapAlloc": 6796320,
+      "HeapObjects": 4057,
+      "TotalAlloc": 9502752,
+      "NumGC": 4
+    },
+    {
+      "Name": "late-pair",
+      "Returned": 8,
+      "Committed": 8,
+      "Active": 2,
+      "HeapAlloc": 6852752,
+      "HeapObjects": 4639,
+      "TotalAlloc": 125997848,
+      "NumGC": 27
+    },
+    {
+      "Name": "completed",
+      "Returned": 10,
+      "Committed": 10,
+      "Active": 0,
+      "HeapAlloc": 564456,
+      "HeapObjects": 4772,
+      "TotalAlloc": 159592552,
+      "NumGC": 37
+    }
+  ],
+  "succeeded": 10,
+  "transcript_vocabulary": {
+    "boundary.probe": 1,
+    "host.hostname": 8191,
+    "semantic_probes": [
+      "stdlib.os.openfile"
+    ]
+  }
+}

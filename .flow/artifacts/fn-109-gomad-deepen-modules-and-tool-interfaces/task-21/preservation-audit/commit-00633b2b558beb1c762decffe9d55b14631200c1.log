@@ -1,0 +1,34 @@
+00633b2b558beb1c762decffe9d55b14631200c1
+2026-10-02T16:30:52-07:00
+gomad: record select readiness in the runtime and the Choice Trace
+- Choice wire v3 (gomad3-choice-trace/v3): a record's two reserved bytes
+  become a readiness word (known, default, nil-, timer-, closed-, and
+  repeated-channel flags with a ten-bit ready count bounded by the poll
+  cap) and an observation record holds, where a decision holds its
+  selected identity, the origin ordinal at which its select began
+  recording. Readers refuse v2 traces by profile and v2 or later-version
+  headers, tapes, and terminal frames by version.
+- selectgo reads the origin before its poll loop and, with every channel
+  locked and before the first pass dequeues, counts the cases that could
+  proceed with a peek that mirrors dequeue; the select result carries the
+  readiness, the origin, and the polled-case count. Nothing allocates or
+  draws.
+- ProjectReplayPlan matches each result to its select's poll decisions by
+  origin and polled count, requires them to be that select's poll steps,
+  fails closed otherwise, encodes the readiness into the tape records so
+  it survives ValidateReplayPlan, and exposes it as ReplayPlan.Readiness
+  beside Decisions; a select that recorded no result leaves its decisions
+  unknown.
+- The E3 fixture asserts each shape's readiness on every select-poll
+  decision of every execution, adds timer-channel-due and repeated-channel,
+  and shows through the diagnostic trace that the pass-1 shapes allocate
+  and draw nothing between their last poll decision and their result. The
+  seven reference shapes still exhaust at 196/68/68/68/196/68/68.
+- Regenerate the patch, the wire codecs, and the protocol identities; move
+  the pinned profile and schema strings, the diagnostics-off golden, and
+  the retained pre-start-ordinal root segment to v3.
+
+Task: fn-114-gomad-correct-search-path-defects-and.11
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+

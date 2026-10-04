@@ -1,0 +1,290 @@
+package set // import "go.temporal.io/server/tools/gomad3/qualification/set"
+
+
+CONSTANTS
+
+const DefaultMinimumFreeBytes = 2 << 30
+    DefaultMinimumFreeBytes is the free space a set run keeps on the artifact
+    volume: a seed's retained Campaigns and the go build's temporary link output
+    fit under it, so a run stops before it fills the disk for every other user
+    of the machine.
+
+const ManifestSchema = "gomad3.qualification-set/v3"
+const ReportSchema = "gomad3.qualification-set-report/v1"
+
+VARIABLES
+
+var ErrLowFreeSpace = errors.New("qualification set stopped: free space on the artifact volume fell below its bound")
+
+FUNCTIONS
+
+func IsInvalidReport(err error) bool
+func SoakQualifyArguments(manifest Manifest, workload Workload, seed, repeat uint64, overallTimeout time.Duration, artifactRoot string) []string
+    SoakQualifyArguments returns the gomad qualify arguments of one determinism
+    soak batch of a workload: the arguments this set runs for the workload and
+    seed, with the batch's repetition count and overall deadline, the diagnostic
+    trace on, and successful-execution replay off. A soak compares fresh runs,
+    so it does not spend a replay on every success; the diagnostic trace is
+    retained in each Campaign whether or not a success Artifact is.
+
+func ValidateManifest(manifest Manifest) error
+    ValidateManifest applies the checks LoadManifest enforces, so a generator
+    can refuse to write a manifest the qualification set would reject.
+
+
+TYPES
+
+type ChoiceCoverage struct {
+	Available              bool                `json:"available"`
+	Profile                string              `json:"profile,omitempty"`
+	ImplementationSHA256   record.SHA256       `json:"implementation_sha256,omitempty"`
+	Limit                  record.Uint64String `json:"limit,omitempty"`
+	TapeSHA256             record.SHA256       `json:"tape_sha256,omitempty"`
+	Decisions              record.Uint64String `json:"decisions,omitempty"`
+	ExactReplayAvailable   bool                `json:"exact_replay_available,omitempty"`
+	Features               []choice.Feature    `json:"features"`
+	AdjacentPairsObserved  record.Uint64String `json:"adjacent_pairs_observed"`
+	AdjacentPairsTruncated bool                `json:"adjacent_pairs_truncated"`
+}
+
+type Command struct {
+	Executable   string
+	Args         []string
+	Dir          string
+	ArtifactRoot string
+	Timeout      time.Duration
+	Grace        time.Duration
+}
+
+type CommandResult struct {
+	ExitCode int
+	Stdout   []byte
+	Stderr   []byte
+	Err      error
+}
+
+type EvidenceDimensions struct {
+	PortableV3 bool `json:"portable_v3"`
+	Analysis   bool `json:"analysis"`
+	Replay     bool `json:"replay"`
+	Choice     bool `json:"choice"`
+}
+
+type ExecuteFunc func(context.Context, Command) CommandResult
+
+type ExpectationError struct {
+	Workloads []string
+}
+
+func (err *ExpectationError) Error() string
+
+type InvalidReportError struct {
+	Err error
+}
+
+func (err *InvalidReportError) Error() string
+
+func (err *InvalidReportError) Unwrap() error
+
+type Manifest struct {
+	Schema               string     `json:"schema"`
+	Name                 string     `json:"name"`
+	Description          string     `json:"description"`
+	Module               string     `json:"module"`
+	Seeds                []uint64   `json:"seeds"`
+	Repeat               uint64     `json:"repeat"`
+	RunTimeout           string     `json:"run_timeout"`
+	OverallTimeout       string     `json:"overall_timeout"`
+	TerminateGrace       string     `json:"terminate_grace"`
+	OutputBytes          uint64     `json:"output_bytes"`
+	WorldTransitionBytes uint64     `json:"world_transition_bytes"`
+	Suites               []Workload `json:"suites"`
+	Seed                 uint64     `json:"-"`
+}
+
+func LoadManifest(path string) (Manifest, error)
+
+type MergeSpec struct {
+	ManifestPath string
+	ShardReports []string
+	OutputPath   string
+}
+
+type ModuleIdentity struct {
+	Path        string        `json:"path"`
+	GoModSHA256 record.SHA256 `json:"go_mod_sha256"`
+}
+
+type Mount struct {
+	Source string `json:"source"`
+	Target string `json:"target"`
+}
+
+type PlatformIdentity struct {
+	GOOS   string `json:"goos"`
+	GOARCH string `json:"goarch"`
+}
+
+type Report struct {
+	Schema         string                       `json:"schema"`
+	Name           string                       `json:"name"`
+	Description    string                       `json:"description"`
+	ManifestSHA256 record.SHA256                `json:"manifest_sha256"`
+	Seeds          []record.Uint64String        `json:"seeds"`
+	Module         ModuleIdentity               `json:"module"`
+	Platform       PlatformIdentity             `json:"platform"`
+	Toolchain      capabilityanalysis.Toolchain `json:"toolchain"`
+	IOProfile      deterministicio.Contract     `json:"io_profile"`
+	Dimensions     EvidenceDimensions           `json:"dimensions"`
+	// QualifiedArtifactsPruned records that the run pruned qualified seeds'
+	// retained Campaigns; each pruned seed says so, so no reader expects to
+	// replay its artifacts.
+	QualifiedArtifactsPruned bool                `json:"qualified_artifacts_pruned,omitempty"`
+	ExpectationsMet          bool                `json:"expectations_met"`
+	Selected                 uint64              `json:"selected"`
+	AnalysisCompleted        uint64              `json:"analysis_completed"`
+	Completed                uint64              `json:"completed"`
+	Supported                uint64              `json:"supported"`
+	Unsupported              uint64              `json:"unsupported"`
+	Failed                   uint64              `json:"failed"`
+	InfrastructureErrors     uint64              `json:"infrastructure_errors"`
+	Replayed                 uint64              `json:"replayed"`
+	ReplayDiverged           uint64              `json:"replay_diverged"`
+	Cancelled                uint64              `json:"cancelled"`
+	TimedOut                 uint64              `json:"timed_out"`
+	ElapsedNanos             record.Uint64String `json:"elapsed_nanos"`
+	ArtifactBytes            record.Uint64String `json:"artifact_bytes"`
+	TraceBytes               record.Uint64String `json:"trace_bytes"`
+	Workloads                []WorkloadReport    `json:"workloads"`
+}
+
+func Merge(ctx context.Context, spec MergeSpec) (Report, error)
+    Merge combines the shard reports one manifest's Shard runs published
+    into the report a whole run would have published. Every shard must come
+    from the same manifest, module, platform, toolchain, I/O profile, seeds,
+    pruning choice, and reviewed sources, and together the shards must cover
+    each manifest workload exactly once; anything else is invalid input, never
+    a partial aggregate. The merged report is written before an expectation
+    mismatch is reported, as Run does.
+
+func OpenReport(path string) (Report, error)
+
+func Run(ctx context.Context, config Spec) (Report, error)
+
+type SeedReport struct {
+	Seed              record.Uint64String `json:"seed"`
+	Classification    string              `json:"classification"`
+	EvidenceSHA256    record.SHA256       `json:"evidence_sha256,omitempty"`
+	Replayed          bool                `json:"replayed"`
+	ReplayMatch       bool                `json:"replay_match"`
+	ReplayDivergence  string              `json:"replay_divergence,omitempty"`
+	ChoiceReplayExact bool                `json:"choice_replay_exact,omitempty"`
+	ArtifactsPruned   bool                `json:"artifacts_pruned,omitempty"`
+	ElapsedNanos      record.Uint64String `json:"elapsed_nanos"`
+	ArtifactBytes     record.Uint64String `json:"artifact_bytes"`
+	TraceBytes        record.Uint64String `json:"trace_bytes"`
+	Choice            ChoiceCoverage      `json:"choice"`
+}
+
+type Shard struct {
+	Index uint64
+	Count uint64
+}
+    Shard is the zero-based INDEX/COUNT partition execute-shard uses, applied
+    to manifest ordinals: shard INDEX/COUNT owns the workloads whose position in
+    the manifest, modulo COUNT, is INDEX. Shards of one manifest therefore never
+    overlap and together cover it, which Merge verifies. The zero value selects
+    the whole manifest.
+
+func (shard Shard) Select(manifest Manifest) ([]Workload, error)
+    Select returns the manifest workloads this shard owns, in manifest order.
+    A count larger than the manifest would leave a shard with nothing to run,
+    so it is refused rather than reported as an empty success.
+
+func (shard Shard) Validate() error
+
+type Spec struct {
+	ManifestPath string
+	GomadPath    string
+	WorkingDir   string
+	ArtifactRoot string
+	OutputPath   string
+	// Shard limits the run to one ordinal-modulo subset of the manifest; the
+	// zero value runs the whole manifest.
+	Shard Shard
+	// PruneQualifiedArtifacts deletes each qualified seed's retained Campaigns
+	// once its evidence is projected into the set report, keeping the seed's
+	// qualification report, so a set's disk use is bounded by one seed rather
+	// than the whole manifest.
+	PruneQualifiedArtifacts bool
+	// MinimumFreeBytes stops the run, as an infrastructure failure of the
+	// remaining workloads, before a seed starts on an artifact volume with
+	// less free space; zero keeps DefaultMinimumFreeBytes.
+	MinimumFreeBytes uint64
+	Execute          ExecuteFunc
+	// FreeBytes reports a path's free space; tests replace it.
+	FreeBytes func(string) (uint64, error)
+}
+
+type Workload struct {
+	ID             string                `json:"id"`
+	Name           string                `json:"name"`
+	Tier           uint64                `json:"tier"`
+	Invariant      string                `json:"invariant"`
+	Package        string                `json:"package"`
+	Test           string                `json:"test"`
+	BuildTags      []string              `json:"build_tags,omitempty"`
+	CapabilityMode target.CapabilityMode `json:"capability_mode"`
+	Environment    []string              `json:"environment,omitempty"`
+	ReadOnlyMounts []Mount               `json:"read_only_mounts,omitempty"`
+	RequiredProbes []string              `json:"required_probes,omitempty"`
+	ChoiceBytes    uint64                `json:"choice_bytes"`
+	// ClockTick selects a non-default virtual-clock tick policy; only
+	// "forward" is valid, and the strict default is the field's absence.
+	ClockTick string `json:"clock_tick,omitempty"`
+	// IOTranscriptBytes raises the I/O transcript bound for a workload whose
+	// cluster outgrows the default; absent means the default.
+	IOTranscriptBytes    uint64 `json:"io_transcript_bytes,omitempty"`
+	ReplaySuccesses      bool   `json:"replay_successes"`
+	SuccessArtifactLimit uint64 `json:"success_artifact_limit"`
+	SuccessBytesLimit    uint64 `json:"success_bytes_limit"`
+	ExecutionTimeout     string `json:"execution_timeout,omitempty"`
+	OverallTimeout       string `json:"overall_timeout,omitempty"`
+	// Skip names subtests of Test the workload does not run, as -test.skip
+	// patterns anchored under Test; a generated manifest records who excluded
+	// each one, when, and why.
+	Skip []string `json:"skip,omitempty"`
+	// TestParallel is the -test.parallel the test binary runs with. Stock go
+	// test defaults it to GOMAXPROCS; the deterministic runtime pins one P,
+	// which would serialize parallel subtests and expire the test contexts
+	// they created before pausing, so a manifest states the value.
+	TestParallel uint64              `json:"test_parallel,omitempty"`
+	Expectation  WorkloadExpectation `json:"expectation"`
+	// PlatformExpectations replaces Expectation on the named GOOS/GOARCH hosts,
+	// so one manifest can state where a workload's support boundary differs.
+	PlatformExpectations map[string]WorkloadExpectation `json:"platform_expectations,omitempty"`
+}
+
+type WorkloadExpectation struct {
+	Classification string `json:"classification"`
+	ImportPath     string `json:"import_path,omitempty"`
+	Capability     string `json:"capability,omitempty"`
+	Finding        string `json:"finding,omitempty"`
+}
+
+type WorkloadReport struct {
+	ID             string                       `json:"id"`
+	Name           string                       `json:"name"`
+	Tier           uint64                       `json:"tier"`
+	Invariant      string                       `json:"invariant"`
+	Expected       WorkloadExpectation          `json:"expected"`
+	ExpectationMet bool                         `json:"expectation_met"`
+	Classification string                       `json:"classification"`
+	Analysis       *capabilityanalysis.Report   `json:"analysis,omitempty"`
+	AnalysisError  string                       `json:"analysis_error,omitempty"`
+	Seeds          []SeedReport                 `json:"seeds"`
+	Blockers       []capabilityanalysis.Blocker `json:"blockers"`
+	Choice         ChoiceCoverage               `json:"choice"`
+	CapabilityMode target.CapabilityMode        `json:"capability_mode,omitempty"`
+}
+

@@ -1,0 +1,31 @@
+package process // import "go.temporal.io/server/tools/gomad3/world/process"
+
+Package target connects an explicitly modeled World to the Runner's inherited
+recording pipe. Applications finish the session only after modeled work has
+stopped, so transport readiness never participates in event ordering.
+
+FUNCTIONS
+
+func EncodeSessionSpec(config SessionSpec) ([]byte, error)
+
+TYPES
+
+type Session struct {
+	// Has unexported fields.
+}
+
+func Open(core *world.Model) (*Session, error)
+
+func (session *Session) Finish() error
+
+func (session *Session) FinishError(terminalErr error) error
+
+func (session *Session) Model() *world.Model
+
+type SessionSpec struct {
+	TransitionLimit uint64
+	Seed            uint64
+	ExpectedInitial []byte
+	ReplayPlan      []byte
+}
+

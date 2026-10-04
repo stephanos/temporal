@@ -1,0 +1,17 @@
+6be0755fef727146f86bac6658436f6874680cc8
+2026-10-02T19:15:38-07:00
+gomad: keep each retained success of one outcome signature as its own artifact
+Two seeds of a target whose output does not depend on the seed complete
+with one outcome signature. The success store was keyed by that
+signature, so the second seed reused the first seed's artifact, the
+campaign counted both, and inspect rejected the published record. The
+success stores now use artifact.StoreKeyExecution: the first artifact
+keeps the signature's directory, an existing artifact is reused only for
+the same execution, and another execution is named by its campaign,
+ordinal, seed and signature.
+
+Reproduced with the built CLI on linux/arm64 (dev harness); evidence in
+.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-16/.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+

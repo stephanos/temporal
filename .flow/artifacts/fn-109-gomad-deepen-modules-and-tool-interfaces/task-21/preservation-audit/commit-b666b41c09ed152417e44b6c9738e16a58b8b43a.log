@@ -1,0 +1,25 @@
+b666b41c09ed152417e44b6c9738e16a58b8b43a
+2026-10-02T17:22:22-07:00
+gomad: stop expanding no-op select-poll decisions after a soundness check
+- The explorer leaves a select-poll decision unexpanded when its select
+  polled two cases and recorded a readiness of one of the seven fixture
+  shapes with fewer than two ready cases; anything else, including an
+  unknown readiness, stays expanded. The skipped alternatives are counted
+  in omitted_by_select_readiness beside the depth and execution bounds and
+  make no stop reason.
+- The rule is the v3 controller identity, so a journal written under v2 is
+  refused on resume; the retained pre-start-ordinal journal is re-encoded
+  under v3 with its decisions unchanged and its pins updated.
+- The select-readiness fixture explores every shape to exhaustion in full
+  and reduced and records whether the two agree; a listed shape that does
+  not fails the fixture. All seven listed shapes agree (reduced
+  96/32/32/96/32/32/96 executions against full 196/68/68/196/68/68/200).
+- Signal suite seed 11 on build 2008ea81: 57,696 decisions, of which the
+  explorer now expands 42,918; trace bytes unchanged at 8,262,720. No-op
+  decisions stay in the Choice Trace; the decision and its numbers are in
+  the spec's Decision Context and under select-reduction/.
+
+Task: fn-114-gomad-correct-search-path-defects-and.12
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+

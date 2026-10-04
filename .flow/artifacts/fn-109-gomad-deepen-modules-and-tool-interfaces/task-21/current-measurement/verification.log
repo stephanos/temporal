@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "source_files": 982,
+  "shipped_files": 978,
+  "complete_source_inventories": 10,
+  "successful_commands": 98,
+  "current_output_hashes": 174,
+  "baseline_handoff_hashes": 201,
+  "driver_prelaunch_sha256": "8252784ee6b75db8038ff3616ba4d12e4ec543a0b6eebe891c688a70c21ec031",
+  "qualification_complete": false
+}

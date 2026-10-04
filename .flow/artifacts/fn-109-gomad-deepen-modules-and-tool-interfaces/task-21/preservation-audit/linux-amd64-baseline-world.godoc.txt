@@ -1,0 +1,317 @@
+package world // import "go.temporal.io/server/tools/gomad3/world"
+
+Package world provides a bounded deterministic event model for explicit external
+adapters. It owns data and ordering only: callers perform wakeups after methods
+return.
+
+CONSTANTS
+
+const (
+	MaximumSnapshotJSONBytes = 64 << 20
+)
+const (
+	SchemaVersion uint32      = 1
+	InitialTime   LogicalTime = 946684800000000000
+)
+const MaximumRecordingBytes = 2*MaximumSnapshotJSONBytes + (1 << 20) + 40
+const MaximumReplayPlanJSONBytes = 64 << 20
+
+VARIABLES
+
+var (
+	ErrInvalidConfig    = errors.New("invalid World config")
+	ErrInvalidRequest   = errors.New("invalid World request")
+	ErrUnknownRequest   = errors.New("unknown World request")
+	ErrRequestState     = errors.New("invalid World request state")
+	ErrTimeRegression   = errors.New("World time regression")
+	ErrCapacity         = errors.New("World capacity exhausted")
+	ErrInvalidSnapshot  = errors.New("invalid World snapshot")
+	ErrReplayDivergence = errors.New("World replay divergence")
+)
+
+FUNCTIONS
+
+func EncodeRecording(recording Recording) ([]byte, error)
+func EncodeReplayPlan(plan ReplayPlan) ([]byte, error)
+func EncodeSnapshot(snapshot Snapshot) ([]byte, error)
+func EncodeTransitions(transitions []Transition) ([]byte, error)
+func RecordingHeader() [8]byte
+func ValidateRecording(recording Recording) error
+
+TYPES
+
+type CancelStatus string
+
+const (
+	CancelWon              CancelStatus = "won"
+	CancelAlreadyCanceled  CancelStatus = "already-canceled"
+	CancelAlreadyDelivered CancelStatus = "already-delivered"
+)
+type CancelTransition struct {
+	RequestID    RequestID    `json:"requestId"`
+	Cancellation Cancellation `json:"cancellation"`
+}
+
+type Cancellation struct {
+	RequestID RequestID    `json:"requestId"`
+	EventID   EventID      `json:"eventId,omitempty"`
+	Status    CancelStatus `json:"status"`
+}
+
+type CapacityError struct {
+	Dimension string
+	Limit     uint64
+	Used      uint64
+	Delta     uint64
+}
+
+func (err *CapacityError) Error() string
+
+func (err *CapacityError) Unwrap() error
+
+type Config struct {
+	Seed   Seed   `json:"seed"`
+	Limits Limits `json:"limits"`
+}
+
+type Delivery struct {
+	RequestID RequestID   `json:"requestId"`
+	EventID   EventID     `json:"eventId"`
+	At        LogicalTime `json:"at"`
+	Kind      string      `json:"kind"`
+	Payload   []byte      `json:"payload,omitempty"`
+}
+
+type Digest string
+
+type EventID uint64
+
+func (value EventID) MarshalJSON() ([]byte, error)
+
+func (value *EventID) UnmarshalJSON(data []byte) error
+
+type EventSnapshot struct {
+	ID        EventID    `json:"id"`
+	Readiness Readiness  `json:"readiness"`
+	State     EventState `json:"state"`
+}
+
+type EventState string
+
+const (
+	EventQueued    EventState = "queued"
+	EventCanceled  EventState = "canceled"
+	EventDelivered EventState = "delivered"
+)
+type Limits struct {
+	MaxRequests     uint64 `json:"maxRequests"`
+	MaxEvents       uint64 `json:"maxEvents"`
+	MaxQueuedEvents uint64 `json:"maxQueuedEvents"`
+	MaxTransitions  uint64 `json:"maxTransitions"`
+	MaxPayloadBytes uint64 `json:"maxPayloadBytes"`
+	MaxStringBytes  uint32 `json:"maxStringBytes"`
+}
+
+type LogicalTime int64
+
+func (value LogicalTime) MarshalJSON() ([]byte, error)
+
+func (value *LogicalTime) UnmarshalJSON(data []byte) error
+
+type Model struct {
+	// Has unexported fields.
+}
+
+func New(config Config) (*Model, error)
+
+func Restore(snapshot Snapshot, replay *ReplayPlan) (*Model, error)
+
+func (w *Model) Cancel(requestID RequestID) (Cancellation, error)
+
+func (w *Model) Quiesce() (Quiescence, error)
+
+func (w *Model) Ready(readiness Readiness) (EventID, error)
+
+func (w *Model) Register(request Request) (RequestID, error)
+
+func (w *Model) ReplayProgress() ReplayProgress
+
+func (w *Model) Seed() Seed
+
+func (w *Model) Snapshot() Snapshot
+
+func (w *Model) StartRecording(transitionByteLimit uint64) (*Recorder, error)
+
+type Priority uint16
+
+type QuiesceTransition struct {
+	Result Quiescence `json:"result"`
+}
+
+type Quiescence struct {
+	Kind       QuiescenceKind `json:"kind"`
+	Before     LogicalTime    `json:"before"`
+	After      LogicalTime    `json:"after"`
+	Deliveries []Delivery     `json:"deliveries,omitempty"`
+	Blocked    []RequestID    `json:"blocked,omitempty"`
+}
+
+type QuiescenceKind string
+
+const (
+	QuiescenceDelivered QuiescenceKind = "delivered"
+	QuiescenceDeadlock  QuiescenceKind = "deadlock"
+	QuiescenceIdle      QuiescenceKind = "idle"
+)
+type Readiness struct {
+	RequestID        RequestID   `json:"requestId"`
+	At               LogicalTime `json:"at"`
+	Kind             string      `json:"kind"`
+	Payload          []byte      `json:"payload,omitempty"`
+	EquivalenceClass string      `json:"equivalenceClass,omitempty"`
+}
+
+type ReadyTransition struct {
+	Readiness Readiness `json:"readiness"`
+	EventID   EventID   `json:"eventId"`
+}
+
+type Recorder struct {
+	// Has unexported fields.
+}
+
+func (recorder *Recorder) Finish() (Recording, error)
+
+func (recorder *Recorder) FinishError(terminalErr error) (Recording, error)
+
+type Recording struct {
+	Initial  Snapshot
+	Final    Snapshot
+	Terminal Terminal
+}
+
+func DecodeRecording(data []byte) (Recording, error)
+
+type RegisterTransition struct {
+	Request   Request   `json:"request"`
+	RequestID RequestID `json:"requestId"`
+}
+
+type ReplayDivergenceError struct {
+	Index          uint64
+	ExpectedKind   string
+	ActualKind     string
+	Field          string
+	ExpectedDigest Digest
+	ActualDigest   Digest
+}
+
+func (err *ReplayDivergenceError) Error() string
+
+func (err *ReplayDivergenceError) Unwrap() error
+
+type ReplayPlan struct {
+	SchemaVersion uint32       `json:"schemaVersion"`
+	InitialDigest Digest       `json:"initialDigest"`
+	Transitions   []Transition `json:"transitions"`
+	FinalDigest   Digest       `json:"finalDigest"`
+}
+
+func DecodeReplayPlan(data []byte) (ReplayPlan, error)
+
+type ReplayProgress struct {
+	Cursor   uint64 `json:"cursor"`
+	Expected uint64 `json:"expected"`
+}
+
+type Request struct {
+	Kind     string     `json:"kind"`
+	Resource ResourceID `json:"resource"`
+	Priority Priority   `json:"priority"`
+	Payload  []byte     `json:"payload,omitempty"`
+}
+
+type RequestID uint64
+
+func (value RequestID) MarshalJSON() ([]byte, error)
+
+func (value *RequestID) UnmarshalJSON(data []byte) error
+
+type RequestSnapshot struct {
+	ID      RequestID    `json:"id"`
+	Request Request      `json:"request"`
+	State   RequestState `json:"state"`
+	EventID EventID      `json:"eventId,omitempty"`
+}
+
+type RequestState string
+
+const (
+	RequestPending   RequestState = "pending"
+	RequestQueued    RequestState = "queued"
+	RequestCanceled  RequestState = "canceled"
+	RequestDelivered RequestState = "delivered"
+)
+type ResourceID struct {
+	Adapter string `json:"adapter"`
+	Kind    string `json:"kind"`
+	Key     string `json:"key"`
+}
+
+type Seed uint64
+
+func (value Seed) MarshalJSON() ([]byte, error)
+
+func (value *Seed) UnmarshalJSON(data []byte) error
+
+type Sequence uint64
+
+func (value Sequence) MarshalJSON() ([]byte, error)
+
+func (value *Sequence) UnmarshalJSON(data []byte) error
+
+type Snapshot struct {
+	SchemaVersion    uint32            `json:"schemaVersion"`
+	Config           Config            `json:"config"`
+	Now              LogicalTime       `json:"now"`
+	NextRequestID    RequestID         `json:"nextRequestId"`
+	NextEventID      EventID           `json:"nextEventId"`
+	NextTransition   Sequence          `json:"nextTransition"`
+	PayloadBytes     uint64            `json:"payloadBytes"`
+	Requests         []RequestSnapshot `json:"requests"`
+	Events           []EventSnapshot   `json:"events"`
+	Transitions      []Transition      `json:"transitions"`
+	TranscriptDigest Digest            `json:"transcriptDigest"`
+	Replay           ReplayProgress    `json:"replay"`
+	StateDigest      Digest            `json:"stateDigest"`
+}
+
+func DecodeSnapshot(data []byte) (Snapshot, error)
+
+type Terminal struct {
+	Kind   TerminalKind `json:"kind"`
+	Detail string       `json:"detail,omitempty"`
+}
+
+type TerminalKind string
+
+const (
+	TerminalNone             TerminalKind = "none"
+	TerminalDelivered        TerminalKind = "delivered"
+	TerminalIdle             TerminalKind = "idle"
+	TerminalDeadlock         TerminalKind = "deadlock"
+	TerminalCapacity         TerminalKind = "capacity"
+	TerminalReplayDivergence TerminalKind = "replay-divergence"
+	TerminalInvalidInput     TerminalKind = "invalid-input"
+)
+type Transition struct {
+	Sequence       Sequence            `json:"sequence"`
+	Kind           string              `json:"kind"`
+	PreviousDigest Digest              `json:"previousDigest"`
+	Digest         Digest              `json:"digest"`
+	Register       *RegisterTransition `json:"register,omitempty"`
+	Ready          *ReadyTransition    `json:"ready,omitempty"`
+	Cancel         *CancelTransition   `json:"cancel,omitempty"`
+	Quiesce        *QuiesceTransition  `json:"quiesce,omitempty"`
+}
+

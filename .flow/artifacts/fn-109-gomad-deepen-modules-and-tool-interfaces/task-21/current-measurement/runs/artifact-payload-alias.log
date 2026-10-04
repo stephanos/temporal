@@ -1,0 +1,4 @@
+=== RUN   TestR19ArtifactDataPayloadAliasesInput
+--- PASS: TestR19ArtifactDataPayloadAliasesInput (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/artifact	0.002s

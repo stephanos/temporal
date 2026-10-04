@@ -1,0 +1,26 @@
+{
+  "bindings": {
+    "GOENV": "off",
+    "GOFLAGS": "",
+    "GOEXPERIMENT": "",
+    "GODEBUG": "",
+    "GOGC": "100",
+    "GOMEMLIMIT": "off",
+    "GOMAXPROCS": "2",
+    "CGO_ENABLED": "1",
+    "GOOS": "linux",
+    "GOARCH": "arm64",
+    "GOARM64": "v8.0",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "TZ": "UTC"
+  },
+  "recorded_utc": "2026-10-04T09:36:58.335705+00:00",
+  "predeclared_supplementary_paths": {
+    "r19_measurement_test.go": "runner/r19_measurement_test.go",
+    "r19_logical_policy_test.go": "runner/r19_logical_policy_test.go",
+    "r19_artifact_payload_test.go": "artifact/r19_artifact_payload_test.go",
+    "r19_transport_guard.go": "runner/internal/execution/r19_transport_guard.go",
+    "descriptor_dup_linux.go": "runner/internal/execution/descriptor_dup_linux.go"
+  }
+}

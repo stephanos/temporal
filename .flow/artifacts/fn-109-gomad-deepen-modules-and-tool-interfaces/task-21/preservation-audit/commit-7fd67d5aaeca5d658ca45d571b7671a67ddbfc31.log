@@ -1,0 +1,15 @@
+7fd67d5aaeca5d658ca45d571b7671a67ddbfc31
+2026-10-02T21:09:12-07:00
+gomad: refresh invalidated compatibility packs in one command and drop the unselected v041 variant
+compatibility-pack refresh runs the pin impact report per mapped working
+directory and discovers every invalidated, unapproved, or profile-stale
+request in its own module, stopping at approval: a request is current only
+when its stored approval equals the review digest of the fresh evidence.
+Other-platform requests are reported and left untouched. A checked-in
+working-directory table, shared with qualify --all and the qualification
+target, maps every request to its module. modernc-libc-xsys-v041 was
+selected only by its own fixture, so its pack, request, report, fixture,
+and qualification entry are removed with the selection audit retained.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+

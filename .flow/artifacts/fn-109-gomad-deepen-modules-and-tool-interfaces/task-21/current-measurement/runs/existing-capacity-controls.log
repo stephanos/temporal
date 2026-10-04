@@ -1,0 +1,16 @@
+=== RUN   TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs
+=== RUN   TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/10_jobs/discard
+=== RUN   TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/10_jobs/success_count
+=== RUN   TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/10_jobs/success_bytes
+=== RUN   TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard
+=== RUN   TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/success_count
+=== RUN   TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/success_bytes
+--- PASS: TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs (1.55s)
+    --- PASS: TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/10_jobs/discard (0.15s)
+    --- PASS: TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/10_jobs/success_count (0.07s)
+    --- PASS: TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/10_jobs/success_bytes (0.09s)
+    --- PASS: TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/discard (1.03s)
+    --- PASS: TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/success_count (0.07s)
+    --- PASS: TestRunBoundsActiveExecutionsAndRetentionAtTenAndOneHundredJobs/100_jobs/success_bytes (0.08s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner	1.552s

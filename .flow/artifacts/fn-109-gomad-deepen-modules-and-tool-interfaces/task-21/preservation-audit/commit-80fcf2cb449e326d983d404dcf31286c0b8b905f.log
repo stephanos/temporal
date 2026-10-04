@@ -1,0 +1,18 @@
+80fcf2cb449e326d983d404dcf31286c0b8b905f
+2026-10-02T09:33:37-07:00
+gomad: add the choice-exploration start ordinal
+- `explore --choice-start-ordinal N` (choice-exploration only) never
+  expands a replay-plan decision before N, counts --max-choice-depth from
+  N, and excludes earlier decisions from the omitted-by-depth count
+- the start is part of the engine configuration, Campaign plan, and
+  resume validation; zero encodes as before, pinned by retained state
+  identities, plan bytes, and a journal written before the change
+- a start at or past the root trace ends with stop=choice_start_unreached
+  instead of looking like an exhausted search
+- `inspect --choices` lists replay-plan decision ordinals, kinds, and
+  site offsets (choice-inspection/v3)
+
+Task: fn-114-gomad-correct-search-path-defects-and.6
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+

@@ -1,0 +1,28 @@
+{
+  "10": {
+    "completion_order_done_handle": 8,
+    "controller": 128,
+    "controller_iterator": 48,
+    "controller_job_source": 40,
+    "one_shared_range_backing": 16,
+    "ordering_iterator": 48,
+    "ordering_job_source": 40,
+    "selection_header": 32,
+    "total_named_logical_bytes_both_roles": 4472,
+    "two_channel_handles": 16,
+    "two_completion_channel_slots": 4096
+  },
+  "100": {
+    "completion_order_done_handle": 8,
+    "controller": 128,
+    "controller_iterator": 48,
+    "controller_job_source": 40,
+    "one_shared_range_backing": 16,
+    "ordering_iterator": 48,
+    "ordering_job_source": 40,
+    "selection_header": 32,
+    "total_named_logical_bytes_both_roles": 4472,
+    "two_channel_handles": 16,
+    "two_completion_channel_slots": 4096
+  }
+}

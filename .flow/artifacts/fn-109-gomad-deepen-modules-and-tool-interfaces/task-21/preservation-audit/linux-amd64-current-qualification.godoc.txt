@@ -1,0 +1,107 @@
+package qualification // import "go.temporal.io/server/tools/gomad3/qualification"
+
+
+CONSTANTS
+
+const (
+	QualificationReportSchema = "gomad3.qualification/v1"
+	ChoiceReplayNone          = "none"
+	ChoiceReplayExact         = "exact"
+	ChoiceReplayDiverged      = "diverged"
+	ChoiceReplayUnavailable   = "unavailable"
+	DiagnosticComplete        = "complete"
+	DiagnosticUnavailable     = "unavailable"
+)
+const ExecutionEvidenceDigestDomain = "gomad3.qualification-evidence/v1"
+const QualificationEventSchema = "gomad3.qualify-event/v1"
+
+FUNCTIONS
+
+func ClassifyQualification(report QualificationReport) string
+func ExitStatus(classification string) int
+func WriteErrorEvent(writer io.Writer, classification string, err error) error
+func WriteProgressEvent(writer io.Writer, iteration, repeat uint64) error
+func WriteQualificationReport(artifactRoot string, report QualificationReport) (string, error)
+func WriteResultEvent(writer io.Writer, report QualificationReport, path string) error
+
+TYPES
+
+type QualificationDiagnosticDivergence struct {
+	BaselineIteration record.Uint64String `json:"baseline_iteration"`
+	Iteration         record.Uint64String `json:"iteration"`
+	choice.DiagnosticDivergence
+}
+
+type QualificationExecution struct {
+	CampaignPath     string
+	ArtifactPath     string
+	WallElapsedNanos uint64
+	Evidence         runner.ExecutionEvidence
+	Replay           *QualificationReplay
+	Diagnostics      *runner.DiagnosticTraceReference
+}
+
+type QualificationExecutionReport struct {
+	Evidence         *runner.ExecutionEvidence        `json:"evidence,omitempty"`
+	DiagnosticStatus string                           `json:"diagnostic_status,omitempty"`
+	CampaignPath     string                           `json:"campaign_path"`
+	ArtifactPath     string                           `json:"artifact_path,omitempty"`
+	EvidenceDigest   record.SHA256                    `json:"evidence_digest"`
+	WallElapsedNanos record.Uint64String              `json:"wall_elapsed_nanos"`
+	Diagnostics      *runner.DiagnosticTraceReference `json:"diagnostics,omitempty"`
+	Replay           *QualificationReplay             `json:"replay,omitempty"`
+}
+
+type QualificationFailure struct {
+	Classification string              `json:"classification"`
+	Message        string              `json:"message"`
+	Iteration      record.Uint64String `json:"iteration"`
+	ImportPath     string              `json:"import_path,omitempty"`
+	Capability     string              `json:"capability,omitempty"`
+}
+
+type QualificationInput struct {
+	Command    []string
+	Executions []QualificationExecution
+}
+
+type QualificationReplay struct {
+	ArtifactPath       string `json:"artifact_path"`
+	Attempted          bool   `json:"attempted"`
+	Match              bool   `json:"match"`
+	Diagnostic         bool   `json:"diagnostic"`
+	Divergence         string `json:"divergence,omitempty"`
+	ChoiceReplayStatus string `json:"choice_replay_status,omitempty"`
+}
+
+type QualificationReport struct {
+	Schema               string                             `json:"schema"`
+	Qualified            bool                               `json:"qualified"`
+	Deterministic        bool                               `json:"deterministic"`
+	TargetSuccess        bool                               `json:"target_success"`
+	Seed                 record.Uint64String                `json:"seed"`
+	Repeat               record.Uint64String                `json:"repeat"`
+	Command              []string                           `json:"command"`
+	EvidenceDigest       record.SHA256                      `json:"evidence_digest,omitempty"`
+	Evidence             *runner.ExecutionEvidence          `json:"evidence,omitempty"`
+	Executions           []QualificationExecutionReport     `json:"executions"`
+	DiagnosticDivergence *QualificationDiagnosticDivergence `json:"diagnostic_divergence,omitempty"`
+	FirstDivergence      string                             `json:"first_divergence,omitempty"`
+	Failure              *QualificationFailure              `json:"failure,omitempty"`
+}
+
+func BuildQualificationFailure(command []string, seed uint64, repeat uint64, completed []QualificationExecution, failure QualificationFailure) (QualificationReport, error)
+
+func BuildQualificationReport(input QualificationInput) (QualificationReport, error)
+
+func DecodeQualificationReport(data []byte) (QualificationReport, error)
+
+func OpenQualificationReport(path string) (QualificationReport, error)
+
+type QualificationResultEvent struct {
+	Classification string
+	ReportPath     string
+}
+
+func DecodeResultEvent(contents []byte) (QualificationResultEvent, error)
+

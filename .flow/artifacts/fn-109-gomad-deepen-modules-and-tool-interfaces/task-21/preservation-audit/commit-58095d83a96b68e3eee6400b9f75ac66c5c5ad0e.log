@@ -1,0 +1,18 @@
+58095d83a96b68e3eee6400b9f75ac66c5c5ad0e
+2026-10-03T13:58:56-07:00
+gomad: separate capability collection, pure evaluation and linked projection
+Collection owns every host effect of a capability review, including
+compatibility pack loading. The new target/internal/capabilitypolicy
+package evaluates the collected evidence against the existing
+compatibility policy without touching the host. Linked projection reads
+and narrows the embedded capability record. Adapter source-inventory
+hashing moves to the neutral internal/sourceinventory package, which
+target and deterministicio both consume. target no longer exports
+DigestAdapterSourceInventory.
+
+Golden canonical reviews captured before the change stay byte-identical,
+and the architecture tests now enforce the evaluator's purity and the
+new owner.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+

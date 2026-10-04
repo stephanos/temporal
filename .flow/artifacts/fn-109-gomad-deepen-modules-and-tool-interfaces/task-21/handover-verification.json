@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "finding_rows": 16,
+  "obligations": 5,
+  "source_files": 978,
+  "native_command_rows": 89,
+  "preservation_output_hashes": 340,
+  "tracked_changes": [
+    "MILESTONES.md"
+  ],
+  "source_candidate": "8604c07def0f97b63cbca3864b4c286d6803c4b1",
+  "acceptance_complete": false,
+  "handover_evidence_sha256": "ded67eae210cf6bd95ab7decbe577f22a0e3366d4050d54226d103419dc1276a",
+  "elapsed_seconds": 0.19175458399695344
+}

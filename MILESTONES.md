@@ -26,7 +26,7 @@ changes, change the spec and summarize the change here.
 | F10 | [fn-105](.flow/specs/fn-105-gomad-follow-ups-deferred-scope.md) | D12 native Linux replay fix; D26 combined runtime candidate and D27 host-clock candidate awaiting native qualification; D3–D5 architecture, downstream D8–D10, and deferred D6/D11/D15 |
 | Downstream cell | [fn-107](.flow/specs/fn-107-gomad-finish-downstream-cell.md) | Task 5: consumer and both-platform exact replay; blocked by the absent `../downstream` checkout and qualified hosts |
 | Code-size cleanup | [fn-108](.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md) | Task 8: native linux/amd64 qualification for R9 |
-| Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | Tasks 2–12 have merged candidates awaiting acceptance; tasks 13–18 have reviewed source candidates awaiting native gates; task 19's committed architecture candidate awaits formal review after a predispatch tool failure; task 20 guidance is committed with formal SHIP, while inherited D5 qualification and acceptance remain open; task 21 final qualification remains unadmitted |
+| Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | Tasks 2–12 have merged candidates awaiting acceptance; tasks 13–18 have reviewed source candidates awaiting native gates; task 19's committed architecture candidate awaits formal review after a predispatch tool failure; task 20 guidance is committed with formal SHIP, while inherited D5 qualification and acceptance remain open; task 21 retains matched developmental 10/100 campaigns and finding/preservation evidence, with R18 reconciliation and both native qualification gates incomplete |
 | Runtime patch minimization | [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | Tasks 2–4 have merged candidates awaiting native gates; the current final `-U3` exceeds the original baseline, leaving R8's extraction reduction unmet; task 5 retains final evidence and both-platform qualification |
 | Determinism assurance and test strategy | [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) | Tasks 5, 9, and 16 have merged candidates awaiting qualification; task 10's soak gate and contract documentation are delivered and await one retained scheduled or dispatched soak run per platform |
 | Version-pin maintenance | [fn-113](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md) | Tasks 1–4 have merged candidates; final native gates and both-host acceptance remain |
@@ -331,7 +331,10 @@ Task 20's guidance is committed and its formal three-draw review returned SHIP
 ([review and acceptance](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-20/acceptance-open.md)).
 Inherited D5 native and bounded-control qualification, task 20 acceptance, and
 fn-105 D5 closure remain open; task 19's formal review and native gates are still
-required. Task 21's final qualification is not admitted. Task 19 includes repairs for the confirmed record and pack-governance
+required. Task 21 is admitted for source/evidence verification and retains matched
+developmental 10/100 campaigns, a sixteen-finding matrix and preservation audit.
+R18 inventory/provenance reconciliation, final formal review and both native
+qualification gates remain incomplete ([qualification evidence](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/qualification-evidence.md)). Task 19 includes repairs for the confirmed record and pack-governance
 timezone effects and inaccessible public reporting/pack-loading types. Its
 World terminal correction moves arbitrary-error normalization to process reporting
 and adds detached terminal input to the pure recorder; direct custom-error and

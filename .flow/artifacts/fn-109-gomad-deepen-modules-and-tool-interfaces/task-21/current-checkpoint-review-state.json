@@ -1,0 +1,8 @@
+{
+  "task_title": "Independently review task 21's matched measurement and final evidence checkpoint",
+  "task_body": "Audit frozen source-bound baseline/current campaign methods and site-specific allocation claims, driver/environment/inventory/verifier semantics, complete public/CLI/format preservation and provenance gap reporting, sixteen finding rows and unique D1-D5 ownership, eighty-nine exact native gate rows and incomplete dispositions, feasible command receipts and lint tooling diagnostics. Read actual task/spec requirements; check frozen outputs against manifests. The checkpoint intentionally leaves R18, R19, formal task19 review, native gates and lint incomplete. Identify introduced evidence defects, not merely the already explicitly recorded acceptance gaps.",
+  "acceptance": "Return actionable Critical/Important/Minor findings with exact source evidence and explain whether verified progress may be committed. No formal SHIP, completion or native qualification claim. Read-only production, Flow/Git state and frozen artifacts; write only task-21/current-checkpoint-independent-review.md outside frozen directories. Use scratch-only independent checks if needed; do not rerun campaign or alter manifests to green.",
+  "touches_count": 1,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

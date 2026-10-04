@@ -1,0 +1,217 @@
+{
+  "task_id": "fn-109-gomad-deepen-modules-and-tool-interfaces.21",
+  "status": "in_progress",
+  "base_commit": "8604c07def0f97b63cbca3864b4c286d6803c4b1",
+  "commits": [],
+  "prs": [],
+  "acceptance_complete": false,
+  "created_utc": "2026-10-04T10:03:36.693693+00:00",
+  "tier": "session (jev-unavailable(no_key)); worker pinned role gpt-6.1-sol/high requested, actual model metadata unknown unless evidenced",
+  "delegated_agents": 3,
+  "review": {
+    "dispatched": false,
+    "verdict": null,
+    "owner": "root conductor"
+  },
+  "lifecycle": {
+    "mutated": false,
+    "owner": "root conductor"
+  },
+  "tests": [
+    "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOENV=off GOTOOLCHAIN=local timeout 600 make -C tools/gomad3 validate",
+    "/home/agent/.codex/scripts/flowctl validate --spec fn-109-gomad-deepen-modules-and-tool-interfaces",
+    "PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH GOENV=off GOTOOLCHAIN=local timeout 600 make lint-code-fast GOLANGCI_LINT_FIX=false",
+    "make lint-code-fast LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50 GOLANGCI_LINT_FIX=false",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -tags test_dep -count=1 -timeout=6m -run '^TestR19BoundedSeedCampaignMeasurement$' -v -memprofilerate=1 -memprofile=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/runs/discard-10/process-end.pprof -o /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/runs/discard-10/runner.test ./runner",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -tags test_dep -count=1 -timeout=6m -run '^TestR19BoundedSeedCampaignMeasurement$' -v -memprofilerate=1 -memprofile=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/runs/discard-100/process-end.pprof -o /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/runs/discard-100/runner.test ./runner",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -tags test_dep -count=1 -timeout=6m -run '^TestR19BoundedSeedCampaignMeasurement$' -v -memprofilerate=1 -memprofile=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/runs/novel-10/process-end.pprof -o /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/runs/novel-10/runner.test ./runner",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -tags test_dep -count=1 -timeout=6m -run '^TestR19BoundedSeedCampaignMeasurement$' -v -memprofilerate=1 -memprofile=/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/runs/novel-100/process-end.pprof -o /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/runs/novel-100/runner.test ./runner",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -count=1 -tags test_dep -run '^(TestCloneManifestSharesNoMemory|TestOwnedWorldComposedManifestPreservesIdentity|TestTimestampValidationPreservesGrammarAndParseErrors|TestTimestampFinalizeRetainsOriginalStringsAndIdentities|TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes|TestOwnedModelErrorPreservesMessagesAndCauseIdentity|TestRecorderRejectsExternalCallbacksWithoutMutation|TestRecorderAndModelIgnoreSentinelRebinding|TestDetachedTerminalRejectsInvalidDataAndTypedNilWithoutClosing|TestSessionNormalizesDetailBeforeOrderedClassification|TestSessionRetainsJoinedErrorPrecedenceAndUnknownIdentity|TestSessionValidatesBeforeCallingErrors|TestCompatibilityPackProjectionPreservesCompleteEvidence|TestCompatibilityPackProjectionPreservesNilAndEmpty|TestCompatibilityPackProjectionPreservesOrderAndDetachesNestedStorage|TestCapabilityReviewGoldenCanonicalBytes|TestInspectionCapacityProjectionPreservesReports|TestDiagnosticsOffReportFieldsRemainAbsent)$' -v ./artifact ./record ./world ./world/process ./target ./runner ./qualification",
+    "python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/verify_current.py",
+    "python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/retain_qualification_ledger.py",
+    "python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/verify_handover.py",
+    "git diff --check"
+  ],
+  "baseline": {
+    "result": "red: unchanged lint-code-fast failed pre-edit",
+    "generator_validate_exit": 0,
+    "flow_validate_exit": 0,
+    "lint_exit": 2,
+    "elapsed_seconds": null,
+    "duration_limit": "Exact full-command monotonic durations were not captured for worker baseline checks; no duration is invented.",
+    "green_handoff_claimed": false
+  },
+  "bounded_measurement": {
+    "completed": true,
+    "native_qualification": false,
+    "host": "linux/arm64",
+    "scratch": "/tmp/fn109-r19-current.RyYsbzUr/gomad3",
+    "source_files": 982,
+    "shipped_files": 978,
+    "complete_source_inventories": 10,
+    "successful_child_commands": 98,
+    "driver_session": 38361,
+    "driver_exit": 0,
+    "driver_prelaunch_sha256": "8252784ee6b75db8038ff3616ba4d12e4ec543a0b6eebe891c688a70c21ec031",
+    "pinned_go_sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "bindings": {
+      "GOENV": "off",
+      "GOFLAGS": "",
+      "GOEXPERIMENT": "",
+      "GODEBUG": "",
+      "GOGC": "100",
+      "GOMEMLIMIT": "off",
+      "GOMAXPROCS": "2",
+      "CGO_ENABLED": "1",
+      "GOOS": "linux",
+      "GOARCH": "arm64",
+      "GOARM64": "v8.0",
+      "GOWORK": "off",
+      "GOTOOLCHAIN": "local",
+      "TZ": "UTC"
+    },
+    "cases": [
+      {
+        "case": "discard-10",
+        "exit_code": 0,
+        "elapsed_seconds": 11.04393108899967
+      },
+      {
+        "case": "discard-100",
+        "exit_code": 0,
+        "elapsed_seconds": 71.93023111700313
+      },
+      {
+        "case": "novel-10",
+        "exit_code": 0,
+        "elapsed_seconds": 9.24692692100507
+      },
+      {
+        "case": "novel-100",
+        "exit_code": 0,
+        "elapsed_seconds": 64.12488361400028
+      }
+    ],
+    "current_output_hashes": 174,
+    "immutable_baseline_handoff_hashes": 201,
+    "logical_both_role_bytes": {
+      "baseline": 4120,
+      "current": 4472,
+      "delta": 352
+    },
+    "scope": "Matched paired injected fixture only; no actual child transport, target preparation or replay; private novelty cardinality and universal transient-copy absence unobserved.",
+    "extra_publication_buffer": {
+      "bytes": 65536,
+      "payload_read_bytes": 20,
+      "owner": "fn-114-gomad-correct-search-path-defects-and.9",
+      "commit": "bc2e970b5306aa09f594657a8d42c159cf4a1270",
+      "site": "artifact.verifySharedPayload -> copyWithContext -> SHA256 hasher"
+    },
+    "receipt": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/runs/execution-evidence.json",
+    "verification": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/verification.log",
+    "failed_attempts_retained": [
+      "current-measurement/failed-inventory-preflight",
+      "current-measurement/failed-policy-equality.log"
+    ]
+  },
+  "preservation": {
+    "complete": false,
+    "requirement": "R18",
+    "source_surfaces": 8,
+    "source_platform_selections": [
+      "darwin/arm64",
+      "linux/amd64"
+    ],
+    "inventory_commands": 69,
+    "declaration_provenance_rows": 202,
+    "fresh_current_test_exit": 0,
+    "fresh_current_test_seconds": 0.6986369169972022,
+    "top_level_tests": 18,
+    "cases": 55,
+    "skips": 0,
+    "known_fn109_inventory_gap": "runner/campaign_options.go:109-175 two error types and six campaign helpers; introduced by WIP a3b9f80efab9356c0be2080779133337e2471ac0, owning task unresolved rather than attributed to task2 by assumption.",
+    "independently_owned_migrations": [
+      "fn112 diagnostics/soak",
+      "fn113 adapter/profile retirement",
+      "fn114 choice ordinal/guidance/minimizer/target pool/readiness/wire3/controller3"
+    ],
+    "remaining": [
+      "Reconcile complete intentional migration inventory with actual provenance.",
+      "Reconcile fn114.11 wire/profile-v3 and fn114.12 controller-v3 with the aggregate format/identity contract.",
+      "Nine existing public flag literals lack CLI.md inventory coverage.",
+      "Matched first-baseline fixed-identity canonical comparison remains incomplete beyond retained specific vectors."
+    ],
+    "original_scout_report_sha256": "0fc86685ce46a6a2f4b1f1d4550f93e307ca6086216bc1b8d8e881d57d3bfd33",
+    "original_scout_manifest_sha256": "028ef71d3631dce74844522a1314f96c4376c7ed375820e9444168b14c515162"
+  },
+  "native_qualification": {
+    "complete": false,
+    "required_platforms": [
+      "darwin/arm64",
+      "linux/amd64"
+    ],
+    "available_platforms": [],
+    "patched_toolchain_present": false,
+    "command_ledger_rows": 89,
+    "native_commands_executed": 0,
+    "ledger": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/native-command-ledger.json",
+    "result": "incomplete: required native hosts/toolchain unavailable, not passed or synthetically qualified",
+    "dispositions_modified": false
+  },
+  "lint": {
+    "result": "failed",
+    "original_exit": 2,
+    "original_cause": "Existing pinned executable is Mach-O ARM64 on Linux aarch64.",
+    "conductor_isolated_pinned_linux_rerun": {
+      "session": 66346,
+      "make_exit": 2,
+      "golangci_exit": 7,
+      "elapsed_seconds": 147.354353404,
+      "cause": "Unchanged root target passes nested-module overlay/conformance paths to root module loader."
+    },
+    "diagnostic": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/lint-tooling-diagnostic.md",
+    "source_or_selection_changed": false
+  },
+  "completion_matrix": {
+    "finding_rows": 16,
+    "unique_accountable_owners": true,
+    "D1_D5_each_once": true,
+    "D3_owner": "task6",
+    "D4_owner": "task19",
+    "D5_owner": "task20",
+    "transferred_fn105_3_4_5_closed": false
+  },
+  "remaining_formal": [
+    "Task21 conductor independent/formal review.",
+    "Task19 formal review after predispatch failure with no verdict.",
+    "Task20 guidance SHIP does not close original fn102 R6 both-native integrated acceptance."
+  ],
+  "commands_still_running": [],
+  "artifact_sha256": {
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/completion-matrix.md": "7e4f997e75168cc29320bb694d3acfbf8d711a2d62a8dea18abc177313b879e3",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/qualification-evidence.md": "3b35e3ca1e544818e14b2e341c53a8e874fd0ebc7faaff590670ad5be284e2c6",
+    "MILESTONES.md": "098b68d8668c0137284cc3c73cecab6bb00a200f9396d446ac55c1351935ac9a",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-qualification-handover.md": "de5c76606ff2ef01b4c85b99d756dc1dca75f27354794267ccd628a90acdecb4",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/native-command-ledger.json": "c18d03b41b90a30707780cd3f9d55a04e67967e3d8cb488acf38e1c577e18205",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/measurement-independent-check.md": "6dd8258d9ebbb82ee07ab320a9ece73b167ec37374cd1ab9817d811e0262e845",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/lint-tooling-diagnostic.md": "3b85326d594016edc4e21ee921cb7639393bfcad9a1821c034855ebf752f848b",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-validate.log": "14f0f6898d1f2f53f9554d007882d37feccca09025cfa71566ed9c8e482d019e",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-flow-validate.log": "c7aac327b91c16edd3e8c04502586213d6b1f8a462aac6e3bfb19336b7b76d63",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/baseline-lint.log": "9109339c546f12ae6493c3059005a15ce00bdbb0a1321b4272d47efefd87796d",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/lint-code-fast-linux-development.log": "e2943234170feda43d260270139ef8567ac9d3092d31c585b4558abcbbab9cd7",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/lint-tool-install-linux.log": "5dada105abfa3481fedc11d96d17444084dc05bf5eec296e9f381a224147ddd0",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/report.md": "0fc86685ce46a6a2f4b1f1d4550f93e307ca6086216bc1b8d8e881d57d3bfd33",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/outputs.sha256": "028ef71d3631dce74844522a1314f96c4376c7ed375820e9444168b14c515162",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/preservation-audit/focused-preservation-receipt.json": "18c95bd32772c4041a57aaa03963bea9ffcb998824504d9c7f896d32d34155b2",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/measurement.md": "a00939f860d206a6696a02129605de5955c5adb46cb0d7494f0852a60146a390",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/comparison.json": "b71adf5e3b8e349916e9507d70efdb6917905de7fca057fe03179ca1ba562c7c",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/run_current.py": "8252784ee6b75db8038ff3616ba4d12e4ec543a0b6eebe891c688a70c21ec031",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/verify_current.py": "83f21cee66c46d04600cb70ac1c1273dad41d49ad8bbccde5686143fbc9a0ceb",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/verification.log": "c07ab5e875a0420dffcc39f16c2c31e3b5ea21c98f2e41e8dd6bead94da7d0d1",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/runs/execution-evidence.json": "f94d56040996c91a74c4e29e2f912aaa65068d6e36b0b64d487c17406ae0cd02",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/runs/initial-source-inventory.json": "41a70d70c117c4b2c24a658d6f484737f5863553fe8c2db65ae758578904ac0a",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/runs/shipped-source-before-overlay.json": "6848f00730e6d967660f10976136767adb6038187961d9273fda7ff22f388e29",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/runs/retained-output.sha256": "2e7fe6059e6cfcffa495496e58f3083945ab90a4e21a87cb09f44c0c20bfac6a",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/bound-baseline-measurement/handoff-output.sha256": "d1381842f5eb1b8a1a4b1b5b24d0d54544f61ab30cfea311647e65225abc1133"
+  }
+}

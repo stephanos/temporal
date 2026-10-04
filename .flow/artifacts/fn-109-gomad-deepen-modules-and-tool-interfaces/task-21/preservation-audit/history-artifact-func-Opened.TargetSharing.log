@@ -1,0 +1,5 @@
+3a3c31b0a7b22ab2c669735743d3f1e2d2985bab
+2026-10-03T14:35:25-07:00
+gomad: separate detached Artifact references from owned opened handles
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+

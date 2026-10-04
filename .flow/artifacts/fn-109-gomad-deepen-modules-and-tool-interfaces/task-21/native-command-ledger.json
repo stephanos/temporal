@@ -1,0 +1,1267 @@
+{
+  "candidate_revision": "8604c07def0f97b63cbca3864b4c286d6803c4b1",
+  "host": "linux/arm64",
+  "patched_go_present": false,
+  "native_acceptance": false,
+  "source_sha256": {
+    ".github/workflows/gomad3.yml": "f28b34c5e195281a545672a5147bfcef6e873cfe3a24e10a03cf56107e5203ad",
+    ".github/workflows/gomad3-smoke.yml": "409749e7c5710f1d4e387757e42adb4fb5a1f125623c08f4f41c7bd87722b49d",
+    "Makefile": "828b270b22381b8f471998d56bfdbf124584c9505ba31091e4f453610fa18fe7",
+    "tools/gomad3/Makefile": "a25443d9c1adaefe838a39809d8deeffd6323a0916f4ac3a52a1083da598a200",
+    "tools/gomad3/toolchain/version/version.json": "94358dc0d221c0c0ba0e4f487303b0e9acd46afa212d24091ab44b124f276779",
+    "tools/gomad3/deterministicio/boundary/manifest.json": "ed31376341a80158276b89925f7f7289a86a8276198ee1427e42ffd738127e75"
+  },
+  "commands": [
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "host-tools-linux",
+      "step": "Validate generated outputs, patches, scripts, compatibility packs, and the ./tests qualification manifest",
+      "line": 49,
+      "cwd": "tools/gomad3",
+      "command": "make validate",
+      "role": "standalone platform-neutral CI tooling gate; developmental here",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "host-tools-linux",
+      "step": "Test platform-neutral host tooling",
+      "line": 53,
+      "cwd": "tools/gomad3",
+      "command": "go test -count=1 -tags test_dep ./internal/hostexec ./internal/hostfs ./internal/gomadtool/... ./cmd/gomadtool",
+      "role": "standalone platform-neutral CI tooling gate; developmental here",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "core-linux",
+      "step": "Verify qualified host",
+      "line": 72,
+      "cwd": ".",
+      "command": "test \"$(go env GOHOSTOS)/$(go env GOHOSTARCH)\" = linux/amd64",
+      "role": "qualification gate",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "core-linux",
+      "step": "Build the toolchain and run the conformance tiers qualified on Linux",
+      "line": 75,
+      "cwd": ".",
+      "command": "make -C tools/gomad3 test-harness test-toolchain intercept-test overlay-test test-simulation world-test test-builder test-live-capability test-upstream test-runtime",
+      "role": "qualification gate",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "core-linux",
+      "step": "Run the host tier",
+      "line": 80,
+      "cwd": ".",
+      "command": "make -C tools/gomad3 test-host",
+      "role": "qualification gate",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "core-linux",
+      "step": "Qualify the Linux compatibility packs and the core corpus",
+      "line": 83,
+      "cwd": ".",
+      "command": "make -C tools/gomad3 compatibility-pack-qualification core-qualification-set",
+      "role": "qualification gate",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "core-linux",
+      "step": "Verify portable core qualification evidence",
+      "line": 86,
+      "cwd": ".",
+      "command": "jq -e ' .schema == \"gomad3.qualification-set-report/v1\" and .platform == {\"goos\": \"linux\", \"goarch\": \"amd64\"} and .seeds == [\"17\"] and .expectations_met and .selected == 7 and .completed == 7 and .supported == 7 and .unsupported == 0 and .failed == 0 and .infrastructure_errors == 0 and ([.workloads[] | select(.classification == \"qualified\") | .choice.available and .choice.exact_replay_available and ([.seeds[] | .replayed and .replay_match and .choice_replay_exact] | all)] | all) ' tools/gomad3/.toolchain/core-qualification-set.json",
+      "role": "qualification gate",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "core-linux",
+      "step": "Close the functional test capability closure",
+      "line": 114,
+      "cwd": ".",
+      "command": "make gomad3-runner && tools/gomad3/.bin/gomad analyze --capability-mode=closure --format=json --timeout=15m --build-tag disable_grpc_modules --build-tag gomad --build-tag test_dep go-test ./tests > tools/gomad3/.toolchain/tests-closure.json; jq -e ' .classification == \"supported\" and (.blockers | length) == 0 and ([.packs[].id] | index(\"temporal-functional-tests-linux-amd64\") != null) ' tools/gomad3/.toolchain/tests-closure.json",
+      "role": "qualification gate",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "core-linux",
+      "step": "Requalify representative Temporal workloads",
+      "line": 138,
+      "cwd": ".",
+      "command": "make gomad3-qualification",
+      "role": "qualification gate",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "core-linux",
+      "step": "Verify portable Temporal qualification evidence",
+      "line": 142,
+      "cwd": ".",
+      "command": "jq -e ' .schema == \"gomad3.qualification-set-report/v1\" and .platform == {\"goos\": \"linux\", \"goarch\": \"amd64\"} and .seeds == [\"11\", \"17\"] and .expectations_met and .selected == 28 and .completed == 28 and .unsupported == 10 and (.supported + .failed) == 18 and .infrastructure_errors == 0 and ([.workloads[] | select(.id == \"frontend-system-info\" or .id == \"user-timers-workflow\" or .id == \"activity-batch-cancel-boundary\" or (.id | startswith(\"functional-\"))) | .classification == \"qualified\" or .classification == \"nondeterministic\" or .classification == \"replay_divergence\"] | all) and ([.workloads[] | select(.classification == \"qualified\") | (.seeds | length) == 2 and .choice.available and .choice.exact_replay_available and ([.seeds[] | .replayed and .replay_match and .choice_replay_exact] | all)] | all) ' tools/gomad3/.toolchain/temporal-qualification-set.json",
+      "role": "qualification gate",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "core",
+      "step": "Verify qualified host",
+      "line": 180,
+      "cwd": ".",
+      "command": "test \"$(go env GOHOSTOS)/$(go env GOHOSTARCH)\" = darwin/arm64",
+      "role": "qualification gate",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "core",
+      "step": "Produce checked upgrade qualification dossier",
+      "line": 186,
+      "cwd": ".",
+      "command": "make -C tools/gomad3 upgrade-dossier",
+      "role": "qualification gate",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "core",
+      "step": "Run the simulation tier",
+      "line": 189,
+      "cwd": ".",
+      "command": "make -C tools/gomad3 test-simulation",
+      "role": "qualification gate",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "core",
+      "step": "Verify portable core qualification evidence",
+      "line": 192,
+      "cwd": ".",
+      "command": "jq -e ' .schema == \"gomad3.qualification-set-report/v1\" and .seeds == [\"17\"] and .selected == 7 and .completed == 7 and .supported == 7 and .unsupported == 0 and .failed == 0 and .infrastructure_errors == 0 and ([.workloads[] | .classification == \"qualified\" and .choice.available and .choice.exact_replay_available and ([.seeds[] | .replayed and .replay_match and .choice_replay_exact] | all)] | all) ' tools/gomad3/.toolchain/core-qualification-set.json",
+      "role": "qualification gate",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "core",
+      "step": "Close the functional test capability closure",
+      "line": 220,
+      "cwd": ".",
+      "command": "make gomad3-runner && tools/gomad3/.bin/gomad analyze --capability-mode=closure --format=json --timeout=15m --build-tag disable_grpc_modules --build-tag gomad --build-tag test_dep go-test ./tests > tools/gomad3/.toolchain/tests-closure.json; jq -e ' .classification == \"supported\" and (.blockers | length) == 0 and ([.packs[].id] | index(\"temporal-functional-tests-darwin-arm64\") != null) ' tools/gomad3/.toolchain/tests-closure.json",
+      "role": "qualification gate",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "temporal-integration",
+      "step": "Test Temporal wrapper contract",
+      "line": 246,
+      "cwd": ".",
+      "command": "make gomad3-integration-test",
+      "role": "qualification gate",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "temporal-integration",
+      "step": "Requalify representative Temporal workloads",
+      "line": 250,
+      "cwd": ".",
+      "command": "make gomad3-qualification",
+      "role": "qualification gate",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "temporal-integration",
+      "step": "Verify portable Temporal qualification evidence",
+      "line": 263,
+      "cwd": ".",
+      "command": "jq -e ' .schema == \"gomad3.qualification-set-report/v1\" and .platform == {\"goos\": \"darwin\", \"goarch\": \"arm64\"} and .seeds == [\"11\", \"17\"] and .expectations_met and .selected == 28 and .completed == 28 and .unsupported == 0 and .supported == 28 and .failed == 0 and .infrastructure_errors == 0 and ([.workloads[] | select(.tier == 2 and .classification == \"qualified\")] | length) == 15 and ([.workloads[] | select(.tier == 3 and .classification == \"qualified\")] | length) == 13 and ([.workloads[] | select(.classification == \"qualified\") | (.seeds | length) == 2 and .choice.available and .choice.exact_replay_available and ([.seeds[] | .replayed and .replay_match and .choice_replay_exact] | all)] | all) ' tools/gomad3/.toolchain/temporal-qualification-set.json",
+      "role": "qualification gate",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "determinism-soak-darwin",
+      "step": "Verify qualified host",
+      "line": 326,
+      "cwd": ".",
+      "command": "test \"$(go env GOHOSTOS)/$(go env GOHOSTARCH)\" = darwin/arm64",
+      "role": "scheduled/dispatched fn-112 soak obligation; Linux informational under unchanged D12",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "determinism-soak-darwin",
+      "step": "Restore the soak ledger from the latest retained run",
+      "line": 331,
+      "cwd": ".",
+      "command": "ledger=tools/gomad3/.toolchain/soak/ledger\nfor run in $(gh run list --repo \"$GITHUB_REPOSITORY\" --workflow gomad3.yml --branch \"$GITHUB_REF_NAME\" --limit 50 \\\n  --json databaseId,event --jq '.[] | select(.event == \"schedule\" or .event == \"workflow_dispatch\") | .databaseId'); do\n  test \"$run\" = \"$GITHUB_RUN_ID\" && continue\n  rm -rf \"$ledger\"\n  if gh run download \"$run\" --repo \"$GITHUB_REPOSITORY\" --name \"$GOMAD3_SOAK_LEDGER_ARTIFACT\" --dir \"$ledger\"; then\n    echo \"Restored the soak ledger from run $run\"\n    exit 0\n  fi\ndone\nrm -rf \"$ledger\"\necho \"No retained soak ledger; this run starts new cohorts\"\n",
+      "role": "CI artifact administration; recorded for completeness, not a qualification gate",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "determinism-soak-darwin",
+      "step": "Run the determinism soak",
+      "line": 346,
+      "cwd": ".",
+      "command": "make gomad3-soak GOMAD3_SOAK_WORKLOAD=${{ matrix.workload }} GOMAD3_SOAK_SEED=${{ matrix.seed }} GOMAD3_SOAK_RUN_ID=${{ github.run_id }}-${{ github.run_attempt }}",
+      "role": "scheduled/dispatched fn-112 soak obligation; Linux informational under unchanged D12",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "determinism-soak-darwin",
+      "step": "Publish the soak summary",
+      "line": 352,
+      "cwd": ".",
+      "command": "summary=tools/gomad3/.toolchain/soak/output/soak-summary.md\nif test -f \"$summary\"; then cat \"$summary\" >> \"$GITHUB_STEP_SUMMARY\"; fi\n",
+      "role": "CI artifact administration; recorded for completeness, not a qualification gate",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "determinism-soak-linux",
+      "step": "Verify qualified host",
+      "line": 404,
+      "cwd": ".",
+      "command": "test \"$(go env GOHOSTOS)/$(go env GOHOSTARCH)\" = linux/amd64",
+      "role": "scheduled/dispatched fn-112 soak obligation; Linux informational under unchanged D12",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "determinism-soak-linux",
+      "step": "Restore the soak ledger from the latest retained run",
+      "line": 409,
+      "cwd": ".",
+      "command": "ledger=tools/gomad3/.toolchain/soak/ledger\nfor run in $(gh run list --repo \"$GITHUB_REPOSITORY\" --workflow gomad3.yml --branch \"$GITHUB_REF_NAME\" --limit 50 \\\n  --json databaseId,event --jq '.[] | select(.event == \"schedule\" or .event == \"workflow_dispatch\") | .databaseId'); do\n  test \"$run\" = \"$GITHUB_RUN_ID\" && continue\n  rm -rf \"$ledger\"\n  if gh run download \"$run\" --repo \"$GITHUB_REPOSITORY\" --name \"$GOMAD3_SOAK_LEDGER_ARTIFACT\" --dir \"$ledger\"; then\n    echo \"Restored the soak ledger from run $run\"\n    exit 0\n  fi\ndone\nrm -rf \"$ledger\"\necho \"No retained soak ledger; this run starts new cohorts\"\n",
+      "role": "CI artifact administration; recorded for completeness, not a qualification gate",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "determinism-soak-linux",
+      "step": "Run the determinism soak (informational while D12 is open)",
+      "line": 424,
+      "cwd": ".",
+      "command": "make gomad3-soak GOMAD3_SOAK_WORKLOAD=${{ matrix.workload }} GOMAD3_SOAK_SEED=${{ matrix.seed }} GOMAD3_SOAK_RUN_ID=${{ github.run_id }}-${{ github.run_attempt }}",
+      "role": "scheduled/dispatched fn-112 soak obligation; Linux informational under unchanged D12",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3.yml",
+      "job": "determinism-soak-linux",
+      "step": "Publish the soak summary",
+      "line": 430,
+      "cwd": ".",
+      "command": "summary=tools/gomad3/.toolchain/soak/output/soak-summary.md\nif test -f \"$summary\"; then cat \"$summary\" >> \"$GITHUB_STEP_SUMMARY\"; fi\n",
+      "role": "CI artifact administration; recorded for completeness, not a qualification gate",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3-smoke.yml",
+      "job": "functional-smoke-linux",
+      "step": "Verify qualified host",
+      "line": 70,
+      "cwd": ".",
+      "command": "test \"$(go env GOHOSTOS)/$(go env GOHOSTARCH)\" = linux/amd64",
+      "role": "qualification gate",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3-smoke.yml",
+      "job": "functional-smoke-linux",
+      "step": "Check the ./tests qualification manifest is current",
+      "line": 75,
+      "cwd": ".",
+      "command": "make -C tools/gomad3 validate-qualification",
+      "role": "qualification gate",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3-smoke.yml",
+      "job": "functional-smoke-linux",
+      "step": "Qualify the functional smoke selection",
+      "line": 78,
+      "cwd": ".",
+      "command": "make gomad3-smoke-qualification",
+      "role": "qualification gate",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3-smoke.yml",
+      "job": "functional-smoke-linux",
+      "step": "Verify functional smoke evidence",
+      "line": 86,
+      "cwd": ".",
+      "command": "jq -e ' .schema == \"gomad3.qualification-set-report/v1\" and .platform == {\"goos\": \"linux\", \"goarch\": \"amd64\"} and .seeds == [\"11\"] and .expectations_met and .selected == 4 and .completed == 4 and (.supported + .failed) == 4 and .unsupported == 0 and .infrastructure_errors == 0 and ([.workloads[] | .classification == \"qualified\" or .classification == \"nondeterministic\" or .classification == \"replay_divergence\"] | all) and ([.workloads[] | select(.classification == \"qualified\") | (.seeds | length) == 1 and .choice.available and .choice.exact_replay_available and ([.seeds[] | .replayed and .replay_match and .choice_replay_exact] | all)] | all) ' tools/gomad3/.toolchain/smoke-qualification-set.json",
+      "role": "qualification gate",
+      "platforms": {
+        "linux/amd64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3-smoke.yml",
+      "job": "functional-smoke-darwin",
+      "step": "Verify qualified host",
+      "line": 124,
+      "cwd": ".",
+      "command": "test \"$(go env GOHOSTOS)/$(go env GOHOSTARCH)\" = darwin/arm64",
+      "role": "qualification gate",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3-smoke.yml",
+      "job": "functional-smoke-darwin",
+      "step": "Check the ./tests qualification manifest is current",
+      "line": 127,
+      "cwd": ".",
+      "command": "make -C tools/gomad3 validate-qualification",
+      "role": "qualification gate",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3-smoke.yml",
+      "job": "functional-smoke-darwin",
+      "step": "Check the smoke selection is explicitly traced",
+      "line": 134,
+      "cwd": ".",
+      "command": "jq -e ' .schema == \"gomad3.qualification-set/v3\" and .seeds == [11] and (.suites | length) == 4 and ([.suites[] | .choice_bytes > 0 and .replay_successes == true] | all) ' tools/gomad3integration/qualification/smoke.json",
+      "role": "qualification gate",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3-smoke.yml",
+      "job": "functional-smoke-darwin",
+      "step": "Qualify the functional smoke selection",
+      "line": 142,
+      "cwd": ".",
+      "command": "make gomad3-smoke-qualification",
+      "role": "qualification gate",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": ".github/workflows/gomad3-smoke.yml",
+      "job": "functional-smoke-darwin",
+      "step": "Verify functional smoke evidence",
+      "line": 150,
+      "cwd": ".",
+      "command": "jq -e ' .schema == \"gomad3.qualification-set-report/v1\" and .platform == {\"goos\": \"darwin\", \"goarch\": \"arm64\"} and .seeds == [\"11\"] and .expectations_met and .selected == 4 and .completed == 4 and .supported == 4 and .unsupported == 0 and .failed == 0 and .infrastructure_errors == 0 and .replay_diverged == 0 and (.workloads | length) == 4 and ([.workloads[] | .classification == \"qualified\" and (.seeds | length) == 1 and .choice.available and .choice.exact_replay_available and ([.seeds[] | .classification == \"qualified\" and .replayed and .replay_match and .choice_replay_exact] | all)] | all) ' tools/gomad3/.toolchain/smoke-qualification-set.json",
+      "role": "qualification gate",
+      "platforms": {
+        "darwin/arm64": "incomplete; no source-bound native result on this host"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make -C tools/gomad3 validate",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "go test -count=1 -tags test_dep ./tools/gomad3sim/...",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make gomad3-runner",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make gomad3-integration-test",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make gomad3-smoke-qualification",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make -C tools/gomad3 compatibility-pack-qualification core-qualification-set",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make gomad3-qualification",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make lint-code-fast",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make -C tools/gomad3 test-harness",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make -C tools/gomad3 test-toolchain",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make -C tools/gomad3 intercept-test",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make -C tools/gomad3 test-host",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make -C tools/gomad3 overlay-test",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make -C tools/gomad3 test-simulation",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make -C tools/gomad3 world-test",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make -C tools/gomad3 test-builder",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make -C tools/gomad3 test-live-capability",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make -C tools/gomad3 test-runtime",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "task 21 Quick/parent R19/nested Makefile",
+      "command": "make -C tools/gomad3 test-upstream",
+      "cwd": ".",
+      "role": "required native gate; target rows expand full test coverage, not duplicate passes",
+      "platforms": {
+        "darwin/arm64": "incomplete; native host and patched toolchain absent",
+        "linux/amd64": "incomplete; native host and patched toolchain absent"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "test-toolchain",
+      "line": 56,
+      "cwd": "tools/gomad3",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./toolchain",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "intercept-test",
+      "line": 66,
+      "cwd": "tools/gomad3",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool boundary-generate -qualify",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "intercept-test",
+      "line": 67,
+      "cwd": "tools/gomad3",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \\\n\t--root=$(CURDIR) --mode=test-interception --go=$(CURDIR)/.toolchain/bin/go \\\n\t--compiler=$(COMPILER_TEST_COMPILE)",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "clock-audit",
+      "line": 72,
+      "cwd": "tools/gomad3",
+      "command": "bash ./internal/gomadtool/conformance/scripts/clock_audit_test.sh",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "toolchain",
+      "line": 75,
+      "cwd": "tools/gomad3",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=$(CURDIR)/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \\\n\tgo run ./cmd/gomadtool toolchain-build --root=$(CURDIR)",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "runner",
+      "line": 79,
+      "cwd": "tools/gomad3",
+      "command": "@mkdir -p .bin",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "runner",
+      "line": 80,
+      "cwd": "tools/gomad3",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED CGO_ENABLED=0 GOTOOLCHAIN=local TZ=UTC \\\n\t.toolchain/bin/go build -trimpath -o .bin/gomad ./cmd/gomad",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "qualification-set",
+      "line": 84,
+      "cwd": "tools/gomad3",
+      "command": "@test -n \"$(GOMAD3_QUALIFICATION_MANIFEST)\" || { echo \"GOMAD3_QUALIFICATION_MANIFEST is required\" >&2; exit 2; }",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "qualification-set",
+      "line": 85,
+      "cwd": "tools/gomad3",
+      "command": "@test -n \"$(GOMAD3_QUALIFICATION_WORKDIR)\" || { echo \"GOMAD3_QUALIFICATION_WORKDIR is required\" >&2; exit 2; }",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "qualification-set",
+      "line": 86,
+      "cwd": "tools/gomad3",
+      "command": "@case '$(GOMAD3_QUALIFICATION_PRUNE)' in 0|1) ;; *) echo \"GOMAD3_QUALIFICATION_PRUNE must be 0 or 1\" >&2; exit 2;; esac",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "qualification-set",
+      "line": 87,
+      "cwd": "tools/gomad3",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED .bin/gomad qualify-set \\\n\t--manifest=\"$(GOMAD3_QUALIFICATION_MANIFEST)\" --working-dir=\"$(GOMAD3_QUALIFICATION_WORKDIR)\" \\\n\t--artifacts=\"$(GOMAD3_QUALIFICATION_ARTIFACTS)\" --output=\"$(GOMAD3_QUALIFICATION_OUTPUT)\" \\\n\t$(if $(filter 1,$(GOMAD3_QUALIFICATION_PRUNE)),--prune-qualified-artifacts) \\\n\t$(if $(GOMAD3_QUALIFICATION_SHARD),--shard=\"$(GOMAD3_QUALIFICATION_SHARD)\")",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "compatibility-pack-qualification",
+      "line": 104,
+      "cwd": "tools/gomad3",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --all",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "upgrade-dossier",
+      "line": 115,
+      "cwd": "tools/gomad3",
+      "command": "GOWORK=off go run ./cmd/gomadtool upgrade-dossier \\\n\t-baseline-ref=\"$(GOMAD3_BASELINE_REF)\" -corpus-report=\".toolchain/core-qualification-set.json\" $(if $(GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256),-approve-boundary-diff=\"$(GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256)\",)",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "test-host",
+      "line": 122,
+      "cwd": "tools/gomad3",
+      "command": "@stock_go=\"$${GOMAD3_STOCK_GO:-}\"; \\\nif test -z \"$$stock_go\"; then \\\n\tstock_root=\"$$(env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOFLAGS= GOWORK=off GOTOOLCHAIN=$(GOMAD3_GO_VERSION) go env GOROOT)\" || exit 1; \\\n\tstock_go=\"$$stock_root/bin/go\"; \\\nfi; \\\nenv -u GOMADSEED -u GOMAD3_CHILD_SEED GOMAD3_STOCK_GO=\"$$stock_go\" GOEXPERIMENT=nogreenteagc GOWORK=off .toolchain/bin/go test -tags test_dep \\\n\t. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \\\n\t./deterministicio/... ./world/... ./toolchain/version ./toolchain/installation ./upgrade/... ./internal/...",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "overlay-test",
+      "line": 134,
+      "cwd": "tools/gomad3",
+      "command": ".toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadmodelwire \\\n\tinternal/gomadsim internal/gomadio internal/gomadio/mount os cmd/internal/gomadcap",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "test-simulation",
+      "line": 143,
+      "cwd": "tools/gomad3",
+      "command": "cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \\\n\t$(CURDIR)/.toolchain/bin/go test -exec $(CURDIR)/internal/gomadtool/conformance/scripts/exec.sh \\\n\t-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "test-simulation",
+      "line": 146,
+      "cwd": "tools/gomad3",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \\\n\t-run '^TestRootProcessSimulationUsesRunnerTransport$$/^Test(Scenario|ProcessExploration|ProcessAndInProcess|ProcessNetworkHandle|ProcessFilesystemHandle|ProcessBackend(Carries|Resets|Routes|Preserves|Crash|Model))' ./runner/internal/execution",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "test-simulation",
+      "line": 148,
+      "cwd": "tools/gomad3",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \\\n\t-run '^TestRootProcessSimulationUsesRunnerTransport$$/^TestProcessBackendSynchronizesNodeClockWithModelDelay$$/^forward$$' ./runner/internal/execution",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "world-test",
+      "line": 152,
+      "cwd": "tools/gomad3",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -race -tags test_dep ./world/...",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "validate-toolchain",
+      "line": 157,
+      "cwd": "tools/gomad3",
+      "command": "GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "validate-toolchain",
+      "line": 158,
+      "cwd": "tools/gomad3",
+      "command": "GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "validate-toolchain",
+      "line": 159,
+      "cwd": "tools/gomad3",
+      "command": "GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "validate-toolchain",
+      "line": 160,
+      "cwd": "tools/gomad3",
+      "command": "GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "validate-toolchain",
+      "line": 161,
+      "cwd": "tools/gomad3",
+      "command": "GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=$(CURDIR)",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "validate-toolchain",
+      "line": 162,
+      "cwd": "tools/gomad3",
+      "command": "GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=$(CURDIR)",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "validate-compatibility",
+      "line": 165,
+      "cwd": "tools/gomad3",
+      "command": "GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool compatibility-pack check --root=$(CURDIR)",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "validate-compatibility",
+      "line": 166,
+      "cwd": "tools/gomad3",
+      "command": "GOCACHE=$(CURDIR)/.toolchain/generator-cache go test -count=1 -tags test_dep -run '^TestHostPacksBindCurrentProfile$$' ./internal/compatibilitypack",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "validate-qualification",
+      "line": 169,
+      "cwd": "tools/gomad3",
+      "command": "GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool $(TESTS_QUALIFICATION_GENERATE) -check",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "test-harness",
+      "line": 172,
+      "cwd": "tools/gomad3",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -tags test_dep \\\n\t./internal/hostexec ./internal/gomadtool/conformance ./cmd/gomadtool",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "test-builder",
+      "line": 176,
+      "cwd": "tools/gomad3",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \\\n\t--root=$(CURDIR) --mode=test-builder --go=\"$$(command -v go)\"",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "test-live-capability",
+      "line": 180,
+      "cwd": "tools/gomad3",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \\\n\t--root=$(CURDIR) --mode=test-live-capability --go=$(CURDIR)/.toolchain/bin/go",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "test-runtime",
+      "line": 184,
+      "cwd": "tools/gomad3",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \\\n\t--root=$(CURDIR) --mode=test-runtime --go=$(CURDIR)/.toolchain/bin/go",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    },
+    {
+      "source": "tools/gomad3/Makefile",
+      "target": "test-upstream",
+      "line": 188,
+      "cwd": "tools/gomad3",
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \\\n\t--root=$(CURDIR) --mode=test-upstream --go=$(CURDIR)/.toolchain/bin/go",
+      "role": "exact Make recipe; variables resolve through the named target, no invocation claimed",
+      "platforms": {
+        "darwin/arm64": "incomplete; required native target not executed",
+        "linux/amd64": "incomplete; required native target not executed"
+      },
+      "executed": false,
+      "exit_code": null
+    }
+  ],
+  "disposition_sources": [
+    {
+      "path": "tools/gomad3integration/qualification/smoke.json",
+      "current_sha256": "2f8457908e19988644766193fc1b180e9a8a7923811fdb145244512bdbd806c6",
+      "historical_git_base_sha256": "cc676039897d7dcc61d9592a9beed9116d272b41884041c0f1f804b4437c18c1",
+      "historical_projection": "Git base only. Dirty full-repository baseline was not reconstructed; do not infer exact whole-baseline disposition identity.",
+      "bytes_equal_to_git_base": false
+    },
+    {
+      "path": "tools/gomad3integration/qualification/soak.json",
+      "current_sha256": "373bbeba5aee579de261ae02793f20ceb67939649ef3e505c4b3265b6e61262b",
+      "historical_git_base_sha256": null,
+      "historical_projection": "Git base only. Dirty full-repository baseline was not reconstructed; do not infer exact whole-baseline disposition identity.",
+      "bytes_equal_to_git_base": false
+    },
+    {
+      "path": "tools/gomad3integration/qualification/temporal.json",
+      "current_sha256": "549efd306c5af5aebce897c2be0c9d74c2dafcf4de7db44dbf2c5aefa04dc809",
+      "historical_git_base_sha256": "31d17bafd2db8eca02d70aadf2844e6a83080f03b19c57ba69f8a5bc39433aa6",
+      "historical_projection": "Git base only. Dirty full-repository baseline was not reconstructed; do not infer exact whole-baseline disposition identity.",
+      "bytes_equal_to_git_base": false
+    },
+    {
+      "path": "tools/gomad3integration/qualification/tests.generator.json",
+      "current_sha256": "6c74bf98230a02785162991509552ad54c83b29ffd2220b6fcc54277d41dff31",
+      "historical_git_base_sha256": "e7c74ae3b3c537bb1663ec639ac1606236e9be5ecbcb0091b2acab27f82ec4b9",
+      "historical_projection": "Git base only. Dirty full-repository baseline was not reconstructed; do not infer exact whole-baseline disposition identity.",
+      "bytes_equal_to_git_base": false
+    },
+    {
+      "path": "tools/gomad3integration/qualification/tests.json",
+      "current_sha256": "28a25783c616e4c96d8f89ad0607eaaba5ea395596b4f00be545c8e0dd30f311",
+      "historical_git_base_sha256": "8b4237b23859c00257be4f6e7522c7fac594a99b09146b27bf8ddfd8f5357146",
+      "historical_projection": "Git base only. Dirty full-repository baseline was not reconstructed; do not infer exact whole-baseline disposition identity.",
+      "bytes_equal_to_git_base": false
+    },
+    {
+      "path": "tools/gomad3/qualification/core.json",
+      "current_sha256": "048222ebee3ab7b82d2a34be19d3f7c684a7e2cd9cf02a9ab1e7d9a94ef9a43a",
+      "historical_git_base_sha256": "048222ebee3ab7b82d2a34be19d3f7c684a7e2cd9cf02a9ab1e7d9a94ef9a43a",
+      "historical_projection": "Git base only. Dirty full-repository baseline was not reconstructed; do not infer exact whole-baseline disposition identity.",
+      "bytes_equal_to_git_base": true
+    }
+  ],
+  "core_report": {
+    "path": "tools/gomad3/.toolchain/core-qualification-set.json",
+    "present": false,
+    "qualification": "no current integrated source-bound native report admitted"
+  }
+}

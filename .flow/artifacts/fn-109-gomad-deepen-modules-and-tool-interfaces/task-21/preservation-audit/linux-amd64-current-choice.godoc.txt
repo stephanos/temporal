@@ -1,0 +1,438 @@
+package choice // import "go.temporal.io/server/tools/gomad3/choice"
+
+
+CONSTANTS
+
+const (
+	LegacyProfile = "gomad3-choice-trace/v1"
+)
+const (
+	MinimumTraceBytes      = traceHeaderBytes + traceRecordBytes
+	MaximumTraceBytes      = 64 << 20
+	MaximumReplayPlanBytes = MaximumTraceBytes - traceHeaderBytes + replayPlanHeaderBytes
+)
+const (
+	MissingSiteFingerprint     = "missing"
+	MaximumAdjacentChoicePairs = 4096
+)
+const (
+	Profile = wire.Profile
+
+	Version1 = wire.Version1
+	Version2 = wire.Version2
+	Version3 = wire.Version3
+
+	// SupersededProfile is the v2 profile, whose select results recorded no
+	// readiness. Its traces are refused by name; LegacyProfile keeps v1
+	// inspectable.
+	SupersededProfile = "gomad3-choice-trace/v2"
+)
+const DiagnosticProfile = wire.DiagnosticProfile
+const DiagnosticProfileEnvironment = "GOMAD3_DIAGNOSTIC_PROFILE"
+const MaximumDiagnosticBytes = wire.DiagnosticMaximumBytes
+
+VARIABLES
+
+var (
+	ErrInvalidDecision   = errors.New("invalid canonical choice decision")
+	ErrInvalidReplayPlan = errors.New("invalid choice decision tape")
+	ErrReplayUnavailable = errors.New("exact choice replay unavailable")
+)
+var (
+	ErrMalformed    = errors.New("malformed choice trace")
+	ErrOverflow     = errors.New("choice trace overflow")
+	ErrDiverged     = errors.New("choice replay divergence")
+	ErrUnterminated = errors.New("unterminated choice trace")
+)
+var ErrDiagnosticIncomplete = errors.New("diagnostic trace incomplete")
+
+FUNCTIONS
+
+func AlternativeSetDigest(alternatives [][sha256.Size]byte) ([sha256.Size]byte, error)
+func DiagnosticLimit(choiceLimit uint64) (uint64, error)
+func DivergenceReasonName(reason DivergenceReason) string
+func ImplementationIdentity(toolchainBuildKey string) ([sha256.Size]byte, error)
+func TraceBytes(records uint64) (uint64, error)
+func TracePayloadBytes(records uint64) (uint64, error)
+func TraceRecordCount(encoded []byte) (uint64, error)
+func ValidateController(mode Mode, replayPlanBytes uint64) error
+func ValidateExecutionIdentity(identity ExecutionIdentity) error
+func ValidatePrefixReplayDivergence(tape ReplayPlan, divergence Divergence) error
+func ValidateTraceLimit(limit uint64) error
+
+TYPES
+
+type CompleteMetadata struct {
+	Limit   uint64
+	Records uint64
+	SHA256  [sha256.Size]byte
+}
+
+type Decision struct {
+	Ordinal              uint64
+	Kind                 Kind
+	SiteOffset           uint64
+	SiteMissing          bool
+	RankOverride         bool
+	Alternatives         uint32
+	Selected             uint32
+	Data                 uint32
+	SelectedIdentity     [sha256.Size]byte
+	AlternativeSetDigest [sha256.Size]byte
+}
+
+func CanonicalDecision(
+	ordinal uint64,
+	kind Kind,
+	siteOffset uint64,
+	siteMissing bool,
+	alternatives [][sha256.Size]byte,
+	selectedIdentity [sha256.Size]byte,
+	data uint32,
+) (Decision, error)
+
+func (decision Decision) Record() Record
+
+type DecisionEvidence struct {
+	Ordinal              uint64            `json:"ordinal"`
+	Kind                 Kind              `json:"kind"`
+	SiteOffset           uint64            `json:"site_offset"`
+	SiteMissing          bool              `json:"site_missing"`
+	RankOverride         bool              `json:"rank_override"`
+	Alternatives         uint32            `json:"alternatives"`
+	Selected             uint32            `json:"selected"`
+	Data                 uint32            `json:"data"`
+	SelectedIdentity     [sha256.Size]byte `json:"selected_identity"`
+	AlternativeSetDigest [sha256.Size]byte `json:"alternative_set_digest"`
+}
+
+type DiagnosticDivergence struct {
+	Ordinal  uint64            `json:"ordinal"`
+	Fields   []string          `json:"fields"`
+	Expected *DiagnosticRecord `json:"expected,omitempty"`
+	Actual   *DiagnosticRecord `json:"actual,omitempty"`
+}
+
+func DiffDiagnostics(expectedBytes, actualBytes []byte) (*DiagnosticDivergence, error)
+
+type DiagnosticRecord wire.DiagnosticRecord
+
+type DiagnosticSession struct {
+	// Has unexported fields.
+}
+
+func NewDiagnosticSession(limit uint64) (_ *DiagnosticSession, retErr error)
+
+func (session *DiagnosticSession) Close() error
+
+func (session *DiagnosticSession) Collect() (DiagnosticTrace, error)
+
+func (session *DiagnosticSession) File() *os.File
+
+type DiagnosticTrace struct {
+	Bytes    []byte
+	SHA256   [sha256.Size]byte
+	Records  []DiagnosticRecord
+	Capacity uint64
+}
+
+func DecodeDiagnosticTrace(data []byte) (DiagnosticTrace, error)
+
+func ReadDiagnosticTrace(path string) (DiagnosticTrace, error)
+
+type Divergence struct {
+	Ordinal     uint64
+	Reason      DivergenceReason
+	Expected    *Decision
+	Observed    *Decision
+	TapeRecords uint64
+}
+
+type DivergenceEvidence struct {
+	Ordinal     uint64            `json:"ordinal"`
+	Reason      DivergenceReason  `json:"reason"`
+	Expected    *DecisionEvidence `json:"expected,omitempty"`
+	Observed    *DecisionEvidence `json:"observed,omitempty"`
+	TapeRecords uint64            `json:"tape_records"`
+}
+
+func ProjectDivergenceEvidence(divergence Divergence) DivergenceEvidence
+
+func (evidence DivergenceEvidence) Divergence() Divergence
+
+func (evidence DivergenceEvidence) ReasonName() string
+
+type DivergenceReason uint8
+
+const (
+	DivergenceKind                DivergenceReason = DivergenceReason(wire.DivergenceKind)
+	DivergenceSite                DivergenceReason = DivergenceReason(wire.DivergenceSite)
+	DivergenceAlternatives        DivergenceReason = DivergenceReason(wire.DivergenceAlternatives)
+	DivergenceSelected            DivergenceReason = DivergenceReason(wire.DivergenceSelected)
+	DivergenceAlternativeSet      DivergenceReason = DivergenceReason(wire.DivergenceAlternativeSet)
+	DivergenceTapeExhausted       DivergenceReason = DivergenceReason(wire.DivergenceTapeExhausted)
+	DivergenceTapeUnconsumed      DivergenceReason = DivergenceReason(wire.DivergenceTapeUnconsumed)
+	DivergenceIdentityMissing     DivergenceReason = DivergenceReason(wire.DivergenceIdentityMissing)
+	DivergenceIdentityDuplicate   DivergenceReason = DivergenceReason(wire.DivergenceIdentityDuplicate)
+	DivergenceAlternativeCapacity DivergenceReason = DivergenceReason(wire.DivergenceAlternativeCapacity)
+	DivergenceObservation         DivergenceReason = DivergenceReason(wire.DivergenceObservation)
+)
+type ExecutionIdentity struct {
+	TargetSHA256         [sha256.Size]byte
+	ToolchainBuildKey    string
+	GOOS                 string
+	GOARCH               string
+	ImplementationSHA256 [sha256.Size]byte
+}
+
+type Feature struct {
+	Kind  FeatureKind `json:"kind"`
+	Value string      `json:"value"`
+}
+
+func (feature Feature) ID() string
+
+type FeatureKind string
+
+const (
+	FeatureRecordKind          FeatureKind = "record_kind"
+	FeatureSite                FeatureKind = "site"
+	FeatureBranchingSite       FeatureKind = "branching_site"
+	FeatureSelectedAlternative FeatureKind = "selected_alternative"
+	FeatureAdjacentPair        FeatureKind = "adjacent_pair"
+	FeatureTerminal            FeatureKind = "terminal"
+)
+type FeatureProjection struct {
+	Values                 []Feature `json:"values"`
+	AdjacentPairsObserved  uint64    `json:"adjacent_pairs_observed"`
+	AdjacentPairsTruncated bool      `json:"adjacent_pairs_truncated"`
+}
+
+type Flags uint8
+
+const (
+	FlagDecision     Flags = Flags(wire.FlagDecision)
+	FlagObservation  Flags = Flags(wire.FlagObservation)
+	FlagSiteMissing  Flags = Flags(wire.FlagSiteMissing)
+	FlagRankOverride Flags = Flags(wire.FlagRankOverride)
+)
+type Kind uint8
+
+const (
+	KindRunnable     Kind = Kind(wire.KindRunnable)
+	KindSelectPoll   Kind = Kind(wire.KindSelectPoll)
+	KindSelectResult Kind = Kind(wire.KindSelectResult)
+)
+type Mode uint8
+
+const (
+	ModeSeed   Mode = Mode(wire.ModeSeed)
+	ModeRecord Mode = Mode(wire.ModeRecord)
+	ModeReplay Mode = Mode(wire.ModeReplay)
+	ModePrefix Mode = Mode(wire.ModePrefix)
+)
+type NoOpSelectShape struct {
+	PolledCases uint32
+	Readiness   SelectReadiness
+}
+    NoOpSelectShape is the evidence a select-poll decision carries: how many
+    cases its select polled, which is the alternatives of the select's last poll
+    step, and the readiness the runtime recorded with the select's result.
+
+func NoOpSelectShapes() []NoOpSelectShape
+    NoOpSelectShapes lists the shapes whose poll order cannot change
+    behavior. Poll order matters only when at least two cases are ready,
+    but a shape is listed only after the select-readiness fixture
+    (internal/gomadtool/conformance) explored it to exhaustion
+    with and without its poll decisions expanded and reached the
+    same outcomes and deadlocks; the comparison is retained under
+    .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/select-reduction/.
+    The fixture requires its proven shapes and this list to be the same set,
+    and the explorer expands every select-poll decision of a shape off the list.
+
+type Projection struct {
+	Profile      string
+	Limit        uint64
+	PayloadBytes uint64
+	SHA256       [sha256.Size]byte
+	Summary      Summary
+	Sites        []Site
+	Features     FeatureProjection
+}
+
+func Project(payload []byte, metadata TerminalMetadata, targetIdentity [sha256.Size]byte) (Projection, error)
+
+func ProjectComplete(payload []byte, metadata CompleteMetadata, targetIdentity [sha256.Size]byte) (Projection, error)
+
+func ProjectTrace(trace Trace, limit uint64, targetIdentity [sha256.Size]byte) (Projection, error)
+
+type Readiness uint16
+    Readiness is the packed select readiness word: flag bits below the count,
+    which is the number of cases that could proceed. Zero means unknown; a known
+    word carries ReadinessKnown.
+
+const (
+	ReadinessKnown           Readiness = Readiness(wire.ReadinessKnown)
+	ReadinessDefault         Readiness = Readiness(wire.ReadinessDefault)
+	ReadinessNilChannel      Readiness = Readiness(wire.ReadinessNilChannel)
+	ReadinessTimerChannel    Readiness = Readiness(wire.ReadinessTimerChannel)
+	ReadinessClosedChannel   Readiness = Readiness(wire.ReadinessClosedChannel)
+	ReadinessRepeatedChannel Readiness = Readiness(wire.ReadinessRepeatedChannel)
+	ReadinessMaximumCount              = wire.ReadinessMaximumCount
+)
+func NewReadiness(ready uint32, flags Readiness) (Readiness, error)
+    NewReadiness packs a known ready count and its shape flags.
+
+func (readiness Readiness) Known() bool
+
+func (readiness Readiness) Ready() uint32
+    Ready is the number of cases that could proceed; zero when unknown.
+
+type Record struct {
+	Ordinal              uint64
+	Kind                 Kind
+	Flags                Flags
+	Alternatives         uint32
+	Selected             uint32
+	Data                 uint32
+	SiteOffset           uint64
+	Readiness            Readiness
+	Origin               uint64
+	SelectedIdentity     [sha256.Size]byte
+	AlternativeSetDigest [sha256.Size]byte
+}
+    Record mirrors wire.Record. Readiness is set on a select_result observation
+    by the runtime and on a select_poll decision only by the replay-plan
+    projection; Origin is an observation's field: the trace ordinal the runtime
+    would have assigned next when the observed select began polling.
+
+type ReplayDivergenceError struct {
+	Divergence Divergence
+}
+
+func (err *ReplayDivergenceError) Error() string
+
+func (err *ReplayDivergenceError) Unwrap() error
+
+type ReplayPlan struct {
+	Identity          ExecutionIdentity
+	SourceTraceSHA256 [sha256.Size]byte
+	Decisions         []Decision
+	Readiness         []SelectReadiness
+	Bytes             []byte
+	SHA256            [sha256.Size]byte
+}
+    ReplayPlan is a decision tape. Readiness has one entry per decision and is
+    encoded in each decision's record, so it survives the tape's byte form;
+    it is kept beside Decisions rather than inside Decision because a decision's
+    identity and replay comparison exclude it: a child whose select never
+    resumes still forced the same decision its parent recorded.
+
+func BuildForcedRankPrefix(source ReplayPlan, decisionOrdinal uint64, rank uint32) (ReplayPlan, error)
+
+func BuildRankPrefix(source ReplayPlan, decisionOrdinal uint64, rank uint32) (ReplayPlan, error)
+
+func ProjectReplayPlan(trace Trace, identity ExecutionIdentity) (ReplayPlan, error)
+
+func ValidatePrefixReplayPlan(tape ReplayPlan, identity ExecutionIdentity) (ReplayPlan, error)
+
+func ValidateReplayPlan(tape ReplayPlan, identity ExecutionIdentity) (ReplayPlan, error)
+
+func (tape ReplayPlan) Branching() []Decision
+
+func (tape ReplayPlan) Prefix(records uint64) (ReplayPlan, error)
+
+type SelectReadiness struct {
+	Known bool `json:"known"`
+	// Ready counts the cases that could proceed; the default is not a case.
+	Ready           uint32 `json:"ready"`
+	Default         bool   `json:"default"`
+	NilChannel      bool   `json:"nil_channel"`
+	TimerChannel    bool   `json:"timer_channel"`
+	ClosedChannel   bool   `json:"closed_channel"`
+	RepeatedChannel bool   `json:"repeated_channel"`
+}
+    SelectReadiness is what a select observed once it had locked its channels:
+    how many of its cases could proceed, and the shape properties that tell the
+    fixture shapes apart. The projection carries a select's readiness onto each
+    of its select-poll decisions. Known is false for a runnable decision and for
+    a select-poll decision whose select recorded no result because it blocked
+    and never resumed.
+
+func (readiness SelectReadiness) Word() (Readiness, error)
+    Word packs the readiness for a record; an unknown readiness is the zero
+    word.
+
+type Session struct {
+	// Has unexported fields.
+}
+
+func NewSession(spec SessionSpec) (_ *Session, retErr error)
+
+func (session *Session) Close() error
+
+func (session *Session) Collect() (Trace, error)
+
+func (session *Session) Files() SessionFiles
+
+type SessionFiles struct {
+	Trace      *os.File
+	Terminal   *os.File
+	ReplayPlan *os.File
+}
+
+type SessionSpec struct {
+	Limit      uint64
+	Mode       Mode
+	ReplayPlan *ReplayPlan
+}
+
+type Site struct {
+	Fingerprint         string
+	Kind                Kind
+	Count               uint64
+	MaximumAlternatives uint32
+}
+
+type Summary struct {
+	Records      uint64
+	Branching    uint64
+	Runnable     uint64
+	SelectPoll   uint64
+	SelectResult uint64
+	Terminal     TerminalState
+	// PeakGoroutines is the highest live goroutine count the target reached,
+	// sampled by the runtime whenever a goroutine was created.
+	PeakGoroutines uint32
+}
+
+type TerminalMetadata struct {
+	State   TerminalState
+	Limit   uint64
+	Records uint64
+	SHA256  [sha256.Size]byte
+}
+
+type TerminalState uint8
+
+const (
+	TerminalComplete TerminalState = TerminalState(wire.TerminalComplete)
+	TerminalOverflow TerminalState = TerminalState(wire.TerminalOverflow)
+	TerminalDiverged TerminalState = TerminalState(wire.TerminalDiverged)
+)
+type Trace struct {
+	Version int
+	Bytes   []byte
+	SHA256  [sha256.Size]byte
+	Records []Record
+	Summary Summary
+}
+
+func BuildTrace(records []Record, state TerminalState) (Trace, error)
+
+func DecodeLegacyV1Trace(payload, terminalFrame []byte, mappingLimit uint64) (Trace, error)
+
+func DecodeStoredTrace(profile string, payload []byte, metadata TerminalMetadata) (Trace, error)
+
+func DecodeTrace(payload, terminalFrame []byte, mappingLimit uint64) (Trace, error)
+

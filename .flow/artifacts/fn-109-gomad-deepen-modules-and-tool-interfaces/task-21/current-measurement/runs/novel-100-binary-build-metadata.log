@@ -1,0 +1,15 @@
+/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-measurement/runs/novel-100/runner.test: go1.27.1
+	path	go.temporal.io/server/tools/gomad3/runner.test
+	mod	go.temporal.io/server/tools/gomad3	(devel)	
+	dep	golang.org/x/mod	v0.37.0	h1:vF1DjpVEshcIqoEaauuHebaLk1O1forxjxBaVn884JQ=
+	build	-buildmode=exe
+	build	-compiler=gc
+	build	-tags=test_dep
+	build	CGO_ENABLED=1
+	build	CGO_CFLAGS=
+	build	CGO_CPPFLAGS=
+	build	CGO_CXXFLAGS=
+	build	CGO_LDFLAGS=
+	build	GOARCH=arm64
+	build	GOOS=linux
+	build	GOARM64=v8.0

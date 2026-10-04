@@ -1,0 +1,6 @@
+make[1]: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+[1;36mLinting code...[0m
+.bin/golangci-lint-v2.13.0: 1: Syntax error: word unexpected (expecting ")")
+make[1]: *** [Makefile:512: lint-code] Error 2
+make[1]: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal'
+make: *** [Makefile:495: lint-code-fast] Error 2
