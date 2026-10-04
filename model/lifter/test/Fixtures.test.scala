@@ -847,58 +847,70 @@ class Fixtures extends munit.FunSuite:
       )
     assertEquals(names, written.flatMap(_._2).toList)
 
-  // fn-112.4: typed composition selectors (lifts/Members.scala).
-  // Each composition of temporal/standaloneactivity beside its typed twin, the later designs derived
-  // by `withMember`; the Scenarios and the `whenAction` whose keys `synced` and `own` select; and the
-  // keys of names that carry separators, over two members that bind actions spelled alike.
-  concurrently("typed members, syncs, replaces, withMember, synced and own lift as strings do"):
+  // fn-112.4, fn-112.7: typed composition selectors (lifts/Members.scala).
+  // The production compositions of temporal/standaloneactivity, written with typed selectors and
+  // derived by `withMember`, keep their exact members, syncs, replacement targets and Scenario keys;
+  // the cross-entity claim names one sync by either member; and the keys of names that carry
+  // separators, over two members that bind actions spelled alike.
+  concurrently("typed members, syncs, replaces, withMember, synced and own keep the composed keys"):
     import com.fasterxml.jackson.databind.JsonNode
-    import com.fasterxml.jackson.databind.node.ObjectNode
     val system = "temporal.standaloneactivity.System$package$."
-    val queried = Seq(
-      "currentOverQueue",
-      "staleOverQueue",
-      "currentOverMatching",
-      "staleOverMatching",
-      "currentOverLossyMatching"
-    )
+    val overQueue = Seq("currentOverQueue", "staleOverQueue")
+    val overMatching = Seq("currentOverMatching", "staleOverMatching", "currentOverLossyMatching")
     val unqueried = Seq("currentOverForgetful", "currentOverVolatile")
-    val roots = queried.flatMap(d => Seq(s"${d}TypedQueries", s"$system${d}Queries")) ++
-      unqueried.flatMap(d => Seq(s"${d}Typed", s"$system$d")) ++ Seq(
+    val roots = (overQueue ++ overMatching).map(d => s"$system${d}Queries") ++
+      unqueried.map(system + _) ++ Seq(
         "stoppedWorkerStartsNothingTyped",
         "temporal.standaloneactivity.Claims$package$.stoppedWorkerStartsNothing",
         "switchQueries"
       )
     val (model, _, property) = declarations("members", roots)
-    def strip(n: JsonNode): Unit =
-      n match
-        case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
-        case _             => ()
-      n.elements().asScala.foreach(strip)
     def all(kind: String) = model.path(kind).elements().asScala.toList
-    def of(kind: String, matches: JsonNode => Boolean, without: String*): String =
-      val found = all(kind)
-        .find(matches)
-        .getOrElse(fail(s"the members fixture lifted no such $kind"))
-        .deepCopy[ObjectNode]()
-      found.remove(without.asJava)
-      strip(found)
-      found.toPrettyString
     def named(name: String)(n: JsonNode) = n.path("name").asText() == name
-    def composition(name: String) = of("compositions", named(name), "name")
-    for d <- queried ++ unqueried do assertEquals(composition(s"${d}Typed"), composition(d), d)
-    def replaces(name: String) =
-      all("compositions").find(named(name)).get.path("members").get(1).path("replaces").asText()
-    assertEquals(replaces("currentOverForgetfulTyped"), "dispatchQueue")
-    assertEquals(replaces("currentOverLossyMatchingTyped"), "dispatchQueueUnderStorageLoss")
-    def scenario(machine: String, name: String) =
-      of("scenarios", s => s.path("machine").asText() == machine && named(name)(s), "machine")
-    val typed = all("scenarios")
-      .map(s => s.path("machine").asText() -> s.path("name").asText())
-      .filter(_._1.endsWith("Typed"))
-    assertEquals(typed.size, 2 * 3 + 3 * 4, "a typed twin of every keyed Scenario")
-    for (machine, name) <- typed do
-      assertEquals(scenario(machine, name), scenario(machine.stripSuffix("Typed"), name), name)
+    def texts(n: JsonNode, field: String) =
+      n.elements().asScala.map(_.path(field).asText()).toList
+    // Each derived design replaces the interface its own queue refines, not its base's.
+    val replaced = Map(
+      "currentOverQueue" -> "",
+      "staleOverQueue" -> "",
+      "currentOverMatching" -> "dispatchQueue",
+      "staleOverMatching" -> "dispatchQueue",
+      "currentOverForgetful" -> "dispatchQueue",
+      "currentOverVolatile" -> "dispatchQueue",
+      "currentOverLossyMatching" -> "dispatchQueueUnderStorageLoss"
+    )
+    for (d, target) <- replaced do
+      val c = all("compositions").find(named(d)).getOrElse(fail(s"no composition $d"))
+      assertEquals(texts(c.path("members"), "field"), List("activity", "queue"), d)
+      assertEquals(texts(c.path("syncs"), "name"), List("dispatch", "admit", "settle"), d)
+      assertEquals(c.path("members").get(1).path("replaces").asText(), target, d)
+    def scenarioKeys(machine: String, name: String) = all("scenarios")
+      .find(s => s.path("machine").asText() == machine && named(name)(s))
+      .getOrElse(fail(s"no Scenario $name of $machine"))
+      .path("keys")
+      .elements()
+      .asScala
+      .map(_.asText())
+      .toList
+    val pause = "activity_control-pause"
+    val invoked = List("dispatch", "queue_addActivityTask")
+    for d <- overQueue do
+      assertEquals(scenarioKeys(d, "staleDeliveryAfterPause"), List("dispatch", pause, "admit"))
+      assertEquals(scenarioKeys(d, "admittedBeforePause"), List("dispatch", "admit", pause))
+      assertEquals(scenarioKeys(d, "duplicateDelivery"), List("dispatch", "admit", "admit"))
+    for d <- overMatching do
+      val persisted = invoked :+ "queue_persistTask"
+      assertEquals(scenarioKeys(d, "staleDeliveryAfterPause"), persisted ++ List(pause, "admit"))
+      assertEquals(scenarioKeys(d, "admittedBeforePause"), persisted ++ List("admit", pause))
+      assertEquals(
+        scenarioKeys(d, "deliveredAgainAfterLostAck"),
+        persisted ++ List("admit", "queue_ackLoss", "admit")
+      )
+      val matched = invoked :+ "queue_syncMatch"
+      assertEquals(
+        scenarioKeys(d, "crashAfterAdmissionCommit"),
+        matched ++ List("admit", "queue_crash", "queue_addActivityTask", "queue_syncMatch", "admit")
+      )
     assertEquals(property("startedByPollingWorkerTyped"), property("startedByPollingWorker"))
     def keys(name: String) =
       all("scenarios").find(named(name)).get.path("keys").elements().asScala.map(_.asText()).toList

@@ -514,7 +514,7 @@ func TestQuintDisagreesOnAnotherModel(t *testing.T) {
 			branch.Then, branch.Else = branch.GetElse(), branch.GetThen()
 		}, TransitionAgreement, "currentAdmission"},
 		"a Property negated": {"activity-system", func(m *umpirespb.Model) {
-			holds := function(m, "temporal.standaloneactivity.System$package$.atMostOneActive")
+			holds := function(m, "staleAdmission.property.atMostOneActive")
 			holds.Body = &umpirespb.Expr{Kind: &umpirespb.Expr_Unary{Unary: &umpirespb.Unary{Op: umpirespb.Unary_OP_NOT, Operand: holds.GetBody()}}}
 		}, PropertyAgreement, "staleAdmission"},
 		"a step's condition inverted, in a composition": {"activity-system", func(m *umpirespb.Model) {

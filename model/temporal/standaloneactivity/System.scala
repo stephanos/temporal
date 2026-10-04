@@ -75,6 +75,15 @@ val scheduledIdle: AdmissionState =
 def admissionOver(p: AdmissionPhase): Boolean =
   p.in(AdmissionPhase.completed, AdmissionPhase.timedOut)
 
+/** The record's status sets, which the promises below are declared over. */
+object Admission:
+  /** Paused before any attempt was admitted: the pause a delivery must not get past. */
+  def paused(s: AdmissionState): Boolean = s.phase == AdmissionPhase.paused
+  def running(s: AdmissionState): Boolean = s.phase == AdmissionPhase.started
+  def terminal(s: AdmissionState): Boolean = admissionOver(s.phase)
+  def twoActive(s: AdmissionState): Boolean = s.active == Active.two
+  def phase(s: AdmissionState): AdmissionPhase = s.phase
+
 /** The dispatch task's Validate: it is sent only while the activity can start. */
 def dispatchStep(s: AdmissionState): List[AdmissionStep] =
   if s.phase != AdmissionPhase.scheduled then disabled
@@ -239,21 +248,25 @@ val currentAdmission = machine[AdmissionState, Outcome, AdmissionFact] {
 
 val staleAdmission = currentAdmission.rebind(attemptStart ~> admitStale)
 
-// ### Promises, written once and declared on each design
+// ### Promises, written once and declared on each design and on each composition with the record
+//
+// Each takes the states it speaks of as named predicates, so one definition serves the record and
+// a composition, which reads the record through its `activity` member.
 
-def admitsWhilePaused(before: AdmissionPhase, after: AdmissionPhase): Boolean =
-  before == AdmissionPhase.paused && after == AdmissionPhase.started
+/** No step admits a paused activity: nothing moves it from paused straight to started. */
+def notAdmittedWhilePaused[S](m: Declares[S])(
+    paused: S => Boolean,
+    running: S => Boolean
+): Property[S] =
+  m.property("notAdmittedWhilePaused").never(s => running(s.state)).from(paused)
 
-def leavesTheEnd(before: AdmissionPhase, after: AdmissionPhase): Boolean =
-  admissionOver(before) && after != before
+/** No step leaves two admitted attempts active. */
+def atMostOneActive[S](m: Declares[S])(twoActive: S => Boolean): Property[S] =
+  m.property("atMostOneActive").never(s => twoActive(s.state))
 
-def notAdmittedWhilePaused(before: AdmissionState, after: AdmissionStep): Boolean =
-  !admitsWhilePaused(before.phase, after.state.phase)
-
-def atMostOneActive(after: AdmissionStep): Boolean = after.state.active != Active.two
-
-def terminalStays(before: AdmissionState, after: AdmissionStep): Boolean =
-  !leavesTheEnd(before.phase, after.state.phase)
+/** Once the activity is over, no step changes its phase. */
+def terminalStays[S, P](m: Declares[S])(terminal: S => Boolean, phase: S => P): Property[S] =
+  m.property("terminalStays").once(terminal).keeps(phase)
 
 val five = Limits(steps = 5, actions = 5, search = 65536)
 val seven = Limits(steps = 7, actions = 7, search = 262144)
@@ -264,9 +277,9 @@ val twelve = Limits(steps = 12, actions = 12, search = 262144)
 
 /** Every claim and path, declared on one design: a Property or Scenario belongs to one machine. */
 def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]): Vector[Query] =
-  val notPaused = m.property("notAdmittedWhilePaused") holdsAcross notAdmittedWhilePaused
-  val oneActive = m.property("atMostOneActive") holds atMostOneActive
-  val terminal = m.property("terminalStays") holdsAcross terminalStays
+  val notPaused = notAdmittedWhilePaused(m)(Admission.paused, Admission.running)
+  val oneActive = atMostOneActive(m)(Admission.twoActive)
+  val terminal = terminalStays(m)(Admission.terminal, Admission.phase)
   val startDeadline = m.property("scheduleToStartTimesOut") when scheduleToStart holds (after =>
     after.records(AdmissionFact.statusTimedOut(TimeoutType.scheduleToStart))
   )
@@ -437,17 +450,8 @@ val dispatchQueue = machine[QueueView, QueueOutcome, QueueFact] {
 }
 
 /** The interface under the storage-loss assumption: a committed message may also vanish. */
-val dispatchQueueUnderStorageLoss = machine[QueueView, QueueOutcome, QueueFact] {
-  assumes(queueOpaque, storageLossAssumed)
-  starts(emptyQueue)
-  ends(q => q.outstanding == Outstanding.empty)
-  steps(
-    enqueue ~> enqueueView,
-    deliver ~> deliverView,
-    acknowledge ~> acknowledgeView,
-    storageLoss ~> storageLossView
-  )
-}
+val dispatchQueueUnderStorageLoss =
+  dispatchQueue.extend(storageLoss ~> storageLossView).assuming(storageLossAssumed)
 
 // ### The detailed queue: history's dispatch task and matching's custody
 //
@@ -597,26 +601,14 @@ val matchingQueue = machine[QueueDetail, QueueOutcome, QueueFact] {
   )
 }
 
-/** The detailed provider with the storage-loss fault, which only its assumption allows. */
-val lossyMatchingQueue = machine[QueueDetail, QueueOutcome, QueueFact] {
-  assumes(storageLossAssumed)
-  refines(dispatchQueueUnderStorageLoss)(viewOf)
-  visible(interfaceSees)
-  visibleOutcomes(interfaceAnswers)
-  starts(idleQueue)
-  ends(queueEnds)
-  steps(
-    enqueue ~> enqueueDetail,
-    addActivityTask ~> invokeDetail,
-    persistTask ~> persistDetail,
-    syncMatch ~> reserveDetail,
-    deliver ~> deliverDetail,
-    acknowledge ~> acknowledgeDetail,
-    ackLoss ~> ackLossDetail,
-    crash ~> crashDetail,
-    storageLoss ~> storageLossDetail
-  )
-}
+/**
+ * The detailed provider with the storage-loss fault, which only its assumption allows. It refines
+ * the interface that allows the loss.
+ */
+val lossyMatchingQueue = matchingQueue
+  .extend(storageLoss ~> storageLossDetail)
+  .refining(dispatchQueueUnderStorageLoss)(viewOf)
+  .assuming(storageLossAssumed)
 
 // ### The violating providers
 //
@@ -632,23 +624,7 @@ def forgetfulCrash(d: QueueDetail): List[QueueDetailStep] = d.custody match
   case Custody.nowhere | Custody.history | Custody.persisted =>
     accept(d.copy(polled = false), QueueFact.crashed)
 
-val forgetfulQueue = machine[QueueDetail, QueueOutcome, QueueFact] {
-  refines(dispatchQueue)(viewOf)
-  visible(interfaceSees)
-  visibleOutcomes(interfaceAnswers)
-  starts(idleQueue)
-  ends(queueEnds)
-  steps(
-    enqueue ~> enqueueDetail,
-    addActivityTask ~> invokeDetail,
-    persistTask ~> persistDetail,
-    syncMatch ~> reserveDetail,
-    deliver ~> deliverDetail,
-    acknowledge ~> acknowledgeDetail,
-    ackLoss ~> ackLossDetail,
-    crash ~> forgetfulCrash
-  )
-}
+val forgetfulQueue = matchingQueue.rebind(crash ~> forgetfulCrash)
 
 /** A crash wipes the tasks matching persisted, which history no longer backs. */
 def volatileCrash(d: QueueDetail): List[QueueDetailStep] = d.custody match
@@ -657,23 +633,7 @@ def volatileCrash(d: QueueDetail): List[QueueDetailStep] = d.custody match
     accept(d.copy(custody = Custody.history, polled = false), QueueFact.crashed)
   case Custody.nowhere | Custody.history => accept(d.copy(polled = false), QueueFact.crashed)
 
-val volatileQueue = machine[QueueDetail, QueueOutcome, QueueFact] {
-  refines(dispatchQueue)(viewOf)
-  visible(interfaceSees)
-  visibleOutcomes(interfaceAnswers)
-  starts(idleQueue)
-  ends(queueEnds)
-  steps(
-    enqueue ~> enqueueDetail,
-    addActivityTask ~> invokeDetail,
-    persistTask ~> persistDetail,
-    syncMatch ~> reserveDetail,
-    deliver ~> deliverDetail,
-    acknowledge ~> acknowledgeDetail,
-    ackLoss ~> ackLossDetail,
-    crash ~> volatileCrash
-  )
-}
+val volatileQueue = matchingQueue.rebind(crash ~> volatileCrash)
 
 // ### What a provider promises, and the crash cuts
 
@@ -758,44 +718,55 @@ val staleRecord = staleAdmission.unmonitored
 
 final case class OverQueue(activity: AdmissionState, queue: QueueView)
 
-val idleOverQueue: OverQueue = OverQueue(scheduledIdle, emptyQueue)
+/** The record's status sets, read through the composition's `activity` member. */
+object OverQueue:
+  def paused(s: OverQueue): Boolean = Admission.paused(s.activity)
+  def running(s: OverQueue): Boolean = Admission.running(s.activity)
+  def terminal(s: OverQueue): Boolean = Admission.terminal(s.activity)
+  def twoActive(s: OverQueue): Boolean = Admission.twoActive(s.activity)
+  def phase(s: OverQueue): AdmissionPhase = s.activity.phase
 
 val currentOverQueue: Composition[OverQueue] =
-  compose[OverQueue]("activity" -> currentRecord, "queue" -> dispatchQueue)
-    .sync("dispatch", "activity" -> dispatch, "queue" -> enqueue)
-    .sync("admit", "activity" -> attemptStart, "queue" -> deliver)
-    .sync("settle", "activity" -> answerDelivery, "queue" -> acknowledge)
+  compose[OverQueue](_.activity -> currentRecord, _.queue -> dispatchQueue)
+    .sync("dispatch", _.activity -> dispatch, _.queue -> enqueue)
+    .sync("admit", _.activity -> attemptStart, _.queue -> deliver)
+    .sync("settle", _.activity -> answerDelivery, _.queue -> acknowledge)
     .ends(s => admissionEnds(s.activity))
 
 val staleOverQueue: Composition[OverQueue] =
-  compose[OverQueue]("activity" -> staleRecord, "queue" -> dispatchQueue)
-    .sync("dispatch", "activity" -> dispatch, "queue" -> enqueue)
-    .sync("admit", "activity" -> attemptStart, "queue" -> deliver)
-    .sync("settle", "activity" -> answerDelivery, "queue" -> acknowledge)
-    .ends(s => admissionEnds(s.activity))
+  currentOverQueue.withMember(_.activity -> staleRecord)
 
 def overQueueQueries(c: Composition[OverQueue]): Vector[Query] =
-  val notPaused = c.property("notAdmittedWhilePaused") holdsAcross ((before, after) =>
-    !admitsWhilePaused(before.activity.phase, after.state.activity.phase)
-  )
-  val oneActive =
-    c.property("atMostOneActive") holds (after => after.state.activity.active != Active.two)
-  val terminal = c.property("terminalStays") holdsAcross ((before, after) =>
-    !leavesTheEnd(before.activity.phase, after.state.activity.phase)
-  )
+  val notPaused = notAdmittedWhilePaused(c)(OverQueue.paused, OverQueue.running)
+  val oneActive = atMostOneActive(c)(OverQueue.twoActive)
+  val terminal = terminalStays(c)(OverQueue.terminal, OverQueue.phase)
   // A failed commit admits nothing and leaves its message with the queue.
   val failedCommit = c.property("failedCommitKeepsTheMessage") holds (after =>
-    !after.facts.contains("activity_admissionCommitFailed") ||
+    after.records(_.activity, AdmissionFact.admissionCommitFailed) implies
       (after.state.queue.outstanding != Outstanding.empty &&
-        !after.facts.contains("activity_attemptAdmitted"))
+        !after.records(_.activity, AdmissionFact.attemptAdmitted))
   )
   val stale = c
     .scenario("staleDeliveryAfterPause")
-    .actionKeys("dispatch", "activity_control-pause", "admit")
+    .actions(
+      c.synced(_.activity -> dispatch),
+      c.own(_.activity, control(Control.pause)),
+      c.synced(_.activity -> attemptStart)
+    )
   val prePause = c
     .scenario("admittedBeforePause")
-    .actionKeys("dispatch", "admit", "activity_control-pause")
-  val duplicate = c.scenario("duplicateDelivery").actionKeys("dispatch", "admit", "admit")
+    .actions(
+      c.synced(_.activity -> dispatch),
+      c.synced(_.activity -> attemptStart),
+      c.own(_.activity, control(Control.pause))
+    )
+  val duplicate = c
+    .scenario("duplicateDelivery")
+    .actions(
+      c.synced(_.activity -> dispatch),
+      c.synced(_.activity -> attemptStart),
+      c.synced(_.activity -> attemptStart)
+    )
   val any = c.scenario("any").free
   Vector(
     query(s"${c.name}.staleDelivery") verify notPaused in stale limits three total 432,
@@ -814,104 +785,87 @@ val staleOverQueueQueries: Vector[Query] = overQueueQueries(staleOverQueue)
 //
 // The replacement is scoped to the composition: it holds only where the detailed provider refines
 // the interface it stands in for, and its checks then rely on that provider, not on the interface.
+// Each later design replaces one member of the first, and the interface it replaces is the one its
+// new provider refines.
 
 final case class OverMatching(activity: AdmissionState, queue: QueueDetail)
 
-val idleOverMatching: OverMatching = OverMatching(scheduledIdle, idleQueue)
+/** The record's status sets, read through the composition's `activity` member. */
+object OverMatching:
+  def paused(s: OverMatching): Boolean = Admission.paused(s.activity)
+  def running(s: OverMatching): Boolean = Admission.running(s.activity)
+  def terminal(s: OverMatching): Boolean = Admission.terminal(s.activity)
+  def twoActive(s: OverMatching): Boolean = Admission.twoActive(s.activity)
+  def phase(s: OverMatching): AdmissionPhase = s.activity.phase
 
 val currentOverMatching: Composition[OverMatching] =
-  compose[OverMatching]("activity" -> currentRecord, "queue" -> matchingQueue)
-    .sync("dispatch", "activity" -> dispatch, "queue" -> enqueue)
-    .sync("admit", "activity" -> attemptStart, "queue" -> deliver)
-    .sync("settle", "activity" -> answerDelivery, "queue" -> acknowledge)
-    .replaces("queue", dispatchQueue)
+  compose[OverMatching](_.activity -> currentRecord, _.queue -> matchingQueue)
+    .sync("dispatch", _.activity -> dispatch, _.queue -> enqueue)
+    .sync("admit", _.activity -> attemptStart, _.queue -> deliver)
+    .sync("settle", _.activity -> answerDelivery, _.queue -> acknowledge)
+    .replaces(_.queue, dispatchQueue)
     .ends(s => admissionEnds(s.activity))
 
 val staleOverMatching: Composition[OverMatching] =
-  compose[OverMatching]("activity" -> staleRecord, "queue" -> matchingQueue)
-    .sync("dispatch", "activity" -> dispatch, "queue" -> enqueue)
-    .sync("admit", "activity" -> attemptStart, "queue" -> deliver)
-    .sync("settle", "activity" -> answerDelivery, "queue" -> acknowledge)
-    .replaces("queue", dispatchQueue)
-    .ends(s => admissionEnds(s.activity))
+  currentOverMatching.withMember(_.activity -> staleRecord)
 
 /** The corrected design over each violating provider: the replacement is what must fail. */
 val currentOverForgetful: Composition[OverMatching] =
-  compose[OverMatching]("activity" -> currentRecord, "queue" -> forgetfulQueue)
-    .sync("dispatch", "activity" -> dispatch, "queue" -> enqueue)
-    .sync("admit", "activity" -> attemptStart, "queue" -> deliver)
-    .sync("settle", "activity" -> answerDelivery, "queue" -> acknowledge)
-    .replaces("queue", dispatchQueue)
-    .ends(s => admissionEnds(s.activity))
+  currentOverMatching.withMember(_.queue -> forgetfulQueue)
 
 val currentOverVolatile: Composition[OverMatching] =
-  compose[OverMatching]("activity" -> currentRecord, "queue" -> volatileQueue)
-    .sync("dispatch", "activity" -> dispatch, "queue" -> enqueue)
-    .sync("admit", "activity" -> attemptStart, "queue" -> deliver)
-    .sync("settle", "activity" -> answerDelivery, "queue" -> acknowledge)
-    .replaces("queue", dispatchQueue)
-    .ends(s => admissionEnds(s.activity))
+  currentOverMatching.withMember(_.queue -> volatileQueue)
 
 /** The corrected design where storage loss is assumed, over the interface that allows it. */
 val currentOverLossyMatching: Composition[OverMatching] =
-  compose[OverMatching]("activity" -> currentRecord, "queue" -> lossyMatchingQueue)
-    .sync("dispatch", "activity" -> dispatch, "queue" -> enqueue)
-    .sync("admit", "activity" -> attemptStart, "queue" -> deliver)
-    .sync("settle", "activity" -> answerDelivery, "queue" -> acknowledge)
-    .replaces("queue", dispatchQueueUnderStorageLoss)
-    .ends(s => admissionEnds(s.activity))
+  currentOverMatching.withMember(_.queue -> lossyMatchingQueue)
 
 /** `anyTotal` is the static combination count of its free `any` Queries. */
 def overMatchingQueries(c: Composition[OverMatching], anyTotal: Int): Vector[Query] =
-  val notPaused = c.property("notAdmittedWhilePaused") holdsAcross ((before, after) =>
-    !admitsWhilePaused(before.activity.phase, after.state.activity.phase)
-  )
-  val oneActive =
-    c.property("atMostOneActive") holds (after => after.state.activity.active != Active.two)
-  val terminal = c.property("terminalStays") holdsAcross ((before, after) =>
-    !leavesTheEnd(before.activity.phase, after.state.activity.phase)
-  )
+  val notPaused = notAdmittedWhilePaused(c)(OverMatching.paused, OverMatching.running)
+  val oneActive = atMostOneActive(c)(OverMatching.twoActive)
+  val terminal = terminalStays(c)(OverMatching.terminal, OverMatching.phase)
   val stale = c
     .scenario("staleDeliveryAfterPause")
-    .actionKeys(
-      "dispatch",
-      "queue_addActivityTask",
-      "queue_persistTask",
-      "activity_control-pause",
-      "admit"
+    .actions(
+      c.synced(_.activity -> dispatch),
+      c.own(_.queue, addActivityTask),
+      c.own(_.queue, persistTask),
+      c.own(_.activity, control(Control.pause)),
+      c.synced(_.activity -> attemptStart)
     )
   val prePause = c
     .scenario("admittedBeforePause")
-    .actionKeys(
-      "dispatch",
-      "queue_addActivityTask",
-      "queue_persistTask",
-      "admit",
-      "activity_control-pause"
+    .actions(
+      c.synced(_.activity -> dispatch),
+      c.own(_.queue, addActivityTask),
+      c.own(_.queue, persistTask),
+      c.synced(_.activity -> attemptStart),
+      c.own(_.activity, control(Control.pause))
     )
   // The answer to the poller is lost after the commit, so the persisted task is handed out again.
   val lostAck = c
     .scenario("deliveredAgainAfterLostAck")
-    .actionKeys(
-      "dispatch",
-      "queue_addActivityTask",
-      "queue_persistTask",
-      "admit",
-      "queue_ackLoss",
-      "admit"
+    .actions(
+      c.synced(_.activity -> dispatch),
+      c.own(_.queue, addActivityTask),
+      c.own(_.queue, persistTask),
+      c.synced(_.activity -> attemptStart),
+      c.own(_.queue, ackLoss),
+      c.synced(_.activity -> attemptStart)
     )
   // A crash after the admission commit and before the acknowledgment: history retries the sync match.
   val crashAfterCommit = c
     .scenario("crashAfterAdmissionCommit")
-    .actionKeys(
-      "dispatch",
-      "queue_addActivityTask",
-      "queue_syncMatch",
-      "admit",
-      "queue_crash",
-      "queue_addActivityTask",
-      "queue_syncMatch",
-      "admit"
+    .actions(
+      c.synced(_.activity -> dispatch),
+      c.own(_.queue, addActivityTask),
+      c.own(_.queue, syncMatch),
+      c.synced(_.activity -> attemptStart),
+      c.own(_.queue, crash),
+      c.own(_.queue, addActivityTask),
+      c.own(_.queue, syncMatch),
+      c.synced(_.activity -> attemptStart)
     )
   val any = c.scenario("any").free
   Vector(
