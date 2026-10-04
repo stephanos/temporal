@@ -111,8 +111,9 @@ Task 1 is done: each Model folder declares its IR files in Scala (`val x = irFil
 8-16 s to 5 s. The new files put standaloneactivity at 1,614 lines, above fn-112's 1,600; fn-114.8's counts
 report it. Task 2 is done: the Nexus caller Model uses captured names, derivation and the four-file layout
 (its four files went from 898 lines and 114 literals to 780 and 21); the source-path change moved the canary
-Case identity, so its pinned Run was re-recorded. Tasks 3 (caller realization) and 4-5 (close policy) run in
-parallel.
+Case identity, so its pinned Run was re-recorded. Task 3 is done: the caller realization refers to
+its declarations by value through the shared kit (525 lines and 30 literals, from 645 and 60). Tasks 4-5
+(close policy) are in progress.
 ### fn-118: Declare how Temporal APIs behave once, and let the generated tests use it
 
 Task 1 is done: the inventory (16 Cases, 17 polls, 52 waits, 440 s declared wait budget) and the
