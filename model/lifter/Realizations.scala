@@ -1075,34 +1075,40 @@ private[lift] trait Realizations:
               )
 
   /**
-   * A command: one written out, `Command(id, …)`, as written; otherwise an instruction or
-   * `command(instruction, …)` with its options, named after its val.
+   * A command: one written out, `Command(id, instruction, …)`, under its id; otherwise an instruction
+   * or `command(instruction, …)`, named after its val. Either way an instruction written in the
+   * scope of a call, `rpc`, `poll` or `setting`, is read as the call it is.
    */
   private def commandValue(b0: Bound, d: Descriptor): PMessage =
     val b = reduce(b0)
     val m = Message(d)
-    if spelledOut(b) then declaration(b, m)
-    else
-      val (instruction, options) = scriptCall(b.term) match
-        case Some(("command", instruction :: options)) =>
-          val named = List("after", "timeoutMs", "regardless", "closes").zip(options).collect {
-            case (p, a) if !isDefault(a) => p -> Bound(a, b.env)
-          }
-          (Bound(instruction, b.env), named)
-        case _ => (b, Nil)
-      val i = reduce(instruction)
-      scriptCall(i.term) match
-        case Some(("rpc" | "setting", _)) =>
-          val f = irField(d, "rpc", i.term)
-          m.set(f, rpcValue(i, irMessage(f, i.term)))
-        case Some(("poll", _)) =>
-          val f = irField(d, "poll", i.term)
-          m.set(f, pollValue(i, irMessage(f, i.term)))
-        case Some((other, _)) => fail(i.term, s"$other is no instruction")
-        case None             => declaration(i, m)
-      for (p, a) <- options do fieldOf(m, irField(d, snake(p), a.term), a)
-      m.set(irField(d, "id", b.term), PString(commandName(b0)))
-      m.set(irField(d, "position", b.term), pos(b.term).toPMessage)
+    val options = List("after", "timeoutMs", "regardless", "closes")
+    def supplied(names: List[String], args: List[Term]) = names.zip(args).collect {
+      case (p, a) if !isDefault(a) => p -> Bound(a, b.env)
+    }
+    val (instruction, named) =
+      if spelledOut(b) then
+        val args = applied(b.term).map(_._2).getOrElse(Nil)
+        m.set(irField(d, "id", b.term), PString(idOf(b)))
+        (Bound(args(1), b.env), supplied(options, args.drop(2)))
+      else
+        m.set(irField(d, "id", b.term), PString(commandName(b0)))
+        scriptCall(b.term) match
+          case Some(("command", instruction :: rest)) =>
+            (Bound(instruction, b.env), supplied(options, rest))
+          case _ => (b, Nil)
+    val i = reduce(instruction)
+    scriptCall(i.term) match
+      case Some(("rpc" | "setting", _)) =>
+        val f = irField(d, "rpc", i.term)
+        m.set(f, rpcValue(i, irMessage(f, i.term)))
+      case Some(("poll", _)) =>
+        val f = irField(d, "poll", i.term)
+        m.set(f, pollValue(i, irMessage(f, i.term)))
+      case Some((other, _)) => fail(i.term, s"$other is no instruction")
+      case None             => declaration(i, m)
+    for (p, a) <- named do fieldOf(m, irField(d, snake(p), a.term), a)
+    m.set(irField(d, "position", b.term), pos(b.term).toPMessage)
     m.written
 
   /** A call written with `rpc(role, method) { … }`, and the fields `setting` adds to it. */

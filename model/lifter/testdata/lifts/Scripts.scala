@@ -3,11 +3,12 @@
 //
 // `helpers` writes a realization with the helpers and the kit: commands named after their vals,
 // declarations referred to by value, a fact by its case, a status read from a table, a call extended
-// with `setting`, a read written with the kit's `await`. `records` writes the same realization as core
-// records, every id written out. `sugaredRequest` and `coredRequest` declare one request both ways:
-// `field(_.name) := operand` (model/temporal/realize/Syntax.scala) and its core form
-// `Assignment.typed(Field[Req, V](_.name), operand)`, in the scope of the same call. The lifter's tests
-// lift them and require each pair's IR to be equal apart from positions, ids and names.
+// with `setting`, a read written with the kit's `await`, and a command written out under its own id
+// around a call. `records` writes the same realization as core records, every id written out.
+// `sugaredRequest` and `coredRequest` declare one request both ways: `field(_.name) := operand`
+// (model/temporal/realize/Syntax.scala) and its core form `Assignment.typed(Field[Req, V](_.name),
+// operand)`, in the scope of the same call. The lifter's tests lift them and require each pair's IR
+// to be equal apart from positions, ids and names.
 package fixture.scripts
 
 import umpire.*
@@ -92,7 +93,16 @@ val helpers: Realization = temporalRealization(
       always(startActivity.setting {
         field(_.getStartToCloseTimeout.seconds) := unreachedDeadline
       }),
-      perform(attemptStart -> releaseDispatch, control(Control.terminate) -> stopWorker)
+      perform(attemptStart -> releaseDispatch, control(Control.terminate) -> stopWorker),
+      // A command written out under its own id, around a call written in its scope.
+      perform(
+        control(Control.unpause) -> Command(
+          "unpause-written-out",
+          rpc(workflowService, METHOD_UNPAUSE_ACTIVITY_EXECUTION) {
+            field(_.namespace) := workerNamespace
+          }
+        )
+      )
     )
   ),
   evidence = Vector(statusPaused, answered(ProtocolFact.statusScheduled, startActivity)),
@@ -236,6 +246,28 @@ val records: Realization = Realization(
             Performance(
               control(Control.terminate),
               Command("stop-worker", Instruction.Fault("temporal.task-queue", FaultKind.workerStop))
+            )
+          )
+        ),
+        Item(performs =
+          Vector(
+            Performance(
+              control(Control.unpause),
+              Command(
+                "unpause-written-out",
+                Instruction.rpc(
+                  "temporal.workflow-service",
+                  WorkflowServiceGrpc.METHOD_UNPAUSE_ACTIVITY_EXECUTION
+                )(
+                  Vector(
+                    Assignment.typed(
+                      Field[UnpauseActivityExecutionRequest, String](_.namespace),
+                      Operand.environment[String]("temporal.worker.namespace")
+                    )
+                  ),
+                  Vector.empty
+                )
+              )
             )
           )
         )

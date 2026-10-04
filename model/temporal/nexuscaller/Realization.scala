@@ -17,10 +17,12 @@ package nexuscaller
 import umpire.*
 import umpire.realize.*
 import temporal.realize.{
+  await,
   caseWorker,
   correlated,
   correlatedEvidence,
   deadlineSeconds,
+  field,
   handlerTaskQueue,
   nexusEndpoint,
   perCase,
@@ -261,17 +263,6 @@ object NexusRealization:
     )
   )
 
-  private val pollAssignments = Vector(
-    Assignment.typed(
-      Field[GetWorkflowExecutionHistoryRequest, String](_.namespace),
-      workerNamespace
-    ),
-    Assignment.typed(
-      Field[GetWorkflowExecutionHistoryRequest, String](_.getExecution.workflowId),
-      run
-    )
-  )
-
   private val describeAssignments = Vector(
     Assignment.typed(
       Field[DescribeWorkflowExecutionRequest, String](_.namespace),
@@ -286,25 +277,27 @@ object NexusRealization:
   /** Polls the pending operation until its first attempt has failed. */
   private val pendingAttempts = Command(
     "pending-attempts",
-    Instruction.poll(pending, workflowService)(
-      describeAssignments,
-      Condition.equal(Field[PendingNexusOperationInfo, Int](_.attempt), Operand.integer(1)),
-      250
-    )
+    await(pending, workflowService)(
+      Condition.equal(Field[PendingNexusOperationInfo, Int](_.attempt), Operand.integer(1))
+    ) {
+      field(_.namespace) := workerNamespace
+      field(_.getExecution.workflowId) := run
+    }
   )
 
   /** Polls the history for the scheduled event, run until the event exists. */
   private val awaitScheduled = Command(
     "await-scheduled",
-    Instruction.poll(scheduled, workflowService)(
-      pollAssignments,
+    await(scheduled, workflowService)(
       Condition.present(
         Field[HistoryEvent, Option[NexusOperationScheduledEventAttributes]](
           _.attributes.nexusOperationScheduledEventAttributes
         )
-      ),
-      250
-    )
+      )
+    ) {
+      field(_.namespace) := workerNamespace
+      field(_.getExecution.workflowId) := run
+    }
   )
 
   /** The handle an asynchronous reply publishes and a completion reads. */
