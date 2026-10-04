@@ -1,0 +1,8 @@
+=== RUN   TestPackageArchitecture
+--- PASS: TestPackageArchitecture (0.98s)
+=== RUN   TestPublicPackagesDoNotExportTypeAliases
+--- PASS: TestPublicPackagesDoNotExportTypeAliases (3.43s)
+=== RUN   TestRunnerRequestsCompileInExternalModule
+--- PASS: TestRunnerRequestsCompileInExternalModule (0.33s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3	4.744s

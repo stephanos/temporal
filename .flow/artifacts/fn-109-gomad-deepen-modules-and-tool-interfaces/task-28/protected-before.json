@@ -1,0 +1,15 @@
+{
+  "selection": "git tracked Gomad modules, root go.mod/go.sum and lint config excluding campaign source",
+  "files": 1007,
+  "aggregate_sha256": "310442e1a38ecfd7505423c495f499a1d2e32c9b73144a677d1e64f118881c9a",
+  "captured": "2026-10-04T14:39:22.037243+00:00",
+  "pinned_root_source": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/root.go": "56355baf52dd718903a59c94d54eee5e2765d50383b471d08819accd1ec02acd",
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/root_openat.go": "1896b0feba64b0e6dccf7c8cb1543919cd78fb05f7b110662e313caeab22d2b7"
+  },
+  "platform": [
+    "linux",
+    "arm64"
+  ],
+  "patched_go_exists": false
+}

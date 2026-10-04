@@ -1,0 +1,21 @@
+=== RUN   TestBatchJournalRecordsCanonicalResumePlan
+    campaign_journal_test.go:201: RecordPlan() target error = prepared target identity does not match campaign plan
+        target metadata does not match its manifest
+--- FAIL: TestBatchJournalRecordsCanonicalResumePlan (0.01s)
+=== RUN   TestOpenBatchRejectsChangedRuns
+--- PASS: TestOpenBatchRejectsChangedRuns (0.00s)
+=== RUN   TestSeedControllerRestoresSatisfiedPolicy
+--- PASS: TestSeedControllerRestoresSatisfiedPolicy (0.00s)
+=== RUN   TestSeedControllerRestoresAdmissionAndWholeStatistics
+=== RUN   TestSeedControllerRestoresAdmissionAndWholeStatistics/all_admits_retained_failures
+=== RUN   TestSeedControllerRestoresAdmissionAndWholeStatistics/budget_below_threshold_admits
+=== RUN   TestSeedControllerRestoresAdmissionAndWholeStatistics/budget_at_threshold_stops
+=== RUN   TestSeedControllerRestoresAdmissionAndWholeStatistics/budget_above_threshold_stops
+--- PASS: TestSeedControllerRestoresAdmissionAndWholeStatistics (0.00s)
+    --- PASS: TestSeedControllerRestoresAdmissionAndWholeStatistics/all_admits_retained_failures (0.00s)
+    --- PASS: TestSeedControllerRestoresAdmissionAndWholeStatistics/budget_below_threshold_admits (0.00s)
+    --- PASS: TestSeedControllerRestoresAdmissionAndWholeStatistics/budget_at_threshold_stops (0.00s)
+    --- PASS: TestSeedControllerRestoresAdmissionAndWholeStatistics/budget_above_threshold_stops (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/runner/internal/campaign	0.013s
+FAIL

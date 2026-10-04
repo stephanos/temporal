@@ -1,0 +1,360 @@
+{
+  "status": "SOURCE_PROGRESS_REVIEW_CHECKS",
+  "base_commit": "d7c6695cff81a1160ee482cb82b62cf592f4f199",
+  "head_commit": "d7c6695cff81a1160ee482cb82b62cf592f4f199",
+  "branch": "gomad",
+  "committed_range_empty": true,
+  "selected_worker_receipts_verified": {
+    "baseline-package": {
+      "receipt_sha256": "393ea79f7294e65e6fc9239f914c73fa3cc291c16799a2d4879a34cddeb604aa",
+      "log_sha256": "ccecdbff9076794f7ea8c45676f57db3e57485b18a80540a4fbe92da4183b69d",
+      "exit": 0,
+      "elapsed_seconds": 2.891245085003902,
+      "stable": true
+    },
+    "baseline-focused": {
+      "receipt_sha256": "8a8217da3103296d7d8819e3264594bc7aca18230c7279771db6563db40c1ece",
+      "log_sha256": "e967670c4fc2598d367bac25fcc8fab87ac30241e730fdfdccd6106040c75237",
+      "exit": 0,
+      "elapsed_seconds": 0.9815513759967871,
+      "stable": true
+    },
+    "baseline-lint": {
+      "receipt_sha256": "4e229e9f02bb902cbbbecf878a51028a1cb8ea53ebad7c3c8a75100b744dd24d",
+      "log_sha256": "fa9fd899b93ce49e76c31f043ee1c39c63aa4fbc2ed595976f40f98c48690940",
+      "exit": 1,
+      "elapsed_seconds": 0.7282719580034609,
+      "stable": true
+    },
+    "baseline-errortype": {
+      "receipt_sha256": "c31eb1957862291a1fac62e4ae81739f5717107f26cb363af67fe8884447e52b",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit": 0,
+      "elapsed_seconds": 0.39747129200259224,
+      "stable": true
+    },
+    "characterization": {
+      "receipt_sha256": "865042a9cda6a25e6207172e2230112fc5ce2c7fa4e0a112e46e2ed902bfd98b",
+      "log_sha256": "e11b972ffceded0324de637bdc7dc3ff49366b6cc0c45d3d24b6e70e242a2afc",
+      "exit": 1,
+      "elapsed_seconds": 0.4635202920035226,
+      "stable": true
+    },
+    "characterization-baseline": {
+      "receipt_sha256": "86410f58927350785c0f57fdecfdc29efc6044fc7df2440cf77725de28ead3c5",
+      "log_sha256": "272d5070585c6c87be49ebf8972f7bb4dde18790c7c2f790dac28da1f71ee981",
+      "exit": 0,
+      "elapsed_seconds": 0.49179825000464916,
+      "stable": true
+    },
+    "final-lint": {
+      "receipt_sha256": "5ea4b7fa63763805bb6ce72df37d9fbacd274fe9234d9f3e3a8829b1a05c8916",
+      "log_sha256": "a737effb17b4c8f45ea5c5e1b870b10951f4898303d05ab368b045b52333b505",
+      "exit": 1,
+      "elapsed_seconds": 1.5561372510055662,
+      "stable": true
+    },
+    "final-predicates-package": {
+      "receipt_sha256": "08c17e9b638ffd4cb3671328df27c84ffc50c51e6352e901fb9c537962ac6289",
+      "log_sha256": "b43cccb758c1716b6d60a0248d8b0f1d3cc3488bd569ac0e3e4ec79cc821a148",
+      "exit": 0,
+      "elapsed_seconds": 6.734832502996142,
+      "stable": true
+    },
+    "final-predicates-focused": {
+      "receipt_sha256": "3c7ac9697c3e671088da1149a7d4e8f88f70a533f827bf643767afb2233c5545",
+      "log_sha256": "ccb6ccfe36234b815b5c51049e270719b332cdef156ee57c4ac25f0479aab8a2",
+      "exit": 0,
+      "elapsed_seconds": 4.924620794001385,
+      "stable": true
+    },
+    "final-predicates-lint": {
+      "receipt_sha256": "d22792581a9692e9f13c56f1a6c3429e41b6f850166b1479ac3f162fe013aa52",
+      "log_sha256": "8aadfd6a8d6889de849b303c41493b6eb4e9e9c954936a36abe2f86012a24d98",
+      "exit": 1,
+      "elapsed_seconds": 2.7904175010044128,
+      "stable": true
+    },
+    "final-predicates-errortype": {
+      "receipt_sha256": "425abc5faead244b2b48748f071e328d57f7c9d92725aaf57ac6baecf8d62302",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exit": 0,
+      "elapsed_seconds": 1.5989955430050031,
+      "stable": true
+    },
+    "frozen-boundary": {
+      "receipt_sha256": "8306a2aa2e0e5595dc41a1a1ceff65b4fb329dfd581b860ea9740eb4c2662314",
+      "log_sha256": "3e8b942cbc169266deb4df3097b19f190bb9beb93e9c152a08464afd5c3ee9ac",
+      "exit": 0,
+      "elapsed_seconds": 5.474651419004658,
+      "stable": true
+    },
+    "final-validation": {
+      "receipt_sha256": "fd7bcee86e0c2e7fe62e7efff321986812db7d045c55b310127764f0fffc1572",
+      "log_sha256": "23526df5ff015aa7ea83d107d454d6e79f077c768dd884efbc2fb73e7903b679",
+      "exit": 0,
+      "elapsed_seconds": 4.668809043003421,
+      "stable": true
+    }
+  },
+  "campaign_files": 30,
+  "baseline_matches_BASE": true,
+  "final_matches_current": true,
+  "campaign_final_aggregate_sha256": "f8a3db000a0d1a8981d68c8bc726e5789d0576c1075e035196177fe50e6bad5f",
+  "protected_files": 1007,
+  "protected_aggregate_sha256": "310442e1a38ecfd7505423c495f499a1d2e32c9b73144a677d1e64f118881c9a",
+  "protected_before_after_current_match": true,
+  "original_completion_tests_sha256": "048cd02e1fe26ec39fdf7c919fc1ee538206efa2e5cf34be42303c38ebef1520",
+  "original_task3_sha256": "a057f2e4163c878e86a8357db9f5e3d0bd2a54c69c5f18bf24a912a940201406",
+  "runner_sha256": "bdf6d21c8e09713446a803bc112b48db4eb50718827129bd53d4617ce4ff606b",
+  "parent_original_criteria_prefix_intact": true,
+  "root_operation_statements_and_order_exact_BASE": true,
+  "constructor_validation_and_completion_prepolicy_statements_exact_BASE": true,
+  "characterization_before_production_verified": true,
+  "tool_sha256": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "lint_config_sha256": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+  "lint": {
+    "before_count": 17,
+    "after_count": 2,
+    "mapped_before": 15,
+    "mapped_after": 0,
+    "introduced_count": 0,
+    "counts_before": {
+      "errcheck": 13,
+      "exhaustive": 2,
+      "forbidigo": 2
+    },
+    "counts_after": {
+      "forbidigo": 2
+    },
+    "residual": [
+      {
+        "path": "tools/gomad3/runner/internal/campaign/controller.go",
+        "line": 129,
+        "column": 3,
+        "message": "use of `panic` forbidden because \"Please avoid using panic in application code\"",
+        "linter": "forbidigo"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/controller.go",
+        "line": 132,
+        "column": 3,
+        "message": "use of `panic` forbidden because \"Please avoid using panic in application code\"",
+        "linter": "forbidigo"
+      }
+    ],
+    "source_locations_verified": true,
+    "intermediate_QF1003": 2,
+    "fresh_equals_worker_final": true
+  },
+  "changed_source_sha256": {
+    "tools/gomad3/runner/internal/campaign/campaign_journal_test.go": "2678a795d1010a3b310e294814d8360b2bcf2f0991c2a813b8b32530d13ae594",
+    "tools/gomad3/runner/internal/campaign/controller.go": "043981c7ac6e97713971c62a308693089ec0f0499e75d52d6c7d9474eec843de",
+    "tools/gomad3/runner/internal/campaign/controller_test.go": "3a8ce5ffc13578cccbdd1e9d78007d6f65606025d4c287fecf73a3720cc669a3",
+    "tools/gomad3/runner/internal/campaign/merge_capacity_test.go": "44c3ea0f49be0467bd66fa710c67a93bfc5d6db1fbcb3f34334d83ac4cb03614",
+    "tools/gomad3/runner/internal/campaign/open_campaign.go": "1003d279b9b66cc34a51254c3205db602ec69b98af3cc61ecf71c816ebe8fc0f",
+    "tools/gomad3/runner/internal/campaign/resume_plan.go": "7287a4d6b70cab19914761ecada32e52fe5f5a367f849e0b211e0ecdba8c1832",
+    "tools/gomad3/runner/internal/campaign/segmented_journal_test.go": "35bcae45b171b087ab868572641a92a3c73f027fbc1804726b13e9ca34576cdb"
+  },
+  "fresh_gates": {
+    "review-package": {
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "./runner/internal/campaign"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-04T14:51:12.362632+00:00",
+      "ended": "2026-10-04T14:51:18.645188+00:00",
+      "elapsed_seconds": 6.2795217120001325,
+      "exit": 0,
+      "stable": true,
+      "log_sha256": "662c8397a3eea1d9fa6b64fac3a8784a059a055f7e2eb6ea7f22ecb6b9f9e9a4",
+      "receipt_sha256": "f14bf5caf67bd5d2f0caba6d6bbaafabff7c0a44300f279ad728335c3bb23330",
+      "receipt": "review-package.json",
+      "log": "review-package.log"
+    },
+    "review-focused": {
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "./runner/internal/campaign",
+        "-run",
+        "SeedController|Controller|Resume|Cancel|Plan|Publish|Torn|Reject",
+        "-v"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-04T14:51:12.367743+00:00",
+      "ended": "2026-10-04T14:51:15.993014+00:00",
+      "elapsed_seconds": 3.6190052520032623,
+      "exit": 0,
+      "stable": true,
+      "log_sha256": "c777d7871a8e4b9edaeece3d1b83245684791d1686a715d5cac862d689a1ef35",
+      "receipt_sha256": "c5a5e366e1d05b505ced8263dbf452906574af9b4a6b93124fc2cf79fdf1342d",
+      "receipt": "review-focused.json",
+      "log": "review-focused.log"
+    },
+    "review-lint": {
+      "command": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml",
+        "--build-tags",
+        "test_dep",
+        "--fix=false",
+        "./runner/internal/campaign"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-04T14:51:12.373145+00:00",
+      "ended": "2026-10-04T14:51:13.139548+00:00",
+      "elapsed_seconds": 0.758846626005834,
+      "exit": 1,
+      "stable": true,
+      "log_sha256": "8aadfd6a8d6889de849b303c41493b6eb4e9e9c954936a36abe2f86012a24d98",
+      "receipt_sha256": "ffdd923f7c28431f852a48a81b1be701d89c828dc1fb78db182ca4e2032cedd7",
+      "receipt": "review-lint.json",
+      "log": "review-lint.log"
+    },
+    "review-errortype": {
+      "command": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-tags",
+        "test_dep",
+        "./runner/internal/campaign"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-04T14:51:12.386450+00:00",
+      "ended": "2026-10-04T14:51:13.786702+00:00",
+      "elapsed_seconds": 1.3937283760024002,
+      "exit": 0,
+      "stable": true,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt_sha256": "c790839ea344b1cc848dfea465d3a07d6461f805bf2caab8095d15ee463a7308",
+      "receipt": "review-errortype.json",
+      "log": "review-errortype.log"
+    },
+    "review-boundary": {
+      "command": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        ".",
+        "-run",
+        "^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestRunnerRequestsCompileInExternalModule)$",
+        "-v"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "started": "2026-10-04T14:52:32.107676+00:00",
+      "ended": "2026-10-04T14:52:37.101129+00:00",
+      "elapsed_seconds": 4.989303169000777,
+      "exit": 0,
+      "stable": true,
+      "log_sha256": "272bde121c22612bf7508b5161a5cf498474c9709c1bb72b1a4147b1393236c8",
+      "receipt_sha256": "a3b5f64fa61df1e6eb141b70963b40a10e474ac473f5193331c2570d60f9f946",
+      "receipt": "review-boundary.json",
+      "log": "review-boundary.log"
+    },
+    "review-static": {
+      "command": [
+        "bash",
+        "-e",
+        "-c",
+        "git diff --check -- tools/gomad3/runner/internal/campaign\nformatted=$(/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt -l tools/gomad3/runner/internal/campaign)\ntest -z \"$formatted\""
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "started": "2026-10-04T14:55:47.904094+00:00",
+      "ended": "2026-10-04T14:55:47.933539+00:00",
+      "elapsed_seconds": 0.026910665998002514,
+      "exit": 0,
+      "stable": true,
+      "log": "review-static.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "receipt": "review-static.json",
+      "receipt_sha256": "cf7bbd4f10a9c7c3ae972d3c13c5fc90704ef9d36385bf6a08f70e349f39e83a"
+    }
+  },
+  "environment": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/share/npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-arm64/vendor/aarch64-unknown-linux-musl/codex-path:/home/agent/.codex/tmp/arg0/codex-arg0RIpACD:/home/agent/.cargo/bin:/home/agent/.local/bin:/usr/local/share/npm-global/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOFLAGS": "",
+    "GOMADSEED": null,
+    "GOMAD3_CHILD_SEED": null
+  },
+  "reviewer": {
+    "requested_model": "gpt-6.1-sol",
+    "requested_effort": "high",
+    "tier": "session (jev-unavailable(no_key))",
+    "actual_model": null,
+    "actual_model_metadata_available": false,
+    "same_configured_family_as_writer": true,
+    "judge_repeated": false
+  },
+  "assessment": "READY_FOR_SOURCE_PROGRESS_COMMIT_ONLY",
+  "findings": {
+    "critical": [],
+    "important": [],
+    "minor": []
+  },
+  "formal_review": "conductor-deferred; no formal SHIP or Flow completion",
+  "focused_top_level_tests": 51,
+  "required_focused_tests_ran": [
+    "TestBatchJournalRecordsCanonicalResumePlan",
+    "TestOpenBatchRejectsChangedRuns",
+    "TestSeedControllerRestoresAdmissionAndWholeStatistics",
+    "TestSeedControllerRejectsCompletionWithoutClassification",
+    "TestSeedControllerRejectsCompletionWithoutActiveWork",
+    "TestResumeSegmentedJournalExcludesTornActiveTail"
+  ],
+  "cleanup": {
+    "deferred_journal_calls": 9,
+    "campaign_test_deferred_calls": 8,
+    "shard_helper_deferred_calls": 1,
+    "production_conditional_root_closes": 3,
+    "torn_tail_setup_failure_checked_close": 1,
+    "all_original_lifetimes_preserved": true,
+    "nil_close_primary_error_identity_preserved": true,
+    "runtime_nonnil_root_close_demonstrated": false
+  },
+  "supplement": {
+    "eight_journal_deferred_sites_checked": true,
+    "shard_helper_lifetime_exact_BASE_after_close_normalization": true,
+    "torn_tail_exact_BASE_after_close_normalization": true,
+    "controller_old_tests_exact_BASE": true,
+    "validation_only_current_difference": "controller.go direct predicate refinement; no generator inputs"
+  },
+  "audit": {
+    "receipt": "review-audit.json",
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "started": "2026-10-04T14:54:18.196006+00:00",
+    "ended": "2026-10-04T14:54:18.610148+00:00",
+    "elapsed_seconds": 0.4140939589997288,
+    "exit": 0
+  },
+  "remaining": [
+    "Two original invariant forbidigo diagnostics; actual package lint exits 1",
+    "Original R16/R18/R19, task3/predecessors and task21 acceptance",
+    "Fixed supplied first-baseline identities and canonical equivalence beyond scoped existing vectors",
+    "Complete/full/formal gates and actual patched-runtime/native darwin/arm64 and linux/amd64 qualification",
+    "Historical broader419 qualification remains unrerun"
+  ],
+  "owned_source_writes": 0,
+  "owned_git_index_head_flow_lifecycle_writes": 0,
+  "owned_delegates": 0,
+  "owned_live_command_handles": 0,
+  "owned_pending_commands": 0
+}

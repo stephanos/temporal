@@ -1,0 +1,55 @@
+tools/gomad3/runner/internal/campaign/campaign_journal_test.go:26:21: Error return value of `journal.Close` is not checked (errcheck)
+	defer journal.Close()
+	                   ^
+tools/gomad3/runner/internal/campaign/campaign_journal_test.go:120:21: Error return value of `journal.Close` is not checked (errcheck)
+	defer journal.Close()
+	                   ^
+tools/gomad3/runner/internal/campaign/campaign_journal_test.go:148:21: Error return value of `journal.Close` is not checked (errcheck)
+	defer journal.Close()
+	                   ^
+tools/gomad3/runner/internal/campaign/campaign_journal_test.go:244:21: Error return value of `resumed.Close` is not checked (errcheck)
+	defer resumed.Close()
+	                   ^
+tools/gomad3/runner/internal/campaign/campaign_journal_test.go:399:21: Error return value of `journal.Close` is not checked (errcheck)
+	defer journal.Close()
+	                   ^
+tools/gomad3/runner/internal/campaign/campaign_journal_test.go:453:21: Error return value of `journal.Close` is not checked (errcheck)
+	defer journal.Close()
+	                   ^
+tools/gomad3/runner/internal/campaign/campaign_journal_test.go:551:21: Error return value of `journal.Close` is not checked (errcheck)
+	defer journal.Close()
+	                   ^
+tools/gomad3/runner/internal/campaign/campaign_journal_test.go:575:21: Error return value of `journal.Close` is not checked (errcheck)
+	defer journal.Close()
+	                   ^
+tools/gomad3/runner/internal/campaign/controller.go:103:2: missing cases in switch of type campaign.FailurePolicy: campaign.FailurePolicyAll (exhaustive)
+	switch config.Policy {
+	^
+tools/gomad3/runner/internal/campaign/controller.go:133:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic("gomad3: completed an inactive campaign attempt")
+		^
+tools/gomad3/runner/internal/campaign/controller.go:136:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic("gomad3: completed a campaign attempt without a classification")
+		^
+tools/gomad3/runner/internal/campaign/controller.go:162:2: missing cases in switch of type campaign.FailurePolicy: campaign.FailurePolicyAll (exhaustive)
+	switch controller.policy {
+	^
+tools/gomad3/runner/internal/campaign/merge_capacity_test.go:101:21: Error return value of `journal.Close` is not checked (errcheck)
+	defer journal.Close()
+	                   ^
+tools/gomad3/runner/internal/campaign/open_campaign.go:50:18: Error return value of `root.Close` is not checked (errcheck)
+	defer root.Close()
+	                ^
+tools/gomad3/runner/internal/campaign/resume_plan.go:116:18: Error return value of `root.Close` is not checked (errcheck)
+	defer root.Close()
+	                ^
+tools/gomad3/runner/internal/campaign/resume_plan.go:161:18: Error return value of `root.Close` is not checked (errcheck)
+	defer root.Close()
+	                ^
+tools/gomad3/runner/internal/campaign/segmented_journal_test.go:203:15: Error return value of `active.Close` is not checked (errcheck)
+		active.Close()
+		            ^
+17 issues:
+* errcheck: 13
+* exhaustive: 2
+* forbidigo: 2

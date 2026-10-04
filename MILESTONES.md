@@ -26,7 +26,7 @@ changes, change the spec and summarize the change here.
 | F10 | [fn-105](.flow/specs/fn-105-gomad-follow-ups-deferred-scope.md) | D12 native Linux replay fix; D26 combined runtime candidate and D27 host-clock candidate awaiting native qualification; D3–D5 architecture, downstream D8–D10, and deferred D6/D11/D15 |
 | Downstream cell | [fn-107](.flow/specs/fn-107-gomad-finish-downstream-cell.md) | Task 5: consumer and both-platform exact replay; blocked by the absent `../downstream` checkout and qualified hosts |
 | Code-size cleanup | [fn-108](.flow/specs/fn-108-gomad-reduce-code-size-without-removing.md) | Task 8: native linux/amd64 qualification for R9 |
-| Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | Tasks 2–12 have merged candidates awaiting acceptance; tasks 13–18 have reviewed source candidates awaiting native gates; task 19's committed architecture candidate awaits formal review after a predispatch tool failure; task 20's earlier guidance has formal SHIP and its nine-flag CLI correction is source-reviewed and committed, while inherited D5 acceptance remains open; task 21 retains matched developmental 10/100 campaigns and finding/preservation evidence, with R18 reconciliation and both native gates incomplete; tasks 23–26 retain source-reviewed lint-routing, path-base, controller and Runner-owned CLI semantic repairs; root ordinary and integration lint/vet pass, while the retained 419 nested Gomad findings and 54 inherited CLI findings keep qualification red |
+| Deep modules and tool interfaces | [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) | Tasks 2–12 have merged candidates awaiting acceptance; tasks 13–18 have reviewed source candidates awaiting native gates; task 19's committed architecture candidate awaits formal review after a predispatch tool failure; task 20's earlier guidance has formal SHIP and its nine-flag CLI correction is source-reviewed and committed, while inherited D5 acceptance remains open; task 21 retains matched developmental 10/100 campaigns and finding/preservation evidence, with R18 reconciliation and both native gates incomplete; tasks 23–28 retain reviewed source and disclosure progress; campaign lint drops from 17 to 2 unchanged invariant findings, while the historical 419-finding nested receipt and 54 inherited CLI findings leave full/native qualification open |
 | Runtime patch minimization | [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) | Tasks 2–4 have merged candidates awaiting native gates; the current final `-U3` exceeds the original baseline, leaving R8's extraction reduction unmet; task 5 retains final evidence and both-platform qualification |
 | Determinism assurance and test strategy | [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) | Tasks 5, 9, and 16 have merged candidates awaiting qualification; task 10's soak gate and contract documentation are delivered and await one retained scheduled or dispatched soak run per platform |
 | Version-pin maintenance | [fn-113](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md) | Tasks 1–4 have merged candidates; final native gates and both-host acceptance remain |
@@ -263,10 +263,12 @@ repeat are retained in
 [final.md](.flow/artifacts/fn-108-gomad-reduce-code-size-without-removing/final.md).
 Do not widen qualification based on Darwin evidence. Root `make lint-code-fast`
 now routes nested modules through task 23's module-aware selector. Task 25's
-controller repair lets ordinary root and tagged integration lint/vet complete;
-the automatic nested Gomad scope still fails on 419 findings across 31 owners
+controller repair let ordinary root and tagged integration lint/vet complete;
+its retained automatic nested Gomad scope failed on 419 findings across 31 owners
 ([current routing and qualification](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-25/acceptance-open.md)).
-Nested vet and later scopes remain unreached. The historical fn-108 report
+That task-25 receipt predates task 28's package-only repairs and supplies no new
+whole-scope count. Nested vet and later scopes remain unreached. The historical
+fn-108 report
 retains its original discovery failure; current full/native qualification stays open.
 
 ## Deep modules and tool interfaces (fn-109)
@@ -352,9 +354,10 @@ red. Task 24's one-line path-base repair is independently source-reviewed,
 preserves working regexes and intended scopes without new suppressions, and
 refutes the historical literal-escape hypothesis. Task 25's independently reviewed
 controller repair preserves literal before/after lifecycle behavior and clears
-the actual package exhaustive finding. Root fast completes ordinary root and
-tagged integration lint/vet, then its automatic nested scope fails on the same
-419 Gomad findings across 31 owners; nested vet and later scopes remain unreached
+the actual package exhaustive finding. Task 25's retained root-fast gate completed
+ordinary root and tagged integration lint/vet, then its automatic nested scope
+failed on 419 Gomad findings across 31 owners; nested vet and later scopes remained
+unreached
 ([controller acceptance](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-25/acceptance-open.md)).
 Task 26's independently reviewed caller correction restores Runner semantic
 ownership while preserving CLI error order, presence/zero checks and writer
@@ -364,6 +367,15 @@ signatures are unchanged; external compilation passes. The 54 affected CLI lint
 findings remain inherited, complete CLI/portable-plan gates retain environment
 failures, and Darwin identity proof remains skipped. Task 26 stays blocked on
 qualification ([caller acceptance](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/acceptance-open.md)).
+Task 28's independently reviewed campaign repair checks thirteen cleanup returns
+at their original lifetimes and replaces two policy switches without changing
+first-only cancellation, budget drain or invariant rejection. Conditional root
+cleanup preserves nil-close primary error identity. Ordinary package, focused,
+boundary, errortype and generator checks pass on developmental linux/arm64.
+Actual unfiltered campaign lint falls from 17 to 2 unchanged invariant findings,
+with no introduced diagnostics. No real nonnil-root-close proof or new whole-scope
+count is supplied. Task 28 stays blocked on original full/native/formal and
+R16/R18/R19 qualification ([campaign acceptance](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-28/acceptance-open.md)).
 The remaining nested findings retain bounded source owners
 ([path-policy acceptance](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/acceptance-open.md)). Task 21 remains the final
 verifier, and original R18/R19 and native acceptance stay open

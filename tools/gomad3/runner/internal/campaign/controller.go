@@ -100,17 +100,13 @@ func NewSeedController(config SeedControllerConfig) (*SeedController, error) {
 		next: config.Next, parallel: config.Parallel, policy: config.Policy,
 		failureBudget: config.FailureBudget, statistics: config.Initial,
 	}
-	switch config.Policy {
-	case FailurePolicyFirst:
-		if config.Initial.Failures != 0 {
-			controller.statistics.StopReason = StopFirstFailure
-			controller.stopped = true
-		}
-	case FailurePolicyBudget:
-		if config.Initial.DistinctFailures >= config.FailureBudget {
-			controller.statistics.StopReason = StopFailureBudget
-			controller.stopped = true
-		}
+	if config.Policy == FailurePolicyFirst && config.Initial.Failures != 0 {
+		controller.statistics.StopReason = StopFirstFailure
+		controller.stopped = true
+	}
+	if config.Policy == FailurePolicyBudget && config.Initial.DistinctFailures >= config.FailureBudget {
+		controller.statistics.StopReason = StopFailureBudget
+		controller.stopped = true
 	}
 	return controller, nil
 }
@@ -159,16 +155,14 @@ func (controller *SeedController) Complete(completion Completion) bool {
 	if controller.stopped {
 		return false
 	}
-	switch controller.policy {
-	case FailurePolicyFirst:
+	if controller.policy == FailurePolicyFirst {
 		controller.statistics.StopReason = StopFirstFailure
 		controller.stopped = true
 		return true
-	case FailurePolicyBudget:
-		if completion.DistinctFailures >= controller.failureBudget {
-			controller.statistics.StopReason = StopFailureBudget
-			controller.stopped = true
-		}
+	}
+	if controller.policy == FailurePolicyBudget && completion.DistinctFailures >= controller.failureBudget {
+		controller.statistics.StopReason = StopFailureBudget
+		controller.stopped = true
 	}
 	return false
 }

@@ -200,7 +200,9 @@ func TestResumeSegmentedJournalExcludesTornActiveTail(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := active.Write([]byte(`{"selection_ordinal":`)); err != nil {
-		active.Close()
+		if closeErr := active.Close(); closeErr != nil {
+			t.Error(closeErr)
+		}
 		t.Fatal(err)
 	}
 	if err := active.Close(); err != nil {

@@ -1,0 +1,322 @@
+=== RUN   TestCampaignJournalPublishesTheCanonicalCampaignLifecycle
+--- PASS: TestCampaignJournalPublishesTheCanonicalCampaignLifecycle (0.03s)
+=== RUN   TestValidateBatchPlanRejectsChangedArtifactCapacity
+--- PASS: TestValidateBatchPlanRejectsChangedArtifactCapacity (0.00s)
+=== RUN   TestOpenBatchValidatesPublishedJournal
+--- PASS: TestOpenBatchValidatesPublishedJournal (0.05s)
+=== RUN   TestBatchJournalRecordsCanonicalResumePlan
+--- PASS: TestBatchJournalRecordsCanonicalResumePlan (0.01s)
+=== RUN   TestResumeCampaignJournalReusesVerifiedRunsAndArchivesIncompleteWork
+--- PASS: TestResumeCampaignJournalReusesVerifiedRunsAndArchivesIncompleteWork (0.14s)
+=== RUN   TestResumeCampaignJournalAcceptsRunsSharingDeduplicatedFailureEvidence
+--- PASS: TestResumeCampaignJournalAcceptsRunsSharingDeduplicatedFailureEvidence (0.23s)
+=== RUN   TestChoiceProfileMatchesResumePlanExactly
+--- PASS: TestChoiceProfileMatchesResumePlanExactly (0.00s)
+=== RUN   TestOpenBatchRejectsChangedRuns
+--- PASS: TestOpenBatchRejectsChangedRuns (0.09s)
+=== RUN   TestRunJournalRejectsInvalidStateTransitions
+--- PASS: TestRunJournalRejectsInvalidStateTransitions (0.01s)
+=== RUN   TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption
+=== RUN   TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption/none
+=== RUN   TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption/old_schema
+=== RUN   TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption/run_divergence
+--- PASS: TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption (0.23s)
+    --- PASS: TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption/none (0.06s)
+    --- PASS: TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption/old_schema (0.11s)
+    --- PASS: TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption/run_divergence (0.05s)
+=== RUN   TestResumeExplorationJournalArchivesIncompleteRoundAtomically
+--- PASS: TestResumeExplorationJournalArchivesIncompleteRoundAtomically (0.01s)
+=== RUN   TestResumeExplorationJournalRejectsCorruptOrNonContiguousSegments
+=== RUN   TestResumeExplorationJournalRejectsCorruptOrNonContiguousSegments/corrupt
+=== RUN   TestResumeExplorationJournalRejectsCorruptOrNonContiguousSegments/gap
+--- PASS: TestResumeExplorationJournalRejectsCorruptOrNonContiguousSegments (0.02s)
+    --- PASS: TestResumeExplorationJournalRejectsCorruptOrNonContiguousSegments/corrupt (0.02s)
+    --- PASS: TestResumeExplorationJournalRejectsCorruptOrNonContiguousSegments/gap (0.01s)
+=== RUN   TestExplorationJournalRejectsChangedPlanAndOversizedSegment
+--- PASS: TestExplorationJournalRejectsChangedPlanAndOversizedSegment (0.00s)
+=== RUN   TestResumeExplorationJournalRejectsRunProjectionDivergence
+--- PASS: TestResumeExplorationJournalRejectsRunProjectionDivergence (0.01s)
+=== RUN   TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes
+--- PASS: TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes (0.00s)
+=== RUN   TestResumeExplorationJournalWrittenBeforeTheStartOrdinal
+--- PASS: TestResumeExplorationJournalWrittenBeforeTheStartOrdinal (0.00s)
+=== RUN   TestResumeExplorationJournalRequiresItsStartOrdinal
+--- PASS: TestResumeExplorationJournalRequiresItsStartOrdinal (0.00s)
+=== RUN   TestSeedCampaignPlanRejectsChoiceStartOrdinal
+--- PASS: TestSeedCampaignPlanRejectsChoiceStartOrdinal (0.00s)
+=== RUN   TestSeedControllerCompletionKeepsWholeStatistics
+=== RUN   TestSeedControllerCompletionKeepsWholeStatistics/success
+=== RUN   TestSeedControllerCompletionKeepsWholeStatistics/cancellation
+=== RUN   TestSeedControllerCompletionKeepsWholeStatistics/unclassified_attempt
+=== RUN   TestSeedControllerCompletionKeepsWholeStatistics/watchdog
+=== RUN   TestSeedControllerCompletionKeepsWholeStatistics/replay_divergence
+=== RUN   TestSeedControllerCompletionKeepsWholeStatistics/distinct_and_duplicate_failures
+=== RUN   TestSeedControllerCompletionKeepsWholeStatistics/first_failure_cancels_active_work_once
+=== RUN   TestSeedControllerCompletionKeepsWholeStatistics/budget_counts_distinct_failures
+=== RUN   TestSeedControllerCompletionKeepsWholeStatistics/budget_unclassified_attempts_never_stop
+=== RUN   TestSeedControllerCompletionKeepsWholeStatistics/all_never_stops
+=== RUN   TestSeedControllerCompletionKeepsWholeStatistics/stopped_campaign_keeps_classifying_without_a_policy_stop
+=== RUN   TestSeedControllerCompletionKeepsWholeStatistics/resume_seeded_counters_accumulate
+=== RUN   TestSeedControllerCompletionKeepsWholeStatistics/resume_seeded_first_policy_without_failures
+--- PASS: TestSeedControllerCompletionKeepsWholeStatistics (0.00s)
+    --- PASS: TestSeedControllerCompletionKeepsWholeStatistics/success (0.00s)
+    --- PASS: TestSeedControllerCompletionKeepsWholeStatistics/cancellation (0.00s)
+    --- PASS: TestSeedControllerCompletionKeepsWholeStatistics/unclassified_attempt (0.00s)
+    --- PASS: TestSeedControllerCompletionKeepsWholeStatistics/watchdog (0.00s)
+    --- PASS: TestSeedControllerCompletionKeepsWholeStatistics/replay_divergence (0.00s)
+    --- PASS: TestSeedControllerCompletionKeepsWholeStatistics/distinct_and_duplicate_failures (0.00s)
+    --- PASS: TestSeedControllerCompletionKeepsWholeStatistics/first_failure_cancels_active_work_once (0.00s)
+    --- PASS: TestSeedControllerCompletionKeepsWholeStatistics/budget_counts_distinct_failures (0.00s)
+    --- PASS: TestSeedControllerCompletionKeepsWholeStatistics/budget_unclassified_attempts_never_stop (0.00s)
+    --- PASS: TestSeedControllerCompletionKeepsWholeStatistics/all_never_stops (0.00s)
+    --- PASS: TestSeedControllerCompletionKeepsWholeStatistics/stopped_campaign_keeps_classifying_without_a_policy_stop (0.00s)
+    --- PASS: TestSeedControllerCompletionKeepsWholeStatistics/resume_seeded_counters_accumulate (0.00s)
+    --- PASS: TestSeedControllerCompletionKeepsWholeStatistics/resume_seeded_first_policy_without_failures (0.00s)
+=== RUN   TestSeedControllerRejectsCompletionWithoutClassification
+--- PASS: TestSeedControllerRejectsCompletionWithoutClassification (0.00s)
+=== RUN   TestSeedControllerRejectsCompletionWithoutActiveWork
+--- PASS: TestSeedControllerRejectsCompletionWithoutActiveWork (0.00s)
+=== RUN   TestSeedControllerSchedulesAndAggregatesDeterministically
+--- PASS: TestSeedControllerSchedulesAndAggregatesDeterministically (0.00s)
+=== RUN   TestSeedControllerAppliesFailurePolicies
+=== RUN   TestSeedControllerAppliesFailurePolicies/first
+=== RUN   TestSeedControllerAppliesFailurePolicies/budget
+=== RUN   TestSeedControllerAppliesFailurePolicies/all
+--- PASS: TestSeedControllerAppliesFailurePolicies (0.00s)
+    --- PASS: TestSeedControllerAppliesFailurePolicies/first (0.00s)
+    --- PASS: TestSeedControllerAppliesFailurePolicies/budget (0.00s)
+    --- PASS: TestSeedControllerAppliesFailurePolicies/all (0.00s)
+=== RUN   TestSeedControllerCompletesUnclassifiedAndDuplicateFailureAtomically
+--- PASS: TestSeedControllerCompletesUnclassifiedAndDuplicateFailureAtomically (0.00s)
+=== RUN   TestSeedControllerRejectsInactiveCompletionBeforeChangingStatistics
+--- PASS: TestSeedControllerRejectsInactiveCompletionBeforeChangingStatistics (0.00s)
+=== RUN   TestSeedControllerRestoresSatisfiedPolicy
+--- PASS: TestSeedControllerRestoresSatisfiedPolicy (0.00s)
+=== RUN   TestSeedControllerRestoresAdmissionAndWholeStatistics
+=== RUN   TestSeedControllerRestoresAdmissionAndWholeStatistics/all_admits_retained_failures
+=== RUN   TestSeedControllerRestoresAdmissionAndWholeStatistics/budget_below_threshold_admits
+=== RUN   TestSeedControllerRestoresAdmissionAndWholeStatistics/budget_at_threshold_stops
+=== RUN   TestSeedControllerRestoresAdmissionAndWholeStatistics/budget_above_threshold_stops
+--- PASS: TestSeedControllerRestoresAdmissionAndWholeStatistics (0.00s)
+    --- PASS: TestSeedControllerRestoresAdmissionAndWholeStatistics/all_admits_retained_failures (0.00s)
+    --- PASS: TestSeedControllerRestoresAdmissionAndWholeStatistics/budget_below_threshold_admits (0.00s)
+    --- PASS: TestSeedControllerRestoresAdmissionAndWholeStatistics/budget_at_threshold_stops (0.00s)
+    --- PASS: TestSeedControllerRestoresAdmissionAndWholeStatistics/budget_above_threshold_stops (0.00s)
+=== RUN   TestSeedControllerRejectsInvalidConfiguration
+--- PASS: TestSeedControllerRejectsInvalidConfiguration (0.00s)
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/000-create-private-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/001-create-private-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/002-create-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/003-file-sync-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/004-rename-atomic-publish
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/005-directory-sync-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/006-create-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/007-file-sync-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/008-rename-atomic-publish
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/009-directory-sync-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/010-create-private-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/011-create-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/012-file-sync-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/013-rename-atomic-publish
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/014-directory-sync-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/015-create-private-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/016-create-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/017-file-sync-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/018-rename-atomic-publish
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/019-directory-sync-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/020-create-execution-output
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/021-file-sync-execution-output
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/022-create-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/023-file-sync-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/024-rename-atomic-publish
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/025-directory-sync-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/026-create-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/027-file-sync-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/028-rename-atomic-publish
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/029-directory-sync-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/030-create-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/031-file-sync-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/032-rename-atomic-publish
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/033-directory-sync-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/034-create-execution-segment
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/035-file-sync-execution-segment
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/036-delete-execution-partial
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/037-create-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/038-file-sync-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/039-rename-atomic-publish
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/040-directory-sync-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/041-file-sync-execution-segment
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/042-rename-execution-segment-publish
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/043-directory-sync-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/044-directory-sync-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/045-create-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/046-file-sync-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/047-rename-atomic-publish
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/048-directory-sync-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/049-create-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/050-file-sync-atomic-temporary
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/051-rename-atomic-publish
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/052-directory-sync-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/053-directory-sync-directory
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/054-delete-prepared-target
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/055-delete-execution-journal
+=== RUN   TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/056-delete-campaign-lifecycle
+--- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState (1.09s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/000-create-private-directory (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/001-create-private-directory (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/002-create-atomic-temporary (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/003-file-sync-atomic-temporary (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/004-rename-atomic-publish (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/005-directory-sync-directory (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/006-create-atomic-temporary (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/007-file-sync-atomic-temporary (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/008-rename-atomic-publish (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/009-directory-sync-directory (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/010-create-private-directory (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/011-create-atomic-temporary (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/012-file-sync-atomic-temporary (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/013-rename-atomic-publish (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/014-directory-sync-directory (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/015-create-private-directory (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/016-create-atomic-temporary (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/017-file-sync-atomic-temporary (0.03s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/018-rename-atomic-publish (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/019-directory-sync-directory (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/020-create-execution-output (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/021-file-sync-execution-output (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/022-create-atomic-temporary (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/023-file-sync-atomic-temporary (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/024-rename-atomic-publish (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/025-directory-sync-directory (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/026-create-atomic-temporary (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/027-file-sync-atomic-temporary (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/028-rename-atomic-publish (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/029-directory-sync-directory (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/030-create-atomic-temporary (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/031-file-sync-atomic-temporary (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/032-rename-atomic-publish (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/033-directory-sync-directory (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/034-create-execution-segment (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/035-file-sync-execution-segment (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/036-delete-execution-partial (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/037-create-atomic-temporary (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/038-file-sync-atomic-temporary (0.13s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/039-rename-atomic-publish (0.08s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/040-directory-sync-directory (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/041-file-sync-execution-segment (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/042-rename-execution-segment-publish (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/043-directory-sync-directory (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/044-directory-sync-directory (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/045-create-atomic-temporary (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/046-file-sync-atomic-temporary (0.03s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/047-rename-atomic-publish (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/048-directory-sync-directory (0.01s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/049-create-atomic-temporary (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/050-file-sync-atomic-temporary (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/051-rename-atomic-publish (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/052-directory-sync-directory (0.03s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/053-directory-sync-directory (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/054-delete-prepared-target (0.03s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/055-delete-execution-journal (0.02s)
+    --- PASS: TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState/056-delete-campaign-lifecycle (0.02s)
+=== RUN   TestPublishedRecoveryMutationFaultsRemainIdempotent
+=== RUN   TestPublishedRecoveryMutationFaultsRemainIdempotent/000-create-resume-lock
+=== RUN   TestPublishedRecoveryMutationFaultsRemainIdempotent/001-delete-prepared-target
+=== RUN   TestPublishedRecoveryMutationFaultsRemainIdempotent/002-delete-preparation
+=== RUN   TestPublishedRecoveryMutationFaultsRemainIdempotent/003-delete-campaign-lifecycle
+=== RUN   TestPublishedRecoveryMutationFaultsRemainIdempotent/004-directory-sync-directory
+=== RUN   TestPublishedRecoveryMutationFaultsRemainIdempotent/005-directory-sync-directory
+--- PASS: TestPublishedRecoveryMutationFaultsRemainIdempotent (0.21s)
+    --- PASS: TestPublishedRecoveryMutationFaultsRemainIdempotent/000-create-resume-lock (0.09s)
+    --- PASS: TestPublishedRecoveryMutationFaultsRemainIdempotent/001-delete-prepared-target (0.04s)
+    --- PASS: TestPublishedRecoveryMutationFaultsRemainIdempotent/002-delete-preparation (0.01s)
+    --- PASS: TestPublishedRecoveryMutationFaultsRemainIdempotent/003-delete-campaign-lifecycle (0.02s)
+    --- PASS: TestPublishedRecoveryMutationFaultsRemainIdempotent/004-directory-sync-directory (0.01s)
+    --- PASS: TestPublishedRecoveryMutationFaultsRemainIdempotent/005-directory-sync-directory (0.01s)
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/000-create-resume-lock
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/001-create-private-directory
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/002-create-private-directory
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/003-create-private-directory
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/004-rename-resume-archive
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/005-rename-resume-archive
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/006-directory-sync-directory
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/007-create-private-directory
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/008-create-atomic-temporary
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/009-file-sync-atomic-temporary
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/010-rename-atomic-publish
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/011-directory-sync-directory
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/012-create-execution-segment
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/013-file-sync-execution-segment
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/014-file-sync-execution-segment
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/015-rename-execution-segment-publish
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/016-directory-sync-directory
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/017-directory-sync-directory
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/018-create-atomic-temporary
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/019-file-sync-atomic-temporary
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/020-rename-atomic-publish
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/021-directory-sync-directory
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/022-create-atomic-temporary
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/023-file-sync-atomic-temporary
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/024-rename-atomic-publish
+=== RUN   TestResumeMutationFaultsLeaveJournalRetryable/025-directory-sync-directory
+--- PASS: TestResumeMutationFaultsLeaveJournalRetryable (0.92s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/000-create-resume-lock (0.03s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/001-create-private-directory (0.02s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/002-create-private-directory (0.03s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/003-create-private-directory (0.02s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/004-rename-resume-archive (0.03s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/005-rename-resume-archive (0.03s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/006-directory-sync-directory (0.03s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/007-create-private-directory (0.05s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/008-create-atomic-temporary (0.03s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/009-file-sync-atomic-temporary (0.14s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/010-rename-atomic-publish (0.04s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/011-directory-sync-directory (0.03s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/012-create-execution-segment (0.02s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/013-file-sync-execution-segment (0.02s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/014-file-sync-execution-segment (0.03s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/015-rename-execution-segment-publish (0.06s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/016-directory-sync-directory (0.03s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/017-directory-sync-directory (0.02s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/018-create-atomic-temporary (0.02s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/019-file-sync-atomic-temporary (0.02s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/020-rename-atomic-publish (0.02s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/021-directory-sync-directory (0.02s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/022-create-atomic-temporary (0.02s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/023-file-sync-atomic-temporary (0.10s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/024-rename-atomic-publish (0.02s)
+    --- PASS: TestResumeMutationFaultsLeaveJournalRetryable/025-directory-sync-directory (0.02s)
+=== RUN   TestCampaignLifecycleProgressesToPublished
+--- PASS: TestCampaignLifecycleProgressesToPublished (0.01s)
+=== RUN   TestRecoverCampaignFinishesPublishedCleanup
+--- PASS: TestRecoverCampaignFinishesPublishedCleanup (0.01s)
+=== RUN   TestResumeCampaignJournalRepairsInterruptedCommitUnderLock
+--- PASS: TestResumeCampaignJournalRepairsInterruptedCommitUnderLock (0.02s)
+=== RUN   TestPreflightResumeReturnsValidatedLifecycleAndPlan
+--- PASS: TestPreflightResumeReturnsValidatedLifecycleAndPlan (0.01s)
+=== RUN   TestPreflightResumeRejectsUnrecoverableLifecycle
+--- PASS: TestPreflightResumeRejectsUnrecoverableLifecycle (0.00s)
+=== RUN   TestRecoverCampaignRejectsIdentitylessPlannedStateWithoutMutation
+--- PASS: TestRecoverCampaignRejectsIdentitylessPlannedStateWithoutMutation (0.00s)
+=== RUN   TestRecoverAndResumeShareExclusiveLock
+--- PASS: TestRecoverAndResumeShareExclusiveLock (0.01s)
+=== RUN   TestSegmentedJournalRotatesAndPublishesImmutableIndex
+--- PASS: TestSegmentedJournalRotatesAndPublishesImmutableIndex (0.04s)
+=== RUN   TestSegmentedJournalRejectsOversizeRecordWithoutPublishingBytes
+--- PASS: TestSegmentedJournalRejectsOversizeRecordWithoutPublishingBytes (0.00s)
+=== RUN   TestResumeSegmentedJournalRecoversContiguousOrphanSegment
+--- PASS: TestResumeSegmentedJournalRecoversContiguousOrphanSegment (0.02s)
+=== RUN   TestResumeSegmentedJournalExcludesTornActiveTail
+--- PASS: TestResumeSegmentedJournalExcludesTornActiveTail (0.01s)
+=== RUN   TestSimulationExplorationJournalCommitsAndResumesWholeRounds
+--- PASS: TestSimulationExplorationJournalCommitsAndResumesWholeRounds (0.01s)
+=== RUN   TestResumeSimulationExplorationJournalDiscardsOnlyIncompleteRound
+--- PASS: TestResumeSimulationExplorationJournalDiscardsOnlyIncompleteRound (0.01s)
+=== RUN   TestResumeSimulationExplorationJournalDoesNotCountUnstartedRoundCandidates
+--- PASS: TestResumeSimulationExplorationJournalDoesNotCountUnstartedRoundCandidates (0.00s)
+=== RUN   TestResumeSimulationExplorationJournalRejectsCorruptSegment
+--- PASS: TestResumeSimulationExplorationJournalRejectsCorruptSegment (0.01s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/runner/internal/campaign	3.215s

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -23,7 +24,11 @@ func TestCampaignJournalPublishesTheCanonicalCampaignLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer journal.Close()
+	defer func() {
+		if err := journal.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	if err := journal.BeginPreparation(); err != nil {
 		t.Fatal(err)
 	}
@@ -117,7 +122,11 @@ func TestOpenBatchValidatesPublishedJournal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer journal.Close()
+	defer func() {
+		if err := journal.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	if err := journal.StartExecutions(); err != nil {
 		t.Fatal(err)
 	}
@@ -145,7 +154,11 @@ func TestBatchJournalRecordsCanonicalResumePlan(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer journal.Close()
+	defer func() {
+		if err := journal.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	if err := journal.BeginPreparation(); err != nil {
 		t.Fatal(err)
 	}
@@ -172,6 +185,11 @@ func TestBatchJournalRecordsCanonicalResumePlan(t *testing.T) {
 	if err := journal.RecordPlan(plan); err != nil {
 		t.Fatal(err)
 	}
+	if err := journal.RecordPlan(plan); err == nil || err.Error() != "campaign plan already exists" || errors.Unwrap(err) != nil {
+		t.Fatalf("RecordPlan() existing-plan error = %v", err)
+	} else if _, joined := err.(interface{ Unwrap() []error }); joined {
+		t.Fatalf("RecordPlan() wrapped existing-plan error = %v", err)
+	}
 	if err := journal.CompletePreparation(); err != nil {
 		t.Fatal(err)
 	}
@@ -191,8 +209,16 @@ func TestBatchJournalRecordsCanonicalResumePlan(t *testing.T) {
 	if err := os.Chmod(preparedPath, 0o500); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := ReadResumePlan(journal.Path()); err == nil || !strings.Contains(err.Error(), "prepared target identity") {
+	if err := journal.RecordPlan(plan); err == nil || err.Error() != "prepared target identity does not match campaign plan\ntarget metadata does not match its manifest" {
+		t.Fatalf("RecordPlan() target error = %v", err)
+	} else if joined, ok := err.(interface{ Unwrap() []error }); !ok || len(joined.Unwrap()) != 2 || joined.Unwrap()[0].Error() != "prepared target identity does not match campaign plan" || joined.Unwrap()[1].Error() != "target metadata does not match its manifest" {
+		t.Fatalf("RecordPlan() target error changed shape = %v", err)
+	}
+	rejected, err := ReadResumePlan(journal.Path())
+	if err == nil || err.Error() != "prepared target identity does not match campaign plan\ntarget metadata does not match its manifest" || !reflect.DeepEqual(rejected, CampaignPlan{}) {
 		t.Fatalf("ReadResumePlan() error = %v", err)
+	} else if joined, ok := err.(interface{ Unwrap() []error }); !ok || len(joined.Unwrap()) != 2 || joined.Unwrap()[0].Error() != "prepared target identity does not match campaign plan" || joined.Unwrap()[1].Error() != "target metadata does not match its manifest" {
+		t.Fatalf("ReadResumePlan() target error changed shape = %v", err)
 	}
 }
 
@@ -241,7 +267,11 @@ func TestResumeCampaignJournalReusesVerifiedRunsAndArchivesIncompleteWork(t *tes
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resumed.Close()
+	defer func() {
+		if err := resumed.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	if len(state.Executions) != 1 || state.Executions[0].Seed != 7 || state.Plan.Selection != "7-9" {
 		t.Fatalf("resume state = %#v", state)
 	}
@@ -396,7 +426,11 @@ func TestBatchJournalRoundTripsChoiceProfileAndRunSummary(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer journal.Close()
+	defer func() {
+		if err := journal.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	if err := journal.StartExecutions(); err != nil {
 		t.Fatal(err)
 	}
@@ -450,7 +484,11 @@ func TestOpenBatchRejectsChangedRuns(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer journal.Close()
+	defer func() {
+		if err := journal.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	if err := journal.StartExecutions(); err != nil {
 		t.Fatal(err)
 	}
@@ -466,8 +504,13 @@ func TestOpenBatchRejectsChangedRuns(t *testing.T) {
 	if err := os.WriteFile(runs, []byte("{}\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := OpenCampaign(journal.Path()); err == nil || !strings.Contains(err.Error(), "identity changed") {
+	opened, err := OpenCampaign(journal.Path())
+	if err == nil || err.Error() != "execution segment 00000000000000000000.jsonl identity changed" || !reflect.DeepEqual(opened, Campaign{}) {
 		t.Fatalf("OpenBatch() error = %v", err)
+	}
+	var integrityErr *IntegrityError
+	if !errors.As(err, &integrityErr) || err != integrityErr {
+		t.Fatalf("OpenCampaign() changed primary integrity error = %v", err)
 	}
 }
 
@@ -548,7 +591,11 @@ func TestBatchJournalPreservesExplicitFailureState(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer journal.Close()
+	defer func() {
+		if err := journal.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	if err := journal.BeginPreparation(); err != nil {
 		t.Fatal(err)
 	}
@@ -572,7 +619,11 @@ func TestRunJournalRejectsInvalidStateTransitions(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer journal.Close()
+	defer func() {
+		if err := journal.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	run, err := journal.BeginExecution(0, 1)
 	if err != nil {
 		t.Fatal(err)

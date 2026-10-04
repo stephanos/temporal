@@ -479,6 +479,21 @@ equivalence or close original R18/R19/task21/full/native/formal qualification.
 Task 27 stays blocked on qualification; task 21 consumes the reviewed supplement.
 Root commits verified progress before the next writer.
 
+Task 28's independently reviewed campaign source correction checks thirteen
+cleanup returns and replaces two policy switches while preserving invariant
+panics, first-only cancellation, budget drain, original canonical/error vectors
+and cleanup lifetimes. Conditional root cleanup preserves nil-close error
+identity and joins a nonnil close error after the operation error. Actual
+unfiltered package lint changes from 17 to 2 unchanged invariant findings:
+15 mapped findings resolved, none introduced. Whole ordinary package, focused,
+boundary, errortype and generator checks pass on developmental linux/arm64;
+fresh independent review finds no actionable introduced defect.
+Task 28 stays blocked on qualification; task 21 consumes this owner's evidence.
+No real nonnil-root-close execution is demonstrated. The broader 419-finding
+receipt remains historical; package progress supplies no new whole-scope count.
+Original R16/R18/R19, task 3/predecessors, fixed-identity, full/native/formal
+requirements remain unchanged. Root commits verified progress before next writer.
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.

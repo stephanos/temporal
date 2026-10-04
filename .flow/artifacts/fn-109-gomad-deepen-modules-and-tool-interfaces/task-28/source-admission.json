@@ -1,0 +1,34 @@
+{
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.28",
+  "base_commit": "d7c6695cff81a1160ee482cb82b62cf592f4f199",
+  "scheduling": "wave (task-ID run); one checkout source writer; parallel independent read-only artifact cleanup scout",
+  "requested_worker": {
+    "model": "gpt-6.1-sol",
+    "effort": "high",
+    "tier": "session (jev-unavailable(no_key))",
+    "actual_model_evidenced": false
+  },
+  "source_scope": "13 mapped cleanup returns and two branch-restricted policy switches; both invariant panic contracts preserved",
+  "protected_before": {
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.3.md": "a057f2e4163c878e86a8357db9f5e3d0bd2a54c69c5f18bf24a912a940201406",
+    "tools/gomad3/runner/runner.go": "bdf6d21c8e09713446a803bc112b48db4eb50718827129bd53d4617ce4ff606b",
+    ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43"
+  },
+  "review_backend": "codex; root deferred formal green-tree review while qualification remains red",
+  "tracker_bridge_active": false,
+  "plan_sync_enabled": false,
+  "root_owned": [
+    "Git/index/commit",
+    "Flow lifecycle",
+    "parent spec and task21 dependency",
+    "MILESTONES",
+    "independent review"
+  ],
+  "qualification_limits": [
+    "linux/arm64 developmental only",
+    "patched native toolchain absent",
+    "unfiltered campaign lint must retain both invariant findings",
+    "broader419 receipt remains historical; package progress supplies no new full result",
+    "original R16/R18/R19/task3/predecessors/task21 and qualified native/full/formal remain open"
+  ]
+}

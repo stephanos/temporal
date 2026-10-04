@@ -32,7 +32,7 @@ type ExecutionJournalInfo struct {
 	Limits      ExecutionJournalPlan
 }
 
-func OpenCampaign(path string) (Campaign, error) {
+func OpenCampaign(path string) (_ Campaign, retErr error) {
 	rootInfo, err := os.Lstat(path)
 	if err != nil {
 		return Campaign{}, fmt.Errorf("open campaign directory: %w", err)
@@ -47,7 +47,11 @@ func OpenCampaign(path string) (Campaign, error) {
 	if err != nil {
 		return Campaign{}, fmt.Errorf("pin campaign directory: %w", err)
 	}
-	defer root.Close()
+	defer func() {
+		if closeErr := root.Close(); closeErr != nil {
+			retErr = errors.Join(retErr, closeErr)
+		}
+	}()
 	pinnedInfo, err := root.Stat(".")
 	if err != nil || !os.SameFile(rootInfo, pinnedInfo) {
 		return Campaign{}, errors.Join(fmt.Errorf("campaign directory changed while opening"), err)

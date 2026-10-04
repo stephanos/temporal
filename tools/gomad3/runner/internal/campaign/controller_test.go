@@ -168,6 +168,54 @@ func TestSeedControllerRestoresSatisfiedPolicy(t *testing.T) {
 	}
 }
 
+func TestSeedControllerRestoresAdmissionAndWholeStatistics(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		policy  FailurePolicy
+		budget  uint64
+		stopped bool
+		want    CampaignStatistics
+	}{
+		{name: "all admits retained failures", policy: FailurePolicyAll, budget: 1,
+			want: CampaignStatistics{Attempted: 8, Succeeded: 3, Failures: 4, Watchdogs: 2, ReplayDivergences: 1, Cancelled: 1, DistinctFailures: 2}},
+		{name: "budget below threshold admits", policy: FailurePolicyBudget, budget: 3,
+			want: CampaignStatistics{Attempted: 8, Succeeded: 3, Failures: 4, Watchdogs: 2, ReplayDivergences: 1, Cancelled: 1, DistinctFailures: 2}},
+		{name: "budget at threshold stops", policy: FailurePolicyBudget, budget: 2, stopped: true,
+			want: CampaignStatistics{Attempted: 8, Succeeded: 3, Failures: 4, Watchdogs: 2, ReplayDivergences: 1, Cancelled: 1, DistinctFailures: 2, StopReason: StopFailureBudget}},
+		{name: "budget above threshold stops", policy: FailurePolicyBudget, budget: 1, stopped: true,
+			want: CampaignStatistics{Attempted: 8, Succeeded: 3, Failures: 4, Watchdogs: 2, ReplayDivergences: 1, Cancelled: 1, DistinctFailures: 2, StopReason: StopFailureBudget}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			calls := 0
+			controller, err := NewSeedController(SeedControllerConfig{
+				Next: func() (SeedJob, bool) {
+					calls++
+					return SeedJob{Ordinal: 8, Seed: 18}, true
+				},
+				Parallel: 1, Policy: test.policy, FailureBudget: test.budget,
+				Initial: CampaignStatistics{Attempted: 8, Succeeded: 3, Failures: 4, Watchdogs: 2, ReplayDivergences: 1, Cancelled: 1, DistinctFailures: 2},
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := controller.Statistics(); got != test.want || controller.Stopped() != test.stopped || controller.Done() != test.stopped || controller.Active() != 0 {
+				t.Fatalf("restored statistics = %#v, stopped = %t, done = %t, active = %d, want %#v, stopped = %t", got, controller.Stopped(), controller.Done(), controller.Active(), test.want, test.stopped)
+			}
+			job, ok := controller.Next()
+			if test.stopped {
+				if ok || job != (SeedJob{}) || calls != 0 {
+					t.Fatalf("stopped admission = %#v, %t, source calls = %d", job, ok, calls)
+				}
+			} else if !ok || job != (SeedJob{Ordinal: 8, Seed: 18}) || calls != 1 || controller.Active() != 1 {
+				t.Fatalf("resumed admission = %#v, %t, source calls = %d, active = %d", job, ok, calls, controller.Active())
+			}
+			if got := controller.Statistics(); got != test.want {
+				t.Fatalf("admission changed statistics = %#v, want %#v", got, test.want)
+			}
+		})
+	}
+}
+
 func TestSeedControllerRejectsInvalidConfiguration(t *testing.T) {
 	validNext := func() (SeedJob, bool) { return SeedJob{}, false }
 	for _, config := range []SeedControllerConfig{

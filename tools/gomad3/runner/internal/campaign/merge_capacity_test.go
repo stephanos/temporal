@@ -98,7 +98,11 @@ func publishMergeShard(t *testing.T, artifacts string, index uint64) (string, []
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer journal.Close()
+	defer func() {
+		if err := journal.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	for _, step := range []func() error{journal.BeginPreparation, journal.CompletePreparation, journal.StartExecutions} {
 		if err := step(); err != nil {
 			t.Fatal(err)

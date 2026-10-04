@@ -1,0 +1,15 @@
+tools/gomad3/runner/internal/campaign/controller.go:103:2: QF1003: could use tagged switch on config.Policy (staticcheck)
+	if config.Policy == FailurePolicyFirst {
+	^
+tools/gomad3/runner/internal/campaign/controller.go:132:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic("gomad3: completed an inactive campaign attempt")
+		^
+tools/gomad3/runner/internal/campaign/controller.go:135:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic("gomad3: completed a campaign attempt without a classification")
+		^
+tools/gomad3/runner/internal/campaign/controller.go:161:2: QF1003: could use tagged switch on controller.policy (staticcheck)
+	if controller.policy == FailurePolicyFirst {
+	^
+4 issues:
+* forbidigo: 2
+* staticcheck: 2

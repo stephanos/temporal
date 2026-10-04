@@ -1,0 +1,8 @@
+tools/gomad3/runner/internal/campaign/controller.go:129:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic("gomad3: completed an inactive campaign attempt")
+		^
+tools/gomad3/runner/internal/campaign/controller.go:132:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic("gomad3: completed a campaign attempt without a classification")
+		^
+2 issues:
+* forbidigo: 2

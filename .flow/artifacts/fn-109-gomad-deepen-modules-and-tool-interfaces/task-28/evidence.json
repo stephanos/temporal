@@ -1,0 +1,436 @@
+{
+  "status": "SOURCE_PROGRESS_ONLY",
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.28",
+  "base_commit": "d7c6695cff81a1160ee482cb82b62cf592f4f199",
+  "commits": [],
+  "commit_range": "",
+  "requested_model": "gpt-6.1-sol",
+  "requested_effort": "high",
+  "tier": "session (jev-unavailable(no_key))",
+  "actual_model": null,
+  "actual_model_metadata_available": false,
+  "platform": [
+    "linux",
+    "arm64"
+  ],
+  "source_checks": {
+    "baseline_matches_base": true,
+    "all_gate_sources_stable": true,
+    "final_gate_sources_match_current": true,
+    "protected_inputs_stable": true,
+    "protected_files": 1007,
+    "protected_sha256": "310442e1a38ecfd7505423c495f499a1d2e32c9b73144a677d1e64f118881c9a",
+    "original_completion_tests_unchanged": true,
+    "changed_product_paths": [
+      "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+      "tools/gomad3/runner/internal/campaign/controller.go",
+      "tools/gomad3/runner/internal/campaign/controller_test.go",
+      "tools/gomad3/runner/internal/campaign/merge_capacity_test.go",
+      "tools/gomad3/runner/internal/campaign/open_campaign.go",
+      "tools/gomad3/runner/internal/campaign/resume_plan.go",
+      "tools/gomad3/runner/internal/campaign/segmented_journal_test.go"
+    ],
+    "scoped_diff_check_command": [
+      "git",
+      "diff",
+      "--check",
+      "--",
+      "tools/gomad3/runner/internal/campaign"
+    ],
+    "scoped_diff_check_exit": 0
+  },
+  "gates": {
+    "baseline-package": {
+      "receipt": "baseline-package.json",
+      "log": "baseline-package.log",
+      "exit": 0,
+      "elapsed_seconds": 2.891245085003902,
+      "stable": true
+    },
+    "baseline-focused": {
+      "receipt": "baseline-focused.json",
+      "log": "baseline-focused.log",
+      "exit": 0,
+      "elapsed_seconds": 0.9815513759967871,
+      "stable": true
+    },
+    "baseline-lint": {
+      "receipt": "baseline-lint.json",
+      "log": "baseline-lint.log",
+      "exit": 1,
+      "elapsed_seconds": 0.7282719580034609,
+      "stable": true
+    },
+    "baseline-errortype": {
+      "receipt": "baseline-errortype.json",
+      "log": "baseline-errortype.log",
+      "exit": 0,
+      "elapsed_seconds": 0.39747129200259224,
+      "stable": true
+    },
+    "characterization": {
+      "receipt": "characterization.json",
+      "log": "characterization.log",
+      "exit": 1,
+      "elapsed_seconds": 0.4635202920035226,
+      "stable": true
+    },
+    "characterization-baseline": {
+      "receipt": "characterization-baseline.json",
+      "log": "characterization-baseline.log",
+      "exit": 0,
+      "elapsed_seconds": 0.49179825000464916,
+      "stable": true
+    },
+    "final-lint": {
+      "receipt": "final-lint.json",
+      "log": "final-lint.log",
+      "exit": 1,
+      "elapsed_seconds": 1.5561372510055662,
+      "stable": true
+    },
+    "final-predicates-package": {
+      "receipt": "final-predicates-package.json",
+      "log": "final-predicates-package.log",
+      "exit": 0,
+      "elapsed_seconds": 6.734832502996142,
+      "stable": true
+    },
+    "final-predicates-focused": {
+      "receipt": "final-predicates-focused.json",
+      "log": "final-predicates-focused.log",
+      "exit": 0,
+      "elapsed_seconds": 4.924620794001385,
+      "stable": true
+    },
+    "final-predicates-lint": {
+      "receipt": "final-predicates-lint.json",
+      "log": "final-predicates-lint.log",
+      "exit": 1,
+      "elapsed_seconds": 2.7904175010044128,
+      "stable": true
+    },
+    "final-predicates-errortype": {
+      "receipt": "final-predicates-errortype.json",
+      "log": "final-predicates-errortype.log",
+      "exit": 0,
+      "elapsed_seconds": 1.5989955430050031,
+      "stable": true
+    },
+    "frozen-boundary": {
+      "receipt": "frozen-boundary.json",
+      "log": "frozen-boundary.log",
+      "exit": 0,
+      "elapsed_seconds": 5.474651419004658,
+      "stable": true
+    },
+    "final-validation": {
+      "receipt": "final-validation.json",
+      "log": "final-validation.log",
+      "exit": 0,
+      "elapsed_seconds": 4.668809043003421,
+      "stable": true
+    }
+  },
+  "pinned_tools": {
+    "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+  },
+  "lint_config_sha256": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+  "lint": {
+    "before": [
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 26,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 120,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 148,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 244,
+        "column": 21,
+        "message": "Error return value of `resumed.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 399,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 453,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 551,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 575,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/controller.go",
+        "line": 103,
+        "column": 2,
+        "message": "missing cases in switch of type campaign.FailurePolicy: campaign.FailurePolicyAll",
+        "linter": "exhaustive"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/controller.go",
+        "line": 133,
+        "column": 3,
+        "message": "use of `panic` forbidden because \"Please avoid using panic in application code\"",
+        "linter": "forbidigo"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/controller.go",
+        "line": 136,
+        "column": 3,
+        "message": "use of `panic` forbidden because \"Please avoid using panic in application code\"",
+        "linter": "forbidigo"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/controller.go",
+        "line": 162,
+        "column": 2,
+        "message": "missing cases in switch of type campaign.FailurePolicy: campaign.FailurePolicyAll",
+        "linter": "exhaustive"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/merge_capacity_test.go",
+        "line": 101,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/open_campaign.go",
+        "line": 50,
+        "column": 18,
+        "message": "Error return value of `root.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/resume_plan.go",
+        "line": 116,
+        "column": 18,
+        "message": "Error return value of `root.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/resume_plan.go",
+        "line": 161,
+        "column": 18,
+        "message": "Error return value of `root.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/segmented_journal_test.go",
+        "line": 203,
+        "column": 15,
+        "message": "Error return value of `active.Close` is not checked",
+        "linter": "errcheck"
+      }
+    ],
+    "after": [
+      {
+        "path": "tools/gomad3/runner/internal/campaign/controller.go",
+        "line": 129,
+        "column": 3,
+        "message": "use of `panic` forbidden because \"Please avoid using panic in application code\"",
+        "linter": "forbidigo"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/controller.go",
+        "line": 132,
+        "column": 3,
+        "message": "use of `panic` forbidden because \"Please avoid using panic in application code\"",
+        "linter": "forbidigo"
+      }
+    ],
+    "mapped_before": 15,
+    "mapped_after": 0,
+    "total_before": 17,
+    "total_after": 2,
+    "resolved": [
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 26,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 120,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 148,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 244,
+        "column": 21,
+        "message": "Error return value of `resumed.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 399,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 453,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 551,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/campaign_journal_test.go",
+        "line": 575,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/controller.go",
+        "line": 103,
+        "column": 2,
+        "message": "missing cases in switch of type campaign.FailurePolicy: campaign.FailurePolicyAll",
+        "linter": "exhaustive"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/controller.go",
+        "line": 162,
+        "column": 2,
+        "message": "missing cases in switch of type campaign.FailurePolicy: campaign.FailurePolicyAll",
+        "linter": "exhaustive"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/merge_capacity_test.go",
+        "line": 101,
+        "column": 21,
+        "message": "Error return value of `journal.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/open_campaign.go",
+        "line": 50,
+        "column": 18,
+        "message": "Error return value of `root.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/resume_plan.go",
+        "line": 116,
+        "column": 18,
+        "message": "Error return value of `root.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/resume_plan.go",
+        "line": 161,
+        "column": 18,
+        "message": "Error return value of `root.Close` is not checked",
+        "linter": "errcheck"
+      },
+      {
+        "path": "tools/gomad3/runner/internal/campaign/segmented_journal_test.go",
+        "line": 203,
+        "column": 15,
+        "message": "Error return value of `active.Close` is not checked",
+        "linter": "errcheck"
+      }
+    ],
+    "introduced": [],
+    "residual": "two original invariant forbidigo findings with unchanged messages and panic bodies",
+    "intermediate": "final-lint.log retains two QF1003 diagnostics from the superseded if/else-if form"
+  },
+  "source_final": {
+    "tools/gomad3/runner/internal/campaign/campaign_journal_test.go": "2678a795d1010a3b310e294814d8360b2bcf2f0991c2a813b8b32530d13ae594",
+    "tools/gomad3/runner/internal/campaign/controller.go": "043981c7ac6e97713971c62a308693089ec0f0499e75d52d6c7d9474eec843de",
+    "tools/gomad3/runner/internal/campaign/controller_test.go": "3a8ce5ffc13578cccbdd1e9d78007d6f65606025d4c287fecf73a3720cc669a3",
+    "tools/gomad3/runner/internal/campaign/merge_capacity_test.go": "44c3ea0f49be0467bd66fa710c67a93bfc5d6db1fbcb3f34334d83ac4cb03614",
+    "tools/gomad3/runner/internal/campaign/open_campaign.go": "1003d279b9b66cc34a51254c3205db602ec69b98af3cc61ecf71c816ebe8fc0f",
+    "tools/gomad3/runner/internal/campaign/resume_plan.go": "7287a4d6b70cab19914761ecada32e52fe5f5a367f849e0b211e0ecdba8c1832",
+    "tools/gomad3/runner/internal/campaign/segmented_journal_test.go": "35bcae45b171b087ab868572641a92a3c73f027fbc1804726b13e9ca34576cdb"
+  },
+  "root_close": {
+    "public_and_unix_source": {
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/root.go": "56355baf52dd718903a59c94d54eee5e2765d50383b471d08819accd1ec02acd",
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/src/os/root_openat.go": "1896b0feba64b0e6dccf7c8cb1543919cd78fb05f7b110662e313caeab22d2b7"
+    },
+    "unix_returns_nil": true,
+    "real_nonnil_close_injection": false,
+    "limitation": "Conditional join ordering is source-inspected; no nonnil os.Root.Close execution is demonstrated."
+  },
+  "review": {
+    "owner": "root",
+    "backend": "codex",
+    "status": "pending independent fresh source review",
+    "formal": "conductor-deferred while qualification remains red"
+  },
+  "remaining": [
+    "Original R16/R18/R19 and task3/predecessors/task21 acceptance",
+    "Fixed supplied first-baseline identity evidence",
+    "Complete/full/formal and qualified darwin/arm64 and linux/amd64 gates",
+    "Actual patched-runtime/native validation",
+    "Two intentional invariant forbidigo diagnostics",
+    "Historical broader419 qualification"
+  ],
+  "historical_references": [
+    "../task-27/handover.md",
+    "../task-21/preservation-disclosure-2026-10-04.md",
+    "../task-25/root-fast.receipt.json"
+  ],
+  "owned_delegates": 0,
+  "live_command_handles": 0,
+  "pending_commands": 0,
+  "worker_git_writes": 0,
+  "worker_flow_lifecycle_writes": 0
+}

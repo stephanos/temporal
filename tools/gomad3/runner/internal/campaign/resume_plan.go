@@ -96,7 +96,7 @@ func isFullyAnsweredGuidance(guidance *GuidancePlan) bool {
 	return guidance != nil && !guidance.Regression && guidance.RequestedSelection != "" && guidance.RequestedCount != 0 && guidance.AnsweredCount == guidance.RequestedCount && guidance.GuidedCount == 0 && guidance.AnsweredCount <= record.Uint64String(len(guidance.AnsweredSeeds)) && validRecordSHA256(guidance.SnapshotSHA256)
 }
 
-func (journal *CampaignJournal) RecordPlan(plan CampaignPlan) error {
+func (journal *CampaignJournal) RecordPlan(plan CampaignPlan) (retErr error) {
 	if err := validateCampaignPlan(plan); err != nil {
 		return err
 	}
@@ -113,7 +113,11 @@ func (journal *CampaignJournal) RecordPlan(plan CampaignPlan) error {
 	if err != nil {
 		return fmt.Errorf("pin campaign directory: %w", err)
 	}
-	defer root.Close()
+	defer func() {
+		if closeErr := root.Close(); closeErr != nil {
+			retErr = errors.Join(retErr, closeErr)
+		}
+	}()
 	digest, size, err := hashValidatedFile(root, filepath.FromSlash(plan.Prepared.Path), 0o500, uint64(plan.Prepared.Target.Size))
 	if err != nil || digest != plan.Prepared.Target.SHA256 || size != uint64(plan.Prepared.Target.Size) {
 		return errors.Join(fmt.Errorf("prepared target identity does not match campaign plan"), err)
@@ -146,7 +150,7 @@ func equalCampaignShard(left, right *CampaignShard) bool {
 	return *left == *right
 }
 
-func ReadResumePlan(path string) (CampaignPlan, error) {
+func ReadResumePlan(path string) (_ CampaignPlan, retErr error) {
 	rootInfo, err := os.Lstat(path)
 	if err != nil {
 		return CampaignPlan{}, fmt.Errorf("open resumable campaign directory: %w", err)
@@ -158,7 +162,11 @@ func ReadResumePlan(path string) (CampaignPlan, error) {
 	if err != nil {
 		return CampaignPlan{}, fmt.Errorf("pin resumable campaign directory: %w", err)
 	}
-	defer root.Close()
+	defer func() {
+		if closeErr := root.Close(); closeErr != nil {
+			retErr = errors.Join(retErr, closeErr)
+		}
+	}()
 	pinnedInfo, err := root.Stat(".")
 	if err != nil || !os.SameFile(rootInfo, pinnedInfo) {
 		return CampaignPlan{}, errors.Join(fmt.Errorf("resumable campaign directory changed while opening"), err)
