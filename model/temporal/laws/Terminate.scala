@@ -10,21 +10,20 @@ import umpire.laws.Law
  * row: a terminate of a closed entity is Closable's to answer, and saying "from a live state" of
  * one action would need a transition Property restricted by `when`, which is not supported.
  */
-def terminateSettles[S](m: Declares[S])(terminate: ClassRef, settled: m.Fact): Property[S] =
-  m.property when terminate holds (_.records(settled))
-
-val terminateSettlesLaw = Law(
-  "terminateSettles",
-  terminateSettles,
-  cites = Seq(
-    "chasm/lib/activity/activity.go",
-    "chasm/lib/activity/statemachine.go",
-    "chasm/lib/nexusoperation/operation_statemachine.go"
-  ),
-  promises = "a terminate of a live entity settles it as terminated in one step and records that",
-  doesNotPromise =
-    "what a terminate of a closed entity answers (closedIsRejectedUniformly), what a second " +
-      "terminate answers (the activity answers the same request id OK, the Nexus operation also " +
-      "refuses another id by name), or that a reason and an identity are recorded: the schedule " +
-      "records only that it closed"
-)
+object terminateSettles
+    extends Law(
+      cites = Seq(
+        "chasm/lib/activity/activity.go",
+        "chasm/lib/activity/statemachine.go",
+        "chasm/lib/nexusoperation/operation_statemachine.go"
+      ),
+      promises =
+        "a terminate of a live entity settles it as terminated in one step and records that",
+      doesNotPromise =
+        "what a terminate of a closed entity answers (closedIsRejectedUniformly), what a second " +
+          "terminate answers (the activity answers the same request id OK, the Nexus operation also " +
+          "refuses another id by name), or that a reason and an identity are recorded: the schedule " +
+          "records only that it closed"
+    ):
+  def apply[S](m: Declares[S])(terminate: ClassRef, settled: m.Fact): Property[S] =
+    m.property when terminate holds (_.records(settled))

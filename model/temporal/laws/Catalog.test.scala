@@ -54,7 +54,8 @@ class CatalogTest extends munit.FunSuite:
   }
 
   test("a law with one instantiating machine fails by its name; derived machines count once") {
-    val lonely = Law("describedWhilePaused", "no def", Nil, "", "")
+    object describedWhilePaused extends Law(Nil, "", "")
+    val lonely = describedWhilePaused
     val failing = Catalog.pair(Pausable, Describable)(lonely)
     assertEquals(
       instantiating(Set(Closable), planned),
@@ -80,4 +81,17 @@ class CatalogTest extends munit.FunSuite:
   test("no two laws share a name, which generated claims take as `<machine>.<law>`") {
     val names = catalog.entries.map(_.law.name)
     assertEquals(names.distinct, names)
+  }
+
+  test("a law is named after its object, which generated claims are named after") {
+    assertEquals(
+      catalog.entries.map(_.law.name).sorted,
+      Vector(
+        "cancelIsRequested",
+        "closedIsRejectedUniformly",
+        "pausedIsNotDispatched",
+        "terminalStatesAreFinal",
+        "terminateSettles"
+      )
+    )
   }

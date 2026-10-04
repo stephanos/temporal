@@ -7,6 +7,6 @@ import umpire.laws.{entityNeutral, Catalog}
 import umpire.laws.Capability.*
 
 given catalog: Catalog = entityNeutral ++
-  Catalog.single(Terminable)(terminateSettlesLaw) ++
-  Catalog.single(Cancelable)(cancelIsRequestedLaw) ++
-  Catalog.pair(Pausable, Pollable)(pausedIsNotDispatchedLaw)
+  Catalog.single(Terminable)(terminateSettles) ++
+  Catalog.single(Cancelable)(cancelIsRequested) ++
+  Catalog.pair(Pausable, Pollable)(pausedIsNotDispatched)

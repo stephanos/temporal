@@ -1,0 +1,3339 @@
+{
+  "source": "model: fixture.capabilities.Capabilities$package$.jobCapabilities, fixture.capabilities.Capabilities$package$.keptCapabilities, fixture.capabilities.Capabilities$package$.legacyCapabilities, fixture.capabilities.Capabilities$package$.pairCapabilities",
+  "types": [ {
+    "name": "fixture.capabilities.Answer",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 25
+    },
+    "enum": {
+      "cases": [ {
+        "name": "ok"
+      }, {
+        "name": "gone"
+      } ]
+    }
+  }, {
+    "name": "fixture.capabilities.Job",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 23
+    },
+    "record": {
+      "fields": [ {
+        "name": "phase",
+        "type": {
+          "named": "fixture.capabilities.Phase"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.capabilities.Note",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 30
+    },
+    "enum": {
+      "cases": [ {
+        "name": "started"
+      }, {
+        "name": "held"
+      }, {
+        "name": "resumed"
+      }, {
+        "name": "killedNote"
+      }, {
+        "name": "cancelAsked"
+      }, {
+        "name": "finished"
+      } ]
+    }
+  }, {
+    "name": "fixture.capabilities.Pair",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 127
+    },
+    "record": {
+      "fields": [ {
+        "name": "left",
+        "type": {
+          "named": "fixture.capabilities.Job"
+        }
+      }, {
+        "name": "right",
+        "type": {
+          "named": "fixture.capabilities.Job"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.capabilities.Phase",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 20
+    },
+    "enum": {
+      "cases": [ {
+        "name": "queued"
+      }, {
+        "name": "running"
+      }, {
+        "name": "paused"
+      }, {
+        "name": "done"
+      }, {
+        "name": "killed"
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "fixture.capabilities.Jobs$.cancel",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 69
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 70
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 70
+          },
+          "call": {
+            "function": "fixture.capabilities.Jobs$.terminal",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 70
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 70
+                  },
+                  "var": "j"
+                },
+                "field": "phase"
+              }
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 70
+          },
+          "call": {
+            "function": "fixture.capabilities.Jobs$.closed",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 70
+              },
+              "var": "j"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 70
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 70
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 28
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.capabilities.Answer",
+                      "case": "ok"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 70
+                  },
+                  "var": "j"
+                }, {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 70
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 70
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Note",
+                          "case": "cancelAsked"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 70
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Jobs$.closed",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 53
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 53
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 53
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 53
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilities.Answer",
+                  "case": "gone"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 53
+              },
+              "var": "j"
+            }, {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 53
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 53
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Jobs$.ends",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 51
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 51
+      },
+      "call": {
+        "function": "fixture.capabilities.Jobs$.terminal",
+        "args": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 51
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 51
+              },
+              "var": "j"
+            },
+            "field": "phase"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Jobs$.finish",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 57
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 58
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 58
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 58
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 58
+                  },
+                  "var": "j"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 58
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilities.Phase",
+                  "case": "running"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 58
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 58
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 28
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.capabilities.Answer",
+                      "case": "ok"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 58
+                  },
+                  "construct": {
+                    "type": "fixture.capabilities.Job",
+                    "args": [ {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 58
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Phase",
+                          "case": "done"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 58
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 58
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Note",
+                          "case": "finished"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 58
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 58
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Jobs$.kill",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 67
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 68
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 68
+          },
+          "call": {
+            "function": "fixture.capabilities.Jobs$.terminal",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 68
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 68
+                  },
+                  "var": "j"
+                },
+                "field": "phase"
+              }
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 68
+          },
+          "call": {
+            "function": "fixture.capabilities.Jobs$.closed",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 68
+              },
+              "var": "j"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 68
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 68
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 28
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.capabilities.Answer",
+                      "case": "ok"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 68
+                  },
+                  "construct": {
+                    "type": "fixture.capabilities.Job",
+                    "args": [ {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 68
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Phase",
+                          "case": "killed"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 68
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 68
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Note",
+                          "case": "killedNote"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 68
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Jobs$.pause",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 59
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 60
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 60
+          },
+          "call": {
+            "function": "fixture.capabilities.Jobs$.terminal",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 60
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 60
+                  },
+                  "var": "j"
+                },
+                "field": "phase"
+              }
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 60
+          },
+          "call": {
+            "function": "fixture.capabilities.Jobs$.closed",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 60
+              },
+              "var": "j"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 61
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 61
+              },
+              "binary": {
+                "op": "OP_CONTAINS",
+                "left": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 61
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 61
+                      },
+                      "var": "j"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 61
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 61
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Phase",
+                          "case": "queued"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 61
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Phase",
+                          "case": "running"
+                        }
+                      }
+                    } ]
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 61
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 61
+                  },
+                  "construct": {
+                    "type": "umpire.Step",
+                    "args": [ {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 28
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Answer",
+                          "case": "ok"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 61
+                      },
+                      "construct": {
+                        "type": "fixture.capabilities.Job",
+                        "args": [ {
+                          "position": {
+                            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                            "line": 61
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.capabilities.Phase",
+                              "case": "paused"
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 61
+                      },
+                      "list": {
+                        "items": [ {
+                          "position": {
+                            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                            "line": 61
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.capabilities.Note",
+                              "case": "held"
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 61
+                      },
+                      "literal": {
+                        "text": ""
+                      }
+                    } ]
+                  }
+                } ]
+              }
+            },
+            "else": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 62
+              },
+              "list": { }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Jobs$.paused",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 49
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 49
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 49
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 49
+              },
+              "var": "j"
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 49
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilities.Phase",
+              "case": "paused"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Jobs$.phase",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 47
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 47
+      },
+      "field": {
+        "base": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 47
+          },
+          "var": "j"
+        },
+        "field": "phase"
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Jobs$.poll",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 55
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 56
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 56
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 56
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 56
+                  },
+                  "var": "j"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 56
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilities.Phase",
+                  "case": "queued"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 56
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 56
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 28
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.capabilities.Answer",
+                      "case": "ok"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 56
+                  },
+                  "construct": {
+                    "type": "fixture.capabilities.Job",
+                    "args": [ {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 56
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Phase",
+                          "case": "running"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 56
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 56
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Note",
+                          "case": "started"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 56
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 56
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Jobs$.resume",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 63
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 64
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 64
+          },
+          "call": {
+            "function": "fixture.capabilities.Jobs$.terminal",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 64
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 64
+                  },
+                  "var": "j"
+                },
+                "field": "phase"
+              }
+            } ]
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 64
+          },
+          "call": {
+            "function": "fixture.capabilities.Jobs$.closed",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 64
+              },
+              "var": "j"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 65
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 65
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 65
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 65
+                      },
+                      "var": "j"
+                    },
+                    "field": "phase"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 65
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.capabilities.Phase",
+                      "case": "paused"
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 65
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 65
+                  },
+                  "construct": {
+                    "type": "umpire.Step",
+                    "args": [ {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 28
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.capabilities.Answer",
+                          "case": "ok"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 65
+                      },
+                      "construct": {
+                        "type": "fixture.capabilities.Job",
+                        "args": [ {
+                          "position": {
+                            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                            "line": 65
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.capabilities.Phase",
+                              "case": "queued"
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 65
+                      },
+                      "list": {
+                        "items": [ {
+                          "position": {
+                            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                            "line": 65
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "fixture.capabilities.Note",
+                              "case": "resumed"
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 65
+                      },
+                      "literal": {
+                        "text": ""
+                      }
+                    } ]
+                  }
+                } ]
+              }
+            },
+            "else": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 66
+              },
+              "list": { }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Jobs$.running",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 50
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 50
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 50
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 50
+              },
+              "var": "j"
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 50
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilities.Phase",
+              "case": "running"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Jobs$.terminal",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 48
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "named": "fixture.capabilities.Phase"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 48
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 48
+          },
+          "var": "p"
+        },
+        "right": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 48
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 48
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilities.Phase",
+                  "case": "done"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 48
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilities.Phase",
+                  "case": "killed"
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Pairs$.ends",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 132
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "named": "fixture.capabilities.Pair"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 132
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 132
+          },
+          "call": {
+            "function": "fixture.capabilities.Jobs$.ends",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 132
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 132
+                  },
+                  "var": "p"
+                },
+                "field": "left"
+              }
+            } ]
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 132
+          },
+          "call": {
+            "function": "fixture.capabilities.Jobs$.ends",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 132
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 132
+                  },
+                  "var": "p"
+                },
+                "field": "right"
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Pairs$.paused",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 130
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "named": "fixture.capabilities.Pair"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 130
+      },
+      "call": {
+        "function": "fixture.capabilities.Jobs$.paused",
+        "args": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 130
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 130
+              },
+              "var": "p"
+            },
+            "field": "left"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.capabilities.Pairs$.running",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 131
+    },
+    "params": [ {
+      "name": "p",
+      "type": {
+        "named": "fixture.capabilities.Pair"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 131
+      },
+      "call": {
+        "function": "fixture.capabilities.Jobs$.running",
+        "args": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 131
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 131
+              },
+              "var": "p"
+            },
+            "field": "left"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "job.evidence",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 81
+    },
+    "params": [ {
+      "name": "note",
+      "type": {
+        "named": "fixture.capabilities.Note"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 81
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 81
+          },
+          "var": "note"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilities.Note",
+                "case": "started"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/lifter/testdata/lifts/Capabilities.scala",
+              "line": 81
+            },
+            "literal": {
+              "text": "started"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilities.Note",
+                "case": "held"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/lifter/testdata/lifts/Capabilities.scala",
+              "line": 81
+            },
+            "literal": {
+              "text": "held"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilities.Note",
+                "case": "resumed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/lifter/testdata/lifts/Capabilities.scala",
+              "line": 81
+            },
+            "literal": {
+              "text": "resumed"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilities.Note",
+                "case": "killedNote"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/lifter/testdata/lifts/Capabilities.scala",
+              "line": 81
+            },
+            "literal": {
+              "text": "killedNote"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilities.Note",
+                "case": "cancelAsked"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/lifter/testdata/lifts/Capabilities.scala",
+              "line": 81
+            },
+            "literal": {
+              "text": "cancelAsked"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilities.Note",
+                "case": "finished"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/lifter/testdata/lifts/Capabilities.scala",
+              "line": 81
+            },
+            "literal": {
+              "text": "finished"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "job.property.job.cancelIsRequested",
+    "position": {
+      "file": "model/temporal/laws/Cancel.scala",
+      "line": 26
+    },
+    "params": [ {
+      "name": "step",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/laws/Cancel.scala",
+        "line": 26
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 111
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilities.Note",
+              "case": "cancelAsked"
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/laws/Cancel.scala",
+            "line": 26
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/laws/Cancel.scala",
+                "line": 26
+              },
+              "var": "step"
+            },
+            "field": "facts"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "job.property.job.closedIsRejectedUniformly",
+    "position": {
+      "file": "model/umpire/laws/Laws.scala",
+      "line": 59
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/umpire/laws/Laws.scala",
+        "line": 60
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/umpire/laws/Laws.scala",
+            "line": 60
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/umpire/laws/Laws.scala",
+                "line": 60
+              },
+              "call": {
+                "function": "fixture.capabilities.Jobs$.terminal",
+                "args": [ {
+                  "position": {
+                    "file": "model/umpire/laws/Laws.scala",
+                    "line": 60
+                  },
+                  "call": {
+                    "function": "fixture.capabilities.Jobs$.phase",
+                    "args": [ {
+                      "position": {
+                        "file": "model/umpire/laws/Laws.scala",
+                        "line": 60
+                      },
+                      "var": "before"
+                    } ]
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/umpire/laws/Laws.scala",
+            "line": 60
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/umpire/laws/Laws.scala",
+                "line": 60
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/umpire/laws/Laws.scala",
+                    "line": 60
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/umpire/laws/Laws.scala",
+                        "line": 60
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/umpire/laws/Laws.scala",
+                    "line": 60
+                  },
+                  "var": "before"
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/umpire/laws/Laws.scala",
+                "line": 60
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/umpire/laws/Laws.scala",
+                    "line": 60
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/umpire/laws/Laws.scala",
+                        "line": 60
+                      },
+                      "var": "after"
+                    },
+                    "field": "outcome"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 107
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.capabilities.Answer",
+                      "case": "gone"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "job.property.job.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/laws/Pause.scala",
+      "line": 25
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/laws/Pause.scala",
+        "line": 25
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/temporal/laws/Pause.scala",
+            "line": 25
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/temporal/laws/Pause.scala",
+                "line": 25
+              },
+              "call": {
+                "function": "fixture.capabilities.Jobs$.paused",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/laws/Pause.scala",
+                    "line": 25
+                  },
+                  "var": "before"
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/laws/Pause.scala",
+            "line": 25
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/temporal/laws/Pause.scala",
+                "line": 25
+              },
+              "call": {
+                "function": "job.property.job.pausedIsNotDispatched.never",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/laws/Pause.scala",
+                    "line": 25
+                  },
+                  "var": "after"
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "job.property.job.pausedIsNotDispatched.never",
+    "position": {
+      "file": "model/temporal/laws/Pause.scala",
+      "line": 25
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/laws/Pause.scala",
+        "line": 25
+      },
+      "call": {
+        "function": "fixture.capabilities.Jobs$.running",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/laws/Pause.scala",
+            "line": 25
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/laws/Pause.scala",
+                "line": 25
+              },
+              "var": "s"
+            },
+            "field": "state"
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "job.property.job.terminalStatesAreFinal",
+    "position": {
+      "file": "model/umpire/laws/Laws.scala",
+      "line": 31
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/umpire/laws/Laws.scala",
+        "line": 32
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/umpire/laws/Laws.scala",
+            "line": 32
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/umpire/laws/Laws.scala",
+                "line": 32
+              },
+              "call": {
+                "function": "fixture.capabilities.Jobs$.terminal",
+                "args": [ {
+                  "position": {
+                    "file": "model/umpire/laws/Laws.scala",
+                    "line": 32
+                  },
+                  "call": {
+                    "function": "fixture.capabilities.Jobs$.phase",
+                    "args": [ {
+                      "position": {
+                        "file": "model/umpire/laws/Laws.scala",
+                        "line": 32
+                      },
+                      "var": "before"
+                    } ]
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/umpire/laws/Laws.scala",
+            "line": 32
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/umpire/laws/Laws.scala",
+                "line": 32
+              },
+              "call": {
+                "function": "fixture.capabilities.Jobs$.phase",
+                "args": [ {
+                  "position": {
+                    "file": "model/umpire/laws/Laws.scala",
+                    "line": 32
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/umpire/laws/Laws.scala",
+                        "line": 32
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                } ]
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/umpire/laws/Laws.scala",
+                "line": 32
+              },
+              "call": {
+                "function": "fixture.capabilities.Jobs$.phase",
+                "args": [ {
+                  "position": {
+                    "file": "model/umpire/laws/Laws.scala",
+                    "line": 32
+                  },
+                  "var": "before"
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "job.property.job.terminateSettles",
+    "position": {
+      "file": "model/temporal/laws/Terminate.scala",
+      "line": 29
+    },
+    "params": [ {
+      "name": "step",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/laws/Terminate.scala",
+        "line": 29
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 110
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilities.Note",
+              "case": "killedNote"
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/laws/Terminate.scala",
+            "line": 29
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/laws/Terminate.scala",
+                "line": 29
+              },
+              "var": "step"
+            },
+            "field": "facts"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "legacyJob.evidence",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 95
+    },
+    "params": [ {
+      "name": "note",
+      "type": {
+        "named": "fixture.capabilities.Note"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 95
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 95
+          },
+          "var": "note"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilities.Note",
+                "case": "started"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/lifter/testdata/lifts/Capabilities.scala",
+              "line": 95
+            },
+            "literal": {
+              "text": "started"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilities.Note",
+                "case": "held"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/lifter/testdata/lifts/Capabilities.scala",
+              "line": 95
+            },
+            "literal": {
+              "text": "held"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilities.Note",
+                "case": "resumed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/lifter/testdata/lifts/Capabilities.scala",
+              "line": 95
+            },
+            "literal": {
+              "text": "resumed"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilities.Note",
+                "case": "killedNote"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/lifter/testdata/lifts/Capabilities.scala",
+              "line": 95
+            },
+            "literal": {
+              "text": "killedNote"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilities.Note",
+                "case": "cancelAsked"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/lifter/testdata/lifts/Capabilities.scala",
+              "line": 95
+            },
+            "literal": {
+              "text": "cancelAsked"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.capabilities.Note",
+                "case": "finished"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/lifter/testdata/lifts/Capabilities.scala",
+              "line": 95
+            },
+            "literal": {
+              "text": "finished"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "legacyJob.property.legacyJob.closedIsRejectedUniformly",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 78
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 78
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 78
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 78
+              },
+              "call": {
+                "function": "fixture.capabilities.Jobs$.terminal",
+                "args": [ {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 78
+                  },
+                  "call": {
+                    "function": "fixture.capabilities.Jobs$.phase",
+                    "args": [ {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 78
+                      },
+                      "var": "before"
+                    } ]
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 78
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 78
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 78
+                  },
+                  "var": "after"
+                },
+                "field": "state"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 78
+              },
+              "var": "before"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "legacyJob.property.legacyJob.statusStaysClosed",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 156
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 156
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 156
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 156
+              },
+              "call": {
+                "function": "legacyJob.property.legacyJob.statusStaysClosed.once",
+                "args": [ {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 156
+                  },
+                  "var": "before"
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 156
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 156
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 156
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                        "line": 156
+                      },
+                      "var": "after"
+                    },
+                    "field": "state"
+                  }
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 156
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                    "line": 156
+                  },
+                  "var": "before"
+                },
+                "field": "phase"
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "legacyJob.property.legacyJob.statusStaysClosed.once",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 156
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.capabilities.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 156
+      },
+      "call": {
+        "function": "fixture.capabilities.Jobs$.terminal",
+        "args": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 156
+          },
+          "call": {
+            "function": "fixture.capabilities.Jobs$.phase",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 156
+              },
+              "var": "s"
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "pair.property.pair.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/laws/Pause.scala",
+      "line": 25
+    },
+    "params": [ {
+      "name": "before",
+      "type": {
+        "named": "fixture.capabilities.Pair"
+      }
+    }, {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/laws/Pause.scala",
+        "line": 25
+      },
+      "binary": {
+        "op": "OP_OR",
+        "left": {
+          "position": {
+            "file": "model/temporal/laws/Pause.scala",
+            "line": 25
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/temporal/laws/Pause.scala",
+                "line": 25
+              },
+              "call": {
+                "function": "fixture.capabilities.Pairs$.paused",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/laws/Pause.scala",
+                    "line": 25
+                  },
+                  "var": "before"
+                } ]
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/laws/Pause.scala",
+            "line": 25
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/temporal/laws/Pause.scala",
+                "line": 25
+              },
+              "call": {
+                "function": "pair.property.pair.pausedIsNotDispatched.never",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/laws/Pause.scala",
+                    "line": 25
+                  },
+                  "var": "after"
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "pair.property.pair.pausedIsNotDispatched.never",
+    "position": {
+      "file": "model/temporal/laws/Pause.scala",
+      "line": 25
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/laws/Pause.scala",
+        "line": 25
+      },
+      "call": {
+        "function": "fixture.capabilities.Pairs$.running",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/laws/Pause.scala",
+            "line": 25
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/laws/Pause.scala",
+                "line": 25
+              },
+              "var": "s"
+            },
+            "field": "state"
+          }
+        } ]
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.capabilities.Capabilities$package$.cancel",
+    "name": "cancel",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 41
+    },
+    "party": "client"
+  }, {
+    "id": "fixture.capabilities.Capabilities$package$.finish",
+    "name": "finish",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 37
+    },
+    "party": "worker"
+  }, {
+    "id": "fixture.capabilities.Capabilities$package$.kill",
+    "name": "kill",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 40
+    },
+    "party": "client"
+  }, {
+    "id": "fixture.capabilities.Capabilities$package$.pause",
+    "name": "pause",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 38
+    },
+    "party": "client"
+  }, {
+    "id": "fixture.capabilities.Capabilities$package$.poll",
+    "name": "poll",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 36
+    },
+    "party": "worker"
+  }, {
+    "id": "fixture.capabilities.Capabilities$package$.resume",
+    "name": "resume",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 39
+    },
+    "party": "client"
+  } ],
+  "machines": [ {
+    "family": "fixture.capabilities",
+    "name": "job",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 81
+    },
+    "stateType": "fixture.capabilities.Job",
+    "outcomeType": "fixture.capabilities.Answer",
+    "factType": "fixture.capabilities.Note",
+    "starts": [ {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 82
+      },
+      "construct": {
+        "type": "fixture.capabilities.Job",
+        "args": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 82
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilities.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 83
+      },
+      "lambda": {
+        "params": [ {
+          "name": "j",
+          "type": {
+            "named": "fixture.capabilities.Job"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 83
+          },
+          "call": {
+            "function": "fixture.capabilities.Jobs$.ends",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 83
+              },
+              "var": "j"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.capabilities.Capabilities$package$.poll",
+      "function": "fixture.capabilities.Jobs$.poll",
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 85
+      }
+    }, {
+      "action": "fixture.capabilities.Capabilities$package$.finish",
+      "function": "fixture.capabilities.Jobs$.finish",
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 86
+      }
+    }, {
+      "action": "fixture.capabilities.Capabilities$package$.pause",
+      "function": "fixture.capabilities.Jobs$.pause",
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 87
+      }
+    }, {
+      "action": "fixture.capabilities.Capabilities$package$.resume",
+      "function": "fixture.capabilities.Jobs$.resume",
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 88
+      }
+    }, {
+      "action": "fixture.capabilities.Capabilities$package$.kill",
+      "function": "fixture.capabilities.Jobs$.kill",
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 89
+      }
+    }, {
+      "action": "fixture.capabilities.Capabilities$package$.cancel",
+      "function": "fixture.capabilities.Jobs$.cancel",
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 90
+      }
+    } ],
+    "evidence": "job.evidence"
+  }, {
+    "family": "fixture.capabilities",
+    "name": "legacyJob",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 95
+    },
+    "stateType": "fixture.capabilities.Job",
+    "outcomeType": "fixture.capabilities.Answer",
+    "factType": "fixture.capabilities.Note",
+    "starts": [ {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 96
+      },
+      "construct": {
+        "type": "fixture.capabilities.Job",
+        "args": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 96
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilities.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 97
+      },
+      "lambda": {
+        "params": [ {
+          "name": "j",
+          "type": {
+            "named": "fixture.capabilities.Job"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 97
+          },
+          "call": {
+            "function": "fixture.capabilities.Jobs$.ends",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 97
+              },
+              "var": "j"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.capabilities.Capabilities$package$.poll",
+      "function": "fixture.capabilities.Jobs$.poll",
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 98
+      }
+    }, {
+      "action": "fixture.capabilities.Capabilities$package$.finish",
+      "function": "fixture.capabilities.Jobs$.finish",
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 98
+      }
+    }, {
+      "action": "fixture.capabilities.Capabilities$package$.kill",
+      "function": "fixture.capabilities.Jobs$.kill",
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 98
+      }
+    } ],
+    "evidence": "legacyJob.evidence"
+  } ],
+  "compositions": [ {
+    "family": "fixture.capabilities",
+    "name": "pair",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 134
+    },
+    "stateType": "fixture.capabilities.Pair",
+    "members": [ {
+      "field": "left",
+      "machine": "job"
+    }, {
+      "field": "right",
+      "machine": "legacyJob"
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 134
+      },
+      "lambda": {
+        "params": [ {
+          "name": "p",
+          "type": {
+            "named": "fixture.capabilities.Pair"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 134
+          },
+          "call": {
+            "function": "fixture.capabilities.Pairs$.ends",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 134
+              },
+              "var": "p"
+            } ]
+          }
+        }
+      }
+    }
+  } ],
+  "properties": [ {
+    "machine": "job",
+    "name": "job.cancelIsRequested",
+    "position": {
+      "file": "model/temporal/laws/Cancel.scala",
+      "line": 26
+    },
+    "whenClass": {
+      "action": "fixture.capabilities.Capabilities$package$.cancel"
+    },
+    "holds": "job.property.job.cancelIsRequested"
+  }, {
+    "machine": "job",
+    "name": "job.closedIsRejectedUniformly",
+    "position": {
+      "file": "model/umpire/laws/Laws.scala",
+      "line": 59
+    },
+    "holds": "job.property.job.closedIsRejectedUniformly",
+    "transition": true
+  }, {
+    "machine": "job",
+    "name": "job.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/laws/Pause.scala",
+      "line": 25
+    },
+    "holds": "job.property.job.pausedIsNotDispatched",
+    "transition": true
+  }, {
+    "machine": "job",
+    "name": "job.terminalStatesAreFinal",
+    "position": {
+      "file": "model/umpire/laws/Laws.scala",
+      "line": 31
+    },
+    "holds": "job.property.job.terminalStatesAreFinal",
+    "transition": true
+  }, {
+    "machine": "job",
+    "name": "job.terminateSettles",
+    "position": {
+      "file": "model/temporal/laws/Terminate.scala",
+      "line": 29
+    },
+    "whenClass": {
+      "action": "fixture.capabilities.Capabilities$package$.kill"
+    },
+    "holds": "job.property.job.terminateSettles"
+  }, {
+    "machine": "legacyJob",
+    "name": "legacyJob.closedIsRejectedUniformly",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 78
+    },
+    "holds": "legacyJob.property.legacyJob.closedIsRejectedUniformly",
+    "transition": true
+  }, {
+    "machine": "legacyJob",
+    "name": "legacyJob.statusStaysClosed",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 156
+    },
+    "holds": "legacyJob.property.legacyJob.statusStaysClosed",
+    "transition": true
+  }, {
+    "machine": "pair",
+    "name": "pair.pausedIsNotDispatched",
+    "position": {
+      "file": "model/temporal/laws/Pause.scala",
+      "line": 25
+    },
+    "holds": "pair.property.pair.pausedIsNotDispatched",
+    "transition": true
+  } ],
+  "scenarios": [ {
+    "machine": "job",
+    "name": "job.cancelIsRequested",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 111
+    },
+    "start": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 82
+      },
+      "construct": {
+        "type": "fixture.capabilities.Job",
+        "args": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 82
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilities.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    },
+    "actions": [ {
+      "action": "fixture.capabilities.Capabilities$package$.poll"
+    }, {
+      "action": "fixture.capabilities.Capabilities$package$.cancel"
+    } ]
+  }, {
+    "machine": "job",
+    "name": "job.closedIsRejectedUniformly",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 107
+    },
+    "start": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 82
+      },
+      "construct": {
+        "type": "fixture.capabilities.Job",
+        "args": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 82
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilities.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "job",
+    "name": "job.pausedIsNotDispatched",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 108
+    },
+    "start": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 82
+      },
+      "construct": {
+        "type": "fixture.capabilities.Job",
+        "args": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 82
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilities.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "job",
+    "name": "job.terminalStatesAreFinal",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 107
+    },
+    "start": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 82
+      },
+      "construct": {
+        "type": "fixture.capabilities.Job",
+        "args": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 82
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilities.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "job",
+    "name": "job.terminateSettles",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 110
+    },
+    "start": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 82
+      },
+      "construct": {
+        "type": "fixture.capabilities.Job",
+        "args": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 82
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilities.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    },
+    "actions": [ {
+      "action": "fixture.capabilities.Capabilities$package$.poll"
+    }, {
+      "action": "fixture.capabilities.Capabilities$package$.kill"
+    } ]
+  }, {
+    "machine": "legacyJob",
+    "name": "legacyJob.closedIsRejectedUniformly",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 117
+    },
+    "start": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 96
+      },
+      "construct": {
+        "type": "fixture.capabilities.Job",
+        "args": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 96
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilities.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "legacyJob",
+    "name": "legacyJob.statusStaysClosed",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 162
+    },
+    "start": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 96
+      },
+      "construct": {
+        "type": "fixture.capabilities.Job",
+        "args": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 96
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.capabilities.Phase",
+              "case": "queued"
+            }
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "pair",
+    "name": "pair.pausedIsNotDispatched",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 138
+    },
+    "start": {
+      "position": {
+        "file": "model/lifter/testdata/lifts/Capabilities.scala",
+        "line": 138
+      },
+      "construct": {
+        "type": "fixture.capabilities.Pair",
+        "args": [ {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 82
+          },
+          "construct": {
+            "type": "fixture.capabilities.Job",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 82
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilities.Phase",
+                  "case": "queued"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/lifter/testdata/lifts/Capabilities.scala",
+            "line": 96
+          },
+          "construct": {
+            "type": "fixture.capabilities.Job",
+            "args": [ {
+              "position": {
+                "file": "model/lifter/testdata/lifts/Capabilities.scala",
+                "line": 96
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.capabilities.Phase",
+                  "case": "queued"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
+  } ],
+  "queries": [ {
+    "name": "job.cancelIsRequested",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 111
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "job",
+      "name": "job.cancelIsRequested"
+    },
+    "scenario": {
+      "machine": "job",
+      "name": "job.cancelIsRequested"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 512
+    },
+    "total": "10"
+  }, {
+    "name": "job.closedIsRejectedUniformly",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 107
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "job",
+      "name": "job.closedIsRejectedUniformly"
+    },
+    "scenario": {
+      "machine": "job",
+      "name": "job.closedIsRejectedUniformly"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 512
+    },
+    "total": "90"
+  }, {
+    "name": "job.pausedIsNotDispatched",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 108
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "job",
+      "name": "job.pausedIsNotDispatched"
+    },
+    "scenario": {
+      "machine": "job",
+      "name": "job.pausedIsNotDispatched"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 512
+    },
+    "total": "90"
+  }, {
+    "name": "job.terminalStatesAreFinal",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 107
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "job",
+      "name": "job.terminalStatesAreFinal"
+    },
+    "scenario": {
+      "machine": "job",
+      "name": "job.terminalStatesAreFinal"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 512
+    },
+    "total": "90"
+  }, {
+    "name": "job.terminateSettles",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 110
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "job",
+      "name": "job.terminateSettles"
+    },
+    "scenario": {
+      "machine": "job",
+      "name": "job.terminateSettles"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 512
+    },
+    "total": "10"
+  }, {
+    "name": "legacyJob.closedIsRejectedUniformly",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 117
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "legacyJob",
+      "name": "legacyJob.closedIsRejectedUniformly"
+    },
+    "scenario": {
+      "machine": "legacyJob",
+      "name": "legacyJob.closedIsRejectedUniformly"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 512
+    },
+    "total": "45"
+  }, {
+    "name": "legacyJob.statusStaysClosed",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 162
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "legacyJob",
+      "name": "legacyJob.statusStaysClosed"
+    },
+    "scenario": {
+      "machine": "legacyJob",
+      "name": "legacyJob.statusStaysClosed"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 512
+    },
+    "total": "45"
+  }, {
+    "name": "pair.pausedIsNotDispatched",
+    "position": {
+      "file": "model/lifter/testdata/lifts/Capabilities.scala",
+      "line": 138
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "pair",
+      "name": "pair.pausedIsNotDispatched"
+    },
+    "scenario": {
+      "machine": "pair",
+      "name": "pair.pausedIsNotDispatched"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 512
+    },
+    "total": "675"
+  } ]
+}

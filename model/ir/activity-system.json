@@ -744,7 +744,7 @@
     "name": "activityProduct.property.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "before",
@@ -760,28 +760,28 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "temporal.standaloneactivity.Product$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "before"
                 } ]
@@ -792,21 +792,21 @@
         "right": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "activityProduct.property.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "after"
                 } ]
@@ -820,7 +820,7 @@
     "name": "activityProduct.property.pausedIsNotDispatched.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "s",
@@ -831,20 +831,20 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "call": {
         "function": "temporal.standaloneactivity.Product$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "var": "s"
             },
@@ -1559,7 +1559,7 @@
     "name": "currentAdmission.property.notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "before",
@@ -1575,28 +1575,28 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "temporal.standaloneactivity.admission.Admission$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "before"
                 } ]
@@ -1607,21 +1607,21 @@
         "right": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "currentAdmission.property.notAdmittedWhilePaused.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "after"
                 } ]
@@ -1635,7 +1635,7 @@
     "name": "currentAdmission.property.notAdmittedWhilePaused.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "s",
@@ -1646,20 +1646,20 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "call": {
         "function": "temporal.standaloneactivity.admission.Admission$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "var": "s"
             },
@@ -1790,7 +1790,7 @@
     "name": "currentAdmission.property.terminalStays",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "params": [ {
       "name": "before",
@@ -1806,35 +1806,35 @@
     "body": {
       "position": {
         "file": "model/umpire/laws/Laws.scala",
-        "line": 22
+        "line": 32
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.admission.Admission$.terminal",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "call": {
                     "function": "temporal.standaloneactivity.admission.Admission$.phase",
                     "args": [ {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "before"
                     } ]
@@ -1847,27 +1847,27 @@
         "right": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.admission.Admission$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "after"
                     },
@@ -1879,14 +1879,14 @@
             "right": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.admission.Admission$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "var": "before"
                 } ]
@@ -1974,7 +1974,7 @@
     "name": "currentOverLossyMatching.property.notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "before",
@@ -1990,28 +1990,28 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "temporal.standaloneactivity.compositions.OverMatching$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "before"
                 } ]
@@ -2022,21 +2022,21 @@
         "right": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "currentOverLossyMatching.property.notAdmittedWhilePaused.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "after"
                 } ]
@@ -2050,7 +2050,7 @@
     "name": "currentOverLossyMatching.property.notAdmittedWhilePaused.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "s",
@@ -2061,20 +2061,20 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "call": {
         "function": "temporal.standaloneactivity.compositions.OverMatching$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "var": "s"
             },
@@ -2087,7 +2087,7 @@
     "name": "currentOverLossyMatching.property.terminalStays",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "params": [ {
       "name": "before",
@@ -2103,35 +2103,35 @@
     "body": {
       "position": {
         "file": "model/umpire/laws/Laws.scala",
-        "line": 22
+        "line": 32
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.admission.Admission$.terminal",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "call": {
                     "function": "temporal.standaloneactivity.compositions.OverMatching$.phase",
                     "args": [ {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "before"
                     } ]
@@ -2144,27 +2144,27 @@
         "right": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.compositions.OverMatching$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "after"
                     },
@@ -2176,14 +2176,14 @@
             "right": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.compositions.OverMatching$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "var": "before"
                 } ]
@@ -2271,7 +2271,7 @@
     "name": "currentOverMatching.property.notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "before",
@@ -2287,28 +2287,28 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "temporal.standaloneactivity.compositions.OverMatching$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "before"
                 } ]
@@ -2319,21 +2319,21 @@
         "right": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "currentOverMatching.property.notAdmittedWhilePaused.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "after"
                 } ]
@@ -2347,7 +2347,7 @@
     "name": "currentOverMatching.property.notAdmittedWhilePaused.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "s",
@@ -2358,20 +2358,20 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "call": {
         "function": "temporal.standaloneactivity.compositions.OverMatching$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "var": "s"
             },
@@ -2384,7 +2384,7 @@
     "name": "currentOverMatching.property.terminalStays",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "params": [ {
       "name": "before",
@@ -2400,35 +2400,35 @@
     "body": {
       "position": {
         "file": "model/umpire/laws/Laws.scala",
-        "line": 22
+        "line": 32
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.admission.Admission$.terminal",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "call": {
                     "function": "temporal.standaloneactivity.compositions.OverMatching$.phase",
                     "args": [ {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "before"
                     } ]
@@ -2441,27 +2441,27 @@
         "right": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.compositions.OverMatching$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "after"
                     },
@@ -2473,14 +2473,14 @@
             "right": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.compositions.OverMatching$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "var": "before"
                 } ]
@@ -2739,7 +2739,7 @@
     "name": "currentOverQueue.property.notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "before",
@@ -2755,28 +2755,28 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "temporal.standaloneactivity.compositions.OverQueue$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "before"
                 } ]
@@ -2787,21 +2787,21 @@
         "right": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "currentOverQueue.property.notAdmittedWhilePaused.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "after"
                 } ]
@@ -2815,7 +2815,7 @@
     "name": "currentOverQueue.property.notAdmittedWhilePaused.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "s",
@@ -2826,20 +2826,20 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "call": {
         "function": "temporal.standaloneactivity.compositions.OverQueue$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "var": "s"
             },
@@ -2852,7 +2852,7 @@
     "name": "currentOverQueue.property.terminalStays",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "params": [ {
       "name": "before",
@@ -2868,35 +2868,35 @@
     "body": {
       "position": {
         "file": "model/umpire/laws/Laws.scala",
-        "line": 22
+        "line": 32
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.admission.Admission$.terminal",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "call": {
                     "function": "temporal.standaloneactivity.compositions.OverQueue$.phase",
                     "args": [ {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "before"
                     } ]
@@ -2909,27 +2909,27 @@
         "right": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.compositions.OverQueue$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "after"
                     },
@@ -2941,14 +2941,14 @@
             "right": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.compositions.OverQueue$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "var": "before"
                 } ]
@@ -4300,7 +4300,7 @@
     "name": "staleAdmission.property.notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "before",
@@ -4316,28 +4316,28 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "temporal.standaloneactivity.admission.Admission$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "before"
                 } ]
@@ -4348,21 +4348,21 @@
         "right": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "staleAdmission.property.notAdmittedWhilePaused.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "after"
                 } ]
@@ -4376,7 +4376,7 @@
     "name": "staleAdmission.property.notAdmittedWhilePaused.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "s",
@@ -4387,20 +4387,20 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "call": {
         "function": "temporal.standaloneactivity.admission.Admission$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "var": "s"
             },
@@ -4531,7 +4531,7 @@
     "name": "staleAdmission.property.terminalStays",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "params": [ {
       "name": "before",
@@ -4547,35 +4547,35 @@
     "body": {
       "position": {
         "file": "model/umpire/laws/Laws.scala",
-        "line": 22
+        "line": 32
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.admission.Admission$.terminal",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "call": {
                     "function": "temporal.standaloneactivity.admission.Admission$.phase",
                     "args": [ {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "before"
                     } ]
@@ -4588,27 +4588,27 @@
         "right": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.admission.Admission$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "after"
                     },
@@ -4620,14 +4620,14 @@
             "right": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.admission.Admission$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "var": "before"
                 } ]
@@ -4715,7 +4715,7 @@
     "name": "staleOverMatching.property.notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "before",
@@ -4731,28 +4731,28 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "temporal.standaloneactivity.compositions.OverMatching$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "before"
                 } ]
@@ -4763,21 +4763,21 @@
         "right": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "staleOverMatching.property.notAdmittedWhilePaused.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "after"
                 } ]
@@ -4791,7 +4791,7 @@
     "name": "staleOverMatching.property.notAdmittedWhilePaused.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "s",
@@ -4802,20 +4802,20 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "call": {
         "function": "temporal.standaloneactivity.compositions.OverMatching$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "var": "s"
             },
@@ -4828,7 +4828,7 @@
     "name": "staleOverMatching.property.terminalStays",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "params": [ {
       "name": "before",
@@ -4844,35 +4844,35 @@
     "body": {
       "position": {
         "file": "model/umpire/laws/Laws.scala",
-        "line": 22
+        "line": 32
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.admission.Admission$.terminal",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "call": {
                     "function": "temporal.standaloneactivity.compositions.OverMatching$.phase",
                     "args": [ {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "before"
                     } ]
@@ -4885,27 +4885,27 @@
         "right": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.compositions.OverMatching$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "after"
                     },
@@ -4917,14 +4917,14 @@
             "right": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.compositions.OverMatching$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "var": "before"
                 } ]
@@ -5183,7 +5183,7 @@
     "name": "staleOverQueue.property.notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "before",
@@ -5199,28 +5199,28 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "temporal.standaloneactivity.compositions.OverQueue$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "before"
                 } ]
@@ -5231,21 +5231,21 @@
         "right": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "staleOverQueue.property.notAdmittedWhilePaused.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "after"
                 } ]
@@ -5259,7 +5259,7 @@
     "name": "staleOverQueue.property.notAdmittedWhilePaused.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "s",
@@ -5270,20 +5270,20 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "call": {
         "function": "temporal.standaloneactivity.compositions.OverQueue$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "var": "s"
             },
@@ -5296,7 +5296,7 @@
     "name": "staleOverQueue.property.terminalStays",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "params": [ {
       "name": "before",
@@ -5312,35 +5312,35 @@
     "body": {
       "position": {
         "file": "model/umpire/laws/Laws.scala",
-        "line": 22
+        "line": 32
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.admission.Admission$.terminal",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "call": {
                     "function": "temporal.standaloneactivity.compositions.OverQueue$.phase",
                     "args": [ {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "before"
                     } ]
@@ -5353,27 +5353,27 @@
         "right": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.compositions.OverQueue$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "after"
                     },
@@ -5385,14 +5385,14 @@
             "right": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.compositions.OverQueue$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "var": "before"
                 } ]
@@ -20657,7 +20657,7 @@
     "name": "pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "holds": "activityProduct.property.pausedIsNotDispatched",
     "transition": true
@@ -20696,7 +20696,7 @@
     "name": "notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "holds": "currentAdmission.property.notAdmittedWhilePaused",
     "transition": true
@@ -20727,7 +20727,7 @@
     "name": "terminalStays",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "holds": "currentAdmission.property.terminalStays",
     "transition": true
@@ -20744,7 +20744,7 @@
     "name": "notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "holds": "currentOverLossyMatching.property.notAdmittedWhilePaused",
     "transition": true
@@ -20753,7 +20753,7 @@
     "name": "terminalStays",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "holds": "currentOverLossyMatching.property.terminalStays",
     "transition": true
@@ -20770,7 +20770,7 @@
     "name": "notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "holds": "currentOverMatching.property.notAdmittedWhilePaused",
     "transition": true
@@ -20779,7 +20779,7 @@
     "name": "terminalStays",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "holds": "currentOverMatching.property.terminalStays",
     "transition": true
@@ -20804,7 +20804,7 @@
     "name": "notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "holds": "currentOverQueue.property.notAdmittedWhilePaused",
     "transition": true
@@ -20813,7 +20813,7 @@
     "name": "terminalStays",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "holds": "currentOverQueue.property.terminalStays",
     "transition": true
@@ -20901,7 +20901,7 @@
     "name": "notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "holds": "staleAdmission.property.notAdmittedWhilePaused",
     "transition": true
@@ -20932,7 +20932,7 @@
     "name": "terminalStays",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "holds": "staleAdmission.property.terminalStays",
     "transition": true
@@ -20949,7 +20949,7 @@
     "name": "notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "holds": "staleOverMatching.property.notAdmittedWhilePaused",
     "transition": true
@@ -20958,7 +20958,7 @@
     "name": "terminalStays",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "holds": "staleOverMatching.property.terminalStays",
     "transition": true
@@ -20983,7 +20983,7 @@
     "name": "notAdmittedWhilePaused",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "holds": "staleOverQueue.property.notAdmittedWhilePaused",
     "transition": true
@@ -20992,7 +20992,7 @@
     "name": "terminalStays",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "holds": "staleOverQueue.property.terminalStays",
     "transition": true

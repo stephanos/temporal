@@ -69,7 +69,7 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 	for _, file := range []string{"umpire/laws/Laws.scala", "temporal/laws/Pause.scala", "temporal/laws/Terminate.scala", "temporal/laws/Cancel.scala"} {
 		text, err := os.ReadFile(filepath.Join("..", "..", "..", "model", file))
 		require.NoError(t, err)
-		for _, match := range regexp.MustCompile(`(?m)^def (\w+)\[`).FindAllStringSubmatch(string(text), -1) {
+		for _, match := range regexp.MustCompile(`(?m)^object (\w+)$`).FindAllStringSubmatch(string(text), -1) {
 			laws = append(laws, match[1])
 		}
 	}

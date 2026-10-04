@@ -423,7 +423,7 @@
     "name": "activityProduct.property.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "before",
@@ -439,28 +439,28 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "temporal.standaloneactivity.Product$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "before"
                 } ]
@@ -471,21 +471,21 @@
         "right": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "activityProduct.property.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "after"
                 } ]
@@ -499,7 +499,7 @@
     "name": "activityProduct.property.pausedIsNotDispatched.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "s",
@@ -510,20 +510,20 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "call": {
         "function": "temporal.standaloneactivity.Product$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "var": "s"
             },
@@ -5563,7 +5563,7 @@
     "name": "pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "holds": "activityProduct.property.pausedIsNotDispatched",
     "transition": true

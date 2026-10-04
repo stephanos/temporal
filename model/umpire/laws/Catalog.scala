@@ -18,16 +18,13 @@ enum Capability:
   case Closable, Terminable, Pausable, Cancelable, Pollable, Describable
 
 /**
- * A law as data the lifter reads, beside the def that states it: its name, that def by reference,
- * the server code it rests on, what it promises and what it leaves to other laws or parameters.
+ * A law: an object named after it whose `apply` states it, a def that takes the model and the
+ * capability's fields and returns a Property, and as data the lifter reads, the server code it rests
+ * on, what it promises and what it leaves to other laws or parameters.
  */
-final case class Law(
-    name: String,
-    statement: AnyRef,
-    cites: Seq[String],
-    promises: String,
-    doesNotPromise: String
-)
+abstract class Law(val cites: Seq[String], val promises: String, val doesNotPromise: String):
+  /** The law's name, which generated claims take as `<machine>.<law>`: its object's. */
+  def name: String = getClass.getSimpleName.stripSuffix("$")
 
 /** A law and the capabilities that bring it: one, or an unordered pair. */
 final case class Brought(by: Set[Capability], law: Law)
@@ -51,4 +48,4 @@ object Catalog:
 
 /** The entity-neutral entries: what any entity with a terminal status set is held to. */
 val entityNeutral: Catalog =
-  Catalog.single(Capability.Closable)(terminalStatesAreFinalLaw, closedIsRejectedUniformlyLaw)
+  Catalog.single(Capability.Closable)(terminalStatesAreFinal, closedIsRejectedUniformly)

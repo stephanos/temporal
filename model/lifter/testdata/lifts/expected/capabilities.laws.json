@@ -1,0 +1,143 @@
+{
+  "claims": [ {
+    "machine": "job",
+    "name": "job.cancelIsRequested",
+    "law": "cancelIsRequested",
+    "capabilities": [ "Cancelable" ],
+    "bindings": {
+      "requestCancel": "fixture.capabilities.Capabilities$package.cancel",
+      "requested": "fixture.capabilities.Note.cancelAsked"
+    },
+    "position": "model/lifter/testdata/lifts/Capabilities.scala:111"
+  }, {
+    "machine": "job",
+    "name": "job.closedIsRejectedUniformly",
+    "law": "closedIsRejectedUniformly",
+    "capabilities": [ "Closable" ],
+    "bindings": {
+      "status": "fixture.capabilities.Jobs$.phase",
+      "terminal": "fixture.capabilities.Jobs$.terminal",
+      "rejected": "fixture.capabilities.Answer.gone"
+    },
+    "position": "model/lifter/testdata/lifts/Capabilities.scala:107"
+  }, {
+    "machine": "job",
+    "name": "job.pausedIsNotDispatched",
+    "law": "pausedIsNotDispatched",
+    "capabilities": [ "Pausable", "Pollable" ],
+    "bindings": {
+      "paused": "fixture.capabilities.Jobs$.paused",
+      "running": "fixture.capabilities.Jobs$.running"
+    },
+    "position": "model/lifter/testdata/lifts/Capabilities.scala:108"
+  }, {
+    "machine": "job",
+    "name": "job.terminalStatesAreFinal",
+    "law": "terminalStatesAreFinal",
+    "capabilities": [ "Closable" ],
+    "bindings": {
+      "status": "fixture.capabilities.Jobs$.phase",
+      "terminal": "fixture.capabilities.Jobs$.terminal"
+    },
+    "position": "model/lifter/testdata/lifts/Capabilities.scala:107"
+  }, {
+    "machine": "job",
+    "name": "job.terminateSettles",
+    "law": "terminateSettles",
+    "capabilities": [ "Terminable" ],
+    "bindings": {
+      "terminate": "fixture.capabilities.Capabilities$package.kill",
+      "settled": "fixture.capabilities.Note.killedNote"
+    },
+    "position": "model/lifter/testdata/lifts/Capabilities.scala:110"
+  }, {
+    "machine": "legacyJob",
+    "name": "legacyJob.closedIsRejectedUniformly",
+    "law": "closedIsRejectedUniformly",
+    "capabilities": [ "Closable" ],
+    "bindings": {
+      "status": "fixture.capabilities.Jobs$.phase",
+      "terminal": "fixture.capabilities.Jobs$.terminal",
+      "rejected": "fixture.capabilities.Answer.gone"
+    },
+    "overriddenBy": "fixture.capabilities.Jobs$.closedKeepsTheState",
+    "position": "model/lifter/testdata/lifts/Capabilities.scala:117"
+  }, {
+    "machine": "legacyJob",
+    "name": "legacyJob.statusStaysClosed",
+    "law": "statusStaysClosed",
+    "capabilities": [ "Closable" ],
+    "bindings": {
+      "status": "fixture.capabilities.Jobs$.phase",
+      "terminal": "fixture.capabilities.Jobs$.terminal"
+    },
+    "position": "model/lifter/testdata/lifts/Capabilities.scala:162"
+  }, {
+    "machine": "pair",
+    "name": "pair.pausedIsNotDispatched",
+    "law": "pausedIsNotDispatched",
+    "capabilities": [ "Pausable", "Pollable" ],
+    "bindings": {
+      "paused": "fixture.capabilities.Pairs$.paused",
+      "running": "fixture.capabilities.Pairs$.running"
+    },
+    "position": "model/lifter/testdata/lifts/Capabilities.scala:138"
+  } ],
+  "waivers": [ {
+    "machine": "legacyJob",
+    "law": "closedIsRejectedUniformly",
+    "waiver": "overriding",
+    "by": "fixture.capabilities.Jobs$.closedKeepsTheState",
+    "because": "a fixture's override: the legacy job answers a closed job as it likes",
+    "position": "model/lifter/testdata/lifts/Capabilities.scala:121"
+  }, {
+    "machine": "legacyJob",
+    "law": "terminalStatesAreFinal",
+    "waiver": "except",
+    "because": "a fixture's waiver: the legacy job keeps no status",
+    "position": "model/lifter/testdata/lifts/Capabilities.scala:119"
+  } ],
+  "catalog": [ {
+    "law": "cancelIsRequested",
+    "capabilities": [ "Cancelable" ],
+    "cites": [ "chasm/lib/activity/operator_commands.go", "chasm/lib/activity/statemachine.go", "chasm/lib/nexusoperation/operation.go" ],
+    "promises": "a cancel request of an entity whose work is in flight records the request and leaves the entity live",
+    "doesNotPromise": "that the entity is then canceled, which only its work's answer settles; what a cancel with no work in flight does (the activity settles canceled at once); or what a second request answers (the Nexus operation answers ErrCancellationAlreadyRequested)",
+    "instantiating": [ "job" ]
+  }, {
+    "law": "closedIsRejectedUniformly",
+    "capabilities": [ "Closable" ],
+    "cites": [ "chasm/lib/activity/activity.go", "chasm/lib/nexusoperation/operation.go", "chasm/lib/scheduler/scheduler.go" ],
+    "promises": "every step from a terminal status keeps the state and answers the entity's rejecting outcome",
+    "doesNotPromise": "which outcome rejects (a parameter: the activity answers NotFound, the Nexus operation and the schedule FailedPrecondition), or that a repeated request with the same request id is rejected: the server answers it as the first",
+    "instantiating": [ "job" ]
+  }, {
+    "law": "pausedIsNotDispatched",
+    "capabilities": [ "Pausable", "Pollable" ],
+    "cites": [ "chasm/lib/activity/statemachine.go", "chasm/lib/activity/tasks.go", "chasm/lib/scheduler/scheduler.go" ],
+    "promises": "while an entity is paused no work is handed to a worker: no step from paused lands in running",
+    "doesNotPromise": "what a pause of held work does (the activity waits for the worker as pause-requested), what a second pause or an unpause of a live entity answers, or that an unpause resumes the work",
+    "instantiating": [ "job", "pair" ]
+  }, {
+    "law": "statusStaysClosed",
+    "capabilities": [ "Closable" ],
+    "cites": [ "model/lifter/testdata/lifts/Capabilities.scala" ],
+    "promises": "a closed job keeps its status",
+    "doesNotPromise": "anything a fixture does not need",
+    "instantiating": [ "legacyJob" ]
+  }, {
+    "law": "terminalStatesAreFinal",
+    "capabilities": [ "Closable" ],
+    "cites": [ "chasm/lib/activity/statemachine.go", "chasm/lib/nexusoperation/operation_statemachine.go" ],
+    "promises": "no step moves an entity out of a terminal status, or from one terminal status to another",
+    "doesNotPromise": "that a closed entity answers a mutation by rejecting it (closedIsRejectedUniformly), that its status is reported, or that the close is recorded once",
+    "instantiating": [ "job" ]
+  }, {
+    "law": "terminateSettles",
+    "capabilities": [ "Terminable" ],
+    "cites": [ "chasm/lib/activity/activity.go", "chasm/lib/activity/statemachine.go", "chasm/lib/nexusoperation/operation_statemachine.go" ],
+    "promises": "a terminate of a live entity settles it as terminated in one step and records that",
+    "doesNotPromise": "what a terminate of a closed entity answers (closedIsRejectedUniformly), what a second terminate answers (the activity answers the same request id OK, the Nexus operation also refuses another id by name), or that a reason and an identity are recorded: the schedule records only that it closed",
+    "instantiating": [ "job" ]
+  } ]
+}

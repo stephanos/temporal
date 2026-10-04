@@ -503,7 +503,7 @@
     "name": "activityProduct.property.pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "before",
@@ -519,28 +519,28 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "temporal.standaloneactivity.Product$.paused",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "before"
                 } ]
@@ -551,21 +551,21 @@
         "right": {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "call": {
                 "function": "activityProduct.property.pausedIsNotDispatched.never",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/laws/Pause.scala",
-                    "line": 16
+                    "line": 25
                   },
                   "var": "after"
                 } ]
@@ -579,7 +579,7 @@
     "name": "activityProduct.property.pausedIsNotDispatched.never",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "params": [ {
       "name": "s",
@@ -590,20 +590,20 @@
     "body": {
       "position": {
         "file": "model/temporal/laws/Pause.scala",
-        "line": 16
+        "line": 25
       },
       "call": {
         "function": "temporal.standaloneactivity.Product$.running",
         "args": [ {
           "position": {
             "file": "model/temporal/laws/Pause.scala",
-            "line": 16
+            "line": 25
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/laws/Pause.scala",
-                "line": 16
+                "line": 25
               },
               "var": "s"
             },
@@ -616,7 +616,7 @@
     "name": "activityProduct.property.terminalIsFinal",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "params": [ {
       "name": "before",
@@ -632,35 +632,35 @@
     "body": {
       "position": {
         "file": "model/umpire/laws/Laws.scala",
-        "line": 22
+        "line": 32
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.Product$.terminal",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "call": {
                     "function": "temporal.standaloneactivity.Product$.phase",
                     "args": [ {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "before"
                     } ]
@@ -673,27 +673,27 @@
         "right": {
           "position": {
             "file": "model/umpire/laws/Laws.scala",
-            "line": 22
+            "line": 32
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.Product$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/umpire/laws/Laws.scala",
-                        "line": 22
+                        "line": 32
                       },
                       "var": "after"
                     },
@@ -705,14 +705,14 @@
             "right": {
               "position": {
                 "file": "model/umpire/laws/Laws.scala",
-                "line": 22
+                "line": 32
               },
               "call": {
                 "function": "temporal.standaloneactivity.Product$.phase",
                 "args": [ {
                   "position": {
                     "file": "model/umpire/laws/Laws.scala",
-                    "line": 22
+                    "line": 32
                   },
                   "var": "before"
                 } ]
@@ -8459,7 +8459,7 @@
     "name": "pausedIsNotDispatched",
     "position": {
       "file": "model/temporal/laws/Pause.scala",
-      "line": 16
+      "line": 25
     },
     "holds": "activityProduct.property.pausedIsNotDispatched",
     "transition": true
@@ -8468,7 +8468,7 @@
     "name": "terminalIsFinal",
     "position": {
       "file": "model/umpire/laws/Laws.scala",
-      "line": 21
+      "line": 31
     },
     "holds": "activityProduct.property.terminalIsFinal",
     "transition": true
