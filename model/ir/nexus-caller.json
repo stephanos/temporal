@@ -7480,8 +7480,8 @@
     "id": "temporal.nexuscaller.NexusRealization$.asyncNexus",
     "name": "asyncNexus",
     "position": {
-      "file": "model/temporal/realize/Kit.scala",
-      "line": 140
+      "file": "model/temporal/nexuscaller/Realization.scala",
+      "line": 632
     },
     "machine": "nexusProtocol",
     "producer": "temporal.nexus.caller.testpilot",

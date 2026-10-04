@@ -28,6 +28,19 @@ import (
 
 const activityRealizationAt = "model/temporal/standaloneactivity/Realization.scala"
 
+// kitAt is where the shared Temporal kit (model/temporal/realize) writes the declarations of the
+// realizations it builds: their roles and correlation, the evidence of the Run's own record, and the
+// reads they poll.
+const kitAt = "model/temporal/realize/Kit.scala"
+
+// requireDeclaredIn requires a position in the feature's realization or in the kit that wrote part
+// of it.
+func requireDeclaredIn(t *testing.T, position, realization string) {
+	t.Helper()
+	require.True(t, strings.Contains(position, realization) || strings.Contains(position, kitAt),
+		"%q is in neither %s nor %s", position, realization, kitAt)
+}
+
 var errandIdentity = cp.IdentityFor("temporal.case", "fixture", "errand")
 
 func realizationNamed(t *testing.T, m *umpirespb.Model, name string) *umpirespb.Realization {

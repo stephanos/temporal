@@ -95,7 +95,7 @@ var activityLimits = map[string]struct {
 	written string
 }{
 	"startToCloseTimeout": {Unsupported{Construct: "attempt that gives no answer", ID: "activity", Owner: "none: a recorded limit of the prototype"},
-		"activityScript = Script("},
+		"attempts = script("},
 	"cancel": {Unsupported{Construct: "attempt record that follows later evidence", ID: activityEvidence + "statusStarted",
 		Owner: "none: a recorded limit of the prototype"}, "Evidence.runEvent("},
 	"cancelRequest": {Unsupported{Construct: "attempt record that follows later evidence", ID: activityEvidence + "statusStarted",
@@ -154,7 +154,7 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 			var inventory [][2]string
 			for _, e := range l.Inventory {
 				inventory = append(inventory, [2]string{e.Kind, e.ID})
-				require.Contains(t, e.Position, activityRealizationAt)
+				requireDeclaredIn(t, e.Position, activityRealizationAt)
 			}
 			require.ElementsMatch(t, declared(t, m, m.GetRealizations()[0]), inventory)
 
@@ -209,7 +209,7 @@ func TestEveryQueryOfTheActivityModelLowersOrNamesItsLimit(t *testing.T) {
 			require.Len(t, l.Unsupported, 1)
 			gap := l.Unsupported[0]
 			require.NotEmpty(t, gap.Why)
-			require.Contains(t, gap.Position, activityRealizationAt)
+			requireDeclaredIn(t, gap.Position, activityRealizationAt)
 			require.Contains(t, lineOf(t, gap.Position), want.written)
 			gap.Why, gap.Position = "", ""
 			require.Equal(t, want.gap, gap)
@@ -457,7 +457,7 @@ func TestTheInventoryOfAnActivityCaseDoesNotCloseOverAChangedDeclaration(t *test
 			test.change(kind(l.a.r, started))
 			_, err = l.inventory(produced)
 			require.ErrorContains(t, err, test.want)
-			require.ErrorContains(t, err, activityRealizationAt)
+			requireDeclaredIn(t, err.Error(), activityRealizationAt)
 		})
 	}
 }
@@ -543,7 +543,7 @@ func TestTheRunsRecordIsOfAControllersInstructionKeyedByTheRunOrByItsPayload(t *
 		Lower("completion", activityIdentity("completion"))
 	require.Nil(t, l)
 	require.ErrorContains(t, err, "evidence "+scheduled+" is the Run's record of a command of script activity, which no controller runs")
-	require.ErrorContains(t, err, activityRealizationAt)
+	require.ErrorContains(t, err, kitAt)
 
 	l, err = changed(func(source *umpirespb.RunEventSource) {
 		source.Key = &umpirespb.Operand{Kind: &umpirespb.Operand_Path{Path: &umpirespb.PathOf{Path: "protocol_code",
@@ -585,7 +585,7 @@ func TestARecordWhoseInstructionTheCaseDoesNotCarryDoesNotClose(t *testing.T) {
 	controller.Instructions = controller.GetInstructions()[1:]
 	_, err = l.inventory(produced)
 	require.ErrorContains(t, err, "evidence "+activityEvidence+"statusScheduled is the Run's record of controller/start-activity, and the Case carries no such instruction")
-	require.ErrorContains(t, err, activityRealizationAt)
+	require.ErrorContains(t, err, kitAt)
 }
 
 // A pause is read back only of an activity no worker has taken. With a running worker the first

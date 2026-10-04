@@ -9738,8 +9738,8 @@
     "id": "temporal.standaloneactivity.ActivityRealization$.standalone",
     "name": "standalone",
     "position": {
-      "file": "model/temporal/realize/Kit.scala",
-      "line": 140
+      "file": "model/temporal/standaloneactivity/Realization.scala",
+      "line": 223
     },
     "machine": "activityProtocol",
     "producer": "temporal.activity.standalone.testpilot",

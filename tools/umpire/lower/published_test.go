@@ -187,7 +187,7 @@ func TestADiagnosticDeclaredTheRecordOfNoAttemptHasNoProducer(t *testing.T) {
 	require.ErrorContains(t, err, "evidence "+activityEvidence+"statusStarted is what a worker reports of an activation and is declared the record of no attempt")
 	var located *umpiremodel.Error
 	require.ErrorAs(t, err, &located)
-	require.Contains(t, located.Position, activityRealizationAt)
+	require.Contains(t, located.Position, kitAt)
 }
 
 // A Run records an attempt at the command that carries it, and a Case's one carrier carries every
@@ -224,7 +224,7 @@ func TestTheAttemptsOfTwoActivitiesUnderOneCarrierAreNotToldApart(t *testing.T) 
 	var gaps []Unsupported
 	for _, gap := range both.Unsupported {
 		if gap.Construct == construct {
-			require.Contains(t, gap.Position, activityRealizationAt)
+			requireDeclaredIn(t, gap.Position, activityRealizationAt)
 			require.Contains(t, gap.Why, "the attempts of scripts activity and other are not told apart")
 			gap.Why, gap.Position = "", ""
 			gaps = append(gaps, gap)
@@ -252,7 +252,7 @@ func TestAnAttemptRecordedAsTwoKindsOfEvidenceHasNoCase(t *testing.T) {
 	require.Equal(t, NotSupported, l.Standing)
 	require.Len(t, l.Unsupported, 1)
 	gap := l.Unsupported[0]
-	require.Contains(t, gap.Position, activityRealizationAt)
+	require.Contains(t, gap.Position, kitAt)
 	require.Equal(t, "a Run records attempt 1 of script activity as one Run Event, which is evidence of one kind, and the path confirms steps by "+
 		activityEvidence+"statusStarted as well", gap.Why)
 	gap.Why, gap.Position = "", ""
@@ -272,7 +272,7 @@ func TestARecordOfAnAttemptThePathNeverStartsIsAnError(t *testing.T) {
 	require.ErrorContains(t, err, "evidence "+activityEvidence+"attemptCount is the record of attempt 3 of script activity, and the path of query retry starts 2")
 	var located *umpiremodel.Error
 	require.ErrorAs(t, err, &located)
-	require.Contains(t, located.Position, activityRealizationAt)
+	require.Contains(t, located.Position, kitAt)
 	// A path the kind confirms no step of is not touched by it.
 	completion, err := p.Lower("completion", activityIdentity("completion"))
 	require.NoError(t, err)

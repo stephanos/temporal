@@ -5679,8 +5679,8 @@
     "id": "temporal.standaloneactivity.ActivityRealization$.heldDelivery",
     "name": "heldDelivery",
     "position": {
-      "file": "model/temporal/realize/Kit.scala",
-      "line": 140
+      "file": "model/temporal/standaloneactivity/Realization.scala",
+      "line": 336
     },
     "machine": "heldAdmission",
     "producer": "temporal.activity.standalone.testpilot",
@@ -6313,8 +6313,8 @@
     "id": "temporal.standaloneactivity.ActivityRealization$.lostAdmissionResponse",
     "name": "lostAdmissionResponse",
     "position": {
-      "file": "model/temporal/realize/Kit.scala",
-      "line": 140
+      "file": "model/temporal/standaloneactivity/Realization.scala",
+      "line": 373
     },
     "machine": "admissionResponseLoss",
     "producer": "temporal.activity.standalone.testpilot",

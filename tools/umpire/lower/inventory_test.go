@@ -124,7 +124,7 @@ func TestTheInventoryAgreesWithTheCase(t *testing.T) {
 			require.NoError(t, err)
 			var carried, evidence []string
 			for _, e := range l.Inventory {
-				require.Contains(t, e.Position, realizationAt)
+				requireDeclaredIn(t, e.Position, realizationAt)
 				require.Equal(t, e.Disposition == InCase, len(e.As) > 0, e.ID)
 				switch e.Kind {
 				case "command":

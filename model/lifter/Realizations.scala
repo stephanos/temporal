@@ -913,7 +913,10 @@ private[lift] trait Realizations:
       case Some(r) => r
       case None    =>
         val d = valDef(sym, at, "a realization")
-        val emitted = emit(ir.Realization, Bound(d.rhs.get, Map.empty)).withId(id)
+        // A realization is where its val declares it, though a kit function may write its record.
+        val emitted = emit(ir.Realization, Bound(d.rhs.get, Map.empty))
+          .withId(id)
+          .withPosition(pos(d.rhs.get))
         val r =
           if emitted.name.nonEmpty then emitted
           else emitted.withName(capturedName(sym, d, "a realization"))

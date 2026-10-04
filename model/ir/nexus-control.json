@@ -3627,8 +3627,8 @@
     "id": "temporal.nexuscaller.NexusRealization$.forgedCompletion",
     "name": "forgedCompletion",
     "position": {
-      "file": "model/temporal/realize/Kit.scala",
-      "line": 140
+      "file": "model/temporal/nexuscaller/Realization.scala",
+      "line": 634
     },
     "machine": "forgedCompletion",
     "producer": "temporal.nexus.caller.testpilot",

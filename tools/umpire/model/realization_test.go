@@ -7,6 +7,7 @@ package model
 import (
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,6 +16,19 @@ import (
 )
 
 const admRealizationAt = "model/temporal/nexuscaller/Realization.scala:"
+
+// admKitAt is where the shared Temporal kit (model/temporal/realize) writes the declarations of the
+// realizations it builds: their roles and correlation, the evidence of the Run's own record, and the
+// reads they poll.
+const admKitAt = "model/temporal/realize/Kit.scala:"
+
+// requireLocated requires an error located in the realization's own file or in the kit.
+func requireLocated(t *testing.T, err error, realization string) {
+	t.Helper()
+	require.Error(t, err)
+	require.True(t, strings.Contains(err.Error(), realization) || strings.Contains(err.Error(), admKitAt),
+		"%q is located in neither %s nor %s", err, realization, admKitAt)
+}
 
 // admScript is a script of the Nexus caller realization, by id.
 func admScript(t *testing.T, r *umpirespb.Realization, id string) *umpirespb.Script {
@@ -580,7 +594,7 @@ func TestARealizationIsAdmittedBeforeItIsLowered(t *testing.T) {
 			c.mutate(t, m, m.GetRealizations()[0])
 			err := Validate(m)
 			require.ErrorContains(t, err, c.want)
-			require.ErrorContains(t, err, admRealizationAt, "the error is located")
+			requireLocated(t, err, admRealizationAt)
 		})
 	}
 }
@@ -853,7 +867,7 @@ func TestTheAttemptARunEventRecordsIsOfAnActivitysScript(t *testing.T) {
 				return
 			}
 			require.ErrorContains(t, err, test.want)
-			require.ErrorContains(t, err, "model/temporal/standaloneactivity/Realization.scala:", "the error is located")
+			requireLocated(t, err, "model/temporal/standaloneactivity/Realization.scala:")
 		})
 	}
 }
