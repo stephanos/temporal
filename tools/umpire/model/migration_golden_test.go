@@ -557,14 +557,8 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 	}
 	// Each substitution renames a Function of the frozen IR that declares it, the Nexus caller's or
 	// another's.
-	originals := map[string]*umpirespb.Model{path: original}
-	for key, encoded := range frozen {
-		if strings.HasPrefix(key, "ir/") && key != migrationKey(path) {
-			m := new(umpirespb.Model)
-			require.NoError(t, protojson.Unmarshal(encoded, m), key)
-			originals[key] = m
-		}
-	}
+	originals, err := golden.FrozenModels(frozen, "ir/")
+	require.NoError(t, err)
 	require.NoError(t, cfg.FunctionsRenamed(originals))
 	require.NoError(t, cfg.TypesRenamed(map[string]*umpirespb.Model{path: original}))
 	shifted := regexp.MustCompile(`"line":\s*([0-9]+)`)

@@ -1,7 +1,4 @@
-/* The bounds, paths and Queries of the close and reset designs. Each design's Properties are
- * declared by the shared def that asks them, beside its Scenarios, since a Property belongs to the
- * machine the def is given.
- */
+/* The bounds, paths and Queries of the close and reset designs. */
 package temporal
 package nexuscaller
 package closepolicy
@@ -19,68 +16,7 @@ val twelve = Limits(steps = 12, actions = 12, search = 1 << 22)
 
 /** Every claim and path of the specimen, declared on one design. */
 def designQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
-  val preserved = m.property("outcomePreserved") holds outcomePreserved
-  val acked = m.property("ackOnlyWhenKept") holdsAcross ackOnlyWhenKept
-  val frozen = m.property("closedHistoryIsFrozen") holdsAcross closedHistoryIsFrozen
-  // No step, a reset included, undoes what the handler did.
-  val handlerEffectIsIrreversible = m.property.once(isDone).keeps(_.handler)
-  val handlers = m.property("knownIsTheHandlersOutcome") holds knownIsTheHandlersOutcome
-  val knowledgeFinal = m.property("knowledgeIsFinal") holdsAcross knowledgeIsFinal
-  // The handler's detached work goes on after the close.
-  val finishesAfterClose = m.property when
-    handlerFinish(Resolution.succeeded) holds
-    (after =>
-      after.state.caller == Caller.closed &&
-        after.state.handler == Handler.done(Resolution.succeeded)
-    )
-  // A cancellation's request, its receipt, the handler's effect and the caller's knowledge.
-  val requestedButUnreceived = m.property when
-    requestCancel(Principal.callerWorkflow) holds
-    (after =>
-      after.state.intent == Intent.requested(Principal.callerWorkflow) &&
-        after.state.handler == Handler.running
-    )
-  val receivedButSucceeded = m.property when
-    handlerFinish(Resolution.succeeded) holds
-    (after =>
-      after.state.intent == Intent.requested(Principal.callerWorkflow) &&
-        after.state.handler == Handler.done(Resolution.succeeded)
-    )
-  val canceledButUnknown = m.property when
-    handlerFinish(Resolution.canceled) holds
-    (after =>
-      after.state.handler == Handler.done(Resolution.canceled) &&
-        !ownerKnows(after.state, Resolution.canceled)
-    )
-  val completionCancels = m.property when complete(Resolution.canceled) holds
-    (after =>
-      ownerKnows(after.state, Resolution.canceled) &&
-        after.records(Fact.nexusOperationCanceled)
-    )
-  // The baseline's two: an open caller records a completion by the baseline's event.
-  val completionSucceeds = m.property when
-    complete(Resolution.succeeded) holds
-    (after => after.records(Fact.nexusOperationCompleted))
-  val completionFails = m.property when complete(Resolution.failed) holds
-    (after => after.records(Fact.nexusOperationFailed))
-  // The two answers of a closed run, and the two resets, are kept apart.
-  val rejectedTransiently = m.property when
-    complete(Resolution.succeeded) holds
-    (after =>
-      after.outcome == Answer.rejectedTransient &&
-        carries(after.state.channel, Resolution.succeeded)
-    )
-  val rejectedPermanently = m.property when
-    complete(Resolution.succeeded) holds (after => after.outcome == Answer.rejectedPermanent)
-  val lostAfterReset = m.property when reset holds
-    (after => !outcomePreserved(after))
-  val reappliesRetained = m.property when reset holds
-    (after =>
-      after.records(Fact.outcomeReapplied) &&
-        after.state.known == Knowledge.successor(Resolution.succeeded)
-    )
-  val routedToSuccessor = m.property when complete(Resolution.failed) holds
-    (after => after.state.known == Knowledge.successor(Resolution.failed))
+  val claims = designClaims(m)
   val closedThenFinished = m.scenario
     .actions(
       callerClose,
@@ -146,46 +82,53 @@ def designQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
     .actions(callerClose, handlerFinish(Resolution.succeeded), complete(Resolution.succeeded))
   val any = m.scenario.free
   Vector(
-    query(s"${m.name}.closedThenFinished") verify preserved in
+    query(s"${m.name}.closedThenFinished") verify claims.outcomePreserved in
       closedThenFinished limits four total 26880,
-    query verify acked in resetThenDelivered limits four total 20160,
-    query verify preserved in resetThenDelivered limits four total 20160,
-    query(s"${m.name}.canceledAcrossReset") verify preserved in
+    query verify claims.ackOnlyWhenKept in resetThenDelivered limits four total 20160,
+    query verify claims.outcomePreserved in resetThenDelivered limits four total 20160,
+    query(s"${m.name}.canceledAcrossReset") verify claims.outcomePreserved in
       canceledAcrossReset limits five total 33600,
-    query(s"${m.name}.ackedThenReset") verify preserved in ackedThenReset limits four total 20160,
-    query(s"${m.name}.duplicateCompletion").verify(knowledgeFinal) in duplicateCompletion limits
+    query(
+      s"${m.name}.ackedThenReset"
+    ) verify claims.outcomePreserved in ackedThenReset limits four total 20160,
+    query(s"${m.name}.duplicateCompletion")
+      .verify(claims.knowledgeIsFinal) in duplicateCompletion limits
       four total 20160,
-    query(s"${m.name}.resetBetweenCommitAndAcknowledgment").verify(acked) in
+    query(s"${m.name}.resetBetweenCommitAndAcknowledgment").verify(claims.ackOnlyWhenKept) in
       resetBetweenDeliveries limits four total 26880,
-    query verify preserved in any limits twelve total 806400,
-    query verify acked in any limits twelve total 806400,
-    query verify frozen in any limits twelve total 806400,
-    query verify handlerEffectIsIrreversible in any limits twelve total 806400,
-    query verify handlers in any limits twelve total 806400,
-    query verify knowledgeFinal in any limits twelve total 806400,
-    query(s"${m.name}.detachedWorkProceeds") find finishesAfterClose in
+    query verify claims.outcomePreserved in any limits twelve total 806400,
+    query verify claims.ackOnlyWhenKept in any limits twelve total 806400,
+    query verify claims.closedHistoryIsFrozen in any limits twelve total 806400,
+    query verify claims.handlerEffectIsIrreversible in any limits twelve total 806400,
+    query verify claims.knownIsTheHandlersOutcome in any limits twelve total 806400,
+    query verify claims.knowledgeIsFinal in any limits twelve total 806400,
+    query(s"${m.name}.detachedWorkProceeds") find claims.finishesAfterClose in
       detachedWork limits four total 13440,
-    query(s"${m.name}.intentWithoutReceipt").find(requestedButUnreceived) in cancelRequested limits
+    query(s"${m.name}.intentWithoutReceipt")
+      .find(claims.requestedButUnreceived) in cancelRequested limits
       four total 6720,
-    query(s"${m.name}.receiptWithoutEffect").find(receivedButSucceeded) in
+    query(s"${m.name}.receiptWithoutEffect").find(claims.receivedButSucceeded) in
       cancelReceivedThenSucceeded limits four total 20160,
-    query(s"${m.name}.effectWithoutKnowledge").find(canceledButUnknown) in
+    query(s"${m.name}.effectWithoutKnowledge").find(claims.canceledButUnknown) in
       cancelReceivedThenCanceled limits four total 20160,
-    query(s"${m.name}.canceledIsKnown") find completionCancels in
+    query(s"${m.name}.canceledIsKnown") find claims.completionCancels in
       canceledThenDelivered limits four total 26880,
-    query(s"${m.name}.asyncCompletion").find(completionSucceeds) in finishedThenSucceeded limits
+    query(s"${m.name}.asyncCompletion")
+      .find(claims.completionSucceeds) in finishedThenSucceeded limits
       four total 13440,
-    query(s"${m.name}.asyncFailure") find completionFails in
+    query(s"${m.name}.asyncFailure") find claims.completionFails in
       finishedThenFailed limits four total 13440,
-    query(s"${m.name}.transientRejectionAfterClose").find(rejectedTransiently) in
+    query(s"${m.name}.transientRejectionAfterClose").find(claims.rejectedTransiently) in
       deliveredToClosed limits four total 20160,
-    query(s"${m.name}.permanentRejectionAfterClose").find(rejectedPermanently) in
+    query(s"${m.name}.permanentRejectionAfterClose").find(claims.rejectedPermanently) in
       deliveredToClosed limits four total 20160,
-    query(s"${m.name}.lostAfterReset") find lostAfterReset in
+    query(s"${m.name}.lostAfterReset") find claims.lostAfterReset in
       closedThenFinished limits four total 26880,
-    query(s"${m.name}.resetAfterRetention").find(reappliesRetained) in closedThenFinished limits
+    query(s"${m.name}.resetAfterRetention")
+      .find(claims.reappliesRetained) in closedThenFinished limits
       four total 26880,
-    query(s"${m.name}.resetBeforeRetention").find(routedToSuccessor) in resetThenDelivered limits
+    query(s"${m.name}.resetBeforeRetention")
+      .find(claims.routedToSuccessor) in resetThenDelivered limits
       four total 20160
   )
 
@@ -199,8 +142,7 @@ val truncatesOnResetQueries: Vector[Query] = designQueries(truncatesOnReset)
 
 /** The two promises and the two pinned controls, declared on one design. */
 def safetyQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
-  val preserved = m.property("outcomePreserved") holds outcomePreserved
-  val acked = m.property("ackOnlyWhenKept") holdsAcross ackOnlyWhenKept
+  val claims = safetyClaims(m)
   val closedThenFinished = m.scenario
     .actions(
       callerClose,
@@ -212,11 +154,11 @@ def safetyQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
     .actions(handlerFinish(Resolution.failed), reset, complete(Resolution.failed))
   val any = m.scenario.free
   Vector(
-    query(s"${m.name}.closedThenFinished") verify preserved in
+    query(s"${m.name}.closedThenFinished") verify claims.outcomePreserved in
       closedThenFinished limits four total 26880,
-    query verify acked in resetThenDelivered limits four total 20160,
-    query verify preserved in any limits twelve total 806400,
-    query verify acked in any limits twelve total 806400
+    query verify claims.ackOnlyWhenKept in resetThenDelivered limits four total 20160,
+    query verify claims.outcomePreserved in any limits twelve total 806400,
+    query verify claims.ackOnlyWhenKept in any limits twelve total 806400
   )
 
 val retainAndRouteBoundedRetryQueries: Vector[Query] =
@@ -229,18 +171,7 @@ val retainAndRouteBoundedRetryQueries: Vector[Query] =
 // in flight, which loses nothing the design promised.
 
 def deadlineQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
-  val preserved = m.property("outcomePreserved") holds outcomePreserved
-  val acked = m.property("ackOnlyWhenKept") holdsAcross ackOnlyWhenKept
-  val necessary = m.property("noUnnecessaryWait") holdsAcross noUnnecessaryWait
-  val expiresWithNothingOwed = m.property when scheduleToClose holds
-    (after => after.state.known == Knowledge.expired && nothingOwed(after.state))
-  val expiresWhileOwed = m.property when scheduleToClose holds
-    (after =>
-      after.state.known == Knowledge.expired && carries(after.state.channel, Resolution.succeeded)
-    )
-  val lateCompletionIsDropped = m.property when
-    complete(Resolution.succeeded) holds
-    (after => after.outcome == Answer.rejectedPermanent && after.records(Fact.completionDropped))
+  val claims = deadlineClaims(m)
   val closedThenFinished = m.scenario
     .actions(
       callerClose,
@@ -266,19 +197,20 @@ def deadlineQueries(m: Machine[CloseResetState, Answer, Fact]): Vector[Query] =
     .actions(handlerFinish(Resolution.succeeded), scheduleToClose, complete(Resolution.succeeded))
   val any = m.scenario.free
   Vector(
-    query(s"${m.name}.closedThenFinished") verify preserved in
+    query(s"${m.name}.closedThenFinished") verify claims.outcomePreserved in
       closedThenFinished limits four total 26880,
-    query verify acked in resetThenDelivered limits four total 20160,
-    query verify preserved in any limits twelve total 887040,
-    query verify acked in any limits twelve total 887040,
-    query verify necessary in any limits twelve total 887040,
-    query(s"${m.name}.expiredAfterClosedLoss").find(expiresWithNothingOwed) in
+    query verify claims.ackOnlyWhenKept in resetThenDelivered limits four total 20160,
+    query verify claims.outcomePreserved in any limits twelve total 887040,
+    query verify claims.ackOnlyWhenKept in any limits twelve total 887040,
+    query verify claims.noUnnecessaryWait in any limits twelve total 887040,
+    query(s"${m.name}.expiredAfterClosedLoss").find(claims.expiresWithNothingOwed) in
       closedLossThenExpired limits five total 33600,
-    query(s"${m.name}.expiredAfterResetLoss").find(expiresWithNothingOwed) in
+    query(s"${m.name}.expiredAfterResetLoss").find(claims.expiresWithNothingOwed) in
       resetLossThenExpired limits five total 26880,
-    query(s"${m.name}.expiredWhileReported").find(expiresWhileOwed) in reportedThenExpired limits
+    query(s"${m.name}.expiredWhileReported")
+      .find(claims.expiresWhileOwed) in reportedThenExpired limits
       four total 13440,
-    query(s"${m.name}.lateCompletionIsDropped").find(lateCompletionIsDropped) in
+    query(s"${m.name}.lateCompletionIsDropped").find(claims.lateCompletionIsDropped) in
       expiredThenDelivered limits four total 20160
   )
 

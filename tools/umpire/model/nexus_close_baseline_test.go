@@ -8,7 +8,6 @@ package model
 // original claims; the source inventory below checks every current design declaration.
 
 import (
-	"cmp"
 	"maps"
 	"os"
 	"path/filepath"
@@ -181,12 +180,8 @@ var closeDeclared = map[string]*regexp.Regexp{
 	"query":      regexp.MustCompile(`query\(\s*s"\$\{m\.name\}\.([^"]+)"\s*\)`),
 }
 
-// A Property a shared def declares in a local val, by the name it states or the val's, and a Query
-// that names neither, named after its Scenario and Property.
-var (
-	closeLocalProperty = regexp.MustCompile(`val (\w+) = m\.property(?:\(\s*"([^"]+)"\s*\))?`)
-	closeDefaultQuery  = regexp.MustCompile(`query\s+(?:verify|find)\s+(\w+)\s+in\s+(\w+)`)
-)
+// A Query that names itself neither, named after its Scenario and the Property its claims hold.
+var closeDefaultQuery = regexp.MustCompile(`query\s+(?:verify|find)\s+claims\.(\w+)\s+in\s+(\w+)`)
 
 // closeSource is every name the Scala sources of the designs declare, as "<kind> <name>".
 func closeSource(t *testing.T) []string {
@@ -208,14 +203,8 @@ func closeSource(t *testing.T) []string {
 				}
 			}
 		}
-		properties := map[string]string{}
-		for _, match := range closeLocalProperty.FindAllStringSubmatch(string(source), -1) {
-			properties[match[1]] = cmp.Or(match[2], match[1])
-		}
 		for _, match := range closeDefaultQuery.FindAllStringSubmatch(string(source), -1) {
-			if property, ok := properties[match[1]]; ok {
-				found["query "+match[2]+"."+property] = true
-			}
+			found["query "+match[2]+"."+match[1]] = true
 		}
 	}
 	return slices.Sorted(maps.Keys(found))
