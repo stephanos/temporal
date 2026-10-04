@@ -1,0 +1,8 @@
+{
+  "task_title": "Final lifecycle and handle ownership guidance delta",
+  "task_body": "Read-only source-grounded delta to task20's existing guidance scout, confined to finalized tasks16–18 and their current documentation. Identify precise stale or missing statements and minimal edits; task19 remains live and must not be described as final.",
+  "acceptance": "Exact current source/doc pointers, minimal proposed replacement guidance and evidence bounds. No edits, tests, builds, generation, Git/Flow mutation or bridges; preserve D12/open native qualification and resolved D14.",
+  "touches_count": 0,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

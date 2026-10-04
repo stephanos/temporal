@@ -1,0 +1,8 @@
+{
+  "task_title": "Identify task19 documentation reconciliation obligations without implementing task20",
+  "task_body": "Inspect the current task19 public report graphs, explicit pack-directory intent, detached World terminal/closed-error boundary, and architecture-check source against existing ARCHITECTURE, SPEC, README, CLI and TUTORIAL guidance. Identify concrete remaining guidance gaps with symbols and line references. Task19 is actively changing analyzer implementation; do not infer freeze, passing gates, or final support. Read-only preparation except one uniquely owned scout artifact.",
+  "acceptance": "A small evidence-grounded gap report distinguishes already-correct statements from missing caller migration/owner guidance; source/docs hashes are recorded and drift is identified; no source/doc edits, tests/builds/generation, Flow lifecycle or Git mutation, formal review or native claim.",
+  "touches_count": 1,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

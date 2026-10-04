@@ -1,9 +1,3 @@
----
-satisfies: [R9]
----
-# fn-109-gomad-deepen-modules-and-tool-interfaces.20 Reconcile architectural guidance with the delivered owners and interfaces (fulfils fn-105.5 D5)
-
-## Description
 Stage 6, R9 (F8). Most of the original F8 premise is already fixed: verify and cite that, then document what this spec changed. This task is the single owner of fn-105.5 (D5, origin brief `.flow/tasks/fn-102-gomad-architecture-consolidate.6.md`); close fn-105.5 by reference afterwards.
 
 **Size:** S/M
@@ -44,17 +38,3 @@ cd ../.. && flowctl show fn-105-gomad-follow-ups-deferred-scope.5 && flowctl tas
 - fn-105 D12/D14 replay-divergence dispositions stay unchanged. Attribute a failure to those owners with retained evidence instead of relaxing an expectation.
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
-## Acceptance
-- [ ] `documentation-evidence.md` cites, with file and line, the already-correct platform, choice replay/exploration and backend statements, and links fn-111's evidence instead of duplicating it.
-- [ ] Architecture guidance describes the delivered owners (options, preparation, command seam, installation description, generated simulation-time protocol, progress lifecycle, backend handles, architecture checks) using existing requirement IDs.
-- [ ] Every intentional Go interface/behavior migration in go-interface-changes.md, including executor injection, Artifact reference/handle and task 19's public reports, pack-directory intent and detached World terminal boundary, is documented with its actual replacement and caller migration.
-- [ ] Capability support, repeatability, exact replay and expectation matching are stated as separate claims. D12, suites without exact replay and known clock escapes remain open; D14 retains its recorded Darwin fix and source-bound native evidence without treating it as qualification of the final integrated candidate.
-- [ ] No unmeasured support or performance claim, obsolete delivery-state claim, or failure described as qualification success is present; local links and code fences resolve.
-- [ ] fn-105.5 is closed by reference to this task (one owner).
-## Done summary
-TBD
-
-## Evidence
-- Commits:
-- Tests:
-- PRs:
