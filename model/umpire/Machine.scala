@@ -8,6 +8,13 @@ import scala.collection.mutable
  */
 final case class Step[S, O, F](outcome: O, state: S, facts: List[F] = Nil, because: String = "")
 
+/**
+ * `steps.because("...")`: the explanation of each step written here, as `Step`'s `because` gives it.
+ * The lifter reads it only on a list of steps the step function writes out.
+ */
+extension [S, O, F](steps: List[Step[S, O, F]])
+  def because(reason: String): List[Step[S, O, F]] = steps.map(_.copy(because = reason))
+
 /** A declared, derived or composed machine. */
 trait Model:
   def name: String
@@ -174,6 +181,70 @@ final class Machine[S, O, F] private[umpire] (
   private def restricted(family: Family, name: String, keep: Seq[Action[?]]): Machine[S, O, F] =
     val decls = keep.map(_.decl).toSet
     // It keeps its source's monitors and assumptions, which are about the state and the machine.
+    derived(
+      family,
+      name,
+      unobservableNames = Set.empty,
+      bindings = bindings.filter(b => decls(b.decl)),
+      refinement = None,
+      visibleFacts = None,
+      visibleOutcomeSet = None
+    )
+
+  /**
+   * A machine that binds other step functions to actions this one binds, each in its place. It keeps
+   * everything else this machine declares, and is named after the `val` that declares it, in the
+   * `given Family`. The lifter refuses an action this machine does not bind.
+   */
+  def rebind(replaced: StepBinding[S, O, F]*)(using family: Family): Machine[S, O, F] =
+    val by = replaced.map(b => b.decl -> b).toMap
+    derived(family, bindings = bindings.map(b => by.getOrElse(b.decl, b)))
+
+  /**
+   * A machine that also binds actions this one does not, after its own bindings. The lifter refuses
+   * an action this machine binds already.
+   */
+  def extend(added: StepBinding[S, O, F]*)(using family: Family): Machine[S, O, F] =
+    derived(family, bindings = bindings ++ added)
+
+  /**
+   * A machine that refines `product` through `map` in place of the refinement this one declares,
+   * and keeps the facts and outcomes that refinement lets the refined machine see.
+   */
+  def refining[PS, PO, PF](product: Machine[PS, PO, PF])(map: S => PS)(using
+      family: Family
+  ): Machine[S, O, F] =
+    derived(family, refinement = Some(RefinementDecl[S](product, map)))
+
+  /** A machine whose checks also make the assumptions named, each once, after this one's. */
+  def assuming(added: Assumption*)(using family: Family): Machine[S, O, F] =
+    derived(family, assumptions = assumptions ++ added)
+
+  /**
+   * A machine without this one's monitors and refinement: the same transitions, for a composition
+   * a member's monitors may not watch (model/SEMANTICS.md leaves that undefined).
+   */
+  def unmonitored(using family: Family): Machine[S, O, F] =
+    derived(
+      family,
+      refinement = None,
+      visibleFacts = None,
+      visibleOutcomeSet = None,
+      monitorList = Nil
+    )
+
+  // A derived machine takes its name from its val unless it is given one, as `machine { ... }` does.
+  private def derived(
+      family: Family,
+      name: String = "",
+      unobservableNames: Set[String] = unobservableNames,
+      bindings: List[StepBinding[S, O, F]] = bindings,
+      refinement: Option[RefinementDecl[S]] = refinement,
+      visibleFacts: Option[F => Boolean] = visibleFacts,
+      visibleOutcomeSet: Option[O => Boolean] = visibleOutcomeSet,
+      monitorList: List[Monitor[S, O, F, ?]] = monitorList,
+      assumptions: List[Assumption] = assumptions
+  ): Machine[S, O, F] =
     Machine(
       family,
       name,
@@ -181,11 +252,11 @@ final class Machine[S, O, F] private[umpire] (
       startStates,
       isEnd,
       evidenceOf,
-      Set.empty,
-      bindings.filter(b => decls(b.decl)),
-      None,
-      None,
-      None,
+      unobservableNames,
+      bindings,
+      refinement,
+      visibleFacts,
+      visibleOutcomeSet,
       monitorList,
       assumptions
     )

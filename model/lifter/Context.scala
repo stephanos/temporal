@@ -28,15 +28,23 @@ final private[lift] class Context(using val quotes: Quotes)(
     case _            => false
 
   /** The symbol a reference finally names, through aliases such as `val workerStop = worker.workerStop`. */
-  def resolveSymbol(ref: Term): Symbol = ref match
+  def resolveSymbol(ref: Term): Symbol = resolveThrough(ref, Nil)
+
+  private def resolveThrough(ref: Term, aliases: List[Symbol]): Symbol = ref match
     case r: Ref =>
+      if aliases.contains(r.symbol) then
+        fail(
+          ref,
+          s"${r.symbol.name} is an alias of itself, through ${aliases.reverse.map(_.name).mkString(", ")}: " +
+            "an alias names a value declared without it"
+        )
       defs.get(r.symbol) match
         // A val whose right-hand side calls a parameterless declaration, such as `val tick = timer`,
         // is that declaration, not an alias.
         case Some(ValDef(_, _, Some(rhs: Ref))) if path(rhs) && !rhs.symbol.isDefDef =>
-          resolveSymbol(rhs)
+          resolveThrough(rhs, r.symbol :: aliases)
         case _ => r.symbol
-    case Typed(e, _) => resolveSymbol(e)
+    case Typed(e, _) => resolveThrough(e, aliases)
     case other       => fail(other, "expected a reference to a declared value")
 
   /** A declaration value of the lifted sources: its definition. */

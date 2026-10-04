@@ -455,3 +455,91 @@ val gapTwice = machine[Lamp, Outcome, Nothing] {
   ends(_ => true)
   steps(flip ~> gapStep)
 }
+
+/** A derivation that rebinds an action its source does not bind. */
+val push = action(Party("fixture"))
+val rebindUnbound = oneStart.rebind(push ~> lampStep)
+
+/** A derivation that extends its source by an action it binds already. */
+val extendBound = oneStart.extend(flip ~> lampStep)
+
+/** A derivation that binds one action twice. */
+def darkStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = List(
+  Step(Outcome.accepted, Lamp(false))
+)
+val reboundTwice = oneStart.rebind(flip ~> lampStep, flip ~> darkStep)
+
+/** A derivation that names an assumption its source assumes already. */
+val lampOpaque = assume
+val assumingLamp = machine[Lamp, Outcome, Nothing] {
+  assumes(lampOpaque)
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> lampStep)
+}
+val assumedAgain = assumingLamp.assuming(lampOpaque)
+
+/** A derivation that names one assumption twice. */
+val lampFaulty = assume
+val assumingTwice = oneStart.assuming(lampFaulty, lampFaulty)
+
+/** A refinement replaced where the source declares none. */
+val refinedNothing = oneStart.refining(first)(l => Flag(l.lit))
+
+/** A refinement replaced by one of a machine whose types differ from the replaced one's. */
+enum Seen derives Finite:
+  case seen
+
+final case class Glimpse(at: Seen) derives Finite
+
+val glimpse = machine[Glimpse, Seen, Nothing] {
+  starts(Glimpse(Seen.seen))
+  ends(_ => true)
+}
+val flagLamp = machine[Lamp, Outcome, Nothing] {
+  refines(first)(l => Flag(l.lit))
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> lampStep)
+}
+val refinedOtherwise = flagLamp.refining(glimpse)(_ => Glimpse(Seen.seen))
+
+/** Two machines derived from each other. */
+val loopFirst: Machine[Lamp, Outcome, Nothing] = loopSecond.rebind(flip ~> darkStep)
+val loopSecond: Machine[Lamp, Outcome, Nothing] = loopFirst.rebind(flip ~> lampStep)
+
+/** Two machines that are aliases of each other. */
+val aliasFirst: Machine[Lamp, Outcome, Nothing] = aliasSecond
+val aliasSecond: Machine[Lamp, Outcome, Nothing] = aliasFirst
+val aliased = compose[Lamps]("left" -> aliasFirst, "right" -> oneStart)
+
+given Accepted[Outcome] = Accepted(Outcome.accepted)
+
+/** `in` over a list passed whole, which names no members. */
+val lit = List(true)
+def litStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] =
+  if l.lit.in(false, lit*) then accept(Lamp(true)) else disabled
+val splatted = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> litStep)
+}
+
+/** An explanation given to steps a helper function returns, not written out. */
+def explainedStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = lampStep(l).because("it flips")
+val explained = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> explainedStep)
+}
+
+/** An accepted outcome a helper function computes, which `accept` cannot read. */
+object ComputedAccepted:
+  def acceptedOf(o: Outcome): Accepted[Outcome] = Accepted(o)
+  given Accepted[Outcome] = acceptedOf(Outcome.accepted)
+  def computedStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = accept(Lamp(!l.lit))
+  val computedAccept = machine[Lamp, Outcome, Nothing] {
+    starts(Lamp(false))
+    ends(_ => true)
+    steps(flip ~> computedStep)
+  }

@@ -709,15 +709,16 @@ fmt-model:
 	@printf $(COLOR) "Formatting model files..."
 	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate $(MODEL_ROOT)/metrics
 
-# The five scalafix runs build separate projects, so they run side by side; output-sync prints each
+# The five scalafix runs build separate projects, so they run side by side, and beside them the gate
+# holds the sugar to the Syntax.scala files (model/gate/SyntaxRule.scala); output-sync prints each
 # run's output whole, after its title.
-MODEL_LINTS := lint-model-models lint-model-lifter lint-model-lifts lint-model-gate lint-model-metrics
+MODEL_LINTS := lint-model-models lint-model-lifter lint-model-lifts lint-model-gate lint-model-metrics lint-model-syntax
 .PHONY: $(MODEL_LINTS)
 
 lint-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@printf $(COLOR) "Checking model formatting..."
 	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf --check $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate $(MODEL_ROOT)/metrics
-	@$(MAKE) --no-print-directory -j5 --output-sync=target $(MODEL_LINTS)
+	@$(MAKE) --no-print-directory -j6 --output-sync=target $(MODEL_LINTS)
 
 lint-model-models:
 	@printf $(COLOR) "Linting model files..."
@@ -738,6 +739,12 @@ lint-model-gate:
 lint-model-metrics:
 	@printf $(COLOR) "Linting the source metrics..."
 	@cd $(MODEL_ROOT)/metrics && $(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_METRICS_SOURCES)) --check .
+
+# Sugar is defined only in a Syntax.scala, each definition documented with its `Core form:`, and no
+# core file of the framework or the lifter imports or names it.
+lint-model-syntax:
+	@printf $(COLOR) "Checking the model's sugar..."
+	@$(MODEL_GATE) --check-syntax
 
 # Applies the scalafix rewrites; findings without a rewrite (e.g. DisableSyntax) still fail.
 fix-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)

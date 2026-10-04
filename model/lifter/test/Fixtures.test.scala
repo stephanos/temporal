@@ -171,14 +171,27 @@ class Fixtures extends munit.FunSuite:
     "partial",
     "unrelatedRead",
     "assumedTwice",
-    "gapTwice"
+    "gapTwice",
+    "rebindUnbound",
+    "extendBound",
+    "reboundTwice",
+    "assumedAgain",
+    "assumingTwice",
+    "refinedNothing",
+    "refinedOtherwise",
+    "loopFirst",
+    "aliased",
+    "splatted",
+    "explained"
   ).map("fixture.rejects.Rejects$package$." + _) ++ Seq(
-    // DefinitionScope pins and a name the compiler made up, refused in objects of their own.
+    // DefinitionScope pins, a name the compiler made up and a computed accepted outcome, refused in
+    // objects of their own.
     "PinnedTwice$.pinnedTwice",
     "PinsOuter$.pinnedNested",
     "Self$.pinnedSelf",
     "Computed$.pinnedComputed",
-    "Anonymous$.anonymous"
+    "Anonymous$.anonymous",
+    "ComputedAccepted$.computedAccept"
   ).map("fixture.rejects." + _)
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
@@ -255,7 +268,9 @@ class Fixtures extends munit.FunSuite:
       Seq(
         "ActionInput.scala:15:28",
         "Crossed.scala:35:14",
-        "Crossed.scala:45:28"
+        "Crossed.scala:45:28",
+        "Crossed.scala:49:24",
+        "Crossed.scala:59:29"
       )
     )
 
@@ -509,6 +524,129 @@ class Fixtures extends munit.FunSuite:
     strip(spelled)
     strip(same)
     assertEquals(same.toPrettyString, spelled.toPrettyString)
+
+  /**
+   * The machines and Properties of one lift of `roots` of the lifts fixture `fixture`, by name, each
+   * as a pair compares it: without its name, its machine and positions, and with each function it
+   * refers to in place of the function's name, so two spellings may name their functions apart.
+   */
+  private def declarations(
+      fixture: String,
+      roots: Seq[String]
+  ): (com.fasterxml.jackson.databind.JsonNode, String => String, String => String) =
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    val pkg = s"fixture.$fixture.${fixture.capitalize}$$package$$"
+    val out = lifted(s"$fixture-pairs")
+    val result =
+      lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots.map(s"$pkg." + _))*)
+    assert(!result.failed, result.diagnostics)
+    val model = mapper.readTree(Files.readString(out))
+    def strip(n: JsonNode): Unit =
+      n match
+        case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
+        case _             => ()
+      n.elements().asScala.foreach(strip)
+    val functions = model
+      .path("functions")
+      .elements()
+      .asScala
+      .map { f =>
+        val body = f.deepCopy[ObjectNode]()
+        body.remove("name")
+        strip(body)
+        f.path("name").asText() -> body
+      }
+      .toMap
+    def deref(o: JsonNode, fields: String*): Unit = o match
+      case o: ObjectNode =>
+        for field <- fields if o.path(field).asText().nonEmpty do
+          o.set(field, functions(o.path(field).asText())): Unit
+      case _ => ()
+    def find(kind: String, name: String): ObjectNode =
+      model
+        .path(kind)
+        .elements()
+        .asScala
+        .find(_.path("name").asText() == name)
+        .getOrElse(fail(s"the $fixture fixture lifted no $kind named $name"))
+        .deepCopy[ObjectNode]()
+    def machine(name: String): String =
+      val m = find("machines", name)
+      m.remove(java.util.List.of("name"))
+      deref(m, "evidence")
+      m.path("steps").elements().asScala.foreach(deref(_, "function"))
+      deref(m.path("refines"), "map", "visible", "visibleOutcomes")
+      strip(m)
+      m.toPrettyString
+    def property(name: String): String =
+      val p = find("properties", name)
+      p.remove(java.util.List.of("name", "machine"))
+      deref(p, "holds")
+      strip(p)
+      p.toPrettyString
+    (model, machine, property)
+
+  // Each derived machine beside the machine it stands for, spelled out (lifts/Derived.scala).
+  concurrently(
+    "rebind, extend, refining, assuming and unmonitored lift to the machines they stand for"
+  ):
+    val pairs = Seq(
+      "stiffLamp" -> "stiffLampSpelled",
+      "faultyLamp" -> "faultyLampSpelled",
+      "plainLamp" -> "plainLampSpelled",
+      "plainStiffLamp" -> "plainStiffLampSpelled"
+    )
+    val (model, machine, _) = declarations("derived", pairs.flatMap((a, b) => Seq(a, b)))
+    for (derived, spelled) <- pairs do assertEquals(machine(derived), machine(spelled), derived)
+    def named(name: String) =
+      model.path("machines").elements().asScala.find(_.path("name").asText() == name).get
+    def actions(name: String) = named(name)
+      .path("steps")
+      .elements()
+      .asScala
+      .map(s => s.path("action").asText().split('.').last)
+      .toList
+    assertEquals(actions("stiffLamp"), List("press", "wear"), "a rebound action keeps its place")
+    assertEquals(actions("faultyLamp"), List("press", "wear", "burnOut"))
+    assertEquals(named("faultyLamp").path("family").asText(), "fixture.derived")
+    assertEquals(
+      named("faultyLamp").path("assumes").elements().asScala.map(_.asText().split('.').last).toList,
+      List("lampOpaque", "burnOutAssumed")
+    )
+    assertEquals(named("faultyLamp").path("refines").path("product").asText(), "viewUnderFaults")
+    assert(!named("plainLamp").has("monitors") && !named("plainLamp").has("refines"))
+    assertEquals(
+      named("plainStiffLamp").path("steps").get(1).path("function").asText(),
+      "plainStiffLamp.wear",
+      "a lambda a derivation binds is named after the machine it declares"
+    )
+
+  // Each sugar form beside its core spelling (lifts/Sugar.scala).
+  concurrently(
+    "accept, stay, disabled, because, in, implies and records lift as their core forms do"
+  ):
+    val (model, machine, property) = declarations("sugar", Seq("sugared", "cored", "claims"))
+    assertEquals(machine("sugared"), machine("cored"))
+    for form <- Seq("records", "implies", "paused") do
+      assertEquals(property(s"${form}Sugar"), property(s"${form}Core"), form)
+    val functions = model.path("functions").elements().asScala.map(_.path("name").asText()).toList
+    assert(
+      functions.forall(!_.startsWith("umpire.")),
+      s"a framework definition was lifted as a function: ${functions.mkString(", ")}"
+    )
+    val resume = model
+      .path("functions")
+      .elements()
+      .asScala
+      .find(_.path("name").asText().endsWith(".resumeSugar"))
+      .get
+    assertEquals(
+      resume.at("/body/match/cases/1/pattern").toString,
+      """{"wildcard":{}}""",
+      "a wildcard arm lifts as a wildcard"
+    )
 
   concurrently("the lifter refuses unrelated machines with one state type, at the Query line"):
     val jar = packaged("samestate", materialize("samestate"))

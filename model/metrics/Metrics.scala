@@ -7,7 +7,7 @@
 //> using options -deprecation -feature -unchecked -Wunused:imports
 // It compiles the gate's sources it reads literals with, and the gate's main class beside its own.
 //> using file ../gate/Gate.scala ../gate/Roots.scala ../gate/Tools.scala
-//> using file ../gate/ProtoLiterals.scala ../gate/SourceMetrics.scala
+//> using file ../gate/ProtoLiterals.scala ../gate/SourceMetrics.scala ../gate/SyntaxRule.scala
 //> using mainClass umpire.gate.metrics
 package umpire.gate
 

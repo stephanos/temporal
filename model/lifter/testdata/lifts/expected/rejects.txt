@@ -1,24 +1,36 @@
 lift: model/lifter/testdata/lifts/Rejects.scala:314: Limits takes its name from the val that declares it, and given_Limits is a name the compiler made up: declare it with a val of the name it has
 lift: model/lifter/testdata/lifts/Rejects.scala:304: a DefinitionScope names its former owner as a nonempty string literal, not umpire.DefinitionScope.apply("fixture.rejects.".+("Former$package$"))
+lift: model/lifter/testdata/lifts/Rejects.scala:540: accept answers the outcome a `given Accepted[O] = Accepted(o)` of the lifted sources names, not fixture.rejects.ComputedAccepted.given_Accepted_Outcome
 lift: model/lifter/testdata/lifts/Rejects.scala:257: fixture.rejects.PinnedTwice$ pins its Definition IDs twice, at model/lifter/testdata/lifts/Rejects.scala:256 and here: an owner has one DefinitionScope
 lift: model/lifter/testdata/lifts/Rejects.scala:269: fixture.rejects.PinsOuter$.PinsInner$ pins its Definition IDs inside fixture.rejects.PinsOuter$, which pins its own: a DefinitionScope pins the declarations of one owner, not of the owners nested in it
+lift: model/lifter/testdata/lifts/Rejects.scala:513: aliasFirst is an alias of itself, through aliasFirst, aliasSecond: an alias names a value declared without it
 lift: model/lifter/testdata/lifts/Rejects.scala:352: Query asked is declared twice, and both would share one Definition ID
+lift: model/lifter/testdata/lifts/Rejects.scala:480: assumedAgain assumes lampOpaque twice: a machine names each assumption once
 lift: model/lifter/testdata/lifts/Rejects.scala:435: two assumptions are named opaque: fixture.rejects.OpaqueA$.opaque and fixture.rejects.OpaqueB$.opaque, and the IR names them by name
+lift: model/lifter/testdata/lifts/Rejects.scala:484: assumingTwice assumes lampFaulty twice: a machine names each assumption once
 lift: model/lifter/testdata/lifts/Rejects.scala:196: channel batches's messages are lists, which have no finite catalog in the IR: give them an enum or a record
 lift: model/lifter/testdata/lifts/Rejects.scala:361: limits bound are declared twice with different bounds, here and at model/lifter/testdata/lifts/Rejects.scala:358: a Query's receipt names its limits by name
 lift: model/lifter/testdata/lifts/Rejects.scala:79: countdown calls itself, directly or through another function: a recursive function has no IR form, so write the bounded computation out
 lift: model/lifter/testdata/lifts/Rejects.scala:178: channel counts's messages are Int, and their catalog umpire.Finite.of[scala.Int](1, 5) is not `Finite.upTo(n)`: the IR carries an Int only as a range from 0, so declare the channel with one or give its messages an opaque type with a range
 lift: model/lifter/testdata/lifts/Rejects.scala:132: crossedRead reads flips, a Property of second, through the refinement of refining, which refines first
 lift: model/lifter/testdata/lifts/Rejects.scala:72: fixture.rejects.Twice holds channel leaky in first and second; a state holds a channel in one field
+lift: model/lifter/testdata/lifts/Rejects.scala:529: because explains the steps a step function writes out and does not explain, such as `accept(...)` or `List(Step(...))`: give each other step its explanation where it is written
+lift: model/lifter/testdata/lifts/Rejects.scala:464: extendBound extends oneStart by flip, which it binds already: rebind replaces the step function of an action the source binds
 lift: model/lifter/testdata/lifts/Rejects.scala:448: two holes are named gap: fixture.rejects.GapA$.gap and fixture.rejects.GapB$.gap, and the IR names them by name
 lift: model/lifter/testdata/lifts/Rejects.scala:230: channel guessed's loss is umpire.Loss.valueOf("reliable"), not a case of Loss: a channel names its loss as Loss.lossy or Loss.reliable
 lift: model/lifter/testdata/lifts/Rejects.scala:58: listening holds the lossy channel leaky and binds no leakyLoss step: a lossy channel's loss is a step whose meaning the machine says
+lift: model/lifter/testdata/lifts/Rejects.scala:509: loopFirst is derived from itself, through loopFirst, loopSecond: a machine derives from a machine declared without it
 lift: model/lifter/testdata/lifts/Rejects.scala:165: middle replaces first, and no member fills middle
 lift: model/lifter/testdata/lifts/Rejects.scala:135: limits backwards declare -1 steps; a bound is at least 0
 lift: root fixture.rejects.Rejects$package$.noSuchRoot: names no declaration of the lifted sources
 lift: model/lifter/testdata/lifts/Rejects.scala:423: evidence covers only some values of fact lost, which has fields: its name alone does not say what confirms it, so write a line for all of it
+lift: model/lifter/testdata/lifts/Rejects.scala:461: rebindUnbound rebinds push, which oneStart does not bind: extend binds an action the source does not
+lift: model/lifter/testdata/lifts/Rejects.scala:470: reboundTwice rebinds flip twice: a machine binds an action once
+lift: model/lifter/testdata/lifts/Rejects.scala:487: refinedNothing replaces the refinement of oneStart, which declares none: declare it with `refines` in the machine
+lift: model/lifter/testdata/lifts/Rejects.scala:505: refinedOtherwise refines glimpse of fixture.rejects.Glimpse, fixture.rejects.Seen, Nothing in place of first of fixture.rejects.Flag, fixture.rejects.Outcome, Nothing: a replacement refines a machine of the same state, outcome and fact types, whose facts and outcomes the kept refinement names
 lift: model/lifter/testdata/lifts/Rejects.scala:284: fixture.rejects.SharedB$.share and fixture.rejects.SharedA$.share would share the Definition ID fixture.rejects.Shared$.share: two declarations pinned to one former owner keep the distinct names they had there
 lift: model/lifter/testdata/lifts/Rejects.scala:214: channel shuffled's order is umpire.Order.fromOrdinal(1), not a case of Order: a channel names its order as Order.fifo or Order.unordered
+lift: model/lifter/testdata/lifts/Rejects.scala:521: in lists its members, so a list passed as `xs*` has no IR form: write them out
 lift: model/lifter/testdata/lifts/Rejects.scala:375: tapped binds two actions named tap, fixture.rejects.TapA$.tap and fixture.rejects.TapB$.tap: a machine's actions have distinct names
 lift: model/lifter/testdata/lifts/Rejects.scala:337: fixture.rejects.TwinA$.twin and fixture.rejects.TwinB$.twin are both named twin, and claims name a machine or composition by its name
 lift: model/lifter/testdata/lifts/Rejects.scala:19: fixture.rejects.Unbounded.notes is a list, which has no bound: a state holds messages in a channel's Inbox

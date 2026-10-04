@@ -11,6 +11,9 @@
 //                                                   --if-stale, only when their inputs changed
 //   scala-cli run model/gate -- --generate-api      package linked API classes; --if-stale reuses
 //                                                   a jar whose descriptors and tools are current
+//   scala-cli run model/gate -- --check-syntax      hold the sugar to the Syntax.scala files and
+//                                                   their `Core form:` docs (SyntaxRule.scala);
+//                                                   make lint-model runs it
 //
 // The lifter's fixtures under lifter/testdata are built and lifted too, by the lifter's own tests:
 // the Models it must lift, compared with the IR in lifter/testdata/lifts/expected, which --update
@@ -459,7 +462,8 @@ final class Gate(tools: Tools, log: PrintStream):
 
 object Gate:
   val usage =
-    "usage: gate [--update] [--skip-go-checks] | gate --generate-ir|--generate-api [--if-stale]"
+    "usage: gate [--update] [--skip-go-checks] | gate --generate-ir|--generate-api [--if-stale]" +
+      " | gate --check-syntax"
 
   private def same(checkedIn: Path, produced: Path) =
     Files.isRegularFile(checkedIn) && Files.mismatch(checkedIn, produced) == -1L
@@ -509,11 +513,19 @@ object Gate:
 
   /** Runs the gate as its command line says and answers its exit status. */
   def main(arguments: Seq[String], tools: => Tools, out: PrintStream, err: PrintStream): Int =
-    val known = Set("--update", "--skip-go-checks", "--generate-ir", "--generate-api", "--if-stale")
+    val known = Set(
+      "--update",
+      "--skip-go-checks",
+      "--generate-ir",
+      "--generate-api",
+      "--if-stale",
+      "--check-syntax"
+    )
     val flags = arguments.toSet
     val generate = flags("--generate-ir") || flags("--generate-api")
     val valid = flags.subsetOf(known) &&
-      (if generate then
+      (if flags("--check-syntax") then flags == Set("--check-syntax")
+       else if generate then
          !flags("--update") && !flags("--skip-go-checks") &&
          !(flags("--generate-ir") && flags("--generate-api"))
        else !flags("--if-stale"))
@@ -522,11 +534,17 @@ object Gate:
       2
     else
       try
-        val gate = Gate(tools, out)
-        if flags("--generate-ir") then gate.generateIr(flags("--if-stale"))
-        else if flags("--generate-api") then gate.generateApi(flags("--if-stale"))
-        else gate.run(flags("--update"), !flags("--skip-go-checks"))
-        0
+        if flags("--check-syntax") then
+          // A finding is a line of its own, `file:line: reason`, so an editor opens it.
+          val findings = SyntaxRule.findings(tools.directory)
+          findings.foreach(err.println)
+          if findings.isEmpty then 0 else 1
+        else
+          val gate = Gate(tools, out)
+          if flags("--generate-ir") then gate.generateIr(flags("--if-stale"))
+          else if flags("--generate-api") then gate.generateApi(flags("--if-stale"))
+          else gate.run(flags("--update"), !flags("--skip-go-checks"))
+          0
       catch
         case e: (GateError | ToolError) =>
           err.println(s"gate: ${e.getMessage}")

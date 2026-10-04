@@ -315,7 +315,8 @@ lint rule forbids where no rewrite keeps the behavior carries a line-scoped
 The lifter reads what an author wrote, as written:
 
 - **Declarations:** `machine[S, O, F] { … }` blocks, with `forEntity`, `starts`, `ends`,
-  `evidence`, `unobservable`, `refines` and `steps(a ~> f, …)`; `restrict`; action chains
+  `evidence`, `unobservable`, `refines` and `steps(a ~> f, …)`; the derivations `restrict`,
+  `rebind`, `extend`, `refining`, `assuming` and `unmonitored`; action chains
   (`action`, `timer`, `internal`, `on`, `creates`, `input[T]`, `schema`, `results`, `example`);
   Properties, Scenarios, Queries, Limits, monitors, assumptions, holes, channels, compositions,
   progress claims and realizations.
@@ -323,7 +324,15 @@ The lifter reads what an author wrote, as written:
   `given Finite[Int] = Finite.upTo(…)` beside the state's `Finite`.
 - **Step functions:** `if`, `match` with case, alternative, binding and wildcard patterns, local
   `val`s, `copy`, constructors, comparisons, arithmetic, list literals and `++`, and calls of other
-  functions. `require` becomes the function's precondition; `ensuring` is not lifted.
+  functions; `Step(…)` and `steps.because("…")` on steps written out. `require` becomes the
+  function's precondition; `ensuring` is not lifted.
+- **Sugar** (`umpire/Syntax.scala`, lifted by `lifter/Syntax.scala`): `accept(state, facts*)`,
+  `stay(s)`, `disabled`, `x.in(a, b, …)`, `a implies b` and `after.records(fact)`. Each is lifted to
+  the IR its core form lifts to, and nothing else: `List(Step(accepted, state, List(facts*)))`,
+  `List(Step(accepted, s))`, `Nil`, `List(a, b, …).contains(x)`, `!a || b` and
+  `after.facts.contains(fact)`. `accept` and `stay` answer the outcome one
+  `given Accepted[Outcome] = Accepted(Outcome.accepted)` names; `in` is written dotted and takes at
+  least one member; `implies` reads its right side only where its left side holds.
 
 A declaration takes its name from the `val` that declares it, and its family from the
 `given Family` in scope. A machine states its three types once, in `machine[S, O, F]` or as the
@@ -358,6 +367,31 @@ through one `given DefinitionScope = DefinitionScope("pkg.Former$package$")` the
 name for the former owner: each ID is `<former owner>.<val name>`. An owner pins once, not inside
 an owner that pins and not to itself, and no two declarations may share an ID. Owners nested in a
 pinned one keep their own IDs. No declaration names an ID of its own.
+
+A derived machine is another machine's declaration with one thing changed, named after its own
+`val` in the `given Family`, as a restricted one is. Chained, they lift from the `val` of the last:
+
+```scala
+val stiffLamp = lamp.rebind(press ~> pressStiff)       // replaces a bound step function, in place
+val faultyLamp = lamp
+  .extend(burnOut ~> burnOutLamp)                      // binds actions the source does not, after its own
+  .refining(viewUnderFaults)(seen)                     // replaces the refinement, keeping what it lets through
+  .assuming(burnOutAssumed)                            // appends assumptions, each once
+val plainLamp = lamp.unmonitored                       // drops the monitors and the refinement
+```
+
+Each keeps everything else its source declares: starts, ends, evidence, unobservable timers,
+monitors, assumptions and refinement. The lifter refuses rebinding an action the source does not
+bind, extending by one it binds, binding one action twice, an assumption named twice, replacing a
+refinement the source does not declare or by a machine of other state, outcome or fact types, and
+a machine derived from or aliased to itself.
+
+Sugar is kept apart from the core declarations: framework sugar in `umpire/Syntax.scala`, its
+lifting in `lifter/Syntax.scala`, each definition documented with `Core form:` and the core
+spelling it stands for. No core file of the framework or the lifter uses a `Syntax.scala`, and a
+sugar word (`accept`, `stay`, `disabled`, `in`, `implies`, `records`, and later the claim patterns
+and `:=`) is defined in no other file; `make lint-model` checks all three. The lifter's tests lift
+each sugar form beside its core spelling and require the same IR.
 
 A Scenario without `starts` starts in its machine's one declared start, and a composition's in the
 record of its members' starts; where there is not exactly one, it is refused. Evidence is optional.

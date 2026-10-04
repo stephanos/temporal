@@ -199,6 +199,9 @@ private[lift] trait Expressions:
     case _ => t
 
   def lift(t: Term, expected: Option[TypeRepr] = None): ir.Expr = t match
+    // `accept`, `stay`, `disabled`, `in`, `implies` and `records`, as their core forms lift.
+    case _ if sugared(t) => sugar(t)
+
     // The arguments a varargs parameter collects: the list they make.
     case Typed(Repeated(items, elem), _) => list(items.map(i => lift(i, Some(elem.tpe))), t)
     case Typed(e, tpt)                   => lift(e, expected.orElse(Some(tpt.tpe)))
@@ -288,6 +291,11 @@ private[lift] trait Expressions:
     case Select(h, "reached") if isNamed(h.tpe, "umpire.Hole") =>
       expr(t)(E.Hole(holeOf(resolveSymbol(h), t)))
 
+    // `steps.because(reason)`: each step written out takes the explanation.
+    case Apply(Apply(TypeApply(fn, _), List(steps)), List(reason))
+        if fn.symbol.fullName == "umpire.Machine$package$.because" =>
+      because(lift(steps, expected), constString(reason), t)
+
     case Apply(Select(recv, "contains"), List(x)) =>
       binary(ir.Binary.Op.OP_CONTAINS, lift(x), lift(recv), t)
     case Apply(TypeApply(Select(recv, "contains"), _), List(x)) =>
@@ -346,6 +354,26 @@ private[lift] trait Expressions:
       expr(lambda)(E.Lambda(ir.Lambda(ps, Some(lift(body)))))
 
     case other => fail(other, s"outside the liftable subset: ${other.show}")
+
+  /** Steps written out as a list and not explained yet, each with `reason` as its explanation. */
+  def because(steps: ir.Expr, reason: String, at: Tree): ir.Expr =
+    val unexplained = ir.Value(ir.Value.Kind.Text(""))
+    val explained = steps.kind match
+      case E.List(items) if items.items.nonEmpty =>
+        items.items.map { item =>
+          item.kind match
+            case E.Construct(c) if c.`type` == stepType && c.args(3).getLiteral == unexplained =>
+              Some(item.withConstruct(c.withArgs(c.args.updated(3, text(reason, at)))))
+            case _ => None
+        }
+      case _ => Nil
+    if explained.isEmpty || explained.contains(None) then
+      fail(
+        at,
+        "because explains the steps a step function writes out and does not explain, such as " +
+          "`accept(...)` or `List(Step(...))`: give each other step its explanation where it is written"
+      )
+    steps.withList(ir.ListOf(explained.flatten))
 
   def copyOf(base: Term, args: List[Term], at: Tree): ir.Expr =
     val b = lift(base)

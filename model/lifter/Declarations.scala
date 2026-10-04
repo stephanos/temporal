@@ -77,7 +77,9 @@ private[lift] trait Declarations:
     case Block(
           List(DefDef("$anonfun", List(TermParamClause(params)), _, Some(Apply(target, args)))),
           _: Closure
-        ) if args.map(_.symbol) == params.map(_.symbol) && isFunction(target.symbol) =>
+        )
+        if args.map(_.symbol) == params.map(_.symbol) && isFunction(target.symbol) &&
+          !sugared(target) =>
       callee(target.symbol, fn)
     case Block(
           List(DefDef("$anonfun", List(TermParamClause(params)), _, Some(body))),
@@ -108,6 +110,8 @@ private[lift] trait Declarations:
       // `source.restrict(keep*)`, named after its val, in the given family.
       case Apply(Apply(Select(source, "restrict"), List(keep)), List(family)) =>
         restricted(source, family, capturedName(sym, rhs, "a machine"), keep)
+      case Derivation(_, _, _, family) =>
+        derivedMachine(rhs, constString(family), capturedName(sym, rhs, "a machine"))
       case _ =>
         val (s, o, f, family, mname, body) = rhs match
           case Apply(
@@ -215,6 +219,120 @@ private[lift] trait Declarations:
         )
         checkChannels(m, s.dealias.typeSymbol.fullName, rhs)
         m
+
+  // ### Derived machines: another machine's declaration with bindings, refinement or assumptions changed
+
+  /**
+   * One derivation of a machine: the operation, the machine it derives from, its argument lists and
+   * the given family. A chain of them is lifted from the val that declares the last.
+   */
+  object Derivation:
+    def unapply(t: Term): Option[(String, Term, List[Term], Term)] = t match
+      case Apply(
+            Apply(Select(source, op @ ("rebind" | "extend" | "assuming")), List(items)),
+            List(f)
+          ) if isNamed(source.tpe, "umpire.Machine") =>
+        Some((op, source, List(items), f))
+      case Apply(
+            Apply(Apply(TypeApply(Select(source, "refining"), _), List(p)), List(map)),
+            List(f)
+          ) if isNamed(source.tpe, "umpire.Machine") =>
+        Some(("refining", source, List(p, map), f))
+      case Apply(Select(source, "unmonitored"), List(f)) if isNamed(source.tpe, "umpire.Machine") =>
+        Some(("unmonitored", source, Nil, f))
+      case _ => None
+
+  /**
+   * A machine derived by `rebind`, `extend`, `refining`, `assuming` and `unmonitored`: its source's
+   * declaration with only what the operations change, in the family and under the name of the val
+   * that declares it, as a restricted machine owns its own.
+   */
+  def derivedMachine(rhs: Term, family: String, name: String): ir.Machine =
+    def bound(items: Term, op: String): Seq[(String, Term, Term)] =
+      val bindings = varargs(items).map {
+        case b @ Apply(TypeApply(Apply(TypeApply(Ident("~>"), _), List(a)), _), List(fn)) =>
+          (action(a), fn, b)
+        case b @ Apply(TypeApply(Apply(Ident("~>"), List(a)), _), List(fn)) => (action(a), fn, b)
+        case other => fail(other, s"$op takes `action ~> function` bindings, not ${other.show}")
+      }
+      for (id, _, b) <- bindings if bindings.count(_._1 == id) > 1 do
+        fail(b, s"$name ${op}s ${actions(id).name} twice: a machine binds an action once")
+      bindings
+    def binding(id: String, fn: Term, at: Term) =
+      ir.StepBinding(id, stepFunction(fn, name, actions(id).name), Some(pos(at)))
+    def derive(t: Term): ir.Machine = t match
+      case Derivation("rebind", source, List(items), _) =>
+        val src = derive(source)
+        val replaced = bound(items, "rebind").map { (id, fn, b) =>
+          if !src.steps.exists(_.action == id) then
+            fail(
+              b,
+              s"$name rebinds ${actions(id).name}, which ${src.name} does not bind: extend binds an " +
+                "action the source does not"
+            )
+          id -> binding(id, fn, b)
+        }.toMap
+        src.withSteps(src.steps.map(s => replaced.getOrElse(s.action, s)))
+      case Derivation("extend", source, List(items), _) =>
+        val src = derive(source)
+        val added = bound(items, "extend").map { (id, fn, b) =>
+          if src.steps.exists(_.action == id) then
+            fail(
+              b,
+              s"$name extends ${src.name} by ${actions(id).name}, which it binds already: rebind " +
+                "replaces the step function of an action the source binds"
+            )
+          binding(id, fn, b)
+        }
+        src.addAllSteps(added)
+      case Derivation("refining", source, List(product, map), _) =>
+        val src = derive(source)
+        val replacement = machineOf(resolveSymbol(product), product)
+        val replaced = src.refines
+          .flatMap(r => machineNamed(r.product))
+          .getOrElse(
+            fail(
+              t,
+              s"$name replaces the refinement of ${src.name}, which declares none: declare it with " +
+                "`refines` in the machine"
+            )
+          )
+        def types(m: ir.Machine) =
+          Seq(m.stateType, m.outcomeType, m.factType).map(t => if t.isEmpty then "Nothing" else t)
+        if types(replacement) != types(replaced) then
+          fail(
+            product,
+            s"$name refines ${replacement.name} of ${types(replacement).mkString(", ")} in place of " +
+              s"${replaced.name} of ${types(replaced).mkString(", ")}: a replacement refines a machine " +
+              "of the same state, outcome and fact types, whose facts and outcomes the kept " +
+              "refinement names"
+          )
+        src.withRefines(
+          src.getRefines.copy(
+            product = replacement.name,
+            map = stepFunction(map, name, "refines")
+          )
+        )
+      case Derivation("assuming", source, List(items), _) =>
+        val src = derive(source)
+        val added = varargs(items).foldLeft(Vector.empty[String]) { (added, a) =>
+          val id = assumptionOf(resolveSymbol(a), a)
+          if src.assumes.contains(id) || added.contains(id) then
+            fail(
+              a,
+              s"$name assumes ${assumptions(id).name} twice: a machine names each assumption once"
+            )
+          added :+ id
+        }
+        src.addAllAssumes(added)
+      case Derivation("unmonitored", source, Nil, _) =>
+        derive(source).copy(monitors = Nil, refines = None)
+      case source => machineOf(resolveSymbol(source), source)
+    val src = derive(rhs)
+    val m = src.copy(family = family, name = name, position = Some(pos(rhs)))
+    distinctActionNames(m, rhs)
+    checkChannels(m, m.stateType, rhs)
+    m
 
   /**
    * A machine binds each channel's actions only for a channel its state holds, and says what losing
@@ -390,12 +508,25 @@ private[lift] trait Declarations:
     machines.get(sym.fullName) match
       case Some(m) => m
       case None    =>
-        val m = defs.get(sym) match
-          case Some(ValDef(_, _, Some(rhs))) => machine(sym, rhs)
-          case _ => fail(at, s"${sym.fullName} is not a machine of the lifted sources")
+        if declaring(sym) then
+          fail(
+            at,
+            s"${sym.name} is derived from itself, through ${declaring.map(_.name).mkString(", ")}: " +
+              "a machine derives from a machine declared without it"
+          )
+        declaring += sym
+        val m =
+          try
+            defs.get(sym) match
+              case Some(ValDef(_, _, Some(rhs))) => machine(sym, rhs)
+              case _ => fail(at, s"${sym.fullName} is not a machine of the lifted sources")
+          finally declaring -= sym
         distinctModelName(m.name, sym, m.getPosition)
         machines(sym.fullName) = m
         m
+
+  // The machines whose declarations are being lifted, so a machine derived from itself is refused.
+  private val declaring = mutable.LinkedHashSet.empty[Symbol]
 
   /** Claims name a machine or a composition by name, so two of them never share one. */
   def distinctModelName(name: String, sym: Symbol, at: ir.Position): Unit =

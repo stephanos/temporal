@@ -87,7 +87,9 @@ class GateSuite extends munit.FunSuite:
         Seq("--verbose"),
         Seq("--if-stale"),
         Seq("--generate-ir", "--update"),
-        Seq("--generate-ir", "--skip-go-checks")
+        Seq("--generate-ir", "--skip-go-checks"),
+        Seq("--check-syntax", "--update"),
+        Seq("--check-syntax", "--generate-ir")
       )
     do assertEquals(gate(unreachable, arguments*), Answer(2, "", Gate.usage + "\n"))
 

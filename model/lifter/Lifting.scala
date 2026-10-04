@@ -11,7 +11,8 @@ final private[lift] class Lifting(val ctx: Context)
       Declarations,
       Realizations,
       Compositions,
-      Claims:
+      Claims,
+      Syntax:
   import ctx.*
   import ctx.quotes.reflect.*
 

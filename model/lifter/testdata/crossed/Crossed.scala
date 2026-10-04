@@ -44,3 +44,16 @@ val holding: Machine[Holding, Outcome, Nothing] =
     // A delivery handler that takes another message type.
     steps(wire.deliver ~> ((h: Holding, s: Signal) => List(Step(Outcome.accepted, h))))
   }
+
+// Membership in no members.
+val nowhere: Boolean = Signal.up.in()
+
+val there: Machine[There, Outcome, Nothing] =
+  machine[There, Outcome, Nothing](Family("fixture.crossed"), "there") {
+    starts(There(false))
+    ends(_ => true)
+  }
+
+// A replacement refinement whose map leads to states of another type than its machine's.
+val crossedRefinement: Machine[Here, Outcome, Nothing] =
+  here.refining(there)(h => h)(using Family("fixture.crossed"))
