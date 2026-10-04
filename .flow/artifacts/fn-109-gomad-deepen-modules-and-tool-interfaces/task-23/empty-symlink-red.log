@@ -1,0 +1,13 @@
+--- FAIL: TestScopedLintRejectsEmptyModule (0.20s)
+    main_test.go:168: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:168
+        	Error:      	An error is expected but got nil.
+        	Test:       	TestScopedLintRejectsEmptyModule
+--- FAIL: TestLintRejectsModuleSymlink (0.21s)
+    main_test.go:182: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:182
+        	Error:      	An error is expected but got nil.
+        	Test:       	TestLintRejectsModuleSymlink
+FAIL
+FAIL	go.temporal.io/server/cmd/tools/lintcode	0.214s
+FAIL

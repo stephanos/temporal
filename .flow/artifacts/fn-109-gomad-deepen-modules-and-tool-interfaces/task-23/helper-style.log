@@ -1,0 +1,282 @@
+../cmd/tools/lintcode/main.go:50:1: cognitive-complexity: function lint has cognitive complexity 48 (> max enabled 25) (revive)
+func lint(ctx context.Context, base, module, tags string) error {
+	if module != "" && module != gomadModule && module != mixedbrainModule {
+		return fmt.Errorf("unclassified lint module %q", module)
+	}
+	root, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	if _, err := commandOutput(ctx, root, "git", "rev-parse", "--verify", "--quiet", base+"^{commit}"); err != nil {
+		return fmt.Errorf("GOLANGCI_LINT_BASE_REV=%s is not a known commit: %w", base, err)
+	}
+	if module == "" {
+		data, err := commandOutput(ctx, root, "git", "merge-base", "HEAD", base)
+		if err != nil {
+			return err
+		}
+		base = strings.TrimSpace(string(data))
+	}
+	policy, err := loadOwnership(root)
+	if err != nil {
+		return err
+	}
+	paths, err := gitPaths(ctx, root, "ls-files", "-z", "--cached", "--others", "--exclude-standard", "--", "*.go", "go.mod", "**/go.mod")
+	if err != nil {
+		return err
+	}
+	modules, err := policy.moduleDirectories(root, paths)
+	if err != nil {
+		return err
+	}
+	var sources []source
+	for _, path := range paths {
+		if !strings.HasSuffix(path, ".go") {
+			continue
+		}
+		if _, err := os.Lstat(filepath.Join(root, path)); errors.Is(err, os.ErrNotExist) {
+			continue
+		} else if err != nil {
+			return err
+		}
+		entry, err := policy.classify(path, modules)
+		if err != nil {
+			return err
+		}
+		sources = append(sources, entry)
+	}
+	selected := map[string]bool{}
+	changedDirs := map[string]bool{}
+	if module != "" {
+		selected[module] = true
+	} else {
+		changed, err := gitPaths(ctx, root, "diff", "--no-renames", "--name-only", "-z", base, "--", "*.go")
+		if err != nil {
+			return err
+		}
+		untracked, err := gitPaths(ctx, root, "ls-files", "-z", "--others", "--exclude-standard", "--", "*.go")
+		if err != nil {
+			return err
+		}
+		for _, path := range append(changed, untracked...) {
+			entry, err := policy.classify(path, modules)
+			if err != nil {
+				return err
+			}
+			if entry.disposition != "" {
+				fmt.Printf("%s: %s\n", entry.disposition, path)
+				continue
+			}
+			selected[entry.module] = true
+			changedDirs[filepath.ToSlash(filepath.Dir(path))] = true
+		}
+	}
+	for _, owner := range []string{".", gomadModule, mixedbrainModule} {
+		if !selected[owner] {
+			continue
+		}
+		var owned []source
+		for _, entry := range sources {
+			if entry.disposition == "" && entry.module == owner && (owner != "." || changedDirs[filepath.ToSlash(filepath.Dir(entry.path))]) {
+				owned = append(owned, entry)
+			}
+		}
+		if len(owned) == 0 {
+			continue
+		}
+		packages, err := coveredPackages(ctx, root, owner, tags, owned)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("Lint module %s: %d host packages\n", owner, len(packages))
+		command := exec.CommandContext(ctx, "make", "lint-code", "GOLANGCI_LINT_BASE_REV="+base, "LINT_CODE_DIR="+filepath.Join(root, owner), "LINT_CODE_TARGETS="+strings.Join(packages, " "))
+		command.Dir = root
+		command.Stdout, command.Stderr = os.Stdout, os.Stderr
+		if err := command.Run(); err != nil {
+			return fmt.Errorf("lint module %s: %w", owner, err)
+		}
+	}
+	if len(selected) == 0 {
+		fmt.Println("No changed Go packages to lint.")
+	}
+	return nil
+}
+../cmd/tools/lintcode/main.go:176:1: cognitive-complexity: function loadOwnership has cognitive complexity 34 (> max enabled 25) (revive)
+func loadOwnership(root string) (ownership, error) {
+	policy := ownership{modules: map[string]bool{}, overlays: map[string]bool{}}
+	path := filepath.Join(root, gomadModule, "internal/gomadtool/architecture/architecture.go")
+	file, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
+	if err != nil {
+		return policy, fmt.Errorf("read Gomad source classifications: %w", err)
+	}
+	for _, decl := range file.Decls {
+		general, ok := decl.(*ast.GenDecl)
+		if !ok || general.Tok != token.VAR {
+			continue
+		}
+		for _, spec := range general.Specs {
+			values, ok := spec.(*ast.ValueSpec)
+			if !ok || len(values.Names) != 1 || len(values.Values) != 1 {
+				continue
+			}
+			name := values.Names[0].Name
+			if name != "sourceExclusions" && name != "expectedModules" {
+				continue
+			}
+			entries, err := literalPaths(name, values.Values[0])
+			if err != nil {
+				return policy, err
+			}
+			if name == "sourceExclusions" {
+				policy.fixtures = entries
+			} else {
+				for _, entry := range entries {
+					policy.modules[gomadModule+"/"+entry] = true
+				}
+			}
+		}
+	}
+	if len(policy.fixtures) == 0 || len(policy.modules) == 0 {
+		return policy, fmt.Errorf("Gomad source classifications need literal sourceExclusions and expectedModules")
+	}
+	data, err := os.ReadFile(filepath.Join(root, gomadModule, "toolchain/version/version.json"))
+	if err != nil {
+		return policy, err
+	}
+	var descriptor struct {
+		OverlayAllowlist []string `json:"overlay_allowlist"`
+	}
+	if err := json.Unmarshal(data, &descriptor); err != nil {
+		return policy, err
+	}
+	if len(descriptor.OverlayAllowlist) == 0 {
+		return policy, fmt.Errorf("Gomad overlay allowlist is empty")
+	}
+	for _, entry := range descriptor.OverlayAllowlist {
+		if !within(entry, "src") || filepath.ToSlash(filepath.Clean(entry)) != entry || policy.overlays[entry] {
+			return policy, fmt.Errorf("invalid Gomad overlay allowlist entry %q", entry)
+		}
+		policy.overlays[entry] = true
+	}
+	return policy, nil
+}
+../cmd/tools/lintcode/main.go:211:18: use-errors-new: replace fmt.Errorf by errors.New (revive)
+		return policy, fmt.Errorf("Gomad source classifications need literal sourceExclusions and expectedModules")
+		               ^
+../cmd/tools/lintcode/main.go:224:18: use-errors-new: replace fmt.Errorf by errors.New (revive)
+		return policy, fmt.Errorf("Gomad overlay allowlist is empty")
+		               ^
+../cmd/tools/lintcode/main.go:238:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("Gomad %s must remain a literal path classification", name)
+		            ^
+../cmd/tools/lintcode/main.go:245:17: ST1005: error strings should not be capitalized (staticcheck)
+				return nil, fmt.Errorf("Gomad %s has a nonliteral entry", name)
+				            ^
+../cmd/tools/lintcode/main.go:249:17: ST1005: error strings should not be capitalized (staticcheck)
+				return nil, fmt.Errorf("Gomad %s has an inactive classification", name)
+				            ^
+../cmd/tools/lintcode/main.go:255:16: ST1005: error strings should not be capitalized (staticcheck)
+			return nil, fmt.Errorf("Gomad %s has a nonliteral path", name)
+			            ^
+../cmd/tools/lintcode/main.go:262:16: ST1005: error strings should not be capitalized (staticcheck)
+			return nil, fmt.Errorf("Gomad %s has an invalid path %q", name, path)
+			            ^
+../cmd/tools/lintcode/main.go:292:2: enforce-switch-style: switch must have a default case clause (revive)
+	switch {
+	case within(path, ".flow"):
+		entry.disposition = "retained evidence"
+	case within(path, "tools/gomad3sim/testdata/simulation_exploration"):
+		entry.disposition = "simulation fixture"
+	case within(path, "tools/gomad3integration/testdata/tagged"):
+		entry.disposition = "integration fixture"
+	case within(path, gomadModule+"/toolchain/runtime/overlay"):
+		relative := strings.TrimPrefix(path, gomadModule+"/toolchain/runtime/overlay/")
+		if !p.overlays[relative] {
+			return entry, fmt.Errorf("unclassified runtime overlay source %s", path)
+		}
+		entry.disposition = "runtime overlay"
+	case within(path, gomadModule):
+		relative := strings.TrimPrefix(path, gomadModule+"/")
+		for _, fixture := range p.fixtures {
+			if fixture != "toolchain/runtime/overlay" && within(relative, fixture) {
+				entry.disposition = "Gomad qualification fixture"
+				return entry, nil
+			}
+		}
+		for _, part := range strings.Split(filepath.ToSlash(filepath.Dir(relative)), "/") {
+			if part != "." && (part == "testdata" || strings.HasPrefix(part, ".") || strings.HasPrefix(part, "_")) {
+				return entry, fmt.Errorf("uncovered Gomad host source %s", path)
+			}
+		}
+		if within(relative, "toolchain/runtime") {
+			return entry, fmt.Errorf("uncovered Gomad host source %s", path)
+		}
+	}
+../cmd/tools/lintcode/main.go:339:1: cognitive-complexity: function coveredPackages has cognitive complexity 32 (> max enabled 25) (revive)
+func coveredPackages(ctx context.Context, root, module, tags string, sources []source) ([]string, error) {
+	var packages []string
+	for _, entry := range sources {
+		path := filepath.Join(root, entry.path)
+		for candidate := path; candidate != root; candidate = filepath.Dir(candidate) {
+			info, err := os.Lstat(candidate)
+			if err != nil {
+				return nil, err
+			}
+			if info.Mode()&os.ModeSymlink != 0 {
+				return nil, fmt.Errorf("uncovered source symlink %s", entry.path)
+			}
+		}
+		directory, err := filepath.Rel(filepath.Join(root, module), filepath.Dir(path))
+		if err != nil {
+			return nil, err
+		}
+		for _, char := range directory {
+			if !strings.ContainsRune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_./-", char) {
+				return nil, fmt.Errorf("unsupported lint package directory for %s", entry.path)
+			}
+		}
+		if directory != "." {
+			directory = "./" + filepath.ToSlash(directory)
+		}
+		packages = append(packages, directory)
+	}
+	slices.Sort(packages)
+	packages = slices.Compact(packages)
+	args := append([]string{"list", "-e", "-mod=readonly", "-json", "-tags", tags}, packages...)
+	data, err := commandOutput(ctx, filepath.Join(root, module), "go", args...)
+	if err != nil {
+		return nil, err
+	}
+	covered := map[string]bool{}
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	for {
+		var pkg listedPackage
+		err := decoder.Decode(&pkg)
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		for _, names := range [][]string{pkg.GoFiles, pkg.CgoFiles, pkg.IgnoredGoFiles, pkg.TestGoFiles, pkg.XTestGoFiles} {
+			for _, name := range names {
+				covered[filepath.Join(pkg.Dir, name)] = true
+			}
+		}
+	}
+	for _, entry := range sources {
+		if !covered[filepath.Join(root, entry.path)] {
+			return nil, fmt.Errorf("uncovered host source %s: absent from Go package metadata", entry.path)
+		}
+	}
+	return packages, nil
+}
+../cmd/tools/lintcode/main_test.go:182:3: deep-exit: calls to os.Exit only in main() or init() functions (revive)
+		os.Exit(19)
+		^
+../cmd/tools/lintcode/main_test.go:184:2: deep-exit: calls to os.Exit only in main() or init() functions (revive)
+	os.Exit(0)
+	^
+13 issues:
+* revive: 8
+* staticcheck: 5

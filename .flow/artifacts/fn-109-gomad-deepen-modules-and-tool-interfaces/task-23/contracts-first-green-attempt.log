@@ -1,0 +1,14 @@
+# go.temporal.io/server/cmd/tools/lintcode [go.temporal.io/server/cmd/tools/lintcode.test]
+cmd/tools/lintcode/main.go:223:7: undefined: within
+cmd/tools/lintcode/main.go:268:41: undefined: within
+cmd/tools/lintcode/main.go:289:7: undefined: within
+cmd/tools/lintcode/main.go:291:7: undefined: within
+cmd/tools/lintcode/main.go:293:7: undefined: within
+cmd/tools/lintcode/main.go:295:7: undefined: within
+cmd/tools/lintcode/main.go:301:7: undefined: within
+cmd/tools/lintcode/main.go:304:49: undefined: within
+cmd/tools/lintcode/main.go:314:6: undefined: within
+cmd/tools/lintcode/main.go:322:23: undefined: within
+cmd/tools/lintcode/main.go:322:23: too many errors
+FAIL	go.temporal.io/server/cmd/tools/lintcode [build failed]
+FAIL

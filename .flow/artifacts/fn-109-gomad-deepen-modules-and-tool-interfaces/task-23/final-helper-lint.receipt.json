@@ -1,0 +1,21 @@
+{
+  "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --build-tags disable_grpc_modules,,test_dep, --timeout 10m --fix=false --config=.github/.golangci.yml ./cmd/tools/lintcode",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "head": "b43aeb5b15d438eebab65f2ce48eecb19e76e55c",
+  "exit_code": 0,
+  "elapsed_seconds": 0.709048833,
+  "log": "final-helper-lint.log",
+  "environment": {
+    "GOENV": "off",
+    "GOFLAGS": "",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOMAXPROCS": "2",
+    "GOMADSEED": null,
+    "GOMAD3_CHILD_SEED": null,
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin"
+  },
+  "source_hashes": "source-frozen.sha256",
+  "tool_hashes": "tools-frozen.sha256",
+  "go_environment": "go-environment.json"
+}

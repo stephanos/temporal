@@ -1,0 +1,15 @@
+Makefile: OK
+tools/gomad3/Makefile: OK
+.github/workflows/linters.yml: OK
+.github/workflows/gomad3.yml: OK
+cmd/tools/lintcode/main.go: OK
+cmd/tools/lintcode/main_test.go: OK
+.github/.golangci.yml: OK
+tools/gomad3/internal/gomadtool/architecture/architecture.go: OK
+tools/gomad3/toolchain/version/version.json: OK
+go.mod: OK
+go.sum: OK
+tools/gomad3/go.mod: OK
+tools/gomad3/go.sum: OK
+tests/mixedbrain/go.mod: OK
+tests/mixedbrain/go.sum: OK

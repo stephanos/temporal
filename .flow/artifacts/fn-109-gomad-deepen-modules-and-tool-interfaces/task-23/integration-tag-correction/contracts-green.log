@@ -1,0 +1,18 @@
+=== RUN   TestFastLintRootIntegrationTagsAndFailure
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure
+=== CONT  TestFastLintRootIntegrationTagsAndFailure
+=== RUN   TestFastLintRootIntegrationTagsAndFailure/#00
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure/#00
+=== RUN   TestFastLintRootIntegrationTagsAndFailure/golangci
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure/golangci
+=== RUN   TestFastLintRootIntegrationTagsAndFailure/vet
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure/vet
+=== CONT  TestFastLintRootIntegrationTagsAndFailure/#00
+=== CONT  TestFastLintRootIntegrationTagsAndFailure/vet
+=== CONT  TestFastLintRootIntegrationTagsAndFailure/golangci
+--- PASS: TestFastLintRootIntegrationTagsAndFailure (0.00s)
+    --- PASS: TestFastLintRootIntegrationTagsAndFailure/vet (0.24s)
+    --- PASS: TestFastLintRootIntegrationTagsAndFailure/#00 (0.24s)
+    --- PASS: TestFastLintRootIntegrationTagsAndFailure/golangci (0.21s)
+PASS
+ok  	go.temporal.io/server/cmd/tools/lintcode	0.450s

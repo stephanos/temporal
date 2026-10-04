@@ -1,0 +1,58 @@
+../cmd/tools/lintcode/main.go:132:110: confusing-results: unnamed results of the same type may be confusing, consider using named results (revive)
+func (p ownership) selectChanges(ctx context.Context, root, base string, modules []string) (map[string]bool, map[string]bool, error) {
+                                                                                                             ^
+../cmd/tools/lintcode/main.go:376:1: cognitive-complexity: function coveredPackages has cognitive complexity 26 (> max enabled 25) (revive)
+func coveredPackages(ctx context.Context, root, module, tags string, sources []source) ([]string, error) {
+	var packages []string
+	for _, entry := range sources {
+		path := filepath.Join(root, entry.path)
+		if err := regularSource(root, entry.path); err != nil {
+			return nil, err
+		}
+		directory, err := filepath.Rel(filepath.Join(root, module), filepath.Dir(path))
+		if err != nil {
+			return nil, err
+		}
+		for _, char := range directory {
+			if !strings.ContainsRune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_./-", char) {
+				return nil, fmt.Errorf("unsupported lint package directory for %s", entry.path)
+			}
+		}
+		if directory != "." {
+			directory = "./" + filepath.ToSlash(directory)
+		}
+		packages = append(packages, directory)
+	}
+	slices.Sort(packages)
+	packages = slices.Compact(packages)
+	args := append([]string{"list", "-e", "-mod=readonly", "-json", "-tags", tags}, packages...)
+	data, err := commandOutput(ctx, filepath.Join(root, module), "go", args...)
+	if err != nil {
+		return nil, err
+	}
+	covered := map[string]bool{}
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	for {
+		var pkg listedPackage
+		err := decoder.Decode(&pkg)
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		for _, names := range [][]string{pkg.GoFiles, pkg.CgoFiles, pkg.IgnoredGoFiles, pkg.TestGoFiles, pkg.XTestGoFiles} {
+			for _, name := range names {
+				covered[filepath.Join(pkg.Dir, name)] = true
+			}
+		}
+	}
+	for _, entry := range sources {
+		if !covered[filepath.Join(root, entry.path)] {
+			return nil, fmt.Errorf("uncovered host source %s: absent from Go package metadata", entry.path)
+		}
+	}
+	return packages, nil
+}
+2 issues:
+* revive: 2

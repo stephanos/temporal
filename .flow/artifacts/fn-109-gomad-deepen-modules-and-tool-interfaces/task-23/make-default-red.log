@@ -1,0 +1,18 @@
+--- FAIL: TestGomadDefaultRemainsGenerate (0.03s)
+    main_test.go:160: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:160
+        	Error:      	Not equal: 
+        	            	expected: "generate\n"
+        	            	actual  : "lint-code\n"
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1,2 +1,2 @@
+        	            	-generate
+        	            	+lint-code
+        	            	 
+        	Test:       	TestGomadDefaultRemainsGenerate
+FAIL
+FAIL	go.temporal.io/server/cmd/tools/lintcode	0.032s
+FAIL

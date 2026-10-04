@@ -32,6 +32,10 @@ generate: $(VERSION_INPUTS) $(BOUNDARY_INPUTS) $(COMPATIBILITY_INPUTS)
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool compatibility-pack generate --root=$(CURDIR)
 	$(MAKE) tests-qualification-generate
 
+.PHONY: lint-code
+lint-code:
+	$(MAKE) -C ../.. lint-code-gomad3
+
 tests-qualification-generate:
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool $(TESTS_QUALIFICATION_GENERATE)
 

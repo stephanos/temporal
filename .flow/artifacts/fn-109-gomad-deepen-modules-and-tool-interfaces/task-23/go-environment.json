@@ -1,0 +1,14 @@
+{
+	"CGO_ENABLED": "1",
+	"GOARCH": "arm64",
+	"GOENV": "",
+	"GOFLAGS": "",
+	"GOHOSTARCH": "arm64",
+	"GOHOSTOS": "linux",
+	"GOMOD": "/Users/stephan/Workspace/skunkworks/gomad/temporal/go.mod",
+	"GOOS": "linux",
+	"GOROOT": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64",
+	"GOTOOLCHAIN": "local",
+	"GOVERSION": "go1.27.1",
+	"GOWORK": "off"
+}

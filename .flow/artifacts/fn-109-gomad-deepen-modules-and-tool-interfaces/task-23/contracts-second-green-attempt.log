@@ -1,0 +1,196 @@
+--- FAIL: TestFastLintRoutesModuleOwners (0.21s)
+    main_test.go:27: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:269
+        	            				/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:27
+        	Error:      	Received unexpected error:
+        	            	exit status 2
+        	Test:       	TestFastLintRoutesModuleOwners
+        	Messages:   	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	Lint module .: 4 host packages
+        	            	make[1]: Entering directory '/home/agent/.cache/codex-build/tmp/TestFastLintRoutesModuleOwners270294408/001'
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	[1;36mLinting code...[0m
+        	            	go: can't unmarshal JSON from /home/agent/.cache/codex-build/tmp/TestFastLintRoutesModuleOwners270294408/001/bin/errortype -flags: unexpected end of JSON inputmake[1]: *** [Makefile:506: lint-code] Error 2
+        	            	make[1]: Leaving directory '/home/agent/.cache/codex-build/tmp/TestFastLintRoutesModuleOwners270294408/001'
+        	            	lint module .: exit status 2
+        	            	exit status 1
+        	            	make: *** [Makefile:495: lint-code-fast] Error 1
+--- FAIL: TestFastLintKeepsGitChangeSemantics (0.17s)
+    main_test.go:48: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:269
+        	            				/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:48
+        	Error:      	Received unexpected error:
+        	            	exit status 2
+        	Test:       	TestFastLintKeepsGitChangeSemantics
+        	Messages:   	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	Lint module .: 4 host packages
+        	            	make[1]: Entering directory '/home/agent/.cache/codex-build/tmp/TestFastLintKeepsGitChangeSemantics3764090409/001'
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	[1;36mLinting code...[0m
+        	            	go: can't unmarshal JSON from /home/agent/.cache/codex-build/tmp/TestFastLintKeepsGitChangeSemantics3764090409/001/bin/errortype -flags: unexpected end of JSON inputmake[1]: *** [Makefile:506: lint-code] Error 2
+        	            	make[1]: Leaving directory '/home/agent/.cache/codex-build/tmp/TestFastLintKeepsGitChangeSemantics3764090409/001'
+        	            	lint module .: exit status 2
+        	            	exit status 1
+        	            	make: *** [Makefile:495: lint-code-fast] Error 1
+--- FAIL: TestGomadLocalLintTarget (0.19s)
+    main_test.go:148: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:269
+        	            				/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:148
+        	Error:      	Received unexpected error:
+        	            	exit status 2
+        	Test:       	TestGomadLocalLintTarget
+        	Messages:   	make: Entering directory '/home/agent/.cache/codex-build/tmp/TestGomadLocalLintTarget4067593435/001/tools/gomad3'
+        	            	make -C ../.. lint-code-gomad3
+        	            	make[1]: Entering directory '/home/agent/.cache/codex-build/tmp/TestGomadLocalLintTarget4067593435/001'
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	Lint module tools/gomad3: 4 host packages
+        	            	make[2]: Entering directory '/home/agent/.cache/codex-build/tmp/TestGomadLocalLintTarget4067593435/001'
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	go: module go.temporal.io/api: not a known dependency
+        	            	failed to fetch version for go.temporal.io/api
+        	            	[1;36mLinting code...[0m
+        	            	go: can't unmarshal JSON from /home/agent/.cache/codex-build/tmp/TestGomadLocalLintTarget4067593435/001/bin/errortype -flags: unexpected end of JSON inputmake[2]: *** [Makefile:506: lint-code] Error 2
+        	            	make[2]: Leaving directory '/home/agent/.cache/codex-build/tmp/TestGomadLocalLintTarget4067593435/001'
+        	            	lint module tools/gomad3: exit status 2
+        	            	exit status 1
+        	            	make[1]: *** [Makefile:498: lint-code-gomad3] Error 1
+        	            	make[1]: Leaving directory '/home/agent/.cache/codex-build/tmp/TestGomadLocalLintTarget4067593435/001'
+        	            	make: *** [Makefile:7: lint-code] Error 2
+        	            	make: Leaving directory '/home/agent/.cache/codex-build/tmp/TestGomadLocalLintTarget4067593435/001/tools/gomad3'
+--- FAIL: TestScopedLintAndNestedFailure (0.00s)
+    --- FAIL: TestScopedLintAndNestedFailure/lint-code-gomad3tools/gomad3 (0.18s)
+        main_test.go:132: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:132
+            	Error:      	Received unexpected error:
+            	            	exit status 2
+            	Test:       	TestScopedLintAndNestedFailure/lint-code-gomad3tools/gomad3
+            	Messages:   	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	Lint module tools/gomad3: 4 host packages
+            	            	make[1]: Entering directory '/home/agent/.cache/codex-build/tmp/TestScopedLintAndNestedFailurelint-code-gomad3toolsgomad34023960983/001'
+            	            	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	[1;36mLinting code...[0m
+            	            	go: can't unmarshal JSON from /home/agent/.cache/codex-build/tmp/TestScopedLintAndNestedFailurelint-code-gomad3toolsgomad34023960983/001/bin/errortype -flags: unexpected end of JSON inputmake[1]: *** [Makefile:506: lint-code] Error 2
+            	            	make[1]: Leaving directory '/home/agent/.cache/codex-build/tmp/TestScopedLintAndNestedFailurelint-code-gomad3toolsgomad34023960983/001'
+            	            	lint module tools/gomad3: exit status 2
+            	            	exit status 1
+            	            	make: *** [Makefile:498: lint-code-gomad3] Error 1
+    --- FAIL: TestScopedLintAndNestedFailure/lint-code-mixedbraintests/mixedbrain (0.16s)
+        main_test.go:132: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:132
+            	Error:      	Received unexpected error:
+            	            	exit status 2
+            	Test:       	TestScopedLintAndNestedFailure/lint-code-mixedbraintests/mixedbrain
+            	Messages:   	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	Lint module tests/mixedbrain: 1 host packages
+            	            	make[1]: Entering directory '/home/agent/.cache/codex-build/tmp/TestScopedLintAndNestedFailurelint-code-mixedbraintestsmixedbr636011402/001'
+            	            	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	go: module go.temporal.io/api: not a known dependency
+            	            	failed to fetch version for go.temporal.io/api
+            	            	[1;36mLinting code...[0m
+            	            	go: can't unmarshal JSON from /home/agent/.cache/codex-build/tmp/TestScopedLintAndNestedFailurelint-code-mixedbraintestsmixedbr636011402/001/bin/errortype -flags: unexpected end of JSON inputmake[1]: *** [Makefile:506: lint-code] Error 2
+            	            	make[1]: Leaving directory '/home/agent/.cache/codex-build/tmp/TestScopedLintAndNestedFailurelint-code-mixedbraintestsmixedbr636011402/001'
+            	            	lint module tests/mixedbrain: exit status 2
+            	            	exit status 1
+            	            	make: *** [Makefile:501: lint-code-mixedbrain] Error 1
+    --- FAIL: TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3vet (0.18s)
+        main_test.go:140: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:140
+            	Error:      	Not equal: 
+            	            	expected: []main.lintCall{main.lintCall{Tool:"golangci", Dir:"tools/gomad3", Args:[]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,", "--timeout", "10m", "--fix=false", "--new-from-rev=5a3acd26e54e2522c0e940d2c5cdc8ecf177012a", "--config=/home/agent/.cache/codex-build/tmp/TestScopedLintAndNestedFailurelint-code-fasttoolsgomad3vet1747274493/001/.github/.golangci.yml", ".", "./internal/gomadtool/architecture", "./runner", "./toolchain"}}, main.lintCall{Tool:"vet", Dir:"tools/gomad3", Args:[]string{"vet", "-tags", "disable_grpc_modules,,test_dep,", "-vettool=/home/agent/.cache/codex-build/tmp/TestScopedLintAndNestedFailurelint-code-fasttoolsgomad3vet1747274493/001/bin/errortype", "-style-check=false", ".", "./internal/gomadtool/architecture", "./runner", "./toolchain"}}}
+            	            	actual  : []main.lintCall{main.lintCall{Tool:"golangci", Dir:"tools/gomad3", Args:[]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,", "--timeout", "10m", "--fix=false", "--new-from-rev=5a3acd26e54e2522c0e940d2c5cdc8ecf177012a", "--config=/home/agent/.cache/codex-build/tmp/TestScopedLintAndNestedFailurelint-code-fasttoolsgomad3vet1747274493/001/.github/.golangci.yml", ".", "./internal/gomadtool/architecture", "./runner", "./toolchain"}}}
+            	            	
+            	            	Diff:
+            	            	--- Expected
+            	            	+++ Actual
+            	            	@@ -1,2 +1,2 @@
+            	            	-([]main.lintCall) (len=2) {
+            	            	+([]main.lintCall) (len=1) {
+            	            	  (main.lintCall) {
+            	            	@@ -19,17 +19,2 @@
+            	            	   }
+            	            	- },
+            	            	- (main.lintCall) {
+            	            	-  Tool: (string) (len=3) "vet",
+            	            	-  Dir: (string) (len=12) "tools/gomad3",
+            	            	-  Args: ([]string) (len=9) {
+            	            	-   (string) (len=3) "vet",
+            	            	-   (string) (len=5) "-tags",
+            	            	-   (string) (len=31) "disable_grpc_modules,,test_dep,",
+            	            	-   (string) (len=130) "-vettool=/home/agent/.cache/codex-build/tmp/TestScopedLintAndNestedFailurelint-code-fasttoolsgomad3vet1747274493/001/bin/errortype",
+            	            	-   (string) (len=18) "-style-check=false",
+            	            	-   (string) (len=1) ".",
+            	            	-   (string) (len=33) "./internal/gomadtool/architecture",
+            	            	-   (string) (len=8) "./runner",
+            	            	-   (string) (len=11) "./toolchain"
+            	            	-  }
+            	            	  }
+            	Test:       	TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3vet
+FAIL
+FAIL	go.temporal.io/server/cmd/tools/lintcode	1.587s
+FAIL

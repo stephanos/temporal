@@ -1,0 +1,51 @@
+{
+  "scope": "task23 root source-progress checkpoint verification, 2026-10-04",
+  "base_commit": "b43aeb5b15d438eebab65f2ce48eecb19e76e55c",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "task_status": "blocked",
+  "original_description_and_acceptance": "exact prefix preserved through Flow API",
+  "checks": [
+    {
+      "command": "env -u GOMADSEED -u GOMAD3_CHILD_SEED -u LINT_TEST_BASE_REV GOENV=off GOFLAGS= GOWORK=off GOTOOLCHAIN=local GOMAXPROCS=2 PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin go test -count=1 -tags test_dep ./cmd/tools/lintcode",
+      "exit_code": 0,
+      "wall_time_seconds": 3.729759252,
+      "output": "ok go.temporal.io/server/cmd/tools/lintcode 3.533s"
+    },
+    {
+      "command": "sha256sum -c .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-23/integration-tag-correction/verified/source-frozen.sha256",
+      "exit_code": 0,
+      "matched_inputs": 15
+    },
+    {
+      "command": "sha256sum -c .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-23/integration-tag-correction/verified/tools-frozen.sha256",
+      "exit_code": 0,
+      "matched_inputs": 3
+    },
+    {
+      "command": "/home/agent/.codex/scripts/flowctl validate --spec fn-109-gomad-deepen-modules-and-tool-interfaces --json",
+      "exit_code": 0,
+      "valid": true,
+      "task_count": 23
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "scope": "tracked worktree edits before staging new evidence"
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit_code": 2,
+      "scope": "full newly staged evidence",
+      "limitation": "Raw command logs retain actual trailing whitespace and space/tab indentation; Flow API appends a blank EOF line to the task MD. Raw evidence was not normalized."
+    },
+    {
+      "command": "git -c core.whitespace=-blank-at-eof diff --cached --check -- . ':!*.log'",
+      "exit_code": 0,
+      "scope": "authored source/docs/metadata, excluding raw logs and exempting Flow API EOF formatting"
+    }
+  ],
+  "review": "independent-source-review.md: zero actionable source findings; no formal SHIP",
+  "qualification": "root/Gomad lint red, original R18/R19 and both native gates open",
+  "commit_scope": "93 reviewed task paths plus this receipt; unrelated untracked historical files and .turbo preserved",
+  "prs": []
+}

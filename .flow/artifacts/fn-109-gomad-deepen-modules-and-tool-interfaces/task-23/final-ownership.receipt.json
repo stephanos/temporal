@@ -1,0 +1,21 @@
+{
+  "command": "go -C tools/gomad3 test -count=1 -tags test_dep -run \"^TestMakeTargetsMatchTheirOwnership$\" .",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "head": "b43aeb5b15d438eebab65f2ce48eecb19e76e55c",
+  "exit_code": 0,
+  "elapsed_seconds": 0.208542417,
+  "log": "final-ownership.log",
+  "environment": {
+    "GOENV": "off",
+    "GOFLAGS": "",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOMAXPROCS": "2",
+    "GOMADSEED": null,
+    "GOMAD3_CHILD_SEED": null,
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin"
+  },
+  "source_hashes": "source-frozen.sha256",
+  "tool_hashes": "tools-frozen.sha256",
+  "go_environment": "go-environment.json"
+}

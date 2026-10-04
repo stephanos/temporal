@@ -1,0 +1,104 @@
+--- FAIL: TestFastLintRoutesModuleOwners (0.05s)
+    main_test.go:28: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:28
+        	Error:      	Not equal: 
+        	            	expected: []main.lintCall{main.lintCall{Tool:"golangci", Dir:".", Args:[]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,", "--timeout", "10m", "--fix=false", "--new-from-rev=24cb88aeed94d3afcd3ac16666bdfc64c8445a49", "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRoutesModuleOwners2159275917/001/.github/.golangci.yml", "./.github/actions/build-docker-images/scripts", "./ordinary", "./tools/gomad3integration", "./tools/gomad3sim"}}, main.lintCall{Tool:"vet", Dir:".", Args:[]string{"vet", "-tags", "disable_grpc_modules,,test_dep,", "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRoutesModuleOwners2159275917/001/bin/errortype", "-style-check=false", "./.github/actions/build-docker-images/scripts", "./ordinary", "./tools/gomad3integration", "./tools/gomad3sim"}}, main.lintCall{Tool:"golangci", Dir:"tools/gomad3", Args:[]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,", "--timeout", "10m", "--fix=false", "--new-from-rev=24cb88aeed94d3afcd3ac16666bdfc64c8445a49", "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRoutesModuleOwners2159275917/001/.github/.golangci.yml", ".", "./runner", "./toolchain"}}, main.lintCall{Tool:"vet", Dir:"tools/gomad3", Args:[]string{"vet", "-tags", "disable_grpc_modules,,test_dep,", "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRoutesModuleOwners2159275917/001/bin/errortype", "-style-check=false", ".", "./runner", "./toolchain"}}, main.lintCall{Tool:"golangci", Dir:"tests/mixedbrain", Args:[]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,", "--timeout", "10m", "--fix=false", "--new-from-rev=24cb88aeed94d3afcd3ac16666bdfc64c8445a49", "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRoutesModuleOwners2159275917/001/.github/.golangci.yml", "."}}, main.lintCall{Tool:"vet", Dir:"tests/mixedbrain", Args:[]string{"vet", "-tags", "disable_grpc_modules,,test_dep,", "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRoutesModuleOwners2159275917/001/bin/errortype", "-style-check=false", "."}}}
+        	            	actual  : []main.lintCall{main.lintCall{Tool:"golangci", Dir:".", Args:[]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,", "--timeout", "10m", "--fix=false", "--new-from-rev=24cb88aeed94d3afcd3ac16666bdfc64c8445a49", "--config=.github/.golangci.yml", "./.github/actions/build-docker-images/scripts", "./ordinary", "./tests/mixedbrain", "./tools/gomad3/runner", "./tools/gomad3integration", "./tools/gomad3sim"}}, main.lintCall{Tool:"vet", Dir:".", Args:[]string{"vet", "-tags", "disable_grpc_modules,,test_dep,", "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRoutesModuleOwners2159275917/001/bin/errortype", "-style-check=false", "./.github/actions/build-docker-images/scripts", "./ordinary", "./tests/mixedbrain", "./tools/gomad3/runner", "./tools/gomad3integration", "./tools/gomad3sim"}}}
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1,2 +1,2 @@
+        	            	-([]main.lintCall) (len=6) {
+        	            	+([]main.lintCall) (len=2) {
+        	            	  (main.lintCall) {
+        	            	@@ -4,3 +4,3 @@
+        	            	   Dir: (string) (len=1) ".",
+        	            	-  Args: ([]string) (len=13) {
+        	            	+  Args: ([]string) (len=15) {
+        	            	    (string) (len=3) "run",
+        	            	@@ -13,5 +13,7 @@
+        	            	    (string) (len=55) "--new-from-rev=24cb88aeed94d3afcd3ac16666bdfc64c8445a49",
+        	            	-   (string) (len=110) "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRoutesModuleOwners2159275917/001/.github/.golangci.yml",
+        	            	+   (string) (len=30) "--config=.github/.golangci.yml",
+        	            	    (string) (len=45) "./.github/actions/build-docker-images/scripts",
+        	            	    (string) (len=10) "./ordinary",
+        	            	+   (string) (len=18) "./tests/mixedbrain",
+        	            	+   (string) (len=21) "./tools/gomad3/runner",
+        	            	    (string) (len=25) "./tools/gomad3integration",
+        	            	@@ -23,3 +25,3 @@
+        	            	   Dir: (string) (len=1) ".",
+        	            	-  Args: ([]string) (len=9) {
+        	            	+  Args: ([]string) (len=11) {
+        	            	    (string) (len=3) "vet",
+        	            	@@ -31,64 +33,6 @@
+        	            	    (string) (len=10) "./ordinary",
+        	            	+   (string) (len=18) "./tests/mixedbrain",
+        	            	+   (string) (len=21) "./tools/gomad3/runner",
+        	            	    (string) (len=25) "./tools/gomad3integration",
+        	            	    (string) (len=17) "./tools/gomad3sim"
+        	            	-  }
+        	            	- },
+        	            	- (main.lintCall) {
+        	            	-  Tool: (string) (len=8) "golangci",
+        	            	-  Dir: (string) (len=12) "tools/gomad3",
+        	            	-  Args: ([]string) (len=12) {
+        	            	-   (string) (len=3) "run",
+        	            	-   (string) (len=9) "--verbose",
+        	            	-   (string) (len=12) "--build-tags",
+        	            	-   (string) (len=31) "disable_grpc_modules,,test_dep,",
+        	            	-   (string) (len=9) "--timeout",
+        	            	-   (string) (len=3) "10m",
+        	            	-   (string) (len=11) "--fix=false",
+        	            	-   (string) (len=55) "--new-from-rev=24cb88aeed94d3afcd3ac16666bdfc64c8445a49",
+        	            	-   (string) (len=110) "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRoutesModuleOwners2159275917/001/.github/.golangci.yml",
+        	            	-   (string) (len=1) ".",
+        	            	-   (string) (len=8) "./runner",
+        	            	-   (string) (len=11) "./toolchain"
+        	            	-  }
+        	            	- },
+        	            	- (main.lintCall) {
+        	            	-  Tool: (string) (len=3) "vet",
+        	            	-  Dir: (string) (len=12) "tools/gomad3",
+        	            	-  Args: ([]string) (len=8) {
+        	            	-   (string) (len=3) "vet",
+        	            	-   (string) (len=5) "-tags",
+        	            	-   (string) (len=31) "disable_grpc_modules,,test_dep,",
+        	            	-   (string) (len=102) "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRoutesModuleOwners2159275917/001/bin/errortype",
+        	            	-   (string) (len=18) "-style-check=false",
+        	            	-   (string) (len=1) ".",
+        	            	-   (string) (len=8) "./runner",
+        	            	-   (string) (len=11) "./toolchain"
+        	            	-  }
+        	            	- },
+        	            	- (main.lintCall) {
+        	            	-  Tool: (string) (len=8) "golangci",
+        	            	-  Dir: (string) (len=16) "tests/mixedbrain",
+        	            	-  Args: ([]string) (len=10) {
+        	            	-   (string) (len=3) "run",
+        	            	-   (string) (len=9) "--verbose",
+        	            	-   (string) (len=12) "--build-tags",
+        	            	-   (string) (len=31) "disable_grpc_modules,,test_dep,",
+        	            	-   (string) (len=9) "--timeout",
+        	            	-   (string) (len=3) "10m",
+        	            	-   (string) (len=11) "--fix=false",
+        	            	-   (string) (len=55) "--new-from-rev=24cb88aeed94d3afcd3ac16666bdfc64c8445a49",
+        	            	-   (string) (len=110) "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRoutesModuleOwners2159275917/001/.github/.golangci.yml",
+        	            	-   (string) (len=1) "."
+        	            	-  }
+        	            	- },
+        	            	- (main.lintCall) {
+        	            	-  Tool: (string) (len=3) "vet",
+        	            	-  Dir: (string) (len=16) "tests/mixedbrain",
+        	            	-  Args: ([]string) (len=6) {
+        	            	-   (string) (len=3) "vet",
+        	            	-   (string) (len=5) "-tags",
+        	            	-   (string) (len=31) "disable_grpc_modules,,test_dep,",
+        	            	-   (string) (len=102) "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRoutesModuleOwners2159275917/001/bin/errortype",
+        	            	-   (string) (len=18) "-style-check=false",
+        	            	-   (string) (len=1) "."
+        	            	   }
+        	Test:       	TestFastLintRoutesModuleOwners
+FAIL
+FAIL	go.temporal.io/server/cmd/tools/lintcode	0.053s
+FAIL

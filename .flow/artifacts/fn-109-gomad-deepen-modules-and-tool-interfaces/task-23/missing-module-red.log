@@ -1,0 +1,14 @@
+--- FAIL: TestLintRejectsMissingLiveModule (0.00s)
+    --- FAIL: TestLintRejectsMissingLiveModule/tools/gomad3/go.mod (0.27s)
+        main_test.go:202: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:202
+            	Error:      	"lint module tools/gomad3 has no ordinary host source\nmake: *** [Makefile:498: lint-code-gomad3] Error 1\n" does not contain "tools/gomad3/go.mod"
+            	Test:       	TestLintRejectsMissingLiveModule/tools/gomad3/go.mod
+    --- FAIL: TestLintRejectsMissingLiveModule/tests/mixedbrain/go.mod (0.32s)
+        main_test.go:201: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:201
+            	Error:      	An error is expected but got nil.
+            	Test:       	TestLintRejectsMissingLiveModule/tests/mixedbrain/go.mod
+FAIL
+FAIL	go.temporal.io/server/cmd/tools/lintcode	0.325s
+FAIL

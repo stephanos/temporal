@@ -1,0 +1,49 @@
+../cmd/tools/lintcode/main.go:164:1: cognitive-complexity: function lintScopes has cognitive complexity 35 (> max enabled 25) (revive)
+func lintScopes(ctx context.Context, root, tags string, selected, changedDirs map[string]bool, sources []source) ([]lintScope, error) {
+	var scopes []lintScope
+	for _, owner := range []string{".", gomadModule, mixedbrainModule} {
+		if !selected[owner] {
+			continue
+		}
+		var owned []source
+		for _, entry := range sources {
+			if entry.disposition == "" && entry.module == owner && (owner != "." || changedDirs[filepath.ToSlash(filepath.Dir(entry.path))]) {
+				owned = append(owned, entry)
+			}
+		}
+		if len(owned) == 0 {
+			if owner != "." {
+				return nil, fmt.Errorf("lint module %s has no ordinary host source", owner)
+			}
+			continue
+		}
+		var integration []source
+		if owner == "." {
+			for _, entry := range owned {
+				if filepath.ToSlash(filepath.Dir(entry.path)) == "tools/gomad3integration" {
+					integration = append(integration, entry)
+				}
+			}
+			owned = slices.DeleteFunc(owned, func(entry source) bool {
+				return filepath.ToSlash(filepath.Dir(entry.path)) == "tools/gomad3integration"
+			})
+		}
+		ordinary, err := sourceScope(ctx, root, owner, tags, owned)
+		if err != nil {
+			return nil, err
+		}
+		if ordinary != nil {
+			scopes = append(scopes, *ordinary)
+		}
+		if len(integration) != 0 {
+			scope, err := sourceScope(ctx, root, owner, tags+",gomad3_integration", integration)
+			if err != nil {
+				return nil, err
+			}
+			scopes = append(scopes, *scope)
+		}
+	}
+	return scopes, nil
+}
+1 issues:
+* revive: 1

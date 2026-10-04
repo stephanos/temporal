@@ -1,0 +1,197 @@
+=== RUN   TestFastLintRootIntegrationTagsAndFailure
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure
+=== CONT  TestFastLintRootIntegrationTagsAndFailure
+=== RUN   TestFastLintRootIntegrationTagsAndFailure/#00
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure/#00
+=== RUN   TestFastLintRootIntegrationTagsAndFailure/golangci
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure/golangci
+=== RUN   TestFastLintRootIntegrationTagsAndFailure/vet
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure/vet
+=== CONT  TestFastLintRootIntegrationTagsAndFailure/#00
+=== CONT  TestFastLintRootIntegrationTagsAndFailure/vet
+    main_test.go:83: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:83
+        	Error:      	Not equal: 
+        	            	expected: []main.lintCall{main.lintCall{Tool:"golangci", Dir:".", Args:[]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,", "--timeout", "10m", "--fix=false", "--new-from-rev=892db316ce178ed072962f619036aa8cc336cc34", "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailurevet2374685336/001/.github/.golangci.yml", "./ordinary"}}, main.lintCall{Tool:"vet", Dir:".", Args:[]string{"vet", "-tags", "disable_grpc_modules,,test_dep,", "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailurevet2374685336/001/bin/errortype", "-style-check=false", "./ordinary"}}, main.lintCall{Tool:"golangci", Dir:".", Args:[]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,gomad3_integration", "--timeout", "10m", "--fix=false", "--new-from-rev=892db316ce178ed072962f619036aa8cc336cc34", "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailurevet2374685336/001/.github/.golangci.yml", "./tools/gomad3integration"}}, main.lintCall{Tool:"vet", Dir:".", Args:[]string{"vet", "-tags", "disable_grpc_modules,,test_dep,gomad3_integration", "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailurevet2374685336/001/bin/errortype", "-style-check=false", "./tools/gomad3integration"}}}
+        	            	actual  : []main.lintCall{main.lintCall{Tool:"golangci", Dir:".", Args:[]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,", "--timeout", "10m", "--fix=false", "--new-from-rev=892db316ce178ed072962f619036aa8cc336cc34", "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailurevet2374685336/001/.github/.golangci.yml", "./ordinary", "./tools/gomad3integration"}}, main.lintCall{Tool:"vet", Dir:".", Args:[]string{"vet", "-tags", "disable_grpc_modules,,test_dep,", "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailurevet2374685336/001/bin/errortype", "-style-check=false", "./ordinary", "./tools/gomad3integration"}}}
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1,2 +1,2 @@
+        	            	-([]main.lintCall) (len=4) {
+        	            	+([]main.lintCall) (len=2) {
+        	            	  (main.lintCall) {
+        	            	@@ -4,3 +4,3 @@
+        	            	   Dir: (string) (len=1) ".",
+        	            	-  Args: ([]string) (len=10) {
+        	            	+  Args: ([]string) (len=11) {
+        	            	    (string) (len=3) "run",
+        	            	@@ -14,30 +14,3 @@
+        	            	    (string) (len=124) "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailurevet2374685336/001/.github/.golangci.yml",
+        	            	-   (string) (len=10) "./ordinary"
+        	            	-  }
+        	            	- },
+        	            	- (main.lintCall) {
+        	            	-  Tool: (string) (len=3) "vet",
+        	            	-  Dir: (string) (len=1) ".",
+        	            	-  Args: ([]string) (len=6) {
+        	            	-   (string) (len=3) "vet",
+        	            	-   (string) (len=5) "-tags",
+        	            	-   (string) (len=31) "disable_grpc_modules,,test_dep,",
+        	            	-   (string) (len=116) "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailurevet2374685336/001/bin/errortype",
+        	            	-   (string) (len=18) "-style-check=false",
+        	            	-   (string) (len=10) "./ordinary"
+        	            	-  }
+        	            	- },
+        	            	- (main.lintCall) {
+        	            	-  Tool: (string) (len=8) "golangci",
+        	            	-  Dir: (string) (len=1) ".",
+        	            	-  Args: ([]string) (len=10) {
+        	            	-   (string) (len=3) "run",
+        	            	-   (string) (len=9) "--verbose",
+        	            	-   (string) (len=12) "--build-tags",
+        	            	-   (string) (len=49) "disable_grpc_modules,,test_dep,gomad3_integration",
+        	            	-   (string) (len=9) "--timeout",
+        	            	-   (string) (len=3) "10m",
+        	            	-   (string) (len=11) "--fix=false",
+        	            	-   (string) (len=55) "--new-from-rev=892db316ce178ed072962f619036aa8cc336cc34",
+        	            	-   (string) (len=124) "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailurevet2374685336/001/.github/.golangci.yml",
+        	            	+   (string) (len=10) "./ordinary",
+        	            	    (string) (len=25) "./tools/gomad3integration"
+        	            	@@ -48,8 +21,9 @@
+        	            	   Dir: (string) (len=1) ".",
+        	            	-  Args: ([]string) (len=6) {
+        	            	+  Args: ([]string) (len=7) {
+        	            	    (string) (len=3) "vet",
+        	            	    (string) (len=5) "-tags",
+        	            	-   (string) (len=49) "disable_grpc_modules,,test_dep,gomad3_integration",
+        	            	+   (string) (len=31) "disable_grpc_modules,,test_dep,",
+        	            	    (string) (len=116) "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailurevet2374685336/001/bin/errortype",
+        	            	    (string) (len=18) "-style-check=false",
+        	            	+   (string) (len=10) "./ordinary",
+        	            	    (string) (len=25) "./tools/gomad3integration"
+        	Test:       	TestFastLintRootIntegrationTagsAndFailure/vet
+=== NAME  TestFastLintRootIntegrationTagsAndFailure/#00
+    main_test.go:83: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:83
+        	Error:      	Not equal: 
+        	            	expected: []main.lintCall{main.lintCall{Tool:"golangci", Dir:".", Args:[]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,", "--timeout", "10m", "--fix=false", "--new-from-rev=70f6f89c1ed0b0abaf311bc3e27d248231f56486", "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailure#002192566566/001/.github/.golangci.yml", "./ordinary"}}, main.lintCall{Tool:"vet", Dir:".", Args:[]string{"vet", "-tags", "disable_grpc_modules,,test_dep,", "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailure#002192566566/001/bin/errortype", "-style-check=false", "./ordinary"}}, main.lintCall{Tool:"golangci", Dir:".", Args:[]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,gomad3_integration", "--timeout", "10m", "--fix=false", "--new-from-rev=70f6f89c1ed0b0abaf311bc3e27d248231f56486", "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailure#002192566566/001/.github/.golangci.yml", "./tools/gomad3integration"}}, main.lintCall{Tool:"vet", Dir:".", Args:[]string{"vet", "-tags", "disable_grpc_modules,,test_dep,gomad3_integration", "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailure#002192566566/001/bin/errortype", "-style-check=false", "./tools/gomad3integration"}}}
+        	            	actual  : []main.lintCall{main.lintCall{Tool:"golangci", Dir:".", Args:[]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,", "--timeout", "10m", "--fix=false", "--new-from-rev=70f6f89c1ed0b0abaf311bc3e27d248231f56486", "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailure#002192566566/001/.github/.golangci.yml", "./ordinary", "./tools/gomad3integration"}}, main.lintCall{Tool:"vet", Dir:".", Args:[]string{"vet", "-tags", "disable_grpc_modules,,test_dep,", "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailure#002192566566/001/bin/errortype", "-style-check=false", "./ordinary", "./tools/gomad3integration"}}}
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1,2 +1,2 @@
+        	            	-([]main.lintCall) (len=4) {
+        	            	+([]main.lintCall) (len=2) {
+        	            	  (main.lintCall) {
+        	            	@@ -4,3 +4,3 @@
+        	            	   Dir: (string) (len=1) ".",
+        	            	-  Args: ([]string) (len=10) {
+        	            	+  Args: ([]string) (len=11) {
+        	            	    (string) (len=3) "run",
+        	            	@@ -14,30 +14,3 @@
+        	            	    (string) (len=124) "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailure#002192566566/001/.github/.golangci.yml",
+        	            	-   (string) (len=10) "./ordinary"
+        	            	-  }
+        	            	- },
+        	            	- (main.lintCall) {
+        	            	-  Tool: (string) (len=3) "vet",
+        	            	-  Dir: (string) (len=1) ".",
+        	            	-  Args: ([]string) (len=6) {
+        	            	-   (string) (len=3) "vet",
+        	            	-   (string) (len=5) "-tags",
+        	            	-   (string) (len=31) "disable_grpc_modules,,test_dep,",
+        	            	-   (string) (len=116) "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailure#002192566566/001/bin/errortype",
+        	            	-   (string) (len=18) "-style-check=false",
+        	            	-   (string) (len=10) "./ordinary"
+        	            	-  }
+        	            	- },
+        	            	- (main.lintCall) {
+        	            	-  Tool: (string) (len=8) "golangci",
+        	            	-  Dir: (string) (len=1) ".",
+        	            	-  Args: ([]string) (len=10) {
+        	            	-   (string) (len=3) "run",
+        	            	-   (string) (len=9) "--verbose",
+        	            	-   (string) (len=12) "--build-tags",
+        	            	-   (string) (len=49) "disable_grpc_modules,,test_dep,gomad3_integration",
+        	            	-   (string) (len=9) "--timeout",
+        	            	-   (string) (len=3) "10m",
+        	            	-   (string) (len=11) "--fix=false",
+        	            	-   (string) (len=55) "--new-from-rev=70f6f89c1ed0b0abaf311bc3e27d248231f56486",
+        	            	-   (string) (len=124) "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailure#002192566566/001/.github/.golangci.yml",
+        	            	+   (string) (len=10) "./ordinary",
+        	            	    (string) (len=25) "./tools/gomad3integration"
+        	            	@@ -48,8 +21,9 @@
+        	            	   Dir: (string) (len=1) ".",
+        	            	-  Args: ([]string) (len=6) {
+        	            	+  Args: ([]string) (len=7) {
+        	            	    (string) (len=3) "vet",
+        	            	    (string) (len=5) "-tags",
+        	            	-   (string) (len=49) "disable_grpc_modules,,test_dep,gomad3_integration",
+        	            	+   (string) (len=31) "disable_grpc_modules,,test_dep,",
+        	            	    (string) (len=116) "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailure#002192566566/001/bin/errortype",
+        	            	    (string) (len=18) "-style-check=false",
+        	            	+   (string) (len=10) "./ordinary",
+        	            	    (string) (len=25) "./tools/gomad3integration"
+        	Test:       	TestFastLintRootIntegrationTagsAndFailure/#00
+=== CONT  TestFastLintRootIntegrationTagsAndFailure/golangci
+    main_test.go:83: 
+        	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:83
+        	Error:      	Not equal: 
+        	            	expected: []main.lintCall{main.lintCall{Tool:"golangci", Dir:".", Args:[]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,", "--timeout", "10m", "--fix=false", "--new-from-rev=5c31d1aba42dc6cfff9a00c4930fdbc8cbbbdd7f", "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailuregolangci1216960683/001/.github/.golangci.yml", "./ordinary"}}, main.lintCall{Tool:"vet", Dir:".", Args:[]string{"vet", "-tags", "disable_grpc_modules,,test_dep,", "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailuregolangci1216960683/001/bin/errortype", "-style-check=false", "./ordinary"}}, main.lintCall{Tool:"golangci", Dir:".", Args:[]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,gomad3_integration", "--timeout", "10m", "--fix=false", "--new-from-rev=5c31d1aba42dc6cfff9a00c4930fdbc8cbbbdd7f", "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailuregolangci1216960683/001/.github/.golangci.yml", "./tools/gomad3integration"}}}
+        	            	actual  : []main.lintCall{main.lintCall{Tool:"golangci", Dir:".", Args:[]string{"run", "--verbose", "--build-tags", "disable_grpc_modules,,test_dep,", "--timeout", "10m", "--fix=false", "--new-from-rev=5c31d1aba42dc6cfff9a00c4930fdbc8cbbbdd7f", "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailuregolangci1216960683/001/.github/.golangci.yml", "./ordinary", "./tools/gomad3integration"}}}
+        	            	
+        	            	Diff:
+        	            	--- Expected
+        	            	+++ Actual
+        	            	@@ -1,2 +1,2 @@
+        	            	-([]main.lintCall) (len=3) {
+        	            	+([]main.lintCall) (len=1) {
+        	            	  (main.lintCall) {
+        	            	@@ -4,3 +4,3 @@
+        	            	   Dir: (string) (len=1) ".",
+        	            	-  Args: ([]string) (len=10) {
+        	            	+  Args: ([]string) (len=11) {
+        	            	    (string) (len=3) "run",
+        	            	@@ -14,30 +14,3 @@
+        	            	    (string) (len=129) "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailuregolangci1216960683/001/.github/.golangci.yml",
+        	            	-   (string) (len=10) "./ordinary"
+        	            	-  }
+        	            	- },
+        	            	- (main.lintCall) {
+        	            	-  Tool: (string) (len=3) "vet",
+        	            	-  Dir: (string) (len=1) ".",
+        	            	-  Args: ([]string) (len=6) {
+        	            	-   (string) (len=3) "vet",
+        	            	-   (string) (len=5) "-tags",
+        	            	-   (string) (len=31) "disable_grpc_modules,,test_dep,",
+        	            	-   (string) (len=121) "-vettool=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailuregolangci1216960683/001/bin/errortype",
+        	            	-   (string) (len=18) "-style-check=false",
+        	            	-   (string) (len=10) "./ordinary"
+        	            	-  }
+        	            	- },
+        	            	- (main.lintCall) {
+        	            	-  Tool: (string) (len=8) "golangci",
+        	            	-  Dir: (string) (len=1) ".",
+        	            	-  Args: ([]string) (len=10) {
+        	            	-   (string) (len=3) "run",
+        	            	-   (string) (len=9) "--verbose",
+        	            	-   (string) (len=12) "--build-tags",
+        	            	-   (string) (len=49) "disable_grpc_modules,,test_dep,gomad3_integration",
+        	            	-   (string) (len=9) "--timeout",
+        	            	-   (string) (len=3) "10m",
+        	            	-   (string) (len=11) "--fix=false",
+        	            	-   (string) (len=55) "--new-from-rev=5c31d1aba42dc6cfff9a00c4930fdbc8cbbbdd7f",
+        	            	-   (string) (len=129) "--config=/home/agent/.cache/codex-build/tmp/TestFastLintRootIntegrationTagsAndFailuregolangci1216960683/001/.github/.golangci.yml",
+        	            	+   (string) (len=10) "./ordinary",
+        	            	    (string) (len=25) "./tools/gomad3integration"
+        	Test:       	TestFastLintRootIntegrationTagsAndFailure/golangci
+--- FAIL: TestFastLintRootIntegrationTagsAndFailure (0.00s)
+    --- FAIL: TestFastLintRootIntegrationTagsAndFailure/vet (0.22s)
+    --- FAIL: TestFastLintRootIntegrationTagsAndFailure/#00 (0.22s)
+    --- FAIL: TestFastLintRootIntegrationTagsAndFailure/golangci (0.20s)
+FAIL
+FAIL	go.temporal.io/server/cmd/tools/lintcode	0.414s
+FAIL

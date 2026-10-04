@@ -1,0 +1,168 @@
+=== RUN   TestFastLintRoutesModuleOwners
+=== PAUSE TestFastLintRoutesModuleOwners
+=== RUN   TestFastLintKeepsGitChangeSemantics
+=== PAUSE TestFastLintKeepsGitChangeSemantics
+=== RUN   TestFastLintRootIntegrationTagsAndFailure
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure
+=== RUN   TestFastLintReportsOwnedExclusions
+=== PAUSE TestFastLintReportsOwnedExclusions
+=== RUN   TestLintRejectsUnclassifiedSource
+=== PAUSE TestLintRejectsUnclassifiedSource
+=== RUN   TestLintRejectsBadComparisonBeforeDispatch
+=== PAUSE TestLintRejectsBadComparisonBeforeDispatch
+=== RUN   TestScopedLintAndNestedFailure
+=== PAUSE TestScopedLintAndNestedFailure
+=== RUN   TestGomadLocalLintTarget
+=== PAUSE TestGomadLocalLintTarget
+=== RUN   TestGomadDefaultRemainsGenerate
+=== PAUSE TestGomadDefaultRemainsGenerate
+=== RUN   TestScopedLintRejectsEmptyModule
+=== PAUSE TestScopedLintRejectsEmptyModule
+=== RUN   TestLintRejectsModuleSymlink
+=== PAUSE TestLintRejectsModuleSymlink
+=== RUN   TestLintRejectsMissingLiveModule
+=== PAUSE TestLintRejectsMissingLiveModule
+=== RUN   TestRootFixturePrefixNearMissRemainsLive
+=== PAUSE TestRootFixturePrefixNearMissRemainsLive
+=== RUN   TestLintRejectsInvalidOwnership
+=== PAUSE TestLintRejectsInvalidOwnership
+=== RUN   TestCINestedLintSteps
+=== PAUSE TestCINestedLintSteps
+=== RUN   TestLintToolProcess
+--- PASS: TestLintToolProcess (0.00s)
+=== CONT  TestFastLintRoutesModuleOwners
+=== CONT  TestGomadDefaultRemainsGenerate
+--- PASS: TestGomadDefaultRemainsGenerate (0.02s)
+=== CONT  TestGomadLocalLintTarget
+--- PASS: TestGomadLocalLintTarget (0.28s)
+=== CONT  TestScopedLintAndNestedFailure
+=== RUN   TestScopedLintAndNestedFailure/lint-code-gomad3tools/gomad3
+=== PAUSE TestScopedLintAndNestedFailure/lint-code-gomad3tools/gomad3
+=== RUN   TestScopedLintAndNestedFailure/lint-code-mixedbraintests/mixedbrain
+=== PAUSE TestScopedLintAndNestedFailure/lint-code-mixedbraintests/mixedbrain
+=== RUN   TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3golangci
+=== PAUSE TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3golangci
+=== RUN   TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3vet
+=== PAUSE TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3vet
+=== CONT  TestLintRejectsBadComparisonBeforeDispatch
+--- PASS: TestFastLintRoutesModuleOwners (0.34s)
+=== CONT  TestLintRejectsUnclassifiedSource
+=== RUN   TestLintRejectsUnclassifiedSource/extra/go.mod
+=== PAUSE TestLintRejectsUnclassifiedSource/extra/go.mod
+=== RUN   TestLintRejectsUnclassifiedSource/.hidden/go.mod
+=== PAUSE TestLintRejectsUnclassifiedSource/.hidden/go.mod
+=== RUN   TestLintRejectsUnclassifiedSource/_hidden/go.mod
+=== PAUSE TestLintRejectsUnclassifiedSource/_hidden/go.mod
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3/internal/gomadtool/conformance/testdata/extra/go.mod
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3/internal/gomadtool/conformance/testdata/extra/go.mod
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3sim/testdata/simulation_exploration/extra/go.mod
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3sim/testdata/simulation_exploration/extra/go.mod
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3integration/testdata/tagged/extra/go.mod
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3integration/testdata/tagged/extra/go.mod
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlayextra/source.go
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlayextra/source.go
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlay/src/os/uninventoried.go
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlay/src/os/uninventoried.go
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3/record/testdata/source.go
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3/record/testdata/source.go
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3/runner/.hidden/source.go
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3/runner/.hidden/source.go
+=== RUN   TestLintRejectsUnclassifiedSource/tools/gomad3/runner/_hidden/source.go
+=== PAUSE TestLintRejectsUnclassifiedSource/tools/gomad3/runner/_hidden/source.go
+=== RUN   TestLintRejectsUnclassifiedSource/ordinary/_ignored.go
+=== PAUSE TestLintRejectsUnclassifiedSource/ordinary/_ignored.go
+=== CONT  TestFastLintReportsOwnedExclusions
+--- PASS: TestLintRejectsBadComparisonBeforeDispatch (0.21s)
+=== CONT  TestFastLintRootIntegrationTagsAndFailure
+=== RUN   TestFastLintRootIntegrationTagsAndFailure/#00
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure/#00
+=== RUN   TestFastLintRootIntegrationTagsAndFailure/golangci
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure/golangci
+=== RUN   TestFastLintRootIntegrationTagsAndFailure/vet
+=== PAUSE TestFastLintRootIntegrationTagsAndFailure/vet
+=== CONT  TestFastLintKeepsGitChangeSemantics
+--- PASS: TestFastLintReportsOwnedExclusions (0.20s)
+=== CONT  TestRootFixturePrefixNearMissRemainsLive
+--- PASS: TestFastLintKeepsGitChangeSemantics (0.26s)
+=== CONT  TestCINestedLintSteps
+=== RUN   TestCINestedLintSteps/gomad3.yml
+=== PAUSE TestCINestedLintSteps/gomad3.yml
+=== RUN   TestCINestedLintSteps/linters.yml
+=== PAUSE TestCINestedLintSteps/linters.yml
+=== CONT  TestLintRejectsInvalidOwnership
+=== RUN   TestLintRejectsInvalidOwnership/{"overlay_allowlist":[]}
+=== PAUSE TestLintRejectsInvalidOwnership/{"overlay_allowlist":[]}
+=== RUN   TestLintRejectsInvalidOwnership/{"overlay_allowlist":["../outside.go"]}
+=== PAUSE TestLintRejectsInvalidOwnership/{"overlay_allowlist":["../outside.go"]}
+=== RUN   TestLintRejectsInvalidOwnership/package_architecture_var_sourceExclusions_=_paths()_var_expectedModules_=_map[string]bool{"testdata/go.mod":true}_
+=== PAUSE TestLintRejectsInvalidOwnership/package_architecture_var_sourceExclusions_=_paths()_var_expectedModules_=_map[string]bool{"testdata/go.mod":true}_
+=== CONT  TestLintRejectsModuleSymlink
+--- PASS: TestRootFixturePrefixNearMissRemainsLive (0.25s)
+=== CONT  TestLintRejectsMissingLiveModule
+=== RUN   TestLintRejectsMissingLiveModule/tools/gomad3/go.mod
+=== PAUSE TestLintRejectsMissingLiveModule/tools/gomad3/go.mod
+=== RUN   TestLintRejectsMissingLiveModule/tests/mixedbrain/go.mod
+=== PAUSE TestLintRejectsMissingLiveModule/tests/mixedbrain/go.mod
+=== CONT  TestScopedLintRejectsEmptyModule
+--- PASS: TestLintRejectsModuleSymlink (0.25s)
+=== CONT  TestScopedLintAndNestedFailure/lint-code-gomad3tools/gomad3
+--- PASS: TestScopedLintRejectsEmptyModule (0.27s)
+=== CONT  TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3golangci
+=== CONT  TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3vet
+=== CONT  TestScopedLintAndNestedFailure/lint-code-mixedbraintests/mixedbrain
+=== CONT  TestLintRejectsUnclassifiedSource/extra/go.mod
+--- PASS: TestScopedLintAndNestedFailure (0.00s)
+    --- PASS: TestScopedLintAndNestedFailure/lint-code-gomad3tools/gomad3 (0.31s)
+    --- PASS: TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3golangci (0.28s)
+    --- PASS: TestScopedLintAndNestedFailure/lint-code-fasttools/gomad3vet (0.25s)
+    --- PASS: TestScopedLintAndNestedFailure/lint-code-mixedbraintests/mixedbrain (0.23s)
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlayextra/source.go
+=== CONT  TestLintRejectsUnclassifiedSource/ordinary/_ignored.go
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3/runner/_hidden/source.go
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3/runner/.hidden/source.go
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3/record/testdata/source.go
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlay/src/os/uninventoried.go
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3/internal/gomadtool/conformance/testdata/extra/go.mod
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3integration/testdata/tagged/extra/go.mod
+=== CONT  TestLintRejectsUnclassifiedSource/tools/gomad3sim/testdata/simulation_exploration/extra/go.mod
+=== CONT  TestLintRejectsUnclassifiedSource/_hidden/go.mod
+=== CONT  TestLintRejectsUnclassifiedSource/.hidden/go.mod
+=== CONT  TestFastLintRootIntegrationTagsAndFailure/#00
+--- PASS: TestLintRejectsUnclassifiedSource (0.00s)
+    --- PASS: TestLintRejectsUnclassifiedSource/extra/go.mod (0.22s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlayextra/source.go (0.22s)
+    --- PASS: TestLintRejectsUnclassifiedSource/ordinary/_ignored.go (0.27s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3/runner/_hidden/source.go (0.27s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3/runner/.hidden/source.go (0.24s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3/record/testdata/source.go (0.24s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3/toolchain/runtime/overlay/src/os/uninventoried.go (0.20s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3/internal/gomadtool/conformance/testdata/extra/go.mod (0.20s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3integration/testdata/tagged/extra/go.mod (0.19s)
+    --- PASS: TestLintRejectsUnclassifiedSource/tools/gomad3sim/testdata/simulation_exploration/extra/go.mod (0.20s)
+    --- PASS: TestLintRejectsUnclassifiedSource/_hidden/go.mod (0.20s)
+    --- PASS: TestLintRejectsUnclassifiedSource/.hidden/go.mod (0.20s)
+=== CONT  TestFastLintRootIntegrationTagsAndFailure/vet
+=== CONT  TestFastLintRootIntegrationTagsAndFailure/golangci
+=== CONT  TestCINestedLintSteps/gomad3.yml
+--- PASS: TestFastLintRootIntegrationTagsAndFailure (0.00s)
+    --- PASS: TestFastLintRootIntegrationTagsAndFailure/#00 (0.23s)
+    --- PASS: TestFastLintRootIntegrationTagsAndFailure/vet (0.23s)
+    --- PASS: TestFastLintRootIntegrationTagsAndFailure/golangci (0.24s)
+=== CONT  TestCINestedLintSteps/linters.yml
+=== CONT  TestLintRejectsInvalidOwnership/{"overlay_allowlist":[]}
+=== CONT  TestLintRejectsInvalidOwnership/package_architecture_var_sourceExclusions_=_paths()_var_expectedModules_=_map[string]bool{"testdata/go.mod":true}_
+--- PASS: TestCINestedLintSteps (0.00s)
+    --- PASS: TestCINestedLintSteps/gomad3.yml (0.24s)
+    --- PASS: TestCINestedLintSteps/linters.yml (0.21s)
+=== CONT  TestLintRejectsInvalidOwnership/{"overlay_allowlist":["../outside.go"]}
+=== CONT  TestLintRejectsMissingLiveModule/tools/gomad3/go.mod
+--- PASS: TestLintRejectsInvalidOwnership (0.00s)
+    --- PASS: TestLintRejectsInvalidOwnership/{"overlay_allowlist":[]} (0.19s)
+    --- PASS: TestLintRejectsInvalidOwnership/package_architecture_var_sourceExclusions_=_paths()_var_expectedModules_=_map[string]bool{"testdata/go.mod":true}_ (0.22s)
+    --- PASS: TestLintRejectsInvalidOwnership/{"overlay_allowlist":["../outside.go"]} (0.22s)
+=== CONT  TestLintRejectsMissingLiveModule/tests/mixedbrain/go.mod
+--- PASS: TestLintRejectsMissingLiveModule (0.00s)
+    --- PASS: TestLintRejectsMissingLiveModule/tools/gomad3/go.mod (0.24s)
+    --- PASS: TestLintRejectsMissingLiveModule/tests/mixedbrain/go.mod (0.22s)
+PASS
+ok  	go.temporal.io/server/cmd/tools/lintcode	4.026s

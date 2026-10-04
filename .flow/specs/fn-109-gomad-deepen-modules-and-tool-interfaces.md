@@ -417,6 +417,13 @@ current documentation with the changed owners, then run final qualification.
 Parallel tests that mutate shared toolchain/cache/qualification resources must
 be serialized or use independent resources without worktrees.
 
+Task 21's retained lint failure has a separate corrective implementation owner,
+task 23. It repairs root-versus-nested module routing and supplies reproducible
+ordinary host-lint gates under the existing R19 qualification obligation.
+Evidence, compiler-negative fixtures and runtime overlays retain their explicit
+owners; ordinary nested source cannot be silently exempted. The original
+criteria, lint rules and native qualification requirements remain unchanged.
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.

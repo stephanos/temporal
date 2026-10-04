@@ -1,0 +1,45 @@
+{
+  "base_commit": "b43aeb5b15d438eebab65f2ce48eecb19e76e55c",
+  "commits": [],
+  "prs": [],
+  "task_status": "in_progress",
+  "tests": [
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --build-tags disable_grpc_modules,,test_dep, --timeout 10m --fix=false --config=.github/.golangci.yml ./cmd/tools/lintcode",
+    "go vet -tags disable_grpc_modules,,test_dep, -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype -style-check=false ./cmd/tools/lintcode",
+    "go test -count=1 -tags test_dep -v ./cmd/tools/lintcode",
+    "go -C tools/gomad3 test -count=1 -tags test_dep -run \"^TestMakeTargetsMatchTheirOwnership$\" .",
+    "make -C tools/gomad3 validate",
+    "make LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50 GOLANGCI_LINT_FIX=false lint-code-fast",
+    "make -C tools/gomad3 LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50 GOLANGCI_LINT_FIX=false lint-code",
+    "make LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50 GOLANGCI_LINT_FIX=false lint-code-mixedbrain",
+    "make LOCALBIN=/tmp/fn109-lint-tools.ZdNe1t50 GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda9565cfd68844c ALL_TEST_TAGS=disable_grpc_modules,,test_dep,,gomad3_integration LINT_CODE_TARGETS=./tools/gomad3integration lint-code",
+    "git diff --check"
+  ],
+  "current_receipts": [
+    "integration-tag-correction/verified/final-helper-lint.receipt.json",
+    "integration-tag-correction/verified/final-helper-vet.receipt.json",
+    "integration-tag-correction/verified/final-contracts.receipt.json",
+    "integration-tag-correction/verified/final-ownership.receipt.json",
+    "integration-tag-correction/verified/final-validate.receipt.json",
+    "integration-tag-correction/verified/final-root-fast.receipt.json",
+    "integration-tag-correction/verified/integration-scope.receipt.json"
+  ],
+  "bounded_prior_nested_receipts": [
+    "final-gomad-lint.receipt.json",
+    "final-mixedbrain-lint.receipt.json"
+  ],
+  "current_source_hashes": "integration-tag-correction/verified/source-frozen.sha256",
+  "tool_hashes": "integration-tag-correction/verified/tools-frozen.sha256",
+  "baseline": "Ownership and validate green pre-edit; real unchanged-source root lint loading failure reused from task-21/lint-tooling-diagnostic.md. Controlled actual-base selector RED retained, including clean valid-fixture RED.",
+  "qualification_gaps": [
+    "SCOPE_EXCEEDED: root fast lint exits Make 2/golangci 1 on 57 unchanged tools/gomad3sim revive findings; full gate remains red and stops before vet/later scopes.",
+    "SCOPE_EXCEEDED: actual Gomad scoped lint exits Make 2/golangci 1 on 1300 existing ordinary-host findings; vet not reached; module sources/config unchanged since that bounded receipt.",
+    "POLICY_LIMITATION: existing ^.git exclusion may suppress reporting for live .github tooling; source routing includes it and config was not changed.",
+    "NATIVE_QUALIFICATION_OPEN: patched Go absent on Linux aarch64; stock-Go lint does not close D5/native/original R18/R19."
+  ],
+  "review": "conductor-deferred; no worker verdict or formal dispatch",
+  "tier": "Tier session (jev-unavailable(no_key))",
+  "requested_implementer": "gpt-6.1-sol at high",
+  "delegated_read_only_scouts": 2,
+  "live_commands": []
+}

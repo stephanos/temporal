@@ -1,0 +1,16 @@
+--- FAIL: TestCINestedLintSteps (0.00s)
+    --- FAIL: TestCINestedLintSteps/gomad3.yml (0.05s)
+        main_test.go:270: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:270
+            	Error:      	Should NOT be empty, but was 
+            	Test:       	TestCINestedLintSteps/gomad3.yml
+            	Messages:   	nested lint step is not enforced
+    --- FAIL: TestCINestedLintSteps/linters.yml (0.05s)
+        main_test.go:270: 
+            	Error Trace:	/Users/stephan/Workspace/skunkworks/gomad/temporal/cmd/tools/lintcode/main_test.go:270
+            	Error:      	Should NOT be empty, but was 
+            	Test:       	TestCINestedLintSteps/linters.yml
+            	Messages:   	nested lint step is not enforced
+FAIL
+FAIL	go.temporal.io/server/cmd/tools/lintcode	0.050s
+FAIL
