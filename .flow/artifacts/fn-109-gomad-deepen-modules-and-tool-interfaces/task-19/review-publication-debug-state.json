@@ -1,0 +1,8 @@
+{
+  "task_title": "Diagnose formal review metadata publication before dispatch",
+  "task_body": "Read-only narrow flowctl fanout metadata diagnostic; do not dispatch reviewers or modify source, ledger, receipts or installed tools. Existing harmless publication probe passes but actual sidecar metadata publication failed before any draw.",
+  "acceptance": "Explain concrete root cause with evidence or report unreproduced failure without speculative fix; no gate weakening or verdict creation.",
+  "touches_count": 1,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}

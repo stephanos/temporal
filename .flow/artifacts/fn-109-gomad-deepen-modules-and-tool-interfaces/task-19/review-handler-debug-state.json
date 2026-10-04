@@ -1,0 +1,8 @@
+{
+  "task_title": "Trace full fanout CLI metadata boundary without reviewer dispatch",
+  "task_body": "Continue the unreproduced sidecar publication investigation. Exercise the installed CLI handler in isolated scratch state, trace the original metadata helper exception, and stop before any real reviewer dispatch. Preserve actual repository state, receipts and installed tools.",
+  "acceptance": "Report the concrete exception if reproduced, or the exact tested handler path and residual uncertainty. No actual review round, source change, installed tool change or verdict.",
+  "touches_count": 1,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}
