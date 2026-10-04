@@ -783,5 +783,5 @@ Runs reproduce the same failure again. An incomplete or unreproduced failure pro
 `UMPIRE_EXPLORATION_DIR` to keep their Cases, Runs, reports and HTML traces.
 
 The control machine `Control.forgedCompletion` (`model/temporal/nexuscaller/Model.scala`)
-deliberately admits a forged success beside the real failed callback. It is a negative control that shows a violated Verdict being found and replayed,
-not a server defect.
+deliberately admits a forged success beside the real failed callback. It is a negative control that
+shows a violated Verdict being found and replayed, not a server defect.

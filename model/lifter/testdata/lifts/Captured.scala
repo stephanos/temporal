@@ -26,9 +26,11 @@ enum Fact derives Finite:
   case stored, staged
   case lost(hard: Boolean)
 
-// A party, an entity and an observation named after their vals.
+// A party, entities and an observation named after their vals. An entity that refers to another is
+// compiled as a block that binds the reference before the call, which the lifter reads through.
 val client: Party = Party()
-val entry: Entity = Entity(key = "entryId")
+val owner: Entity = Entity()
+val entry: Entity = Entity(key = "entryId", refer = Map("owner" -> owner))
 val lostData: Observation = Observation(on = entry, read = "lost")
 
 val put = action(client)
