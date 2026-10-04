@@ -272,7 +272,9 @@ An instantiating entity is a machine with its own state type that declares the c
 Totals: 8 claims are law instances. They are `terminalIsFinal` ×2, `terminalStays`,
 `terminalFinality`, `pausedIsNotDispatched`, `notAdmittedWhilePaused`, `terminated` and
 `cancelRequestedWhileStarted`. The other 68 are feature-specific: 38 close-policy, 7 settlement, 7
-deadline, 4 retry, 5 run/fault/control, 3 queue, 2 active count and 2 cross-entity worker.
+deadline, 4 retry, 5 run, fault, control or Nexus-only (`staleDeliveryRejected`,
+`committedDespiteLostResponse`, `failedCommitKeepsTheMessage`, `forgedSuccess`, `asyncStarts`), 3
+queue, 2 active count and 2 cross-entity worker.
 
 **For the owner.** No claim is unclassified. These are the borderline calls, each decided above:
 
@@ -304,6 +306,13 @@ deadline, 4 retry, 5 run/fault/control, 3 queue, 2 active count and 2 cross-enti
     Its law is the await that generated Cases derive from it (task 3). A Describe law stated over
     a describe action ("a describe changes nothing") would need a transition Property with `when`.
     That is a finding for a reader spec, not written here.
+- The law's `terminal: P => Boolean` takes the status, so `Product.terminal` and
+  `Admission.terminal` now take the phase, as `Protocol.terminal` did. `Product.phase` and
+  `Product.ends` are new, and the `OverQueue`/`OverMatching.terminal` forwarders are gone. The IR's
+  function bodies change shape (calls of `phase` where field reads were) and mean the same: tables,
+  Definition IDs, Property rows, answers and Case bytes are the baseline's. The only golden-config
+  entries are two `source_path_merges` for the law files' positions. No function name changed, since
+  a claim's function is named `<machine>.property.<name>`.
 - The framework's TASTy was not lifted at all. The lifter now reads `umpire/laws` beside the
   Models, so an entity-neutral law folds like a Model's own def. A def's body takes the name of
   the val that declares its call, so a law's instance is named by its val
