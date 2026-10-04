@@ -169,4 +169,7 @@ joins only once two entities adopt it; an entity that differs overrides it with 
 
 Task 1 is done (branch `umpire-fn122`, merging): law bodies and the catalog as plain defs with server
 citations; the inventory classifies 76 claims as 8 law instances and 68 feature-specific. Three bodies wait for
-task 2's binding of plain value arguments.
+task 2's binding of plain value arguments. Task 2 is done on the same branch: `capabilities(m, limits)(...)`
+with `except` and `overriding` (each with a reason) lifts each law into a Property, Scenario and Query named
+`<machine>.<law>`, a `<file>.laws.json` sidecar sits beside each IR file that declares capabilities, and all five
+laws now lift. Task 3 (the activity's capabilities) is next.
