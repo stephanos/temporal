@@ -134,7 +134,11 @@ are done: the close policy uses the final DSL with a new `sticky` monitor form a
 literals, from 148). Task 6 is done: the worker Model is `Model.scala`
 with captured names and pinned IDs, and the lifter fixtures use captured names and named choices. Task 7 is done:
 the string-named and string-keyed declaration forms are gone from the DSL and the lifter, each refused at
-compile time. Tasks 11 and 12 come next, then 10, 9 and 8. `leadsTo` has no captured-name form yet,
+compile time. Tasks 10, 11 and 12 are done: lifter fixtures no longer copy live Model text
+(CloseReset retired, Realizations' expected IR from 14,255 to 3,932 lines), type annotations dropped where
+inference agrees (269 to 25), and `model/umpire` names no Temporal concept behind a guard test. Task 9 (folder
+rename and the `features/`/`shared/` grouping) runs once fn-118.2 and fn-120.3 have merged, then task 8 closes the
+spec. `leadsTo` has no captured-name form yet,
 which leaves two literals in the close policy.
 
 ### fn-118: Declare how Temporal APIs behave once, and let the generated tests use it
