@@ -52,8 +52,8 @@ wc -c -l tools/gomad3/toolchain/runtime/go1.27.1.patch
 ### Key context
 
 **Working constraints (apply to every fn-110 task):**
-- No `git commit`, `git add`, stash, or worktrees. The user owns commits; leave changes in the working tree and report them. Earlier fn-110 tasks may therefore be uncommitted working-tree changes — do not revert them.
-- Host is `darwin/arm64` only. `linux/amd64` gates cannot run here: record every Linux-dependent check as **incomplete**, never as passing. Cross-compilation is not Linux evidence.
+- Commit verified progress in bounded batches, as requested by the user. The conductor owns staging and commits; preserve unrelated changes and leave active shared-source edits unstaged until their verification boundary. Do not push, stash, create worktrees or rewrite history without separate authorization.
+- Recheck the actual host before gates. This development session is `linux/arm64`; neither qualified native `darwin/arm64` nor native `linux/amd64` execution is available here. Keep each platform gate incomplete until source-bound native evidence exists; cross-compilation, emulation and developmental stock-host checks qualify neither.
 - Disk: about 19 GB was free at planning time and each toolchain build directory under `tools/gomad3/.toolchain/builds/<key>` is 2–6 GB. Run `df -h .` before every rebuild and stop if less than 8 GB is free. Only delete build directories that this spec's own intermediate candidates created, once superseded and not referenced by retained evidence. Never delete the baseline key recorded by task 1 or the active key in `.toolchain/build-key`. Pre-existing directories and `make clean-qualifications` need the user's confirmation.
 - Patch and overlay bytes feed the build key (`tools/gomad3/toolchain/buildkey.go:48-58`), so every patch or overlay edit yields a new toolchain identity. Never relabel old artifacts.
 - fn-105 D12 (Linux replay divergence) and D14 (Darwin `TestSignalWorkflowTestSuiteChasm`) keep their owners and dispositions. Do not edit qualification expectations to get a passing gate.
@@ -68,7 +68,6 @@ wc -c -l tools/gomad3/toolchain/runtime/go1.27.1.patch
 5. `make -C tools/gomad3 generate validate`, then `make -C tools/gomad3 toolchain` (the build runs the archive-based overlay collision check at `toolchain/build.go:176`).
 
 The descriptor requires `patch_allowlist` and `overlay_allowlist` to equal the checked trees exactly (`toolchain/version/descriptor.go:114-160`), so a task that adds an overlay file or empties a patched file updates `version.json` and regenerates in the same task.
-
 ## Acceptance
 - [ ] The three implementations live in `overlay/src/runtime/gomad.go` behind private helpers; `proc.go` keeps the hooks, arrival admission, transport accounting, and stock timer-wake path; every moved comment is byte-identical
 - [ ] Retry, external, deadlock, and transport-failure responses keep their returns, fatal messages, and `sched.lock` state; no helper adds an allocation, closure, or host read
@@ -83,6 +82,35 @@ Blocked:
 Implementation and local structural verification are complete, but the task's required native qualification cannot run in this environment. The host is linux/arm64; Gomad qualifies darwin/arm64 and linux/amd64, and the available Docker builder is also linux/arm64. Emulated or cross-compiled execution is not accepted as native Linux evidence. GitHub Actions cannot be triggered because this checkout has no usable GitHub credentials.
 
 Outstanding gates: native toolchain build on darwin/arm64 and linux/amd64; runtime, upstream, live-capability, and process-simulation tests; the full baseline/candidate fixture comparison and exact replay on qualified hosts.
+
+Blocked:
+The scheduler extraction source candidate is integrated and its retained
+structural/developmental checks remain evidence for their stated source scope.
+Required native qualification remains unavailable on this linux/arm64 development
+host. Gomad qualifies darwin/arm64 and linux/amd64; emulated, cross-compiled or
+stock-host execution does not qualify either platform. No authorized source-bound
+CI run is available for the current dirty combined candidate.
+
+Fresh source measurements also contradict the original extraction-size acceptance:
+the original task1 -U3 is 32,652 bytes, while the current combined final -U3 is
+38,362 bytes, 5,710 bytes larger. Canonical -U1 at 29,015 bytes demonstrates
+context reduction only; it cannot close R8's separate extraction reduction.
+The evidence is retained under task-5/source-size-verification.md and independently
+checked in task-5/conductor-source-size-verification.md. Keep the original
+comparator and preserve all integrated behavior and comments.
+
+All three approved scheduler bodies are already fully extracted. Task 2 requires
+the remaining upstream integration hooks and scheduler machinery to stay; no
+additional scoped extraction has been identified. Reconciliation must remain
+with this extraction-size owner and the owners of introduced runtime inputs,
+especially fn-112.5's diagnostic fields/alignment. Do not remove those capabilities,
+embed goroutine state, move protected machinery or widen scope to manufacture
+size acceptance. Task5 owns final verification, not a source fix for this gap.
+
+Outstanding gates: native toolchain builds on darwin/arm64 and linux/amd64;
+runtime, upstream, live-capability and process-simulation checks; full baseline/
+candidate fixture comparisons and exact replay; and the original extraction-size
+acceptance, which is presently unmet rather than merely unmeasured.
 ## Evidence
 - Commits:
 - Tests:
