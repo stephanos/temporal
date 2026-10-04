@@ -251,7 +251,7 @@ func TestQuintExportRejectsWhatItDoesNotTranslate(t *testing.T) {
 		// A match with a case removed leaves a value no case matches: an undeclared hole, which Go reads
 		// as hole rows.
 		"a value no case matches": {"activity-system", func(m *umpirespb.Model) {
-			match := function(m, "temporal.standaloneactivity.admission.Admission$.pause").GetBody().GetMatch()
+			match := function(m, "temporal.standaloneactivity.admission.Admission$.control").GetBody().GetMatch()
 			match.Cases = match.GetCases()[:1]
 		}, "an undeclared hole at the row"},
 		"a hole in a machine's ends": {"", func(m *umpirespb.Model) {

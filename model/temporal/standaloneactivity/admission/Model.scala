@@ -36,8 +36,8 @@ enum AdmissionPhase derives Finite:
   case scheduled, paused, pausedWhileHeld, started, completed, timedOut
 
 /**
- * Attempts admission committed and no result closed. An enum rather than an Int, because the lifter
- * gives every Int field of one record the same range.
+ * Attempts admission committed and no result closed. An enum rather than an `UpTo[2]`, because its
+ * cases are the record's frozen state keys.
  */
 enum Active derives Finite:
   case none, one, two
@@ -78,7 +78,7 @@ val admissionCommitFails = choice
 /**
  * The record's vocabulary: the status sets its promises are declared over, which a composition reads
  * through its `activity` member, and the step functions of its designs, named after the actions they
- * answer.
+ * answer; the designs differ in their admission step, so each of those is named after its design.
  */
 object Admission:
   /** Paused before any attempt was admitted: the pause a delivery must not get past. */
@@ -111,7 +111,7 @@ object Admission:
     else accept(s, AdmissionFact.dispatchSent)
 
   /** A pause keeps whatever message is in flight: nothing recalls it. */
-  def pause(s: AdmissionState, c: Control): List[AdmissionStep] = c match
+  def control(s: AdmissionState, c: Control): List[AdmissionStep] = c match
     case Control.pause =>
       s.phase match
         case AdmissionPhase.scheduled =>
@@ -251,7 +251,7 @@ val currentAdmission = machine[AdmissionState, Outcome, AdmissionFact] {
   evidence { case AdmissionFact.statusTimedOut(_) => "statusTimedOut" }
   steps(
     dispatch ~> Admission.dispatch,
-    control ~> Admission.pause,
+    control ~> Admission.control,
     attemptStart ~> Admission.admitCurrent,
     answerDelivery ~> Admission.answerDelivery,
     attemptResult ~> Admission.attemptResult,
@@ -282,7 +282,7 @@ val heldAdmission = machine[AdmissionState, Outcome, AdmissionFact] {
   evidence { case AdmissionFact.statusTimedOut(_) => "statusTimedOut" }
   steps(
     dispatch ~> Admission.dispatch,
-    control ~> Admission.pause,
+    control ~> Admission.control,
     attemptStart ~> Admission.admitHeld,
     answerDelivery ~> Admission.answerDelivery
   )

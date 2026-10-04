@@ -3184,6 +3184,349 @@
       }
     }
   }, {
+    "name": "temporal.standaloneactivity.admission.Admission$.control",
+    "position": {
+      "file": "model/temporal/standaloneactivity/admission/Model.scala",
+      "line": 114
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.standaloneactivity.AdmissionState"
+      }
+    }, {
+      "name": "c",
+      "type": {
+        "named": "temporal.standaloneactivity.Control"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/standaloneactivity/admission/Model.scala",
+        "line": 114
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+            "line": 114
+          },
+          "var": "c"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.Control",
+                "case": "pause"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/standaloneactivity/admission/Model.scala",
+              "line": 116
+            },
+            "match": {
+              "scrutinee": {
+                "position": {
+                  "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                  "line": 116
+                },
+                "field": {
+                  "base": {
+                    "position": {
+                      "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                      "line": 116
+                    },
+                    "var": "s"
+                  },
+                  "field": "phase"
+                }
+              },
+              "cases": [ {
+                "pattern": {
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.AdmissionPhase",
+                      "case": "scheduled"
+                    }
+                  }
+                },
+                "body": {
+                  "position": {
+                    "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                    "line": 118
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                        "line": 118
+                      },
+                      "construct": {
+                        "type": "umpire.Step",
+                        "args": [ {
+                          "position": {
+                            "file": "model/temporal/standaloneactivity/Model.scala",
+                            "line": 136
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "temporal.standaloneactivity.Outcome",
+                              "case": "accepted"
+                            }
+                          }
+                        }, {
+                          "position": {
+                            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                            "line": 118
+                          },
+                          "copy": {
+                            "base": {
+                              "position": {
+                                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                                "line": 118
+                              },
+                              "var": "s"
+                            },
+                            "updates": [ {
+                              "name": "phase",
+                              "value": {
+                                "position": {
+                                  "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                                  "line": 118
+                                },
+                                "literal": {
+                                  "enum": {
+                                    "type": "temporal.standaloneactivity.AdmissionPhase",
+                                    "case": "paused"
+                                  }
+                                }
+                              }
+                            } ]
+                          }
+                        }, {
+                          "position": {
+                            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                            "line": 118
+                          },
+                          "list": {
+                            "items": [ {
+                              "position": {
+                                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                                "line": 118
+                              },
+                              "literal": {
+                                "enum": {
+                                  "type": "temporal.standaloneactivity.AdmissionFact",
+                                  "case": "statusPaused"
+                                }
+                              }
+                            } ]
+                          }
+                        }, {
+                          "position": {
+                            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                            "line": 118
+                          },
+                          "literal": {
+                            "text": ""
+                          }
+                        } ]
+                      }
+                    } ]
+                  }
+                }
+              }, {
+                "pattern": {
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.AdmissionPhase",
+                      "case": "started"
+                    }
+                  }
+                },
+                "body": {
+                  "position": {
+                    "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                    "line": 120
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                        "line": 120
+                      },
+                      "construct": {
+                        "type": "umpire.Step",
+                        "args": [ {
+                          "position": {
+                            "file": "model/temporal/standaloneactivity/Model.scala",
+                            "line": 136
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "temporal.standaloneactivity.Outcome",
+                              "case": "accepted"
+                            }
+                          }
+                        }, {
+                          "position": {
+                            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                            "line": 120
+                          },
+                          "copy": {
+                            "base": {
+                              "position": {
+                                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                                "line": 120
+                              },
+                              "var": "s"
+                            },
+                            "updates": [ {
+                              "name": "phase",
+                              "value": {
+                                "position": {
+                                  "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                                  "line": 120
+                                },
+                                "literal": {
+                                  "enum": {
+                                    "type": "temporal.standaloneactivity.AdmissionPhase",
+                                    "case": "pausedWhileHeld"
+                                  }
+                                }
+                              }
+                            } ]
+                          }
+                        }, {
+                          "position": {
+                            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                            "line": 120
+                          },
+                          "list": {
+                            "items": [ {
+                              "position": {
+                                "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                                "line": 120
+                              },
+                              "literal": {
+                                "enum": {
+                                  "type": "temporal.standaloneactivity.AdmissionFact",
+                                  "case": "statusPaused"
+                                }
+                              }
+                            } ]
+                          }
+                        }, {
+                          "position": {
+                            "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                            "line": 120
+                          },
+                          "literal": {
+                            "text": ""
+                          }
+                        } ]
+                      }
+                    } ]
+                  }
+                }
+              }, {
+                "pattern": {
+                  "alternatives": {
+                    "patterns": [ {
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.AdmissionPhase",
+                          "case": "paused"
+                        }
+                      }
+                    }, {
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.AdmissionPhase",
+                          "case": "pausedWhileHeld"
+                        }
+                      }
+                    } ]
+                  }
+                },
+                "body": {
+                  "position": {
+                    "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                    "line": 121
+                  },
+                  "list": { }
+                }
+              }, {
+                "pattern": {
+                  "alternatives": {
+                    "patterns": [ {
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.AdmissionPhase",
+                          "case": "completed"
+                        }
+                      }
+                    }, {
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.AdmissionPhase",
+                          "case": "timedOut"
+                        }
+                      }
+                    } ]
+                  }
+                },
+                "body": {
+                  "position": {
+                    "file": "model/temporal/standaloneactivity/admission/Model.scala",
+                    "line": 122
+                  },
+                  "list": { }
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "alternatives": {
+              "patterns": [ {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Control",
+                    "case": "unpause"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Control",
+                    "case": "requestCancel"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Control",
+                    "case": "terminate"
+                  }
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/standaloneactivity/admission/Model.scala",
+              "line": 123
+            },
+            "list": { }
+          }
+        } ]
+      }
+    }
+  }, {
     "name": "temporal.standaloneactivity.admission.Admission$.countActive",
     "position": {
       "file": "model/temporal/standaloneactivity/admission/Model.scala",
@@ -3887,349 +4230,6 @@
                 "case": "two"
               }
             }
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.standaloneactivity.admission.Admission$.pause",
-    "position": {
-      "file": "model/temporal/standaloneactivity/admission/Model.scala",
-      "line": 114
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.standaloneactivity.AdmissionState"
-      }
-    }, {
-      "name": "c",
-      "type": {
-        "named": "temporal.standaloneactivity.Control"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/standaloneactivity/admission/Model.scala",
-        "line": 114
-      },
-      "match": {
-        "scrutinee": {
-          "position": {
-            "file": "model/temporal/standaloneactivity/admission/Model.scala",
-            "line": 114
-          },
-          "var": "c"
-        },
-        "cases": [ {
-          "pattern": {
-            "literal": {
-              "enum": {
-                "type": "temporal.standaloneactivity.Control",
-                "case": "pause"
-              }
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/standaloneactivity/admission/Model.scala",
-              "line": 116
-            },
-            "match": {
-              "scrutinee": {
-                "position": {
-                  "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                  "line": 116
-                },
-                "field": {
-                  "base": {
-                    "position": {
-                      "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                      "line": 116
-                    },
-                    "var": "s"
-                  },
-                  "field": "phase"
-                }
-              },
-              "cases": [ {
-                "pattern": {
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.standaloneactivity.AdmissionPhase",
-                      "case": "scheduled"
-                    }
-                  }
-                },
-                "body": {
-                  "position": {
-                    "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                    "line": 118
-                  },
-                  "list": {
-                    "items": [ {
-                      "position": {
-                        "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                        "line": 118
-                      },
-                      "construct": {
-                        "type": "umpire.Step",
-                        "args": [ {
-                          "position": {
-                            "file": "model/temporal/standaloneactivity/Model.scala",
-                            "line": 136
-                          },
-                          "literal": {
-                            "enum": {
-                              "type": "temporal.standaloneactivity.Outcome",
-                              "case": "accepted"
-                            }
-                          }
-                        }, {
-                          "position": {
-                            "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                            "line": 118
-                          },
-                          "copy": {
-                            "base": {
-                              "position": {
-                                "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                                "line": 118
-                              },
-                              "var": "s"
-                            },
-                            "updates": [ {
-                              "name": "phase",
-                              "value": {
-                                "position": {
-                                  "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                                  "line": 118
-                                },
-                                "literal": {
-                                  "enum": {
-                                    "type": "temporal.standaloneactivity.AdmissionPhase",
-                                    "case": "paused"
-                                  }
-                                }
-                              }
-                            } ]
-                          }
-                        }, {
-                          "position": {
-                            "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                            "line": 118
-                          },
-                          "list": {
-                            "items": [ {
-                              "position": {
-                                "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                                "line": 118
-                              },
-                              "literal": {
-                                "enum": {
-                                  "type": "temporal.standaloneactivity.AdmissionFact",
-                                  "case": "statusPaused"
-                                }
-                              }
-                            } ]
-                          }
-                        }, {
-                          "position": {
-                            "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                            "line": 118
-                          },
-                          "literal": {
-                            "text": ""
-                          }
-                        } ]
-                      }
-                    } ]
-                  }
-                }
-              }, {
-                "pattern": {
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.standaloneactivity.AdmissionPhase",
-                      "case": "started"
-                    }
-                  }
-                },
-                "body": {
-                  "position": {
-                    "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                    "line": 120
-                  },
-                  "list": {
-                    "items": [ {
-                      "position": {
-                        "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                        "line": 120
-                      },
-                      "construct": {
-                        "type": "umpire.Step",
-                        "args": [ {
-                          "position": {
-                            "file": "model/temporal/standaloneactivity/Model.scala",
-                            "line": 136
-                          },
-                          "literal": {
-                            "enum": {
-                              "type": "temporal.standaloneactivity.Outcome",
-                              "case": "accepted"
-                            }
-                          }
-                        }, {
-                          "position": {
-                            "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                            "line": 120
-                          },
-                          "copy": {
-                            "base": {
-                              "position": {
-                                "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                                "line": 120
-                              },
-                              "var": "s"
-                            },
-                            "updates": [ {
-                              "name": "phase",
-                              "value": {
-                                "position": {
-                                  "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                                  "line": 120
-                                },
-                                "literal": {
-                                  "enum": {
-                                    "type": "temporal.standaloneactivity.AdmissionPhase",
-                                    "case": "pausedWhileHeld"
-                                  }
-                                }
-                              }
-                            } ]
-                          }
-                        }, {
-                          "position": {
-                            "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                            "line": 120
-                          },
-                          "list": {
-                            "items": [ {
-                              "position": {
-                                "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                                "line": 120
-                              },
-                              "literal": {
-                                "enum": {
-                                  "type": "temporal.standaloneactivity.AdmissionFact",
-                                  "case": "statusPaused"
-                                }
-                              }
-                            } ]
-                          }
-                        }, {
-                          "position": {
-                            "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                            "line": 120
-                          },
-                          "literal": {
-                            "text": ""
-                          }
-                        } ]
-                      }
-                    } ]
-                  }
-                }
-              }, {
-                "pattern": {
-                  "alternatives": {
-                    "patterns": [ {
-                      "literal": {
-                        "enum": {
-                          "type": "temporal.standaloneactivity.AdmissionPhase",
-                          "case": "paused"
-                        }
-                      }
-                    }, {
-                      "literal": {
-                        "enum": {
-                          "type": "temporal.standaloneactivity.AdmissionPhase",
-                          "case": "pausedWhileHeld"
-                        }
-                      }
-                    } ]
-                  }
-                },
-                "body": {
-                  "position": {
-                    "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                    "line": 121
-                  },
-                  "list": { }
-                }
-              }, {
-                "pattern": {
-                  "alternatives": {
-                    "patterns": [ {
-                      "literal": {
-                        "enum": {
-                          "type": "temporal.standaloneactivity.AdmissionPhase",
-                          "case": "completed"
-                        }
-                      }
-                    }, {
-                      "literal": {
-                        "enum": {
-                          "type": "temporal.standaloneactivity.AdmissionPhase",
-                          "case": "timedOut"
-                        }
-                      }
-                    } ]
-                  }
-                },
-                "body": {
-                  "position": {
-                    "file": "model/temporal/standaloneactivity/admission/Model.scala",
-                    "line": 122
-                  },
-                  "list": { }
-                }
-              } ]
-            }
-          }
-        }, {
-          "pattern": {
-            "alternatives": {
-              "patterns": [ {
-                "literal": {
-                  "enum": {
-                    "type": "temporal.standaloneactivity.Control",
-                    "case": "unpause"
-                  }
-                }
-              }, {
-                "literal": {
-                  "enum": {
-                    "type": "temporal.standaloneactivity.Control",
-                    "case": "requestCancel"
-                  }
-                }
-              }, {
-                "literal": {
-                  "enum": {
-                    "type": "temporal.standaloneactivity.Control",
-                    "case": "terminate"
-                  }
-                }
-              } ]
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/standaloneactivity/admission/Model.scala",
-              "line": 123
-            },
-            "list": { }
           }
         } ]
       }
@@ -5376,7 +5376,7 @@
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.control",
-      "function": "temporal.standaloneactivity.admission.Admission$.pause",
+      "function": "temporal.standaloneactivity.admission.Admission$.control",
       "position": {
         "file": "model/temporal/standaloneactivity/admission/Model.scala",
         "line": 285
