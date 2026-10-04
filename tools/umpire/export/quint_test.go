@@ -891,6 +891,7 @@ func TestQuintKeepsEveryNamedAlternative(t *testing.T) {
 				st["f_choice"] = "rejects"
 			case "rejects":
 				st["f_choice"] = "accepts"
+			default:
 			}
 		},
 	} {

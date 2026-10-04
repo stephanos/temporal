@@ -46,17 +46,20 @@ Lint and the explorer are commands under `tools/umpire/cmd/`, the one place that
 ## API Contracts
 <!-- scope: technical -->
 
-A sketch of `choose`. The task that builds it settles the spelling and records it here.
+The spelling fn-120.1 settled (model/umpire/Machine.scala; fixture model/lifter/testdata/lifts/Choices.scala):
 
 ```scala
-def admitted(s: AdmissionState): Steps = choose(
-  committed -> accept(s.copy(phase = started, answer = owed), statusStarted, attemptAdmitted),
-  commitFailed -> stay(s).recording(admissionCommitFailed)
-    .because("the durable update fails: nothing is admitted and the message stays deliverable")
+val committed = choice
+val redelivered = choice
+
+def admitted(s: AdmissionState): List[AdmissionStep] = choose(
+  committed -> accept(s.copy(phase = started, message = empty), statusStarted, attemptAdmitted),
+  redelivered -> accept(s.copy(phase = started, message = redelivery), statusStarted, attemptAdmitted)
+    .because("the channel may deliver the message again")
 )
 ```
 
-The alternatives' names are values the author declares once and tools refer to. A step function with one result needs no `choose`.
+A name is a token of its own, declared once by the val that names it (`val committed = choice`), as an input token is; the IR name is the val's simple name. It is not an enum case: an enum used only for names would be lifted as an IR type the Model does not otherwise need, and the names of different step functions are not one closed set. `choose` is core (model/umpire/Machine.scala, lifted beside `because` in model/lifter/Expressions.scala); no sugar spelling over it was added. Each alternative is one step written out (`accept(...)`, `stay(s)`, `List(Step(...))`, optionally `.because(...)`); `choose` takes at least two alternatives, so a one-alternative choose does not compile, and the lifter refuses a name used twice, an alternative that is not one step and a token no val names, at their lines. The IR records each name on the step record's construct (`Construct.choice`, model/SEMANTICS.md "Named choices"). A step function with one result needs no `choose`.
 
 **Quint result contract.** The pure exported step function still returns an ordered list of every result, including inert choice names on their records. The checker action selects a class and then a result index nondeterministically at its action boundary. A `choose` does not select a branch inside the pure function or discard/reorder alternatives. Table rows and agreement checks compare the same ordered results; names are reportable metadata only.
 

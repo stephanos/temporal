@@ -14,6 +14,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/tools/umpire/internal/golden"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -71,7 +72,7 @@ func TestNamedChoicesAreReportedAndInert(t *testing.T) {
 		require.NoError(t, err)
 		isJSON, err := json.Marshal(is)
 		require.NoError(t, err)
-		require.Equal(t, string(wasJSON), string(isJSON), name)
+		require.Equal(t, golden.Digest(wasJSON), golden.Digest(isJSON), "%s: the table encodes to other bytes", name)
 		require.Equal(t, was.IDs(), is.IDs(), name)
 		require.Equal(t, was.TargetFingerprint(), is.TargetFingerprint(), name)
 		require.Len(t, is.Rows, len(was.Rows), name)
@@ -169,7 +170,7 @@ func TestARedeliveryIsUnnamed(t *testing.T) {
 	require.NoError(t, err)
 	isJSON, err := json.Marshal(is)
 	require.NoError(t, err)
-	require.Equal(t, string(wasJSON), string(isJSON))
+	require.Equal(t, golden.Digest(wasJSON), golden.Digest(isJSON), "the table encodes to other bytes")
 	redelivered := 0
 	for _, row := range is.Rows {
 		if !slices.ContainsFunc(row.Results, func(r Result) bool { return r.Choice != "" }) {
