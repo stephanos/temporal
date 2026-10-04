@@ -7,7 +7,7 @@ package fixture.declarations
 
 import umpire.*
 
-given Family: umpire.Family = umpire.Family("fixture.declarations")
+given Family = Family("fixture.declarations")
 
 enum Kept derives Finite:
   case nothing, held
@@ -20,33 +20,32 @@ enum Outcome derives Finite:
 enum Fact derives Finite:
   case stored, staged
 
-val put = action("put", Party("client"))
-val flush = internal("flush")
-val crash = action("crash", Party("fault"))
+val put = action(Party("client"))
+val flush = internal
+val crash = action(Party("fault"))
 
-val storeOpaque: Assumption = assume("storeOpaque")
+val storeOpaque: Assumption = assume
 val flushRuns: Assumption = assume("flushEventuallyRuns").fair(flush)
-val crashUnmodeled: Hole = hole("crashUnmodeled")
+val crashUnmodeled: Hole = hole
 
 def evidenceOf(f: Fact): String = f match
   case Fact.stored => "stored"
   case Fact.staged => "staged"
 
 /** The opaque provider: all its clients may rely on. */
-val store: Machine[Store, Outcome, Fact] =
-  machine[Store, Outcome, Fact](Family, "store") {
-    assumes(storeOpaque)
-    starts(Store(Kept.nothing))
-    ends(s => s.kept == Kept.held)
-    evidence(evidenceOf)
-    steps(
-      put ~> (s =>
-        if s.kept == Kept.nothing then
-          List(Step(Outcome.accepted, Store(Kept.held), List(Fact.stored)))
-        else Nil
-      )
+val store = machine[Store, Outcome, Fact] {
+  assumes(storeOpaque)
+  starts(Store(Kept.nothing))
+  ends(s => s.kept == Kept.held)
+  evidence(evidenceOf)
+  steps(
+    put ~> (s =>
+      if s.kept == Kept.nothing then
+        List(Step(Outcome.accepted, Store(Kept.held), List(Fact.stored)))
+      else Nil
     )
-  }
+  )
+}
 
 enum Stage derives Finite:
   case empty, staged, durable
@@ -80,32 +79,29 @@ def countStored(seen: Seen, before: Disk, after: Step[Disk, Outcome, Fact]): See
       case Seen.once | Seen.twice => Seen.twice
 
 val storedOnce: Monitor[Disk, Outcome, Fact, Seen] =
-  monitor[Disk, Outcome, Fact, Seen]("storedOnce", Seen.never)(countStored)(seen =>
-    seen == Seen.twice
-  )
+  monitor[Disk, Outcome, Fact, Seen](Seen.never)(countStored)(seen => seen == Seen.twice)
 
 val endsDurable: Monitor[Disk, Outcome, Fact, Boolean] =
-  monitor[Disk, Outcome, Fact, Boolean]("endsDurable", false)((_, _, after) =>
-    after.state.stage == Stage.durable
-  )(durable => !durable).readAtEnds
+  monitor[Disk, Outcome, Fact, Boolean](false)((_, _, after) => after.state.stage == Stage.durable)(
+    durable => !durable
+  ).readAtEnds
 
 val stagedBeforeDurable: Monitor[Disk, Outcome, Fact, Boolean] =
-  monitor[Disk, Outcome, Fact, Boolean]("stagedBeforeDurable", false)((seen, _, after) =>
+  monitor[Disk, Outcome, Fact, Boolean](false)((seen, _, after) =>
     seen || after.facts.contains(Fact.staged)
   )(seen => !seen).readAfter(after => after.state.stage == Stage.durable)
 
 /** The detailed provider. */
-val disk: Machine[Disk, Outcome, Fact] =
-  machine[Disk, Outcome, Fact](Family, "disk") {
-    refines(store)(stored)
-    visible(f => f == Fact.stored)
-    visibleOutcomes(o => o == Outcome.accepted)
-    monitors(storedOnce, endsDurable, stagedBeforeDurable)
-    starts(Disk(Stage.empty))
-    ends(d => d.stage != Stage.staged)
-    evidence(evidenceOf)
-    steps(put ~> putStep, flush ~> flushStep, crash ~> crashStep)
-  }
+val disk = machine[Disk, Outcome, Fact] {
+  refines(store)(stored)
+  visible(f => f == Fact.stored)
+  visibleOutcomes(o => o == Outcome.accepted)
+  monitors(storedOnce, endsDurable, stagedBeforeDurable)
+  starts(Disk(Stage.empty))
+  ends(d => d.stage != Stage.staged)
+  evidence(evidenceOf)
+  steps(put ~> putStep, flush ~> flushStep, crash ~> crashStep)
+}
 
 val durableEventually: Progress[Disk] =
   disk.leadsTo("durableEventually")(
@@ -130,31 +126,30 @@ val detailedPair: Composition[DetailedPair] =
     .replaces(_.back, store)
     .ends(p => p.front.kept == Kept.held)
 
-val durableStays: Property[Disk] = disk.property("durableStays") holdsAcross { (before, after) =>
+val durableStays: Property[Disk] = disk.property holdsAcross { (before, after) =>
   before.stage != Stage.durable || after.state.stage == Stage.durable
 }
 val putStores: Property[Store] =
-  store.property("putStores") when put holds (after => after.facts.contains(Fact.stored))
+  store.property when put holds (after => after.facts.contains(Fact.stored))
 val putAccepted: Property[Disk] =
-  disk.property("putAccepted").whenAction("put") holds (after => after.outcome == Outcome.accepted)
+  disk.property.whenAction("put") holds (after => after.outcome == Outcome.accepted)
 val keptTogether: Property[Pair] =
-  pair.property("keptTogether") holds (after => after.state.front.kept == after.state.back.kept)
+  pair.property holds (after => after.state.front.kept == after.state.back.kept)
 val frontHeld: Property[DetailedPair] =
-  detailedPair.property("frontHeld") holds (after => after.state.front.kept == Kept.held)
+  detailedPair.property holds (after => after.state.front.kept == Kept.held)
 
 val putThenFlush: Scenario[Disk] =
-  disk.scenario("putThenFlush").starts(Disk(Stage.empty)).actions(put, flush)
+  disk.scenario.starts(Disk(Stage.empty)).actions(put, flush)
 val anyDisk: Scenario[Disk] = disk.scenario("any").starts(Disk(Stage.empty)).free
-val putOnce: Scenario[Store] = store.scenario("putOnce").starts(Store(Kept.nothing)).actions(put)
+val putOnce: Scenario[Store] = store.scenario.starts(Store(Kept.nothing)).actions(put)
 val anyPair: Scenario[Pair] =
   pair.scenario("any").starts(Pair(Store(Kept.nothing), Store(Kept.nothing))).free
 val bothPut: Scenario[DetailedPair] =
-  detailedPair
-    .scenario("bothPut")
+  detailedPair.scenario
     .starts(DetailedPair(Store(Kept.nothing), Disk(Stage.empty)))
     .actions(detailedPair.synced(_.front -> put))
 
-val two: Limits = Limits("two", steps = 2, actions = 2, search = 64)
+val two: Limits = Limits(steps = 2, actions = 2, search = 64)
 
 val queries: Vector[Query] = Vector(
   query("durableStays") verify durableStays in anyDisk limits two total 18,

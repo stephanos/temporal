@@ -273,8 +273,8 @@
   }, {
     "name": "temporal.worker.Outcome",
     "position": {
-      "file": "model/temporal/worker/Worker.scala",
-      "line": 35
+      "file": "model/temporal/worker/Model.scala",
+      "line": 37
     },
     "enum": {
       "cases": [ {
@@ -284,8 +284,8 @@
   }, {
     "name": "temporal.worker.Phase",
     "position": {
-      "file": "model/temporal/worker/Worker.scala",
-      "line": 30
+      "file": "model/temporal/worker/Model.scala",
+      "line": 32
     },
     "enum": {
       "cases": [ {
@@ -297,8 +297,8 @@
   }, {
     "name": "temporal.worker.State",
     "position": {
-      "file": "model/temporal/worker/Worker.scala",
-      "line": 33
+      "file": "model/temporal/worker/Model.scala",
+      "line": 35
     },
     "record": {
       "fields": [ {
@@ -7329,10 +7329,10 @@
       }
     }
   }, {
-    "name": "temporal.worker.Worker$package$.resumeStep",
+    "name": "temporal.worker.Model$package$.resumeStep",
     "position": {
-      "file": "model/temporal/worker/Worker.scala",
-      "line": 68
+      "file": "model/temporal/worker/Model.scala",
+      "line": 72
     },
     "params": [ {
       "name": "s",
@@ -7342,27 +7342,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/worker/Worker.scala",
-        "line": 69
+        "file": "model/temporal/worker/Model.scala",
+        "line": 73
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/worker/Worker.scala",
-            "line": 69
+            "file": "model/temporal/worker/Model.scala",
+            "line": 73
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/temporal/worker/Worker.scala",
-                "line": 69
+                "file": "model/temporal/worker/Model.scala",
+                "line": 73
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/worker/Worker.scala",
-                    "line": 69
+                    "file": "model/temporal/worker/Model.scala",
+                    "line": 73
                   },
                   "var": "s"
                 },
@@ -7371,8 +7371,8 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/worker/Worker.scala",
-                "line": 69
+                "file": "model/temporal/worker/Model.scala",
+                "line": 73
               },
               "literal": {
                 "enum": {
@@ -7385,28 +7385,28 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/worker/Worker.scala",
-            "line": 69
+            "file": "model/temporal/worker/Model.scala",
+            "line": 73
           },
           "list": { }
         },
         "else": {
           "position": {
-            "file": "model/temporal/worker/Worker.scala",
-            "line": 69
+            "file": "model/temporal/worker/Model.scala",
+            "line": 73
           },
           "list": {
             "items": [ {
               "position": {
-                "file": "model/temporal/worker/Worker.scala",
-                "line": 69
+                "file": "model/temporal/worker/Model.scala",
+                "line": 73
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/worker/Worker.scala",
-                    "line": 69
+                    "file": "model/temporal/worker/Model.scala",
+                    "line": 40
                   },
                   "literal": {
                     "enum": {
@@ -7416,15 +7416,15 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/worker/Worker.scala",
-                    "line": 69
+                    "file": "model/temporal/worker/Model.scala",
+                    "line": 73
                   },
                   "construct": {
                     "type": "temporal.worker.State",
                     "args": [ {
                       "position": {
-                        "file": "model/temporal/worker/Worker.scala",
-                        "line": 69
+                        "file": "model/temporal/worker/Model.scala",
+                        "line": 73
                       },
                       "literal": {
                         "enum": {
@@ -7436,126 +7436,13 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/worker/Worker.scala",
-                    "line": 69
-                  },
-                  "list": { }
-                }, {
-                  "position": {
-                    "file": "model/temporal/worker/Worker.scala",
-                    "line": 69
-                  },
-                  "literal": {
-                    "text": ""
-                  }
-                } ]
-              }
-            } ]
-          }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.worker.Worker$package$.serveStep",
-    "position": {
-      "file": "model/temporal/worker/Worker.scala",
-      "line": 72
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.worker.State"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/worker/Worker.scala",
-        "line": 73
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/worker/Worker.scala",
-            "line": 73
-          },
-          "binary": {
-            "op": "OP_NE",
-            "left": {
-              "position": {
-                "file": "model/temporal/worker/Worker.scala",
-                "line": 73
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/worker/Worker.scala",
-                    "line": 73
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/worker/Worker.scala",
-                "line": 73
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.worker.Phase",
-                  "case": "polling"
-                }
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/worker/Worker.scala",
-            "line": 73
-          },
-          "list": { }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/worker/Worker.scala",
-            "line": 73
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/temporal/worker/Worker.scala",
-                "line": 73
-              },
-              "construct": {
-                "type": "umpire.Step",
-                "args": [ {
-                  "position": {
-                    "file": "model/temporal/worker/Worker.scala",
-                    "line": 73
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.worker.Outcome",
-                      "case": "accepted"
-                    }
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/worker/Worker.scala",
-                    "line": 73
-                  },
-                  "var": "s"
-                }, {
-                  "position": {
-                    "file": "model/temporal/worker/Worker.scala",
+                    "file": "model/temporal/worker/Model.scala",
                     "line": 73
                   },
                   "list": { }
                 }, {
                   "position": {
-                    "file": "model/temporal/worker/Worker.scala",
+                    "file": "model/temporal/worker/Model.scala",
                     "line": 73
                   },
                   "literal": {
@@ -7569,10 +7456,10 @@
       }
     }
   }, {
-    "name": "temporal.worker.Worker$package$.stopStep",
+    "name": "temporal.worker.Model$package$.serveStep",
     "position": {
-      "file": "model/temporal/worker/Worker.scala",
-      "line": 64
+      "file": "model/temporal/worker/Model.scala",
+      "line": 76
     },
     "params": [ {
       "name": "s",
@@ -7582,27 +7469,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/worker/Worker.scala",
-        "line": 65
+        "file": "model/temporal/worker/Model.scala",
+        "line": 77
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/worker/Worker.scala",
-            "line": 65
+            "file": "model/temporal/worker/Model.scala",
+            "line": 77
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/temporal/worker/Worker.scala",
-                "line": 65
+                "file": "model/temporal/worker/Model.scala",
+                "line": 77
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/worker/Worker.scala",
-                    "line": 65
+                    "file": "model/temporal/worker/Model.scala",
+                    "line": 77
                   },
                   "var": "s"
                 },
@@ -7611,8 +7498,8 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/worker/Worker.scala",
-                "line": 65
+                "file": "model/temporal/worker/Model.scala",
+                "line": 77
               },
               "literal": {
                 "enum": {
@@ -7625,28 +7512,28 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/worker/Worker.scala",
-            "line": 65
+            "file": "model/temporal/worker/Model.scala",
+            "line": 77
           },
           "list": { }
         },
         "else": {
           "position": {
-            "file": "model/temporal/worker/Worker.scala",
-            "line": 65
+            "file": "model/temporal/worker/Model.scala",
+            "line": 77
           },
           "list": {
             "items": [ {
               "position": {
-                "file": "model/temporal/worker/Worker.scala",
-                "line": 65
+                "file": "model/temporal/worker/Model.scala",
+                "line": 77
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/worker/Worker.scala",
-                    "line": 65
+                    "file": "model/temporal/worker/Model.scala",
+                    "line": 40
                   },
                   "literal": {
                     "enum": {
@@ -7656,15 +7543,128 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/worker/Worker.scala",
-                    "line": 65
+                    "file": "model/temporal/worker/Model.scala",
+                    "line": 77
+                  },
+                  "var": "s"
+                }, {
+                  "position": {
+                    "file": "model/temporal/worker/Model.scala",
+                    "line": 77
+                  },
+                  "list": { }
+                }, {
+                  "position": {
+                    "file": "model/temporal/worker/Model.scala",
+                    "line": 77
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.worker.Model$package$.stopStep",
+    "position": {
+      "file": "model/temporal/worker/Model.scala",
+      "line": 68
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.worker.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/worker/Model.scala",
+        "line": 69
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/worker/Model.scala",
+            "line": 69
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/temporal/worker/Model.scala",
+                "line": 69
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/worker/Model.scala",
+                    "line": 69
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/worker/Model.scala",
+                "line": 69
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.worker.Phase",
+                  "case": "polling"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/worker/Model.scala",
+            "line": 69
+          },
+          "list": { }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/worker/Model.scala",
+            "line": 69
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/worker/Model.scala",
+                "line": 69
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/worker/Model.scala",
+                    "line": 40
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.worker.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/worker/Model.scala",
+                    "line": 69
                   },
                   "construct": {
                     "type": "temporal.worker.State",
                     "args": [ {
                       "position": {
-                        "file": "model/temporal/worker/Worker.scala",
-                        "line": 65
+                        "file": "model/temporal/worker/Model.scala",
+                        "line": 69
                       },
                       "literal": {
                         "enum": {
@@ -7676,14 +7676,14 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/worker/Worker.scala",
-                    "line": 65
+                    "file": "model/temporal/worker/Model.scala",
+                    "line": 69
                   },
                   "list": { }
                 }, {
                   "position": {
-                    "file": "model/temporal/worker/Worker.scala",
-                    "line": 65
+                    "file": "model/temporal/worker/Model.scala",
+                    "line": 69
                   },
                   "literal": {
                     "text": ""
@@ -7837,8 +7837,8 @@
     "id": "temporal.worker.Worker$package$.serve",
     "name": "serve",
     "position": {
-      "file": "model/temporal/worker/Worker.scala",
-      "line": 59
+      "file": "model/temporal/worker/Model.scala",
+      "line": 63
     },
     "party": "worker",
     "on": "worker"
@@ -7846,16 +7846,16 @@
     "id": "temporal.worker.Worker$package$.workerResume",
     "name": "workerResume",
     "position": {
-      "file": "model/temporal/worker/Worker.scala",
-      "line": 58
+      "file": "model/temporal/worker/Model.scala",
+      "line": 62
     },
     "party": "worker"
   }, {
     "id": "temporal.worker.Worker$package$.workerStop",
     "name": "workerStop",
     "position": {
-      "file": "model/temporal/worker/Worker.scala",
-      "line": 57
+      "file": "model/temporal/worker/Model.scala",
+      "line": 61
     },
     "party": "worker"
   } ],
@@ -8152,15 +8152,15 @@
     "outcomeType": "temporal.worker.Outcome",
     "starts": [ {
       "position": {
-        "file": "model/temporal/worker/Worker.scala",
-        "line": 78
+        "file": "model/temporal/worker/Model.scala",
+        "line": 82
       },
       "construct": {
         "type": "temporal.worker.State",
         "args": [ {
           "position": {
-            "file": "model/temporal/worker/Worker.scala",
-            "line": 78
+            "file": "model/temporal/worker/Model.scala",
+            "line": 82
           },
           "literal": {
             "enum": {
@@ -8173,8 +8173,8 @@
     } ],
     "ends": {
       "position": {
-        "file": "model/temporal/worker/Worker.scala",
-        "line": 79
+        "file": "model/temporal/worker/Model.scala",
+        "line": 83
       },
       "lambda": {
         "params": [ {
@@ -8185,8 +8185,8 @@
         } ],
         "body": {
           "position": {
-            "file": "model/temporal/worker/Worker.scala",
-            "line": 79
+            "file": "model/temporal/worker/Model.scala",
+            "line": 83
           },
           "literal": {
             "bool": true
@@ -8196,40 +8196,40 @@
     },
     "steps": [ {
       "action": "temporal.worker.Worker$package$.workerStop",
-      "function": "temporal.worker.Worker$package$.stopStep",
+      "function": "temporal.worker.Model$package$.stopStep",
       "position": {
-        "file": "model/temporal/worker/Worker.scala",
-        "line": 80
+        "file": "model/temporal/worker/Model.scala",
+        "line": 84
       }
     }, {
       "action": "temporal.worker.Worker$package$.serve",
-      "function": "temporal.worker.Worker$package$.serveStep",
+      "function": "temporal.worker.Model$package$.serveStep",
       "position": {
-        "file": "model/temporal/worker/Worker.scala",
-        "line": 80
+        "file": "model/temporal/worker/Model.scala",
+        "line": 84
       }
     } ]
   }, {
     "family": "temporal.worker",
     "name": "polling",
     "position": {
-      "file": "model/temporal/worker/Worker.scala",
-      "line": 76
+      "file": "model/temporal/worker/Model.scala",
+      "line": 80
     },
     "entity": "worker",
     "stateType": "temporal.worker.State",
     "outcomeType": "temporal.worker.Outcome",
     "starts": [ {
       "position": {
-        "file": "model/temporal/worker/Worker.scala",
-        "line": 78
+        "file": "model/temporal/worker/Model.scala",
+        "line": 82
       },
       "construct": {
         "type": "temporal.worker.State",
         "args": [ {
           "position": {
-            "file": "model/temporal/worker/Worker.scala",
-            "line": 78
+            "file": "model/temporal/worker/Model.scala",
+            "line": 82
           },
           "literal": {
             "enum": {
@@ -8242,8 +8242,8 @@
     } ],
     "ends": {
       "position": {
-        "file": "model/temporal/worker/Worker.scala",
-        "line": 79
+        "file": "model/temporal/worker/Model.scala",
+        "line": 83
       },
       "lambda": {
         "params": [ {
@@ -8254,8 +8254,8 @@
         } ],
         "body": {
           "position": {
-            "file": "model/temporal/worker/Worker.scala",
-            "line": 79
+            "file": "model/temporal/worker/Model.scala",
+            "line": 83
           },
           "literal": {
             "bool": true
@@ -8265,24 +8265,24 @@
     },
     "steps": [ {
       "action": "temporal.worker.Worker$package$.workerStop",
-      "function": "temporal.worker.Worker$package$.stopStep",
+      "function": "temporal.worker.Model$package$.stopStep",
       "position": {
-        "file": "model/temporal/worker/Worker.scala",
-        "line": 80
+        "file": "model/temporal/worker/Model.scala",
+        "line": 84
       }
     }, {
       "action": "temporal.worker.Worker$package$.workerResume",
-      "function": "temporal.worker.Worker$package$.resumeStep",
+      "function": "temporal.worker.Model$package$.resumeStep",
       "position": {
-        "file": "model/temporal/worker/Worker.scala",
-        "line": 80
+        "file": "model/temporal/worker/Model.scala",
+        "line": 84
       }
     }, {
       "action": "temporal.worker.Worker$package$.serve",
-      "function": "temporal.worker.Worker$package$.serveStep",
+      "function": "temporal.worker.Model$package$.serveStep",
       "position": {
-        "file": "model/temporal/worker/Worker.scala",
-        "line": 80
+        "file": "model/temporal/worker/Model.scala",
+        "line": 84
       }
     } ]
   } ],

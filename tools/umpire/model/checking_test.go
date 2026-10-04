@@ -403,11 +403,11 @@ func TestTheCloseResetDesignsAreToldApart(t *testing.T) {
 	corrected := built(t, lifted(t, "closereset"))["retainAndRoute"]
 	for key, want := range map[string]Result{
 		"closed-false-done-succeeded-inFlight-succeeded-none-none-complete-succeeded": {Outcome: "retained",
-			State: "closed-false-done-succeeded-none-pending-succeeded-none", Facts: []string{}},
+			State: "closed-false-done-succeeded-none-pending-succeeded-none", Facts: []string{}, Choice: "taken"},
 		"closed-false-done-succeeded-none-pending-succeeded-none-reset": {Outcome: "accepted",
 			State: "resetOpen-false-done-succeeded-none-none-successor-succeeded", Facts: []string{}},
 		"resetOpen-false-done-failed-inFlight-failed-none-none-complete-failed": {Outcome: "accepted",
-			State: "resetOpen-false-done-failed-none-none-successor-failed", Facts: []string{}},
+			State: "resetOpen-false-done-failed-none-none-successor-failed", Facts: []string{}, Choice: "taken"},
 	} {
 		require.Equal(t, want, row(t, corrected, key).Results[0], key)
 	}

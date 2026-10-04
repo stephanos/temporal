@@ -4,7 +4,7 @@
     "name": "fixture.realizations.DoorFact",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 509
+      "line": 505
     },
     "enum": {
       "cases": [ {
@@ -15,7 +15,7 @@
     "name": "fixture.realizations.DoorOutcome",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 506
+      "line": 502
     },
     "enum": {
       "cases": [ {
@@ -26,7 +26,7 @@
     "name": "fixture.realizations.DoorState",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 503
+      "line": 499
     },
     "enum": {
       "cases": [ {
@@ -39,7 +39,7 @@
     "name": "fixture.realizations.ErrandAnswer",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 657
+      "line": 652
     },
     "enum": {
       "cases": [ {
@@ -54,7 +54,7 @@
     "name": "fixture.realizations.ErrandFact",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 664
+      "line": 659
     },
     "enum": {
       "cases": [ {
@@ -69,7 +69,7 @@
     "name": "fixture.realizations.ErrandOutcome",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 660
+      "line": 655
     },
     "enum": {
       "cases": [ {
@@ -80,7 +80,7 @@
     "name": "fixture.realizations.ErrandState",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 653
+      "line": 648
     },
     "enum": {
       "cases": [ {
@@ -180,7 +180,7 @@
     "name": "fixture.specimens.admission.Finality",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 200
+      "line": 207
     },
     "enum": {
       "cases": [ {
@@ -747,7 +747,7 @@
     "name": "door.evidence",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 533
+      "line": 529
     },
     "params": [ {
       "name": "f",
@@ -758,14 +758,14 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 533
+        "line": 529
       },
       "call": {
         "function": "fixture.realizations.Realizations$package$.doorEvidence",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 533
+            "line": 529
           },
           "var": "f"
         } ]
@@ -775,7 +775,7 @@
     "name": "door.property.opensBecauseTheLatchGives",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 539
+      "line": 535
     },
     "params": [ {
       "name": "s",
@@ -786,27 +786,27 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 540
+        "line": 536
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 540
+            "line": 536
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 540
+                "line": 536
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 540
+                    "line": 536
                   },
                   "var": "s"
                 },
@@ -816,7 +816,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 540
+                "line": 536
               },
               "literal": {
                 "text": "the latch gives"
@@ -827,14 +827,14 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 540
+            "line": 536
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 540
+                "line": 536
               },
               "literal": {
                 "enum": {
@@ -846,13 +846,13 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 540
+                "line": 536
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 540
+                    "line": 536
                   },
                   "var": "s"
                 },
@@ -867,7 +867,7 @@
     "name": "errand.evidence",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 712
+      "line": 707
     },
     "params": [ {
       "name": "f",
@@ -878,14 +878,14 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 712
+        "line": 707
       },
       "call": {
         "function": "fixture.realizations.Realizations$package$.errandEvidence",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 712
+            "line": 707
           },
           "var": "f"
         } ]
@@ -895,7 +895,7 @@
     "name": "errand.property.closesOnCompletion",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 717
+      "line": 712
     },
     "params": [ {
       "name": "s",
@@ -906,27 +906,27 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 718
+        "line": 713
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 718
+            "line": 713
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 718
+                "line": 713
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 718
+                    "line": 713
                   },
                   "var": "s"
                 },
@@ -936,7 +936,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 718
+                "line": 713
               },
               "literal": {
                 "enum": {
@@ -950,14 +950,14 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 718
+            "line": 713
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 718
+                "line": 713
               },
               "literal": {
                 "enum": {
@@ -969,13 +969,13 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 718
+                "line": 713
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 718
+                    "line": 713
                   },
                   "var": "s"
                 },
@@ -990,7 +990,7 @@
     "name": "errand.property.withdrawsOnCancel",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 737
+      "line": 731
     },
     "params": [ {
       "name": "s",
@@ -1001,27 +1001,27 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 738
+        "line": 732
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 738
+            "line": 732
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 738
+                "line": 732
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 738
+                    "line": 732
                   },
                   "var": "s"
                 },
@@ -1031,7 +1031,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 738
+                "line": 732
               },
               "literal": {
                 "enum": {
@@ -1045,14 +1045,14 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 738
+            "line": 732
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 738
+                "line": 732
               },
               "literal": {
                 "enum": {
@@ -1064,13 +1064,13 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 738
+                "line": 732
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 738
+                    "line": 732
                   },
                   "var": "s"
                 },
@@ -1085,7 +1085,7 @@
     "name": "fixture.realizations.Realizations$package$.answerStep",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 692
+      "line": 687
     },
     "params": [ {
       "name": "s",
@@ -1101,27 +1101,27 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 693
+        "line": 688
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 693
+            "line": 688
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 693
+                "line": 688
               },
               "var": "s"
             },
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 693
+                "line": 688
               },
               "literal": {
                 "enum": {
@@ -1135,20 +1135,20 @@
         "then": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 693
+            "line": 688
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 695
+            "line": 690
           },
           "match": {
             "scrutinee": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 695
+                "line": 690
               },
               "var": "a"
             },
@@ -1164,20 +1164,20 @@
               "body": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 696
+                  "line": 691
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Realizations.scala",
-                      "line": 696
+                      "line": 691
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Realizations.scala",
-                          "line": 696
+                          "line": 691
                         },
                         "literal": {
                           "enum": {
@@ -1188,7 +1188,7 @@
                       }, {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Realizations.scala",
-                          "line": 696
+                          "line": 691
                         },
                         "literal": {
                           "enum": {
@@ -1199,13 +1199,13 @@
                       }, {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Realizations.scala",
-                          "line": 696
+                          "line": 691
                         },
                         "list": { }
                       }, {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Realizations.scala",
-                          "line": 696
+                          "line": 691
                         },
                         "literal": {
                           "text": ""
@@ -1227,20 +1227,20 @@
               "body": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 698
+                  "line": 693
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Realizations.scala",
-                      "line": 698
+                      "line": 693
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Realizations.scala",
-                          "line": 698
+                          "line": 693
                         },
                         "literal": {
                           "enum": {
@@ -1251,7 +1251,7 @@
                       }, {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Realizations.scala",
-                          "line": 698
+                          "line": 693
                         },
                         "literal": {
                           "enum": {
@@ -1262,13 +1262,13 @@
                       }, {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Realizations.scala",
-                          "line": 698
+                          "line": 693
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/lifter/testdata/lifts/Realizations.scala",
-                              "line": 698
+                              "line": 693
                             },
                             "literal": {
                               "enum": {
@@ -1281,7 +1281,7 @@
                       }, {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Realizations.scala",
-                          "line": 698
+                          "line": 693
                         },
                         "literal": {
                           "text": ""
@@ -1303,20 +1303,20 @@
               "body": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 700
+                  "line": 695
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Realizations.scala",
-                      "line": 700
+                      "line": 695
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Realizations.scala",
-                          "line": 700
+                          "line": 695
                         },
                         "literal": {
                           "enum": {
@@ -1327,7 +1327,7 @@
                       }, {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Realizations.scala",
-                          "line": 700
+                          "line": 695
                         },
                         "literal": {
                           "enum": {
@@ -1338,13 +1338,13 @@
                       }, {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Realizations.scala",
-                          "line": 700
+                          "line": 695
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/lifter/testdata/lifts/Realizations.scala",
-                              "line": 700
+                              "line": 695
                             },
                             "literal": {
                               "enum": {
@@ -1357,7 +1357,7 @@
                       }, {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Realizations.scala",
-                          "line": 700
+                          "line": 695
                         },
                         "literal": {
                           "text": ""
@@ -1376,7 +1376,7 @@
     "name": "fixture.realizations.Realizations$package$.deliverStep",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 683
+      "line": 678
     },
     "params": [ {
       "name": "s",
@@ -1387,13 +1387,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 683
+        "line": 678
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 683
+            "line": 678
           },
           "var": "s"
         },
@@ -1420,20 +1420,20 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 685
+              "line": 680
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 685
+                  "line": 680
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Realizations.scala",
-                      "line": 685
+                      "line": 680
                     },
                     "literal": {
                       "enum": {
@@ -1444,7 +1444,7 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Realizations.scala",
-                      "line": 685
+                      "line": 680
                     },
                     "literal": {
                       "enum": {
@@ -1455,13 +1455,13 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Realizations.scala",
-                      "line": 685
+                      "line": 680
                     },
                     "list": { }
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Realizations.scala",
-                      "line": 685
+                      "line": 680
                     },
                     "literal": {
                       "text": ""
@@ -1478,7 +1478,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 686
+              "line": 681
             },
             "list": { }
           }
@@ -1489,7 +1489,7 @@
     "name": "fixture.realizations.Realizations$package$.doorEvidence",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 525
+      "line": 521
     },
     "params": [ {
       "name": "f",
@@ -1500,13 +1500,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 525
+        "line": 521
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 525
+            "line": 521
           },
           "var": "f"
         },
@@ -1522,7 +1522,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 526
+              "line": 522
             },
             "literal": {
               "text": "doorOpened"
@@ -1535,7 +1535,7 @@
     "name": "fixture.realizations.Realizations$package$.errandEvidence",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 702
+      "line": 697
     },
     "params": [ {
       "name": "f",
@@ -1546,13 +1546,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 702
+        "line": 697
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 702
+            "line": 697
           },
           "var": "f"
         },
@@ -1568,7 +1568,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 703
+              "line": 698
             },
             "literal": {
               "text": "errandListed"
@@ -1586,7 +1586,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 704
+              "line": 699
             },
             "literal": {
               "text": "errandClosed"
@@ -1604,7 +1604,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 705
+              "line": 700
             },
             "literal": {
               "text": "errandWithdrawn"
@@ -1617,7 +1617,7 @@
     "name": "fixture.realizations.Realizations$package$.pushStep",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 520
+      "line": 516
     },
     "params": [ {
       "name": "s",
@@ -1628,13 +1628,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 520
+        "line": 516
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 520
+            "line": 516
           },
           "var": "s"
         },
@@ -1650,20 +1650,20 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 522
+              "line": 518
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 522
+                  "line": 518
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Realizations.scala",
-                      "line": 522
+                      "line": 518
                     },
                     "literal": {
                       "enum": {
@@ -1674,7 +1674,7 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Realizations.scala",
-                      "line": 522
+                      "line": 518
                     },
                     "literal": {
                       "enum": {
@@ -1685,13 +1685,13 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Realizations.scala",
-                      "line": 522
+                      "line": 518
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Realizations.scala",
-                          "line": 522
+                          "line": 518
                         },
                         "literal": {
                           "enum": {
@@ -1704,7 +1704,7 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Realizations.scala",
-                      "line": 522
+                      "line": 518
                     },
                     "literal": {
                       "text": "the latch gives"
@@ -1726,7 +1726,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 523
+              "line": 519
             },
             "list": { }
           }
@@ -1737,7 +1737,7 @@
     "name": "fixture.realizations.Realizations$package$.requestStep",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 677
+      "line": 672
     },
     "params": [ {
       "name": "s",
@@ -1748,13 +1748,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 677
+        "line": 672
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 677
+            "line": 672
           },
           "var": "s"
         },
@@ -1770,20 +1770,20 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 679
+              "line": 674
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 679
+                  "line": 674
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Realizations.scala",
-                      "line": 679
+                      "line": 674
                     },
                     "literal": {
                       "enum": {
@@ -1794,7 +1794,7 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Realizations.scala",
-                      "line": 679
+                      "line": 674
                     },
                     "literal": {
                       "enum": {
@@ -1805,13 +1805,13 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Realizations.scala",
-                      "line": 679
+                      "line": 674
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Realizations.scala",
-                          "line": 679
+                          "line": 674
                         },
                         "literal": {
                           "enum": {
@@ -1824,7 +1824,7 @@
                   }, {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Realizations.scala",
-                      "line": 679
+                      "line": 674
                     },
                     "literal": {
                       "text": ""
@@ -1841,7 +1841,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 680
+              "line": 675
             },
             "list": { }
           }
@@ -1852,7 +1852,7 @@
     "name": "fixture.specimens.admission.Admission$package$.admissionEnds",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 183
+      "line": 190
     },
     "params": [ {
       "name": "s",
@@ -1863,27 +1863,27 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 184
+        "line": 191
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 184
+            "line": 191
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 184
+                "line": 191
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 184
+                    "line": 191
                   },
                   "var": "s"
                 },
@@ -1893,7 +1893,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 184
+                "line": 191
               },
               "literal": {
                 "enum": {
@@ -1907,20 +1907,20 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 184
+            "line": 191
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 184
+                "line": 191
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 184
+                    "line": 191
                   },
                   "var": "s"
                 },
@@ -1930,7 +1930,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 184
+                "line": 191
               },
               "literal": {
                 "enum": {
@@ -1947,7 +1947,7 @@
     "name": "fixture.specimens.admission.Admission$package$.admissionEvidence",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 174
+      "line": 181
     },
     "params": [ {
       "name": "f",
@@ -1958,13 +1958,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 174
+        "line": 181
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 174
+            "line": 181
           },
           "var": "f"
         },
@@ -1980,7 +1980,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 175
+              "line": 182
             },
             "literal": {
               "text": "statusStarted"
@@ -1998,7 +1998,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 176
+              "line": 183
             },
             "literal": {
               "text": "statusPaused"
@@ -2016,7 +2016,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 177
+              "line": 184
             },
             "literal": {
               "text": "statusCompleted"
@@ -2034,7 +2034,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 178
+              "line": 185
             },
             "literal": {
               "text": "dispatchEnqueued"
@@ -2052,7 +2052,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 179
+              "line": 186
             },
             "literal": {
               "text": "attemptAdmitted"
@@ -2070,7 +2070,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 180
+              "line": 187
             },
             "literal": {
               "text": "admissionRejected"
@@ -2083,7 +2083,7 @@
     "name": "fixture.specimens.admission.Admission$package$.admitStale",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 151
+      "line": 158
     },
     "params": [ {
       "name": "s",
@@ -2094,19 +2094,19 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 151
+        "line": 158
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 151
+            "line": 158
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 151
+                "line": 158
               },
               "var": "s"
             },
@@ -2125,7 +2125,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 152
+              "line": 159
             },
             "list": { }
           }
@@ -2152,14 +2152,14 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 153
+              "line": 160
             },
             "call": {
               "function": "fixture.specimens.admission.Admission$package$.admitted",
               "args": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                  "line": 153
+                  "line": 160
                 },
                 "var": "s"
               } ]
@@ -2172,7 +2172,7 @@
     "name": "fixture.specimens.admission.Admission$package$.admitted",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 111
+      "line": 114
     },
     "params": [ {
       "name": "s",
@@ -2183,20 +2183,20 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 112
+        "line": 115
       },
       "let": {
         "name": "next",
         "value": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 112
+            "line": 115
           },
           "copy": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 112
+                "line": 115
               },
               "var": "s"
             },
@@ -2205,7 +2205,7 @@
               "value": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                  "line": 112
+                  "line": 115
                 },
                 "literal": {
                   "enum": {
@@ -2219,20 +2219,20 @@
               "value": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                  "line": 112
+                  "line": 115
                 },
                 "call": {
                   "function": "fixture.specimens.admission.Admission$package$.oneMore",
                   "args": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Admission.scala",
-                      "line": 112
+                      "line": 115
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Admission.scala",
-                          "line": 112
+                          "line": 115
                         },
                         "var": "s"
                       },
@@ -2247,26 +2247,26 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 113
+            "line": 116
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 113
+                "line": 116
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 113
+                    "line": 116
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 113
+                        "line": 116
                       },
                       "var": "s"
                     },
@@ -2276,7 +2276,7 @@
                 "right": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 113
+                    "line": 116
                   },
                   "literal": {
                     "enum": {
@@ -2290,20 +2290,20 @@
             "then": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 114
+                "line": 117
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 115
+                    "line": 118
                   },
                   "construct": {
                     "type": "umpire.Step",
                     "args": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 116
+                        "line": 119
                       },
                       "literal": {
                         "enum": {
@@ -2314,13 +2314,13 @@
                     }, {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 117
+                        "line": 120
                       },
                       "copy": {
                         "base": {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 117
+                            "line": 120
                           },
                           "var": "next"
                         },
@@ -2329,7 +2329,7 @@
                           "value": {
                             "position": {
                               "file": "model/lifter/testdata/lifts/Admission.scala",
-                              "line": 117
+                              "line": 120
                             },
                             "literal": {
                               "enum": {
@@ -2343,13 +2343,13 @@
                     }, {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 118
+                        "line": 121
                       },
                       "list": {
                         "items": [ {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 118
+                            "line": 121
                           },
                           "literal": {
                             "enum": {
@@ -2360,7 +2360,7 @@
                         }, {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 118
+                            "line": 121
                           },
                           "literal": {
                             "enum": {
@@ -2373,7 +2373,7 @@
                     }, {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 115
+                        "line": 118
                       },
                       "literal": {
                         "text": ""
@@ -2386,20 +2386,20 @@
             "else": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 122
+                "line": 125
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 123
+                    "line": 127
                   },
                   "construct": {
                     "type": "umpire.Step",
                     "args": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 124
+                        "line": 128
                       },
                       "literal": {
                         "enum": {
@@ -2410,13 +2410,13 @@
                     }, {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 125
+                        "line": 129
                       },
                       "copy": {
                         "base": {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 125
+                            "line": 129
                           },
                           "var": "next"
                         },
@@ -2425,7 +2425,7 @@
                           "value": {
                             "position": {
                               "file": "model/lifter/testdata/lifts/Admission.scala",
-                              "line": 125
+                              "line": 129
                             },
                             "literal": {
                               "enum": {
@@ -2439,13 +2439,13 @@
                     }, {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 126
+                        "line": 130
                       },
                       "list": {
                         "items": [ {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 126
+                            "line": 130
                           },
                           "literal": {
                             "enum": {
@@ -2456,7 +2456,7 @@
                         }, {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 126
+                            "line": 130
                           },
                           "literal": {
                             "enum": {
@@ -2469,24 +2469,25 @@
                     }, {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 123
+                        "line": 127
                       },
                       "literal": {
                         "text": ""
                       }
-                    } ]
+                    } ],
+                    "choice": "committed"
                   }
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 128
+                    "line": 134
                   },
                   "construct": {
                     "type": "umpire.Step",
                     "args": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 129
+                        "line": 135
                       },
                       "literal": {
                         "enum": {
@@ -2497,13 +2498,13 @@
                     }, {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 130
+                        "line": 136
                       },
                       "copy": {
                         "base": {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 130
+                            "line": 136
                           },
                           "var": "next"
                         },
@@ -2512,7 +2513,7 @@
                           "value": {
                             "position": {
                               "file": "model/lifter/testdata/lifts/Admission.scala",
-                              "line": 130
+                              "line": 136
                             },
                             "literal": {
                               "enum": {
@@ -2526,13 +2527,13 @@
                     }, {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 131
+                        "line": 137
                       },
                       "list": {
                         "items": [ {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 131
+                            "line": 137
                           },
                           "literal": {
                             "enum": {
@@ -2543,7 +2544,7 @@
                         }, {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 131
+                            "line": 137
                           },
                           "literal": {
                             "enum": {
@@ -2556,12 +2557,13 @@
                     }, {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 132
+                        "line": 138
                       },
                       "literal": {
                         "text": "the channel may deliver the message again"
                       }
-                    } ]
+                    } ],
+                    "choice": "redelivered"
                   }
                 } ]
               }
@@ -2574,7 +2576,7 @@
     "name": "fixture.specimens.admission.Admission$package$.atMostOneActiveAttempt.after",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 197
+      "line": 204
     },
     "params": [ {
       "name": "after",
@@ -2585,14 +2587,14 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 197
+        "line": 204
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 197
+            "line": 204
           },
           "literal": {
             "enum": {
@@ -2604,13 +2606,13 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 197
+            "line": 204
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 197
+                "line": 204
               },
               "var": "after"
             },
@@ -2623,7 +2625,7 @@
     "name": "fixture.specimens.admission.Admission$package$.atMostOneActiveAttempt.violated",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 197
+      "line": 204
     },
     "params": [ {
       "name": "active",
@@ -2634,21 +2636,21 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 197
+        "line": 204
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 197
+            "line": 204
           },
           "var": "active"
         },
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 197
+            "line": 204
           },
           "literal": {
             "enum": {
@@ -2663,7 +2665,7 @@
     "name": "fixture.specimens.admission.Admission$package$.countActive",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 189
+      "line": 196
     },
     "params": [ {
       "name": "active",
@@ -2684,20 +2686,20 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 190
+        "line": 197
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 190
+            "line": 197
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 190
+                "line": 197
               },
               "literal": {
                 "enum": {
@@ -2709,13 +2711,13 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 190
+                "line": 197
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 190
+                    "line": 197
                   },
                   "var": "after"
                 },
@@ -2727,14 +2729,14 @@
         "then": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 190
+            "line": 197
           },
           "call": {
             "function": "fixture.specimens.admission.Admission$package$.oneMore",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 190
+                "line": 197
               },
               "var": "active"
             } ]
@@ -2743,20 +2745,20 @@
         "else": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 191
+            "line": 198
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 191
+                "line": 198
               },
               "binary": {
                 "op": "OP_CONTAINS",
                 "left": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 191
+                    "line": 198
                   },
                   "literal": {
                     "enum": {
@@ -2768,13 +2770,13 @@
                 "right": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 191
+                    "line": 198
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 191
+                        "line": 198
                       },
                       "var": "after"
                     },
@@ -2786,14 +2788,14 @@
             "then": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 191
+                "line": 198
               },
               "call": {
                 "function": "fixture.specimens.admission.Admission$package$.oneLess",
                 "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 191
+                    "line": 198
                   },
                   "var": "active"
                 } ]
@@ -2802,7 +2804,7 @@
             "else": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 192
+                "line": 199
               },
               "var": "active"
             }
@@ -2814,7 +2816,7 @@
     "name": "fixture.specimens.admission.Admission$package$.dispatchStep",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 69
+      "line": 72
     },
     "params": [ {
       "name": "s",
@@ -2825,33 +2827,33 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 70
+        "line": 73
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 70
+            "line": 73
           },
           "binary": {
             "op": "OP_OR",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 70
+                "line": 73
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 70
+                    "line": 73
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 70
+                        "line": 73
                       },
                       "var": "s"
                     },
@@ -2861,7 +2863,7 @@
                 "right": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 70
+                    "line": 73
                   },
                   "literal": {
                     "enum": {
@@ -2875,20 +2877,20 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 70
+                "line": 73
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 70
+                    "line": 73
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 70
+                        "line": 73
                       },
                       "var": "s"
                     },
@@ -2898,7 +2900,7 @@
                 "right": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 70
+                    "line": 73
                   },
                   "literal": {
                     "enum": {
@@ -2914,27 +2916,27 @@
         "then": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 70
+            "line": 73
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 72
+            "line": 75
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 73
+                "line": 76
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 73
+                    "line": 76
                   },
                   "literal": {
                     "enum": {
@@ -2945,13 +2947,13 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 73
+                    "line": 76
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 73
+                        "line": 76
                       },
                       "var": "s"
                     },
@@ -2960,7 +2962,7 @@
                       "value": {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Admission.scala",
-                          "line": 73
+                          "line": 76
                         },
                         "literal": {
                           "enum": {
@@ -2974,13 +2976,13 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 73
+                    "line": 76
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 73
+                        "line": 76
                       },
                       "literal": {
                         "enum": {
@@ -2993,7 +2995,7 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 73
+                    "line": 76
                   },
                   "literal": {
                     "text": ""
@@ -3009,7 +3011,7 @@
     "name": "fixture.specimens.admission.Admission$package$.finality",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 203
+      "line": 210
     },
     "params": [ {
       "name": "f",
@@ -3030,13 +3032,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 203
+        "line": 210
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 203
+            "line": 210
           },
           "var": "f"
         },
@@ -3052,7 +3054,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 204
+              "line": 211
             },
             "literal": {
               "enum": {
@@ -3068,32 +3070,32 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 206
+              "line": 213
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                  "line": 206
+                  "line": 213
                 },
                 "binary": {
                   "op": "OP_EQ",
                   "left": {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Admission.scala",
-                      "line": 206
+                      "line": 213
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Admission.scala",
-                          "line": 206
+                          "line": 213
                         },
                         "field": {
                           "base": {
                             "position": {
                               "file": "model/lifter/testdata/lifts/Admission.scala",
-                              "line": 206
+                              "line": 213
                             },
                             "var": "after"
                           },
@@ -3106,7 +3108,7 @@
                   "right": {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Admission.scala",
-                      "line": 206
+                      "line": 213
                     },
                     "literal": {
                       "enum": {
@@ -3120,7 +3122,7 @@
               "then": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                  "line": 206
+                  "line": 213
                 },
                 "literal": {
                   "enum": {
@@ -3132,27 +3134,27 @@
               "else": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                  "line": 207
+                  "line": 214
                 },
                 "if": {
                   "condition": {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Admission.scala",
-                      "line": 207
+                      "line": 214
                     },
                     "binary": {
                       "op": "OP_EQ",
                       "left": {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Admission.scala",
-                          "line": 207
+                          "line": 214
                         },
                         "var": "f"
                       },
                       "right": {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Admission.scala",
-                          "line": 207
+                          "line": 214
                         },
                         "literal": {
                           "enum": {
@@ -3166,7 +3168,7 @@
                   "then": {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Admission.scala",
-                      "line": 207
+                      "line": 214
                     },
                     "literal": {
                       "enum": {
@@ -3178,7 +3180,7 @@
                   "else": {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Admission.scala",
-                      "line": 208
+                      "line": 215
                     },
                     "literal": {
                       "enum": {
@@ -3198,7 +3200,7 @@
     "name": "fixture.specimens.admission.Admission$package$.oneLess",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 103
+      "line": 106
     },
     "params": [ {
       "name": "a",
@@ -3209,13 +3211,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 103
+        "line": 106
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 103
+            "line": 106
           },
           "var": "a"
         },
@@ -3231,7 +3233,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 104
+              "line": 107
             },
             "literal": {
               "enum": {
@@ -3247,7 +3249,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 105
+              "line": 108
             },
             "literal": {
               "enum": {
@@ -3263,7 +3265,7 @@
     "name": "fixture.specimens.admission.Admission$package$.oneMore",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 99
+      "line": 102
     },
     "params": [ {
       "name": "a",
@@ -3274,13 +3276,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 99
+        "line": 102
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 99
+            "line": 102
           },
           "var": "a"
         },
@@ -3296,7 +3298,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 100
+              "line": 103
             },
             "literal": {
               "enum": {
@@ -3312,7 +3314,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 101
+              "line": 104
             },
             "literal": {
               "enum": {
@@ -3328,7 +3330,7 @@
     "name": "fixture.specimens.admission.Admission$package$.pauseStep",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 77
+      "line": 80
     },
     "params": [ {
       "name": "s",
@@ -3344,13 +3346,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 77
+        "line": 80
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 77
+            "line": 80
           },
           "var": "c"
         },
@@ -3366,19 +3368,19 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 79
+              "line": 82
             },
             "match": {
               "scrutinee": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                  "line": 79
+                  "line": 82
                 },
                 "field": {
                   "base": {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Admission.scala",
-                      "line": 79
+                      "line": 82
                     },
                     "var": "s"
                   },
@@ -3397,20 +3399,20 @@
                 "body": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 81
+                    "line": 84
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 82
+                        "line": 85
                       },
                       "construct": {
                         "type": "umpire.Step",
                         "args": [ {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 83
+                            "line": 86
                           },
                           "literal": {
                             "enum": {
@@ -3421,13 +3423,13 @@
                         }, {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 84
+                            "line": 87
                           },
                           "copy": {
                             "base": {
                               "position": {
                                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                                "line": 84
+                                "line": 87
                               },
                               "var": "s"
                             },
@@ -3436,7 +3438,7 @@
                               "value": {
                                 "position": {
                                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                                  "line": 84
+                                  "line": 87
                                 },
                                 "literal": {
                                   "enum": {
@@ -3450,13 +3452,13 @@
                         }, {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 85
+                            "line": 88
                           },
                           "list": {
                             "items": [ {
                               "position": {
                                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                                "line": 85
+                                "line": 88
                               },
                               "literal": {
                                 "enum": {
@@ -3469,7 +3471,7 @@
                         }, {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 82
+                            "line": 85
                           },
                           "literal": {
                             "text": ""
@@ -3491,20 +3493,20 @@
                 "body": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 89
+                    "line": 92
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                        "line": 90
+                        "line": 93
                       },
                       "construct": {
                         "type": "umpire.Step",
                         "args": [ {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 91
+                            "line": 94
                           },
                           "literal": {
                             "enum": {
@@ -3515,13 +3517,13 @@
                         }, {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 92
+                            "line": 95
                           },
                           "copy": {
                             "base": {
                               "position": {
                                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                                "line": 92
+                                "line": 95
                               },
                               "var": "s"
                             },
@@ -3530,7 +3532,7 @@
                               "value": {
                                 "position": {
                                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                                  "line": 92
+                                  "line": 95
                                 },
                                 "literal": {
                                   "enum": {
@@ -3544,13 +3546,13 @@
                         }, {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 93
+                            "line": 96
                           },
                           "list": {
                             "items": [ {
                               "position": {
                                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                                "line": 93
+                                "line": 96
                               },
                               "literal": {
                                 "enum": {
@@ -3563,7 +3565,7 @@
                         }, {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Admission.scala",
-                            "line": 90
+                            "line": 93
                           },
                           "literal": {
                             "text": ""
@@ -3580,7 +3582,7 @@
                 "body": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                    "line": 96
+                    "line": 99
                   },
                   "list": { }
                 }
@@ -3617,7 +3619,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 97
+              "line": 100
             },
             "list": { }
           }
@@ -3628,7 +3630,7 @@
     "name": "fixture.specimens.admission.Admission$package$.productOfAdmission",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 168
+      "line": 175
     },
     "params": [ {
       "name": "s",
@@ -3639,19 +3641,19 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 168
+        "line": 175
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 168
+            "line": 175
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 168
+                "line": 175
               },
               "var": "s"
             },
@@ -3670,14 +3672,14 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 169
+              "line": 176
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
               "args": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                  "line": 169
+                  "line": 176
                 },
                 "literal": {
                   "enum": {
@@ -3711,14 +3713,14 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 170
+              "line": 177
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
               "args": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                  "line": 170
+                  "line": 177
                 },
                 "literal": {
                   "enum": {
@@ -3741,14 +3743,14 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 171
+              "line": 178
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
               "args": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                  "line": 171
+                  "line": 178
                 },
                 "literal": {
                   "enum": {
@@ -3771,14 +3773,14 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 172
+              "line": 179
             },
             "construct": {
               "type": "temporal.standaloneactivity.ProductState",
               "args": [ {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                  "line": 172
+                  "line": 179
                 },
                 "literal": {
                   "enum": {
@@ -3796,7 +3798,7 @@
     "name": "fixture.specimens.admission.Admission$package$.resultStep",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 155
+      "line": 162
     },
     "params": [ {
       "name": "s",
@@ -3812,13 +3814,13 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 155
+        "line": 162
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 155
+            "line": 162
           },
           "var": "r"
         },
@@ -3834,26 +3836,26 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 157
+              "line": 164
             },
             "if": {
               "condition": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                  "line": 157
+                  "line": 164
                 },
                 "binary": {
                   "op": "OP_NE",
                   "left": {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Admission.scala",
-                      "line": 157
+                      "line": 164
                     },
                     "field": {
                       "base": {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Admission.scala",
-                          "line": 157
+                          "line": 164
                         },
                         "var": "s"
                       },
@@ -3863,7 +3865,7 @@
                   "right": {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Admission.scala",
-                      "line": 157
+                      "line": 164
                     },
                     "literal": {
                       "enum": {
@@ -3877,27 +3879,27 @@
               "then": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                  "line": 157
+                  "line": 164
                 },
                 "list": { }
               },
               "else": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Admission.scala",
-                  "line": 159
+                  "line": 166
                 },
                 "list": {
                   "items": [ {
                     "position": {
                       "file": "model/lifter/testdata/lifts/Admission.scala",
-                      "line": 160
+                      "line": 167
                     },
                     "construct": {
                       "type": "umpire.Step",
                       "args": [ {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Admission.scala",
-                          "line": 161
+                          "line": 168
                         },
                         "literal": {
                           "enum": {
@@ -3908,13 +3910,13 @@
                       }, {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Admission.scala",
-                          "line": 162
+                          "line": 169
                         },
                         "copy": {
                           "base": {
                             "position": {
                               "file": "model/lifter/testdata/lifts/Admission.scala",
-                              "line": 162
+                              "line": 169
                             },
                             "var": "s"
                           },
@@ -3923,7 +3925,7 @@
                             "value": {
                               "position": {
                                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                                "line": 162
+                                "line": 169
                               },
                               "literal": {
                                 "enum": {
@@ -3937,20 +3939,20 @@
                             "value": {
                               "position": {
                                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                                "line": 162
+                                "line": 169
                               },
                               "call": {
                                 "function": "fixture.specimens.admission.Admission$package$.oneLess",
                                 "args": [ {
                                   "position": {
                                     "file": "model/lifter/testdata/lifts/Admission.scala",
-                                    "line": 162
+                                    "line": 169
                                   },
                                   "field": {
                                     "base": {
                                       "position": {
                                         "file": "model/lifter/testdata/lifts/Admission.scala",
-                                        "line": 162
+                                        "line": 169
                                       },
                                       "var": "s"
                                     },
@@ -3964,13 +3966,13 @@
                       }, {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Admission.scala",
-                          "line": 163
+                          "line": 170
                         },
                         "list": {
                           "items": [ {
                             "position": {
                               "file": "model/lifter/testdata/lifts/Admission.scala",
-                              "line": 163
+                              "line": 170
                             },
                             "literal": {
                               "enum": {
@@ -3983,7 +3985,7 @@
                       }, {
                         "position": {
                           "file": "model/lifter/testdata/lifts/Admission.scala",
-                          "line": 160
+                          "line": 167
                         },
                         "literal": {
                           "text": ""
@@ -4019,7 +4021,7 @@
           "body": {
             "position": {
               "file": "model/lifter/testdata/lifts/Admission.scala",
-              "line": 166
+              "line": 173
             },
             "list": { }
           }
@@ -4030,7 +4032,7 @@
     "name": "fixture.specimens.admission.Admission$package$.terminalFinality.violated",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 213
+      "line": 220
     },
     "params": [ {
       "name": "finality",
@@ -4041,21 +4043,21 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 213
+        "line": 220
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 213
+            "line": 220
           },
           "var": "finality"
         },
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 213
+            "line": 220
           },
           "literal": {
             "enum": {
@@ -4465,7 +4467,7 @@
     "name": "staleAdmission.evidence",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 240
+      "line": 247
     },
     "params": [ {
       "name": "f",
@@ -4476,14 +4478,14 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 240
+        "line": 247
       },
       "call": {
         "function": "fixture.specimens.admission.Admission$package$.admissionEvidence",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 240
+            "line": 247
           },
           "var": "f"
         } ]
@@ -4493,7 +4495,7 @@
     "name": "staleAdmission.property.pausedWhileQueued",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 347
+      "line": 345
     },
     "params": [ {
       "name": "step",
@@ -4504,14 +4506,14 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 347
+        "line": 345
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 347
+            "line": 345
           },
           "literal": {
             "enum": {
@@ -4523,13 +4525,13 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 347
+            "line": 345
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 347
+                "line": 345
               },
               "var": "step"
             },
@@ -4542,7 +4544,7 @@
     "name": "tally.evidence",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 967
+      "line": 959
     },
     "params": [ {
       "name": "f",
@@ -4553,14 +4555,14 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 967
+        "line": 959
       },
       "call": {
         "function": "fixture.realizations.Realizations$package$.doorEvidence",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 967
+            "line": 959
           },
           "var": "f"
         } ]
@@ -4570,7 +4572,7 @@
     "name": "tally.property.tallyOpened",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 972
+      "line": 964
     },
     "params": [ {
       "name": "step",
@@ -4581,14 +4583,14 @@
     "body": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 972
+        "line": 964
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 972
+            "line": 964
           },
           "literal": {
             "enum": {
@@ -4600,13 +4602,13 @@
         "right": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 972
+            "line": 964
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 972
+                "line": 964
               },
               "var": "step"
             },
@@ -10537,7 +10539,7 @@
     "name": "answer",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 675
+      "line": 670
     },
     "party": "runner",
     "inputs": [ {
@@ -10552,7 +10554,7 @@
     "name": "deliver",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 674
+      "line": 669
     },
     "party": "runner",
     "on": "errand"
@@ -10561,7 +10563,7 @@
     "name": "push",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 517
+      "line": 513
     },
     "party": "doorkeeper",
     "on": "door"
@@ -10570,7 +10572,7 @@
     "name": "request",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 673
+      "line": 668
     },
     "party": "requester",
     "creates": "errand"
@@ -10579,7 +10581,7 @@
     "name": "dispatch",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 62
+      "line": 65
     },
     "party": "system",
     "timer": true
@@ -10797,8 +10799,8 @@
     "id": "temporal.worker.Worker$package$.workerStop",
     "name": "workerStop",
     "position": {
-      "file": "model/temporal/worker/Worker.scala",
-      "line": 57
+      "file": "model/temporal/worker/Model.scala",
+      "line": 61
     },
     "party": "worker"
   } ],
@@ -10906,7 +10908,7 @@
     "name": "door",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 529
+      "line": 525
     },
     "entity": "door",
     "stateType": "fixture.realizations.DoorState",
@@ -10915,7 +10917,7 @@
     "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 531
+        "line": 527
       },
       "literal": {
         "enum": {
@@ -10927,7 +10929,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 532
+        "line": 528
       },
       "lambda": {
         "params": [ {
@@ -10939,21 +10941,21 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 532
+            "line": 528
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 532
+                "line": 528
               },
               "var": "doorState"
             },
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 532
+                "line": 528
               },
               "literal": {
                 "enum": {
@@ -10971,7 +10973,7 @@
       "function": "fixture.realizations.Realizations$package$.pushStep",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 534
+        "line": 530
       }
     } ],
     "evidence": "door.evidence"
@@ -10980,7 +10982,7 @@
     "name": "errand",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 708
+      "line": 703
     },
     "entity": "errand",
     "stateType": "fixture.realizations.ErrandState",
@@ -10989,7 +10991,7 @@
     "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 710
+        "line": 705
       },
       "literal": {
         "enum": {
@@ -11001,7 +11003,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 711
+        "line": 706
       },
       "lambda": {
         "params": [ {
@@ -11013,28 +11015,28 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 711
+            "line": 706
           },
           "binary": {
             "op": "OP_OR",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 711
+                "line": 706
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 711
+                    "line": 706
                   },
                   "var": "s"
                 },
                 "right": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 711
+                    "line": 706
                   },
                   "literal": {
                     "enum": {
@@ -11048,21 +11050,21 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 711
+                "line": 706
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 711
+                    "line": 706
                   },
                   "var": "s"
                 },
                 "right": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 711
+                    "line": 706
                   },
                   "literal": {
                     "enum": {
@@ -11082,21 +11084,21 @@
       "function": "fixture.realizations.Realizations$package$.requestStep",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 713
+        "line": 708
       }
     }, {
       "action": "fixture.realizations.Realizations$package$.deliver",
       "function": "fixture.realizations.Realizations$package$.deliverStep",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 713
+        "line": 708
       }
     }, {
       "action": "fixture.realizations.Realizations$package$.answer",
       "function": "fixture.realizations.Realizations$package$.answerStep",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 713
+        "line": 708
       }
     } ],
     "evidence": "errand.evidence"
@@ -11386,7 +11388,7 @@
     "name": "staleAdmission",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 234
+      "line": 241
     },
     "entity": "activity",
     "stateType": "fixture.specimens.admission.AdmissionState",
@@ -11395,14 +11397,14 @@
     "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 65
+        "line": 68
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 65
+            "line": 68
           },
           "literal": {
             "enum": {
@@ -11413,7 +11415,7 @@
         }, {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 65
+            "line": 68
           },
           "literal": {
             "enum": {
@@ -11424,7 +11426,7 @@
         }, {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 65
+            "line": 68
           },
           "literal": {
             "enum": {
@@ -11438,7 +11440,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 239
+        "line": 246
       },
       "lambda": {
         "params": [ {
@@ -11450,14 +11452,14 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 239
+            "line": 246
           },
           "call": {
             "function": "fixture.specimens.admission.Admission$package$.admissionEnds",
             "args": [ {
               "position": {
                 "file": "model/lifter/testdata/lifts/Admission.scala",
-                "line": 239
+                "line": 246
               },
               "var": "s"
             } ]
@@ -11470,28 +11472,28 @@
       "function": "fixture.specimens.admission.Admission$package$.dispatchStep",
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 242
+        "line": 249
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.control",
       "function": "fixture.specimens.admission.Admission$package$.pauseStep",
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 243
+        "line": 250
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptStart",
       "function": "fixture.specimens.admission.Admission$package$.admitStale",
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 244
+        "line": 251
       }
     }, {
       "action": "temporal.standaloneactivity.Model$package$.attemptResult",
       "function": "fixture.specimens.admission.Admission$package$.resultStep",
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 245
+        "line": 252
       }
     } ],
     "evidence": "staleAdmission.evidence",
@@ -11505,7 +11507,7 @@
     "name": "tally",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 963
+      "line": 955
     },
     "entity": "door",
     "stateType": "fixture.realizations.DoorState",
@@ -11514,7 +11516,7 @@
     "starts": [ {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 965
+        "line": 957
       },
       "literal": {
         "enum": {
@@ -11526,7 +11528,7 @@
     "ends": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 966
+        "line": 958
       },
       "lambda": {
         "params": [ {
@@ -11538,21 +11540,21 @@
         "body": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 966
+            "line": 958
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 966
+                "line": 958
               },
               "var": "doorState"
             },
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 966
+                "line": 958
               },
               "literal": {
                 "enum": {
@@ -11570,7 +11572,7 @@
       "function": "fixture.realizations.Realizations$package$.pushStep",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 968
+        "line": 960
       }
     } ],
     "evidence": "tally.evidence"
@@ -11580,7 +11582,7 @@
     "name": "dispatchChannel",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 331
+      "line": 330
     },
     "message": {
       "named": "fixture.specimens.admission.Message"
@@ -11593,7 +11595,7 @@
     "name": "atMostOneActiveAttempt",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 194
+      "line": 201
     },
     "state": {
       "named": "fixture.specimens.admission.Active"
@@ -11601,7 +11603,7 @@
     "initial": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 195
+        "line": 202
       },
       "literal": {
         "enum": {
@@ -11618,7 +11620,7 @@
     "name": "terminalFinality",
     "position": {
       "file": "model/lifter/testdata/lifts/Admission.scala",
-      "line": 210
+      "line": 217
     },
     "state": {
       "named": "fixture.specimens.admission.Finality"
@@ -11626,7 +11628,7 @@
     "initial": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 211
+        "line": 218
       },
       "literal": {
         "enum": {
@@ -11644,7 +11646,7 @@
     "name": "opensBecauseTheLatchGives",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 539
+      "line": 535
     },
     "whenClass": {
       "action": "fixture.realizations.Realizations$package$.push"
@@ -11655,7 +11657,7 @@
     "name": "closesOnCompletion",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 717
+      "line": 712
     },
     "whenClass": {
       "action": "fixture.realizations.Realizations$package$.answer",
@@ -11672,7 +11674,7 @@
     "name": "withdrawsOnCancel",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 737
+      "line": 731
     },
     "whenClass": {
       "action": "fixture.realizations.Realizations$package$.answer",
@@ -11706,7 +11708,7 @@
     "name": "pausedWhileQueued",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 346
+      "line": 344
     },
     "whenClass": {
       "action": "temporal.standaloneactivity.Model$package$.control",
@@ -11723,7 +11725,7 @@
     "name": "tallyOpened",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 972
+      "line": 964
     },
     "whenClass": {
       "action": "fixture.realizations.Realizations$package$.push"
@@ -11735,12 +11737,12 @@
     "name": "pushed",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 543
+      "line": 539
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 543
+        "line": 539
       },
       "literal": {
         "enum": {
@@ -11757,12 +11759,12 @@
     "name": "canceledOnce",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 741
+      "line": 735
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 743
+        "line": 736
       },
       "literal": {
         "enum": {
@@ -11789,12 +11791,12 @@
     "name": "retriedOnce",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 721
+      "line": 716
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 723
+        "line": 717
       },
       "literal": {
         "enum": {
@@ -11927,19 +11929,19 @@
     "name": "heldRace",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 349
+      "line": 347
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/Admission.scala",
-        "line": 65
+        "line": 68
       },
       "construct": {
         "type": "fixture.specimens.admission.AdmissionState",
         "args": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 65
+            "line": 68
           },
           "literal": {
             "enum": {
@@ -11950,7 +11952,7 @@
         }, {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 65
+            "line": 68
           },
           "literal": {
             "enum": {
@@ -11961,7 +11963,7 @@
         }, {
           "position": {
             "file": "model/lifter/testdata/lifts/Admission.scala",
-            "line": 65
+            "line": 68
           },
           "literal": {
             "enum": {
@@ -11988,12 +11990,12 @@
     "name": "tallied",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 974
+      "line": 966
     },
     "start": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 974
+        "line": 966
       },
       "literal": {
         "enum": {
@@ -12010,7 +12012,7 @@
     "name": "door.opens",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 546
+      "line": 542
     },
     "form": "FORM_FIND",
     "property": {
@@ -12032,7 +12034,7 @@
     "name": "errand.retry",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 727
+      "line": 721
     },
     "form": "FORM_FIND",
     "property": {
@@ -12054,7 +12056,7 @@
     "name": "errand.withdrawn",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 747
+      "line": 740
     },
     "form": "FORM_FIND",
     "property": {
@@ -12076,7 +12078,7 @@
     "name": "staleAdmission.pauseRace",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 355
+      "line": 352
     },
     "form": "FORM_FIND",
     "property": {
@@ -12219,7 +12221,7 @@
     "name": "tally.opens",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 977
+      "line": 969
     },
     "form": "FORM_FIND",
     "property": {
@@ -12243,7 +12245,7 @@
     "name": "doorRealization",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 553
+      "line": 549
     },
     "machine": "door",
     "producer": "fixture.realizations",
@@ -12277,7 +12279,7 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 634
+        "line": 629
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
@@ -12285,7 +12287,7 @@
       "id": "fixture.realizations.door.evidence.opened",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 636
+        "line": 631
       },
       "records": "doorOpened",
       "source": "fixture.realizations.door.source.history",
@@ -12296,7 +12298,7 @@
     "correlation": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 559
+        "line": 554
       },
       "projection": "fixture.realizations.door.projection",
       "run": "fixture.realizations.door.scope.run",
@@ -12313,18 +12315,18 @@
       "id": "controller",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 572
+        "line": 567
       },
       "controller": { },
       "items": [ {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 576
+          "line": 571
         },
         "performs": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 578
+            "line": 573
           },
           "step": {
             "action": "fixture.realizations.Realizations$package$.push"
@@ -12333,7 +12335,7 @@
             "id": "push-door",
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 580
+              "line": 575
             },
             "rpc": {
               "role": "temporal.workflow-service",
@@ -12343,7 +12345,7 @@
                 "value": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 589
+                    "line": 584
                   },
                   "environment": "temporal.worker.namespace"
                 }
@@ -12352,7 +12354,7 @@
                 "value": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 593
+                    "line": 588
                   },
                   "run": { }
                 }
@@ -12363,13 +12365,13 @@
       }, {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 602
+          "line": 597
         },
         "command": {
           "id": "history",
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 604
+            "line": 599
           },
           "rpc": {
             "role": "temporal.workflow-service",
@@ -12379,7 +12381,7 @@
               "value": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 611
+                  "line": 606
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -12388,7 +12390,7 @@
               "value": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 615
+                  "line": 610
                 },
                 "run": { }
               }
@@ -12409,7 +12411,7 @@
     "name": "errandRealization",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 797
+      "line": 790
     },
     "machine": "errand",
     "producer": "fixture.realizations",
@@ -12443,7 +12445,7 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 954
+        "line": 946
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
@@ -12451,7 +12453,7 @@
       "id": "fixture.realizations.errand.evidence.errandListed",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 762
+        "line": 755
       },
       "records": "errandListed",
       "source": "fixture.realizations.errand.source.errandListed",
@@ -12465,7 +12467,7 @@
       "id": "fixture.realizations.errand.evidence.errandClosed",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 762
+        "line": 755
       },
       "records": "errandClosed",
       "source": "fixture.realizations.errand.source.errandClosed",
@@ -12479,7 +12481,7 @@
       "id": "fixture.realizations.errand.evidence.errandWithdrawn",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 762
+        "line": 755
       },
       "records": "errandWithdrawn",
       "source": "fixture.realizations.errand.source.errandWithdrawn",
@@ -12493,7 +12495,7 @@
     "correlation": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 803
+        "line": 795
       },
       "projection": "fixture.realizations.errand.projection",
       "run": "fixture.realizations.errand.scope.run",
@@ -12510,18 +12512,18 @@
       "id": "controller",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 816
+        "line": 808
       },
       "controller": { },
       "items": [ {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 820
+          "line": 812
         },
         "performs": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 822
+            "line": 814
           },
           "step": {
             "action": "fixture.realizations.Realizations$package$.request"
@@ -12530,7 +12532,7 @@
             "id": "start-activity",
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 824
+              "line": 816
             },
             "rpc": {
               "role": "temporal.workflow-service",
@@ -12540,7 +12542,7 @@
                 "value": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 833
+                    "line": 825
                   },
                   "environment": "temporal.worker.namespace"
                 }
@@ -12549,7 +12551,7 @@
                 "value": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 837
+                    "line": 829
                   },
                   "run": { }
                 }
@@ -12558,7 +12560,7 @@
                 "value": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 841
+                    "line": 833
                   },
                   "literal": {
                     "named": {
@@ -12573,7 +12575,7 @@
                 "value": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 845
+                    "line": 837
                   },
                   "environment": "temporal.task-queue.resource"
                 }
@@ -12582,7 +12584,7 @@
                 "value": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 849
+                    "line": 841
                   },
                   "run": { }
                 }
@@ -12591,7 +12593,7 @@
                 "value": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 853
+                    "line": 845
                   },
                   "literal": {
                     "number": "300"
@@ -12604,13 +12606,13 @@
       }, {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 863
+          "line": 855
         },
         "command": {
           "id": "await-listed",
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 783
+            "line": 776
           },
           "poll": {
             "evidence": "fixture.realizations.errand.evidence.errandListed",
@@ -12620,7 +12622,7 @@
               "value": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 789
+                  "line": 782
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -12628,25 +12630,25 @@
             "until": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 868
+                "line": 860
               },
               "all": {
                 "operands": [ {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 869
+                    "line": 861
                   },
                   "present": {
                     "of": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Realizations.scala",
-                        "line": 869
+                        "line": 861
                       },
                       "path": {
                         "of": {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Realizations.scala",
-                            "line": 869
+                            "line": 861
                           },
                           "projected": { }
                         },
@@ -12657,19 +12659,19 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 874
+                    "line": 866
                   },
                   "greater": {
                     "left": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Realizations.scala",
-                        "line": 874
+                        "line": 866
                       },
                       "path": {
                         "of": {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Realizations.scala",
-                            "line": 874
+                            "line": 866
                           },
                           "projected": { }
                         },
@@ -12679,7 +12681,7 @@
                     "right": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Realizations.scala",
-                        "line": 876
+                        "line": 868
                       },
                       "literal": {
                         "number": "0"
@@ -12689,25 +12691,25 @@
                 }, {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 878
+                    "line": 870
                   },
                   "not": {
                     "of": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Realizations.scala",
-                        "line": 879
+                        "line": 871
                       },
                       "equal": {
                         "left": {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Realizations.scala",
-                            "line": 879
+                            "line": 871
                           },
                           "path": {
                             "of": {
                               "position": {
                                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                                "line": 879
+                                "line": 871
                               },
                               "projected": { }
                             },
@@ -12717,7 +12719,7 @@
                         "right": {
                           "position": {
                             "file": "model/lifter/testdata/lifts/Realizations.scala",
-                            "line": 881
+                            "line": 873
                           },
                           "literal": {
                             "text": ""
@@ -12735,13 +12737,13 @@
       }, {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 888
+          "line": 880
         },
         "command": {
           "id": "await-closed",
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 783
+            "line": 776
           },
           "poll": {
             "evidence": "fixture.realizations.errand.evidence.errandClosed",
@@ -12751,7 +12753,7 @@
               "value": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 789
+                  "line": 782
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -12759,19 +12761,19 @@
             "until": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 893
+                "line": 885
               },
               "equal": {
                 "left": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 893
+                    "line": 885
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Realizations.scala",
-                        "line": 893
+                        "line": 885
                       },
                       "projected": { }
                     },
@@ -12781,7 +12783,7 @@
                 "right": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 895
+                    "line": 887
                   },
                   "literal": {
                     "enumName": "ACTIVITY_EXECUTION_STATUS_COMPLETED"
@@ -12795,13 +12797,13 @@
       }, {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 900
+          "line": 892
         },
         "command": {
           "id": "await-withdrawn",
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 783
+            "line": 776
           },
           "poll": {
             "evidence": "fixture.realizations.errand.evidence.errandWithdrawn",
@@ -12811,7 +12813,7 @@
               "value": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 789
+                  "line": 782
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -12819,19 +12821,19 @@
             "until": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 905
+                "line": 897
               },
               "equal": {
                 "left": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 905
+                    "line": 897
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Realizations.scala",
-                        "line": 905
+                        "line": 897
                       },
                       "projected": { }
                     },
@@ -12841,7 +12843,7 @@
                 "right": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 907
+                    "line": 899
                   },
                   "literal": {
                     "enumName": "ACTIVITY_EXECUTION_STATUS_CANCELED"
@@ -12866,7 +12868,7 @@
       "id": "errand",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 915
+        "line": 907
       },
       "activity": {
         "activityType": {
@@ -12883,12 +12885,12 @@
       "items": [ {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 919
+          "line": 911
         },
         "performs": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 921
+            "line": 913
           },
           "step": {
             "action": "fixture.realizations.Realizations$package$.answer",
@@ -12903,13 +12905,13 @@
             "id": "fail-attempt",
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 923
+              "line": 915
             },
             "attemptFailure": {
               "failure": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 926
+                  "line": 918
                 },
                 "message": "temporal.api.failure.v1.Failure",
                 "fields": [ {
@@ -12923,7 +12925,7 @@
                     "message": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Realizations.scala",
-                        "line": 932
+                        "line": 924
                       },
                       "message": "temporal.api.failure.v1.ApplicationFailureInfo",
                       "fields": [ {
@@ -12941,7 +12943,7 @@
         }, {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 944
+            "line": 936
           },
           "step": {
             "action": "fixture.realizations.Realizations$package$.answer",
@@ -12956,13 +12958,13 @@
             "id": "complete-attempt",
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 946
+              "line": 938
             },
             "finish": {
               "result": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 946
+                  "line": 938
                 },
                 "literal": {
                   "text": "done"
@@ -12973,7 +12975,7 @@
         }, {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 948
+            "line": 940
           },
           "step": {
             "action": "fixture.realizations.Realizations$package$.answer",
@@ -12988,7 +12990,7 @@
             "id": "cancel-attempt",
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 948
+              "line": 940
             },
             "attemptCanceled": { }
           }
@@ -13034,7 +13036,7 @@
       "id": "temporal.nexus-endpoint",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 206
+        "line": 205
       },
       "kind": "KIND_ENDPOINT",
       "resource": "temporal.nexus-endpoint.resource"
@@ -13043,7 +13045,7 @@
       "id": "workflow-run",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 319
+        "line": 318
       },
       "kind": "KIND_TEXT"
     } ],
@@ -13051,14 +13053,14 @@
       "id": "history-event",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 321
+        "line": 320
       },
       "message": "temporal.api.history.v1.HistoryEvent"
     }, {
       "id": "correlated-evidence",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 322
+        "line": 321
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
@@ -13091,7 +13093,7 @@
     "correlation": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 207
+        "line": 206
       },
       "projection": "fixture.realizations.projection",
       "run": "fixture.realizations.scope.run",
@@ -13108,13 +13110,13 @@
       "id": "controller",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 220
+        "line": 219
       },
       "controller": { },
       "items": [ {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 224
+          "line": 223
         },
         "command": {
           "id": "start-workflow",
@@ -13189,7 +13191,7 @@
       }, {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 225
+          "line": 224
         },
         "command": {
           "id": "await-scheduled",
@@ -13261,7 +13263,7 @@
       }, {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 226
+          "line": 225
         },
         "command": {
           "id": "await-close",
@@ -13330,7 +13332,7 @@
       }, {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 227
+          "line": 226
         },
         "command": {
           "id": "history",
@@ -13388,7 +13390,7 @@
       "id": "workflow",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 230
+        "line": 229
       },
       "workflow": {
         "workflowType": {
@@ -13402,12 +13404,12 @@
       "items": [ {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 234
+          "line": 233
         },
         "performs": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 236
+            "line": 235
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.schedule",
@@ -13432,13 +13434,13 @@
             "id": "start-nexus-operation",
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 238
+              "line": 237
             },
             "workflowCommand": {
               "command": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 241
+                  "line": 240
                 },
                 "message": "temporal.api.command.v1.Command",
                 "fields": [ {
@@ -13452,7 +13454,7 @@
                     "message": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Realizations.scala",
-                        "line": 251
+                        "line": 250
                       },
                       "message": "temporal.api.command.v1.ScheduleNexusOperationCommandAttributes",
                       "fields": [ {
@@ -13481,13 +13483,13 @@
       }, {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 273
+          "line": 272
         },
         "command": {
           "id": "await-nexus-operation",
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 275
+            "line": 274
           },
           "regardless": true,
           "awaitCommand": "start-nexus-operation"
@@ -13495,20 +13497,20 @@
       }, {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 282
+          "line": 281
         },
         "command": {
           "id": "finish-workflow",
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 283
+            "line": 282
           },
           "regardless": true,
           "finish": {
             "result": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 283
+                "line": 282
               },
               "literal": {
                 "text": "done"
@@ -13521,7 +13523,7 @@
       "id": "handler",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 287
+        "line": 286
       },
       "nexusHandler": {
         "service": "fixture.service",
@@ -13532,12 +13534,12 @@
       "items": [ {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 291
+          "line": 290
         },
         "performs": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 293
+            "line": 292
           },
           "step": {
             "action": "temporal.nexuscaller.Model$package$.handlerReply",
@@ -13552,13 +13554,13 @@
             "id": "respond-sync",
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 295
+              "line": 294
             },
             "nexusReply": {
               "reply": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 298
+                  "line": 297
                 },
                 "message": "temporal.api.nexus.v1.StartOperationResponse",
                 "fields": [ {
@@ -13567,7 +13569,7 @@
                     "message": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Realizations.scala",
-                        "line": 302
+                        "line": 301
                       },
                       "message": "temporal.api.nexus.v1.StartOperationResponse.Sync",
                       "fields": [ {
@@ -13615,7 +13617,7 @@
     "name": "pauseRace",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 395
+      "line": 392
     },
     "machine": "staleAdmission",
     "producer": "fixture.realizations",
@@ -13649,7 +13651,7 @@
       "id": "activity-run",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 487
+        "line": 483
       },
       "kind": "KIND_TEXT"
     } ],
@@ -13657,7 +13659,7 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 488
+        "line": 484
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
@@ -13665,7 +13667,7 @@
       "id": "fixture.realizations.race.evidence.statusPaused",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 383
+        "line": 380
       },
       "records": "statusPaused",
       "source": "fixture.realizations.race.source.statusPaused",
@@ -13679,7 +13681,7 @@
       "id": "fixture.realizations.race.evidence.statusStarted",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 383
+        "line": 380
       },
       "records": "statusStarted",
       "source": "fixture.realizations.race.source.statusStarted",
@@ -13693,7 +13695,7 @@
       "id": "fixture.realizations.race.evidence.dispatchEnqueued",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 383
+        "line": 380
       },
       "records": "dispatchEnqueued",
       "source": "fixture.realizations.race.source.dispatchEnqueued",
@@ -13707,7 +13709,7 @@
       "id": "fixture.realizations.race.evidence.attemptAdmitted",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 383
+        "line": 380
       },
       "records": "attemptAdmitted",
       "source": "fixture.realizations.race.source.attemptAdmitted",
@@ -13721,7 +13723,7 @@
     "correlation": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 401
+        "line": 397
       },
       "projection": "fixture.realizations.race.projection",
       "run": "fixture.realizations.race.scope.run",
@@ -13738,7 +13740,7 @@
       "id": "hold-dispatch",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 498
+        "line": 494
       },
       "holdDelivery": "fixture.realizations.Realizations$package$.dispatchChannel"
     } ],
@@ -13746,32 +13748,32 @@
       "id": "controller",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 414
+        "line": 410
       },
       "controller": { },
       "items": [ {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 418
+          "line": 414
         },
         "command": {
           "id": "hold-dispatch-before-start",
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 418
+            "line": 414
           },
           "hold": "hold-dispatch"
         }
       }, {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 419
+          "line": 415
         },
         "command": {
           "id": "start-activity",
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 421
+            "line": 417
           },
           "rpc": {
             "role": "temporal.workflow-service",
@@ -13781,7 +13783,7 @@
               "value": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 427
+                  "line": 423
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -13790,7 +13792,7 @@
               "value": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 431
+                  "line": 427
                 },
                 "run": { }
               }
@@ -13807,12 +13809,12 @@
       }, {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 445
+          "line": 441
         },
         "performs": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 447
+            "line": 443
           },
           "step": {
             "action": "temporal.standaloneactivity.Model$package$.control",
@@ -13827,7 +13829,7 @@
             "id": "pause-activity",
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 449
+              "line": 445
             },
             "rpc": {
               "role": "temporal.workflow-service",
@@ -13837,7 +13839,7 @@
                 "value": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 456
+                    "line": 452
                   },
                   "environment": "temporal.worker.namespace"
                 }
@@ -13846,7 +13848,7 @@
                 "value": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 460
+                    "line": 456
                   },
                   "run": { }
                 }
@@ -13855,7 +13857,7 @@
                 "value": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 464
+                    "line": 460
                   },
                   "learnedValue": "activity-run"
                 }
@@ -13866,13 +13868,13 @@
       }, {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 473
+          "line": 469
         },
         "command": {
           "id": "release-dispatch",
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 473
+            "line": 469
           },
           "release": "hold-dispatch"
         }
@@ -13881,7 +13883,7 @@
       "id": "activity",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 476
+        "line": 472
       },
       "activity": {
         "activityType": {
@@ -13895,12 +13897,12 @@
       "items": [ {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 481
+          "line": 477
         },
         "performs": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 482
+            "line": 478
           },
           "step": {
             "action": "temporal.standaloneactivity.Model$package$.attemptStart"
@@ -13909,13 +13911,13 @@
             "id": "run-attempt",
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 482
+              "line": 478
             },
             "finish": {
               "result": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 482
+                  "line": 478
                 },
                 "literal": {
                   "text": "done"
@@ -13931,7 +13933,7 @@
     "name": "tallyRealization",
     "position": {
       "file": "model/lifter/testdata/lifts/Realizations.scala",
-      "line": 1015
+      "line": 1007
     },
     "machine": "tally",
     "producer": "fixture.realizations",
@@ -13965,7 +13967,7 @@
       "id": "correlated-evidence",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 1089
+        "line": 1080
       },
       "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
     } ],
@@ -13973,7 +13975,7 @@
       "id": "fixture.realizations.tally.evidence.opened",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 985
+        "line": 977
       },
       "records": "doorOpened",
       "source": "fixture.realizations.tally.source.describe",
@@ -13987,7 +13989,7 @@
         "id": "run",
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 996
+          "line": 988
         },
         "path": "run_id",
         "role": "ROLE_OPERATION"
@@ -13995,7 +13997,7 @@
         "id": "attempt",
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 1001
+          "line": 993
         },
         "path": "attempt",
         "role": "ROLE_ATTEMPT"
@@ -14003,7 +14005,7 @@
         "id": "identity",
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 1006
+          "line": 998
         },
         "path": "last_worker_identity",
         "redacted": true
@@ -14013,7 +14015,7 @@
       "id": "fixture.realizations.tally.evidence.pushed",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 1094
+        "line": 1085
       },
       "records": "doorPushed",
       "source": "fixture.realizations.tally.source.pushed",
@@ -14024,26 +14026,26 @@
         "key": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 1102
+            "line": 1093
           },
           "run": { }
         },
         "guard": {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 1104
+            "line": 1095
           },
           "equal": {
             "left": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 1104
+                "line": 1095
               },
               "path": {
                 "of": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 1104
+                    "line": 1095
                   },
                   "projected": { }
                 },
@@ -14053,7 +14055,7 @@
             "right": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 1106
+                "line": 1097
               },
               "literal": {
                 "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
@@ -14067,7 +14069,7 @@
     "correlation": {
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 1021
+        "line": 1012
       },
       "projection": "fixture.realizations.tally.projection",
       "run": "fixture.realizations.tally.scope.run",
@@ -14084,18 +14086,18 @@
       "id": "controller",
       "position": {
         "file": "model/lifter/testdata/lifts/Realizations.scala",
-        "line": 1034
+        "line": 1025
       },
       "controller": { },
       "items": [ {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 1038
+          "line": 1029
         },
         "performs": [ {
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 1040
+            "line": 1031
           },
           "step": {
             "action": "fixture.realizations.Realizations$package$.push"
@@ -14104,7 +14106,7 @@
             "id": "push-door",
             "position": {
               "file": "model/lifter/testdata/lifts/Realizations.scala",
-              "line": 1042
+              "line": 1033
             },
             "rpc": {
               "role": "temporal.workflow-service",
@@ -14114,7 +14116,7 @@
                 "value": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 1051
+                    "line": 1042
                   },
                   "environment": "temporal.worker.namespace"
                 }
@@ -14123,7 +14125,7 @@
                 "value": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 1055
+                    "line": 1046
                   },
                   "run": { }
                 }
@@ -14134,13 +14136,13 @@
       }, {
         "position": {
           "file": "model/lifter/testdata/lifts/Realizations.scala",
-          "line": 1064
+          "line": 1055
         },
         "command": {
           "id": "await-opened",
           "position": {
             "file": "model/lifter/testdata/lifts/Realizations.scala",
-            "line": 1066
+            "line": 1057
           },
           "poll": {
             "evidence": "fixture.realizations.tally.evidence.opened",
@@ -14150,7 +14152,7 @@
               "value": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 1072
+                  "line": 1063
                 },
                 "environment": "temporal.worker.namespace"
               }
@@ -14159,7 +14161,7 @@
               "value": {
                 "position": {
                   "file": "model/lifter/testdata/lifts/Realizations.scala",
-                  "line": 1076
+                  "line": 1067
                 },
                 "run": { }
               }
@@ -14167,19 +14169,19 @@
             "until": {
               "position": {
                 "file": "model/lifter/testdata/lifts/Realizations.scala",
-                "line": 1079
+                "line": 1070
               },
               "equal": {
                 "left": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 1079
+                    "line": 1070
                   },
                   "path": {
                     "of": {
                       "position": {
                         "file": "model/lifter/testdata/lifts/Realizations.scala",
-                        "line": 1079
+                        "line": 1070
                       },
                       "projected": { }
                     },
@@ -14189,7 +14191,7 @@
                 "right": {
                   "position": {
                     "file": "model/lifter/testdata/lifts/Realizations.scala",
-                    "line": 1079
+                    "line": 1070
                   },
                   "literal": {
                     "number": "1"

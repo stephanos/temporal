@@ -318,6 +318,10 @@
     {
       "old": "temporal.nexuscaller.closepolicy.Claims$package$.retainedReachesOwnerBoundedRetry",
       "new": "temporal.nexuscaller.closepolicy.Properties$package$.retainedReachesOwnerBoundedRetry"
+    },
+    {
+      "old": "temporal.worker.Worker$package$.polling",
+      "new": "temporal.worker.Model$package$.polling"
     }
   ],
   "source_path_merges": [
@@ -364,6 +368,10 @@
     {
       "old": "model/temporal/nexuscaller/closepolicy/",
       "new": "model/temporal/nexuscaller/closepolicy"
+    },
+    {
+      "old": "model/temporal/worker/",
+      "new": "model/temporal/worker"
     }
   ],
   "source_label_substitutions": [
@@ -540,6 +548,18 @@
       {
         "old": "temporal.nexuscaller.closepolicy.Claims$package$.ownerKnowsOutcome",
         "new": "temporal.nexuscaller.closepolicy.Properties$package$.ownerKnowsOutcome"
+      },
+      {
+        "old": "temporal.worker.Worker$package$.resumeStep",
+        "new": "temporal.worker.Model$package$.resumeStep"
+      },
+      {
+        "old": "temporal.worker.Worker$package$.serveStep",
+        "new": "temporal.worker.Model$package$.serveStep"
+      },
+      {
+        "old": "temporal.worker.Worker$package$.stopStep",
+        "new": "temporal.worker.Model$package$.stopStep"
       }
     ],
     "inert_fields": [

@@ -1,8 +1,9 @@
 // The Nexus specimen's reviewed supported block (model/specimens/nexus.md), lifted as written,
 // with its outcome-retention and acknowledgment promises also stated as passive monitors, as its
 // proposed E1 block does, in the framework's `monitor` declaration. Only the package, this header,
-// the Monitors section and each design's `monitors` line differ from the reviewed text. The lifter's
-// tests lift the three designs' Queries and compare the IR with expected/closereset.json.
+// the Monitors section, each design's `monitors` line, the names taken from vals and the named
+// choices differ from the reviewed text. The lifter's tests lift the three designs' Queries and
+// compare the IR with expected/closereset.json.
 package fixture.specimens.closereset
 
 import temporal.nexuscaller.{caller, complete, handler, operation, workflow, Resolution}
@@ -70,10 +71,10 @@ enum Policy derives Finite:
   /** Corrected: retain at the operation and route to the current owner. */
   case retainAndRoute
 
-val callerClose = action("callerClose", caller) on workflow
-val reset = action("reset", caller) on workflow
-val requestCancel = action("requestCancel", caller) on operation
-val handlerFinish = action("handlerFinish", handler).on(operation).input[Resolution]("result")
+val callerClose = action(caller) on workflow
+val reset = action(caller) on workflow
+val requestCancel = action(caller) on operation
+val handlerFinish = action(handler).on(operation).input[Resolution]("result")
 
 val opened: CloseResetState = CloseResetState(
   Caller.open,
@@ -85,6 +86,12 @@ val opened: CloseResetState = CloseResetState(
 )
 
 // ### Step functions
+
+// The ways a delivery can go.
+val taken = choice
+val rejectedForNow = choice
+val ackLost = choice
+val refused = choice
 
 def closeStep(s: CloseResetState): List[CloseResetStep] =
   if s.caller != Caller.open then Nil
@@ -105,16 +112,20 @@ def finishStep(s: CloseResetState, r: Resolution): List[CloseResetStep] =
  * The owner commits the outcome. Transient rejection keeps the report in flight; a lost
  * acknowledgment commits and keeps it in flight too, so the report arrives again.
  */
-def committed(s: CloseResetState, k: Knowledge): List[CloseResetStep] = List(
-  Step(Answer.accepted, s.copy(known = k, channel = Completion.none)),
-  Step(Answer.rejectedTransient, s),
-  Step(Answer.accepted, s.copy(known = k), Nil, "the acknowledgment is lost")
+def committed(s: CloseResetState, k: Knowledge): List[CloseResetStep] = choose(
+  taken -> List(Step(Answer.accepted, s.copy(known = k, channel = Completion.none))),
+  rejectedForNow -> List(Step(Answer.rejectedTransient, s)),
+  ackLost -> List(Step(Answer.accepted, s.copy(known = k), Nil, "the acknowledgment is lost"))
 )
 
-def keptAtOperation(s: CloseResetState, r: Resolution): List[CloseResetStep] = List(
-  Step(Answer.retained, s.copy(retained = Retained.pending(r), channel = Completion.none)),
-  Step(Answer.rejectedTransient, s),
-  Step(Answer.retained, s.copy(retained = Retained.pending(r)), Nil, "the acknowledgment is lost")
+def keptAtOperation(s: CloseResetState, r: Resolution): List[CloseResetStep] = choose(
+  taken -> List(
+    Step(Answer.retained, s.copy(retained = Retained.pending(r), channel = Completion.none))
+  ),
+  rejectedForNow -> List(Step(Answer.rejectedTransient, s)),
+  ackLost -> List(
+    Step(Answer.retained, s.copy(retained = Retained.pending(r)), Nil, "the acknowledgment is lost")
+  )
 )
 
 def deliverStep(p: Policy, s: CloseResetState, r: Resolution): List[CloseResetStep] =
@@ -124,9 +135,9 @@ def deliverStep(p: Policy, s: CloseResetState, r: Resolution): List[CloseResetSt
       case Caller.open   => committed(s, Knowledge.original(r))
       case Caller.closed =>
         if p == Policy.rejectAfterClose then
-          List(
-            Step(Answer.rejectedPermanent, s.copy(channel = Completion.none)),
-            Step(Answer.rejectedTransient, s)
+          choose(
+            refused -> List(Step(Answer.rejectedPermanent, s.copy(channel = Completion.none))),
+            rejectedForNow -> List(Step(Answer.rejectedTransient, s))
           )
         else keptAtOperation(s, r)
       case Caller.resetOpen =>
@@ -177,7 +188,7 @@ def settled(s: CloseResetState): Boolean = s.handler match
 
 /** Whether a step lost a decided outcome: no owner knows it, and nothing retains or carries it. */
 val retainedOutcome: Monitor[CloseResetState, Answer, Nothing, Boolean] =
-  monitor[CloseResetState, Answer, Nothing, Boolean]("retainedOutcome", false)((lost, _, after) =>
+  monitor[CloseResetState, Answer, Nothing, Boolean](false)((lost, _, after) =>
     lost || !outcomePreserved(after)
   )(lost => lost)
 
@@ -186,8 +197,8 @@ val retainedOutcome: Monitor[CloseResetState, Answer, Nothing, Boolean] =
  * the operation retained it.
  */
 val ownerAcknowledgment: Monitor[CloseResetState, Answer, Nothing, Boolean] =
-  monitor[CloseResetState, Answer, Nothing, Boolean]("ownerAcknowledgment", false)(
-    (broken, before, after) => broken || !ackOnlyWhenKept(before, after)
+  monitor[CloseResetState, Answer, Nothing, Boolean](false)((broken, before, after) =>
+    broken || !ackOnlyWhenKept(before, after)
   )(broken => broken)
 
 // ### The three designs differ only in the policy their delivery step passes
@@ -262,14 +273,13 @@ def ackOnlyWhenKept(before: CloseResetState, after: CloseResetStep): Boolean = b
     ownerKnows(after.state, r) || after.state.retained == Retained.pending(r)
   case Completion.none => true
 
-val four: Limits = Limits("four", steps = 4, actions = 4, search = 1 << 20)
-val six: Limits = Limits("six", steps = 6, actions = 6, search = 1 << 22)
+val four: Limits = Limits(steps = 4, actions = 4, search = 1 << 20)
+val six: Limits = Limits(steps = 6, actions = 6, search = 1 << 22)
 
 def closeResetQueries(m: Machine[CloseResetState, Answer, Nothing]): Vector[Query] =
   val preserved = m.property("outcomePreserved") holds outcomePreserved
   val acked = m.property("ackOnlyWhenKept") holdsAcross ackOnlyWhenKept
-  val closedThenFinished = m
-    .scenario("closedThenFinished")
+  val closedThenFinished = m.scenario
     .starts(opened)
     .actions(
       callerClose,
@@ -277,12 +287,10 @@ def closeResetQueries(m: Machine[CloseResetState, Answer, Nothing]): Vector[Quer
       complete(Resolution.succeeded),
       reset
     )
-  val resetThenDelivered = m
-    .scenario("resetThenDelivered")
+  val resetThenDelivered = m.scenario
     .starts(opened)
     .actions(handlerFinish(Resolution.failed), reset, complete(Resolution.failed))
-  val canceledAcrossReset = m
-    .scenario("canceledAcrossReset")
+  val canceledAcrossReset = m.scenario
     .starts(opened)
     .actions(
       requestCancel,
@@ -290,11 +298,10 @@ def closeResetQueries(m: Machine[CloseResetState, Answer, Nothing]): Vector[Quer
       reset,
       complete(Resolution.canceled)
     )
-  val ackedThenReset = m
-    .scenario("ackedThenReset")
+  val ackedThenReset = m.scenario
     .starts(opened)
     .actions(handlerFinish(Resolution.succeeded), complete(Resolution.succeeded), reset)
-  val any = m.scenario("any").starts(opened).free
+  val any = m.scenario.starts(opened).free
   Vector(
     query(
       s"${m.name}.closedThenFinished"

@@ -66,7 +66,7 @@ val startToCloseExpires = nexusProtocol.scenario
 /**
  * A retryable reply backs the operation off; the handler's worker then stops, so the retried
  * attempt is never answered and the schedule-to-start deadline fires. The start is stated: a
- * default would take the worker's from Worker.scala.
+ * default would take the worker's from worker/Model.scala.
  */
 val repliedThenStopped = nexusCaller.scenario
   .starts(NexusCallerState(unscheduled, pollingWorker))

@@ -18,8 +18,8 @@ import temporal.server.api.testpilot.v1.DeliveryAdmissionDecision
 import umpire.*
 import umpire.realize.*
 
-val one = action("one", Party("caller")).schema[StartActivityExecutionRequest]
-val two = action("two", Party("caller"))
+val one = action(Party("caller")).schema[StartActivityExecutionRequest]
+val two = action(Party("caller"))
   .schema[StartActivityExecutionResponse]
   .schema[StartActivityExecutionRequest]
 

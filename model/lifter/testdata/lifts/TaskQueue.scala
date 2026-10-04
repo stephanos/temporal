@@ -56,9 +56,9 @@ final case class OverQueue(job: Job, queue: QueueView)
 
 val jobOverQueue: Composition[OverQueue] =
   compose[OverQueue](_.job -> job, _.queue -> dispatchQueue)
-    .sync("send", _.job -> send, _.queue -> enqueue)
-    .sync("start", _.job -> start, _.queue -> deliver)
-    .sync("settle", _.job -> settle, _.queue -> acknowledge)
+    .sync(_.job -> send, _.queue -> enqueue)
+    .sync(_.job -> start, _.queue -> deliver)
+    .sync(_.job -> settle, _.queue -> acknowledge)
     .ends(s => s.job.phase == JobPhase.settled)
 
 val queueSettles =
@@ -72,8 +72,7 @@ val queueSettledLeavesNothing = jobOverQueue
     after.state.job.phase == JobPhase.settled && after.state.queue.outstanding != Outstanding.empty
   )
 
-val duplicateDelivery = jobOverQueue
-  .scenario("duplicateDelivery")
+val duplicateDelivery = jobOverQueue.scenario
   .actions(
     jobOverQueue.synced(_.job -> send),
     jobOverQueue.synced(_.job -> start),
@@ -89,9 +88,9 @@ final case class OverMatching(job: Job, queue: QueueDetail)
 
 val jobOverMatching: Composition[OverMatching] =
   compose[OverMatching](_.job -> job, _.queue -> matchingQueue)
-    .sync("send", _.job -> send, _.queue -> enqueue)
-    .sync("start", _.job -> start, _.queue -> deliver)
-    .sync("settle", _.job -> settle, _.queue -> acknowledge)
+    .sync(_.job -> send, _.queue -> enqueue)
+    .sync(_.job -> start, _.queue -> deliver)
+    .sync(_.job -> settle, _.queue -> acknowledge)
     .replaces(_.queue, dispatchQueue)
     .ends(s => s.job.phase == JobPhase.settled)
 
@@ -100,16 +99,14 @@ val jobOverForgetful: Composition[OverMatching] =
   jobOverMatching.withMember(_.queue -> forgetfulQueue)
 
 def overMatchingQueries(c: Composition[OverMatching]): Vector[Query] =
-  val settles = c.property("settles").whenAction(c.synced(_.job -> settle)) holds
+  val settles = c.property.whenAction(c.synced(_.job -> settle)) holds
     (_.state.job.phase == JobPhase.settled)
-  val settledLeavesNothing = c
-    .property("settledLeavesNothing")
+  val settledLeavesNothing = c.property
     .never(after =>
       after.state.job.phase == JobPhase.settled && after.state.queue.custody != Custody.nowhere
     )
   // History still holds its dispatch task after the crash, so it invokes AddActivityTask again.
-  val crashAfterInvocation = c
-    .scenario("crashAfterInvocation")
+  val crashAfterInvocation = c.scenario
     .actions(
       c.synced(_.job -> send),
       c.own(_.queue, addActivityTask),
@@ -119,7 +116,7 @@ def overMatchingQueries(c: Composition[OverMatching]): Vector[Query] =
       c.synced(_.job -> start),
       c.synced(_.job -> settle)
     )
-  val any = c.scenario("any").free
+  val any = c.scenario.free
   Vector(
     query(s"${c.name}.crashAfterInvocation") find settles in
       crashAfterInvocation limits seven total 840,
@@ -130,8 +127,7 @@ def overMatchingQueries(c: Composition[OverMatching]): Vector[Query] =
 val queueQueries: Vector[Query] = Vector(
   query("jobOverQueue.duplicateDelivery") find queueSettles in
     duplicateDelivery limits seven total 64,
-  query("jobOverQueue.any.settledLeavesNothing") verify queueSettledLeavesNothing in
-    queueAny limits seven total 336
+  query verify queueSettledLeavesNothing in queueAny limits seven total 336
 )
 
 val matchingQueries: Vector[Query] = overMatchingQueries(jobOverMatching)

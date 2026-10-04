@@ -76,7 +76,7 @@ object Paths:
   /**
    * The first attempt fails retryably and backs off, then the worker stops, so the retry is never
    * dispatched; the attempt start makes the verification exercise the claim. The start is stated: a
-   * default would take the worker's from Worker.scala, and fn-115's golden compares position files.
+   * default would take the worker's from worker/Model.scala; fn-115's golden compares positions.
    */
   val stoppedBeforeRetry = standaloneActivity.scenario
     .starts(StandaloneActivityState(unstarted, WorkerState(WorkerPhase.polling)))
