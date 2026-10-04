@@ -253,6 +253,8 @@ class Fixtures extends munit.FunSuite:
     "unboundAction",
     "lambdaField",
     "declaredTwice",
+    "againFirst",
+    "againSecond",
     "notBrought",
     "noReason",
     "otherSignature",

@@ -173,7 +173,14 @@ private[lift] trait Capabilities:
         twice(1).at,
         s"$machine declares $kind twice: a machine declares each capability once, with one binding"
       )
-    for d <- declared do checked(machine, d, env)
+    for d <- declared do
+      for other <- capabilityKinds.get(machine -> d.kind) if other != where(d.at) do
+        fail(
+          d.at,
+          s"$machine declares ${d.kind} here and at $other: a machine declares each capability " +
+            "once, with one binding"
+        )
+      checked(machine, d, env)
 
     val held = declared.map(_.kind).toSet
     val brought = catalog.filter((by, _) => by.subsetOf(held))
@@ -234,6 +241,7 @@ private[lift] trait Capabilities:
         overridden.get(law.name),
         env
       )
+    for d <- declared do capabilityKinds(machine -> d.kind) = where(d.at)
     Decl.Capable(machine)
 
   /** The waivers chained onto a declaration, in the order written, and the declaration under them. */

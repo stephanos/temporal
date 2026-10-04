@@ -2,7 +2,8 @@ package model
 
 // The claims capability declarations generate, lifted from
 // model/lifter/testdata/lifts/Capabilities.scala: each law the catalog brings a job, a pair of
-// jobs and a legacy job, named `<machine>.<law>`, with the total the lifter computed for its Query.
+// jobs, a legacy job and a job under the fixture's own catalog, named `<machine>.<law>`, with the
+// total the lifter computed for its Query.
 
 import (
 	"testing"
@@ -32,7 +33,7 @@ func TestCapabilitiesGeneratedClaims(t *testing.T) {
 		"query job job.terminateSettles":                      Found,
 		"query job job.cancelIsRequested":                     Found,
 		"query legacyJob legacyJob.closedIsRejectedUniformly": Verified,
-		"query legacyJob legacyJob.statusStaysClosed":         Verified,
+		"query keptJob keptJob.statusStaysClosed":             Verified,
 		"query pair pair.pausedIsNotDispatched":               Verified,
 	}, kinds(c.report))
 }

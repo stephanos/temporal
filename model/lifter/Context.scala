@@ -148,6 +148,8 @@ final private[lift] class Context(val index: Index):
     generatedName = None
     name
 
+  // Where each machine declared each of its capabilities, by kind: a machine declares each once.
+  val capabilityKinds = mutable.Map.empty[(String, String), String]
   // What each capability declaration expanded into, for the law sidecar beside the IR file.
   val lawClaims = mutable.ArrayBuffer.empty[LawClaim]
   val lawWaivers = mutable.ArrayBuffer.empty[LawWaiver]

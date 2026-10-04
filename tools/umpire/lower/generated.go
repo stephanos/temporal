@@ -47,7 +47,7 @@ func GenerateCases(irDirectory string) (map[string][]byte, error) {
 
 // generateCases is GenerateCases with the Producer of each loaded IR file made by produce.
 func generateCases(irDirectory string, produce func(path string, m *umpirespb.Model) (*Producer, error)) (map[string][]byte, error) {
-	paths, err := filepath.Glob(filepath.Join(irDirectory, "*.json"))
+	paths, err := umpiremodel.IRPaths(irDirectory)
 	if err != nil {
 		return nil, err
 	}

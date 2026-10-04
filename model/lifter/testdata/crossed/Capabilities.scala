@@ -3,7 +3,7 @@
 package fixture.crossed
 
 import umpire.*
-import umpire.laws.{Catalog, terminalStatesAreFinal}
+import umpire.laws.{terminalStatesAreFinal, Catalog}
 
 given Catalog = Catalog(Vector())
 

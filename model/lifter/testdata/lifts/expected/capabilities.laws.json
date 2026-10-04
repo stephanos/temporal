@@ -51,6 +51,16 @@
     },
     "position": "model/lifter/testdata/lifts/Capabilities.scala:110"
   }, {
+    "machine": "keptJob",
+    "name": "keptJob.statusStaysClosed",
+    "law": "statusStaysClosed",
+    "capabilities": [ "Closable" ],
+    "bindings": {
+      "status": "fixture.capabilities.Jobs$.phase",
+      "terminal": "fixture.capabilities.Jobs$.terminal"
+    },
+    "position": "model/lifter/testdata/lifts/Capabilities.scala:169"
+  }, {
     "machine": "legacyJob",
     "name": "legacyJob.closedIsRejectedUniformly",
     "law": "closedIsRejectedUniformly",
@@ -62,16 +72,6 @@
     },
     "overriddenBy": "fixture.capabilities.Jobs$.closedKeepsTheState",
     "position": "model/lifter/testdata/lifts/Capabilities.scala:117"
-  }, {
-    "machine": "legacyJob",
-    "name": "legacyJob.statusStaysClosed",
-    "law": "statusStaysClosed",
-    "capabilities": [ "Closable" ],
-    "bindings": {
-      "status": "fixture.capabilities.Jobs$.phase",
-      "terminal": "fixture.capabilities.Jobs$.terminal"
-    },
-    "position": "model/lifter/testdata/lifts/Capabilities.scala:162"
   }, {
     "machine": "pair",
     "name": "pair.pausedIsNotDispatched",
@@ -124,7 +124,7 @@
     "cites": [ "model/lifter/testdata/lifts/Capabilities.scala" ],
     "promises": "a closed job keeps its status",
     "doesNotPromise": "anything a fixture does not need",
-    "instantiating": [ "legacyJob" ]
+    "instantiating": [ "keptJob" ]
   }, {
     "law": "terminalStatesAreFinal",
     "capabilities": [ "Closable" ],

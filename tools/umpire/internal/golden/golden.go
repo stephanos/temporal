@@ -214,6 +214,10 @@ func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
 			return nil, err
 		}
 		for _, path := range paths {
+			// A law sidecar beside an IR file is no Model (tools/umpire/model.LawSidecarSuffix).
+			if strings.HasSuffix(path, ".laws.json") {
+				continue
+			}
 			rel, err := filepath.Rel(root, path)
 			if err != nil {
 				return nil, err

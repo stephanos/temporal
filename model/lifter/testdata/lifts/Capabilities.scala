@@ -157,7 +157,14 @@ object statusStaysClosed
 
 val keptCatalog: Catalog = Catalog.single(Capability.Closable)(statusStaysClosed)
 
+// Another twin, which declares Closable under the fixture's catalog.
+val keptJob = machine[Job, Answer, Note] {
+  starts(Job(Phase.queued))
+  ends(Jobs.ends)
+  steps(poll ~> Jobs.poll, finish ~> Jobs.finish, kill ~> Jobs.kill)
+}
+
 // 5 states x 3 classes x 3 steps = 45.
-val keptCapabilities = capabilities(legacyJob, limits = three)(
+val keptCapabilities = capabilities(keptJob, limits = three)(
   Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone)
 )(using keptCatalog)

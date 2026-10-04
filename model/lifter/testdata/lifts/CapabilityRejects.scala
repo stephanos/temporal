@@ -1,5 +1,6 @@
 // Capability declarations the lifter refuses, each at its line (fn-122.2): an action the machine
-// does not bind, a lambda for a function-valued field, two capabilities of one kind, a waiver of a
+// does not bind, a lambda for a function-valued field, two capabilities of one kind in one
+// declaration or in two, a waiver of a
 // law the catalog does not bring, a waiver with no reason, an overriding def with other parameters
 // than the law's, and a function-valued argument of a law that is a lambda.
 package fixture.capabilityrejects
@@ -50,6 +51,17 @@ val noReason = capabilities(job, limits = three)(
 val otherSignature = capabilities(job, limits = three)(
   Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone)
 ).overriding(closedIsRejectedUniformly -> reordered, because = "its parameters differ")
+
+// A machine that declares Pollable in two declarations, the second refused.
+val againJob = machine[Job, Answer, Note] {
+  starts(Job(Phase.queued))
+  ends(Jobs.ends)
+  steps(poll ~> Jobs.poll)
+}
+val againFirst =
+  capabilities(againJob, limits = three)(Pollable(dispatch = poll, running = Jobs.running))
+val againSecond =
+  capabilities(againJob, limits = three)(Pollable(dispatch = poll, running = Jobs.paused))
 
 // A law called directly with a lambda for a function-valued parameter.
 val lambdaArgument = terminalStatesAreFinal(job)((j: Job) => j.phase, Jobs.terminal)
