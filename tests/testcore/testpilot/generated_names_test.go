@@ -29,7 +29,11 @@ func TestGeneratedCaseNames(t *testing.T) {
 			continue
 		}
 		name := GeneratedCaseName(entry)
+		// The stem, and the `<model>-<query>` the lowering names the file after, from fields the name
+		// is not derived from.
+		require.True(t, strings.HasSuffix(entry.File, "-case.json"), entry.File)
 		require.Equal(t, strings.TrimSuffix(entry.File, "-case.json"), name)
+		require.Equal(t, strings.TrimSuffix(entry.Model, ".json")+"-"+entry.Query.Name, name)
 		require.NotEmpty(t, name, entry.File)
 		require.NotContains(t, name, "/", "a / would split the depth-2 test name")
 		require.False(t, strings.ContainsFunc(name, unicode.IsSpace), "%q carries whitespace", name)
