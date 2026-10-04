@@ -1,0 +1,8 @@
+{
+  "task_title": "Read-only native CI evidence lookup through connected GitHub",
+  "task_body": "The connected GitHub interface can read stephanos/temporal despite the shell CLI's earlier 401. Identify available native Gomad runs/reports and exact remote source identities without push, dispatch or rerun. Preserve milestone acceptance and current source binding.",
+  "acceptance": "A bounded source-bound evidence digest distinguishes matching, historical, missing and live results; PR-only first-page wrapper limits are explicit. No external or source mutation, qualification claim without report inspection, or new task admission.",
+  "touches_count": 1,
+  "has_quick_commands": false,
+  "repo": "/Users/stephan/Workspace/skunkworks/gomad/temporal"
+}
