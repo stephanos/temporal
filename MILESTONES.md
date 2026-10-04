@@ -187,20 +187,21 @@ listed. The pilots lift `terminalIsFinal` into `terminalStatesAreFinal` and `pau
 into a `Pausable × Pollable` law, on standalone activity and a minimal Nexus operation Model. A law
 joins only once two entities adopt it; an entity that differs overrides it with a recorded reason.
 
-Task 1 is done (branch `umpire-fn122`, merging): law bodies and the catalog as plain defs with server
+Task 1 is done: law bodies and the catalog as plain defs with server
 citations; the inventory classifies 76 claims as 8 law instances and 68 feature-specific. Three bodies wait for
-task 2's binding of plain value arguments. Task 2 is done on the same branch: `capabilities(m, limits)(...)`
+task 2's binding of plain value arguments. Task 2 is done: `capabilities(m, limits)(...)`
 with `except` and `overriding` (each with a reason) lifts each law into a Property, Scenario and Query named
 `<machine>.<law>`, a `<file>.laws.json` sidecar sits beside each IR file that declares capabilities, and all five
-laws now lift. Task 3 is done on the branch: the activity declares Closable, Pausable, Pollable, Terminable,
+laws now lift. Task 3 is done: the activity declares Closable, Pausable, Pollable, Terminable,
 Cancelable and Describable, its law claims are generated and every generated twin answers as the claim it
 retired, with two new generated Cases. `closedIsRejectedUniformly` is false for the admission record (a delivery
 to a timed-out record is accepted and recorded as `admissionRejected`), so the designs waive it with that reason.
 The new live Cases and the authored terminate Case time out inconclusive under shared load (10 s Contract
-window); fn-118's derived waits take that up. Task 4 is built on the branch: a standalone Nexus operation Model
+window); fn-118's derived waits take that up. Task 4 is done: a standalone Nexus operation Model
 (`model/temporal/nexusoperation/`, Closable, Terminable, Cancelable, Describable) gives every catalog law two
 instantiating machines, and its two live Cases pass 5 of 5 on hsm and chasm. A realization now declares the
 dynamic-config settings it requires; preparation refuses a Case whose environment differs, naming the setting.
-The branch is merging into `umpire`.
+Tasks 1-4 are merged into `umpire`; task 5 (law lint kinds) is next, then 8 (capability
+vocabulary out of the framework), 6 and 7.
 The Testpilot Driver can reserve a Nexus handler only through a workflow or activity start, so the handler paths
 are modeled and verified but have no live Case.
