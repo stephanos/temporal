@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -61,6 +62,21 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 	// A declaration that states no name is named after its val, which may be a member of an object.
 	for _, match := range regexp.MustCompile(`(?m)^[ \t]*val (\w+)\s*=\s*\(?\s*(?:(query)\b|\w+\.(property|scenario)\b)`).FindAllStringSubmatch(string(source), -1) {
 		declared = append(declared, match[2]+match[3]+" "+match[1])
+	}
+	// A law's instance is named after the val that declares its call: `val terminalIsFinal =
+	// terminalStatesAreFinal(activityProduct)(…)`.
+	laws := []string{}
+	for _, file := range []string{"umpire/laws/Laws.scala", "temporal/laws/Pause.scala", "temporal/laws/Terminate.scala", "temporal/laws/Cancel.scala"} {
+		text, err := os.ReadFile(filepath.Join("..", "..", "..", "model", file))
+		require.NoError(t, err)
+		for _, match := range regexp.MustCompile(`(?m)^def (\w+)\[`).FindAllStringSubmatch(string(text), -1) {
+			laws = append(laws, match[1])
+		}
+	}
+	require.NotEmpty(t, laws)
+	law := regexp.MustCompile(`(?m)^[ \t]*val (\w+)\s*=\s*(?:\w+\.)*(` + strings.Join(laws, "|") + `)\(`)
+	for _, match := range law.FindAllStringSubmatch(string(source), -1) {
+		declared = append(declared, "property "+match[1])
 	}
 	system, err := Load(activitySystemIR)
 	require.NoError(t, err)
