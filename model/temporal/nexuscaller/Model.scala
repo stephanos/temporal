@@ -466,10 +466,18 @@ object Control:
 
   def inspectStep(s: ProtocolState): List[ProtocolStep] = stay(s)
 
+  // A failed callback completes the operation two ways: as the success the control forges, and as
+  // the failure the runtime still sends.
+  val forged = choice
+  val sent = choice
+
   // The control deliberately predicts success for a failed callback. The runtime still sends failure.
   def forgedComplete(s: ProtocolState, resolution: Resolution): List[ProtocolStep] =
     if resolution == Resolution.failed then
-      Protocol.completeStep(s, Resolution.succeeded) ++ Protocol.completeStep(s, resolution)
+      choose(
+        forged -> Protocol.completeStep(s, Resolution.succeeded),
+        sent -> Protocol.completeStep(s, resolution)
+      )
     else Protocol.completeStep(s, resolution)
 
   // The protocol machine without its refinement, its completion forged and an inspection added.

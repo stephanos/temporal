@@ -292,10 +292,7 @@ def keptAtOperation(d: Redelivery, s: CloseResetState, r: Resolution): List[Clos
       )
     )
 
-/**
- * A permanent rejection ends the report: the handler stops reporting. A `choose` writes this step
- * out in its alternative, since an alternative is one step written out, not a helper's.
- */
+/** A permanent rejection ends the report: the handler stops reporting. */
 def dropped(s: CloseResetState): List[CloseResetStep] =
   List(
     Step(
@@ -308,13 +305,7 @@ def dropped(s: CloseResetState): List[CloseResetStep] =
 def rejectedByClosed(d: Redelivery, s: CloseResetState, r: Resolution): List[CloseResetStep] =
   if redelivers(d, s.channel, r) then
     choose(
-      refused -> List(
-        Step(
-          Answer.rejectedPermanent,
-          s.copy(channel = Completion.none),
-          List(Fact.completionDropped)
-        )
-      ),
+      refused -> dropped(s),
       rejectedForNow -> List(Step(Answer.rejectedTransient, s.copy(channel = again(d, r))))
     )
   else dropped(s)
