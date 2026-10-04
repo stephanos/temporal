@@ -158,14 +158,8 @@ func (m *Model) view(name string, views map[string]*view) (*view, error) {
 			return nil, err
 		}
 		v.product = product
-		i := 0
-		for _, row := range mm.Table.Rows {
-			for range row.Results {
-				if i < len(mm.Refinement) {
-					v.carriers[row.Key] = append(v.carriers[row.Key], mm.Refinement[i].Product)
-				}
-				i++
-			}
+		for _, rr := range mm.Refinement {
+			v.carriers[rr.Key] = append(v.carriers[rr.Key], rr.Product)
 		}
 	}
 	return v, nil
@@ -521,7 +515,8 @@ func (v *view) cell(state string, c model.Class) (Cell, error) {
 	if cell.Pinned, err = v.disabledPins(state); err != nil {
 		return Cell{}, err
 	}
-	if system && v.m.options.MustNotPinned && len(cell.Pinned) == 0 {
+	// An end state is where nothing more is to happen, as H2 reads it too.
+	if system && v.m.options.MustNotPinned && len(cell.Pinned) == 0 && !v.ends[state] {
 		cell.Holes = append(cell.Holes, MustNotPinned)
 	}
 	return cell, nil

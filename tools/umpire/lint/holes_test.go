@@ -151,8 +151,16 @@ func TestMustNotPinnedIsOffByDefault(t *testing.T) {
 	_, holes := holesOf(t, Options{})
 	require.NotContains(t, holes, MustNotPinned)
 
-	_, holes = holesOf(t, Options{MustNotPinned: true})
+	tables, holes := holesOf(t, Options{MustNotPinned: true})
 	pinned := holes[MustNotPinned]["activityProtocol"]
+	// An end state's disabled pairs are no hole, in the table as in the findings.
+	protocol := tables[slices.IndexFunc(tables, func(t *Table) bool { return t.Machine == "activityProtocol" })]
+	for _, c := range protocol.Cells {
+		phase, _, _ := strings.Cut(c.State, "-")
+		if slices.Contains([]string{"completed", "failed", "canceled", "terminated", "timedOut"}, phase) {
+			require.NotContains(t, c.Holes, MustNotPinned, "%s %s", c.State, c.Class)
+		}
+	}
 	i := slices.IndexFunc(pinned, func(f Finding) bool { return strings.HasPrefix(f.Subject, "backoff in ") })
 	require.GreaterOrEqual(t, i, 0)
 	// From paused, the product's law reads any step, so it pins the disabled backoff there.

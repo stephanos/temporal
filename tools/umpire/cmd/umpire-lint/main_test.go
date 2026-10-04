@@ -77,9 +77,7 @@ func writeAccepted(t *testing.T, path string, a lint.Accepted) {
 func TestAFindingFailsTheRunUntilItIsAcceptedWithAReason(t *testing.T) {
 	path := copied(t)
 	found := findings(t, path)
-	if len(found) == 0 {
-		t.Skip("no kind reports a finding of the fixture")
-	}
+	require.NotEmpty(t, found, "the fixture must give a finding, or this test checks nothing")
 	unaccepted := lintRun(path)
 	require.Equal(t, 1, unaccepted.status, unaccepted.errors)
 	require.True(t, strings.HasPrefix(unaccepted.out, "lint "+path+"\n"), unaccepted.out)

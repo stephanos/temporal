@@ -18,7 +18,7 @@ import (
 const LawSidecarSuffix = ".laws.json"
 
 // AcceptedSuffix ends the file of lint's accepted findings an author writes beside an IR file,
-// `<file>.lint.json`: JSON and no Model. It is lint.AcceptedSuffix, which the reader cannot import.
+// `<file>.lint.json`: JSON and no Model. Lint, which imports the reader, names it by this constant.
 const AcceptedSuffix = ".lint.json"
 
 // IRPaths lists the IR files of a directory: its JSON files, apart from the law sidecars and the

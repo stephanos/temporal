@@ -101,7 +101,7 @@ type Options struct {
 }
 
 // Model is one admitted Model as lint reads it: its IR, the reader's receipts of its verify Queries,
-// its machines' tables, and the law sidecar beside it.
+// and its machines' tables.
 type Model struct {
 	File string
 	IR   *umpirespb.Model
@@ -110,7 +110,6 @@ type Model struct {
 	Verified *model.Report
 	Machines map[string]*model.Machine
 	In       *model.Interpreter
-	Laws     *model.LawSidecar
 	actions  map[string]*umpirespb.Action
 	lowering Lowering
 	options  Options
@@ -142,11 +141,6 @@ func Of(file string, ir *umpirespb.Model, lowering Lowering, options Options) (*
 		actions: map[string]*umpirespb.Action{}, lowering: lowering, options: options}
 	for _, a := range ir.GetActions() {
 		m.actions[a.GetId()] = a
-	}
-	if file != "" {
-		if m.Laws, err = model.ReadLawSidecar(file); err != nil {
-			return nil, err
-		}
 	}
 	return m, nil
 }

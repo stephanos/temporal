@@ -9,11 +9,14 @@ import (
 	"os"
 	"slices"
 	"strings"
+
+	"go.temporal.io/server/tools/umpire/model"
 )
 
-// AcceptedSuffix ends the checked-in file of accepted findings beside an IR file, `<file>.lint.json`.
-// The lifter writes nothing there: an author does, with a reason for each acceptance.
-const AcceptedSuffix = ".lint.json"
+// AcceptedSuffix ends the checked-in file of accepted findings beside an IR file, `<file>.lint.json`,
+// which the reader leaves out of a directory's IR files. The lifter writes nothing there: an author
+// does, with a reason for each acceptance.
+const AcceptedSuffix = model.AcceptedSuffix
 
 // AcceptedPath is the file of accepted findings beside the IR file at irPath.
 func AcceptedPath(irPath string) string { return strings.TrimSuffix(irPath, ".json") + AcceptedSuffix }
@@ -22,9 +25,8 @@ func AcceptedPath(irPath string) string { return strings.TrimSuffix(irPath, ".js
 // and the subjects it accepts there, and why. A finding is accepted by its kind, owner and subject
 // alone, never its message or position, so moving a line leaves it accepted; an acceptance that
 // matches no finding is stale, and the gate fails on it as on a finding no acceptance matches.
-//
-// A law the laws sidecar waives with a reason (`except`, `overriding`) is recorded the same way, under
-// the kind its lint gives the waived law, with the waiver's reason.
+// An acceptance names any kind lint reports, so a kind added later records its accepted findings, and
+// their reasons, the same way.
 type Accepted struct {
 	Accepted []Acceptance `json:"accepted"`
 }
