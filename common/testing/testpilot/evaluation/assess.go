@@ -141,7 +141,8 @@ func Assess(subject *Subject, profile Profile, assessment *testpilot.Assessment)
 // disposition and its rules, which is what a violated Run stopped by its Monitor and a Run that did
 // not close complete come down to. Admission holds the recorded status to the same conclusion
 // (recordedrun.Agreement); a subject built by hand that disagrees is decided by the worse of the two,
-// so a disagreement never lets it through.
+// so a disagreement never lets it through, and a Run its Monitor stopped is violated, as admission
+// admits a stopped Run only beside a violation.
 func concluded(subject *Subject) testpilotspb.VerdictStatus {
 	statuses := make([]testpilotspb.RuleVerdictStatus, 0, len(subject.Verdict.GetRules()))
 	for _, rule := range subject.Verdict.GetRules() {
@@ -150,7 +151,8 @@ func concluded(subject *Subject) testpilotspb.VerdictStatus {
 	status, _ := testpilot.ConcludeVerdict(subject.Disposition, statuses)
 	recorded := subject.Verdict.GetStatus()
 	switch {
-	case status == testpilotspb.VERDICT_STATUS_VIOLATED || recorded == testpilotspb.VERDICT_STATUS_VIOLATED:
+	case status == testpilotspb.VERDICT_STATUS_VIOLATED || recorded == testpilotspb.VERDICT_STATUS_VIOLATED ||
+		subject.Disposition == testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR:
 		return testpilotspb.VERDICT_STATUS_VIOLATED
 	case status == testpilotspb.VERDICT_STATUS_SATISFIED && recorded == testpilotspb.VERDICT_STATUS_SATISFIED:
 		return testpilotspb.VERDICT_STATUS_SATISFIED

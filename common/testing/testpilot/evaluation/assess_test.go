@@ -180,6 +180,9 @@ func TestAssessDecidesADisagreeingVerdictByTheWorse(t *testing.T) {
 		}, DecisionRejected, []string{"verdict-violated"}},
 		"recorded inconclusive, rules satisfied": {func(s *Subject) { s.Verdict.Status = testpilotspb.VERDICT_STATUS_INCONCLUSIVE }, DecisionIncomplete, []string{"verdict-inconclusive"}},
 		"recorded satisfied, the Run incomplete": {func(s *Subject) { s.Disposition = testpilotspb.RUN_DISPOSITION_INCOMPLETE }, DecisionIncomplete, []string{"verdict-inconclusive"}},
+		"recorded satisfied, the Run stopped without a violated rule": {func(s *Subject) {
+			s.Disposition = testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR
+		}, DecisionRejected, []string{"verdict-violated"}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			subject := c.admitted(t, nil, satisfy)

@@ -474,3 +474,22 @@ func TestAssessWithAModelRefusesWhatItCannotAssess(t *testing.T) {
 		})
 	}
 }
+
+// A receipt root inside the model directory --model reads is refused before anything is read, as
+// one inside --model-root is, whatever --model-root says.
+func TestAssessWithAModelRefusesAReceiptRootInsideIt(t *testing.T) {
+	model := resolvedTemp(t)
+	inside := filepath.Join(model, "receipts")
+	require.NoError(t, os.Mkdir(inside, 0o755))
+	arguments := []string{"run", "--case", controlCasePath, "--run", controlRunPath, "--profile", "local-ephemeral",
+		"--receipt-root", inside, "--model-root", resolvedTemp(t), "--model", model}
+	catalogRead := false
+	code, result, stderr := run(t, arguments, environment{Catalog: func() (string, error) { catalogRead = true; return fixedCatalog() }})
+	require.Equal(t, exitFailed, code)
+	require.Empty(t, result.Status, "no summary for a refused command line")
+	require.False(t, catalogRead, "nothing is read for a refused command line")
+	require.Contains(t, stderr, "--receipt-root must not be under the model root")
+	listed, err := os.ReadDir(inside)
+	require.NoError(t, err)
+	require.Empty(t, listed)
+}

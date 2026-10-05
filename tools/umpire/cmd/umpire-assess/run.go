@@ -370,10 +370,17 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	}
 	configuration.Profile = loaded
 	// A receipt is an assessment's output, never model input: the model never receives one,
-	// whatever symlink the root is reached through.
+	// whatever symlink the root is reached through, and neither does the model directory --model
+	// reads, wherever the command runs from.
 	if configuration.ReceiptRoot, err = cli.OutsideModel("--receipt-root", receiptRoot, modelRoot); err != nil {
 		cli.WriteLine(stderr, "%s", err)
 		return config{}, err
+	}
+	if configuration.Model != "" {
+		if _, err = cli.OutsideModel("--receipt-root", receiptRoot, configuration.Model); err != nil {
+			cli.WriteLine(stderr, "%s", err)
+			return config{}, err
+		}
 	}
 	if info, err := os.Stat(configuration.ReceiptRoot); err != nil || !info.IsDir() {
 		cli.WriteLine(stderr, "--receipt-root %s: the directory does not exist", configuration.ReceiptRoot)
