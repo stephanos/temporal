@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 )
 
 func TestEvaluateOrdersFindingsByPackageAndConcern(t *testing.T) {

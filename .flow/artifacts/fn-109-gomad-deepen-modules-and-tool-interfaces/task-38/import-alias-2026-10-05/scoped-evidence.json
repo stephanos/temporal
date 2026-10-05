@@ -1,0 +1,366 @@
+{
+  "task": "fn-109.38",
+  "status": "source_progress_pending_conductor",
+  "admission_commit": "f26339177ef0e75d078009470abd919ce6d01bcb",
+  "preservation": {
+    "base_commit": "f26339177ef0e75d078009470abd919ce6d01bcb",
+    "files": {
+      "tools/gomad3/target/internal/capabilitypolicy/policy.go": {
+        "base_sha256": "3d98f0449bdaf7b885b45a95bdbf50b05cfab6a3507c655434047b612a50fa12",
+        "final_sha256": "943b5bce7a64e76fa7bd40573d1946f0ea4323f6cea7e7d1b4a70dadb05f00e6",
+        "exact_single_import_replacement": true,
+        "all_other_bytes_preserved": true
+      },
+      "tools/gomad3/target/internal/capabilitypolicy/policy_test.go": {
+        "base_sha256": "88a4b3046dc1d9103f18c1206c817f05bdec5d49e875a2a74297fc8c9b41b728",
+        "final_sha256": "8e2946deb27470f1227cb8b654d787fc3746fe2b55bee6c35fbbeedb71ab7dd8",
+        "exact_single_import_replacement": true,
+        "all_other_bytes_preserved": true
+      }
+    },
+    "changed_paths": [
+      ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.38.json",
+      "tools/gomad3/target/internal/capabilitypolicy/policy.go",
+      "tools/gomad3/target/internal/capabilitypolicy/policy_test.go"
+    ],
+    "outside_scope_non_flow_changes": []
+  },
+  "snapshot": {
+    "base_sha256": "90aea54c819851e749c4a8332b9c9e26710c2808d7f1edb3d081f76c5e02a308",
+    "final_sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39",
+    "entry_count": 1001,
+    "changed_entries": [
+      "tools/gomad3/target/internal/capabilitypolicy/policy.go",
+      "tools/gomad3/target/internal/capabilitypolicy/policy_test.go"
+    ],
+    "unchanged_entries": 999
+  },
+  "commands": [
+    {
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./target/internal/capabilitypolicy"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "environment_overrides": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "seed_environment_absent": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "exit_code": 0,
+      "started_unix_ns": 1791202432460365543,
+      "ended_unix_ns": 1791202432933234210,
+      "elapsed_ns": 472868667,
+      "raw_output": "policy.raw.log",
+      "raw_output_sha256": "b49fdcbb6023eaf3d09f971c032adedb8dd1e1d8c243a488742fabbb4b98e901",
+      "before": {
+        "sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39",
+        "count": 1001,
+        "head": "f26339177ef0e75d078009470abd919ce6d01bcb"
+      },
+      "after": {
+        "sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39",
+        "count": 1001,
+        "head": "f26339177ef0e75d078009470abd919ce6d01bcb"
+      },
+      "inputs_unchanged": true,
+      "test_results": {
+        "top_level_pass": 4,
+        "all_pass": 16,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        "./target",
+        "-run",
+        "TestPreparedCacheDigest|TestCapabilityReviewGoldenCanonicalBytes|TestCompatibilityPackProjectionPreserves"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "environment_overrides": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "seed_environment_absent": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "exit_code": 0,
+      "started_unix_ns": 1791202439304607005,
+      "ended_unix_ns": 1791202439586734088,
+      "elapsed_ns": 282127083,
+      "raw_output": "target.raw.log",
+      "raw_output_sha256": "d9bbe0083cdf6aefb57cb1a57a59290385e6a1648cc30494855253b2f3e276b1",
+      "before": {
+        "sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39",
+        "count": 1001,
+        "head": "f26339177ef0e75d078009470abd919ce6d01bcb"
+      },
+      "after": {
+        "sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39",
+        "count": 1001,
+        "head": "f26339177ef0e75d078009470abd919ce6d01bcb"
+      },
+      "inputs_unchanged": true,
+      "test_results": {
+        "top_level_pass": 10,
+        "all_pass": 23,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-json",
+        ".",
+        "-run",
+        "^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "environment_overrides": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "seed_environment_absent": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "exit_code": 0,
+      "started_unix_ns": 1791202459373516014,
+      "ended_unix_ns": 1791202492649433739,
+      "elapsed_ns": 33275917725,
+      "raw_output": "architecture.raw.log",
+      "raw_output_sha256": "380f656b5e0431c748dc0c6c15502bc49475ed9511d1b292ffebbad8c58c96b0",
+      "before": {
+        "sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39",
+        "count": 1001,
+        "head": "f26339177ef0e75d078009470abd919ce6d01bcb"
+      },
+      "after": {
+        "sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39",
+        "count": 1001,
+        "head": "f26339177ef0e75d078009470abd919ce6d01bcb"
+      },
+      "inputs_unchanged": true,
+      "test_results": {
+        "top_level_pass": 3,
+        "all_pass": 3,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    {
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config=../../.github/.golangci.yml",
+        "--build-tags=test_dep",
+        "--timeout=10m",
+        "--fix=false",
+        "./target",
+        "./target/internal/capabilitypolicy"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "environment_overrides": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "seed_environment_absent": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "exit_code": 0,
+      "started_unix_ns": 1791202498077178950,
+      "ended_unix_ns": 1791202499117168575,
+      "elapsed_ns": 1039989625,
+      "raw_output": "lint.raw.log",
+      "raw_output_sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47",
+      "before": {
+        "sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39",
+        "count": 1001,
+        "head": "f26339177ef0e75d078009470abd919ce6d01bcb"
+      },
+      "after": {
+        "sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39",
+        "count": 1001,
+        "head": "f26339177ef0e75d078009470abd919ce6d01bcb"
+      },
+      "inputs_unchanged": true
+    },
+    {
+      "argv": [
+        "go",
+        "vet",
+        "-tags",
+        "test_dep",
+        "-vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "./target",
+        "./target/internal/capabilitypolicy"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "environment_overrides": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "seed_environment_absent": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "exit_code": 0,
+      "started_unix_ns": 1791202518067248917,
+      "ended_unix_ns": 1791202518190912626,
+      "elapsed_ns": 123663709,
+      "raw_output": "errortype.raw.log",
+      "raw_output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "before": {
+        "sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39",
+        "count": 1001,
+        "head": "f26339177ef0e75d078009470abd919ce6d01bcb"
+      },
+      "after": {
+        "sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39",
+        "count": 1001,
+        "head": "f26339177ef0e75d078009470abd919ce6d01bcb"
+      },
+      "inputs_unchanged": true
+    },
+    {
+      "argv": [
+        "gofmt",
+        "-l",
+        "target/internal/capabilitypolicy/policy.go",
+        "target/internal/capabilitypolicy/policy_test.go"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "environment_overrides": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "seed_environment_absent": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "exit_code": 0,
+      "started_unix_ns": 1791202523453311545,
+      "ended_unix_ns": 1791202523457712295,
+      "elapsed_ns": 4400750,
+      "raw_output": "gofmt.raw.log",
+      "raw_output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "before": {
+        "sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39",
+        "count": 1001,
+        "head": "f26339177ef0e75d078009470abd919ce6d01bcb"
+      },
+      "after": {
+        "sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39",
+        "count": 1001,
+        "head": "f26339177ef0e75d078009470abd919ce6d01bcb"
+      },
+      "inputs_unchanged": true
+    },
+    {
+      "argv": [
+        "make",
+        "validate"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "environment_overrides": {
+        "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+        "GOENV": "off",
+        "GOWORK": "off",
+        "GOTOOLCHAIN": "local",
+        "GOPROXY": "off",
+        "GOSUMDB": "off",
+        "GOFLAGS": "",
+        "GOMAXPROCS": "2"
+      },
+      "seed_environment_absent": [
+        "GOMADSEED",
+        "GOMAD3_CHILD_SEED",
+        "GOMAD3_SEED"
+      ],
+      "exit_code": 0,
+      "started_unix_ns": 1791202529116989048,
+      "ended_unix_ns": 1791202531597825216,
+      "elapsed_ns": 2480836168,
+      "raw_output": "validate.raw.log",
+      "raw_output_sha256": "d7c52a5ccd90aeac74e0a50e7b8ef1efc63a7d4b99643c205f00700389188364",
+      "before": {
+        "sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39",
+        "count": 1001,
+        "head": "f26339177ef0e75d078009470abd919ce6d01bcb"
+      },
+      "after": {
+        "sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39",
+        "count": 1001,
+        "head": "f26339177ef0e75d078009470abd919ce6d01bcb"
+      },
+      "inputs_unchanged": true
+    }
+  ],
+  "full_gate_owner": "conductor",
+  "review_owner": "conductor",
+  "task_qualification": "unproved; no task completion claimed"
+}

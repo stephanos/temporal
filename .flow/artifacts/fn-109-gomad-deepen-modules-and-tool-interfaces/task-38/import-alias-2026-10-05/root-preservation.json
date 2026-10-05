@@ -1,0 +1,22 @@
+{
+  "base": "f26339177ef0e75d078009470abd919ce6d01bcb",
+  "files": [
+    {
+      "path": "tools/gomad3/target/internal/capabilitypolicy/policy.go",
+      "base_sha256": "3d98f0449bdaf7b885b45a95bdbf50b05cfab6a3507c655434047b612a50fa12",
+      "final_sha256": "943b5bce7a64e76fa7bd40573d1946f0ea4323f6cea7e7d1b4a70dadb05f00e6",
+      "all_other_bytes_preserved": true
+    },
+    {
+      "path": "tools/gomad3/target/internal/capabilitypolicy/policy_test.go",
+      "base_sha256": "88a4b3046dc1d9103f18c1206c817f05bdec5d49e875a2a74297fc8c9b41b728",
+      "final_sha256": "8e2946deb27470f1227cb8b654d787fc3746fe2b55bee6c35fbbeedb71ab7dd8",
+      "all_other_bytes_preserved": true
+    }
+  ],
+  "changed_paths": [
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.38.json",
+    "tools/gomad3/target/internal/capabilitypolicy/policy.go",
+    "tools/gomad3/target/internal/capabilitypolicy/policy_test.go"
+  ]
+}

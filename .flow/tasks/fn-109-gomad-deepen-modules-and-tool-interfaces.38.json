@@ -1,7 +1,4 @@
 {
-  "assignee": null,
-  "claim_note": "",
-  "claimed_at": null,
   "created_at": "2026-10-05T08:18:46.772544Z",
   "depends_on": [],
   "id": "fn-109-gomad-deepen-modules-and-tool-interfaces.38",
@@ -10,5 +7,5 @@
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.38.md",
   "status": "todo",
   "title": "Preserve target capability and cache digests while repairing lint",
-  "updated_at": "2026-10-05T12:07:21.541719Z"
+  "updated_at": "2026-10-05T12:27:04.059789Z"
 }

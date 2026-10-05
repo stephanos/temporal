@@ -1,0 +1,12 @@
+{
+  "entry_count": 1001,
+  "changed_entries": [
+    "tools/gomad3/target/internal/capabilitypolicy/policy.go",
+    "tools/gomad3/target/internal/capabilitypolicy/policy_test.go"
+  ],
+  "unchanged_entries": 999,
+  "current_binding_mismatches": [],
+  "verified_raw_logs": 7,
+  "all_scoped_exits_zero": true,
+  "final_snapshot_sha256": "00f08ec4c2272310e3e81042d0c5c9fc5ff9c5b08f7fb93221e34456c5d73c39"
+}

@@ -8,7 +8,7 @@ package capabilitypolicy
 import (
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 )
 
 type Kind string
