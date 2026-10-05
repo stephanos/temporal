@@ -1,0 +1,28 @@
+SPEC.md:176:The complete Runner and deterministic-interaction contract must be available only on explicitly qualified platform bundles; the current qualified bundles are `darwin/arm64` and `linux/amd64`. An unsupported host must be rejected before Gomad claims deterministic execution or begins a platform-specific toolchain build.
+SPEC.md:281:- Enabling block or mutex profiling is outside the determinism guarantee: host-dependent contention timing and profile sampling can change random draws, profile allocations, and subsequent runtime state, especially on linux/amd64.
+ARCHITECTURE.md:18:`darwin/arm64` and `linux/amd64`; artifacts replay only on their recorded
+ARCHITECTURE.md:874:`darwin/arm64` and `linux/amd64`. The macOS sandbox test and privileged DTrace
+ARCHITECTURE.md:887:files, and nested modules for the `darwin/arm64` and `linux/amd64` source sets
+README.md:14:`darwin/arm64` and `linux/amd64`, the platforms the boundary manifest names.
+README.md:409:platform. On darwin/arm64 all twenty-eight workloads are expected to qualify;
+README.md:410:nine of the package workloads build with the `gomad` tag. On linux/amd64 five
+README.md:413:admit their facts are scoped to darwin/arm64, and the thirteen tier 3 workloads
+README.md:670:platforms: on darwin it models the libc functions themselves, on linux/amd64 it
+README.md:836:linux/amd64, the FIPS `monoTime` input is host monotonic time when FIPS mode is
+README.md:839:reader only when they link `crypto/rand`. On darwin/arm64 the monotonic input
+README.md:841:wall time on both platforms and host monotonic time on linux/amd64, although
+README.md:849:On linux/amd64, `cputicks` reads host cycle counts with `RDTSC` or `RDTSCP`.
+README.md:854:read is unused. On darwin/arm64 `cputicks` uses the virtual monotonic clock.
+README.md:858:random draw; its downstream effects on linux/amd64 remain an open finding.
+README.md:911:`darwin/arm64` and `linux/amd64` hosts. Enabled cgo or externally linked binaries fail before package
+README.md:937:  linux/amd64.
+README.md:964:dispatched run on each platform supplies the native bound, and linux/amd64
+README.md:992:a hundred of a functional suite diverged on darwin/arm64. A garbage-collector
+README.md:1014:are a merged candidate whose native darwin/arm64 and linux/amd64 gates have not
+README.md:1025:cluster-sized target diverged from its first collection on darwin/arm64. The
+README.md:1032:On darwin/arm64 an activated target re-executes itself once with ASLR
+README.md:1033:disabled before runtime initialization continues. The darwin/arm64 linker
+README.md:1043:the attribute fails the target closed instead of looping. linux/amd64 targets
+README.md:1183:of the Temporal functional test package reaches on linux/amd64; with the
+README.md:1186:On darwin/arm64 `temporal-functional-compute-darwin-arm64` admits the arm64
+README.md:1422:reaching it. linux/amd64 reads the clock through the vDSO, which a syscall

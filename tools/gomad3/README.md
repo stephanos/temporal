@@ -132,7 +132,7 @@ written to stdout.
 Use `--choices` on `explore` or `qualify` to observe bounded runtime runnable
 and select decisions. `--choice-bytes` defaults to 8 MiB, is valid only with
 `--choices`, and is part of Campaign and Artifact identity. The trace is
-recorded as v2 stable logical decisions. Artifact replay automatically derives
+recorded as v3 stable logical decisions. Artifact replay automatically derives
 an identity-bound, read-only decision tape and validates every choice before it
 is applied; no replay flag is required. `inspect --choices` validates the
 retained payload and reports choice kinds, decision and branching counts, the
@@ -864,7 +864,7 @@ For a fixed toolchain, architecture, program, deterministic external inputs,
 and seed, supported runtime-controlled choices repeat across fresh processes.
 Different seeds explore different choices when alternatives exist. Runtime
 choices must finish before output or other external I/O is performed.
-When v2 choice recording is enabled, exact replay forces stable logical
+When v3 choice recording is enabled, exact replay forces stable logical
 goroutine and select-poll alternatives independent of their physical queue
 order, consumes the complete tape, and still compares final observation
 records. Choice traces and tapes remain explicitly byte-bounded; overflow is a

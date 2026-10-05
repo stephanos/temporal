@@ -1,0 +1,55 @@
+{
+  "commands": [
+    {
+      "argv": [
+        "uname",
+        "-sm"
+      ],
+      "exit_code": 0,
+      "stdout": "Linux aarch64\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "version"
+      ],
+      "exit_code": 0,
+      "stdout": "go version go1.27.1 linux/arm64\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "env",
+        "GOHOSTOS",
+        "GOHOSTARCH",
+        "GOOS",
+        "GOARCH",
+        "GOTOOLCHAIN",
+        "GOWORK",
+        "GOPROXY",
+        "GOSUMDB"
+      ],
+      "exit_code": 0,
+      "stdout": "linux\narm64\nlinux\narm64\nlocal\noff\noff\noff\n",
+      "stderr": ""
+    }
+  ],
+  "patched_go_exists": false,
+  "environment_overrides": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2"
+  },
+  "environment_unset": [
+    "GOMADSEED",
+    "GOMAD3_CHILD_SEED",
+    "GOMAD3_SEED"
+  ]
+}

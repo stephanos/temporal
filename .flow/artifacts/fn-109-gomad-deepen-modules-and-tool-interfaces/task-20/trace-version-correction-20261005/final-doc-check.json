@@ -1,0 +1,151 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "all-other-bytes:tools/gomad3/README.md",
+      "passed": true,
+      "details": "only six replacements and the named architecture paragraph"
+    },
+    {
+      "name": "current-claim:recorded as v3 stable logical decisions.",
+      "passed": true,
+      "details": "tools/gomad3/README.md"
+    },
+    {
+      "name": "current-claim:When v3 choice recording is enabled",
+      "passed": true,
+      "details": "tools/gomad3/README.md"
+    },
+    {
+      "name": "fences:tools/gomad3/README.md",
+      "passed": true,
+      "details": "all fenced bytes unchanged"
+    },
+    {
+      "name": "balanced-fences:tools/gomad3/README.md",
+      "passed": true,
+      "details": "balanced"
+    },
+    {
+      "name": "unrelated-v2:tools/gomad3/README.md",
+      "passed": true,
+      "details": [
+        "Schema-v2 artifacts must contain this deterministic-I/O identity and its",
+        "matching environment marker. Profile-less v2 artifacts are rejected as",
+        "Compatibility packs use only the strict `gomad3.compatibility-pack/v2`",
+        "replacement, host access, or truncated evidence. Requests, generated v2 packs,",
+        "thirteen Gomad v2 behaviors to named v3 cases by citing exact source tests under",
+        "`tools/gomad2/`. It was removed by fn-81 together with the Gomad v2 tree it"
+      ]
+    },
+    {
+      "name": "links:tools/gomad3/README.md",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "all-other-bytes:tools/gomad3/ARCHITECTURE.md",
+      "passed": true,
+      "details": "only six replacements and the named architecture paragraph"
+    },
+    {
+      "name": "current-claim:complete v3 trace into a Decision Tape",
+      "passed": true,
+      "details": "tools/gomad3/ARCHITECTURE.md"
+    },
+    {
+      "name": "fences:tools/gomad3/ARCHITECTURE.md",
+      "passed": true,
+      "details": "all fenced bytes unchanged"
+    },
+    {
+      "name": "balanced-fences:tools/gomad3/ARCHITECTURE.md",
+      "passed": true,
+      "details": "balanced"
+    },
+    {
+      "name": "unrelated-v2:tools/gomad3/ARCHITECTURE.md",
+      "passed": true,
+      "details": [
+        "Manifest schema v2 keeps its existing JSON shape but requires the universal",
+        "for every artifact. Previously accepted profile-less v2 data is treated as an"
+      ]
+    },
+    {
+      "name": "links:tools/gomad3/ARCHITECTURE.md",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "all-other-bytes:tools/gomad3/TUTORIAL.md",
+      "passed": true,
+      "details": "only six replacements and the named architecture paragraph"
+    },
+    {
+      "name": "current-claim:bounded v3 **Choice Trace**",
+      "passed": true,
+      "details": "tools/gomad3/TUTORIAL.md"
+    },
+    {
+      "name": "current-claim:complete v3 Choice Trace",
+      "passed": true,
+      "details": "tools/gomad3/TUTORIAL.md"
+    },
+    {
+      "name": "current-claim:replayable v3 choice",
+      "passed": true,
+      "details": "tools/gomad3/TUTORIAL.md"
+    },
+    {
+      "name": "fences:tools/gomad3/TUTORIAL.md",
+      "passed": true,
+      "details": "all fenced bytes unchanged"
+    },
+    {
+      "name": "balanced-fences:tools/gomad3/TUTORIAL.md",
+      "passed": true,
+      "details": "balanced"
+    },
+    {
+      "name": "unrelated-v2:tools/gomad3/TUTORIAL.md",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "links:tools/gomad3/TUTORIAL.md",
+      "passed": true,
+      "details": []
+    },
+    {
+      "name": "source-preservation",
+      "passed": true,
+      "details": {
+        "files": 1108,
+        "changed": [
+          "tools/gomad3/ARCHITECTURE.md",
+          "tools/gomad3/README.md",
+          "tools/gomad3/TUTORIAL.md"
+        ],
+        "closure_sha256": "218bfa4a6e4e1459a35135a7042fc5af99d545f6f782c065a80ff959a59e6db5"
+      }
+    },
+    {
+      "name": "base-commit",
+      "passed": true,
+      "details": "d108c313dc114c2a83f1301a75255f9e4a4dc5e6"
+    },
+    {
+      "name": "whitespace",
+      "passed": true,
+      "details": "git diff --check"
+    },
+    {
+      "name": "user-files",
+      "passed": true,
+      "details": [
+        ".turbo/plans/gomad3-glossary-update.md",
+        ".turbo/technical-debt.md"
+      ]
+    }
+  ]
+}

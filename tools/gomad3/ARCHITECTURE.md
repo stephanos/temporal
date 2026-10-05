@@ -275,13 +275,21 @@ moving external payload or adapter policy into the runtime.
 
 When choice recording is enabled, the runtime records a bounded Choice Trace
 containing logical decisions and observations. Exact runtime replay projects a
-complete v2 trace into a Decision Tape containing only branching decisions;
+complete v3 trace into a Decision Tape containing only branching decisions;
 observations and single-alternative decisions remain trace evidence. The tape
 binds the Prepared Target, toolchain build key, platform, and choice
 implementation. Stable logical alternative
 identities and canonical alternative sets avoid treating physical run-queue
 order as replay identity. Replay validates a decision before applying it,
 requires complete tape consumption, and still compares the final Record.
+
+`choice/trace.go` explicitly refuses stored v2 traces because their select
+results carry no readiness. Legacy v1 traces remain decodable for inspection,
+but `choice/tape.go` returns `ErrReplayUnavailable` when projecting them into
+a replay plan. For v3, `ProjectReplayPlan` uses `projectSelectReadiness` to
+carry each final `select` result's readiness onto its matching poll decisions.
+A poll decision named by no result keeps unknown readiness. Readiness annotates
+the tape without becoming a forced decision.
 
 Choice Exploration uses forced prefixes from one base Seed. A forced-prefix
 candidate divergence invalidates search confidence and returns CLI status 3,

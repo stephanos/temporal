@@ -386,13 +386,13 @@ tools/gomad3/.bin/gomad explore \
   go-test ./path/to/package -- '-test.run=^TestSomethingConcurrent$'
 ```
 
-The runtime writes a bounded v2 **Choice Trace** containing stable logical
+The runtime writes a bounded v3 **Choice Trace** containing stable logical
 decisions and observations. The important decision records are runnable
 goroutine selection and `select` polling; the trace also observes the final
 `select` result. Alternatives use logical identities rather than physical queue
 positions, pointers, or goroutine IDs.
 
-When Replay opens an Artifact with a complete v2 Choice Trace, it projects the
+When Replay opens an Artifact with a complete v3 Choice Trace, it projects the
 branching decision records into an identity-bound **Decision Tape**. Observations
 such as the final `select` result remain trace evidence rather than forced
 decisions. Before applying each recorded decision, the runtime checks the
@@ -494,7 +494,7 @@ tools/gomad3/.bin/gomad replay .gomad/artifacts/v1/campaign-.../failures/sha256-
 Replay never rebuilds from the current checkout, swaps in a convenient local
 binary, rereads a captured mount from the host, or silently upgrades an old
 schema. It supplies the recorded I/O transcript and World plan, uses the same
-seed, and forces the choice tape when the artifact contains replayable v2 choice
+seed, and forces the choice tape when the artifact contains replayable v3 choice
 evidence. Finally, it compares the new outcome, outputs, transcripts, World
 state, and choice evidence with the artifact.
 

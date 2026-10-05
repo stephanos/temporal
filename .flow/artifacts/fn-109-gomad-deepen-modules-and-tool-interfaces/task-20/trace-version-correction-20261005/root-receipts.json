@@ -1,0 +1,168 @@
+[
+  {
+    "name": "platforms",
+    "argv": [
+      "grep",
+      "-n",
+      "darwin/arm64\\|linux/amd64",
+      "SPEC.md",
+      "ARCHITECTURE.md",
+      "README.md"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+    "environment_overrides": {
+      "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+      "GOENV": "off",
+      "GOWORK": "off",
+      "GOTOOLCHAIN": "local",
+      "GOPROXY": "off",
+      "GOSUMDB": "off",
+      "GOFLAGS": "",
+      "GOMAXPROCS": "2"
+    },
+    "environment_unset": [
+      "GOMADSEED",
+      "GOMAD3_CHILD_SEED",
+      "GOMAD3_SEED"
+    ],
+    "started_at": "2026-10-05T22:14:49.586470+00:00",
+    "finished_at": "2026-10-05T22:14:49.607733+00:00",
+    "elapsed_seconds": 0.02118479198543355,
+    "exit_code": 0,
+    "log": "root-platforms.log",
+    "log_sha256": "8c90f8995f6a043fd0f4dd2e7c02f1d8c211f236b7d9c872b360def4af0ff8a5",
+    "source_before": "218bfa4a6e4e1459a35135a7042fc5af99d545f6f782c065a80ff959a59e6db5",
+    "source_after": "218bfa4a6e4e1459a35135a7042fc5af99d545f6f782c065a80ff959a59e6db5",
+    "expected_tests": [],
+    "passed_expected_tests": []
+  },
+  {
+    "name": "focused",
+    "argv": [
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "test",
+      "-json",
+      "-count=1",
+      "-tags",
+      "test_dep",
+      ".",
+      "-run",
+      "^(TestCurrentVocabularyHasNoLegacyCampaignBoundary|TestMakeTargetsMatchTheirOwnership)$"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+    "environment_overrides": {
+      "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+      "GOENV": "off",
+      "GOWORK": "off",
+      "GOTOOLCHAIN": "local",
+      "GOPROXY": "off",
+      "GOSUMDB": "off",
+      "GOFLAGS": "",
+      "GOMAXPROCS": "2"
+    },
+    "environment_unset": [
+      "GOMADSEED",
+      "GOMAD3_CHILD_SEED",
+      "GOMAD3_SEED"
+    ],
+    "started_at": "2026-10-05T22:14:50.402048+00:00",
+    "finished_at": "2026-10-05T22:14:51.195444+00:00",
+    "elapsed_seconds": 0.7934015420032665,
+    "exit_code": 0,
+    "log": "root-focused.log",
+    "log_sha256": "e346c79994462092f256e2c3eefbf46a6673de6072acec48e959408e6777b98b",
+    "source_before": "218bfa4a6e4e1459a35135a7042fc5af99d545f6f782c065a80ff959a59e6db5",
+    "source_after": "218bfa4a6e4e1459a35135a7042fc5af99d545f6f782c065a80ff959a59e6db5",
+    "expected_tests": [
+      "TestCurrentVocabularyHasNoLegacyCampaignBoundary",
+      "TestMakeTargetsMatchTheirOwnership"
+    ],
+    "passed_expected_tests": [
+      "TestCurrentVocabularyHasNoLegacyCampaignBoundary",
+      "TestMakeTargetsMatchTheirOwnership"
+    ]
+  },
+  {
+    "name": "choice",
+    "argv": [
+      "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "test",
+      "-json",
+      "-count=1",
+      "-tags",
+      "test_dep",
+      "./choice",
+      "-run",
+      "^(TestChoiceReadersRejectOtherWireVersions|TestProjectReplayPlanCarriesSelectReadinessOntoPollDecisions|TestProjectDecisionTapeRejectsObservationOnlyAndLegacyTrace)$"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+    "environment_overrides": {
+      "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+      "GOENV": "off",
+      "GOWORK": "off",
+      "GOTOOLCHAIN": "local",
+      "GOPROXY": "off",
+      "GOSUMDB": "off",
+      "GOFLAGS": "",
+      "GOMAXPROCS": "2"
+    },
+    "environment_unset": [
+      "GOMADSEED",
+      "GOMAD3_CHILD_SEED",
+      "GOMAD3_SEED"
+    ],
+    "started_at": "2026-10-05T22:14:52.248374+00:00",
+    "finished_at": "2026-10-05T22:14:52.575314+00:00",
+    "elapsed_seconds": 0.3269345420121681,
+    "exit_code": 0,
+    "log": "root-choice.log",
+    "log_sha256": "b522962526ec616c5b13759cb8c3e54bc67f743c73a019a01200d15548457857",
+    "source_before": "218bfa4a6e4e1459a35135a7042fc5af99d545f6f782c065a80ff959a59e6db5",
+    "source_after": "218bfa4a6e4e1459a35135a7042fc5af99d545f6f782c065a80ff959a59e6db5",
+    "expected_tests": [
+      "TestChoiceReadersRejectOtherWireVersions",
+      "TestProjectReplayPlanCarriesSelectReadinessOntoPollDecisions",
+      "TestProjectDecisionTapeRejectsObservationOnlyAndLegacyTrace"
+    ],
+    "passed_expected_tests": [
+      "TestChoiceReadersRejectOtherWireVersions",
+      "TestProjectDecisionTapeRejectsObservationOnlyAndLegacyTrace",
+      "TestProjectReplayPlanCarriesSelectReadinessOntoPollDecisions"
+    ]
+  },
+  {
+    "name": "validate",
+    "argv": [
+      "make",
+      "-C",
+      "tools/gomad3",
+      "validate"
+    ],
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "environment_overrides": {
+      "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+      "GOENV": "off",
+      "GOWORK": "off",
+      "GOTOOLCHAIN": "local",
+      "GOPROXY": "off",
+      "GOSUMDB": "off",
+      "GOFLAGS": "",
+      "GOMAXPROCS": "2"
+    },
+    "environment_unset": [
+      "GOMADSEED",
+      "GOMAD3_CHILD_SEED",
+      "GOMAD3_SEED"
+    ],
+    "started_at": "2026-10-05T22:14:53.301486+00:00",
+    "finished_at": "2026-10-05T22:15:03.181831+00:00",
+    "elapsed_seconds": 9.881102546001785,
+    "exit_code": 0,
+    "log": "root-validate.log",
+    "log_sha256": "ea9d99d1301c2d0f2b4cd736f9f45d945565ee631d462778e185ca9517e057d9",
+    "source_before": "218bfa4a6e4e1459a35135a7042fc5af99d545f6f782c065a80ff959a59e6db5",
+    "source_after": "218bfa4a6e4e1459a35135a7042fc5af99d545f6f782c065a80ff959a59e6db5",
+    "expected_tests": [],
+    "passed_expected_tests": []
+  }
+]

@@ -1,0 +1,12 @@
+{"Time":"2026-10-05T22:10:09.179307859Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3"}
+{"Time":"2026-10-05T22:10:09.183786484Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3","Test":"TestCurrentVocabularyHasNoLegacyCampaignBoundary"}
+{"Time":"2026-10-05T22:10:09.184202442Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestCurrentVocabularyHasNoLegacyCampaignBoundary","Output":"=== RUN   TestCurrentVocabularyHasNoLegacyCampaignBoundary\n","OutputType":"frame"}
+{"Time":"2026-10-05T22:10:09.258389109Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestCurrentVocabularyHasNoLegacyCampaignBoundary","Output":"--- PASS: TestCurrentVocabularyHasNoLegacyCampaignBoundary (0.07s)\n","OutputType":"frame"}
+{"Time":"2026-10-05T22:10:09.258665651Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Test":"TestCurrentVocabularyHasNoLegacyCampaignBoundary","Elapsed":0.07}
+{"Time":"2026-10-05T22:10:09.259166151Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3","Test":"TestMakeTargetsMatchTheirOwnership"}
+{"Time":"2026-10-05T22:10:09.259242484Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestMakeTargetsMatchTheirOwnership","Output":"=== RUN   TestMakeTargetsMatchTheirOwnership\n","OutputType":"frame"}
+{"Time":"2026-10-05T22:10:09.259786359Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestMakeTargetsMatchTheirOwnership","Output":"--- PASS: TestMakeTargetsMatchTheirOwnership (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-05T22:10:09.259868859Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Test":"TestMakeTargetsMatchTheirOwnership","Elapsed":0}
+{"Time":"2026-10-05T22:10:09.259931942Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-05T22:10:09.260528442Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"ok  \tgo.temporal.io/server/tools/gomad3\t0.080s\n"}
+{"Time":"2026-10-05T22:10:09.260859317Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Elapsed":0.082}

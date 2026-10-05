@@ -1,0 +1,16 @@
+{"Time":"2026-10-05T22:14:52.526917235Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3/choice"}
+{"Time":"2026-10-05T22:14:52.53054561Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/choice","Test":"TestProjectReplayPlanCarriesSelectReadinessOntoPollDecisions"}
+{"Time":"2026-10-05T22:14:52.530721819Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/choice","Test":"TestProjectReplayPlanCarriesSelectReadinessOntoPollDecisions","Output":"=== RUN   TestProjectReplayPlanCarriesSelectReadinessOntoPollDecisions\n","OutputType":"frame"}
+{"Time":"2026-10-05T22:14:52.53086461Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/choice","Test":"TestProjectReplayPlanCarriesSelectReadinessOntoPollDecisions","Output":"--- PASS: TestProjectReplayPlanCarriesSelectReadinessOntoPollDecisions (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-05T22:14:52.530907319Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/choice","Test":"TestProjectReplayPlanCarriesSelectReadinessOntoPollDecisions","Elapsed":0}
+{"Time":"2026-10-05T22:14:52.53101286Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/choice","Test":"TestChoiceReadersRejectOtherWireVersions"}
+{"Time":"2026-10-05T22:14:52.531050777Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/choice","Test":"TestChoiceReadersRejectOtherWireVersions","Output":"=== RUN   TestChoiceReadersRejectOtherWireVersions\n","OutputType":"frame"}
+{"Time":"2026-10-05T22:14:52.531129569Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/choice","Test":"TestChoiceReadersRejectOtherWireVersions","Output":"--- PASS: TestChoiceReadersRejectOtherWireVersions (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-05T22:14:52.531168569Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/choice","Test":"TestChoiceReadersRejectOtherWireVersions","Elapsed":0}
+{"Time":"2026-10-05T22:14:52.531214735Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3/choice","Test":"TestProjectDecisionTapeRejectsObservationOnlyAndLegacyTrace"}
+{"Time":"2026-10-05T22:14:52.531291944Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/choice","Test":"TestProjectDecisionTapeRejectsObservationOnlyAndLegacyTrace","Output":"=== RUN   TestProjectDecisionTapeRejectsObservationOnlyAndLegacyTrace\n","OutputType":"frame"}
+{"Time":"2026-10-05T22:14:52.531434402Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/choice","Test":"TestProjectDecisionTapeRejectsObservationOnlyAndLegacyTrace","Output":"--- PASS: TestProjectDecisionTapeRejectsObservationOnlyAndLegacyTrace (0.00s)\n","OutputType":"frame"}
+{"Time":"2026-10-05T22:14:52.53153811Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/choice","Test":"TestProjectDecisionTapeRejectsObservationOnlyAndLegacyTrace","Elapsed":0}
+{"Time":"2026-10-05T22:14:52.531826777Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/choice","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-05T22:14:52.531910485Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3/choice","Output":"ok  \tgo.temporal.io/server/tools/gomad3/choice\t0.003s\n"}
+{"Time":"2026-10-05T22:14:52.531960819Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3/choice","Elapsed":0.005}

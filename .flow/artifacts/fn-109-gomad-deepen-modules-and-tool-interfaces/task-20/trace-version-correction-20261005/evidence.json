@@ -1,0 +1,137 @@
+{
+  "task_id": "fn-109-gomad-deepen-modules-and-tool-interfaces.20",
+  "status": "in_progress",
+  "outcome": "bounded_source_progress",
+  "base_commit": "d108c313dc114c2a83f1301a75255f9e4a4dc5e6",
+  "commits": [],
+  "commit_range": "d108c313dc114c2a83f1301a75255f9e4a4dc5e6..HEAD",
+  "prs": [],
+  "tests": [
+    "BASE: grep -n 'darwin/arm64\\|linux/amd64' SPEC.md ARCHITECTURE.md README.md (exit 0)",
+    "BASE: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -json -count=1 -tags test_dep . -run '^(TestCurrentVocabularyHasNoLegacyCampaignBoundary|TestMakeTargetsMatchTheirOwnership)$' (exit 0)",
+    "BASE: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -json -count=1 -tags test_dep ./choice -run '^(TestChoiceReadersRejectOtherWireVersions|TestProjectReplayPlanCarriesSelectReadinessOntoPollDecisions|TestProjectDecisionTapeRejectsObservationOnlyAndLegacyTrace)$' (exit 0)",
+    "BASE: make -C tools/gomad3 validate (exit 0)",
+    "FINAL: grep -n 'darwin/arm64\\|linux/amd64' SPEC.md ARCHITECTURE.md README.md (exit 0)",
+    "FINAL: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -json -count=1 -tags test_dep . -run '^(TestCurrentVocabularyHasNoLegacyCampaignBoundary|TestMakeTargetsMatchTheirOwnership)$' (exit 0)",
+    "FINAL: /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -json -count=1 -tags test_dep ./choice -run '^(TestChoiceReadersRejectOtherWireVersions|TestProjectReplayPlanCarriesSelectReadinessOntoPollDecisions|TestProjectDecisionTapeRejectsObservationOnlyAndLegacyTrace)$' (exit 0)",
+    "FINAL: make -C tools/gomad3 validate (exit 0)",
+    "BASE documentation verifier exited 1 on exactly six stale current-version claims",
+    "FINAL documentation verifier exited 0; all 25 checks passed"
+  ],
+  "baseline": "green: fresh focused, choice and check-only validation commands",
+  "baseline_source_sha256": "b38ef68ebb35740962c8f150287880f5e92e0618aa115ea50e0104a640881ffc",
+  "final_source_sha256": "218bfa4a6e4e1459a35135a7042fc5af99d545f6f782c065a80ff959a59e6db5",
+  "source_inventory": "before.json and final-source.json",
+  "source_file_count": 1108,
+  "source_bindings": {
+    "tools/gomad3/choice/trace.go": {
+      "sha256": "be764b5f667258179864c81bad5e0bd547bed5822a59da0356494fe3fda51dba",
+      "functions": {
+        "DecodeStoredTrace": 133
+      }
+    },
+    "tools/gomad3/choice/tape.go": {
+      "sha256": "e7c8c7774e25d83a0007ba3c234d7004d9ec49affa062c5b448d993299e0559e",
+      "functions": {
+        "ProjectReplayPlan": 191,
+        "projectSelectReadiness": 232
+      }
+    },
+    "tools/gomad3/choice/legacy_v1.go": {
+      "sha256": "7ea95607bdd3b6ebac96c92182abdca47bab58e9e4e0d96f42842bbf8fffb8b3",
+      "functions": {
+        "DecodeLegacyV1Trace": 21,
+        "decodeLegacyV1Record": 86
+      }
+    },
+    "tools/gomad3/choice/readiness_test.go": {
+      "sha256": "42629a078c5df9e2001b67d359a99ab40aa7dfc25cbc3fdabc1a917c55920254",
+      "functions": {
+        "TestChoiceReadersRejectOtherWireVersions": 192,
+        "TestProjectReplayPlanCarriesSelectReadinessOntoPollDecisions": 66
+      }
+    },
+    "tools/gomad3/choice/tape_test.go": {
+      "sha256": "df78e2be603a6de123b6fbcbd684837737998993bed96f42c19105fa5a3b794e",
+      "functions": {
+        "TestProjectDecisionTapeRejectsObservationOnlyAndLegacyTrace": 206
+      }
+    }
+  },
+  "claims": [
+    {
+      "path": "tools/gomad3/README.md",
+      "before": "recorded as v2 stable logical decisions.",
+      "after": "recorded as v3 stable logical decisions.",
+      "line": 135,
+      "final_line": 135
+    },
+    {
+      "path": "tools/gomad3/README.md",
+      "before": "When v2 choice recording is enabled",
+      "after": "When v3 choice recording is enabled",
+      "line": 867,
+      "final_line": 867
+    },
+    {
+      "path": "tools/gomad3/ARCHITECTURE.md",
+      "before": "complete v2 trace into a Decision Tape",
+      "after": "complete v3 trace into a Decision Tape",
+      "line": 278,
+      "final_line": 278
+    },
+    {
+      "path": "tools/gomad3/TUTORIAL.md",
+      "before": "bounded v2 **Choice Trace**",
+      "after": "bounded v3 **Choice Trace**",
+      "line": 389,
+      "final_line": 389
+    },
+    {
+      "path": "tools/gomad3/TUTORIAL.md",
+      "before": "complete v2 Choice Trace",
+      "after": "complete v3 Choice Trace",
+      "line": 395,
+      "final_line": 395
+    },
+    {
+      "path": "tools/gomad3/TUTORIAL.md",
+      "before": "replayable v2 choice",
+      "after": "replayable v3 choice",
+      "line": 497,
+      "final_line": 497
+    }
+  ],
+  "command_receipts": [
+    "baseline-receipts.json",
+    "final-receipts.json"
+  ],
+  "host": "host.json; Linux/aarch64 stock go1.27.1; patched Go absent; developmental evidence only",
+  "historical_lint": {
+    "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/v041-restoration-20261005/root-integrated-lint.stdout.log",
+    "sha256": "b32074e2a267eecceaefff1addd2944a3c9becf28ebc25b13dbb6802ad454d7c",
+    "diagnostics": 317,
+    "errortype": "UNREACHED",
+    "rerun": false,
+    "meaning": "retained inherited residuals; executable source unchanged, no fresh lint pass"
+  },
+  "qualification": {
+    "native_darwin": false,
+    "formal_review": false,
+    "R18_reconciliation": false,
+    "D5_acceptance": false,
+    "linux_owner": "fn-128"
+  },
+  "scope": {
+    "product_paths": [
+      "tools/gomad3/README.md",
+      "tools/gomad3/ARCHITECTURE.md",
+      "tools/gomad3/TUTORIAL.md"
+    ],
+    "root_owns_flow": true,
+    "root_owns_commit": true,
+    "staged_by_worker": false,
+    "committed_by_worker": false
+  },
+  "terminal_commands": true
+}
