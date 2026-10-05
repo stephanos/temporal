@@ -16,13 +16,17 @@ import temporal.capabilities.{closedIsRejectedUniformly, terminalStatesAreFinal}
 import umpire.realize.{statusTable, Cleanup, Conformance, Disposition, PropertyOutcome}
 import umpire.realize.{Reason, RunExpectation}
 import temporal.capabilities.{given, *}
+import CapabilitiesFamily.given
 
-given Family = Family("fixture.capabilities")
+/** The family, in an object of its own: the machine objects read it while they initialize. */
+object CapabilitiesFamily:
+  given family: Family = Family("fixture.capabilities")
 
 enum Phase derives Finite:
   case queued, running, paused, done, killed
 
-final case class Job(phase: Phase) derives Finite
+/** A job's state, named apart from the machine object `Job`. */
+final case class JobState(phase: Phase) derives Finite
 
 enum Answer derives Finite:
   case ok, gone
@@ -46,34 +50,35 @@ val cancel = action(client)
 object Jobs:
   import Phase.*
 
-  def phase(j: Job): Phase = j.phase
+  def phase(j: JobState): Phase = j.phase
   def terminal(p: Phase): Boolean = p.in(done, killed)
-  def paused(j: Job): Boolean = j.phase == Phase.paused
-  def running(j: Job): Boolean = j.phase == Phase.running
-  def ends(j: Job): Boolean = terminal(j.phase)
+  def paused(j: JobState): Boolean = j.phase == Phase.paused
+  def running(j: JobState): Boolean = j.phase == Phase.running
+  def over(j: JobState): Boolean = terminal(j.phase)
 
-  private def closed(j: Job): List[Step[Job, Answer, Note]] = List(Step(Answer.gone, j))
+  private def closed(j: JobState): List[Step[JobState, Answer, Note]] = List(Step(Answer.gone, j))
 
-  def poll(j: Job): List[Step[Job, Answer, Note]] =
-    if j.phase == queued then enter(Job(Phase.running), Note.started) else disabled
-  def finish(j: Job): List[Step[Job, Answer, Note]] =
-    if j.phase == Phase.running then enter(Job(done), Note.finished) else disabled
-  def pause(j: Job): List[Step[Job, Answer, Note]] =
+  def poll(j: JobState): List[Step[JobState, Answer, Note]] =
+    if j.phase == queued then enter(JobState(Phase.running), Note.started) else disabled
+  def finish(j: JobState): List[Step[JobState, Answer, Note]] =
+    if j.phase == Phase.running then enter(JobState(done), Note.finished) else disabled
+  def pause(j: JobState): List[Step[JobState, Answer, Note]] =
     if terminal(j.phase) then closed(j)
-    else if j.phase.in(queued, Phase.running) then enter(Job(Phase.paused), Note.held)
+    else if j.phase.in(queued, Phase.running) then enter(JobState(Phase.paused), Note.held)
     else disabled
-  def resume(j: Job): List[Step[Job, Answer, Note]] =
+  def resume(j: JobState): List[Step[JobState, Answer, Note]] =
     if terminal(j.phase) then closed(j)
-    else if j.phase == Phase.paused then enter(Job(queued), Note.resumed)
+    else if j.phase == Phase.paused then enter(JobState(queued), Note.resumed)
     else disabled
-  def kill(j: Job): List[Step[Job, Answer, Note]] =
-    if terminal(j.phase) then closed(j) else enter(Job(killed), Note.killedNote)
-  def cancel(j: Job): List[Step[Job, Answer, Note]] =
+  def kill(j: JobState): List[Step[JobState, Answer, Note]] =
+    if terminal(j.phase) then closed(j) else enter(JobState(killed), Note.killedNote)
+  def cancel(j: JobState): List[Step[JobState, Answer, Note]] =
     if terminal(j.phase) then closed(j) else enter(j, Note.cancelAsked)
 
   /** The rogue job's poll, which dispatches a paused job as it does a queued one. */
-  def rogueDispatch(j: Job): List[Step[Job, Answer, Note]] =
-    if j.phase.in(queued, Phase.paused) then enter(Job(Phase.running), Note.started) else disabled
+  def rogueDispatch(j: JobState): List[Step[JobState, Answer, Note]] =
+    if j.phase.in(queued, Phase.paused) then enter(JobState(Phase.running), Note.started)
+    else disabled
 
   /** The legacy job's answer to a closed job: it keeps the state, whatever it answers. */
   def closedKeepsTheState[S, P](m: Declares[S])(
@@ -84,25 +89,26 @@ object Jobs:
     m.property holdsAcross ((before, after) => !terminal(status(before)) || after.state == before)
 
 // 5 states; 6 action classes.
-val job = machine[Job, Answer, Note] {
-  starts(Job(Phase.queued))
-  ends(Jobs.ends)
-  steps(
-    poll ~> Jobs.poll,
-    finish ~> Jobs.finish,
-    pause ~> Jobs.pause,
-    resume ~> Jobs.resume,
-    kill ~> Jobs.kill,
-    cancel ~> Jobs.cancel
-  )
-}
+object Job extends Machine[JobState, Answer, Note]:
+  val init = JobState(Phase.queued)
+  def end(j: State) = Jobs.over(j)
+
+  object rules
+      extends Bindings(
+        poll ~> Jobs.poll,
+        finish ~> Jobs.finish,
+        pause ~> Jobs.pause,
+        resume ~> Jobs.resume,
+        kill ~> Jobs.kill,
+        cancel ~> Jobs.cancel
+      )
 
 // Its twin, which waives one law and replaces another.
-val legacyJob = machine[Job, Answer, Note] {
-  starts(Job(Phase.queued))
-  ends(Jobs.ends)
-  steps(poll ~> Jobs.poll, finish ~> Jobs.finish, kill ~> Jobs.kill)
-}
+object LegacyJob extends Machine[JobState, Answer, Note]:
+  val init = JobState(Phase.queued)
+  def end(j: State) = Jobs.over(j)
+
+  object rules extends Bindings(poll ~> Jobs.poll, finish ~> Jobs.finish, kill ~> Jobs.kill)
 
 val three = Limits(steps = 3, actions = 3, search = 512)
 
@@ -122,7 +128,7 @@ val settles = RunExpectation(
 )
 
 // Free verify Queries: 5 states x 6 classes x 3 steps = 90; finds: 5 states x min(3, 2) = 10.
-val jobCapabilities = capabilities(job, limits = three)(
+val jobCapabilities = capabilities(Job, limits = three)(
   Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = cited(Answer.gone, jobsCode)),
   Pausable(pause = pause, unpause = resume, paused = Jobs.paused),
   Pollable(dispatch = poll, running = Jobs.running),
@@ -137,7 +143,7 @@ val jobCapabilities = capabilities(job, limits = three)(
 )
 
 // 5 states x 3 classes x 3 steps = 45.
-val legacyCapabilities = capabilities(legacyJob, limits = three)(
+val legacyCapabilities = capabilities(LegacyJob, limits = three)(
   Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone)
 )
   .except(terminalStatesAreFinal, because = "a fixture's waiver: the legacy job keeps no status")
@@ -148,23 +154,26 @@ val legacyCapabilities = capabilities(legacyJob, limits = three)(
 
 // ### The cross-entity form: a composition's capabilities, read through a member's projection
 
-final case class Pair(left: Job, right: Job) derives Finite
+/** Two jobs' state, named apart from the composition object `Pair`. */
+final case class PairState(left: JobState, right: JobState) derives Finite
 
 object Pairs:
-  def ends(p: Pair): Boolean = Jobs.ends(p.left) && Jobs.ends(p.right)
+  def over(p: PairState): Boolean = Jobs.over(p.left) && Jobs.over(p.right)
 
 def runs(p: Phase): Boolean = p == Phase.running
 
-val pair: Composition[Pair] = compose[Pair](_.left -> job, _.right -> legacyJob).ends(Pairs.ends)
+object Pair extends Composition[PairState](_.left -> Job, _.right -> LegacyJob):
+  def end(p: State) = Pairs.over(p)
+  object syncs extends Syncs
 
 // 25 states x (6 + 3) classes x 3 steps = 675.
-val pairCapabilities = capabilities(pair, limits = three)(
+val pairCapabilities = capabilities(Pair, limits = three)(
   Pausable(
-    pause = pair.own(_.left, pause),
-    unpause = pair.own(_.left, resume),
+    pause = Pair.own(_.left, pause),
+    unpause = Pair.own(_.left, resume),
     paused = through(_.left, Jobs.paused)
   ),
-  Pollable(dispatch = pair.own(_.left, poll), running = through(_.left.phase, runs))
+  Pollable(dispatch = Pair.own(_.left, poll), running = through(_.left.phase, runs))
 )
 
 // ### A catalog of the fixture's own, whose law reads a bound field-path def as its `keeps`
@@ -182,34 +191,35 @@ object statusStaysClosed
 val keptCatalog: Catalog = Catalog.single(Closable)(statusStaysClosed)
 
 // Another twin, which declares Closable under the fixture's catalog.
-val keptJob = machine[Job, Answer, Note] {
-  starts(Job(Phase.queued))
-  ends(Jobs.ends)
-  steps(poll ~> Jobs.poll, finish ~> Jobs.finish, kill ~> Jobs.kill)
-}
+object KeptJob extends Machine[JobState, Answer, Note]:
+  val init = JobState(Phase.queued)
+  def end(j: State) = Jobs.over(j)
+
+  object rules extends Bindings(poll ~> Jobs.poll, finish ~> Jobs.finish, kill ~> Jobs.kill)
 
 // 5 states x 3 classes x 3 steps = 45.
-val keptCapabilities = capabilities(keptJob, limits = three)(
+val keptCapabilities = capabilities(KeptJob, limits = three)(
   Closable(status = Jobs.phase, terminal = cited(Jobs.terminal, jobsCode), rejected = Answer.gone)
 )(using keptCatalog)
 
 // ### A Query of the job's own reading a generated Property by its law
 
 // Pinned: 5 states x min(3 steps, 1 scheduled kill) = 5.
-val queuedThenKilled = job.scenario.actions(kill)
+val queuedThenKilled = Job.scenario.actions(kill)
 val killedWhileQueued =
   query find jobCapabilities.claim(terminateSettles) in queuedThenKilled limits three total 5
 
 // ### A Model that breaks a law: the rogue job's poll dispatches a paused job
 
-val rogueJob = machine[Job, Answer, Note] {
-  starts(Job(Phase.queued))
-  ends(Jobs.ends)
-  steps(poll ~> Jobs.rogueDispatch, pause ~> Jobs.pause, resume ~> Jobs.resume)
-}
+object RogueJob extends Machine[JobState, Answer, Note]:
+  val init = JobState(Phase.queued)
+  def end(j: State) = Jobs.over(j)
+
+  object rules
+      extends Bindings(poll ~> Jobs.rogueDispatch, pause ~> Jobs.pause, resume ~> Jobs.resume)
 
 // 5 states x 3 classes x 3 steps = 45; violated after pause, poll.
-val rogueCapabilities = capabilities(rogueJob, limits = three)(
+val rogueCapabilities = capabilities(RogueJob, limits = three)(
   Pausable(pause = pause, unpause = resume, paused = Jobs.paused),
   Pollable(dispatch = poll, running = Jobs.running)
 )
@@ -221,6 +231,6 @@ def neverHeld[S](m: Declares[S])(held: S => Boolean): Property[S] =
   m.property("neverHeld").never(s => held(s.state))
 
 // 25 states x (6 + 3) classes x 3 steps = 675; the right job binds no pause.
-val pairAny = pair.scenario("pairAny").free
+val pairAny = Pair.scenario("pairAny").free
 val rightNeverHeld =
-  query verify neverHeld(pair)(through(_.right, Jobs.paused)) in pairAny limits three total 675
+  query verify neverHeld(Pair)(through(_.right, Jobs.paused)) in pairAny limits three total 675

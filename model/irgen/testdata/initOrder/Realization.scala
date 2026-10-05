@@ -1,7 +1,7 @@
-// (b): the realization reads the machine's `laws` back while it initializes, which a realization
-// must not do: `laws` reads the realization first.
+// (b): the realization reads the machine's `implements` back while it initializes, which a
+// realization must not do: `implements` reads the realization first.
 package fixture.features.initorder
 
 object SwitchRealization:
-  val reported = Switch.lit(Lamp(true))
-  val checked = Switch.laws.reported
+  val reported = Switch.states.lit(Lamp(true))
+  val checked = Switch.implements.reported

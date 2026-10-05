@@ -36,10 +36,11 @@ class DefinitionScope extends munit.FunSuite:
   private lazy val scratch =
     Files.createTempDirectory(Files.createDirectories(build.resolve("history")), "scope.")
 
-  // The roots the lifter's fixtures name, as Fixtures lifts them: file, package, roots by val name.
+  // The roots the lifter's fixtures name, as Fixtures lifts them: file, package, roots by val name,
+  // or by object name for a machine object (capitalized).
   private val probed = Seq(
     ("declarations", "Declarations", "fixture.declarations", Seq("queries", "durableEventually")),
-    ("channels", "Channels", "fixture.channels", Seq("relay", "tallying")),
+    ("channels", "Channels", "fixture.channels", Seq("Relay", "Tallying")),
     (
       "realizations",
       "Realizations",
@@ -65,7 +66,9 @@ class DefinitionScope extends munit.FunSuite:
 
   /**
    * Wraps a file's declarations, after its package clause and imports, in `object Moved`, which pins
-   * the file's owner.
+   * the file's owner. A machine or composition object stays at the top level, where its sections
+   * must sit (the declaration-order lint), and so do the objects of the family and the entities it
+   * reads while it initializes, which the header imports; the rest is imported back for it.
    */
   private def underObject(source: String, former: String): String =
     val lines = source.linesIterator.toVector
@@ -79,9 +82,25 @@ class DefinitionScope extends munit.FunSuite:
         else if inImport then (i, line.trim != "}")
         else at
       ._1
-    (lines.take(header + 1) ++ Vector("", "object Moved:", "  " + pin(former), "") ++
-      lines.drop(header + 1).map(line => if line.isBlank then line else "  " + line))
-      .mkString("", "\n", "\n")
+    // The top-level statements after the header, each its first line and the indented ones after.
+    val statements = lines
+      .drop(header + 1)
+      .foldLeft(Vector.empty[Vector[String]]): (done, line) =>
+        if line.isBlank || line.head.isWhitespace || done.isEmpty then
+          done.dropRight(1) :+ (done.lastOption.getOrElse(Vector.empty) :+ line)
+        else done :+ Vector(line)
+    val kept =
+      """object \w+(Family|Entity)\b.*|object \w+\s+extends (Machine|Derived|Composition)\b.*""".r
+    def stays(s: Vector[String]): Boolean =
+      kept.matches(s.take(2).map(_.trim).mkString(" ").replaceAll(":.*", ""))
+    val (top, moved) = statements.partition(stays)
+    // The givens moved, such as the family and a state's catalog, are imported where one is.
+    val givens = moved.exists(_.headOption.exists(_.startsWith("given ")))
+    val imported = if givens then "import Moved.{given, *}" else "import Moved.*"
+    (lines.take(header + 1) ++ Vector(imported, "", "object Moved:") ++
+      Vector("  " + pin(former), "") ++
+      moved.flatten.map(line => if line.isBlank then line else "  " + line) ++ Vector("") ++
+      top.flatten).mkString("", "\n", "\n")
 
   /**
    * Moves a file's declarations into the subpackage `moved`, which still sees its parent's members,
@@ -109,6 +128,13 @@ class DefinitionScope extends munit.FunSuite:
         kind -> model.path(kind).elements().asScala.map(_.path("id").asText()).toVector.sorted
       )
       .toMap
+
+  /**
+   * Where a moved fixture's machine objects are: in the package its file was moved into, or at the
+   * top level of their package beside `object Moved` (`underObject`).
+   */
+  private def objectsIn(owner: String, pkg: String): String =
+    if owner.endsWith("$package$") then owner.take(owner.lastIndexOf('.')) else pkg
 
   /** Lifts every probed fixture moved by `move`, and its new owner per fixture. */
   private def moved(
@@ -143,7 +169,7 @@ class DefinitionScope extends munit.FunSuite:
         modelClasspath.toString,
         out.toString
       )
-        ++ roots.map(s"$owner." + _)
+        ++ roots.map(r => if r.head.isUpper then s"${objectsIn(owner, pkg)}.$r" else s"$owner.$r")
       (fixture, stem, pkg, owner, out, Future(blocking(lift(arguments*))))
     runs.map: (fixture, stem, pkg, owner, out, run) =>
       val ran = Await.result(run, munitTimeout)

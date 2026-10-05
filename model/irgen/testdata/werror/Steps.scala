@@ -24,9 +24,8 @@ def goStep(s: State): List[Step[State, Outcome, Fact]] = s.phase match
   case Phase.idle    => List(Step(Outcome.accepted, State(Phase.working)))
   case Phase.working => List(Step(Outcome.accepted, State(Phase.done), List(Fact.finished)))
 
-val unfinished: Machine[State, Outcome, Fact] =
-  machine[State, Outcome, Fact] {
-    starts(State(Phase.idle))
-    ends(s => s.phase == Phase.done)
-    steps(go ~> goStep)
-  }
+object Unfinished extends Machine[State, Outcome, Fact]:
+  val init = State(Phase.idle)
+  def end(s: State) = s.phase == Phase.done
+
+  object rules extends Bindings(go ~> goStep)

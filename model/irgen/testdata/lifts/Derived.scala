@@ -10,7 +10,8 @@ given Family = Family("fixture.derived")
 enum Light derives Finite:
   case off, on, broken
 
-final case class Lamp(light: Light) derives Finite
+/** A lamp's state, named apart from the machine object `Lamp`. */
+final case class LampState(light: Light) derives Finite
 
 enum Outcome derives Finite:
   case accepted, refused
@@ -28,140 +29,180 @@ val burnOutAssumed = assume
 enum Shown derives Finite:
   case dark, bright
 
-final case class View(shown: Shown) derives Finite
+/** The view's state, named apart from the machine object `View`. */
+final case class ViewState(shown: Shown) derives Finite
 
-def pressView(v: View): List[Step[View, Outcome, Fact]] =
-  if v.shown == Shown.dark then List(Step(Outcome.accepted, View(Shown.bright), List(Fact.lit)))
-  else List(Step(Outcome.accepted, View(Shown.dark), List(Fact.darkened)))
+def pressView(v: ViewState): List[Step[ViewState, Outcome, Fact]] =
+  if v.shown == Shown.dark then
+    List(Step(Outcome.accepted, ViewState(Shown.bright), List(Fact.lit)))
+  else List(Step(Outcome.accepted, ViewState(Shown.dark), List(Fact.darkened)))
 
-def burnOutView(v: View): List[Step[View, Outcome, Fact]] =
-  List(Step(Outcome.refused, View(Shown.dark), List(Fact.burnedOut)))
+def burnOutView(v: ViewState): List[Step[ViewState, Outcome, Fact]] =
+  List(Step(Outcome.refused, ViewState(Shown.dark), List(Fact.burnedOut)))
 
 /** The opaque lamp the detailed ones refine. */
-val view = machine[View, Outcome, Fact] {
-  starts(View(Shown.dark))
-  ends(_ => true)
-  steps(press ~> pressView)
-}
+object View extends Machine[ViewState, Outcome, Fact]:
+  val init = ViewState(Shown.dark)
+  def end(view: State) = true
 
-/** The opaque lamp under faults: the same types as `view`, with a burn-out. */
-val viewUnderFaults = machine[View, Outcome, Fact] {
-  starts(View(Shown.dark))
-  ends(_ => true)
-  steps(press ~> pressView, burnOut ~> burnOutView)
-}
+  object rules extends Bindings(press ~> pressView)
 
-def seen(l: Lamp): View = if l.light == Light.on then View(Shown.bright) else View(Shown.dark)
+/** The opaque lamp under faults: the same types as `View`, with a burn-out. */
+object ViewUnderFaults extends Machine[ViewState, Outcome, Fact], FailureModel:
+  val init = ViewState(Shown.dark)
+  def end(view: State) = true
 
-def pressLamp(l: Lamp): List[Step[Lamp, Outcome, Fact]] = l.light match
-  case Light.off    => List(Step(Outcome.accepted, Lamp(Light.on), List(Fact.lit)))
-  case Light.on     => List(Step(Outcome.accepted, Lamp(Light.off), List(Fact.darkened)))
+  object rules extends Bindings(press ~> pressView, burnOut ~> burnOutView)
+
+/** What a lamp shows: the map `refining` names, and each refinement below writes out. */
+def seen(l: LampState): ViewState =
+  if l.light == Light.on then ViewState(Shown.bright) else ViewState(Shown.dark)
+
+def pressLamp(l: LampState): List[Step[LampState, Outcome, Fact]] = l.light match
+  case Light.off    => List(Step(Outcome.accepted, LampState(Light.on), List(Fact.lit)))
+  case Light.on     => List(Step(Outcome.accepted, LampState(Light.off), List(Fact.darkened)))
   case Light.broken => Nil
 
-def pressStiff(l: Lamp): List[Step[Lamp, Outcome, Fact]] = l.light match
+def pressStiff(l: LampState): List[Step[LampState, Outcome, Fact]] = l.light match
   case Light.off => List(Step(Outcome.refused, l))
   case _         => pressLamp(l)
 
-def wearLamp(l: Lamp): List[Step[Lamp, Outcome, Fact]] =
-  if l.light == Light.on then List(Step(Outcome.accepted, Lamp(Light.off), List(Fact.darkened)))
+def wearLamp(l: LampState): List[Step[LampState, Outcome, Fact]] =
+  if l.light == Light.on then
+    List(Step(Outcome.accepted, LampState(Light.off), List(Fact.darkened)))
   else Nil
 
-def burnOutLamp(l: Lamp): List[Step[Lamp, Outcome, Fact]] =
+def burnOutLamp(l: LampState): List[Step[LampState, Outcome, Fact]] =
   if l.light == Light.broken then Nil
-  else List(Step(Outcome.refused, Lamp(Light.broken), List(Fact.burnedOut)))
+  else List(Step(Outcome.refused, LampState(Light.broken), List(Fact.burnedOut)))
 
 enum Lit derives Finite:
   case never, once, again
 
-def countLit(seen: Lit, before: Lamp, after: Step[Lamp, Outcome, Fact]): Lit =
+def countLit(seen: Lit, before: LampState, after: Step[LampState, Outcome, Fact]): Lit =
   if !after.facts.contains(Fact.lit) then seen
   else if seen == Lit.never then Lit.once
   else Lit.again
 
-val litAgain = monitor[Lamp, Outcome, Fact, Lit](Lit.never)(countLit)(seen => seen == Lit.again)
+val litAgain =
+  monitor[LampState, Outcome, Fact, Lit](Lit.never)(countLit)(seen => seen == Lit.again)
 
 /** The detailed lamp: every part a derivation keeps or replaces. */
-val lamp = machine[Lamp, Outcome, Fact] {
-  refines(view)(seen)
-  visible(f => f != Fact.burnedOut)
-  visibleOutcomes(o => o == Outcome.accepted)
-  monitors(litAgain)
-  assumes(lampOpaque)
-  starts(Lamp(Light.off))
-  ends(l => l.light != Light.broken)
-  evidence { case Fact.burnedOut => "lampBurnedOut" }
-  unobservable(wear)
-  steps(press ~> pressLamp, wear ~> wearLamp)
-}
+object Lamp extends Machine[LampState, Outcome, Fact]:
+  val init = LampState(Light.off)
+  def end(l: State) = l.light != Light.broken
+  val evidence: PartialFunction[Fact, String] = { case Fact.burnedOut => "lampBurnedOut" }
+
+  object refinement extends Refinement(View):
+    def toProduct(l: LampState): ViewState =
+      if l.light == Light.on then ViewState(Shown.bright) else ViewState(Shown.dark)
+    val visible = (f: Fact) => f != Fact.burnedOut
+    val visibleOutcomes = (o: Outcome) => o == Outcome.accepted
+    val unobservable = List(wear)
+
+  object monitors extends Section:
+    val lit = litAgain
+    val opaque = lampOpaque
+
+  object rules extends Bindings(press ~> pressLamp, wear ~> wearLamp)
 
 /** One step function replaced, in its place. */
-val stiffLamp = lamp.rebind(press ~> pressStiff)
+object StiffLamp extends Derived(Lamp.rebind(press ~> pressStiff))
 
-val stiffLampSpelled = machine[Lamp, Outcome, Fact] {
-  refines(view)(seen)
-  visible(f => f != Fact.burnedOut)
-  visibleOutcomes(o => o == Outcome.accepted)
-  monitors(litAgain)
-  assumes(lampOpaque)
-  starts(Lamp(Light.off))
-  ends(l => l.light != Light.broken)
-  evidence { case Fact.burnedOut => "lampBurnedOut" }
-  unobservable(wear)
-  steps(press ~> pressStiff, wear ~> wearLamp)
-}
+object StiffLampSpelled extends Machine[LampState, Outcome, Fact]:
+  val init = LampState(Light.off)
+  def end(l: State) = l.light != Light.broken
+  val evidence: PartialFunction[Fact, String] = { case Fact.burnedOut => "lampBurnedOut" }
+
+  object refinement extends Refinement(View):
+    def toProduct(l: LampState): ViewState =
+      if l.light == Light.on then ViewState(Shown.bright) else ViewState(Shown.dark)
+    val visible = (f: Fact) => f != Fact.burnedOut
+    val visibleOutcomes = (o: Outcome) => o == Outcome.accepted
+    val unobservable = List(wear)
+
+  object monitors extends Section:
+    val lit = litAgain
+    val opaque = lampOpaque
+
+  object rules extends Bindings(press ~> pressStiff, wear ~> wearLamp)
 
 /** An action added, the refined machine replaced and an assumption appended, in one chain. */
-val faultyLamp = lamp
-  .extend(burnOut ~> burnOutLamp)
-  .refining(viewUnderFaults)(seen)
-  .assuming(burnOutAssumed)
+object FaultyLamp
+    extends Derived(
+      Lamp
+        .extend(burnOut ~> burnOutLamp)
+        .refining(ViewUnderFaults)(seen)
+        .assuming(burnOutAssumed)
+    ),
+      FailureModel
 
-val faultyLampSpelled = machine[Lamp, Outcome, Fact] {
-  refines(viewUnderFaults)(seen)
-  visible(f => f != Fact.burnedOut)
-  visibleOutcomes(o => o == Outcome.accepted)
-  monitors(litAgain)
-  assumes(lampOpaque, burnOutAssumed)
-  starts(Lamp(Light.off))
-  ends(l => l.light != Light.broken)
-  evidence { case Fact.burnedOut => "lampBurnedOut" }
-  unobservable(wear)
-  steps(press ~> pressLamp, wear ~> wearLamp, burnOut ~> burnOutLamp)
-}
+object FaultyLampSpelled extends Machine[LampState, Outcome, Fact], FailureModel:
+  val init = LampState(Light.off)
+  def end(l: State) = l.light != Light.broken
+  val evidence: PartialFunction[Fact, String] = { case Fact.burnedOut => "lampBurnedOut" }
+
+  object refinement extends Refinement(ViewUnderFaults):
+    def toProduct(l: LampState): ViewState =
+      if l.light == Light.on then ViewState(Shown.bright) else ViewState(Shown.dark)
+    val visible = (f: Fact) => f != Fact.burnedOut
+    val visibleOutcomes = (o: Outcome) => o == Outcome.accepted
+    val unobservable = List(wear)
+
+  object monitors extends Section:
+    val lit = litAgain
+    val opaque = lampOpaque
+    val faults = burnOutAssumed
+
+  object rules extends Bindings(press ~> pressLamp, wear ~> wearLamp, burnOut ~> burnOutLamp)
 
 /** The monitors and the refinement dropped, with its visibility. */
-val plainLamp = lamp.unmonitored
+object PlainLamp extends Derived(Lamp.unmonitored)
 
-val plainLampSpelled = machine[Lamp, Outcome, Fact] {
-  assumes(lampOpaque)
-  starts(Lamp(Light.off))
-  ends(l => l.light != Light.broken)
-  evidence { case Fact.burnedOut => "lampBurnedOut" }
-  unobservable(wear)
-  steps(press ~> pressLamp, wear ~> wearLamp)
-}
+object PlainLampSpelled extends Machine[LampState, Outcome, Fact]:
+  val init = LampState(Light.off)
+  def end(l: State) = l.light != Light.broken
+  val evidence: PartialFunction[Fact, String] = { case Fact.burnedOut => "lampBurnedOut" }
+  val unobservable = List(wear)
+
+  object monitors extends Section:
+    val opaque = lampOpaque
+
+  object rules extends Bindings(press ~> pressLamp, wear ~> wearLamp)
 
 /** A derivation of a derivation: a lambda bound by it is named after the machine it declares. */
-val plainStiffLamp =
-  stiffLamp.unmonitored.rebind(wear ~> (l => if l.light == Light.broken then Nil else wearLamp(l)))
+object PlainStiffLamp
+    extends Derived(
+      StiffLamp.unmonitored.rebind(
+        wear ~> (l => if l.light == Light.broken then Nil else wearLamp(l))
+      )
+    )
 
-val plainStiffLampSpelled = machine[Lamp, Outcome, Fact] {
-  assumes(lampOpaque)
-  starts(Lamp(Light.off))
-  ends(l => l.light != Light.broken)
-  evidence { case Fact.burnedOut => "lampBurnedOut" }
-  unobservable(wear)
-  steps(press ~> pressStiff, wear ~> (l => if l.light == Light.broken then Nil else wearLamp(l)))
-}
+object PlainStiffLampSpelled extends Machine[LampState, Outcome, Fact]:
+  val init = LampState(Light.off)
+  def end(l: State) = l.light != Light.broken
+  val evidence: PartialFunction[Fact, String] = { case Fact.burnedOut => "lampBurnedOut" }
+  val unobservable = List(wear)
+
+  object monitors extends Section:
+    val opaque = lampOpaque
+
+  object rules
+      extends Bindings(
+        press ~> pressStiff,
+        wear ~> (l => if l.light == Light.broken then Nil else wearLamp(l))
+      )
 
 /** A restriction chained after a derivation: it keeps the monitors and assumptions, not the rest. */
-val stiffPressOnly = lamp.rebind(press ~> pressStiff).restrict(press)
+object StiffPressOnly extends Derived(Lamp.rebind(press ~> pressStiff).restrict(press))
 
-val stiffPressOnlySpelled = machine[Lamp, Outcome, Fact] {
-  monitors(litAgain)
-  assumes(lampOpaque)
-  starts(Lamp(Light.off))
-  ends(l => l.light != Light.broken)
-  evidence { case Fact.burnedOut => "lampBurnedOut" }
-  steps(press ~> pressStiff)
-}
+object StiffPressOnlySpelled extends Machine[LampState, Outcome, Fact]:
+  val init = LampState(Light.off)
+  def end(l: State) = l.light != Light.broken
+  val evidence: PartialFunction[Fact, String] = { case Fact.burnedOut => "lampBurnedOut" }
+
+  object monitors extends Section:
+    val lit = litAgain
+    val opaque = lampOpaque
+
+  object rules extends Bindings(press ~> pressStiff)

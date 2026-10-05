@@ -3,14 +3,14 @@
 package fixture.irfiles
 
 import umpire.*
-import fixture.presence.presence
+import fixture.presence.Presence
 import fixture.specimens.admission.{currentQueries, staleQueries}
 
 // Lifted first, so a file lifted after it shows nothing of it carried over.
-val sharedAdmission = irFile("shared-admission")(presence, currentQueries, staleQueries)
+val sharedAdmission = irFile("shared-admission")(Presence, currentQueries, staleQueries)
 
 // The presence fixture's one root, so its file is the presence fixture's expected IR.
-val sharedPresence = irFile("shared-presence")(presence)
+val sharedPresence = irFile("shared-presence")(Presence)
 
 // A root the lifter refuses, as it refuses it among the rejected declarations.
-val refusedFile = irFile("refused")(fixture.rejects.unbounded)
+val refusedFile = irFile("refused")(fixture.rejects.Hoarding)

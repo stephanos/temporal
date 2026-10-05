@@ -6,8 +6,11 @@
 package fixture.patterns
 
 import umpire.*
+import PatternsFamily.given
 
-given Family = Family("fixture.patterns")
+/** The family, in an object of its own: the machine objects read it while they initialize. */
+object PatternsFamily:
+  given family: Family = Family("fixture.patterns")
 
 enum Phase derives Finite:
   case idle, running, paused, done
@@ -15,7 +18,8 @@ enum Phase derives Finite:
 enum Active derives Finite:
   case none, one, two
 
-final case class Job(phase: Phase, active: Active) derives Finite
+/** The job's state, named apart from the machine object `Job`. */
+final case class JobState(phase: Phase, active: Active) derives Finite
 
 enum Outcome derives Finite:
   case accepted
@@ -29,145 +33,153 @@ val start = action(Party("user"))
 val pause = action(Party("user"))
 val finish = action(Party("worker"))
 
-type JobStep = Step[Job, Outcome, Fact]
+type JobStep = Step[JobState, Outcome, Fact]
 
-def startStep(j: Job): List[JobStep] =
-  if j.phase == Phase.idle then enter(Job(Phase.running, Active.one), Fact.started) else disabled
-def pauseStep(j: Job): List[JobStep] =
+def startStep(j: JobState): List[JobStep] =
+  if j.phase == Phase.idle then enter(JobState(Phase.running, Active.one), Fact.started)
+  else disabled
+def pauseStep(j: JobState): List[JobStep] =
   if j.phase == Phase.running then enter(j.copy(phase = Phase.paused), Fact.paused) else disabled
-def finishStep(j: Job): List[JobStep] =
+def finishStep(j: JobState): List[JobStep] =
   if j.phase.in(Phase.running, Phase.paused) then
-    enter(Job(Phase.done, Active.none), Fact.finished, Fact.released)
+    enter(JobState(Phase.done, Active.none), Fact.finished, Fact.released)
   else disabled
 
-val job = machine[Job, Outcome, Fact] {
-  starts(Job(Phase.idle, Active.none))
-  ends(j => j.phase == Phase.done)
-  steps(start ~> startStep, pause ~> pauseStep, finish ~> finishStep)
-}
+object Job extends Machine[JobState, Outcome, Fact]:
+  val init = JobState(Phase.idle, Active.none)
+  def end(j: State) = j.phase == Phase.done
 
-final case class Lamp(lit: Boolean) derives Finite
+  object rules extends Bindings(start ~> startStep, pause ~> pauseStep, finish ~> finishStep)
+
+/** The lamp's state, named apart from the machine object `Lamp`. */
+final case class LampState(lit: Boolean) derives Finite
 
 enum LampFact derives Finite:
   case flipped
 
 val flip = action(Party("user"))
 
-def flipStep(l: Lamp): List[Step[Lamp, Outcome, LampFact]] = enter(Lamp(!l.lit), LampFact.flipped)
+def flipStep(l: LampState): List[Step[LampState, Outcome, LampFact]] =
+  enter(LampState(!l.lit), LampFact.flipped)
 
-val lamp = machine[Lamp, Outcome, LampFact] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(flip ~> flipStep)
-}
+object Lamp extends Machine[LampState, Outcome, LampFact]:
+  val init = LampState(false)
+  def end(lamp: State) = true
 
-/** The job beside a lamp: a composition whose claims read the job through its member field. */
-final case class Pair(job: Job, lamp: Lamp) derives Finite
+  object rules extends Bindings(flip ~> flipStep)
 
-type PairStep = Step[Pair, String, String]
+/**
+ * The job beside a lamp: a composition whose claims read the job through its member field, its state
+ * named apart from the composition object `Pair`.
+ */
+final case class PairState(job: JobState, lamp: LampState) derives Finite
 
-val pair = compose[Pair](_.job -> job, _.lamp -> lamp).ends(p => p.job.phase == Phase.done)
+type PairStep = Step[PairState, String, String]
+
+object Pair extends Composition[PairState](_.job -> Job, _.lamp -> Lamp):
+  def end(p: State) = p.job.phase == Phase.done
+  object syncs extends Syncs
 
 // ### The predicates the claims name, over the job and over the pair's job
 
-def isPaused(j: Job): Boolean = j.phase == Phase.paused
-def isRunning(j: Job): Boolean = j.phase == Phase.running
-def isDone(j: Job): Boolean = j.phase == Phase.done
-def isActive(j: Job): Boolean = j.active != Active.none
-def twoActive(j: Job): Boolean = j.active == Active.two
-def jobPhase(j: Job): Phase = j.phase
+def isPaused(j: JobState): Boolean = j.phase == Phase.paused
+def isRunning(j: JobState): Boolean = j.phase == Phase.running
+def isDone(j: JobState): Boolean = j.phase == Phase.done
+def isActive(j: JobState): Boolean = j.active != Active.none
+def twoActive(j: JobState): Boolean = j.active == Active.two
+def jobPhase(j: JobState): Phase = j.phase
 def startedStep(after: JobStep): Boolean = isRunning(after.state)
 def twoActiveStep(after: JobStep): Boolean = twoActive(after.state)
 def released(after: JobStep): Boolean = after.records(Fact.released)
 
-def pairPaused(p: Pair): Boolean = isPaused(p.job)
-def pairRunning(p: Pair): Boolean = isRunning(p.job)
-def pairDone(p: Pair): Boolean = isDone(p.job)
-def pairActive(p: Pair): Boolean = isActive(p.job)
-def pairTwo(p: Pair): Boolean = twoActive(p.job)
-def pairPhase(p: Pair): Phase = p.job.phase
+def pairPaused(p: PairState): Boolean = isPaused(p.job)
+def pairRunning(p: PairState): Boolean = isRunning(p.job)
+def pairDone(p: PairState): Boolean = isDone(p.job)
+def pairActive(p: PairState): Boolean = isActive(p.job)
+def pairTwo(p: PairState): Boolean = twoActive(p.job)
+def pairPhase(p: PairState): Phase = p.job.phase
 def pairStartedStep(after: PairStep): Boolean = isRunning(after.state.job)
 def pairTwoStep(after: PairStep): Boolean = twoActive(after.state.job)
 def pairReleased(after: PairStep): Boolean = after.records(_.job, Fact.released)
 
 // ### Each pattern on the machine, beside its lambda spelling
 
-val doneKeeps = job.property.once(isDone).keeps(_.phase)
-val doneKeepsCore = job.property holdsAcross { (before, after) =>
+val doneKeeps = Job.property.once(isDone).keeps(_.phase)
+val doneKeepsCore = Job.property holdsAcross { (before, after) =>
   !isDone(before) || after.state.phase == before.phase
 }
 
-val noTwo = job.property.never(twoActiveStep)
-val noTwoCore = job.property holds (after => !twoActiveStep(after))
+val noTwo = Job.property.never(twoActiveStep)
+val noTwoCore = Job.property holds (after => !twoActiveStep(after))
 
-val notStartedWhilePaused = job.property.never(startedStep).from(isPaused)
-val notStartedWhilePausedCore = job.property holdsAcross { (before, after) =>
+val notStartedWhilePaused = Job.property.never(startedStep).from(isPaused)
+val notStartedWhilePausedCore = Job.property holdsAcross { (before, after) =>
   !isPaused(before) || !startedStep(after)
 }
 
-val doneStays = job.property.stays(isDone)
-val doneStaysCore = job.property holdsAcross { (before, after) =>
+val doneStays = Job.property.stays(isDone)
+val doneStaysCore = Job.property holdsAcross { (before, after) =>
   !isDone(before) || isDone(after.state)
 }
 
-val activeStays = job.property.stays(isActive).unless(released)
-val activeStaysCore = job.property holdsAcross { (before, after) =>
+val activeStays = Job.property.stays(isActive).unless(released)
+val activeStaysCore = Job.property holdsAcross { (before, after) =>
   !isActive(before) || isActive(after.state) || released(after)
 }
 
 // ### Each pattern on the composition, through the member projection
 
-val pairDoneKeeps = pair.property.once(pairDone).keeps(_.job.phase)
-val pairDoneKeepsCore = pair.property holdsAcross { (before, after) =>
+val pairDoneKeeps = Pair.property.once(pairDone).keeps(_.job.phase)
+val pairDoneKeepsCore = Pair.property holdsAcross { (before, after) =>
   !pairDone(before) || after.state.job.phase == before.job.phase
 }
 
-val pairNoTwo = pair.property.never(pairTwoStep)
-val pairNoTwoCore = pair.property holds (after => !pairTwoStep(after))
+val pairNoTwo = Pair.property.never(pairTwoStep)
+val pairNoTwoCore = Pair.property holds (after => !pairTwoStep(after))
 
-val pairNotStartedWhilePaused = pair.property.never(pairStartedStep).from(pairPaused)
-val pairNotStartedWhilePausedCore = pair.property holdsAcross { (before, after) =>
+val pairNotStartedWhilePaused = Pair.property.never(pairStartedStep).from(pairPaused)
+val pairNotStartedWhilePausedCore = Pair.property holdsAcross { (before, after) =>
   !pairPaused(before) || !pairStartedStep(after)
 }
 
-val pairDoneStays = pair.property.stays(pairDone)
-val pairDoneStaysCore = pair.property holdsAcross { (before, after) =>
+val pairDoneStays = Pair.property.stays(pairDone)
+val pairDoneStaysCore = Pair.property holdsAcross { (before, after) =>
   !pairDone(before) || pairDone(after.state)
 }
 
-val pairActiveStays = pair.property.stays(pairActive).unless(pairReleased)
-val pairActiveStaysCore = pair.property holdsAcross { (before, after) =>
+val pairActiveStays = Pair.property.stays(pairActive).unless(pairReleased)
+val pairActiveStaysCore = Pair.property holdsAcross { (before, after) =>
   !pairActive(before) || pairActive(after.state) || pairReleased(after)
 }
 
 // A member's fact, by its selector and by the composed key a composition records it under.
-val pairStarted = pair.property holds (after => after.records(_.job, Fact.started))
-val pairStartedCore = pair.property holds (after => after.facts.contains("job_started"))
+val pairStarted = Pair.property holds (after => after.records(_.job, Fact.started))
+val pairStartedCore = Pair.property holds (after => after.facts.contains("job_started"))
 
-val lampFlipped = pair.property holds (after => after.records(_.lamp, LampFact.flipped))
-val lampFlippedCore = pair.property holds (after => after.facts.contains("lamp_flipped"))
+val lampFlipped = Pair.property holds (after => after.records(_.lamp, LampFact.flipped))
+val lampFlippedCore = Pair.property holds (after => after.facts.contains("lamp_flipped"))
 
 // ### Each pattern with a lambda of its own, lifted as `holds` lifts one
 
-val doneKeepsInline = job.property.once(_.phase == Phase.done).keeps(_.phase)
-val noTwoInline = job.property.never(_.state.active == Active.two)
+val doneKeepsInline = Job.property.once(_.phase == Phase.done).keeps(_.phase)
+val noTwoInline = Job.property.never(_.state.active == Active.two)
 val notStartedInline =
-  job.property.never(_.state.phase == Phase.running).from(_.phase == Phase.paused)
-val doneStaysInline = job.property.stays(_.phase == Phase.done)
+  Job.property.never(_.state.phase == Phase.running).from(_.phase == Phase.paused)
+val doneStaysInline = Job.property.stays(_.phase == Phase.done)
 val activeStaysInline =
-  job.property.stays(_.active != Active.none).unless(_.records(Fact.released))
+  Job.property.stays(_.active != Active.none).unless(_.records(Fact.released))
 
-val doneKeepsInlineCore = job.property holdsAcross { (before, after) =>
+val doneKeepsInlineCore = Job.property holdsAcross { (before, after) =>
   !(before.phase == Phase.done) || after.state.phase == before.phase
 }
-val noTwoInlineCore = job.property holds (after => !(after.state.active == Active.two))
-val notStartedInlineCore = job.property holdsAcross { (before, after) =>
+val noTwoInlineCore = Job.property holds (after => !(after.state.active == Active.two))
+val notStartedInlineCore = Job.property holdsAcross { (before, after) =>
   !(before.phase == Phase.paused) || !(after.state.phase == Phase.running)
 }
-val doneStaysInlineCore = job.property holdsAcross { (before, after) =>
+val doneStaysInlineCore = Job.property holdsAcross { (before, after) =>
   !(before.phase == Phase.done) || after.state.phase == Phase.done
 }
-val activeStaysInlineCore = job.property holdsAcross { (before, after) =>
+val activeStaysInlineCore = Job.property holdsAcross { (before, after) =>
   !(before.active != Active.none) || after.state.active != Active.none ||
   after.records(Fact.released)
 }
@@ -186,38 +198,38 @@ def atMostOneActive[S](m: Declares[S])(twoActive: S => Boolean): Property[S] =
 def terminalStays[S, P](m: Declares[S])(terminal: S => Boolean, phase: S => P): Property[S] =
   m.property("terminalStays").once(terminal).keeps(phase)
 
-val jobNotAdmitted = notAdmittedWhilePaused(job)(isPaused, isRunning)
-val jobNotAdmittedCore = job.property("notAdmittedWhilePausedCore") holdsAcross { (before, after) =>
+val jobNotAdmitted = notAdmittedWhilePaused(Job)(isPaused, isRunning)
+val jobNotAdmittedCore = Job.property("notAdmittedWhilePausedCore") holdsAcross { (before, after) =>
   !isPaused(before) || !isRunning(after.state)
 }
-val jobOneActive = atMostOneActive(job)(twoActive)
-val jobOneActiveCore = job.property("atMostOneActiveCore") holds (after => !twoActive(after.state))
-val jobTerminal = terminalStays(job)(isDone, jobPhase)
-val jobTerminalCore = job.property("terminalStaysCore") holdsAcross { (before, after) =>
+val jobOneActive = atMostOneActive(Job)(twoActive)
+val jobOneActiveCore = Job.property("atMostOneActiveCore") holds (after => !twoActive(after.state))
+val jobTerminal = terminalStays(Job)(isDone, jobPhase)
+val jobTerminalCore = Job.property("terminalStaysCore") holdsAcross { (before, after) =>
   !isDone(before) || after.state.phase == before.phase
 }
 
-val pairNotAdmitted = notAdmittedWhilePaused(pair)(pairPaused, pairRunning)
-val pairNotAdmittedCore = pair.property("notAdmittedWhilePausedCore") holdsAcross {
+val pairNotAdmitted = notAdmittedWhilePaused(Pair)(pairPaused, pairRunning)
+val pairNotAdmittedCore = Pair.property("notAdmittedWhilePausedCore") holdsAcross {
   (before, after) => !pairPaused(before) || !pairRunning(after.state)
 }
-val pairOneActive = atMostOneActive(pair)(pairTwo)
+val pairOneActive = atMostOneActive(Pair)(pairTwo)
 val pairOneActiveCore =
-  pair.property("atMostOneActiveCore") holds (after => !pairTwo(after.state))
-val pairTerminal = terminalStays(pair)(pairDone, pairPhase)
-val pairTerminalCore = pair.property("terminalStaysCore") holdsAcross { (before, after) =>
+  Pair.property("atMostOneActiveCore") holds (after => !pairTwo(after.state))
+val pairTerminal = terminalStays(Pair)(pairDone, pairPhase)
+val pairTerminalCore = Pair.property("terminalStaysCore") holdsAcross { (before, after) =>
   !pairDone(before) || after.state.job.phase == before.job.phase
 }
 
 // ### One Query per Property, so a lift of `claims` reaches every one
 
 val run = Limits(steps = 2, actions = 2, search = 64)
-val jobAny = job.scenario.free
-val pairAny = pair.scenario.free
+val jobAny = Job.scenario.free
+val pairAny = Pair.scenario.free
 
-def onJob(name: String, p: Property[Job]): Query =
+def onJob(name: String, p: Property[JobState]): Query =
   query(name) verify p in jobAny limits run total 72
-def onPair(name: String, p: Property[Pair]): Query =
+def onPair(name: String, p: Property[PairState]): Query =
   query(name) verify p in pairAny limits run total 192
 
 val claims: Vector[Query] = Vector(

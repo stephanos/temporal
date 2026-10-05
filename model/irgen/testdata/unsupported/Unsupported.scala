@@ -21,8 +21,8 @@ def goStep(s: State): List[Step[State, Outcome, Nothing]] =
   while out.isEmpty do out = List(Step(Outcome.accepted, State(Phase.done)))
   out
 
-val unsupported: Machine[State, Outcome, Nothing] =
-  machine[State, Outcome, Nothing] {
-    starts(State(Phase.idle))
-    steps(go ~> goStep)
-  }
+object Unsupported extends Machine[State, Outcome, Nothing]:
+  val init = State(Phase.idle)
+  def end(s: State) = false
+
+  object rules extends Bindings(go ~> goStep)

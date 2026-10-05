@@ -12,7 +12,7 @@
       "requested": "fixture.capabilities.Note.cancelAsked"
     },
     "cites": { },
-    "position": "model/irgen/testdata/lifts/Capabilities.scala:130"
+    "position": "model/irgen/testdata/lifts/Capabilities.scala:136"
   }, {
     "machine": "job",
     "name": "job.closedIsRejectedUniformly",
@@ -27,7 +27,7 @@
     "cites": {
       "rejected": [ "model/irgen/testdata/lifts/Capabilities.scala" ]
     },
-    "position": "model/irgen/testdata/lifts/Capabilities.scala:126"
+    "position": "model/irgen/testdata/lifts/Capabilities.scala:132"
   }, {
     "machine": "job",
     "name": "job.pausedIsNotDispatched",
@@ -43,7 +43,7 @@
       "running": "fixture.capabilities.Jobs$.running"
     },
     "cites": { },
-    "position": "model/irgen/testdata/lifts/Capabilities.scala:127"
+    "position": "model/irgen/testdata/lifts/Capabilities.scala:133"
   }, {
     "machine": "job",
     "name": "job.terminalStatesAreFinal",
@@ -55,7 +55,7 @@
       "terminal": "fixture.capabilities.Jobs$.terminal"
     },
     "cites": { },
-    "position": "model/irgen/testdata/lifts/Capabilities.scala:126"
+    "position": "model/irgen/testdata/lifts/Capabilities.scala:132"
   }, {
     "machine": "job",
     "name": "job.terminateSettles",
@@ -69,7 +69,7 @@
       "settled": "fixture.capabilities.Note.killedNote"
     },
     "cites": { },
-    "position": "model/irgen/testdata/lifts/Capabilities.scala:129"
+    "position": "model/irgen/testdata/lifts/Capabilities.scala:135"
   }, {
     "machine": "keptJob",
     "name": "keptJob.statusStaysClosed",
@@ -83,7 +83,7 @@
     "cites": {
       "terminal": [ "model/irgen/testdata/lifts/Capabilities.scala" ]
     },
-    "position": "model/irgen/testdata/lifts/Capabilities.scala:193"
+    "position": "model/irgen/testdata/lifts/Capabilities.scala:202"
   }, {
     "machine": "legacyJob",
     "name": "legacyJob.closedIsRejectedUniformly",
@@ -97,7 +97,7 @@
     },
     "cites": { },
     "overriddenBy": "fixture.capabilities.Jobs$.closedKeepsTheState",
-    "position": "model/irgen/testdata/lifts/Capabilities.scala:141"
+    "position": "model/irgen/testdata/lifts/Capabilities.scala:147"
   }, {
     "machine": "pair",
     "name": "pair.pausedIsNotDispatched",
@@ -109,11 +109,11 @@
       "Pollable.dispatch": "left_poll"
     },
     "bindings": {
-      "paused": "fixture.capabilities.Pair.through.left.fixture.capabilities.Jobs$.paused",
-      "running": "fixture.capabilities.Pair.through.left.phase.fixture.capabilities.Capabilities$package$.runs"
+      "paused": "fixture.capabilities.PairState.through.left.fixture.capabilities.Jobs$.paused",
+      "running": "fixture.capabilities.PairState.through.left.phase.fixture.capabilities.Capabilities$package$.runs"
     },
     "cites": { },
-    "position": "model/irgen/testdata/lifts/Capabilities.scala:162"
+    "position": "model/irgen/testdata/lifts/Capabilities.scala:171"
   }, {
     "machine": "rogueJob",
     "name": "rogueJob.pausedIsNotDispatched",
@@ -129,7 +129,7 @@
       "running": "fixture.capabilities.Jobs$.running"
     },
     "cites": { },
-    "position": "model/irgen/testdata/lifts/Capabilities.scala:213"
+    "position": "model/irgen/testdata/lifts/Capabilities.scala:223"
   } ],
   "waivers": [ {
     "machine": "legacyJob",
@@ -137,13 +137,13 @@
     "waiver": "overriding",
     "by": "fixture.capabilities.Jobs$.closedKeepsTheState",
     "because": "a fixture's override: the legacy job answers a closed job as it likes",
-    "position": "model/irgen/testdata/lifts/Capabilities.scala:145"
+    "position": "model/irgen/testdata/lifts/Capabilities.scala:151"
   }, {
     "machine": "legacyJob",
     "law": "terminalStatesAreFinal",
     "waiver": "except",
     "because": "a fixture's waiver: the legacy job keeps no status",
-    "position": "model/irgen/testdata/lifts/Capabilities.scala:143"
+    "position": "model/irgen/testdata/lifts/Capabilities.scala:149"
   } ],
   "catalog": [ {
     "law": "cancelIsRequested",
@@ -154,7 +154,7 @@
     "parameters": [ ],
     "instantiating": [ {
       "machine": "job",
-      "state": "fixture.capabilities.Job"
+      "state": "fixture.capabilities.JobState"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:11"
   }, {
@@ -166,7 +166,7 @@
     "parameters": [ "rejected" ],
     "instantiating": [ {
       "machine": "job",
-      "state": "fixture.capabilities.Job"
+      "state": "fixture.capabilities.JobState"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:9"
   }, {
@@ -178,7 +178,7 @@
     "parameters": [ ],
     "instantiating": [ {
       "machine": "job",
-      "state": "fixture.capabilities.Job"
+      "state": "fixture.capabilities.JobState"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:12"
   }, {
@@ -190,9 +190,9 @@
     "parameters": [ "terminal" ],
     "instantiating": [ {
       "machine": "keptJob",
-      "state": "fixture.capabilities.Job"
+      "state": "fixture.capabilities.JobState"
     } ],
-    "position": "model/irgen/testdata/lifts/Capabilities.scala:182"
+    "position": "model/irgen/testdata/lifts/Capabilities.scala:191"
   }, {
     "law": "terminalStatesAreFinal",
     "capabilities": [ "Closable" ],
@@ -202,7 +202,7 @@
     "parameters": [ ],
     "instantiating": [ {
       "machine": "job",
-      "state": "fixture.capabilities.Job"
+      "state": "fixture.capabilities.JobState"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:9"
   }, {
@@ -214,7 +214,7 @@
     "parameters": [ ],
     "instantiating": [ {
       "machine": "job",
-      "state": "fixture.capabilities.Job"
+      "state": "fixture.capabilities.JobState"
     } ],
     "position": "model/temporal/capabilities/Catalog.scala:10"
   } ]

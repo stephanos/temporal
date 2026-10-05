@@ -9,8 +9,11 @@
 package fixture.members
 
 import umpire.*
+import MembersFamily.given
 
-given Family = Family("fixture.members")
+/** The family, in an object of its own: the machine objects read it while they initialize. */
+object MembersFamily:
+  given family: Family = Family("fixture.members")
 
 // ### Separators in composed keys, and actions spelled alike in two members
 
@@ -22,7 +25,8 @@ enum Switched derives Finite:
 
 final case class Switch(on: Boolean) derives Finite
 
-final case class Switches(left_side: Switch, right_side: Switch)
+/** The two switches' state, named apart from the composition object `Switches`. */
+final case class SwitchesState(left_side: Switch, right_side: Switch)
 
 val turnOn = action("turn-on", Party("fixture")).input[Level]("level")
 
@@ -43,46 +47,51 @@ def turnOnStep(s: Switch, level: Level): List[Step[Switch, Switched, Nothing]] =
   Step(Switched.accepted, Switch(true))
 )
 
-val leftSwitch = machine[Switch, Switched, Nothing] {
-  starts(Switch(false))
-  ends(_ => true)
-  steps(Left.tap ~> toggle, Left.flick ~> toggle, turnOn ~> turnOnStep)
-}
+object LeftSwitch extends Machine[Switch, Switched, Nothing]:
+  val init = Switch(false)
+  def end(switch: State) = true
 
-val rightSwitch = machine[Switch, Switched, Nothing] {
-  starts(Switch(false))
-  ends(_ => true)
-  steps(Right.tap ~> toggle, Right.flick ~> toggle)
-}
+  object rules extends Bindings(Left.tap ~> toggle, Left.flick ~> toggle, turnOn ~> turnOnStep)
 
-val switches = compose[Switches](_.left_side -> leftSwitch, _.right_side -> rightSwitch)
-  .sync("tap_both-ways", _.left_side -> Left.tap, _.right_side -> Right.tap)
-  .ends(_ => true)
+object RightSwitch extends Machine[Switch, Switched, Nothing]:
+  val init = Switch(false)
+  def end(switch: State) = true
 
-val switchSchedule = switches.scenario.actions(
-  switches.synced(_.right_side -> Right.tap),
-  switches.own(_.left_side, turnOn(Level.high)),
-  switches.own(_.left_side, Left.flick),
-  switches.own(_.right_side, Right.flick)
+  object rules extends Bindings(Right.tap ~> toggle, Right.flick ~> toggle)
+
+object Switches
+    extends Composition[SwitchesState](_.left_side -> LeftSwitch, _.right_side -> RightSwitch):
+  def end(switches: State) = true
+  object syncs extends Syncs:
+    sync("tap_both-ways", _.left_side -> Left.tap, _.right_side -> Right.tap)
+
+val switchSchedule = Switches.scenario.actions(
+  Switches.synced(_.right_side -> Right.tap),
+  Switches.own(_.left_side, turnOn(Level.high)),
+  Switches.own(_.left_side, Left.flick),
+  Switches.own(_.right_side, Right.flick)
 )
 val turnedOn =
-  switches.property.whenAction(switches.own(_.left_side, turnOn)) holds (_.state.left_side.on)
+  Switches.property.whenAction(Switches.own(_.left_side, turnOn)) holds (_.state.left_side.on)
 val tappedBoth =
-  switches.property.whenAction(switches.synced(_.left_side -> Left.tap)) holds (after =>
+  Switches.property.whenAction(Switches.synced(_.left_side -> Left.tap)) holds (after =>
     after.state.left_side.on == after.state.right_side.on
   )
 val switchLimits = Limits(steps = 4, actions = 4, search = 64)
 
 // ### A sync named after its first member's action, kept by the composition derived from it
 
-val flicks = compose[Switches](_.left_side -> leftSwitch, _.right_side -> rightSwitch)
-  .sync(_.left_side -> Left.flick, _.right_side -> Right.flick)
-  .ends(_ => true)
-val flickOnly = leftSwitch.restrict(Left.flick)
-val leftFlicks = flicks.withMember(_.left_side -> flickOnly)
-val bothFlick = leftFlicks.scenario.actions(leftFlicks.synced(_.right_side -> Right.flick))
+object Flicks
+    extends Composition[SwitchesState](_.left_side -> LeftSwitch, _.right_side -> RightSwitch):
+  def end(switches: State) = true
+  object syncs extends Syncs:
+    sync(_.left_side -> Left.flick, _.right_side -> Right.flick)
+
+object FlickOnly extends Derived(LeftSwitch.restrict(Left.flick))
+object LeftFlicks extends Composition(Flicks.withMember(_.left_side -> FlickOnly))
+val bothFlick = LeftFlicks.scenario.actions(LeftFlicks.synced(_.right_side -> Right.flick))
 val flickedBoth =
-  leftFlicks.property.whenAction(leftFlicks.synced(_.left_side -> Left.flick)) holds (after =>
+  LeftFlicks.property.whenAction(LeftFlicks.synced(_.left_side -> Left.flick)) holds (after =>
     after.state.left_side.on == after.state.right_side.on
   )
 val flickedBothOnce: Query = query verify flickedBoth in bothFlick limits switchLimits total 4

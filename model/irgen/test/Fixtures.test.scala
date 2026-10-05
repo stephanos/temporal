@@ -108,11 +108,8 @@ class Fixtures extends munit.FunSuite:
     ran.output.linesIterator.filter(_.startsWith("lift:")).toSeq
 
   private val fixtures: Seq[(String, Seq[String])] = Seq(
-    "presence" -> Seq("fixture.presence.Presence$package$.presence"),
-    "channels" -> Seq(
-      "fixture.channels.Channels$package$.relay",
-      "fixture.channels.Channels$package$.tallying"
-    ),
+    "presence" -> Seq("fixture.presence.Presence"),
+    "channels" -> Seq("fixture.channels.Relay", "fixture.channels.Tallying"),
     "declarations" -> Seq(
       "fixture.declarations.Declarations$package$.queries",
       "fixture.declarations.Declarations$package$.durableEventually"
@@ -150,16 +147,18 @@ class Fixtures extends munit.FunSuite:
       "queries",
       "diskQueries",
       "localDiskQueries",
-      "relay",
+      "Relay",
       "ledger",
-      "putOnly",
+      "PutOnly",
       "durableEventually"
-    ).map("fixture.captured.Captured$package$." + _),
+    ).map(r =>
+      if r.head.isUpper then s"fixture.captured.$r" else s"fixture.captured.Captured$$package$$.$r"
+    ),
     // fn-118.2: API behavior hints and server steps (lifts/Hints.scala). The reader admits the
     // first and refuses each realization of the second at its line (tools/umpire/model).
     "hints" -> Seq("keptBehavior", "ownBehavior").map("fixture.hints.Hints$package$." + _),
     // fn-126 R14: sections in a file that pins nothing (lifts/Sections.scala).
-    "sections" -> Seq("fixture.sections.Switch$.switch"),
+    "sections" -> Seq("fixture.sections.Switch"),
     // fn-126 R15, R16: a machine object, its core twin, derivations and a composition object
     // (lifts/Rules.scala); tools/umpire/model holds the twins' tables equal.
     "rules" -> (Seq("Switch", "Mirror", "Steady", "Loose", "Dimming", "Twins", "Unequal")
@@ -182,14 +181,14 @@ class Fixtures extends munit.FunSuite:
   private val sidecars: Seq[String] = Seq("capabilities")
   // The refusals of fn-112.4's typed composition selectors, in lifts/Rejects.scala.
   private val selectorRejects: Seq[String] = Seq(
-    "memberNoField",
-    "syncNoMember",
-    "memberIncompatible",
-    "syncUnbound",
-    "withNoMember",
-    "withIncompatible",
-    "withUnrefined",
-    "withUnsynced",
+    "MemberNoField",
+    "SyncNoMember",
+    "MemberIncompatible",
+    "SyncUnbound",
+    "WithNoMember",
+    "WithIncompatible",
+    "WithUnrefined",
+    "WithUnsynced",
     "syncedNone",
     "syncedTwice",
     "ownSynced",
@@ -197,8 +196,8 @@ class Fixtures extends munit.FunSuite:
     "mixedSchedule",
     "bareInputs",
     "whenClassInputs",
-    "replacesSpare",
-    "loopPair",
+    "ReplacesSpare",
+    "LoopPair",
     "syncedNoMember",
     "ownNoMember",
     "syncedNoField"
@@ -238,34 +237,34 @@ class Fixtures extends munit.FunSuite:
 
   // The refusals of fn-120.1's named choices.
   private val choiceRejects: Seq[String] = Seq(
-    "chosenTwice",
-    "spelledTwice",
-    "choiceHelper",
-    "choiceDisabled",
-    "choiceTwoSteps",
-    "choiceIf",
-    "choiceUnnamed",
-    "choiceKept",
-    "choiceKeptHelper"
+    "ChosenTwice",
+    "SpelledTwice",
+    "ChoiceHelper",
+    "ChoiceDisabled",
+    "ChoiceTwoSteps",
+    "ChoiceIf",
+    "ChoiceUnnamed",
+    "ChoiceKept",
+    "ChoiceKeptHelper"
   )
 
   // The refusals of fn-120.2's unnamed branching: several results written without a choose.
-  private val unnamedRejects: Seq[String] = Seq("unnamedList", "unnamedJoin", "unnamedInHelper")
+  private val unnamedRejects: Seq[String] = Seq("UnnamedList", "UnnamedJoin", "UnnamedInHelper")
 
   // The refusals of fn-120.5's levels: a step made where no step function is, one per declaration
   // kind whose Scala type admits one (model/SEMANTICS.md, Levels).
   private val levelRejects: Seq[String] = Seq(
-    "levelStart",
-    "levelEnds",
-    "levelEvidence",
-    "levelRefinement",
-    "levelMonitor",
-    "levelRequire",
+    "LevelStart",
+    "LevelEnds",
+    "LevelEvidence",
+    "LevelRefinement",
+    "LevelMonitor",
+    "LevelRequire",
     "levelProperty",
     "levelTransition",
     "levelPattern",
     "levelProgress",
-    "levelComposition",
+    "LevelComposition",
     "levelScenario"
   )
 
@@ -273,16 +272,16 @@ class Fixtures extends munit.FunSuite:
   private val defaultRejects: Seq[String] =
     Seq(
       "unnamedTwice",
-      "syncNamedTwice",
+      "SyncNamedTwice",
       "omittedEmpty",
       "watchUnnamed",
       "watchUnwatched",
       "watchElsewhere",
-      "partyUnnamedLamp"
+      "PartyUnnamedLamp"
     )
 
   // The refusals of fn-112.12's claim bundles and of a moved type whose pinned name is taken.
-  private val bundleRejects: Seq[String] = Seq("mixedBundle", "movedNameTaken")
+  private val bundleRejects: Seq[String] = Seq("mixedBundle", "MovedNameTaken")
 
   // The refusals of fn-112.9's script helpers, status tables and request scopes
   // (lifts/ScriptRejects.scala).
@@ -337,73 +336,74 @@ class Fixtures extends munit.FunSuite:
       "TornMarkers$.queries$.askedTornMarkers"
     ).map("fixture.markers." + _)
 
+  // A root of lifts/Rejects.scala: a machine or composition object, or an object nested in one of its
+  // objects, by its object (`Hoarding`, `PinnedTwice$.PinnedTwice`); a top-level val by its name.
+  private def rejectsRoot(name: String): String =
+    if name.head.isUpper then s"fixture.rejects.$name"
+    else s"fixture.rejects.Rejects$$package$$.$name"
+
   private val rejected = Seq(
-    "unbounded",
-    "waiting",
-    "doubled",
-    "listening",
-    "counter",
+    "Hoarding",
+    "Waiting",
+    "Doubled",
+    "Listening",
+    "Counter",
     "crossedRead",
     "negative",
-    "watched",
-    "unrefined",
-    "misplaced",
+    "Watched",
+    "Unrefined",
+    "Misplaced",
     "noSuchRoot",
-    "unrefinedOutcomes",
-    "counting",
-    "batching",
-    "shuffling",
-    "guessing",
-    "sharedIds",
+    "UnrefinedOutcomes",
+    "Counting",
+    "Batching",
+    "Shuffling",
+    "Guessing",
+    "SharedIds",
     "unnamedProperty",
     "unnamedScenario",
-    "twins",
+    "Twins",
     "askedTwice",
     "boundTwice",
-    "tapped",
-    "unstarted",
-    "unstartedPair",
-    "undeclared",
-    "unlisted",
-    "partial",
+    "Tapped",
+    "Undeclared",
+    "Unlisted",
+    "Partial",
     "unrelatedRead",
-    "assumedTwice",
-    "gapTwice",
-    "rebindUnbound",
-    "extendBound",
-    "reboundTwice",
-    "assumedAgain",
-    "assumingTwice",
-    "refinedNothing",
-    "refinedOtherwise",
-    "loopFirst",
-    "aliased",
-    "splatted",
-    "explained"
-  ).map("fixture.rejects.Rejects$package$." + _) ++ (selectorRejects ++ patternRejects ++
-    inputRejects ++ totalRejects ++ choiceRejects ++ unnamedRejects ++ bundleRejects ++
-    defaultRejects ++ levelRejects).map(
-    "fixture.rejects.Rejects$package$." + _
+    "AssumedTwice",
+    "GapTwice",
+    "RebindPush",
+    "ExtendBound",
+    "ReboundTwice",
+    "AssumedAgain",
+    "AssumingTwice",
+    "RefinedNothing",
+    "RefinedOtherwise",
+    "LoopFirst",
+    "Aliased",
+    "Splatted",
+    "Explained"
+  ).map(rejectsRoot) ++ (selectorRejects ++ patternRejects ++ inputRejects ++ totalRejects ++
+    choiceRejects ++ unnamedRejects ++ bundleRejects ++ defaultRejects ++ levelRejects).map(
+    rejectsRoot
   ) ++ Seq(
     // DefinitionScope pins, a name the compiler made up and a computed ok outcome, refused in
     // objects of their own.
-    "PinnedTwice$.pinnedTwice",
-    "PinsOuter$.pinnedNested",
-    "Self$.pinnedSelf",
-    "Computed$.pinnedComputed",
-    "ComputedFamily$.familyComputed",
+    "PinnedTwice$.PinnedTwice",
+    "PinsOuter$.PinnedNested",
+    "Self$.PinnedSelf",
+    "Computed$.PinnedComputed",
+    "ComputedFamily$.FamilyComputed",
     "Anonymous$.anonymous",
-    "ComputedOk$.computedOk"
-  ).map("fixture.rejects." + _) ++ Seq(
+    "ComputedOk$.ComputedOk"
+  ).map(rejectsRoot) ++ Seq(
     // fn-126 R14: a section in a section or in an object of no machine, two sections' members of
     // one name, and a section that pins.
-    "sectionNested",
-    "sectionMisplaced",
-    "sectionTwins",
-    "sectionPinned"
-  ).map(
-    "fixture.rejects.Rejects$package$." + _
-  ) ++ Seq(
+    "SectionNested",
+    "SectionMisplaced",
+    "SectionTwins",
+    "SectionPinned"
+  ).map(rejectsRoot) ++ Seq(
     // fn-126 R15, R16: machine objects, rules and effects.
     "EffectOutside",
     "EmptyEffect",
@@ -413,13 +413,12 @@ class Fixtures extends munit.FunSuite:
     "ExtendedBare",
     "RebindSeveral",
     "RebindUnbound",
-    "CollidingPair",
     "Endless",
     "EndedTwice",
     "LooseRefinement",
     "LookalikePair",
     "NilEffect"
-  ).map("fixture.rejects." + _) ++ scriptRejects ++ capabilityRejects ++ hintRejects ++
+  ).map(rejectsRoot) ++ scriptRejects ++ capabilityRejects ++ hintRejects ++
     markerRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
@@ -501,21 +500,20 @@ class Fixtures extends munit.FunSuite:
       refusals("crossed").sorted,
       Seq(
         "ActionInput.scala:15:28",
-        "Capabilities.scala:19:78",
+        "Capabilities.scala:19:85",
         "Capabilities.scala:22:16",
         "Capabilities.scala:25:17",
-        "Capabilities.scala:30:80",
-        "Crossed.scala:35:14",
-        "Crossed.scala:45:28",
-        "Crossed.scala:49:24",
-        "Crossed.scala:59:29",
+        "Capabilities.scala:30:87",
+        "Crossed.scala:39:41",
+        "Crossed.scala:42:24",
+        "Crossed.scala:50:82",
         "IrFile.scala:11:37",
         "IrFile.scala:8:37",
         "NamedInput.scala:21:50",
         "NamedInput.scala:24:27",
         "NamedInput.scala:27:49",
         "NamedInput.scala:30:31",
-        "NoCatalog.scala:7:91",
+        "NoCatalog.scala:7:98",
         "OneChoice.scala:18:62",
         "Rules.scala:16:43",
         "Sugar.scala:10:27",
@@ -593,21 +591,21 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       refusals("retiredNames").sorted,
       Seq(
-        "Invalid.scala:34:27", // timer("expire")
-        "Invalid.scala:37:29", // internal("flush")
-        "Invalid.scala:40:20", // hole("crash")
-        "Invalid.scala:43:33", // channel[Note]("wire", ...)
-        "Invalid.scala:43:41",
-        "Invalid.scala:46:38", // lamp.restrict(family, "pressOnly")(...)
-        "Invalid.scala:46:54",
-        "Invalid.scala:49:33", // compose[Pair](family, "pair")("left" -> ..., ...)
-        "Invalid.scala:49:49",
-        "Invalid.scala:50:31", // compose[Pair]("left" -> ..., ...)
-        "Invalid.scala:50:47",
-        "Invalid.scala:51:41", // pair.sync("pressBoth", "left" -> ..., ...)
-        "Invalid.scala:51:58",
-        "Invalid.scala:53:42", // pair.replaces("left", lamp)
-        "Invalid.scala:56:20" // lamp.scenario.actionKeys("press")
+        "Invalid.scala:33:27", // timer("expire")
+        "Invalid.scala:36:29", // internal("flush")
+        "Invalid.scala:39:20", // hole("crash")
+        "Invalid.scala:42:33", // channel[Note]("wire", ...)
+        "Invalid.scala:42:41",
+        "Invalid.scala:45:38", // Lamp.restrict(family, "pressOnly")(...)
+        "Invalid.scala:45:54",
+        "Invalid.scala:52:51", // Composition[PairState](family, "pair")
+        "Invalid.scala:52:67",
+        "Invalid.scala:53:49", // Composition[PairState]("left" -> ..., ...)
+        "Invalid.scala:53:65",
+        "Invalid.scala:57:23", // sync("pressBoth", "left" -> ..., ...)
+        "Invalid.scala:57:40",
+        "Invalid.scala:58:14", // replaces("left", Lamp)
+        "Invalid.scala:61:20" // Lamp.scenario.actionKeys("press")
       ).sorted
     )
 
@@ -660,8 +658,7 @@ class Fixtures extends munit.FunSuite:
   // The typed selectors no live Model writes (lifts/Typed.scala); model/ir pins the rest.
   concurrently("typed schemas, paths and bound constants lift to their protobuf names"):
     val out = lifted("typed")
-    val roots = Seq("typedMachine", "typedRealization")
-      .map("fixture.typed.Typed$package$." + _)
+    val roots = Seq("fixture.typed.Typed", "fixture.typed.Typed$package$.typedRealization")
     val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
     assert(!result.failed, result.diagnostics)
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
@@ -748,7 +745,7 @@ class Fixtures extends munit.FunSuite:
     assertEquals(machines(shared), machines(ir("presence")) ++ machines(ir("admission")))
     assertEquals(
       mapper.readTree(shared).path("source").asText(),
-      "model: fixture.presence.Presence$package$.presence, " +
+      "model: fixture.presence.Presence, " +
         "fixture.specimens.admission.Admission$package$.currentQueries, " +
         "fixture.specimens.admission.Admission$package$.staleQueries"
     )
@@ -816,39 +813,41 @@ class Fixtures extends munit.FunSuite:
           s"in its feature file, $feature: in the `queries` object of its machine's object there",
         // (d): a machine in a type's companion, a Property at the top level, a machine object in
         // an object of the signature
-        s"lift: $feature:24: bulb is a machine or composition, declared inside Bulb, the " +
-          "companion of a type: it belongs in an object of its own",
+        s"lift: $feature:24: BulbLamp holds a Model declaration inside Bulb, the companion of a " +
+          "type: a machine object sits at the top level of a feature file, and its sections " +
+          "directly in it",
         s"lift: $feature:30: loose is a Property, declared at the top level of a feature file: " +
           "it belongs in the `properties` object of its machine's object",
         s"lift: $feature:34: Inner holds a Model declaration inside Holder, an object of the " +
           "signature: a machine object sits at the top level of a feature file, and its " +
           "sections directly in it",
         // (b)
-        s"lift: $feature:54: an initialization cycle: Switch.laws -> SwitchRealization -> " +
-          "Switch.laws, each read while the one before it initializes, so one of them is read " +
-          "half made: read it in a def, a lambda or a lazy val, or move what is read into an " +
-          "object of its own",
+        s"lift: $feature:55: an initialization cycle: Switch.implements -> SwitchRealization -> " +
+          "Switch.implements, each read while the one before it initializes, so one of them is " +
+          "read half made: read it in a def, a lambda or a lazy val, or move what is read into " +
+          "an object of its own",
         // (c)
-        s"lift: $feature:69: properties belongs before queries at $feature:66: object Backwards " +
-          "reads its vocabulary, then effects, then its monitors, then its machine, then " +
-          "properties, then laws, then queries",
-        s"lift: $feature:72: Late belongs before Backwards at $feature:60: a feature file reads " +
+        s"lift: $feature:70: properties belongs before queries at $feature:67: object Backwards " +
+          "reads its header, then states, then refinement, then effects, then monitors, then " +
+          "rules, then properties, then implements, then queries",
+        s"lift: $feature:73: Late belongs before Backwards at $feature:61: a feature file reads " +
           "its header, then its types, then its signature, then its machine and composition " +
           "objects, then object exports",
         // (d)
-        s"lift: $feature:75: extras holds a Model declaration in Misplaced, and is none of its " +
-          "sections, effects, properties, laws, queries: its declarations belong in them",
-        s"lift: $feature:83: lit is a Property, and belongs in the `properties` object of its " +
+        s"lift: $feature:79: extras holds a Model declaration in Misplaced, and is none of its " +
+          "sections, states, refinement, effects, monitors, rules, properties, implements, " +
+          "queries: its declarations belong in them",
+        s"lift: $feature:84: lit is a Property, and belongs in the `properties` object of its " +
           "machine's object, not in Misplaced",
-        s"lift: $feature:86: switchLit is declared over switch, which Switch declares: it " +
-          "belongs in Switch.properties",
+        s"lift: $feature:87: switchLit is declared over Switch, a machine object: it belongs in " +
+          "Switch.properties",
         // (c): a Scenario after a Query; (d): a Query over another object's Scenario
-        s"lift: $feature:97: late belongs before first at $feature:96: Asked.queries reads its " +
-          "Scenarios, then its Queries",
-        s"lift: $feature:98: borrowed is declared over flipped, which Switch.queries declares: " +
+        s"lift: $feature:101: late belongs before first at $feature:100: Asked.queries reads " +
+          "its Scenarios, then its Queries",
+        s"lift: $feature:102: borrowed is declared over flipped, which Switch.queries declares: " +
           "it belongs in Switch.queries",
         // (d): a val in exports that is no IR file
-        s"lift: $feature:102: note is declared in exports, which holds the feature's IR files alone"
+        s"lift: $feature:106: note is declared in exports, which holds the feature's IR files alone"
       )
     )
 
@@ -1038,11 +1037,15 @@ class Fixtures extends munit.FunSuite:
       f.toPrettyString
     assertEquals(function("broken"), function("brokenLamp"))
 
+  /** The root of the machine object `fixture.<fixture>.<Name>` a machine `name` is declared by. */
+  private def objectRoot(fixture: String)(name: String): String =
+    s"fixture.$fixture.${name.capitalize}"
+
   /**
    * The machines and Properties of one lift of `roots` of the lifts fixture `fixture`, by name, each
    * as a pair compares it: without its name, its machine and positions, and with each function it
    * refers to in place of the function's name, so two spellings may name their functions apart. A
-   * root of the Temporal Models is named in full.
+   * root of the Temporal Models, and a machine object of the fixture, is named in full.
    */
   private def declarations(
       fixture: String,
@@ -1053,7 +1056,10 @@ class Fixtures extends munit.FunSuite:
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val pkg = s"fixture.$fixture.${fixture.capitalize}$$package$$"
     val out = lifted(s"$fixture-pairs")
-    val named = roots.map(r => if r.startsWith("temporal.") then r else s"$pkg.$r")
+    val named =
+      roots.map(r =>
+        if r.startsWith("temporal.") || r.startsWith("fixture.") then r else s"$pkg.$r"
+      )
     val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ named)*)
     assert(!result.failed, result.diagnostics)
     val model = mapper.readTree(Files.readString(out))
@@ -1113,7 +1119,8 @@ class Fixtures extends munit.FunSuite:
       "plainStiffLamp" -> "plainStiffLampSpelled",
       "stiffPressOnly" -> "stiffPressOnlySpelled"
     )
-    val (model, machine, _) = declarations("derived", pairs.flatMap((a, b) => Seq(a, b)))
+    val (model, machine, _) =
+      declarations("derived", pairs.flatMap((a, b) => Seq(a, b)).map(objectRoot("derived")))
     for (derived, spelled) <- pairs do assertEquals(machine(derived), machine(spelled), derived)
     def named(name: String) =
       model.path("machines").elements().asScala.find(_.path("name").asText() == name).get
@@ -1143,7 +1150,10 @@ class Fixtures extends munit.FunSuite:
     "enter, stay, disabled, because, in, implies, records and sticky lift as their core forms do"
   ):
     val (model, machine, property) =
-      declarations("sugar", Seq("sugared", "cored", "claims", "watched"))
+      declarations(
+        "sugar",
+        Seq("fixture.sugar.Sugared", "fixture.sugar.Cored", "claims", "fixture.sugar.Watched")
+      )
     assertEquals(machine("sugared"), machine("cored"))
     for form <- Seq("records", "implies", "paused") do
       assertEquals(property(s"${form}Sugar"), property(s"${form}Core"), form)
@@ -1277,7 +1287,7 @@ class Fixtures extends munit.FunSuite:
     // UpTo[2] lifts as the Int range 0..2, the record the live protocol state's attempt counter
     // lifts to in model/ir/activity.json, which the gate holds.
     assertEquals(
-      named("types", "fixture.inputs.Counted").at("/record/fields/1/type").toString,
+      named("types", "fixture.inputs.CountedState").at("/record/fields/1/type").toString,
       """{"intRange":{"high":"2"}}"""
     )
 
@@ -1353,7 +1363,7 @@ class Fixtures extends munit.FunSuite:
   concurrently("choose names each alternative's step, and a copy of the function it calls"):
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.ObjectNode
-    val (model, _, _) = declarations("choices", Seq("chosen"))
+    val (model, _, _) = declarations("choices", Seq("fixture.choices.Chosen"))
     val prefix = "fixture.choices.Choices$package$."
     def function(name: String): JsonNode = model
       .path("functions")
@@ -1658,7 +1668,7 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       refused(lift),
       Seq(
-        "lift: model/irgen/testdata/samestate/SameState.scala:24: wrongPair pairs property, a Property of first, with scenario, a Scenario of second, and reads it through no refinement"
+        "lift: model/irgen/testdata/samestate/SameState.scala:26: wrongPair pairs property, a Property of first, with scenario, a Scenario of second, and reads it through no refinement"
       )
     )
 
@@ -1668,7 +1678,7 @@ class Fixtures extends munit.FunSuite:
       s"$jar=${stored("unsupported")}",
       modelClasspath.toString,
       "/dev/null",
-      "temporal.fixture.Unsupported$package$.unsupported"
+      "temporal.fixture.Unsupported"
     )
     assertNotEquals(lift.exit, 0)
     val line =

@@ -2,7 +2,7 @@
 // each member takes the ID it would take as a direct member of the section's owner. At the file's
 // top level that owner is the file's package object, which the lifter finds among the file's own
 // definitions rather than spelling it from the file's name; directly in a machine's object, the
-// owner is that object. The lifter's tests lift `Switch.switch`, compare the IR with
+// owner is that object. The lifter's tests lift `Switch`, compare the IR with
 // expected/sections.json and check those IDs.
 package fixture.sections
 
@@ -24,7 +24,10 @@ val reset = internal
 object panel extends Section:
   val flip = action(Party("panel"))
 
-object Switch:
+object Switch extends Machine[Light, Outcome, Nothing]:
+  val init = Light(false)
+  def end(light: State) = true
+
   /** An actor directly in the machine's object: its action's ID is `fixture.sections.Switch$`'s. */
   object operator extends Actor:
     val press = action(this)
@@ -33,8 +36,5 @@ object Switch:
   def pressStep(l: Light): List[LightStep] = List(Step(Outcome.accepted, Light(true)))
   def resetStep(l: Light): List[LightStep] = List(Step(Outcome.accepted, Light(false)))
 
-  val switch = machine[Light, Outcome, Nothing] {
-    starts(Light(false))
-    ends(_ => true)
-    steps(panel.flip ~> flipStep, operator.press ~> pressStep, reset ~> resetStep)
-  }
+  object rules
+      extends Bindings(panel.flip ~> flipStep, operator.press ~> pressStep, reset ~> resetStep)

@@ -16,19 +16,18 @@ given Family = Family("fixture.retiredNames")
 enum Note derives Finite:
   case ping
 
-final case class Lamp(on: Boolean) derives Finite
+final case class LampState(on: Boolean) derives Finite
 
 enum Outcome derives Finite:
   case accepted
 
-final case class Pair(left: Lamp, right: Lamp)
+final case class PairState(left: LampState, right: LampState)
 
 val press = action(Party("fixture"))
-val lamp = machine[Lamp, Outcome, Nothing] {
-  starts(Lamp(false))
-  ends(_ => true)
-  steps(press ~> (s => List(Step(Outcome.accepted, Lamp(!s.on)))))
-}
+object Lamp extends Machine[LampState, Outcome, Nothing]:
+  val init = LampState(false)
+  def end(lampState: State) = true
+  object rules extends Bindings(press ~> (s => List(Step(Outcome.accepted, LampState(!s.on)))))
 
 val expire = timer
 val expireSpelled = timer("expire")
@@ -42,15 +41,21 @@ val crashSpelled = hole("crash")
 val wire = channel[Note](capacity = 1, order = Order.fifo, loss = Loss.reliable)
 val wireSpelled = channel[Note]("wire", capacity = 1, order = Order.fifo, loss = Loss.reliable)
 
-val pressOnly = lamp.restrict(press)
-val pressOnlySpelled = lamp.restrict(summon[Family], "pressOnly")(press)
+object PressOnly extends Derived(Lamp.restrict(press))
+val pressOnlySpelled = Lamp.restrict(summon[Family], "pressOnly")(press)
 
-val pair = compose[Pair](_.left -> lamp, _.right -> lamp).sync(_.left -> press, _.right -> press)
-val pairSpelled = compose[Pair](summon[Family], "pair")("left" -> lamp, "right" -> lamp)
-val pairKeyed = compose[Pair]("left" -> lamp, "right" -> lamp)
-val pairSynced = pair.sync("pressBoth", "left" -> press, "right" -> press)
-val pairReplacing = pair.replaces(_.left, lamp)
-val pairReplacingSpelled = pair.replaces("left", lamp)
+object Pair extends Composition[PairState](_.left -> Lamp, _.right -> Lamp):
+  def end(pairState: State) = true
+  object syncs extends Syncs:
+    sync(_.left -> press, _.right -> press)
+    replaces(_.left, Lamp)
+object PairSpelled extends Composition[PairState](summon[Family], "pair")
+object PairKeyed extends Composition[PairState]("left" -> Lamp, "right" -> Lamp)
+object PairSynced extends Composition[PairState](_.left -> Lamp, _.right -> Lamp):
+  def end(pairState: State) = true
+  object syncs extends Syncs:
+    sync("pressBoth", "left" -> press, "right" -> press)
+    replaces("left", Lamp)
 
-val pressed = lamp.scenario.actions(press)
-val pressedKeyed = lamp.scenario.actionKeys("press")
+val pressed = Lamp.scenario.actions(press)
+val pressedKeyed = Lamp.scenario.actionKeys("press")

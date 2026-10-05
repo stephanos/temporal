@@ -139,7 +139,7 @@ func TestNamingWhatARefinedMachineSeesRequiresARefinement(t *testing.T) {
 				r.Product = ""
 				keep(r)
 			})
-			require.ErrorContains(t, Validate(m), admDeclaredAt+"95: disk names what a refined machine sees but refines none")
+			require.ErrorContains(t, Validate(m), admDeclaredAt+"98: disk names what a refined machine sees but refines none")
 		})
 	}
 }

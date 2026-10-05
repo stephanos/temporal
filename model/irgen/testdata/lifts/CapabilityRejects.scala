@@ -9,8 +9,8 @@ package fixture.capabilityrejects
 import umpire.*
 import temporal.capabilities.{closedIsRejectedUniformly, terminalStatesAreFinal}
 import temporal.capabilities.{given, *}
-import fixture.capabilities.{job, kill, poll, three, Answer, Job, Jobs, Note, Phase}
-import fixture.capabilities.{pair, pause, resume, Pair}
+import fixture.capabilities.{kill, poll, three, Answer, Job, Jobs, JobState, Note, Phase}
+import fixture.capabilities.{pause, resume, Pair, PairState}
 
 given Family = Family("fixture.capabilityrejects")
 
@@ -23,13 +23,12 @@ def reordered[S, P](m: Declares[S])(
   closedIsRejectedUniformly(m)(status, terminal, rejected)
 
 // A machine that binds poll and nothing else.
-val pollOnly = machine[Job, Answer, Note] {
-  starts(Job(Phase.queued))
-  ends(Jobs.ends)
-  steps(poll ~> Jobs.poll)
-}
+object PollOnly extends Machine[JobState, Answer, Note]:
+  val init = JobState(Phase.queued)
+  def end(s: State) = Jobs.over(s)
+  object rules extends Bindings(poll ~> Jobs.poll)
 
-val unboundAction = capabilities(pollOnly, limits = three)(
+val unboundAction = capabilities(PollOnly, limits = three)(
   Terminable(
     terminate = kill,
     settled = Note.killedNote,
@@ -38,52 +37,51 @@ val unboundAction = capabilities(pollOnly, limits = three)(
   )
 )
 
-val lambdaField = capabilities(job, limits = three)(
-  Closable(status = (j: Job) => j.phase, terminal = Jobs.terminal, rejected = Answer.gone)
+val lambdaField = capabilities(Job, limits = three)(
+  Closable(status = (j: JobState) => j.phase, terminal = Jobs.terminal, rejected = Answer.gone)
 )
 
-val declaredTwice = capabilities(job, limits = three)(
+val declaredTwice = capabilities(Job, limits = three)(
   Pollable(dispatch = poll, running = Jobs.running),
   Pollable(dispatch = poll, running = Jobs.paused)
 )
 
-val notBrought = capabilities(job, limits = three)(
+val notBrought = capabilities(Job, limits = three)(
   Pollable(dispatch = poll, running = Jobs.running)
 ).except(terminateSettles, because = "a law no capability here brings")
 
-val noReason = capabilities(job, limits = three)(
+val noReason = capabilities(Job, limits = three)(
   Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone)
 ).except(terminalStatesAreFinal, because = " ")
 
-val otherSignature = capabilities(job, limits = three)(
+val otherSignature = capabilities(Job, limits = three)(
   Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone)
 ).overriding(closedIsRejectedUniformly -> reordered, because = "its parameters differ")
 
 // A machine that declares Pollable in two declarations, the second refused.
-val againJob = machine[Job, Answer, Note] {
-  starts(Job(Phase.queued))
-  ends(Jobs.ends)
-  steps(poll ~> Jobs.poll)
-}
+object AgainJob extends Machine[JobState, Answer, Note]:
+  val init = JobState(Phase.queued)
+  def end(s: State) = Jobs.over(s)
+  object rules extends Bindings(poll ~> Jobs.poll)
 val againFirst =
-  capabilities(againJob, limits = three)(Pollable(dispatch = poll, running = Jobs.running))
+  capabilities(AgainJob, limits = three)(Pollable(dispatch = poll, running = Jobs.running))
 val againSecond =
-  capabilities(againJob, limits = three)(Pollable(dispatch = poll, running = Jobs.paused))
+  capabilities(AgainJob, limits = three)(Pollable(dispatch = poll, running = Jobs.paused))
 
 // A Query of a law the declaration waives, which generates no Property for it.
 val waivedClaim = query find fixture.capabilities.legacyCapabilities.claim(
   terminalStatesAreFinal
-) in pollOnly.scenario.actions(poll) limits three total 5
+) in PollOnly.scenario.actions(poll) limits three total 5
 
 // A law called directly with a lambda for a function-valued parameter.
-val lambdaArgument = terminalStatesAreFinal(job)((j: Job) => j.phase, Jobs.terminal)
+val lambdaArgument = terminalStatesAreFinal(Job)((j: JobState) => j.phase, Jobs.terminal)
 val lambdaQuery =
-  query verify lambdaArgument in job.scenario("lambdaAny").free limits three total 90
+  query verify lambdaArgument in Job.scenario("lambdaAny").free limits three total 90
 
 /** A binding whose companion is no capability kind, which no catalog keys a law by. */
 final case class Unkinded[S](running: S => Boolean) extends CapabilityOf[S, Nothing, Nothing]
 
-val unkinded = capabilities(job, limits = three)(Unkinded(running = Jobs.running))
+val unkinded = capabilities(Job, limits = three)(Unkinded(running = Jobs.running))
 
 /** Another kit's kind that shares Temporal's name, which Temporal's catalog brings no law. */
 object otherKit:
@@ -91,16 +89,16 @@ object otherKit:
       extends CapabilityOf[S, O, Nothing]
   object Closable extends CapabilityKind
 
-val sameName = capabilities(job, limits = three)(
+val sameName = capabilities(Job, limits = three)(
   otherKit.Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone)
 ).except(terminalStatesAreFinal, because = "another kit's Closable brings no Temporal law")
 
 // A binding `cited` with no citation, and one whose citation is computed.
-val uncited = capabilities(job, limits = three)(
+val uncited = capabilities(Job, limits = three)(
   Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = cited(Answer.gone))
 )
 
-val computedCitation = capabilities(job, limits = three)(
+val computedCitation = capabilities(Job, limits = three)(
   Closable(
     status = Jobs.phase,
     terminal = Jobs.terminal,
@@ -119,35 +117,35 @@ object citesNoParameter
   def apply[S, P](m: Declares[S])(status: S => P, terminal: P => Boolean): Property[S] =
     m.property.once(s => terminal(status(s))).keeps(status)
 
-val unknownParameter = capabilities(job, limits = three)(
+val unknownParameter = capabilities(Job, limits = three)(
   Closable(status = Jobs.phase, terminal = Jobs.terminal, rejected = Answer.gone)
 )(using Catalog.single(Closable)(citesNoParameter))
 
 // A member read with `through` by a computed selector, and with a lambda for its def.
-val throughComputed = capabilities(pair, limits = three)(
+val throughComputed = capabilities(Pair, limits = three)(
   Pollable(
-    dispatch = pair.own(_.left, poll),
+    dispatch = Pair.own(_.left, poll),
     running = through(_.left.copy(phase = Phase.queued), Jobs.running)
   )
 )
 
-val throughLambda = capabilities(pair, limits = three)(
+val throughLambda = capabilities(Pair, limits = three)(
   Pausable(
-    pause = pair.own(_.left, pause),
-    unpause = pair.own(_.left, resume),
+    pause = Pair.own(_.left, pause),
+    unpause = Pair.own(_.left, resume),
     paused = through(_.left, j => j.phase == Phase.paused)
   )
 )
 
 // An overriding def that is a member's def read with `through`, which takes no law's parameters.
-val overridingThrough = capabilities(pair, limits = three)(
+val overridingThrough = capabilities(Pair, limits = three)(
   Pausable(
-    pause = pair.own(_.left, pause),
-    unpause = pair.own(_.left, resume),
+    pause = Pair.own(_.left, pause),
+    unpause = Pair.own(_.left, resume),
     paused = through(_.left, Jobs.paused)
   ),
-  Pollable(dispatch = pair.own(_.left, poll), running = through(_.left, Jobs.running))
+  Pollable(dispatch = Pair.own(_.left, poll), running = through(_.left, Jobs.running))
 ).overriding(
-  pausedIsNotDispatched -> through((p: Pair) => p.left, Jobs.paused),
+  pausedIsNotDispatched -> through((p: PairState) => p.left, Jobs.paused),
   because = "a member's def overrides no law"
 )

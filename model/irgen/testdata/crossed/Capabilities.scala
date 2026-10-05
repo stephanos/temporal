@@ -16,15 +16,15 @@ val flick = action("flick", Party("fixture"))
 val ticks = Limits(steps = 1, actions = 1, search = 4)
 
 // A predicate of another state type than the machine's.
-val foreign = capabilities(here, ticks)(Pollable(dispatch = flick, running = elsewhereOn))
+val foreign = capabilities(HereMachine, ticks)(Pollable(dispatch = flick, running = elsewhereOn))
 
 // A declaration without the Limits its generated verify Queries run under.
-val noLimits = capabilities(here)(Pollable(dispatch = flick, running = hereOn))
+val noLimits = capabilities(HereMachine)(Pollable(dispatch = flick, running = hereOn))
 
 // A waiver without a reason.
-val noBecause = capabilities(here, ticks)(Pollable(dispatch = flick, running = hereOn))
+val noBecause = capabilities(HereMachine, ticks)(Pollable(dispatch = flick, running = hereOn))
   .except(terminalStatesAreFinal)
 
 // A member read with `through` by a def of another state type.
 val throughForeign =
-  capabilities(here, ticks)(Pollable(dispatch = flick, running = through(_.on, elsewhereOn)))
+  capabilities(HereMachine, ticks)(Pollable(dispatch = flick, running = through(_.on, elsewhereOn)))
