@@ -9,9 +9,11 @@
  * a known server defect.
  *
  * Read top to bottom: the types; the signature (history's internal steps and admission's choices);
- * then one object per design -- Admission, the corrected design, whose status sets, step functions
+ * then one object per design -- CurrentAdmission, the corrected design, whose status sets, effects
  * and monitors every design reads; StaleAdmission, the deliberately faulty design derived from it;
- * HeldAdmission, the held race a server is run through; ResponseLoss, a lost admission response.
+ * HeldAdmission, the held race a server is run through; AdmissionResponseLoss, a lost admission
+ * response. Each reads its header, then its sections in order: states, refinement, effects,
+ * monitors, rules, properties, implements and queries.
  */
 package temporal
 package features.standaloneactivity
@@ -97,169 +99,169 @@ val failedThenLost = choice
 // ### The corrected design. A design alone takes a delivery whenever one could arrive: what holds of
 // it holds over every queue, and what fails of it is confirmed over a queue (withTaskQueue/).
 
-/** The record's status sets, which a composition reads through `activity`, and step functions. */
-object Admission:
+/** The corrected design, whose status sets a composition reads through `activity`. */
+object CurrentAdmission extends Machine[AdmissionState, Outcome, AdmissionFact]:
   // Its monitors, first written in System.scala, keep the Definition IDs they were checked with.
   given DefinitionScope = DefinitionScope("temporal.standaloneactivity.System$package$")
   import AdmissionFact.*
 
-  /** Paused before any attempt was admitted: the pause a delivery must not get past. */
-  def paused(s: AdmissionState) = s.phase == AdmissionPhase.paused
-  def running(s: AdmissionState) = s.phase == AdmissionPhase.started
-  def terminal(p: AdmissionPhase) = p.in(AdmissionPhase.completed, AdmissionPhase.timedOut)
-  def twoActive(s: AdmissionState) = s.active == Active.two
-  def phase(s: AdmissionState) = s.phase
+  val entity = activity
+  val init = AdmissionState(AdmissionPhase.scheduled, Active.none, Answer.settled)
+  def end(s: State) = states.stopped(s)
+  val evidence: PartialFunction[AdmissionFact, String] = { case AdmissionFact.statusTimedOut(_) =>
+    "statusTimedOut"
+  }
 
-  /** No unpause is in scope, so a pause is where a path may end, as a completion is. */
-  def end(s: AdmissionState) =
-    !s.phase.in(AdmissionPhase.scheduled, AdmissionPhase.started)
+  /** The record's status sets, which a composition reads through `activity`, and its counts. */
+  object states extends Section:
+    /** Paused before any attempt was admitted: the pause a delivery must not get past. */
+    def paused(s: State) = s.phase == AdmissionPhase.paused
+    def running(s: State) = s.phase == AdmissionPhase.started
+    def terminal(p: AdmissionPhase) = p.in(AdmissionPhase.completed, AdmissionPhase.timedOut)
+    def twoActive(s: State) = s.active == Active.two
+    def phase(s: State) = s.phase
 
-  def oneMore(a: Active) = if a == Active.none then Active.one else Active.two
-  def oneLess(a: Active) = if a == Active.two then Active.one else Active.none
+    /**
+     * No unpause is in scope, so a pause is where a path may end, as a completion is: `end` reads
+     * this named predicate.
+     */
+    def stopped(s: State) =
+      !s.phase.in(AdmissionPhase.scheduled, AdmissionPhase.started)
 
-  def admit(s: AdmissionState) =
-    s.copy(phase = AdmissionPhase.started, active = oneMore(s.active), answer = Answer.owed)
+    def oneMore(a: Active) = if a == Active.none then Active.one else Active.two
+    def oneLess(a: Active) = if a == Active.two then Active.one else Active.none
 
-  def productOf(s: AdmissionState) = s.phase match
-    case AdmissionPhase.scheduled => ProductState(ProductPhase.scheduled)
-    case AdmissionPhase.paused | AdmissionPhase.pausedWhileHeld => ProductState(ProductPhase.paused)
-    case AdmissionPhase.started   => ProductState(ProductPhase.started)
-    case AdmissionPhase.completed => ProductState(ProductPhase.completed)
-    case AdmissionPhase.timedOut  => ProductState(ProductPhase.timedOut)
+    /** The record once an attempt is admitted: started, one more active, its answer owed. */
+    def admitted(s: State) =
+      s.copy(phase = AdmissionPhase.started, active = oneMore(s.active), answer = Answer.owed)
 
-  /** A caller reads statuses and nothing of the dispatch, the admission or its answer. */
-  def productSees(f: AdmissionFact) = f match
-    case AdmissionFact.statusStarted | AdmissionFact.statusPaused | AdmissionFact.statusCompleted |
-        AdmissionFact.statusTimedOut(_) =>
-      true
-    case AdmissionFact.dispatchSent | AdmissionFact.attemptAdmitted |
-        AdmissionFact.admissionRejected | AdmissionFact.admissionCommitFailed |
-        AdmissionFact.deliveryAnswered =>
-      false
+    /** The active attempts after a step, counted from what it records. */
+    def countActive(active: Active, after: AdmissionStep) =
+      if after.records(attemptAdmitted) then oneMore(active)
+      else if after.records(statusCompleted) then oneLess(active)
+      else if after.state.phase == AdmissionPhase.timedOut then Active.none
+      else active
 
-  /** The active attempts after a step, counted from what it records. */
-  def countActive(active: Active, after: AdmissionStep) =
-    if after.records(attemptAdmitted) then oneMore(active)
-    else if after.records(statusCompleted) then oneLess(active)
-    else if after.state.phase == AdmissionPhase.timedOut then Active.none
-    else active
+    /** Whether the activity is over after a step, and whether it left where it ended. */
+    def finality(f: Finality, after: AdmissionStep) =
+      if f == Finality.reopened then Finality.reopened
+      else if terminal(after.state.phase) then Finality.closed
+      else if f == Finality.closed then Finality.reopened
+      else Finality.open
 
-  /** Whether the activity is over after a step, and whether it left where it ended. */
-  def finality(f: Finality, after: AdmissionStep) =
-    if f == Finality.reopened then Finality.reopened
-    else if terminal(after.state.phase) then Finality.closed
-    else if f == Finality.closed then Finality.reopened
-    else Finality.open
+    /**
+     * Why the record waives closedIsRejectedUniformly: a delivery that reaches a closed record is
+     * admission's to reject, and rejecting it records `admissionRejected` and owes matching the
+     * answer, so the record steps where the law has it stay (chasm/lib/activity/activity.go
+     * HandleStarted).
+     */
+    val deliveryAfterClose =
+      "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted"
 
-  val scheduledIdle = AdmissionState(AdmissionPhase.scheduled, Active.none, Answer.settled)
+  /** The record refines the product, which sees its statuses alone. */
+  object refinement extends Refinement(ActivityProduct):
+    def toProduct(s: State): ProductState = s.phase match
+      case AdmissionPhase.scheduled => ProductState(ProductPhase.scheduled)
+      case AdmissionPhase.paused | AdmissionPhase.pausedWhileHeld =>
+        ProductState(ProductPhase.paused)
+      case AdmissionPhase.started   => ProductState(ProductPhase.started)
+      case AdmissionPhase.completed => ProductState(ProductPhase.completed)
+      case AdmissionPhase.timedOut  => ProductState(ProductPhase.timedOut)
 
-  object effects:
-    def dispatch(s: AdmissionState) =
-      if s.phase != AdmissionPhase.scheduled then disabled else enter(s, dispatchSent)
+    /** A caller reads statuses and nothing of the dispatch, the admission or its answer. */
+    def visible(f: AdmissionFact) = f match
+      case AdmissionFact.statusStarted | AdmissionFact.statusPaused |
+          AdmissionFact.statusCompleted | AdmissionFact.statusTimedOut(_) =>
+        true
+      case AdmissionFact.dispatchSent | AdmissionFact.attemptAdmitted |
+          AdmissionFact.admissionRejected | AdmissionFact.admissionCommitFailed |
+          AdmissionFact.deliveryAnswered =>
+        false
+
+  object effects extends Section:
+    def sendDispatch(s: State) = enter(s, dispatchSent)
 
     /** A pause keeps whatever message is in flight: nothing recalls it. */
-    def control(s: AdmissionState, c: Control) = c match
-      case Control.pause =>
-        s.phase match
-          case AdmissionPhase.scheduled =>
-            enter(s.copy(phase = AdmissionPhase.paused), statusPaused)
-          case AdmissionPhase.started =>
-            enter(s.copy(phase = AdmissionPhase.pausedWhileHeld), statusPaused)
-          case AdmissionPhase.paused | AdmissionPhase.pausedWhileHeld => disabled // already paused
-          case AdmissionPhase.completed | AdmissionPhase.timedOut     => disabled // over
-      case Control.unpause | Control.requestCancel | Control.terminate => disabled // out of scope
+    def pause(s: State) = enter(s.copy(phase = AdmissionPhase.paused), statusPaused)
+
+    /** A pause after admission: the attempt it holds was admitted before it. */
+    def pauseHeld(s: State) =
+      enter(s.copy(phase = AdmissionPhase.pausedWhileHeld), statusPaused)
 
     /** Its durable update commits or fails; a failed commit owes no answer, so its delivery stays. */
-    def admitted(s: AdmissionState) = choose(
-      admissionCommits -> enter(admit(s), statusStarted, attemptAdmitted),
+    def admit(s: State) = choose(
+      admissionCommits -> enter(states.admitted(s), statusStarted, attemptAdmitted),
       admissionCommitFails -> enter(s, admissionCommitFailed)
         .because("the durable update fails: nothing is admitted and the message stays deliverable")
     )
 
-    /**
-     * The corrected design re-reads current eligibility: a delivery that meets a paused activity or
-     * an admitted attempt is answered and admits nothing.
-     */
-    def admitCurrent(s: AdmissionState) =
-      if s.phase == AdmissionPhase.scheduled then admitted(s)
-      else enter(s.copy(answer = Answer.owed), admissionRejected)
+    /** A delivery that meets a paused activity or an admitted attempt is answered and admits nothing. */
+    def reject(s: State) = enter(s.copy(answer = Answer.owed), admissionRejected)
 
-    /** The deliberately faulty design: admission trusts the eligibility the message was sent with. */
-    def admitStale(s: AdmissionState) = admitted(s)
+    def answerDelivery(s: State) =
+      enter(s.copy(answer = Answer.settled), deliveryAnswered)
 
-    /** Admission as the corrected design decides it, with no failure of its durable update. */
-    def admitHeld(s: AdmissionState) =
-      if s.phase == AdmissionPhase.scheduled then enter(admit(s), statusStarted, attemptAdmitted)
-      else enter(s.copy(answer = Answer.owed), admissionRejected)
+    def complete(s: State) =
+      enter(
+        s.copy(phase = AdmissionPhase.completed, active = states.oneLess(s.active)),
+        statusCompleted
+      )
 
-    def answerDelivery(s: AdmissionState) =
-      if s.answer != Answer.owed then disabled
-      else enter(s.copy(answer = Answer.settled), deliveryAnswered)
-
-    def attemptResult(s: AdmissionState, r: AttemptResult) = r match
-      case AttemptResult.completed =>
-        if s.phase != AdmissionPhase.started then disabled
-        else
-          enter(
-            s.copy(phase = AdmissionPhase.completed, active = oneLess(s.active)),
-            statusCompleted
-          )
-      case AttemptResult.failed(_) | AttemptResult.canceled => disabled
-
-    /** Covers the wait for a worker, so it fires only before an attempt is admitted. */
-    def scheduleToStart(s: AdmissionState) =
-      if s.phase == AdmissionPhase.scheduled then timeOut(s, TimeoutType.scheduleToStart)
-      else disabled
-
-    /** Covers the whole activity, so it competes with the other deadline while none has fired. */
-    def scheduleToClose(s: AdmissionState) =
-      if terminal(s.phase) then disabled else timeOut(s, TimeoutType.scheduleToClose)
-
-    def timeOut(s: AdmissionState, t: TimeoutType) =
+    def timeOut(s: State, t: TimeoutType) =
       enter(s.copy(phase = AdmissionPhase.timedOut, active = Active.none), statusTimedOut(t))
 
   // Monitors, which count from what a step records whatever the design's state says.
+  object monitors extends Section:
+    val atMostOneActiveAttempt =
+      monitor[State, Outcome, AdmissionFact, Active](Active.none)((active, _, after) =>
+        states.countActive(active, after)
+      )(_ == Active.two).readAfter(after => after.records(AdmissionFact.attemptAdmitted))
 
-  val atMostOneActiveAttempt =
-    monitor[AdmissionState, Outcome, AdmissionFact, Active](Active.none)((active, _, after) =>
-      Admission.countActive(active, after)
-    )(_ == Active.two).readAfter(after => after.records(AdmissionFact.attemptAdmitted))
+    val terminalFinality =
+      monitor[State, Outcome, AdmissionFact, Finality](Finality.open)((f, _, after) =>
+        states.finality(f, after)
+      )(_ == Finality.reopened)
 
-  val terminalFinality =
-    monitor[AdmissionState, Outcome, AdmissionFact, Finality](Finality.open)((f, _, after) =>
-      Admission.finality(f, after)
-    )(_ == Finality.reopened)
+  object rules extends Rules(_.phase):
+    import AdmissionPhase.*
 
-  val currentAdmission = machine[AdmissionState, Outcome, AdmissionFact] {
-    forEntity(activity)
-    monitors(atMostOneActiveAttempt, terminalFinality)
-    refines(Product.activityProduct)(Admission.productOf)
-    visible(Admission.productSees)
-    starts(scheduledIdle)
-    ends(Admission.end)
-    evidence { case AdmissionFact.statusTimedOut(_) => "statusTimedOut" }
-    steps(
-      history.dispatch ~> effects.dispatch,
-      caller.control ~> effects.control,
-      worker.attemptStart ~> effects.admitCurrent,
-      history.answerDelivery ~> effects.answerDelivery,
-      worker.attemptResult ~> effects.attemptResult,
-      deadline.scheduleToStart ~> effects.scheduleToStart,
-      deadline.scheduleToClose ~> effects.scheduleToClose
-    )
-  }
+    in(scheduled)(history.dispatch ~> effects.sendDispatch)
+
+    // A pause of a paused or closed record has no rule, and the other controls are out of scope.
+    in(scheduled)(caller.control(Control.pause) ~> effects.pause)
+    in(started)(caller.control(Control.pause) ~> effects.pauseHeld)
+
+    // The corrected design re-reads current eligibility: only a scheduled activity admits.
+    in(scheduled)(worker.attemptStart ~> effects.admit)
+    in(paused, pausedWhileHeld, started, completed, timedOut) {
+      worker.attemptStart ~> effects.reject
+    }
+
+    when(s => s.answer == Answer.owed)(history.answerDelivery ~> effects.answerDelivery)
+
+    in(started)(worker.attemptResult(AttemptResult.completed) ~> effects.complete)
+
+    // Schedule-to-start covers the wait for a worker, so it fires only before an attempt is
+    // admitted; schedule-to-close covers the whole activity, so it competes with the other deadline
+    // while none has fired.
+    in(scheduled) {
+      deadline.scheduleToStart ~> (s => effects.timeOut(s, TimeoutType.scheduleToStart))
+    }
+    in(scheduled, paused, pausedWhileHeld, started) {
+      deadline.scheduleToClose ~> (s => effects.timeOut(s, TimeoutType.scheduleToClose))
+    }
 
   // The system contract's promises are declared on each admission design and each composition with
   // the record: the laws its capabilities bring, and the record's own count of active attempts. Each
   // takes the states it speaks of as predicates, so one definition serves the record and a
   // composition, which reads the record through its `activity` member.
-  object properties:
+  object properties extends Section:
     /** No step leaves two admitted attempts active. */
     def atMostOneActive[S](m: Declares[S])(twoActive: S => Boolean): Property[S] =
       m.property("atMostOneActive").never(s => twoActive(s.state))
 
-    def admissionClaims(m: Machine[AdmissionState, Outcome, AdmissionFact]) =
-      val declared = laws.admissionCapabilities(m)
+    def admissionClaims(m: Machine[State, Outcome, AdmissionFact]) =
+      val declared = implements.admissionCapabilities(m)
       val scheduleToStartTimesOut = m.property when deadline.scheduleToStart holds (after =>
         after.records(AdmissionFact.statusTimedOut(TimeoutType.scheduleToStart))
       )
@@ -268,7 +270,7 @@ object Admission:
       )
       AdmissionClaims(
         declared.claim(pausedIsNotDispatched),
-        atMostOneActive(m)(Admission.twoActive),
+        atMostOneActive(m)(states.twoActive),
         scheduleToStartTimesOut,
         scheduleToCloseTimesOut
       )
@@ -279,34 +281,25 @@ object Admission:
    * by a worker's poll. Its free Queries run within `five`, as the system contract's did. It waives
    * closedIsRejectedUniformly, the one law the record does not keep.
    */
-  object laws:
-    /**
-     * Why the record waives closedIsRejectedUniformly: a delivery that reaches a closed record is
-     * admission's to reject, and rejecting it records `admissionRejected` and owes matching the
-     * answer, so the record steps where the law has it stay (chasm/lib/activity/activity.go
-     * HandleStarted).
-     */
-    val deliveryAfterClose =
-      "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted"
-
-    def admissionCapabilities(m: Machine[AdmissionState, Outcome, AdmissionFact]) =
+  object implements extends Section:
+    def admissionCapabilities(m: Machine[State, Outcome, AdmissionFact]) =
       capabilities(m, limits = five)(
         Closable(
-          status = Admission.phase,
-          terminal = Admission.terminal,
+          status = states.phase,
+          terminal = states.terminal,
           rejected = Outcome.notFound
         ),
         Pausable(
           pause = caller.control(Control.pause),
           unpause = caller.control(Control.unpause),
-          paused = Admission.paused
+          paused = states.paused
         ),
-        Pollable(dispatch = worker.attemptStart, running = Admission.running)
-      ).except(closedIsRejectedUniformly, because = deliveryAfterClose)
+        Pollable(dispatch = worker.attemptStart, running = states.running)
+      ).except(closedIsRejectedUniformly, because = states.deliveryAfterClose)
 
-  object queries:
+  object queries extends Section:
     /** Every claim and path, declared on the design `m`, since each belongs to one machine. */
-    def admissionQueries(m: Machine[AdmissionState, Outcome, AdmissionFact]) =
+    def admissionQueries(m: Machine[State, Outcome, AdmissionFact]) =
       val claims = properties.admissionClaims(m)
       val staleDeliveryAfterPause =
         m.scenario.actions(history.dispatch, caller.control(Control.pause), worker.attemptStart)
@@ -344,20 +337,23 @@ object Admission:
           scheduleToCloseFirst limits three total 72,
         // The product's own Property, read through the design's declared refinement.
         query(s"${m.name}.product.pausedIsNotDispatched")
-          .verify(Product.laws.productCapabilities.claim(pausedIsNotDispatched))
+          .verify(ActivityProduct.implements.all.claim(pausedIsNotDispatched))
           .in(staleDeliveryAfterPause) limits three total 108
       )
 
-    val currentQueries = admissionQueries(currentAdmission)
+    val currentQueries = admissionQueries(CurrentAdmission)
 
-// ### The deliberately faulty design: admission trusts the eligibility the message was sent with.
+// ### The deliberately faulty design: admission trusts the eligibility the message was sent with,
+// so every delivery is admitted as one that meets a scheduled activity is.
 
-object StaleAdmission:
-  val staleAdmission =
-    Admission.currentAdmission.rebind(worker.attemptStart ~> Admission.effects.admitStale)
-
-  object queries:
-    val staleQueries = Admission.queries.admissionQueries(staleAdmission)
+object StaleAdmission
+    extends Derived(
+      CurrentAdmission.rebind(when(_ => true) {
+        worker.attemptStart ~> CurrentAdmission.effects.admit
+      })
+    ):
+  object queries extends Section:
+    val staleQueries = CurrentAdmission.queries.admissionQueries(StaleAdmission)
 
 // ### The held race, run against a server. The stale message is held at the dispatch cut while the
 // pause commits, then delivered. The race is declared on the corrected design the server is
@@ -366,37 +362,58 @@ object StaleAdmission:
 // reaches admission before the release, and after the pause the corrected design rejects it. The
 // stale design's violation is shown by its own verify Query, never by a Run.
 
-object HeldAdmission:
-  val heldAdmission = machine[AdmissionState, Outcome, AdmissionFact] {
-    forEntity(activity)
-    monitors(Admission.atMostOneActiveAttempt, Admission.terminalFinality)
-    refines(Product.activityProduct)(Admission.productOf)
-    visible(Admission.productSees)
-    starts(Admission.scheduledIdle)
-    ends(Admission.end)
-    evidence { case AdmissionFact.statusTimedOut(_) => "statusTimedOut" }
-    steps(
-      history.dispatch ~> Admission.effects.dispatch,
-      caller.control ~> Admission.effects.control,
-      worker.attemptStart ~> Admission.effects.admitHeld,
-      history.answerDelivery ~> Admission.effects.answerDelivery
-    )
+object HeldAdmission extends Machine[AdmissionState, Outcome, AdmissionFact]:
+  val entity = activity
+  val init = CurrentAdmission.init
+  def end(s: State) = CurrentAdmission.end(s)
+  val evidence: PartialFunction[AdmissionFact, String] = { case AdmissionFact.statusTimedOut(_) =>
+    "statusTimedOut"
   }
 
+  /** It refines the product as the corrected design does. */
+  object refinement extends Refinement(ActivityProduct):
+    def toProduct(s: State): ProductState = CurrentAdmission.refinement.toProduct(s)
+    def visible(f: AdmissionFact) = CurrentAdmission.refinement.visible(f)
+
+  object effects extends Section:
+    /** Admission as the corrected design decides it, with no failure of its durable update. */
+    def admitCommitted(s: State) =
+      enter(
+        CurrentAdmission.states.admitted(s),
+        AdmissionFact.statusStarted,
+        AdmissionFact.attemptAdmitted
+      )
+
+  // The corrected design's monitors watch the race too.
+  object monitors extends Section:
+    val atMostOneActiveAttempt = CurrentAdmission.monitors.atMostOneActiveAttempt
+    val terminalFinality = CurrentAdmission.monitors.terminalFinality
+
+  object rules extends Rules(_.phase):
+    import AdmissionPhase.*
+
+    in(scheduled)(history.dispatch ~> CurrentAdmission.effects.sendDispatch)
+    in(scheduled)(caller.control(Control.pause) ~> CurrentAdmission.effects.pause)
+    in(started)(caller.control(Control.pause) ~> CurrentAdmission.effects.pauseHeld)
+    in(scheduled)(worker.attemptStart ~> effects.admitCommitted)
+    in(paused, pausedWhileHeld, started, completed, timedOut) {
+      worker.attemptStart ~> CurrentAdmission.effects.reject
+    }
+    when(s => s.answer == Answer.owed) {
+      history.answerDelivery ~> CurrentAdmission.effects.answerDelivery
+    }
+
   // What the machine a server's Run is checked against promises.
-  object properties:
+  object properties extends Section:
     /** Admission met the stale message and rejected it. */
     val staleDeliveryRejected =
-      heldAdmission.property when worker.attemptStart holds (_.records(
-        AdmissionFact.admissionRejected
-      ))
+      property when worker.attemptStart holds (_.records(AdmissionFact.admissionRejected))
 
   // The held race, as a server's Run is checked.
-  object queries:
+  object queries extends Section:
     val heldStaleDelivery =
-      (query("heldAdmission.staleDelivery") find properties.staleDeliveryRejected in heldAdmission
-        .scenario("heldStaleDelivery")
-        .actions(
+      (query("heldAdmission.staleDelivery") find properties.staleDeliveryRejected in
+        scenario("heldStaleDelivery").actions(
           history.dispatch,
           caller.control(Control.pause),
           worker.attemptStart
@@ -409,11 +426,14 @@ object HeldAdmission:
           cleanup = Cleanup.succeeded,
           monitors = Vector(
             MonitorExpectation(
-              Admission.atMostOneActiveAttempt,
+              CurrentAdmission.monitors.atMostOneActiveAttempt,
               PropertyOutcome.inconclusive,
               Some(Reason.neverEvaluated)
             ),
-            MonitorExpectation(Admission.terminalFinality, PropertyOutcome.satisfied)
+            MonitorExpectation(
+              CurrentAdmission.monitors.terminalFinality,
+              PropertyOutcome.satisfied
+            )
           )
         )
       )
@@ -422,44 +442,42 @@ object HeldAdmission:
 // committed or failed: the caller's missing answer distinguishes neither. The in-process actuator
 // supplies the durable decision and realizes the committed arm.
 
-object ResponseLoss:
-  val responseLossInitial = AdmissionResponseState(Admission.scheduledIdle, true)
+object AdmissionResponseLoss
+    extends Machine[AdmissionResponseState, Outcome, AdmissionResponseFact]:
+  val entity = activity
+  val init = AdmissionResponseState(CurrentAdmission.init, true)
+  def end(s: State) = !s.lossAvailable
 
-  object effects:
-    def dispatch(s: AdmissionResponseState) =
-      if !s.lossAvailable then disabled else enter(s, AdmissionResponseFact.dispatchSent)
+  object effects extends Section:
+    def sendDispatch(s: State) = enter(s, AdmissionResponseFact.dispatchSent)
 
-    def ackLoss(s: AdmissionResponseState) =
-      if !s.lossAvailable then disabled
-      else
-        choose(
-          committedThenLost -> enter(
-            AdmissionResponseState(Admission.admit(s.record), false),
-            AdmissionResponseFact.attemptAdmitted
-          ),
-          failedThenLost -> enter(s.copy(lossAvailable = false))
-            .because("the durable update failed before its answer was lost")
-        )
+    def loseResponse(s: State) = choose(
+      committedThenLost -> enter(
+        AdmissionResponseState(CurrentAdmission.states.admitted(s.record), false),
+        AdmissionResponseFact.attemptAdmitted
+      ),
+      failedThenLost -> enter(s.copy(lossAvailable = false))
+        .because("the durable update failed before its answer was lost")
+    )
 
-  val admissionResponseLoss = machine[AdmissionResponseState, Outcome, AdmissionResponseFact] {
-    forEntity(activity)
-    starts(responseLossInitial)
-    ends(s => !s.lossAvailable)
-    steps(history.dispatch ~> effects.dispatch, shared.taskqueue.faults.ackLoss ~> effects.ackLoss)
-  }
+  // Both steps take the budget's state: once a loss consumes it, neither fires.
+  object rules extends Rules:
+    when(_.lossAvailable) {
+      history.dispatch ~> effects.sendDispatch
+      shared.taskqueue.faults.ackLoss ~> effects.loseResponse
+    }
 
-  object properties:
+  object properties extends Section:
     /** A lost response still leaves the attempt admitted when the update committed. */
     val committedDespiteLostResponse =
-      admissionResponseLoss.property when shared.taskqueue.faults.ackLoss holds (after =>
+      property when shared.taskqueue.faults.ackLoss holds (after =>
         after.records(AdmissionResponseFact.attemptAdmitted)
       )
 
   // The lost response, as a server's Run is checked.
-  object queries:
-    val oneLostResponse =
-      admissionResponseLoss.scenario.actions(history.dispatch, shared.taskqueue.faults.ackLoss)
+  object queries extends Section:
     val lostAdmissionResponseQuery =
       (query("admissionResponseLoss.committed") find properties.committedDespiteLostResponse in
-        oneLostResponse limits three total 144)
+        scenario("oneLostResponse").actions(history.dispatch, shared.taskqueue.faults.ackLoss)
+        limits three total 144)
         .expect(satisfied)

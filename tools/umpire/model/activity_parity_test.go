@@ -61,7 +61,8 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 		declared = append(declared, match[1]+" "+match[2])
 	}
 	// A declaration that states no name is named after its val, which may be a member of an object.
-	for _, match := range regexp.MustCompile(`(?m)^[ \t]*val (\w+)\s*=\s*\(?\s*(?:(query)\b|\w+\.(property|scenario)\b)`).FindAllStringSubmatch(string(source), -1) {
+	// Inside a machine object, `property` and `scenario` name the object they are inherited by.
+	for _, match := range regexp.MustCompile(`(?m)^[ \t]*val (\w+)\s*=\s*\(?\s*(?:(query)\b|(?:\w+\.)?(property|scenario)\b)`).FindAllStringSubmatch(string(source), -1) {
 		declared = append(declared, match[2]+match[3]+" "+match[1])
 	}
 	// A law's instance is named after the val that declares its call: `val terminalIsFinal =
@@ -91,10 +92,20 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, json.Unmarshal(encoded, &catalog))
 	require.NotEmpty(t, catalog.Catalog)
-	capabilityDeclarations := regexp.MustCompile(`(?m)^[ \t]*val \w+\s*=\s*capabilities\((\w+)\b[^)]*\)\(`).FindAllStringSubmatchIndex(string(source), -1)
+	// A machine object declares its own capabilities in its `laws`, `capabilities(limits = ...)(...)`,
+	// named after the object it sits in.
+	capabilityDeclarations := regexp.MustCompile(`(?m)^[ \t]*val \w+\s*=\s*capabilities\([^)]*\)\(`).FindAllStringSubmatchIndex(string(source), -1)
 	require.Len(t, capabilityDeclarations, 2, "the product's and the protocol's")
+	objects := regexp.MustCompile(`(?m)^object (\w+) extends Machine\b`).FindAllSubmatchIndex(source, -1)
 	for _, at := range capabilityDeclarations {
-		machine := string(source[at[2]:at[3]])
+		machine := ""
+		for _, o := range objects {
+			if o[0] < at[0] {
+				name := string(source[o[2]:o[3]])
+				machine = strings.ToLower(name[:1]) + name[1:]
+			}
+		}
+		require.NotEmpty(t, machine)
 		named := map[string]bool{}
 		argument, depth := at[1], 1
 		for i := argument; depth > 0; i++ {

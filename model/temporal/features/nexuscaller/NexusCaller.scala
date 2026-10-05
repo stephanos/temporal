@@ -7,7 +7,7 @@
  * actions, the derived observation, the timers and the bounds); then one object per machine, each
  * before the machines that use it -- Product, the product machine; Protocol, the protocol machine
  * that refines it; HandlerWorker, the handler's worker; NexusCaller, the protocol with that worker;
- * Control, the forged control a caller must refuse -- and last Files, its IR files.
+ * Control, the forged control a caller must refuse -- and last exports, its IR files.
  * Realization.scala realizes it; closepolicy/ holds the close and reset designs.
  */
 package temporal
@@ -843,12 +843,12 @@ object Control:
 
 // ### The checked-in IR files of the Nexus caller Model (umpire.irFile).
 
-object Files:
+object exports:
   // The functional Queries and the realization that runs them are roots beside the machines: Go
   // lowers each Query's witness through the realization into a Testpilot Case (tools/umpire/lower).
   // The product claim read on a protocol path and the cross-entity Query, which carries the
   // composition with the handler's worker and its claim, are roots too.
-  val nexusCallerFile = irFile("nexus-caller")(
+  val nexusCaller = irFile("nexus-caller")(
     Product.nexusProduct,
     Protocol.nexusProtocol,
     HandlerWorker.handlerWorker,
@@ -861,5 +861,5 @@ object Files:
   )
 
   // The forged completion a caller must refuse, and the realization that offers it.
-  val nexusControlFile =
+  val nexusControl =
     irFile("nexus-control")(Control.queries.forgedCompletion, NexusRealization.forgedCompletion)

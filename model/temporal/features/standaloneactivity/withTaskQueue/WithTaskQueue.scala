@@ -6,10 +6,12 @@
  * model/temporal/capabilities read them.
  *
  * Read top to bottom: the composed states and the claims they are held to; then the members,
- * CurrentRecord and StaleRecord; then one object per composition, each before the designs derived
- * from it -- CurrentOverQueue and StaleOverQueue over the opaque queue, CurrentOverMatching and
- * StaleOverMatching over the detailed one, and the corrected design over each violating provider,
- * CurrentOverForgetful, CurrentOverVolatile and CurrentOverLossyMatching.
+ * CurrentRecord and StaleRecord, derived from the admission designs; then one object per
+ * composition, each before the compositions derived from it -- CurrentOverQueue and StaleOverQueue
+ * over the opaque queue, CurrentOverMatching and StaleOverMatching over the detailed one, and the
+ * corrected design over each violating provider, CurrentOverForgetful, CurrentOverVolatile and
+ * CurrentOverLossyMatching. A composition reads end, then its sections in order: states, syncs,
+ * properties, implements and queries.
  */
 package temporal
 package features.standaloneactivity
@@ -57,41 +59,42 @@ final case class OverMatchingClaims(
 // ### The record as a member: a composition's Queries are not answered while a member names
 // monitors, so the members are the designs without them. The designs are what refine the product.
 
-object CurrentRecord:
-  val currentRecord = Admission.currentAdmission.unmonitored
+object CurrentRecord extends Derived(CurrentAdmission.unmonitored)
 
-object StaleRecord:
-  val staleRecord = StaleAdmission.staleAdmission.unmonitored
+object StaleRecord extends Derived(StaleAdmission.unmonitored)
 
 // ### Over the opaque queue. The dispatch is the queue's enqueue, a delivery is admission's one
 // input, and admission's answer is the acknowledgment: a commit, its answer and the acknowledgment
 // are three points a fault can fall between.
 
-object CurrentOverQueue:
-  /**
-   * The composed outcome of the record's answer to a control of a closed activity: Closable's
-   * `rejected`, which only closedIsRejectedUniformly reads, and the designs over a queue waive it.
-   */
-  val closedAnswer = "activity_notFound"
+object CurrentOverQueue
+    extends Composition[OverQueue](_.activity -> CurrentRecord, _.queue -> dispatchQueue):
+  def end(s: State) = CurrentAdmission.end(s.activity)
 
-  /**
-   * Why a design over a queue waives closedIsRejectedUniformly: the queue member keeps its own steps
-   * after the record closes, so a composed step moves the state; the record's own declaration
-   * (record/) holds the record to the law.
-   */
-  val queueStepsOn =
-    "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
+  /** What the designs over a queue answer and waive. */
+  object states extends Section:
+    /**
+     * The composed outcome of the record's answer to a control of a closed activity: Closable's
+     * `rejected`, which only closedIsRejectedUniformly reads, and the designs over a queue waive it.
+     */
+    val closedAnswer = "activity_notFound"
 
-  val currentOverQueue =
-    compose[OverQueue](_.activity -> CurrentRecord.currentRecord, _.queue -> dispatchQueue)
-      .sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)
-      .sync("admit", _.activity -> worker.attemptStart, _.queue -> queue.deliver)
-      .sync("settle", _.activity -> history.answerDelivery, _.queue -> queue.acknowledge)
-      .ends(s => Admission.end(s.activity))
+    /**
+     * Why a design over a queue waives closedIsRejectedUniformly: the queue member keeps its own
+     * steps after the record closes, so a composed step moves the state; the record's own
+     * declaration (record/) holds the record to the law.
+     */
+    val queueStepsOn =
+      "the queue member keeps stepping after the record closes; admissionCapabilities holds the record"
 
-  object properties:
-    def overQueueClaims(c: Composition[OverQueue]) =
-      val declared = laws.overQueueCapabilities(c)
+  object syncs extends Syncs:
+    sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)
+    sync("admit", _.activity -> worker.attemptStart, _.queue -> queue.deliver)
+    sync("settle", _.activity -> history.answerDelivery, _.queue -> queue.acknowledge)
+
+  object properties extends Section:
+    def overQueueClaims(c: Composition[State]) =
+      val declared = implements.overQueueCapabilities(c)
       val failedCommitKeepsTheMessage = c.property holds (after =>
         after.records(_.activity, AdmissionFact.admissionCommitFailed) implies
           (after.state.queue.outstanding != Outstanding.empty &&
@@ -99,35 +102,37 @@ object CurrentOverQueue:
       )
       OverQueueClaims(
         declared.claim(pausedIsNotDispatched),
-        Admission.properties.atMostOneActive(c)(through(_.activity, Admission.twoActive)),
+        CurrentAdmission.properties.atMostOneActive(c)(
+          through(_.activity, CurrentAdmission.states.twoActive)
+        ),
         failedCommitKeepsTheMessage
       )
 
-  object laws:
+  object implements extends Section:
     /**
      * A design over the opaque queue as the laws read it: the record's capabilities, read through
      * the `activity` member's projection. Its free Queries run within `five`.
      */
-    def overQueueCapabilities(c: Composition[OverQueue]) = capabilities(c, limits = five)(
+    def overQueueCapabilities(c: Composition[State]) = capabilities(c, limits = five)(
       Closable(
-        status = through(_.activity, Admission.phase),
-        terminal = Admission.terminal,
-        rejected = closedAnswer
+        status = through(_.activity, CurrentAdmission.states.phase),
+        terminal = CurrentAdmission.states.terminal,
+        rejected = states.closedAnswer
       ),
       Pausable(
         pause = c.own(_.activity, caller.control(Control.pause)),
         unpause = c.own(_.activity, caller.control(Control.unpause)),
-        paused = through(_.activity, Admission.paused)
+        paused = through(_.activity, CurrentAdmission.states.paused)
       ),
       Pollable(
         dispatch = c.synced(_.activity -> worker.attemptStart),
-        running = through(_.activity, Admission.running)
+        running = through(_.activity, CurrentAdmission.states.running)
       )
-    ).except(closedIsRejectedUniformly, because = queueStepsOn)
+    ).except(closedIsRejectedUniformly, because = states.queueStepsOn)
 
-  object queries:
+  object queries extends Section:
     /** Over the opaque queue: every claim and path of the design `c`. */
-    def overQueueQueries(c: Composition[OverQueue]) =
+    def overQueueQueries(c: Composition[State]) =
       val claims = properties.overQueueClaims(c)
       val staleDeliveryAfterPause = c.scenario.actions(
         c.synced(_.activity -> history.dispatch),
@@ -157,61 +162,61 @@ object CurrentOverQueue:
         query verify claims.oneActive in any limits five total 9360
       )
 
-    val currentOverQueueQueries = overQueueQueries(currentOverQueue)
+    val currentOverQueueQueries = overQueueQueries(CurrentOverQueue)
 
-object StaleOverQueue:
-  val staleOverQueue =
-    CurrentOverQueue.currentOverQueue.withMember(_.activity -> StaleRecord.staleRecord)
-
-  object queries:
-    val staleOverQueueQueries = CurrentOverQueue.queries.overQueueQueries(staleOverQueue)
+object StaleOverQueue extends Composition(CurrentOverQueue.withMember(_.activity -> StaleRecord)):
+  object queries extends Section:
+    val staleOverQueueQueries = CurrentOverQueue.queries.overQueueQueries(StaleOverQueue)
 
 // ### Over the detailed queue, which replaces the opaque one only within the composition: it holds
 // where the detailed provider refines the interface it stands in for, and the checks then rely on
 // that provider. Each later design swaps one member of the first for a provider of its interface.
 
-object CurrentOverMatching:
-  val currentOverMatching =
-    compose[OverMatching](_.activity -> CurrentRecord.currentRecord, _.queue -> matchingQueue)
-      .sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)
-      .sync("admit", _.activity -> worker.attemptStart, _.queue -> queue.deliver)
-      .sync("settle", _.activity -> history.answerDelivery, _.queue -> queue.acknowledge)
-      .replaces(_.queue, dispatchQueue)
-      .ends(s => Admission.end(s.activity))
+object CurrentOverMatching
+    extends Composition[OverMatching](_.activity -> CurrentRecord, _.queue -> matchingQueue):
+  def end(s: State) = CurrentAdmission.end(s.activity)
 
-  object properties:
-    def overMatchingClaims(c: Composition[OverMatching]) =
-      val declared = laws.overMatchingCapabilities(c)
+  object syncs extends Syncs:
+    sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)
+    sync("admit", _.activity -> worker.attemptStart, _.queue -> queue.deliver)
+    sync("settle", _.activity -> history.answerDelivery, _.queue -> queue.acknowledge)
+    replaces(_.queue, dispatchQueue)
+
+  object properties extends Section:
+    def overMatchingClaims(c: Composition[State]) =
+      val declared = implements.overMatchingCapabilities(c)
       OverMatchingClaims(
         declared.claim(pausedIsNotDispatched),
-        Admission.properties.atMostOneActive(c)(through(_.activity, Admission.twoActive))
+        CurrentAdmission.properties.atMostOneActive(c)(
+          through(_.activity, CurrentAdmission.states.twoActive)
+        )
       )
 
-  object laws:
+  object implements extends Section:
     /**
      * A design over the detailed queue as the laws read it, through the `activity` member's
      * projection. Its free Queries run within `twelve`, the detailed provider's depth.
      */
-    def overMatchingCapabilities(c: Composition[OverMatching]) = capabilities(c, limits = twelve)(
+    def overMatchingCapabilities(c: Composition[State]) = capabilities(c, limits = twelve)(
       Closable(
-        status = through(_.activity, Admission.phase),
-        terminal = Admission.terminal,
-        rejected = CurrentOverQueue.closedAnswer
+        status = through(_.activity, CurrentAdmission.states.phase),
+        terminal = CurrentAdmission.states.terminal,
+        rejected = CurrentOverQueue.states.closedAnswer
       ),
       Pausable(
         pause = c.own(_.activity, caller.control(Control.pause)),
         unpause = c.own(_.activity, caller.control(Control.unpause)),
-        paused = through(_.activity, Admission.paused)
+        paused = through(_.activity, CurrentAdmission.states.paused)
       ),
       Pollable(
         dispatch = c.synced(_.activity -> worker.attemptStart),
-        running = through(_.activity, Admission.running)
+        running = through(_.activity, CurrentAdmission.states.running)
       )
-    ).except(closedIsRejectedUniformly, because = CurrentOverQueue.queueStepsOn)
+    ).except(closedIsRejectedUniformly, because = CurrentOverQueue.states.queueStepsOn)
 
-  object queries:
+  object queries extends Section:
     /** Over the detailed queue: `anyTotal` is the static combination count of the `any` Queries. */
-    def overMatchingQueries(c: Composition[OverMatching], anyTotal: Int) =
+    def overMatchingQueries(c: Composition[State], anyTotal: Int) =
       val claims = properties.overMatchingClaims(c)
       val staleDeliveryAfterPause = c.scenario.actions(
         c.synced(_.activity -> history.dispatch),
@@ -261,31 +266,25 @@ object CurrentOverMatching:
         query verify claims.oneActive in any limits twelve total anyTotal
       )
 
-    val currentOverMatchingQueries = overMatchingQueries(currentOverMatching, anyTotal = 233280)
+    val currentOverMatchingQueries = overMatchingQueries(CurrentOverMatching, anyTotal = 233280)
 
-object StaleOverMatching:
-  val staleOverMatching =
-    CurrentOverMatching.currentOverMatching.withMember(_.activity -> StaleRecord.staleRecord)
-
-  object queries:
+object StaleOverMatching
+    extends Composition(CurrentOverMatching.withMember(_.activity -> StaleRecord)):
+  object queries extends Section:
     val staleOverMatchingQueries =
-      CurrentOverMatching.queries.overMatchingQueries(staleOverMatching, anyTotal = 233280)
+      CurrentOverMatching.queries.overMatchingQueries(StaleOverMatching, anyTotal = 233280)
 
 // ### The corrected design over each violating provider: the replacement is what must fail.
 
-object CurrentOverForgetful:
-  val currentOverForgetful =
-    CurrentOverMatching.currentOverMatching.withMember(_.queue -> forgetfulQueue)
+object CurrentOverForgetful
+    extends Composition(CurrentOverMatching.withMember(_.queue -> forgetfulQueue))
 
-object CurrentOverVolatile:
-  val currentOverVolatile =
-    CurrentOverMatching.currentOverMatching.withMember(_.queue -> volatileQueue)
+object CurrentOverVolatile
+    extends Composition(CurrentOverMatching.withMember(_.queue -> volatileQueue))
 
 /** The corrected design where storage loss is assumed, over the interface that allows it. */
-object CurrentOverLossyMatching:
-  val currentOverLossyMatching =
-    CurrentOverMatching.currentOverMatching.withMember(_.queue -> lossyMatchingQueue)
-
-  object queries:
+object CurrentOverLossyMatching
+    extends Composition(CurrentOverMatching.withMember(_.queue -> lossyMatchingQueue)):
+  object queries extends Section:
     val currentOverLossyMatchingQueries =
-      CurrentOverMatching.queries.overMatchingQueries(currentOverLossyMatching, anyTotal = 246240)
+      CurrentOverMatching.queries.overMatchingQueries(CurrentOverLossyMatching, anyTotal = 246240)

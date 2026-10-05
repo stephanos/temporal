@@ -20,86 +20,70 @@ func whyIn(t *testing.T, m *umpirespb.Model, machine, state, class string) *Why 
 func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
 	m := activityModel(t)
 
-	// A pause of a paused activity is disabled by the arm of its phase.
+	// A pause of a paused activity fires no rule: the control's rules are matched on the input first,
+	// then each rule of the class is tried on the state, and the last one tried disabled the pair.
 	w := whyIn(t, m, "activityProtocol", "paused-1-unset-unset-unset", "control-pause")
 	require.Empty(t, w.Steps)
 	require.Nil(t, w.Hole)
 	last, ok := w.Last()
 	require.True(t, ok)
-	require.True(t, last.Match())
-	require.False(t, last.Wildcard)
+	require.False(t, last.Match())
+	require.False(t, last.Then)
 	require.True(t, last.State)
 	require.Contains(t, last.Position, "model/temporal/features/standaloneactivity/StandaloneActivity.scala:")
-	// The control's own match decided first, on the input alone.
-	var input Decision
-	for _, d := range w.Decisions {
-		if d.Match() && d.Expr.GetMatch().GetScrutinee().GetVar() == "c" {
-			input = d
-		}
-	}
-	require.NotNil(t, input.Expr)
+	// The match on the input decided first, on the input alone.
+	input := w.Decisions[0]
+	require.True(t, input.Match())
+	require.Equal(t, "control", input.Expr.GetMatch().GetScrutinee().GetVar())
 	require.False(t, input.State)
 
-	// An unstarted activity has nothing to control: an `if` over the phase.
+	// An unstarted activity has nothing to control: no rule's phase holds.
 	w = whyIn(t, m, "activityProtocol", "unstarted-0-unset-unset-unset", "control-pause")
 	last, ok = w.Last()
 	require.True(t, ok)
 	require.False(t, last.Match())
-	require.True(t, last.Then)
+	require.False(t, last.Then)
 	require.True(t, last.State)
 
-	// A terminal phase's notFound row decides through the named predicate it calls.
+	// A terminal phase's notFound row decides through the named predicate its rule's guard calls.
 	w = whyIn(t, m, "activityProtocol", "completed-1-unset-unset-unset", "control-pause")
 	require.Len(t, w.Steps, 1)
-	first := w.Decisions[0]
-	require.Equal(t, []string{"temporal.features.standaloneactivity.Protocol$.terminal"}, first.Calls)
-	require.True(t, first.State)
-	require.False(t, first.Nested)
+	guard := w.Decisions[1]
+	require.Equal(t, []string{"temporal.features.standaloneactivity.ActivityProtocol$.states$.terminal"}, guard.Calls)
+	require.True(t, guard.Then)
+	require.True(t, guard.State)
+	require.False(t, guard.Nested)
 }
 
 func TestWhyTellsAnInputDecisionFromAStateDecision(t *testing.T) {
 	m := activityModel(t)
-	// A non-retryable failure decides on the input, after `held` decided on the phase.
+	// A non-retryable failure decides on the input, then on the phase its rule names (`held`).
 	w := whyIn(t, m, "activityProtocol", "started-1-unset-unset-unset", "attemptResult-failed-false")
 	require.Len(t, w.Steps, 1)
-	var sawInput bool
+	var sawInput, sawState bool
 	for _, d := range w.Decisions {
-		if !d.Match() && !d.State {
-			sawInput = true
-		}
+		sawInput = sawInput || d.Match() && !d.State
+		sawState = sawState || !d.Match() && d.State
 	}
 	require.True(t, sawInput)
+	require.True(t, sawState)
 }
 
 func TestWhyMarksAWildcardArm(t *testing.T) {
 	m := proto.Clone(activityModel(t)).(*umpirespb.Model)
-	// Rewrite the pause arm for cancelRequested as a default arm, as `case _ => Nil` lifts.
+	// Rewrite the control's rules for a pause as a default arm that fires none, as `case _ => Nil`
+	// lifts.
 	var rewritten bool
-	var visit func(x *umpirespb.Expr)
-	visit = func(x *umpirespb.Expr) {
-		if x == nil {
-			return
-		}
-		switch k := x.GetKind().(type) {
-		case *umpirespb.Expr_If:
-			visit(k.If.GetCondition())
-			visit(k.If.GetThen())
-			visit(k.If.GetElse())
-		case *umpirespb.Expr_Match:
-			for _, c := range k.Match.GetCases() {
-				if lit := c.GetPattern().GetLiteral().GetEnum(); lit.GetCase() == "cancelRequested" && !rewritten &&
-					len(c.GetBody().GetList().GetItems()) == 0 && c.GetBody().GetList() != nil {
-					c.Pattern = &umpirespb.Pattern{Kind: &umpirespb.Pattern_Wildcard{Wildcard: &umpirespb.Empty{}}}
-					rewritten = true
-				}
-				visit(c.GetBody())
-			}
-		default:
-		}
-	}
 	for _, f := range m.GetFunctions() {
-		if f.GetName() == "temporal.features.standaloneactivity.Protocol$.effects$.control" {
-			visit(f.GetBody())
+		if f.GetName() != "activityProtocol.rules.control" {
+			continue
+		}
+		for _, c := range f.GetBody().GetMatch().GetCases() {
+			if c.GetPattern().GetLiteral().GetEnum().GetCase() == "pause" {
+				c.Pattern = &umpirespb.Pattern{Kind: &umpirespb.Pattern_Wildcard{Wildcard: &umpirespb.Empty{}}}
+				c.Body = &umpirespb.Expr{Kind: &umpirespb.Expr_List{List: &umpirespb.ListOf{}}}
+				rewritten = true
+			}
 		}
 	}
 	require.True(t, rewritten)

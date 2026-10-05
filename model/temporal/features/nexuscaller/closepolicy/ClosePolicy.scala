@@ -17,7 +17,7 @@
  * Read top to bottom: the types; the signature (the logical operation, the caller's and the
  * handler's actions, and the bounds); then RejectAfterClose, the first design, whose step functions,
  * monitors and assumptions every design reads, with the nine designs derived from it, their
- * promises and their Queries; and last Files, its IR file.
+ * promises and their Queries; and last exports, its IR file.
  */
 package temporal
 package features.nexuscaller
@@ -1142,9 +1142,9 @@ object RejectAfterClose:
 
 // ### The checked-in IR file of the Nexus caller close and reset designs (umpire.irFile).
 
-object Files:
+object exports:
   // Each design's Queries are a root, and so is each progress claim.
-  val nexusCloseFile = irFile("nexus-close")(
+  val nexusClose = irFile("nexus-close")(
     RejectAfterClose.queries.rejectAfterCloseQueries,
     RejectAfterClose.queries.ackByOriginalQueries,
     RejectAfterClose.queries.retainAndRouteQueries,
