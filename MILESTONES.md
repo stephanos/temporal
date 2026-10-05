@@ -9,7 +9,8 @@ As of 2026-10-05.
 
 - This page describes the present. Rewrite a status in place; do not append dated entries.
 - List each open spec's tasks with ID, status and a brief description; set a task's status in place
-  when it changes. Remove a spec when it closes. Flow and git keep the history.
+  when it changes. Keep completed tasks listed until the whole spec is complete, then remove the spec.
+  Flow and git keep the history.
 - Close a cancelled or abandoned spec in Flow (tasks blocked, a "Closed: won't do" note in the
   spec) and remove it from this page.
 - Update the "As of" date with every edit.
