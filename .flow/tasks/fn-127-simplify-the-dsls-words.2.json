@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-05T02:58:30.241701Z",
+  "depends_on": [
+    "fn-127-simplify-the-dsls-words.1"
+  ],
+  "id": "fn-127-simplify-the-dsls-words.2",
+  "priority": null,
+  "spec": "fn-127-simplify-the-dsls-words",
+  "spec_path": ".flow/tasks/fn-127-simplify-the-dsls-words.2.md",
+  "status": "todo",
+  "title": "Read composition law parameters through a member with through",
+  "updated_at": "2026-10-05T02:58:30.241701Z"
+}
