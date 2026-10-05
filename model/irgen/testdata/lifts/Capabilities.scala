@@ -14,7 +14,7 @@ package fixture.capabilities
 import umpire.*
 import temporal.capabilities.{closedIsRejectedUniformly, terminalStatesAreFinal}
 import umpire.realize.{statusTable, Cleanup, Conformance, Disposition, PropertyOutcome}
-import umpire.realize.RunExpectation
+import umpire.realize.{Reason, RunExpectation}
 import temporal.capabilities.{given, *}
 
 given Family = Family("fixture.capabilities")
@@ -111,13 +111,14 @@ val jobStatus = statusTable(Note.started -> "RUNNING", Note.killedNote -> "TERMI
 /** The server code the jobs' cited bindings name: a closed job's answer, and which phases close. */
 val jobsCode = "model/irgen/testdata/lifts/Capabilities.scala"
 
-/** The Run a server is expected to give the job's functional laws. */
+/** The Run a server is expected to give the job's functional laws, a hole of the Model in reach. */
 val settles = RunExpectation(
-  Conformance.conformant,
+  Conformance.inconclusive,
   PropertyOutcome.satisfied,
   PropertyOutcome.satisfied,
   Disposition.completed,
-  Cleanup.succeeded
+  Cleanup.succeeded,
+  conformanceReason = Some(Reason.hole)
 )
 
 // Free verify Queries: 5 states x 6 classes x 3 steps = 90; finds: 5 states x min(3, 2) = 10.

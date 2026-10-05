@@ -168,3 +168,30 @@ func TestReleaseAllRunsEveryReleaseInReverseOrder(t *testing.T) {
 	require.ErrorContains(t, err, "delete namespace: in progress")
 	require.NoError(t, ReleaseAll(t.Context(), nil))
 }
+
+// foreignFactory is an assessment bound to a Case other than the one it is run beside.
+type foreignFactory struct{}
+
+func (foreignFactory) Binding() testpilot.AssessmentBinding {
+	return testpilot.AssessmentBinding{Case: "another", Model: "model", Query: "query",
+		Limits: testpilot.AssessmentLimits{MaxEvents: 1, MaxProperties: 1, MaxDuration: time.Second}}
+}
+
+func (foreignFactory) New(context.Context) (testpilot.Assessor, error) {
+	return nil, errors.New("never asked")
+}
+
+// RunAssessed binds the assessment before the Driver is reached: an assessment of another Case is
+// refused with no Run, by the prepared Case's own rule.
+func TestRunAssessedRefusesAnAssessmentOfAnotherCaseBeforeTheDriver(t *testing.T) {
+	prepared, err := Prepare(unreachable(), "probe-queue-handler", "probe.identity", nexusCallerCase(t))
+	require.NoError(t, err)
+	bound := &Bound{prepared: prepared.Case}
+	run, verdict, assessment, err := bound.RunAssessed(t.Context(), foreignFactory{})
+	var rejection *testpilot.PreparationError
+	require.ErrorAs(t, err, &rejection)
+	require.Contains(t, rejection.Error(), "another Case")
+	require.Nil(t, run)
+	require.Nil(t, verdict)
+	require.Nil(t, assessment)
+}

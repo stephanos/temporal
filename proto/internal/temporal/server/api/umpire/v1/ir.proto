@@ -623,8 +623,9 @@ message RunExpectation {
     CLEANUP_FAILED = 2;
     CLEANUP_TIMED_OUT = 3;
   }
-  // Why the model assessment leaves an outcome short of satisfied: the judge's own reasons, by id.
-  // The assessment reports the id beside its prose (tools/umpire/conformance/conclude.go).
+  // Why the model assessment leaves an outcome short of satisfied, or conformance short of
+  // conformant: the judge's own reasons, by id. The assessment reports the id beside its prose
+  // (tools/umpire/conformance/conclude.go).
   enum Reason {
     REASON_UNSPECIFIED = 0;
     // The Run recorded no evidence of the machine.
@@ -654,6 +655,9 @@ message RunExpectation {
   Outcome contract = 5;
   Disposition disposition = 6;
   Cleanup cleanup = 7;
+  // Why the model assessment's conformance is not conformant, by the judge's id. Set exactly when
+  // conformance is not conformant.
+  Reason conformance_reason = 9;
 }
 
 message MonitorExpectation {

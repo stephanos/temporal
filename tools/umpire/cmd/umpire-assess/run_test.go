@@ -7,15 +7,18 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/evaluation"
 	"go.temporal.io/server/common/testing/testpilot/publish"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
+	"go.temporal.io/server/tools/umpire/lower"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -125,7 +128,7 @@ func TestAssessDecidesAndPublishesOnce(t *testing.T) {
 		reasons  []string
 	}{
 		"accepted": {nil, satisfy, exitAccepted, nil},
-		"rejected": {nil, nil, exitRejected, []string{"verdict-violated", "monitor-stopped", "known-gap-blocking"}},
+		"rejected": {nil, nil, exitRejected, []string{"verdict-violated", "known-gap-blocking"}},
 		"incomplete": {func(source *testpilotspb.Case) {
 			source.Provenance.KnownGaps = []*testpilotspb.KnownGap{{Kind: testpilotspb.KNOWN_GAP_KIND_CAPABILITY, Code: "umpire.gap.example"}}
 		}, satisfy, exitIncomplete, []string{"known-gap-blocking"}},
@@ -360,4 +363,133 @@ func TestAssessNamesTheSelfCheckAndPublicationFailures(t *testing.T) {
 		require.Equal(t, statusPublicationFailed, result.Status)
 		require.Contains(t, result.Detail, "disk full")
 	})
+}
+
+const modelRoot = "../../../../model"
+
+// generatedControl is the generated Case of the control's Query: the pinned control Run is a Run of
+// it, which the live test assessed as its Query expects.
+func generatedControl(t *testing.T) (*testpilotspb.Case, *lower.GeneratedCase) {
+	t.Helper()
+	encoded, err := os.ReadFile(controlCasePath)
+	require.NoError(t, err)
+	source, err := testpilot.DecodeCaseProtoJSON(encoded)
+	require.NoError(t, err)
+	entry, err := lower.FindGeneratedCase(filepath.Join(modelRoot, "cases"), source)
+	require.NoError(t, err)
+	require.Equal(t, "nexus-control-forgedCompletion-case.json", entry.File)
+	return source, entry
+}
+
+// With --model, the recorded generated Run is assessed by its Model offline, as the live test that
+// ran it replays it: the Assessment is the one its Query expects (lower.ExpectedRun.Check, the live
+// test's own comparison), the receipt records it beside the Verdict, and it decides beside the
+// Verdict.
+func TestAssessWithAModelReproducesTheLiveAssessment(t *testing.T) {
+	_, entry := generatedControl(t)
+	caseBytes, err := os.ReadFile(controlCasePath)
+	require.NoError(t, err)
+	runBytes, err := os.ReadFile(controlRunPath)
+	require.NoError(t, err)
+	assessed, status, err := assessRecorded(modelRoot, caseBytes, runBytes)
+	require.NoError(t, err, status)
+	decoded, err := recordedrun.Decode(runBytes)
+	require.NoError(t, err)
+	require.NoError(t, entry.Expected.Check(decoded.Run, decoded.Run.GetVerdict(), assessed))
+	again, _, err := assessRecorded(modelRoot, caseBytes, runBytes)
+	require.NoError(t, err)
+	require.Equal(t, assessed, again, "the offline assessment is a function of the recorded Run")
+
+	root := resolvedTemp(t)
+	code, result, stderr := run(t, append(flags(controlCasePath, controlRunPath, root), "--model", modelRoot), environment{})
+	require.Equal(t, exitRejected, code, stderr)
+	require.Equal(t, []string{"verdict-violated", "known-gap-blocking", "property-violated", "assessment-inconclusive"}, result.Reasons)
+	published, err := os.ReadFile(result.Path)
+	require.NoError(t, err)
+	receipt, err := evaluation.DecodeReceipt(published)
+	require.NoError(t, err)
+	require.NotNil(t, receipt.Assessment)
+	require.Equal(t, assessed.Model, receipt.Assessment.Model)
+	require.Equal(t, assessed.Query, receipt.Assessment.Query)
+	require.Equal(t, entry.Expected.Conformance, receipt.Assessment.Conformance.Status)
+	require.Equal(t, assessed.Conformance.Reason, receipt.Assessment.Conformance.Reason)
+	require.Len(t, receipt.Assessment.Properties, len(entry.Expected.Properties))
+	for i, expected := range entry.Expected.Properties {
+		require.Equal(t, expected.ID, receipt.Assessment.Properties[i].ID)
+		require.Equal(t, expected.Status, receipt.Assessment.Properties[i].Status)
+		require.Equal(t, expected.Reason, receipt.Assessment.Properties[i].Reason)
+	}
+	require.Nil(t, receipt.Assessment.Failure)
+
+	// Without --model the same subject is decided on its Verdict alone, and its receipt is another.
+	code, plain, _ := run(t, flags(controlCasePath, controlRunPath, root), environment{})
+	require.Equal(t, exitRejected, code)
+	require.Equal(t, []string{"verdict-violated", "known-gap-blocking"}, plain.Reasons)
+	require.NotEqual(t, result.Receipt, plain.Receipt)
+}
+
+// A Case the model directory does not lower is not assessed: the subject is refused with its own
+// status and nothing is published. A recorded Run that does not read back to its recorded Verdict is
+// refused too, since its assessment would not be of the Run that was recorded.
+func TestAssessWithAModelRefusesWhatItCannotAssess(t *testing.T) {
+	notGenerated, notGeneratedRun := subjectFiles(t, nil, satisfy)
+	unreproducible := func() (string, string) {
+		caseBytes, err := os.ReadFile(controlCasePath)
+		require.NoError(t, err)
+		recorded, err := os.ReadFile(controlRunPath)
+		require.NoError(t, err)
+		decoded, err := recordedrun.Decode(recorded)
+		require.NoError(t, err)
+		lying := proto.CloneOf(decoded.Run)
+		satisfy(lying)
+		identity, err := recordedrun.CaseIdentity(caseBytes)
+		require.NoError(t, err)
+		encoded, err := recordedrun.Encode(identity, decoded.Driver, lying)
+		require.NoError(t, err)
+		runPath := filepath.Join(t.TempDir(), "run.json")
+		require.NoError(t, os.WriteFile(runPath, encoded, 0o644))
+		return controlCasePath, runPath
+	}
+	lyingCase, lyingRun := unreproducible()
+	for name, probe := range map[string]struct {
+		arguments []string
+		status    string
+		detail    string
+	}{
+		"a Case the Model does not lower": {append(flags(notGenerated, notGeneratedRun, ""), "--model", modelRoot), statusModelUnassessable, "not a generated Case"},
+		"no model directory":              {append(flags(controlCasePath, controlRunPath, ""), "--model", resolvedTemp(t)), statusModelUnassessable, "manifest.json"},
+		"a Run that does not read back":   {append(flags(lyingCase, lyingRun, ""), "--model", modelRoot), statusAssessmentUnreproducible, "completed disposition conflicts"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			root := resolvedTemp(t)
+			arguments := slices.Clone(probe.arguments)
+			arguments[slices.Index(arguments, "--receipt-root")+1] = root
+			code, result, _ := run(t, arguments, environment{})
+			require.Equal(t, exitFailed, code)
+			require.Equal(t, probe.status, result.Status)
+			require.Contains(t, result.Detail, probe.detail)
+			listed, err := os.ReadDir(root)
+			require.NoError(t, err)
+			require.Empty(t, listed, "nothing is published")
+		})
+	}
+}
+
+// A receipt root inside the model directory --model reads is refused before anything is read, as
+// one inside --model-root is, whatever --model-root says.
+func TestAssessWithAModelRefusesAReceiptRootInsideIt(t *testing.T) {
+	model := resolvedTemp(t)
+	inside := filepath.Join(model, "receipts")
+	require.NoError(t, os.Mkdir(inside, 0o755))
+	arguments := []string{"run", "--case", controlCasePath, "--run", controlRunPath, "--profile", "local-ephemeral",
+		"--receipt-root", inside, "--model-root", resolvedTemp(t), "--model", model}
+	catalogRead := false
+	code, result, stderr := run(t, arguments, environment{Catalog: func() (string, error) { catalogRead = true; return fixedCatalog() }})
+	require.Equal(t, exitFailed, code)
+	require.Empty(t, result.Status, "no summary for a refused command line")
+	require.False(t, catalogRead, "nothing is read for a refused command line")
+	require.Contains(t, stderr, "--receipt-root must not be under the model root")
+	listed, err := os.ReadDir(inside)
+	require.NoError(t, err)
+	require.Empty(t, listed)
 }

@@ -18,31 +18,42 @@ const receiptGoldensVariable = "UMPIRE_RECEIPT_GOLDENS"
 
 func receiptOf(t *testing.T, subject *Subject, profile Profile) []byte {
 	t.Helper()
-	rendered, err := Render(subject, profile, Assess(subject, profile))
+	return assessedReceiptOf(t, subject, profile, nil)
+}
+
+func assessedReceiptOf(t *testing.T, subject *Subject, profile Profile, assessed *testpilot.Assessment) []byte {
+	t.Helper()
+	rendered, err := Render(subject, profile, Assess(subject, profile, assessed))
 	require.NoError(t, err)
 	return rendered
 }
 
 // The receipt bytes of an accepted, a rejected and an incomplete Decision, each produced by Assess
-// on the control's record, are pinned; each reads back to itself.
+// on the control's record, and of the control decided with a Model assessment, are pinned; each
+// reads back to itself.
 func TestReceiptGoldens(t *testing.T) {
 	c := loadControl(t)
 	profile := localEphemeral(t)
 	for name, probe := range map[string]struct {
-		editCase func(*testpilotspb.Case)
-		editRun  func(*testpilotspb.Run)
-		outcome  string
+		editCase   func(*testpilotspb.Case)
+		editRun    func(*testpilotspb.Run)
+		assessment *testpilot.Assessment
+		outcome    string
 	}{
-		"accepted": {nil, satisfy, DecisionAccepted},
-		"rejected": {nil, func(run *testpilotspb.Run) { run.Cleanup.Status = testpilotspb.CLEANUP_STATUS_FAILED }, DecisionRejected},
+		"accepted": {nil, satisfy, nil, DecisionAccepted},
+		"rejected": {nil, func(run *testpilotspb.Run) { run.Cleanup.Status = testpilotspb.CLEANUP_STATUS_FAILED }, nil, DecisionRejected},
 		"incomplete": {withGap(testpilotspb.KNOWN_GAP_KIND_CAPABILITY), func(run *testpilotspb.Run) {
 			satisfy(run)
 			run.Verdict.Rules[0].SupportingEventSequences = nil
-		}, DecisionIncomplete},
+		}, nil, DecisionIncomplete},
+		"assessed": {nil, nil, assessment(func(a *testpilot.Assessment) {
+			a.Conformance = testpilot.ConformanceAssessment{Status: testpilot.ConformanceInconclusive, Reason: "incomplete", Detail: "never recorded"}
+			a.Properties = []testpilot.PropertyAssessment{{ID: "forgedSuccess", Status: testpilot.PropertyViolated, SupportingEventSequences: []int64{8, 27, 32}, Reason: "every_explanation_violates", Detail: "never recorded"}}
+		}), DecisionRejected},
 	} {
 		t.Run(name, func(t *testing.T) {
 			subject := c.admitted(t, probe.editCase, probe.editRun)
-			rendered := receiptOf(t, subject, profile)
+			rendered := assessedReceiptOf(t, subject, profile, probe.assessment)
 			decoded, err := DecodeReceipt(rendered)
 			require.NoError(t, err)
 			require.Equal(t, probe.outcome, decoded.Decision)
@@ -61,6 +72,8 @@ func TestReceiptGoldens(t *testing.T) {
 			require.NoError(t, err, "write the goldens with %s=write", receiptGoldensVariable)
 			require.Equal(t, string(golden), string(rendered))
 			require.NotContains(t, string(rendered), "payload", "a receipt carries no event body")
+			require.NotContains(t, string(rendered), "never recorded", "a receipt carries no assessment prose")
+			require.Equal(t, probe.assessment != nil, decoded.Assessment != nil)
 		})
 	}
 }
@@ -75,10 +88,10 @@ func TestReceiptsAreDeterministicAndPerProfile(t *testing.T) {
 	require.Equal(t, first, receiptOf(t, subject, local))
 	other := receiptOf(t, subject, strict)
 	require.NotEqual(t, ReceiptIdentity(first), ReceiptIdentity(other))
-	_, err := Render(subject, local, Assess(subject, strict))
+	_, err := Render(subject, local, Assess(subject, strict, nil))
 	require.ErrorContains(t, err, "not made under this Profile")
 	violated := c.admitted(t, nil, nil)
-	_, err = Render(subject, local, Assess(violated, local))
+	_, err = Render(subject, local, Assess(violated, local, nil))
 	require.ErrorContains(t, err, "not made on this subject")
 
 	// Published under their identities, the same receipt is already published the second time and
@@ -97,19 +110,29 @@ func TestReceiptsAreDeterministicAndPerProfile(t *testing.T) {
 func TestDecodeReceiptIsStrict(t *testing.T) {
 	c := loadControl(t)
 	valid := string(receiptOf(t, c.admitted(t, nil, satisfy), localEphemeral(t)))
+	assessedValid := string(assessedReceiptOf(t, c.admitted(t, nil, satisfy), localEphemeral(t), assessment(func(a *testpilot.Assessment) {
+		a.Properties = nil
+		a.Failure = &testpilot.AssessmentFailure{Code: testpilot.AssessmentCloseFailed, Detail: "never recorded", EventSequence: 31}
+	})))
+	decoded, err := DecodeReceipt([]byte(assessedValid))
+	require.NoError(t, err)
+	require.Equal(t, &ReceiptAssessmentFailure{Code: "close_failed", EventSequence: 31}, decoded.Assessment.Failure)
+	require.NotContains(t, assessedValid, "never recorded")
 	for name, probe := range map[string]struct {
 		encoded string
 		detail  string
 	}{
-		"an unknown key":         {strings.Replace(valid, `{"version":1,`, `{"version":1,"extra":1,`, 1), "unknown field"},
-		"a repeated key":         {strings.Replace(valid, `"decision":`, `"decision":"rejected","decision":`, 1), "canonical form"},
-		"a case-folded key":      {strings.Replace(valid, `"decision":`, `"Decision":`, 1), "canonical form"},
-		"a trailing document":    {valid + valid, "canonical form"},
-		"other spacing":          {strings.Replace(valid, `{"version":1,`, `{"version": 1,`, 1), "canonical form"},
-		"a null list":            {strings.Replace(valid, `"knownGaps":[]`, `"knownGaps":null`, 1), "canonical form"},
-		"another format version": {strings.Replace(valid, `{"version":1,`, `{"version":2,`, 1), "format version 2"},
-		"not JSON":               {"{", "decode receipt"},
-		"over the cap":           {valid + strings.Repeat(" ", MaxReceiptBytes+1-len(valid)), "receipt-oversized"},
+		"an unknown key":                  {strings.Replace(valid, `{"version":2,`, `{"version":2,"extra":1,`, 1), "unknown field"},
+		"a repeated key":                  {strings.Replace(valid, `"decision":`, `"decision":"rejected","decision":`, 1), "canonical form"},
+		"a case-folded key":               {strings.Replace(valid, `"decision":`, `"Decision":`, 1), "canonical form"},
+		"a trailing document":             {valid + valid, "canonical form"},
+		"other spacing":                   {strings.Replace(valid, `{"version":2,`, `{"version": 2,`, 1), "canonical form"},
+		"a null list":                     {strings.Replace(valid, `"knownGaps":[]`, `"knownGaps":null`, 1), "canonical form"},
+		"a null assessment list":          {strings.Replace(assessedValid, `"properties":[]`, `"properties":null`, 1), "canonical form"},
+		"a null assessment sequence list": {strings.Replace(assessedValid, `"supportingEventSequences":[8,27]`, `"supportingEventSequences":null`, 1), "canonical form"},
+		"another format version":          {strings.Replace(valid, `{"version":2,`, `{"version":1,`, 1), "format version 1"},
+		"not JSON":                        {"{", "decode receipt"},
+		"over the cap":                    {valid + strings.Repeat(" ", MaxReceiptBytes+1-len(valid)), "receipt-oversized"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			_, err := DecodeReceipt([]byte(probe.encoded))
@@ -142,7 +165,7 @@ func TestTheReceiptCap(t *testing.T) {
 		Caps:        AdmissionCaps(),
 	}
 	profile := localEphemeral(t)
-	rendered, err := Render(subject, profile, Assess(subject, profile))
+	rendered, err := Render(subject, profile, Assess(subject, profile, nil))
 	require.Nil(t, rendered)
 	require.ErrorAs(t, err, &oversized)
 	require.Greater(t, oversized.Size, MaxReceiptBytes)

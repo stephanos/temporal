@@ -783,7 +783,8 @@ object Control:
             contract = PropertyOutcome.violated,
             disposition = Disposition.stoppedByMonitor,
             cleanup = Cleanup.succeeded,
-            reason = Some(Reason.everyExplanationViolates)
+            reason = Some(Reason.everyExplanationViolates),
+            conformanceReason = Some(Reason.incomplete)
           )
         )
         .explore(

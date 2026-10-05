@@ -5035,13 +5035,14 @@
       "conformance": "CONFORMANCE_INCONCLUSIVE",
       "contract": "OUTCOME_VIOLATED",
       "disposition": "DISPOSITION_STOPPED_BY_MONITOR",
-      "cleanup": "CLEANUP_SUCCEEDED"
+      "cleanup": "CLEANUP_SUCCEEDED",
+      "conformanceReason": "REASON_INCOMPLETE"
     },
     "exploration": {
       "name": "nexusControl",
       "position": {
         "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-        "line": 790
+        "line": 791
       },
       "variations": [ {
         "index": 1,
@@ -5055,7 +5056,7 @@
           } ],
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 796
+            "line": 797
           }
         }, {
           "name": "once",
@@ -5065,18 +5066,18 @@
           } ],
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 797
+            "line": 798
           }
         }, {
           "name": "none",
           "position": {
             "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-            "line": 798
+            "line": 799
           }
         } ],
         "position": {
           "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
-          "line": 793
+          "line": 794
         }
       } ],
       "runs": 1,

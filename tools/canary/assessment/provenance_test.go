@@ -51,8 +51,8 @@ func TestProvenanceGoldens(t *testing.T) {
 		provenance *Provenance
 		identity   string
 	}{
-		"released":  {sampleProvenance(t), "15235f3e8ad67c3b4cfde3df5dff716c62746f7e7dd7fd0d2ec576719551e94b"},
-		"uncertain": {uncertain, "47ca0d07e501f04da9d6460655db52d1d43910f2cff007b9a69b5ac7e69e91c6"},
+		"released":  {sampleProvenance(t), "da77e7d21f4e58b8e47f4fd68c9ac80727b1d2f0852d369355846d33fe0ed3e8"},
+		"uncertain": {uncertain, "2c4f5e7bbc9ad22f23f14b42b55bef5d779575bfdc85ed3585ef4cf3103ff24c"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			rendered, err := RenderProvenance(test.provenance)

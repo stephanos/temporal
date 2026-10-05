@@ -16,7 +16,8 @@ import (
 // Since fn-124.5 a Query's expected Run declares what the baseline left to its reader: the Contract's
 // Verdict (the baseline wrote it only when violated), how the Run ends and how its cleanup ends (the
 // reader took a violated Contract to stop the Run, and any other to complete it, and every cleanup to
-// succeed), and each reason by the judge's id rather than its prose. The archive is frozen in the
+// succeed), and each reason by the judge's id rather than its prose. Since fn-124.6 a conformance
+// short of conformant names its reason too, which the baseline never wrote. The archive is frozen in the
 // schema before that, which the current one cannot decode, so it is read as the baseline's reader read
 // it (DeclaredRuns.Declare): each expected Run of an archived IR file and lifter fixture, and of the
 // Case manifest, with those values written out. Everything else is read as frozen, and is compared as
@@ -27,16 +28,40 @@ import (
 // prose reason of the archive must be listed, and every listed one found.
 type DeclaredRuns struct {
 	Reasons map[string]string `json:"reasons"`
+	// ConformanceReasons are the reasons the baseline's conformances short of conformant are
+	// declared with, by the IR conformance each is of: "conformance_reasons":
+	// {"CONFORMANCE_INCONCLUSIVE": "REASON_INCOMPLETE"}. Every such conformance of the archive must be
+	// listed, and every listed one found.
+	ConformanceReasons map[string]string `json:"conformance_reasons"`
 }
 
-// check checks each reason names a reason of the IR.
+// check checks each reason names a reason of the IR, and each conformance one short of conformant.
 func (r DeclaredRuns) check() error {
 	for prose, name := range r.Reasons {
 		if prose == "" || umpirespb.RunExpectation_Reason_value[name] == 0 {
 			return fmt.Errorf("declared run reason %q names %q, which is no reason of the IR", prose, name)
 		}
 	}
+	for conformance, name := range r.ConformanceReasons {
+		value := umpirespb.RunExpectation_Conformance_value[conformance]
+		if value == 0 || value == int32(umpirespb.RunExpectation_CONFORMANCE_CONFORMANT) || umpirespb.RunExpectation_Reason_value[name] == 0 {
+			return fmt.Errorf("declared conformance reason of %q names %q, which is no conformance short of conformant or no reason of the IR", conformance, name)
+		}
+	}
 	return nil
+}
+
+// conformanceUse is how a declared conformance reason is marked used.
+func conformanceUse(conformance string) string { return "conformance:" + conformance }
+
+// conformanceReason is the IR reason a baseline conformance short of conformant is declared with.
+func (r DeclaredRuns) conformanceReason(conformance string, used map[string]bool) (string, error) {
+	name, listed := r.ConformanceReasons[conformance]
+	if !listed {
+		return "", fmt.Errorf("expected Run conformance %s has no listed declared conformance reason", conformance)
+	}
+	used[conformanceUse(conformance)] = true
+	return name, nil
 }
 
 // disposition is what the baseline's reader took a Run to end as: stopped by its Monitor when the
@@ -70,6 +95,11 @@ func (r DeclaredRuns) Declare(archived map[string][]byte) (map[string][]byte, er
 	for _, prose := range slices.Sorted(maps.Keys(r.Reasons)) {
 		if !used[prose] {
 			errs = append(errs, fmt.Errorf("declared run reason %q is written by no archived expected Run", prose))
+		}
+	}
+	for _, conformance := range slices.Sorted(maps.Keys(r.ConformanceReasons)) {
+		if !used[conformanceUse(conformance)] {
+			errs = append(errs, fmt.Errorf("declared conformance reason of %s is of no archived expected Run", conformance))
 		}
 	}
 	return out, errors.Join(errs...)
@@ -126,7 +156,7 @@ func (r DeclaredRuns) model(encoded []byte, used map[string]bool) ([]byte, error
 
 // run declares one expected Run of an IR file.
 func (r DeclaredRuns) run(run map[string]any, used map[string]bool) error {
-	for _, field := range []string{"disposition", "cleanup"} {
+	for _, field := range []string{"disposition", "cleanup", "conformanceReason"} {
 		if _, ok := run[field]; ok {
 			return fmt.Errorf("an archived expected Run declares its %s", field)
 		}
@@ -136,6 +166,13 @@ func (r DeclaredRuns) run(run map[string]any, used map[string]bool) error {
 	}
 	run["disposition"] = "DISPOSITION_" + disposition(run["contract"] == "OUTCOME_VIOLATED")
 	run["cleanup"] = "CLEANUP_SUCCEEDED"
+	if conformance, ok := run["conformance"].(string); ok && conformance != "CONFORMANCE_CONFORMANT" {
+		name, err := r.conformanceReason(conformance, used)
+		if err != nil {
+			return err
+		}
+		run["conformanceReason"] = name
+	}
 	reasoned := []map[string]any{run}
 	if monitors, ok := run["monitors"].([]any); ok {
 		for _, monitor := range monitors {
@@ -160,11 +197,14 @@ var (
 	// An expected Run's opening line, and the member after it, in the manifest's indented layout.
 	manifestExpected = regexp.MustCompile(`(?m)^( *)"expected": \{\n( *)(?:"contract": "(\w+)",\n *)?"conformance"`)
 	manifestReason   = regexp.MustCompile(`"reason": ("(?:[^"\\]|\\.)*")`)
+	// An expected Run's conformance line, in the manifest's indented layout.
+	manifestConformance = regexp.MustCompile(`(?m)^( *)"conformance": "(\w+)",\n`)
 )
 
 // manifest declares each expected Run of the Case manifest, rewriting its lines where they are and
 // keeping every other byte, as GenerateCases lays out the declared members: contract, disposition and
-// cleanup ahead of conformance, and each reason as the id the IR reason names.
+// cleanup ahead of conformance, the conformance reason after a conformance short of conformant, and
+// each reason as the id the IR reason names.
 func (r DeclaredRuns) manifest(encoded []byte, used map[string]bool) ([]byte, error) {
 	var errs []error
 	declared := manifestExpected.ReplaceAllFunc(encoded, func(match []byte) []byte {
@@ -179,6 +219,19 @@ func (r DeclaredRuns) manifest(encoded []byte, used map[string]bool) ([]byte, er
 	if want, got := bytes.Count(encoded, []byte(`"expected": {`)), len(manifestExpected.FindAll(encoded, -1)); want != got {
 		errs = append(errs, fmt.Errorf("%d of %d expected Runs are laid out as the manifest lays one out", got, want))
 	}
+	declared = manifestConformance.ReplaceAllFunc(declared, func(match []byte) []byte {
+		parts := manifestConformance.FindSubmatch(match)
+		conformance := string(parts[2])
+		if conformance == "conformant" {
+			return match
+		}
+		name, err := r.conformanceReason("CONFORMANCE_"+strings.ToUpper(conformance), used)
+		if err != nil {
+			errs = append(errs, err)
+			return match
+		}
+		return fmt.Appendf(slices.Clone(match), "%s\"conformanceReason\": %q,\n", parts[1], strings.ToLower(strings.TrimPrefix(name, "REASON_")))
+	})
 	declared = manifestReason.ReplaceAllFunc(declared, func(match []byte) []byte {
 		var prose string
 		if err := json.Unmarshal(manifestReason.FindSubmatch(match)[1], &prose); err != nil {

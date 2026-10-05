@@ -8518,14 +8518,14 @@
       "function": "temporal.shared.worker.Polling$.effects$.stopStep",
       "position": {
         "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 89
+        "line": 90
       }
     }, {
       "action": "temporal.worker.Worker$package$.serve",
       "function": "temporal.shared.worker.Polling$.effects$.serveStep",
       "position": {
         "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 89
+        "line": 92
       }
     } ]
   }, {
@@ -8587,21 +8587,21 @@
       "function": "temporal.shared.worker.Polling$.effects$.stopStep",
       "position": {
         "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 89
+        "line": 90
       }
     }, {
       "action": "temporal.worker.Worker$package$.workerResume",
       "function": "temporal.shared.worker.Polling$.effects$.resumeStep",
       "position": {
         "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 89
+        "line": 91
       }
     }, {
       "action": "temporal.worker.Worker$package$.serve",
       "function": "temporal.shared.worker.Polling$.effects$.serveStep",
       "position": {
         "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 89
+        "line": 92
       }
     } ]
   } ],

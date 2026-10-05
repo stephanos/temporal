@@ -1,8 +1,9 @@
 // Package evaluation is offline Claim Assessment: it admits one canonical Case and one recorded Run
-// of it strictly, assesses the recorded Verdict against a Lean-declared Evaluation Profile, and
-// renders the decision as a canonical receipt. It never prepares, runs or replays a Case, and it
-// never reads an event's payload: verification is the recorded Verdict's status, and evidence is
-// each rule's supporting sequences.
+// of it strictly, decides the recorded Verdict, and the Model assessment of the Run when a caller
+// supplies one, under an Evaluation Profile's policy by one fixed precedence, and renders the
+// decision as a canonical receipt. It never prepares, runs or replays a Case, and it never reads an
+// event's payload: verification is the recorded Verdict's status, and evidence is each rule's
+// supporting sequences.
 package evaluation
 
 import (
