@@ -16,6 +16,7 @@ var (
 	activityIR     = loaded("../../../model/ir/activity.json")
 	nexusControlIR = loaded("../../../model/ir/nexus-control.json")
 	capturedIR     = loaded("../../../model/irgen/testdata/lifts/expected/captured.json")
+	declarationsIR = loaded("../../../model/irgen/testdata/lifts/expected/declarations.json")
 )
 
 func loaded(path string) func() (*umpirespb.Model, error) {
@@ -256,6 +257,53 @@ func TestNeverEnabled(t *testing.T) {
 	require.Equal(t, map[string]int{"activityProduct": 11, "activityProtocol": 22, "activityWorker": 2, "polling": 3}, r.population)
 	// The product's worker stop is disabled in every state: its stop is the protocol's alone.
 	require.Equal(t, map[string][]string{"activityProduct": {"workerStop"}}, r.subjects)
+}
+
+func TestStuckState(t *testing.T) {
+	// The passing fixture: every reachable state of the activity's machines is an end or takes a step.
+	r := run(t, read(t, activityIR), stuckStates)
+	require.Equal(t, map[string]int{"activityProduct": 9, "activityProtocol": 238, "activityWorker": 2, "polling": 2}, r.population)
+	require.Empty(t, r.subjects)
+
+	// The finding fixture: putOnly is the disk without its flush, an internal step, so the staged disk
+	// the put leaves is no end and nothing can happen in it. The disk itself flushes it.
+	m := read(t, capturedIR)
+	tallies, err := stuckStates(m)
+	require.NoError(t, err)
+	var findings []Finding
+	for _, x := range tallies {
+		findings = append(findings, x.Findings...)
+	}
+	require.Len(t, findings, 1)
+	f := findings[0]
+	require.Equal(t, []string{"putOnly", "staged"}, []string{f.Owner, f.Subject})
+	require.Equal(t, where(m.machine("putOnly").GetPosition()), f.Position)
+	require.Equal(t, "staged is reachable, is no end and enables no action class: no action can happen in it, so a timer or "+
+		"an internal step may be missing a rule; if it is meant to be final, declare it in the machine's ends; "+
+		"reached by empty -put/accepted-> staged", f.Message)
+	table := m.Machines["putOnly"].Table
+	require.NoError(t, table.Replay(table.PathTo("staged")), "the path is a witness of the table")
+
+	// A state whose only pair is a hole takes no step either; the finding names the hole.
+	holed := read(t, declarationsIR, func(ir *umpirespb.Model) {
+		ir.Queries, ir.Scenarios, ir.Progress = nil, nil, nil
+		for _, d := range ir.GetMachines() {
+			if d.GetName() == "disk" {
+				d.Steps = slices.DeleteFunc(d.Steps, func(b *umpirespb.StepBinding) bool {
+					return b.GetAction() == "fixture.declarations.Declarations$package$.flush"
+				})
+			}
+		}
+	})
+	tallies, err = stuckStates(holed)
+	require.NoError(t, err)
+	findings = nil
+	for _, x := range tallies {
+		findings = append(findings, x.Findings...)
+	}
+	require.Len(t, findings, 1)
+	require.Equal(t, "staged", findings[0].Subject)
+	require.Contains(t, findings[0].Message, "its only pairs are holes (crash)")
 }
 
 func TestUnproduced(t *testing.T) {

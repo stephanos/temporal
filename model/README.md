@@ -164,6 +164,17 @@ at its Scala line. It fails on a finding until you fix the Model or accept the f
 in `model/ir/<file>.lint.json`, and on an acceptance that no longer matches a finding. The coverage
 summary it prints per machine is informational; no count fails the gate.
 
+Three kinds read a machine's table for what can happen in its reachable states, each at the Scala
+line of what it names:
+
+| Kind | Reported for | Fix |
+| --- | --- | --- |
+| `never-enabled` | an action class no reachable state enables | bind a rule that enables it, or drop it from the machine |
+| `silent-rejection` | a party's action disabled in a reachable state that is no end, by class and phase | a rule whose outcome says how the system answers it |
+| `stuck-state` | a reachable state that is no end and enables no action class, a timer's and an internal step's included, with a shortest path to it | the rule a timer or an internal step is missing, or the state in the machine's `ends` if it is final |
+
+Like `never-enabled`, `stuck-state` reads each machine's table, not a composition's composed table.
+
 Lint reads the law sidecar beside an IR file (`model/ir/<file>.laws.json`) for the law kinds, each at
 the Scala line the sidecar records:
 
