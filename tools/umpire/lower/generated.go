@@ -245,6 +245,49 @@ func DecodeManifest(encoded []byte) (*Manifest, error) {
 	return &manifest, nil
 }
 
+// ErrNotGenerated says a Case is none of the lowered Cases a manifest lists.
+var ErrNotGenerated = errors.New("the Case is not a generated Case")
+
+// FindGeneratedCase is the manifest entry, in the generated Case directory, of the lowered Case that
+// is source: the one whose Case file has source's testpilot.CaseFingerprint, the identity an
+// assessment is bound to. A Case none of them is, which includes a Case regenerated since, is
+// ErrNotGenerated.
+func FindGeneratedCase(directory string, source *testpilotspb.Case) (*GeneratedCase, error) {
+	fingerprint, err := runtime.CaseFingerprint(source)
+	if err != nil {
+		return nil, err
+	}
+	encoded, err := os.ReadFile(filepath.Join(directory, "manifest.json"))
+	if err != nil {
+		return nil, err
+	}
+	manifest, err := DecodeManifest(encoded)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", filepath.Join(directory, "manifest.json"), err)
+	}
+	for _, entry := range manifest.Queries {
+		if entry.Standing != Lowered {
+			continue
+		}
+		encoded, err := os.ReadFile(filepath.Join(directory, entry.File))
+		if err != nil {
+			return nil, err
+		}
+		generated, err := runtime.DecodeCaseProtoJSON(encoded)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", entry.File, err)
+		}
+		other, err := runtime.CaseFingerprint(generated)
+		if err != nil {
+			return nil, err
+		}
+		if other == fingerprint {
+			return &entry, nil
+		}
+	}
+	return nil, fmt.Errorf("%w: case %q is none of the lowered Cases in %s", ErrNotGenerated, source.GetCaseId(), directory)
+}
+
 func validateExpectedRun(expected *ExpectedRun, key string) error {
 	verdict, known := testpilotValue[testpilotspb.VerdictStatus](testpilotspb.VerdictStatus_value, "VERDICT_STATUS_", expected.Contract)
 	if !known || (verdict != testpilotspb.VERDICT_STATUS_SATISFIED && verdict != testpilotspb.VERDICT_STATUS_VIOLATED) {
@@ -322,6 +365,13 @@ func (e *ExpectedRun) Check(run *testpilotspb.Run, verdict *testpilotspb.Verdict
 	}
 	var problems []error
 	differs := func(what, want, got, detail string) {
+		// A reason a conclusion does not give is named as none.
+		if want == "" {
+			want = "none"
+		}
+		if got == "" {
+			got = "none"
+		}
 		switch {
 		case want == got:
 		case detail == "":

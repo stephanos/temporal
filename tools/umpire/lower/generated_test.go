@@ -225,7 +225,12 @@ func TestExpectedRunChecksEachDeclaredValueByEquality(t *testing.T) {
 		"reason": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
 			a.Properties[1].Reason = "explanations_disagree"
 		}, "forgedSuccess's reason is explanations_disagree, expected every_explanation_violates"},
-
+		"a reason where none is expected": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
+			a.Properties[0].Status, a.Properties[0].Reason = runtime.PropertyInconclusive, "never_evaluated"
+		}, "watch's reason is never_evaluated, expected none"},
+		"no reason where one is expected": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
+			a.Properties[1].Reason = ""
+		}, "forgedSuccess's reason is none, expected every_explanation_violates"},
 		"omitted claim": {func(_ *testpilotspb.Run, _ *testpilotspb.Verdict, a *runtime.Assessment) {
 			a.Properties = a.Properties[1:]
 		}, "the assessment omits watch"},
@@ -365,4 +370,37 @@ func manifestStanding(manifest *Manifest, query Selected) Standing {
 		}
 	}
 	return ""
+}
+
+// A generated Case is found by its fingerprint whatever its bytes' form, among the lowered Cases of
+// the manifest beside it; a Case none of them is, a hand-written one or one regenerated since, is
+// ErrNotGenerated.
+func TestFindGeneratedCaseFindsALoweredCaseByItsFingerprint(t *testing.T) {
+	directory := filepath.Join("..", "..", "..", "model", "cases")
+	read := func(path string) *testpilotspb.Case {
+		encoded, err := os.ReadFile(path)
+		require.NoError(t, err)
+		source, err := runtime.DecodeCaseProtoJSON(encoded)
+		require.NoError(t, err)
+		return source
+	}
+	source := read(filepath.Join(directory, "nexus-control-forgedCompletion-case.json"))
+	entry, err := FindGeneratedCase(directory, source)
+	require.NoError(t, err)
+	require.Equal(t, "nexus-control.json", entry.Model)
+	require.Equal(t, "forgedCompletion", entry.Query.Name)
+	require.Equal(t, "nexus-control-forgedCompletion-case.json", entry.File)
+	require.Equal(t, "inconclusive", entry.Expected.Conformance)
+
+	regenerated := read(filepath.Join(directory, "nexus-control-forgedCompletion-case.json"))
+	regenerated.Provenance.ProducerVersion += "+1"
+	for name, other := range map[string]*testpilotspb.Case{
+		"a hand-written Case":       read(filepath.Join("..", "..", "..", "tests", "testcore", "testpilot", "testdata", "nexusPairTests-bothComplete-case.json")),
+		"a Case regenerated since": regenerated,
+	} {
+		_, err := FindGeneratedCase(directory, other)
+		require.ErrorIs(t, err, ErrNotGenerated, name)
+	}
+	_, err = FindGeneratedCase(t.TempDir(), source)
+	require.ErrorIs(t, err, os.ErrNotExist)
 }
