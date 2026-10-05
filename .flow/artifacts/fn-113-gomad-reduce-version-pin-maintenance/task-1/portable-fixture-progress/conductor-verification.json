@@ -1,0 +1,20 @@
+{
+  "base_commit": "07c5f14addbd450345e8aa0255c0a5bc36855456",
+  "valid": true,
+  "test_files_changed": 2,
+  "production_unchanged": true,
+  "source_hashes_verified": 7,
+  "historical_done_evidence_preserved": true,
+  "milestone_rows": 117,
+  "task_status": "blocked",
+  "worker_observations": "observations.json is the pre-lifecycle worker snapshot; Flow status and the current task progress section supersede its in_progress field.",
+  "independent_checks": [
+    "GOTOOLCHAIN=go1.27.1 GOWORK=off go -C tools/gomad3 test -tags test_dep -count=1 ./upgrade: exit 0",
+    "GOTOOLCHAIN=go1.27.1 GOWORK=off go -C tools/gomad3 test -tags test_dep -count=1 -run ^TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure$ ./upgrade/pinimpact: exit 0",
+    "flowctl validate --spec fn-113 --json: valid, no errors or warnings",
+    "Tracked source/document diff check before staging raw captures: exit 0"
+  ],
+  "review": "Source-progress commit ready; no blocking findings; same Codex family. This is not formal task SHIP.",
+  "raw_capture_whitespace": "The two adapter error logs retain one trailing space from the real error renderer. Captures are unmodified; source/document whitespace checks pass. The redundant scratch diff remains local under .flow/tmp/fn113-portability/working-tree.patch.",
+  "remaining": "Required task Quick has three unsupported-host failures and unfiltered scoped lint has six pre-existing findings; no task completion or native qualification claim."
+}

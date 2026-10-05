@@ -262,7 +262,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-113.1](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.1.md) | ⬜ Todo | Baseline the pins and add the pin impact report |
+| [fn-113.1](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.1.md) | ⛔ Blocked | Pin impact report; portable fixtures repaired, build-pin proof pending |
 | [fn-113.2](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.2.md) | ⬜ Todo | Regenerate adapter anchors for a new module version behind an approval digest |
 | [fn-113.3](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.3.md) | ⬜ Todo | Refresh invalidated packs in one command and remove unselected variants |
 | [fn-113.4](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.4.md) | ⬜ Todo | Document the bump procedure, measure it against the baseline, and run Darwin gates |

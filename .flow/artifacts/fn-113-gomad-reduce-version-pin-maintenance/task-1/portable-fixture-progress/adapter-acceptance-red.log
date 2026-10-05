@@ -1,0 +1,22 @@
+=== RUN   TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure
+    pinimpact_test.go:486: pinned module download error: download pinned module github.com/getsentry/sentry-go@v0.46.0: start command "/home/agent/.cache/codex-build/tmp/TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure1894587553/001/bin/go": fork/exec /home/agent/.cache/codex-build/tmp/TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure1894587553/001/bin/go: no such file or directory
+        unexpected end of JSON input: 
+=== RUN   TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/pinned_module_download
+=== RUN   TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/no_failure
+=== RUN   TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/unsupported_host
+    pinimpact_test.go:504: adapter acceptance for deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64 = true, want false
+=== RUN   TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/unrelated_missing_file
+    pinimpact_test.go:504: adapter acceptance for open /home/agent/.cache/codex-build/tmp/TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure1894587553/001/missing: file does not exist = true, want false
+=== RUN   TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/another_toolchain
+    pinimpact_test.go:504: adapter acceptance for download pinned module github.com/getsentry/sentry-go@v0.46.0: start command "/home/agent/.cache/codex-build/tmp/TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure1894587553/001/bin/go": fork/exec /home/agent/.cache/codex-build/tmp/TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure1894587553/001/bin/go: no such file or directory
+        unexpected end of JSON input:  = true, want false
+--- FAIL: TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure (0.00s)
+    --- PASS: TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/pinned_module_download (0.00s)
+    --- PASS: TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/no_failure (0.00s)
+    --- FAIL: TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/unsupported_host (0.00s)
+    --- FAIL: TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/unrelated_missing_file (0.00s)
+    --- FAIL: TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure/another_toolchain (0.00s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	0.004s
+FAIL
+duration_seconds=0.308

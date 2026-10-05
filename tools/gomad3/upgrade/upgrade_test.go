@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"syscall"
@@ -22,7 +23,6 @@ import (
 	qualificationset "go.temporal.io/server/tools/gomad3/qualification/set"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
 
 func TestRunPublishesCheckedUpgradeEvidence(t *testing.T) {
@@ -138,6 +138,41 @@ func TestRunPublishesUnqualifiedEvidenceWhenCorpusIsMissing(t *testing.T) {
 	}
 	if dossier.Qualified || dossier.RetainedCorpus.Status != "not-configured" {
 		t.Fatalf("dossier = %#v", dossier)
+	}
+}
+
+func TestRunPublishesUnqualifiedEvidenceForUnsupportedHost(t *testing.T) {
+	platform := "linux/amd64"
+	if runtime.GOOS+"/"+runtime.GOARCH == platform {
+		platform = "darwin/arm64"
+	}
+	root := writeUpgradeFixtureForPlatforms(t, false, []string{platform})
+	output := filepath.Join(root, ".toolchain", "upgrade-dossier.json")
+	baseline, err := os.ReadFile(filepath.Join(root, "deterministicio", "boundary", "manifest.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = Run(context.Background(), Spec{
+		Root: root, Output: output, BaselineManifest: baseline, CorpusReport: writeQualifiedCorpus(t, root, "gomad3-core"),
+		Gates: []Gate{{Name: "unit", Command: []string{"/usr/bin/printf", "gate passed\n"}}},
+	})
+	host := runtime.GOOS + "/" + runtime.GOARCH
+	if err == nil || !strings.Contains(err.Error(), "qualification host "+host+" is unsupported") {
+		t.Fatalf("Run() error = %v, want unsupported host %s", err, host)
+	}
+	contents, err := os.ReadFile(output)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var dossier Dossier
+	if err := json.Unmarshal(contents, &dossier); err != nil {
+		t.Fatal(err)
+	}
+	if dossier.Host.Platform != host || dossier.Host.Supported || dossier.Qualified || !slices.Equal(dossier.Version.SupportedPlatforms, []string{platform}) {
+		t.Fatalf("unsupported host evidence = %#v", dossier)
+	}
+	if !dossier.BoundaryApproved || dossier.RetainedCorpus.Status != "checked" || len(dossier.Gates) != 1 || dossier.Gates[0].Status != "passed" {
+		t.Fatalf("other qualification evidence = %#v", dossier)
 	}
 }
 
@@ -565,6 +600,12 @@ func boundaryApprovalFor(t *testing.T, root string, baseline []byte) string {
 
 func writeUpgradeFixture(t *testing.T, collide bool) string {
 	t.Helper()
+	// Synthetic dossier evidence exercises policy, not native Gomad qualification.
+	return writeUpgradeFixtureForPlatforms(t, collide, []string{runtime.GOOS + "/" + runtime.GOARCH})
+}
+
+func writeUpgradeFixtureForPlatforms(t *testing.T, collide bool, supportedPlatforms []string) string {
+	t.Helper()
 	root := t.TempDir()
 	for _, directory := range []string{"deterministicio/boundary", "toolchain/runtime/overlay/src/os", "toolchain/version", ".toolchain/downloads"} {
 		if err := os.MkdirAll(filepath.Join(root, filepath.FromSlash(directory)), 0o700); err != nil {
@@ -578,9 +619,7 @@ func writeUpgradeFixture(t *testing.T, collide bool) string {
 	if err := os.WriteFile(filepath.Join(root, "toolchain", "runtime", "overlay", "src", "os", "gomad.go"), []byte("package os\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	// The fixture declares the platforms the real toolchain qualifies, so Run
-	// accepts the host on every qualified platform and rejects it elsewhere.
-	platforms, err := json.Marshal(gomadversion.SupportedPlatforms[:])
+	platforms, err := json.Marshal(supportedPlatforms)
 	if err != nil {
 		t.Fatal(err)
 	}

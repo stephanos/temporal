@@ -1,0 +1,53 @@
+{
+  "task": "fn-113-gomad-reduce-version-pin-maintenance.1",
+  "status": "in_progress",
+  "base_commit": "07c5f14addbd450345e8aa0255c0a5bc36855456",
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOTOOLCHAIN": "go1.27.1",
+    "GOWORK": "off",
+    "GOOS": "linux",
+    "GOARCH": "arm64",
+    "removed": ["GOMADSEED", "GOMAD3_CHILD_SEED"],
+    "go_version": "go version go1.27.1 linux/arm64"
+  },
+  "limits": "Each command used timeout 600s; Bash builtin time measured duration. No command remains running.",
+  "baseline": "red before test-file edits; fresh full selection reproduced four dossier failures and three pinimpact comparator failures",
+  "observations": [
+    {"command": "/usr/bin/time -f duration_seconds=%e timeout 600s env -u GOMADSEED -u GOMAD3_CHILD_SEED GOTOOLCHAIN=go1.27.1 GOWORK=off go -C tools/gomad3 test -tags test_dep -count=1 -v ./cmd/gomadtool ./upgrade/...", "exit_code": 127, "state": "inconclusive setup failure; /usr/bin/time absent, suite never started", "log": "baseline-red.log", "duration_seconds": null},
+    {"command": "go -C tools/gomad3 test -tags test_dep -count=1 -v ./cmd/gomadtool ./upgrade/...", "exit_code": 1, "state": "red", "log": "baseline-red-suite.log", "duration_seconds": 14.358},
+    {"command": "go -C tools/gomad3 test -tags test_dep -count=1 -v -run 'TestRun(PublishesCheckedUpgradeEvidence|DoesNotQualifyUnapprovedBoundaryChanges|DoesNotQualifyBoundaryApprovalForAnotherDiff|PublishesUnqualifiedEvidenceWhenCorpusIsMissing|PublishesUnqualifiedEvidenceForUnsupportedHost)$' ./upgrade", "exit_code": 1, "state": "four original tests red; new exclusion fixture green", "log": "fixture-before-fix.log", "duration_seconds": 0.507},
+    {"command": "go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure$' ./upgrade/pinimpact", "exit_code": 1, "state": "red with former broad acceptance predicate; unsupported host, unrelated missing file and another toolchain incorrectly accepted", "log": "adapter-acceptance-red.log", "duration_seconds": 0.308},
+    {"command": "go -C tools/gomad3 test -tags test_dep -count=1 -v -run 'TestRun(PublishesCheckedUpgradeEvidence|DoesNotQualifyUnapprovedBoundaryChanges|DoesNotQualifyBoundaryApprovalForAnotherDiff|PublishesUnqualifiedEvidenceWhenCorpusIsMissing|PublishesUnqualifiedEvidenceForUnsupportedHost)$|^TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure$' ./upgrade ./upgrade/pinimpact", "exit_code": 0, "state": "green; five dossier tests and six adapter-acceptance subcases", "log": "fixture-and-acceptance-green.log", "duration_seconds": 0.520},
+    {"command": "go -C tools/gomad3 test -tags test_dep ./cmd/gomadtool ./upgrade/...", "exit_code": 1, "state": "red; only the three original pinimpact comparator failures remain", "log": "task-quick.log", "duration_seconds": 10.563},
+    {"command": "make -C tools/gomad3 validate", "exit_code": 0, "state": "green", "log": "validate.log", "duration_seconds": 2.815},
+    {"command": "go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./upgrade/...", "exit_code": 0, "state": "green", "log": "vet.log", "duration_seconds": 0.705},
+    {"command": "go -C tools/gomad3 test -tags test_dep -count=1 -run '^TestPackageArchitecture$' .", "exit_code": 0, "state": "green; TestPackageArchitecture selected", "log": "architecture.log", "duration_seconds": 1.017},
+    {"command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./upgrade ./upgrade/pinimpact", "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3", "exit_code": 1, "state": "red; six findings on existing unchanged lines, no baseline-comparison filtering", "log": "scoped-lint.log", "duration_seconds": 2.213},
+    {"command": "git diff --check", "exit_code": 0, "state": "green"}
+  ],
+  "four_tests_red_then_green": [
+    "TestRunPublishesCheckedUpgradeEvidence",
+    "TestRunDoesNotQualifyUnapprovedBoundaryChanges",
+    "TestRunDoesNotQualifyBoundaryApprovalForAnotherDiff",
+    "TestRunPublishesUnqualifiedEvidenceWhenCorpusIsMissing"
+  ],
+  "negative_host_fixture": "TestRunPublishesUnqualifiedEvidenceForUnsupportedHost excludes executing host and reads real published dossier; host identity, Supported=false, Qualified=false, declared platform and satisfied other prerequisites asserted. This characterizes existing refusal behavior and was green before the fixture repair.",
+  "remaining_failures": ["TestFixtureBumpMatchesBuildRejections", "TestSameVersionWithChangedSum", "TestReplacedModules"],
+  "remaining_failure_cause": "Production deterministicio refuses linux/arm64 before adapter identity validation. Comparator assertions remain intact.",
+  "base_test_file_sha256": {
+    "tools/gomad3/upgrade/upgrade_test.go": "3b247909646a9b1b0290699d33ab3932aa6105fb1ab25995cf035b0baff2a234",
+    "tools/gomad3/upgrade/pinimpact/pinimpact_test.go": "10f652a983a6fdf10c50c99767c2ec6f5f387b472a7618f98f8aee41671e847e"
+  },
+  "verified_source_sha256": {
+    "tools/gomad3/upgrade/upgrade_test.go": "062641bb09c77ee8c401e3337d62ab7ab1ec44ecec87802e33fb11a81917799a",
+    "tools/gomad3/upgrade/pinimpact/pinimpact_test.go": "0284105113529f1b40a89a6cb2f873336a904e27a4dcdb8955c6d8303c6f5778",
+    "tools/gomad3/upgrade/upgrade.go": "212d05ea157779a4149e60b1f9fa023e191d8c1eba87674ac90ece0ea043ae05",
+    "tools/gomad3/toolchain/version/version.json": "94358dc0d221c0c0ba0e4f487303b0e9acd46afa212d24091ab44b124f276779",
+    "tools/gomad3/toolchain/version/generated.go": "9b5941cb2c1ca074839f329ad013dbeaf3710d48a5e084b9e5402a83853f14ae",
+    "tools/gomad3/deterministicio/profile.go": "cc4661f1a5f06acd3c07105b95eb72c1916a66cc55109d5a09b9fb066e4f03c6",
+    "tools/gomad3/deterministicio/adapter_registry.go": "657ea0a8b44726ea13baaa4b65dcafcb210f450a5bf60f319bcc1914027401c4"
+  },
+  "qualification": "Synthetic unit evidence only. Native Darwin and patched-runtime acceptance remain open; no linux/arm64 native qualification is claimed.",
+  "ownership": "Root conductor owns Git commits, Flow lifecycle, review, completion and MILESTONES refresh. Worker made no commit, tracker change, formal review or completion claim. Parent broad Quick was not run under conductor's scoped-verification instruction."
+}

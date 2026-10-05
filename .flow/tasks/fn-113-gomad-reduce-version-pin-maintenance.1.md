@@ -50,6 +50,25 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 - [ ] Unknown pins are reported unknown, never unaffected; exit statuses follow 0/1/2/3
 - [ ] `go -C tools/gomad3 test -tags test_dep ./cmd/gomadtool ./upgrade/...` and `make -C tools/gomad3 validate` pass
 
+## Source progress — portable fixtures (2026-10-05)
+
+This checkpoint repairs the private upgrade-dossier unit fixture and strengthens the pin-impact build acceptance assertion; it does not complete this task. The synthetic descriptor declares the executing host only inside its temporary fixture. A separate excluded-host fixture proves publication with the actual host identity, Supported=false and Qualified=false despite approved boundary, checked corpus and passed gate prerequisites. Production supported platforms, pins, profile identities and build refusal remain unchanged.
+
+The adapter positive control now requires the actual pinned-module download error and the wrapped fork/exec ENOENT for its own bin/go. Its regression rejects unsupported-host refusal and unrelated missing-file, operation and toolchain errors rather than treating them as adapter acceptance. Retained RED/GREEN evidence covers the four original dossier failures and the former predicate's false positives.
+
+Fresh stock-Go development checks pass for the entire upgrade package, the assertion regression, generated validation, scoped vet, architecture and diff checks. The required task Quick still fails three original pin/build comparator tests before their identity checks because production refuses linux/arm64. Unfiltered scoped lint retains six pre-existing findings on unchanged lines. These failures remain failures; no native runtime or Darwin qualification is claimed. R6's native/full qualification remains with task4, and deferred Linux execution with fn-128.
+
+See [source-bound observations](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/portable-fixture-progress/observations.json) and [fresh source-progress review](../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/portable-fixture-progress/source-review.md). The reviewer found no blocking issue in this test-only checkpoint; writer and reviewer are both Codex family. Root commits this verified progress before another implementation task. Earlier Done/Evidence below are historical and preserved.
+
+Tier: session (jev-unavailable(no_key)); explicit AGENTS implementer/reviewer routes retained.
+stage: impl-review - skipped(policy: required task Quick and scoped lint red; source-progress approval is not formal SHIP)
+stage: plan-sync - skipped(empty: no completed task; planSync.enabled=false)
+
+## Current acceptance blocker (2026-10-05)
+
+Required task Quick remains red on the development linux/arm64 host: TestFixtureBumpMatchesBuildRejections, TestSameVersionWithChangedSum and TestReplacedModules reach production unsupported-host refusal before their pin/build identity checks. Retain those real comparisons; a passing portable subset does not satisfy the task. The four dossier fixture failures are repaired with red/green proof. Unfiltered scoped lint also retains six pre-existing findings, none introduced by this test-only checkpoint. See .flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/portable-fixture-progress/ for current-source receipts and source-progress review. The original acceptance and production platform policy remain unchanged. Native runtime/full qualification under fn-113 R6 stays with task4; transferred Linux runtime evidence stays with fn-128. Missing Linux runtime proof is not this blocker. Obtain passing evidence for the full explicit task command and its real build-pin comparison, plus formal review, before completing task1.
+
+
 ## Done summary
 The retained rebased-source baseline measures1044 runtime patch lines in20 files,61 overlay files/18437 lines,15 adapters/135 SHA256 anchors,12 packs/54 rules/19 module-version pins,131 interceptions/132 fingerprints, and25 clock references. MILESTONES maintenance counts are corrected; baseline.json includes the historical fn-110 baseline, source hashes and per-bump commands/hand edits.
 

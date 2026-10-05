@@ -461,11 +461,54 @@ func requireAdapterRejection(t *testing.T, directory, want string) {
 // command to download the pinned module with.
 func requireAdapterAcceptance(t *testing.T, directory string) {
 	t.Helper()
+	toolchainRoot := t.TempDir()
 	_, _, err := deterministicio.Default().PrepareTargetBuildAdapters(context.Background(), target.Spec{
-		PreparationRoot: t.TempDir(), WorkingDir: directory, ToolchainRoot: t.TempDir(),
+		PreparationRoot: t.TempDir(), WorkingDir: directory, ToolchainRoot: toolchainRoot,
 	})
-	if err == nil || deterministicio.IsInvalidBuildAdapterConfiguration(err) {
+	if !isPinnedModuleDownloadFailure(err, toolchainRoot, adapterIdentity(t, sentryModule)) {
 		t.Fatalf("adapter build check error = %v, want acceptance followed by a download failure", err)
+	}
+}
+
+func isPinnedModuleDownloadFailure(err error, toolchainRoot string, identity gomadversion.AdapterIdentity) bool {
+	var pathErr *os.PathError
+	return err != nil && !deterministicio.IsInvalidBuildAdapterConfiguration(err) &&
+		strings.HasPrefix(err.Error(), "download pinned module "+identity.Module+"@"+identity.Version+": ") &&
+		errors.Is(err, os.ErrNotExist) && errors.As(err, &pathErr) &&
+		pathErr.Op == "fork/exec" && pathErr.Path == filepath.Join(toolchainRoot, "bin", "go")
+}
+
+func TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure(t *testing.T) {
+	toolchainRoot := t.TempDir()
+	identity := adapterIdentity(t, sentryModule)
+	downloadErr := target.DownloadModule(context.Background(), toolchainRoot, target.ModuleIdentity{
+		Path: identity.Module, Version: identity.Version, Sum: identity.Sum,
+	})
+	if downloadErr == nil {
+		t.Fatal("empty toolchain unexpectedly downloaded the pinned module")
+	}
+	t.Logf("pinned module download error: %v", downloadErr)
+	for _, test := range []struct {
+		name string
+		err  error
+		want bool
+	}{
+		{name: "pinned module download", err: downloadErr, want: true},
+		{name: "no failure", want: false},
+		{name: "unsupported host", err: errors.New("deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64"), want: false},
+		{name: "unrelated missing file", err: &os.PathError{Op: "open", Path: filepath.Join(toolchainRoot, "missing"), Err: os.ErrNotExist}, want: false},
+		{name: "unrelated operation", err: fmt.Errorf("another operation: %w", downloadErr), want: false},
+		{name: "another toolchain", err: downloadErr, want: false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			root := toolchainRoot
+			if test.name == "another toolchain" {
+				root = t.TempDir()
+			}
+			if got := isPinnedModuleDownloadFailure(test.err, root, identity); got != test.want {
+				t.Fatalf("adapter acceptance for %v = %t, want %t", test.err, got, test.want)
+			}
+		})
 	}
 }
 

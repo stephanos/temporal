@@ -1,0 +1,233 @@
+=== RUN   TestRunAdapterRegenerateInputStatuses
+=== RUN   TestRunAdapterRegenerateInputStatuses/usage
+=== RUN   TestRunAdapterRegenerateInputStatuses/unknown_module
+=== RUN   TestRunAdapterRegenerateInputStatuses/verify_usage
+=== RUN   TestRunAdapterRegenerateInputStatuses/recover_nothing
+=== RUN   TestRunAdapterRegenerateInputStatuses/conflicting_approval_aliases
+=== RUN   TestRunAdapterRegenerateInputStatuses/stage_requires_approval
+--- PASS: TestRunAdapterRegenerateInputStatuses (0.00s)
+    --- PASS: TestRunAdapterRegenerateInputStatuses/usage (0.00s)
+    --- PASS: TestRunAdapterRegenerateInputStatuses/unknown_module (0.00s)
+    --- PASS: TestRunAdapterRegenerateInputStatuses/verify_usage (0.00s)
+    --- PASS: TestRunAdapterRegenerateInputStatuses/recover_nothing (0.00s)
+    --- PASS: TestRunAdapterRegenerateInputStatuses/conflicting_approval_aliases (0.00s)
+    --- PASS: TestRunAdapterRegenerateInputStatuses/stage_requires_approval (0.00s)
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/root_packs
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/elsewhere
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_module_report
+=== RUN   TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_file_report
+--- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes (0.74s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/unset (0.13s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/root_packs (0.16s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/elsewhere (0.12s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_module_report (0.18s)
+    --- PASS: TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes/saved_file_report (0.15s)
+=== RUN   TestRunCompatibilityPackCheckRequiresTheRepositoryWorkingDirectoryTable
+--- PASS: TestRunCompatibilityPackCheckRequiresTheRepositoryWorkingDirectoryTable (0.02s)
+=== RUN   TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas
+=== RUN   TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas/module_report
+=== RUN   TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas/file_report
+--- PASS: TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas (0.00s)
+    --- PASS: TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas/module_report (0.00s)
+    --- PASS: TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas/file_report (0.00s)
+=== RUN   TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree
+--- PASS: TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree (0.00s)
+=== RUN   TestSavedReportCannotSuppressAnotherMappedModule
+--- PASS: TestSavedReportCannotSuppressAnotherMappedModule (0.00s)
+=== RUN   TestCompatibilityPackPathsHonorAnExternalRoot
+--- PASS: TestCompatibilityPackPathsHonorAnExternalRoot (0.00s)
+=== RUN   TestCompatibilityPathBaseKeepsDefaultPathsRootRelative
+--- PASS: TestCompatibilityPathBaseKeepsDefaultPathsRootRelative (0.00s)
+=== RUN   TestDiagnosticDiffStatusesAndNoPartialInvalidResult
+=== RUN   TestDiagnosticDiffStatusesAndNoPartialInvalidResult/equal
+=== RUN   TestDiagnosticDiffStatusesAndNoPartialInvalidResult/different
+=== RUN   TestDiagnosticDiffStatusesAndNoPartialInvalidResult/json
+=== RUN   TestDiagnosticDiffStatusesAndNoPartialInvalidResult/truncated
+=== RUN   TestDiagnosticDiffStatusesAndNoPartialInvalidResult/recording
+--- PASS: TestDiagnosticDiffStatusesAndNoPartialInvalidResult (0.00s)
+    --- PASS: TestDiagnosticDiffStatusesAndNoPartialInvalidResult/equal (0.00s)
+    --- PASS: TestDiagnosticDiffStatusesAndNoPartialInvalidResult/different (0.00s)
+    --- PASS: TestDiagnosticDiffStatusesAndNoPartialInvalidResult/json (0.00s)
+    --- PASS: TestDiagnosticDiffStatusesAndNoPartialInvalidResult/truncated (0.00s)
+    --- PASS: TestDiagnosticDiffStatusesAndNoPartialInvalidResult/recording (0.00s)
+=== RUN   TestRunBuildKey
+--- PASS: TestRunBuildKey (0.00s)
+=== RUN   TestRunBuildKeyRejectsIncompleteInput
+--- PASS: TestRunBuildKeyRejectsIncompleteInput (0.00s)
+=== RUN   TestRunCompatibilityPackCheckReportsOperationalFailure
+--- PASS: TestRunCompatibilityPackCheckReportsOperationalFailure (0.00s)
+=== RUN   TestRunCompatibilityPackGenerateWithoutApprovalRegeneratesRecordedRequests
+--- PASS: TestRunCompatibilityPackGenerateWithoutApprovalRegeneratesRecordedRequests (0.00s)
+=== RUN   TestRunRejectsRemovedTestMode
+--- PASS: TestRunRejectsRemovedTestMode (0.00s)
+=== RUN   TestRunPatchValidateChecksCurrentModule
+--- PASS: TestRunPatchValidateChecksCurrentModule (0.04s)
+=== RUN   TestRunScriptValidateChecksCurrentModule
+--- PASS: TestRunScriptValidateChecksCurrentModule (0.01s)
+=== RUN   TestRunPatchCommandsRejectIncompleteInput
+--- PASS: TestRunPatchCommandsRejectIncompleteInput (0.00s)
+=== RUN   TestRunToolchainBuildRejectsIncompleteInput
+--- PASS: TestRunToolchainBuildRejectsIncompleteInput (0.00s)
+=== RUN   TestRunTestRejectsIncompleteInput
+--- PASS: TestRunTestRejectsIncompleteInput (0.00s)
+=== RUN   TestBootstrapGofmtResolvesInstalledTool
+--- PASS: TestBootstrapGofmtResolvesInstalledTool (0.00s)
+=== RUN   TestRunCheckedRunWritesCompatibilityResult
+--- PASS: TestRunCheckedRunWritesCompatibilityResult (0.00s)
+=== RUN   TestRunCheckedRunDistinguishesExit124FromTimeout
+--- PASS: TestRunCheckedRunDistinguishesExit124FromTimeout (0.00s)
+=== RUN   TestRunPinImpactReportsInvalidatedPinsWithoutTouchingTheModule
+--- PASS: TestRunPinImpactReportsInvalidatedPinsWithoutTouchingTheModule (0.09s)
+=== RUN   TestRunPinImpactReportsANewerGoDirectiveAsUnknownPins
+--- PASS: TestRunPinImpactReportsANewerGoDirectiveAsUnknownPins (0.02s)
+=== RUN   TestRunPinImpactReportsADependencyRequiringNewerGoAsUnknownPins
+--- PASS: TestRunPinImpactReportsADependencyRequiringNewerGoAsUnknownPins (0.02s)
+=== RUN   TestRunPinImpactReadsTheBaselineFromGit
+--- PASS: TestRunPinImpactReadsTheBaselineFromGit (0.03s)
+=== RUN   TestRunPinImpactStatuses
+=== RUN   TestRunPinImpactStatuses/unreachable_proxy
+=== RUN   TestRunPinImpactStatuses/both_baselines
+=== RUN   TestRunPinImpactStatuses/malformed_module
+=== RUN   TestRunPinImpactStatuses/missing_module
+--- PASS: TestRunPinImpactStatuses (0.03s)
+    --- PASS: TestRunPinImpactStatuses/unreachable_proxy (0.02s)
+    --- PASS: TestRunPinImpactStatuses/both_baselines (0.00s)
+    --- PASS: TestRunPinImpactStatuses/malformed_module (0.01s)
+    --- PASS: TestRunPinImpactStatuses/missing_module (0.00s)
+=== RUN   TestRunPinImpactFileFlagsKeepTheV1Report
+--- PASS: TestRunPinImpactFileFlagsKeepTheV1Report (0.04s)
+=== RUN   TestSoakRejectsInvalidInvocationsAsInvalidInput
+=== RUN   TestSoakRejectsInvalidInvocationsAsInvalidInput/missing_directories
+=== RUN   TestSoakRejectsInvalidInvocationsAsInvalidInput/missing_manifest
+=== RUN   TestSoakRejectsInvalidInvocationsAsInvalidInput/positional_argument
+=== RUN   TestSoakRejectsInvalidInvocationsAsInvalidInput/invalid_seed
+--- PASS: TestSoakRejectsInvalidInvocationsAsInvalidInput (0.00s)
+    --- PASS: TestSoakRejectsInvalidInvocationsAsInvalidInput/missing_directories (0.00s)
+    --- PASS: TestSoakRejectsInvalidInvocationsAsInvalidInput/missing_manifest (0.00s)
+    --- PASS: TestSoakRejectsInvalidInvocationsAsInvalidInput/positional_argument (0.00s)
+    --- PASS: TestSoakRejectsInvalidInvocationsAsInvalidInput/invalid_seed (0.00s)
+=== RUN   TestGitFileDistinguishesAnIntroducedFileFromAnInvalidRevision
+--- PASS: TestGitFileDistinguishesAnIntroducedFileFromAnInvalidRevision (0.03s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	1.102s
+=== RUN   TestRunPublishesCheckedUpgradeEvidence
+    upgrade_test.go:39: qualification host linux/arm64 is unsupported
+--- FAIL: TestRunPublishesCheckedUpgradeEvidence (0.02s)
+=== RUN   TestRunDoesNotQualifyUnapprovedBoundaryChanges
+    upgrade_test.go:81: Run() error = qualification host linux/arm64 is unsupported
+--- FAIL: TestRunDoesNotQualifyUnapprovedBoundaryChanges (0.01s)
+=== RUN   TestRunDoesNotQualifyBoundaryApprovalForAnotherDiff
+    upgrade_test.go:106: Run() error = qualification host linux/arm64 is unsupported
+--- FAIL: TestRunDoesNotQualifyBoundaryApprovalForAnotherDiff (0.02s)
+=== RUN   TestRunPublishesUnqualifiedEvidenceWhenCorpusIsMissing
+    upgrade_test.go:129: Run() error = qualification host linux/arm64 is unsupported
+--- FAIL: TestRunPublishesUnqualifiedEvidenceWhenCorpusIsMissing (0.01s)
+=== RUN   TestRunPublishesFailedGateEvidence
+--- PASS: TestRunPublishesFailedGateEvidence (0.01s)
+=== RUN   TestPublishWritesFixedDossierBytes
+--- PASS: TestPublishWritesFixedDossierBytes (0.00s)
+=== RUN   TestRunReplacesExistingDossierAfterFailedGate
+--- PASS: TestRunReplacesExistingDossierAfterFailedGate (0.01s)
+=== RUN   TestRunReportsPublicationFailureAndKeepsPriorDossier
+=== RUN   TestRunReportsPublicationFailureAndKeepsPriorDossier/replacement_cannot_be_created
+=== RUN   TestRunReportsPublicationFailureAndKeepsPriorDossier/parent_is_a_file
+=== RUN   TestRunReportsPublicationFailureAndKeepsPriorDossier/replacement_cannot_be_renamed
+--- PASS: TestRunReportsPublicationFailureAndKeepsPriorDossier (0.01s)
+    --- PASS: TestRunReportsPublicationFailureAndKeepsPriorDossier/replacement_cannot_be_created (0.00s)
+    --- PASS: TestRunReportsPublicationFailureAndKeepsPriorDossier/parent_is_a_file (0.00s)
+    --- PASS: TestRunReportsPublicationFailureAndKeepsPriorDossier/replacement_cannot_be_renamed (0.00s)
+=== RUN   TestRunRejectsOverlayCollisionBeforeGates
+--- PASS: TestRunRejectsOverlayCollisionBeforeGates (0.00s)
+=== RUN   TestCompareBoundariesRetainsNewManifestAndEntryFields
+--- PASS: TestCompareBoundariesRetainsNewManifestAndEntryFields (0.00s)
+=== RUN   TestLoadCorpusRejectsUncheckedOrUnqualifiedJSON
+--- PASS: TestLoadCorpusRejectsUncheckedOrUnqualifiedJSON (0.00s)
+=== RUN   TestLoadCorpusRejectsQualifiedDownstreamSet
+--- PASS: TestLoadCorpusRejectsQualifiedDownstreamSet (0.01s)
+=== RUN   TestRunKeepsPriorDossierWhenWriteFails
+--- PASS: TestRunKeepsPriorDossierWhenWriteFails (0.01s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/upgrade	0.114s
+=== RUN   TestDryRunPrintsChangedSourceAndAnchorsAndWritesNothing
+--- PASS: TestDryRunPrintsChangedSourceAndAnchorsAndWritesNothing (0.57s)
+=== RUN   TestApplyPublishesConstantsDescriptorTestDataAndGeneratedOutputTogether
+--- PASS: TestApplyPublishesConstantsDescriptorTestDataAndGeneratedOutputTogether (0.59s)
+=== RUN   TestApplyWithAWrongDigestWritesNothing
+--- PASS: TestApplyWithAWrongDigestWritesNothing (0.26s)
+=== RUN   TestRegenerationThatNeedsAPersonWritesNothing
+--- PASS: TestRegenerationThatNeedsAPersonWritesNothing (0.51s)
+=== RUN   TestGenerationFailureInStagingPublishesNothing
+--- PASS: TestGenerationFailureInStagingPublishesNothing (0.53s)
+=== RUN   TestCheckoutChangedBetweenStagingAndPublicationPublishesNothing
+--- PASS: TestCheckoutChangedBetweenStagingAndPublicationPublishesNothing (0.42s)
+=== RUN   TestIgnoredToolchainCacheChangeDoesNotBlockPublication
+--- PASS: TestIgnoredToolchainCacheChangeDoesNotBlockPublication (0.42s)
+=== RUN   TestCompetingApplyOperationsPublishOnce
+--- PASS: TestCompetingApplyOperationsPublishOnce (0.66s)
+=== RUN   TestInterruptedPublicationCompletesOnTheNextRun
+=== RUN   TestInterruptedPublicationCompletesOnTheNextRun/recover
+=== RUN   TestInterruptedPublicationCompletesOnTheNextRun/apply
+--- PASS: TestInterruptedPublicationCompletesOnTheNextRun (1.31s)
+    --- PASS: TestInterruptedPublicationCompletesOnTheNextRun/recover (0.35s)
+    --- PASS: TestInterruptedPublicationCompletesOnTheNextRun/apply (0.46s)
+=== RUN   TestUncommittedJournalRollsBack
+--- PASS: TestUncommittedJournalRollsBack (0.26s)
+=== RUN   TestCommittedJournalOverLaterEditsIsLeftForAPerson
+--- PASS: TestCommittedJournalOverLaterEditsIsLeftForAPerson (0.18s)
+=== RUN   TestStalePacksNameBindingsOfThePreviousIdentity
+--- PASS: TestStalePacksNameBindingsOfThePreviousIdentity (0.02s)
+=== RUN   TestDefaultGeneratorsAreTheModuleLocalMakeGenerateSteps
+--- PASS: TestDefaultGeneratorsAreTheModuleLocalMakeGenerateSteps (0.00s)
+=== RUN   TestUnifiedDiff
+--- PASS: TestUnifiedDiff (0.00s)
+=== RUN   TestJournalManifestWithoutBlobsCompletes
+--- PASS: TestJournalManifestWithoutBlobsCompletes (0.21s)
+=== RUN   TestJournalBlobsWithoutManifestDoNotBlockTheNextApply
+--- PASS: TestJournalBlobsWithoutManifestDoNotBlockTheNextApply (0.88s)
+=== RUN   TestStageOnlyListsEveryPublishedFileAndPublishesNothing
+--- PASS: TestStageOnlyListsEveryPublishedFileAndPublishesNothing (0.96s)
+=== RUN   TestResidualScanFailureAfterPublicationIsAWarning
+--- PASS: TestResidualScanFailureAfterPublicationIsAWarning (0.56s)
+=== RUN   TestStagedCommandsKeepTheCallersModuleCache
+--- PASS: TestStagedCommandsKeepTheCallersModuleCache (0.00s)
+=== RUN   TestDefaultPackCheckPassesInAStagedCopyOfTheModule
+--- PASS: TestDefaultPackCheckPassesInAStagedCopyOfTheModule (5.26s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/upgrade/adapterregen	13.632s
+=== RUN   TestExplicitPackRootOverridesEnvironmentAndRetainsReports
+--- PASS: TestExplicitPackRootOverridesEnvironmentAndRetainsReports (0.04s)
+=== RUN   TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport
+--- PASS: TestPackLoadRemainsAfterModuleValidationAndErrorsStayInReport (0.02s)
+=== RUN   TestUnchangedModuleInvalidatesNothing
+--- PASS: TestUnchangedModuleInvalidatesNothing (0.03s)
+=== RUN   TestFixtureBumpMatchesBuildRejections
+    pinimpact_test.go:259: adapter build check error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want rejection containing "unsupported github.com/getsentry/sentry-go version"
+--- FAIL: TestFixtureBumpMatchesBuildRejections (0.02s)
+=== RUN   TestCommittedBumpKeepsTheStrandedPackInvalidated
+--- PASS: TestCommittedBumpKeepsTheStrandedPackInvalidated (0.03s)
+=== RUN   TestSameVersionWithChangedSum
+    pinimpact_test.go:304: adapter build check error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want rejection containing "module sum"
+--- FAIL: TestSameVersionWithChangedSum (0.02s)
+=== RUN   TestMissingCandidateModuleSumIsUnknown
+--- PASS: TestMissingCandidateModuleSumIsUnknown (0.03s)
+=== RUN   TestRemovedModules
+--- PASS: TestRemovedModules (0.04s)
+=== RUN   TestReplacedModules
+    pinimpact_test.go:358: adapter build check error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want rejection containing "already replaces github.com/getsentry/sentry-go"
+--- FAIL: TestReplacedModules (0.05s)
+=== RUN   TestIndirectOnlyBump
+--- PASS: TestIndirectOnlyBump (0.04s)
+=== RUN   TestUnknownPinsCountAsInvalidated
+--- PASS: TestUnknownPinsCountAsInvalidated (0.05s)
+=== RUN   TestInvalidInputAndResolutionFailures
+--- PASS: TestInvalidInputAndResolutionFailures (0.01s)
+=== RUN   TestGoResolverSelectsTheModuleGraphOutsideTheModule
+--- PASS: TestGoResolverSelectsTheModuleGraphOutsideTheModule (0.01s)
+=== RUN   TestGoResolverReportsUnavailableModulesAsInfrastructureFailures
+--- PASS: TestGoResolverReportsUnavailableModulesAsInfrastructureFailures (0.01s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	0.396s
+FAIL
+duration_seconds=14.358

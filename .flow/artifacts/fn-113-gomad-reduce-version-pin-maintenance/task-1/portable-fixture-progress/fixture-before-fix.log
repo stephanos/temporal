@@ -1,0 +1,18 @@
+=== RUN   TestRunPublishesCheckedUpgradeEvidence
+    upgrade_test.go:40: qualification host linux/arm64 is unsupported
+--- FAIL: TestRunPublishesCheckedUpgradeEvidence (0.01s)
+=== RUN   TestRunDoesNotQualifyUnapprovedBoundaryChanges
+    upgrade_test.go:82: Run() error = qualification host linux/arm64 is unsupported
+--- FAIL: TestRunDoesNotQualifyUnapprovedBoundaryChanges (0.01s)
+=== RUN   TestRunDoesNotQualifyBoundaryApprovalForAnotherDiff
+    upgrade_test.go:107: Run() error = qualification host linux/arm64 is unsupported
+--- FAIL: TestRunDoesNotQualifyBoundaryApprovalForAnotherDiff (0.02s)
+=== RUN   TestRunPublishesUnqualifiedEvidenceWhenCorpusIsMissing
+    upgrade_test.go:130: Run() error = qualification host linux/arm64 is unsupported
+--- FAIL: TestRunPublishesUnqualifiedEvidenceWhenCorpusIsMissing (0.01s)
+=== RUN   TestRunPublishesUnqualifiedEvidenceForUnsupportedHost
+--- PASS: TestRunPublishesUnqualifiedEvidenceForUnsupportedHost (0.01s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/upgrade	0.054s
+FAIL
+duration_seconds=0.507
