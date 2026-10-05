@@ -4,6 +4,8 @@ satisfies: [R8]
 # fn-124-shrink-and-simplify-the-umpire-go.8 Split tools/umpire/model into ir, interp, check and realization packages
 
 ## Description
+Tool: `.flow/tmp/fn124-8/tool/` (manifest-driven `split`, seam patches `seams/c2-admitter.patch` and `seams/c3-tests.patch`, `README.md`, `PROOF.md`): proven on 84c6a4ab77 (build, vet, 352 test names preserved, sampled tests pass, idempotent). On the new base: `split rename` (C1), apply the seam patches (C2, C3), `split verify` and fix manifest misses with `units`/`refs`/`table`, `split engine` (C4), `split split` (C5), then C6 (ownership layers) and C7 (Gate.scala, docs) by hand. Host decision: replace the tool's exported interpreter fields (`Interpreter.Ceilings`, `.Model`, `.Types`, `Count.N`/`.Overflow`) with the plan's read-only accessors (`NewInterpreterWithin`, `Ceilings()`, `Model()`, `Type(name)`, `CountOf`, `Int64()`), about 25 hand-written lines, so no consumer can mutate interpreter state.
+
 Implements R8: split `tools/umpire/model` into `ir/`, `interp/`, `check/` and `realization/`.
 
 Plan: `.flow/tmp/fn124-8/plan.md` (read-only planning, 2026-10-05). Host decisions for the owner on its three conflicts with R8 as written:

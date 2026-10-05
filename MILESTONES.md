@@ -72,7 +72,7 @@ cross-spec gates the conductor holds.
 
 ### fn-126: Read each feature top to bottom: one object per machine
 
-Gate: never alongside fn-124.8; closes before fn-125 resumes. Task 6 runs after fn-124.7. Task 7's lifter work may overlap task 6; its regeneration waits for task 6.
+Gate: never alongside fn-124.8; closes before fn-125 resumes. Task 6 runs after fn-124.7.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -84,6 +84,7 @@ Gate: never alongside fn-124.8; closes before fn-125 resumes. Task 6 runs after 
 | fn-126.6 | ⬜ todo | `product/` and `system/` folders; zoom-ins flattened; structure lint (a)(c); IDs frozen |
 | fn-126.7 | ⬜ todo | Definition IDs are fully qualified Scala names; pins and families removed |
 | fn-126.8 | ⬜ todo | Rename batch (Product and System, history record, actions, designs); level-name lint; docs; close |
+| fn-126.9 | ✅ done | `stuck-state` lint: a reachable non-end state that enables nothing |
 
 ### fn-124: Shrink and simplify the Umpire Go tooling
 
@@ -100,6 +101,18 @@ Gates: task 7 beside fn-126.5 and before fn-126.6 (fn-126 proves R5 by the reade
 | fn-124.7 | ✅ done | Migration harness and frozen snapshots retired |
 | fn-124.8 | ⬜ todo | `tools/umpire/model` split into `ir`, `interp`, `check`, `realization` |
 
+
+### fn-128: Close the activity's precision gaps
+
+Gate: starts after fn-126 closes. Source: `.plans/ACTIVITY_MODEL_COMPARISON.md`. Tasks not yet planned.
+
+Dispatch as a field (fixes unpause-after-backoff and schedule-to-start in backoff; adds start delay), rejections as rows (FailedPrecondition, InvalidArgument; repeated RequestCancel), a retry policy, checked stutter facts, the Cancel > Reset > Pause precedence Property, attempt counts in every Case.
+
+### fn-129: Activity coverage
+
+Gate: starts after fn-128 closes. Tasks not yet planned.
+
+Heartbeat, respond by ID, reset, exploration on the activity's `find` Queries.
 
 ## Deferred
 
@@ -141,6 +154,12 @@ Deferred 2026-10-05. Evidence: `.plans/DYNAMIC_CONFIG.md`.
 | fn-125.10 | ⏸️ deferred | Disposition for every implicit assumption |
 | fn-125.11 | ⏸️ deferred | Docs; close |
 
+### fn-130: Model views
+
+Deferred 2026-10-05 before task planning; the spec has no tasks yet. When revived, starts after fn-126 closes. Evidence: `.plans/MODEL_VISUALIZATION.md`.
+
+Rendered views per Model (signature, phase diagram, refinement, compositions, derived-design diff, witness paths), checked in as `.d2` plus `.svg` under `model/views/` and gated; D2 as a Go library with ELK; no DSL declaration.
+
 ### Other deferred items
 
 - fn-122.7 (Pausable on fn-119's example) waits for fn-119; fn-122 itself is closed.
@@ -157,5 +176,6 @@ Deferred 2026-10-05. Evidence: `.plans/DYNAMIC_CONFIG.md`.
 - Behavior-freeze follow-ups from fn-112: the witness-only Properties `terminated` and
   `cancelRequestedWhileStarted`, and seven pause/unpause rows the server rejects.
 - Whether HSM and CHASM may count Nexus `attempt` differently; no current Query shows a difference (fn-125, deferred).
+- Whether upstream's Go conformance harness (`tests/activity_driver.go`) should run our IR through the Go interpreter instead of its hand-written model, making one Model drive both (`.plans/ACTIVITY_MODEL_COMPARISON.md` P3-12); needs the owning team. A workflow-scheduled activity realization (P3-11) overlaps the deferred fn-119.
 - The canary policy's `workflowPath` names the deleted production-canary workflow, so production dispatch
   fails closed.

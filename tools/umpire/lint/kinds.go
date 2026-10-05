@@ -523,6 +523,51 @@ func neverEnabled(m *Model) ([]Tally, error) {
 	return t.list(), nil
 }
 
+// stuckStates is each reachable state of a machine that is no end and in which no row has a result:
+// no action class, a timer's and an internal step's included, can happen there. A state with a hole
+// row is not stuck: a hole declares that unmodeled behavior may happen there, not a forgotten rule,
+// as the progress check reads it (model/SEMANTICS.md, Progress). The finding is at the machine and
+// carries the shortest path from a start to the state.
+func stuckStates(m *Model) ([]Tally, error) {
+	t := tally(StuckState)
+	for _, decl := range m.IR.GetMachines() {
+		machine := m.Machines[decl.GetName()]
+		if machine == nil {
+			continue
+		}
+		table := machine.Table
+		steps := map[string]bool{}
+		for _, row := range table.Rows {
+			if len(row.Results) > 0 {
+				steps[row.Source] = true
+			}
+		}
+		for _, h := range machine.Holes {
+			steps[h.Source] = true
+		}
+		for _, s := range table.Reachable {
+			t.add(decl.GetName(), steps[s] || slices.Contains(table.Ends, s), s, decl.GetPosition(),
+				"%s is reachable, is no end and enables no action class: no action can happen in it, so a timer or an "+
+					"internal step may be missing a rule; if it is meant to be final, declare it in the machine's ends; "+
+					"reached by %s", s, spellPath(table.PathTo(s)))
+		}
+	}
+	return t.list(), nil
+}
+
+// spellPath spells a witness as its start and each step's action and outcome to the state it reaches.
+func spellPath(w *model.Trace) string {
+	if w == nil {
+		return "no path"
+	}
+	var b strings.Builder
+	b.WriteString(w.Initial.Value)
+	for _, s := range w.Steps {
+		fmt.Fprintf(&b, " -%s/%s-> %s", s.Action.Value, s.Outcome.Value, s.State.Value)
+	}
+	return b.String()
+}
+
 // unproduced is each outcome and each fact of a machine that no result of a row of a reachable state
 // produces.
 func unproduced(m *Model) ([]Tally, error) {
