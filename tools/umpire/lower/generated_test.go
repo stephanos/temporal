@@ -395,7 +395,7 @@ func TestFindGeneratedCaseFindsALoweredCaseByItsFingerprint(t *testing.T) {
 	regenerated := read(filepath.Join(directory, "nexus-control-forgedCompletion-case.json"))
 	regenerated.Provenance.ProducerVersion += "+1"
 	for name, other := range map[string]*testpilotspb.Case{
-		"a hand-written Case":       read(filepath.Join("..", "..", "..", "tests", "testcore", "testpilot", "testdata", "nexusPairTests-bothComplete-case.json")),
+		"a hand-written Case":      read(filepath.Join("..", "..", "..", "tests", "testcore", "testpilot", "testdata", "nexusPairTests-bothComplete-case.json")),
 		"a Case regenerated since": regenerated,
 	} {
 		_, err := FindGeneratedCase(directory, other)
