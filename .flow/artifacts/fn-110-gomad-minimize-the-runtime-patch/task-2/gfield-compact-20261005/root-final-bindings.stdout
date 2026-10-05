@@ -1,0 +1,42 @@
+{
+  "base": "1b0bc277589d141aca8b534b03135ab3e57fc050",
+  "product_files": 5076,
+  "exact_changed_paths": [
+    "tools/gomad3/choice/internal/wire/wire_generated.go",
+    "tools/gomad3/runner/testdata/diagnostic-identity-choices.json",
+    "tools/gomad3/target/internal/livecap/protocol_generated.go",
+    "tools/gomad3/toolchain/runtime/go1.27.1.patch",
+    "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go"
+  ],
+  "bound_receipts": 28,
+  "alpha_sites": 30,
+  "baseline_sources_bound_to_previous_checkpoint": 21,
+  "identity_pointers": 7,
+  "measurements": {
+    "baseline-U1": {
+      "bytes": 24894,
+      "lines": 706,
+      "sha256": "fbb0a515333c06f77ce213c62a43bed8cb2ca2c65f080208694533ea8e1ccc38"
+    },
+    "baseline-U3": {
+      "bytes": 34148,
+      "lines": 1040,
+      "sha256": "69cfff368aab259ef3053ea457ed53a4112c1c272fb3e4cb5e44a0048444c607"
+    },
+    "final-U1": {
+      "bytes": 24117,
+      "lines": 692,
+      "sha256": "4b13066eeacc5e9d33a5ada7d3924ff346786ccaf578b9856e1be5f41a94c6f9"
+    },
+    "final-U3": {
+      "bytes": 33294,
+      "lines": 1026,
+      "sha256": "ce45f4c0bcd45cd24ee4598e3ba18fb8106f50a705a2f2652067964305572516"
+    }
+  },
+  "original_U3_gap": 642,
+  "original_acceptance_and_historical_evidence_preserved": true,
+  "user_files_preserved": true
+}

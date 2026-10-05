@@ -1,0 +1,235 @@
+{
+  "base_commit": "1b0bc277589d141aca8b534b03135ab3e57fc050",
+  "commits": [],
+  "terminal_handles": [],
+  "source_count": 5076,
+  "sources_final_sha256": "cb0e85c7c5c8140ccccd1c488ca30dee82741b46f2f44d6796b3be5b16fddb82",
+  "source_stable": true,
+  "exact_product_changes": [
+    "tools/gomad3/choice/internal/wire/wire_generated.go",
+    "tools/gomad3/runner/testdata/diagnostic-identity-choices.json",
+    "tools/gomad3/target/internal/livecap/protocol_generated.go",
+    "tools/gomad3/toolchain/runtime/go1.27.1.patch",
+    "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go"
+  ],
+  "prior_baseline_binding": {
+    "receipt_directory": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005",
+    "all_5076_sources_equal": true
+  },
+  "archive_sha256": "4e408abae126d916b6164627193f2c54f0e3ca1312d693b86db45f862ab238b1",
+  "descriptor_sha256": "94358dc0d221c0c0ba0e4f487303b0e9acd46afa212d24091ab44b124f276779",
+  "fixture": {
+    "bytes": 13271,
+    "final_lf": false,
+    "sha256": "b82251eb1c7efa8885bb0cf2992c10fe1a98f11fb10e69f27b4e5ba1c6b773d0",
+    "canonical_emit_equal": true
+  },
+  "generated_identity_fields_only": {
+    "tools/gomad3/choice/internal/wire/wire_generated.go": 1,
+    "tools/gomad3/target/internal/livecap/protocol_generated.go": 2,
+    "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go": 2,
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go": 1
+  },
+  "measurements": {
+    "baseline-U1": {
+      "bytes": 24894,
+      "lines": 706,
+      "sha256": "fbb0a515333c06f77ce213c62a43bed8cb2ca2c65f080208694533ea8e1ccc38"
+    },
+    "baseline-U3": {
+      "bytes": 34148,
+      "lines": 1040,
+      "sha256": "69cfff368aab259ef3053ea457ed53a4112c1c272fb3e4cb5e44a0048444c607"
+    },
+    "final-U1": {
+      "bytes": 24117,
+      "lines": 692,
+      "sha256": "4b13066eeacc5e9d33a5ada7d3924ff346786ccaf578b9856e1be5f41a94c6f9"
+    },
+    "final-U3": {
+      "bytes": 33294,
+      "lines": 1026,
+      "sha256": "ce45f4c0bcd45cd24ee4598e3ba18fb8106f50a705a2f2652067964305572516"
+    }
+  },
+  "original_u3_comparator_bytes": 32652,
+  "remaining_u3_gap_bytes": 642,
+  "focused_top_level_passes": 21,
+  "inventories": {
+    "platforms": [
+      "darwin/arm64",
+      "linux/amd64"
+    ],
+    "draw": 273,
+    "seeded": 86,
+    "clock": 48,
+    "goroutine": 10,
+    "original_negative_controls_passed": 4
+  },
+  "host": "Linux aarch64",
+  "tools": {
+    "go": {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+      "version": "go version go1.27.1 linux/arm64"
+    },
+    "golangci-lint": {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc",
+      "version": "golangci-lint has version 2.13.0 built with go1.27.1 from (unknown, modified: ?, mod sum: \"h1:n/YR8sCuTAfjwKLHOU0q63X2e4tObi1PCNOz+HXJ3cE=\") on (unknown)"
+    },
+    "errortype": {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc",
+      "version": "errortype version v0.0.7 build with go1.27.1"
+    }
+  },
+  "receipts": {
+    "baseline-generate-validate": {
+      "exit": 0,
+      "elapsed_seconds": 16.08,
+      "receipt_sha256": "805a40483657a69b4290ec2e1c55eaf6e2311ce041767eac3c071372d99b9cad",
+      "stdout_sha256": "184f7bfdc240e5e120db0d91dd05e0729190f67cded68e51d27f3a12fa8b56c8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "baseline-red-alignment": {
+      "exit": 1,
+      "elapsed_seconds": 34.305,
+      "receipt_sha256": "a007d249ae8ffe4b03efb9f9832101b426221f97e99ec2a30f21de771867a98e",
+      "stdout_sha256": "4e2f8370f112f3305d799c8d5143c3ceb4aab869c908573886e82ae0b7d8bd21",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "baseline-inventories": {
+      "exit": 0,
+      "elapsed_seconds": 4.851,
+      "receipt_sha256": "cbf9b1d86bfd2132e2b3c83d22195cfbfffae502cfe8e1601d982c0c725ab1c1",
+      "stdout_sha256": "1d6aa26ea5adca19072e2af15488ada7a869186ad7d207b4029239bf276eeb67",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-patch-regenerate": {
+      "exit": 0,
+      "elapsed_seconds": 29.183,
+      "receipt_sha256": "0be7fd6007193f4854c2dcf17919ea91923171024756d98596855f179736a7c7",
+      "stdout_sha256": "d73c4d37280bd8422f4e25a9b59a54b08c909a24ab28d30b783fd475d805d495",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-generate-validate": {
+      "exit": 0,
+      "elapsed_seconds": 16.855,
+      "receipt_sha256": "1b3050caf93cc7130cac41aeedee07c32726f2b485d7d1eeb11c5dd7e2fb7903",
+      "stdout_sha256": "184f7bfdc240e5e120db0d91dd05e0729190f67cded68e51d27f3a12fa8b56c8",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-golden-format": {
+      "exit": 0,
+      "elapsed_seconds": 0.486,
+      "receipt_sha256": "bda394725842a1ff6397486bbaf25bf23cc177c82a24c4be6b5c02b85f052262",
+      "stdout_sha256": "13ef3992aaef29f887c5f9af800bc092a0a531c9f9b6fc05e3fa1ee103cf6801",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-materialize": {
+      "exit": 0,
+      "elapsed_seconds": 1.619,
+      "receipt_sha256": "af45d448efb41d8f611b8aa6fa4568ac825be5d6da94c31e67623740f473d2db",
+      "stdout_sha256": "c257f007d4ebba6cae16fbc37424de0658d65ef57b512a190a427975b9b37ab7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-preservation": {
+      "exit": 0,
+      "elapsed_seconds": 1.953,
+      "receipt_sha256": "c28e8b62ec0845f99219196b94681e8dc2c8272640a624e57ee4a00e9c8c329c",
+      "stdout_sha256": "148942f4e775c430a303459fef86367dc58ee64de48e22f5a33d882c44085431",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-focused-frozen": {
+      "exit": 0,
+      "elapsed_seconds": 207.808,
+      "receipt_sha256": "03c4f095ffb1f648fdcc9ea1fd2d70c2fb3ff53e6ae29957296644d06879d5cc",
+      "stdout_sha256": "3df8fbab99280bd3284d9571893a18492cd89b5dd37acd81bfa9876b963999e2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-pure-host": {
+      "exit": 0,
+      "elapsed_seconds": 84.925,
+      "receipt_sha256": "734492e01d578a345843267d9ac9485e22282f513bd4307a4863cbe0138fac80",
+      "stdout_sha256": "e03725a3512446ee01c6a093303c35df3f7e4e2497aeca52a8d1c42ab29ba8c4",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-pure-host-observations": {
+      "exit": 0,
+      "elapsed_seconds": 0.122,
+      "receipt_sha256": "a046598d22d026f87f709b8d26ed9cf66489d81f8d81d87b306cd5245d6d5ea3",
+      "stdout_sha256": "8cf9f97ed94fd4af96e848c977f8903d937a97ddf054efb131da50647a8bad0e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-pure-host-report": {
+      "exit": 0,
+      "elapsed_seconds": 0.304,
+      "receipt_sha256": "36abeb9d30d0acba8ba354dba937faf77ff9fde5eb580d6445c182d0475dc322",
+      "stdout_sha256": "8cf9f97ed94fd4af96e848c977f8903d937a97ddf054efb131da50647a8bad0e",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-pure-host-boundaries": {
+      "exit": 0,
+      "elapsed_seconds": 0.179,
+      "receipt_sha256": "c89d4a14355d304d16c2f3f4f891826e13c060891a9edcb1e209c9ae18c93bd6",
+      "stdout_sha256": "7650479682476562908bb5274d3e20556b8434e1cf73805671777c96fb60a22f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-diagnostic-controls": {
+      "exit": 1,
+      "elapsed_seconds": 1.524,
+      "receipt_sha256": "99a38eecbf01bd402cb01b31fa2d841f766921fb33babbebd8d73cc780596c79",
+      "stdout_sha256": "afa1f4c27b5710ca5bcd84015ee6018fdde3ee02fe628744733c99c364a6911d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-diagnostic-observations": {
+      "exit": 0,
+      "elapsed_seconds": 0.166,
+      "receipt_sha256": "9941095486c3a03c973526dcc7dfedf2b126c8ffe40218b7a304644c3df1e128",
+      "stdout_sha256": "baaa7633f2d54d138b54a3c9449dd20f9dcce4af66eb0117e5fba375551960a0",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-scoped-vet": {
+      "exit": 1,
+      "elapsed_seconds": 0.103,
+      "receipt_sha256": "d6384065207d599881b6218a945ad3a96f12b486be0e6c1bde465878ccc8541f",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "756488a9afe0117aed77a0d93f70a92eea845e3ff7e0bb65c05de712a973fd87"
+    },
+    "final-scoped-vet-host-only": {
+      "exit": 0,
+      "elapsed_seconds": 0.51,
+      "receipt_sha256": "f6ddfb7038ee2acdb6a674f5c1b5df195bbaedd0f7ec5a736960779ca6ac3628",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-lint-code-fast": {
+      "exit": 0,
+      "elapsed_seconds": 79.255,
+      "receipt_sha256": "ce9b02f7ef41af6147e13a621a72b6052d17cd10de0eda59c30515c1255f531d",
+      "stdout_sha256": "0623dbb7668cd2a20465fe5eb66564db58f83617ae0b5cc263539a4b00794e79",
+      "stderr_sha256": "0cef46731af24360bab319e09850c06b1ffecec69704b2f0180c8279257e8bdc"
+    },
+    "final-generate-validate-frozen": {
+      "exit": 0,
+      "elapsed_seconds": 16.948,
+      "receipt_sha256": "3196fb6a0fe84f32531a9242fec239b15ba9f6c3e25745a4af7d627e70f36c35",
+      "stdout_sha256": "79a0e30e0ef701789d70d61274ea35845f013b4a76f484826538567fb472b943",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "limitations": [
+    "R8 remains open at U3=33294 versus original32652",
+    "native Darwin toolchain/runtime diagnostics/qualification and soak not executed",
+    "Linux/aarch64 stock-Go checks are developmental only; fn-128 owns Linux qualification",
+    "full host gate remains inconclusive from prior unsupported-host timeout; unchanged hang was not retried",
+    "three unchanged diagnostics controls fail for missing instrumented toolchain; native guard skips",
+    "wrong-surface recursive overlay vet receipt retained as inconclusive and corrected host-only vet passes",
+    "changed-only lint does not resolve the 317 previously reported full-lint issues",
+    "106 inherited deterministicio failures outside selected pure-host scope remain open",
+    "conductor owns review, commits and all Flow state"
+  ]
+}

@@ -1,0 +1,1 @@
+final-diagnostic-controls tests 4 counts { pass: 0, fail: 3, skip: 1 } packages 2 same preceding verdicts and raw error outputs

@@ -1,0 +1,9 @@
+=== RUN   TestGFieldCompactCanonicalAlignment
+    gfield_compact_checkpoint_test.go:35: canonical U1 bytes=24894 lines=706
+    gfield_compact_checkpoint_test.go:35: canonical U3 bytes=34148 lines=1040
+    gfield_compact_checkpoint_test.go:51: otherwise unchanged g fields with avoidable alignment edits=7: [atomicstatus goid param schedlink stackLock waitreason waitsince]
+    gfield_compact_checkpoint_test.go:53: canonical output realigns 7 otherwise unchanged g fields
+--- FAIL: TestGFieldCompactCanonicalAlignment (33.42s)
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/toolchain	33.427s
+FAIL

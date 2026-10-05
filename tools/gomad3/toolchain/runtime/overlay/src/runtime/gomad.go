@@ -1096,22 +1096,22 @@ func gomadChoicePublishTerminal(state, reason uint8, expected, observed *gomadCh
 }
 
 func gomadChoiceRootIdentity(gp *g) {
-	gp.gomadChildOrdinal = 0
-	gp.gomadTimerOrdinal = 0
-	gp.gomadIdentity = gomadChoiceHash([]byte("gomad3-choice-goroutine-root/v1"))
+	gp.gomadChild = 0
+	gp.gomadTimer = 0
+	gp.gomadID = gomadChoiceHash([]byte("gomad3-choice-goroutine-root/v1"))
 }
 
 func gomadChoiceAssignGoroutineIdentity(newg, parent *g, pc uintptr) {
-	newg.gomadChildOrdinal = 0
-	newg.gomadTimerOrdinal = 0
+	newg.gomadChild = 0
+	newg.gomadTimer = 0
 	var hasher gomadChoiceHasher
 	hasher.init()
-	if parent != nil && !gomadChoiceZero(parent.gomadIdentity[:]) {
+	if parent != nil && !gomadChoiceZero(parent.gomadID[:]) {
 		hasher.write([]byte("gomad3-choice-goroutine-child/v1"))
-		hasher.write(parent.gomadIdentity[:])
-		parent.gomadChildOrdinal++
+		hasher.write(parent.gomadID[:])
+		parent.gomadChild++
 		var ordinal [8]byte
-		gomadChoicePut64(ordinal[:], parent.gomadChildOrdinal)
+		gomadChoicePut64(ordinal[:], parent.gomadChild)
 		hasher.write(ordinal[:])
 		site, flags := gomadChoiceSite(pc)
 		var encoded [9]byte
@@ -1130,7 +1130,7 @@ func gomadChoiceAssignGoroutineIdentity(newg, parent *g, pc uintptr) {
 		gomadChoicePut64(ordinal[:], gomadRuntimeGoroutineOrdinal.Add(1))
 		hasher.write(ordinal[:])
 	}
-	newg.gomadIdentity = hasher.sum()
+	newg.gomadID = hasher.sum()
 	if live := uint32(gcount(false)); live > gomadChoicePeakGoroutines {
 		gomadChoicePeakGoroutines = live
 	}
@@ -1144,16 +1144,16 @@ func gomadChoiceAssignGoroutineIdentity(newg, parent *g, pc uintptr) {
 // goroutines its callbacks start stay on the runtime ordinal path.
 func gomadChoiceTimerCreated(t *timer, pc uintptr) {
 	gp := getg()
-	if gomadChoiceZero(gp.gomadIdentity[:]) {
+	if gomadChoiceZero(gp.gomadID[:]) {
 		return
 	}
-	gp.gomadTimerOrdinal++
+	gp.gomadTimer++
 	var hasher gomadChoiceHasher
 	hasher.init()
 	hasher.write([]byte("gomad3-choice-timer/v1"))
-	hasher.write(gp.gomadIdentity[:])
+	hasher.write(gp.gomadID[:])
 	var ordinal [8]byte
-	gomadChoicePut64(ordinal[:], gp.gomadTimerOrdinal)
+	gomadChoicePut64(ordinal[:], gp.gomadTimer)
 	hasher.write(ordinal[:])
 	site, flags := gomadChoiceSite(pc)
 	var encoded [9]byte
@@ -1211,7 +1211,7 @@ func gomadChoiceRunqIndex(pp *p, head, tail uint32) uint32 {
 		if isSystemGoroutine(gp, false) {
 			continue
 		}
-		alternatives[users] = gp.gomadIdentity
+		alternatives[users] = gp.gomadID
 		gomadChoiceSchedulerOffsets[users] = offset
 		users++
 	}
@@ -1444,7 +1444,7 @@ func gomadDeterministicEnabled() bool {
 
 //go:linkname gomadSimulationDomain
 func gomadSimulationDomain() uint64 {
-	return getg().gomadSimulationDomain
+	return getg().gomadDomain
 }
 
 // gomadWallNanotime exposes the host monotonic clock to the deterministic I/O
@@ -1458,8 +1458,8 @@ func gomadWallNanotime() int64 {
 //go:linkname gomadSimulationSetDomain
 func gomadSimulationSetDomain(domain uint64) uint64 {
 	gp := getg()
-	previous := gp.gomadSimulationDomain
-	gp.gomadSimulationDomain = domain
+	previous := gp.gomadDomain
+	gp.gomadDomain = domain
 	return previous
 }
 
@@ -1600,7 +1600,7 @@ func gomadSimulationTimeQuiescenceChanged(deadline int64, timer bool) bool {
 		if changed || isSystemGoroutine(gp, false) {
 			return
 		}
-		if gp.gomadSimulationTransport {
+		if gp.gomadSimIO {
 			changed = true
 			return
 		}
@@ -1685,7 +1685,7 @@ func gomadSimulationTimeRead(descriptor int32, destination []byte) bool {
 func gomadBlockingRead(fd int32, destination unsafe.Pointer, bytes int32) int32 {
 	gp := getg()
 	if gomadSimulationTimeEnabled {
-		gp.gomadSimulationTransport = true
+		gp.gomadSimIO = true
 		gomadSimulationTransportSyscalls.Add(1)
 	}
 	entersyscallblock()
@@ -1694,7 +1694,7 @@ func gomadBlockingRead(fd int32, destination unsafe.Pointer, bytes int32) int32 
 		gomadSimulationTransportSyscalls.Add(-1)
 	}
 	exitsyscall()
-	gp.gomadSimulationTransport = false
+	gp.gomadSimIO = false
 	return count
 }
 
@@ -1861,7 +1861,7 @@ func gomadParseSeed(value string) (uint64, bool) {
 // transport reads are excluded: they block until the simulation advances,
 // which the scanning goroutine may itself be needed for.
 func gomadAwaitHostSyscallExit(gp *g) {
-	for !gp.gomadSimulationTransport && readgstatus(gp)&^_Gscan == _Gsyscall {
+	for !gp.gomadSimIO && readgstatus(gp)&^_Gscan == _Gsyscall {
 		osyield()
 	}
 }

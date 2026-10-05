@@ -1,0 +1,53 @@
+{
+  "argv": [
+    "timeout",
+    "600",
+    "make",
+    "-C",
+    "tools/gomad3",
+    "generate",
+    "validate"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "environment": {
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOSUMDB": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2",
+    "GOMAD3_STOCK_GO": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+    "GOEXPERIMENT": null,
+    "GOROOT": null,
+    "GOMADSEED": null,
+    "GOMAD3_CHILD_SEED": null,
+    "GOMAD3_SEED": null,
+    "GOCACHE": null,
+    "GOMODCACHE": null,
+    "COMPACT_PHASE": null,
+    "COMPACT_CAPTURE_DIR": null
+  },
+  "exit": 0,
+  "signal": null,
+  "error": null,
+  "started": "2026-10-05T23:29:50.389Z",
+  "ended": "2026-10-05T23:30:07.244Z",
+  "elapsed_seconds": 16.855,
+  "source_count": 5076,
+  "sources_before_sha256": "5f01a59db1fbc5c1d84013b23f121cf4bca89cc803f35307be444844b9bbe72d",
+  "sources_after_sha256": "c47e25e468a4e4bc1693b1fbf4fa301dd4bbf168c96179583ee1a22f8c815650",
+  "source_changes": [
+    "tools/gomad3/choice/internal/wire/wire_generated.go",
+    "tools/gomad3/target/internal/livecap/protocol_generated.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+    "tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go"
+  ],
+  "stdout_sha256": "184f7bfdc240e5e120db0d91dd05e0729190f67cded68e51d27f3a12fa8b56c8",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "helper_sha256": "7003657096778473431926b5781d90abd2e325e0f254e31ca5ab260b8ce40baa",
+  "tool_sha256": {
+    "go": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "gofmt": "83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3"
+  }
+}

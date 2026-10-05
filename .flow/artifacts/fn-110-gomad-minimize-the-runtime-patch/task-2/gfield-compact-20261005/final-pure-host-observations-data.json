@@ -1,0 +1,69 @@
+{
+  "receipt": "final-pure-host.json",
+  "raw_log": "tools/gomad3/.toolchain/fn-110/gfield-compact.gxrPVUi5/final-pure-host.jsonl",
+  "raw_log_sha256": "ac48ad2052efec4f6714189198e7a6b8a624930fa2cdf220ebe3935fb00901e4",
+  "prior_receipt": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-pure-host.json",
+  "baseline_source_map": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-sources.json",
+  "baseline_source_matches_all_5076_product_files": true,
+  "package_results": {
+    "go.temporal.io/server/tools/gomad3/choice": "pass",
+    "go.temporal.io/server/tools/gomad3/choice/internal/wire": "pass",
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap": "pass",
+    "go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary": "pass",
+    "go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol": "pass",
+    "go.temporal.io/server/tools/gomad3/record": "pass",
+    "go.temporal.io/server/tools/gomad3/artifact": "pass",
+    "go.temporal.io/server/tools/gomad3": "pass"
+  },
+  "counts": {
+    "pass": 322,
+    "fail": 0,
+    "skip": 8
+  },
+  "unmatched": [],
+  "unfinished": [],
+  "changed_verdicts": [],
+  "changed_raw_errors": [],
+  "failures_and_skips": {
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainProjectsOnlyReachableForbiddenImport": {
+      "errors": [],
+      "output": "=== RUN   TestPinnedToolchainProjectsOnlyReachableForbiddenImport\n    toolchain_test.go:16: live capability records are supported only on darwin/arm64\n--- SKIP: TestPinnedToolchainProjectsOnlyReachableForbiddenImport (0.00s)\n",
+      "result": "skip"
+    },
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainGuardsReachableForbiddenImport": {
+      "errors": [],
+      "output": "=== RUN   TestPinnedToolchainGuardsReachableForbiddenImport\n    toolchain_test.go:57: live capability records are supported only on darwin/arm64\n--- SKIP: TestPinnedToolchainGuardsReachableForbiddenImport (0.00s)\n",
+      "result": "skip"
+    },
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainAllowsPureForbiddenPackageInitializationHelper": {
+      "errors": [],
+      "output": "=== RUN   TestPinnedToolchainAllowsPureForbiddenPackageInitializationHelper\n    toolchain_test.go:102: live capability records are supported only on darwin/arm64\n--- SKIP: TestPinnedToolchainAllowsPureForbiddenPackageInitializationHelper (0.00s)\n",
+      "result": "skip"
+    },
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainAllowsPureSyscallErrorHelpers": {
+      "errors": [],
+      "output": "=== RUN   TestPinnedToolchainAllowsPureSyscallErrorHelpers\n    toolchain_test.go:147: live capability records are supported only on darwin/arm64\n--- SKIP: TestPinnedToolchainAllowsPureSyscallErrorHelpers (0.00s)\n",
+      "result": "skip"
+    },
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainUsesDeterministicEnvironment": {
+      "errors": [],
+      "output": "=== RUN   TestPinnedToolchainUsesDeterministicEnvironment\n    toolchain_test.go:173: live capability records are supported only on darwin/arm64\n--- SKIP: TestPinnedToolchainUsesDeterministicEnvironment (0.00s)\n",
+      "result": "skip"
+    },
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainGuardsReachableDeniedBoundary": {
+      "errors": [],
+      "output": "=== RUN   TestPinnedToolchainGuardsReachableDeniedBoundary\n    toolchain_test.go:205: live capability records are supported only on darwin/arm64\n--- SKIP: TestPinnedToolchainGuardsReachableDeniedBoundary (0.00s)\n",
+      "result": "skip"
+    },
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainDoesNotGuardModeledUnsupportedBoundary": {
+      "errors": [],
+      "output": "=== RUN   TestPinnedToolchainDoesNotGuardModeledUnsupportedBoundary\n    toolchain_test.go:239: live capability records are supported only on darwin/arm64\n--- SKIP: TestPinnedToolchainDoesNotGuardModeledUnsupportedBoundary (0.00s)\n",
+      "result": "skip"
+    },
+    "go.temporal.io/server/tools/gomad3/target/internal/livecap:TestPinnedToolchainGuardsForbiddenPackageExceptModeledBoundary": {
+      "errors": [],
+      "output": "=== RUN   TestPinnedToolchainGuardsForbiddenPackageExceptModeledBoundary\n    toolchain_test.go:264: live capability records are supported only on darwin/arm64\n--- SKIP: TestPinnedToolchainGuardsForbiddenPackageExceptModeledBoundary (0.00s)\n",
+      "result": "skip"
+    }
+  }
+}

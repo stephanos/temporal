@@ -1,0 +1,11 @@
+complete alpha + pinned gofmt equality: 21 files, 30 field sites; exact allowlists 20/79; layout and user files unchanged
+{"baseline-U1":{"bytes":24894,"lines":706,"sha256":"fbb0a515333c06f77ce213c62a43bed8cb2ca2c65f080208694533ea8e1ccc38"},"baseline-U3":{"bytes":34148,"lines":1040,"sha256":"69cfff368aab259ef3053ea457ed53a4112c1c272fb3e4cb5e44a0048444c607"},"final-U1":{"bytes":24117,"lines":692,"sha256":"4b13066eeacc5e9d33a5ada7d3924ff346786ccaf578b9856e1be5f41a94c6f9"},"final-U3":{"bytes":33294,"lines":1026,"sha256":"ce45f4c0bcd45cd24ee4598e3ba18fb8106f50a705a2f2652067964305572516"}}
+product changes [
+  'tools/gomad3/choice/internal/wire/wire_generated.go',
+  'tools/gomad3/runner/testdata/diagnostic-identity-choices.json',
+  'tools/gomad3/target/internal/livecap/protocol_generated.go',
+  'tools/gomad3/toolchain/runtime/go1.27.1.patch',
+  'tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go',
+  'tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go',
+  'tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go'
+]

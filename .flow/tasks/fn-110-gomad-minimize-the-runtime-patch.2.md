@@ -11,7 +11,7 @@ Move the three scheduler implementations out of the `src/runtime/proc.go` sectio
 
 **Size:** M
 **Files:** `tools/gomad3/toolchain/runtime/go1.27.1.patch`, `tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go`, conformance fixture files only if coverage is missing, `docs/research/gomad/GOMAD_PATCH_SIZE.md`
-**Touches:** [tools/gomad3/toolchain/runtime/go1.27.1.patch, tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go, tools/gomad3/internal/gomadtool/conformance/**, docs/research/gomad/GOMAD_PATCH_SIZE.md]
+**Touches:** [tools/gomad3/toolchain/runtime/go1.27.1.patch, tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go, tools/gomad3/internal/gomadtool/conformance/**, docs/research/gomad/GOMAD_PATCH_SIZE.md, tools/gomad3/choice/internal/wire/wire_generated.go, tools/gomad3/target/internal/livecap/protocol_generated.go, tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go, tools/gomad3/runner/testdata/diagnostic-identity-choices.json, .flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/gfield-compact-20261005/**]
 
 ### Approach
 Hunk locations are line numbers in the baseline patch; re-find them by `@@` header if they shifted.
@@ -72,13 +72,25 @@ wc -c -l tools/gomad3/toolchain/runtime/go1.27.1.patch
 
 The descriptor requires `patch_allowlist` and `overlay_allowlist` to equal the checked trees exactly (`toolchain/version/descriptor.go:114-160`), so a task that adds an overlay file or empties a patched file updates `version.json` and regenerates in the same task.
 
-### Current-source measurement after fn-112.5 host-draw compaction (2026-10-05)
+### Host-draw checkpoint measurement (2026-10-05)
 
 The producer-owned fn-112.5 checkpoint removes the alignment overhead of its private per-M diagnostic field while preserving diagnostics and scheduler behavior. Governed canonical output measures U1 24,894 bytes / 706 lines and U3 34,148 bytes / 1,040 lines. Against the immediate pre-edit candidate, U1 saves 4,121 bytes and U3 saves 4,214 bytes. Against the original task-1 U3 baseline of 32,652 bytes, the candidate remains 1,496 bytes larger. R8 is still unmet; the comparator, scope and acceptance are unchanged.
 
 The checkpoint's task-local RED exposed 36 unchanged m fields realigned by the long name; GREEN measures zero alignment edits. Both supported source-set inventories pass. The original descriptor-pinned regeneration, checksum/rejection and U1/U3 zero-fuzz equivalence checks pass. Fresh materialization and alpha-renaming plus pinned gofmt prove preservation across all 20 patched files and the overlay. The descriptor's 20 patched / 79 overlay allowlists are unchanged. Evidence lives under `.flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/`.
 
 These source measurements supersede earlier current-candidate size statements without altering historic receipts. Native Darwin runtime/full/affected and formal qualification remain open. Transferred native Linux execution remains nonblocking under fn-128. U1 representation savings do not satisfy the separate R8 U3 reduction.
+
+### Private-g-field representation checkpoint (2026-10-05)
+
+The conductor admits the bounded alpha-rename in `.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/gfield-compact-20261005/admission.md` to remove avoidable upstream field-alignment edits. Preserve the original fn-114.5 timer identity derivation and every runtime field type/order/behavior. The function/linkname gomadSimulationDomain and global gomadSimulationTransportSyscalls stay unchanged. Regeneration-derived identities and the choices-only golden are included in Touches solely for their exact input consequences. Retain RED/GREEN real canonical measurements and full alpha-gofmt preservation; original Acceptance, historic evidence, the 32,652-byte U3 comparator and required Darwin/full/review gates remain unchanged. This is verified source progress, not completed acceptance.
+
+### Current-source measurement after private-g-field compaction (2026-10-05)
+
+The fn-110.2 source checkpoint shortens five private goroutine fields and their selectors without changing field types/order, identity derivation, counters, transport accounting, comments or linked symbols. Governed outputs measure U1 24,117 bytes / 692 lines and U3 33,294 bytes / 1,026 lines. Against 1b0bc27758, U1 saves 777 bytes and U3 saves 854 bytes. The original task-1 U3 comparator stays 32,652 bytes; the current U3 remains 642 bytes larger, so R8 is unmet. This measurement supersedes earlier current-candidate size statements without changing their historical source scope.
+
+The task-local RED exposed seven otherwise unchanged g fields realigned by the long names; the stable frozen GREEN finds zero. Complete alpha-renaming plus pinned gofmt equality covers all 20 patched files and the runtime overlay, with exactly 30 field sites and unchanged 20/79 allowlists. The independent calculation validates precisely seven fixture identity/digest updates while preserving the plain fixture, owner contracts and native guard. The frozen focused pinned-regeneration, checksum/rejection, U1/U3 zero-fuzz equivalence and both-source-set draw/seeded/clock/goroutine inventories and negative checks pass (207.808 seconds). Artifacts are under `.flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/gfield-compact-20261005/`.
+
+These are source-progress measurements. Current-source native Darwin runtime/upstream/live-capability/process-simulation, baseline/candidate behavioral comparisons, full/affected and formal qualification remain open. Transferred Linux execution remains nonblocking under fn-128. The private field names necessarily change runtime debug metadata and build-derived identities; no binary identity or native acceptance is claimed. A fixed-source audit found no further authorized alignment correction or remaining approved scheduler extraction to close the gap. Any additional relocation requires its own bounded admission.
 ## Acceptance
 
 Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
@@ -128,6 +140,37 @@ acceptance, which is presently unmet rather than merely unmeasured.
 
 Blocked:
 Native Linux execution stays transferred to fn-128 and does not block this source task. Current-source Darwin build/runtime/upstream/live-capability/process-simulation, baseline/candidate fixture comparisons, full/affected and formal review gates remain incomplete. R8 is independently unmet. Canonical U3 now measures 34,148 bytes after fn-112.5 private host-draw field compaction, against the unchanged original task-1 U3 baseline of 32,652 bytes, a 1,496-byte increase. U1 measures 24,894 bytes and its representation savings do not satisfy R8. Source preservation, pinned regeneration/checksum/rejection and both-source-set inventory receipts are in the fn-112.5 host-draw-field-compact-20261005 checkpoint. Historical larger candidate measurements retain their original source scope.
+
+Blocked:
+Private-g-field compaction is verified source progress. Canonical U1 measures
+24,117 bytes / 692 lines; U3 measures 33,294 bytes / 1,026 lines. This removes
+777 U1 bytes and 854 U3 bytes from 1b0bc27758. The original U3 baseline remains
+32,652 bytes, leaving R8 unmet by 642 bytes. Seven otherwise unchanged g fields
+no longer carry alignment-only edits. The five private field names and 30 sites
+preserve complete alpha-gofmt source equivalence, field layout and 20/79 allowlists.
+
+The frozen original pinned-regeneration, checksum/rejection, U1/U3 zero-fuzz
+equivalence, both-source-set inventories and negative checks pass. Independent
+identity calculation preserves all owner contracts and exactly seven derived
+fixture pointers. These checks do not qualify runtime behavior on a native host.
+Runtime debug field names and build-derived identities necessarily change.
+
+Current-source native Darwin build/runtime/upstream/live-capability/process-
+simulation, baseline/candidate behavioral fixture comparisons, full/affected and
+formal qualification remain unproved. The developmental host is Linux/arm64.
+The narrowed pure-host selection passes, but three diagnostic controls cannot
+reach runtime assertions without the patched driver and the native identity
+test skips. Existing full-host failures and 317 full-lint findings remain open;
+changed-line lint is a separate source scope. No unchanged unsupported-host
+full-gate timeout is retried or relabeled as passing evidence.
+
+A fixed-source audit found no further authorized alignment correction or remaining
+approved scheduler body extraction that closes R8. Further relocation needs a
+separate bounded admission preserving protected scheduler/GC machinery and the
+original comparator. Native Linux execution remains transferred to fn-128,
+nonblocking here and explicitly unverified. Retain all original acceptance and
+historical evidence. Evidence is in task-2/gfield-compact-20261005; source-only
+review does not constitute formal SHIP or completed native acceptance.
 ## Evidence
 - Commits:
 - Tests:

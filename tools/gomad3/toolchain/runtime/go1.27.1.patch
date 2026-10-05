@@ -79,7 +79,7 @@ index 892f900..48e285b 100644
 +
  	// Drive the goroutine to a preemption point.
 diff --git a/src/runtime/proc.go b/src/runtime/proc.go
-index b8d4d15..8dcab3a 100644
+index b8d4d15..bda80d3 100644
 --- a/src/runtime/proc.go
 +++ b/src/runtime/proc.go
 @@ -259,2 +259,6 @@ func main() {
@@ -257,7 +257,7 @@ index b8d4d15..8dcab3a 100644
  		acquirep(pp)
 @@ -5393,2 +5450,6 @@ func newproc1(fn *funcval, callergp *g, callerpc uintptr, parked bool, waitreaso
  	newg.gopc = callerpc
-+	newg.gomadSimulationDomain = callergp.gomadSimulationDomain
++	newg.gomadDomain = callergp.gomadDomain
 +	if gomadChoiceEnabled {
 +		gomadChoiceAssignGoroutineIdentity(newg, callergp, callerpc)
 +	}
@@ -273,7 +273,7 @@ index b8d4d15..8dcab3a 100644
  	forEachG(func(gp *g) {
 @@ -6461,2 +6523,6 @@ func checkdead() {
  		}
-+		if gp.gomadSimulationTransport {
++		if gp.gomadSimIO {
 +			grunning++
 +			return
 +		}
@@ -432,31 +432,17 @@ index d2ad7aa..6dd89d8 100644
 +	}
  	// Implement wyrand: https://github.com/wangyi-fudan/wyhash
 diff --git a/src/runtime/runtime2.go b/src/runtime/runtime2.go
-index 9e0e0df..24a401f 100644
+index 9e0e0df..5720e25 100644
 --- a/src/runtime/runtime2.go
 +++ b/src/runtime/runtime2.go
-@@ -503,9 +503,14 @@ type g struct {
- 	//    param may point to a savedOpenDeferState.
--	param        unsafe.Pointer
--	atomicstatus atomic.Uint32
--	stackLock    uint32 // sigprof/scang lock; TODO: fold in to atomicstatus
--	goid         uint64
--	schedlink    guintptr
--	waitsince    int64      // approx time when the g become blocked
--	waitreason   waitReason // if status==Gwaiting
-+	param                    unsafe.Pointer
-+	atomicstatus             atomic.Uint32
-+	stackLock                uint32 // sigprof/scang lock; TODO: fold in to atomicstatus
-+	goid                     uint64
-+	gomadIdentity            [32]byte
-+	gomadChildOrdinal        uint64
-+	gomadTimerOrdinal        uint64
-+	gomadSimulationDomain    uint64
-+	gomadSimulationTransport bool
-+	schedlink                guintptr
-+	waitsince                int64      // approx time when the g become blocked
-+	waitreason               waitReason // if status==Gwaiting
- 
+@@ -507,2 +507,7 @@ type g struct {
+ 	goid         uint64
++	gomadID      [32]byte
++	gomadChild   uint64
++	gomadTimer   uint64
++	gomadDomain  uint64
++	gomadSimIO   bool
+ 	schedlink    guintptr
 @@ -653,2 +658,3 @@ type m struct {
  	spinning        bool // m is out of work and is actively looking for work
 +	gomadHostDraw   bool

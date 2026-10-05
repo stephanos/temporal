@@ -1,0 +1,4 @@
+=== RUN   TestPackageArchitecture
+--- PASS: TestPackageArchitecture (2.46s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3	2.459s

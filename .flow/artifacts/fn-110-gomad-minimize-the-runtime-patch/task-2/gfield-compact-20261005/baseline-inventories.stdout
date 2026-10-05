@@ -1,0 +1,13 @@
+=== RUN   TestHostClockInventoryPinsPlatformSpecificEscapes
+--- PASS: TestHostClockInventoryPinsPlatformSpecificEscapes (0.00s)
+=== RUN   TestDrawInventoryRejectsUnclassifiedReference
+--- PASS: TestDrawInventoryRejectsUnclassifiedReference (0.00s)
+=== RUN   TestSeededDrawInventoryRejectsUnclassifiedReference
+--- PASS: TestSeededDrawInventoryRejectsUnclassifiedReference (0.00s)
+=== RUN   TestGFieldCompactSourceInventories
+    gfield_compact_checkpoint_test.go:108: platforms=[darwin/arm64 linux/amd64] draw rows=273 seeded rows=86 clock rows=48 goroutine rows=10
+--- PASS: TestGFieldCompactSourceInventories (4.20s)
+=== RUN   TestGoroutineCreationInventoryRejectsSeededSite
+--- PASS: TestGoroutineCreationInventoryRejectsSeededSite (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/toolchain	4.211s

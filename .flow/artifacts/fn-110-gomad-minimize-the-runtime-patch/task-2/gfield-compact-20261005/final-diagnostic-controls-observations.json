@@ -1,0 +1,49 @@
+{
+  "receipt": "final-diagnostic-controls.json",
+  "raw_log": ".flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task-2/gfield-compact-20261005/final-diagnostic-controls.stdout",
+  "raw_log_sha256": "afa1f4c27b5710ca5bcd84015ee6018fdde3ee02fe628744733c99c364a6911d",
+  "prior_receipt": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-diagnostic-controls.json",
+  "baseline_source_map": ".flow/artifacts/fn-112-gomad-determinism-assurance-and-test/task-5/host-draw-field-compact-20261005/final-sources.json",
+  "baseline_source_matches_all_5076_product_files": true,
+  "package_results": {
+    "go.temporal.io/server/tools/gomad3/runner": "pass",
+    "go.temporal.io/server/tools/gomad3/runner/internal/execution": "fail"
+  },
+  "counts": {
+    "pass": 0,
+    "fail": 3,
+    "skip": 1
+  },
+  "unmatched": [],
+  "unfinished": [],
+  "changed_verdicts": [],
+  "changed_raw_errors": [],
+  "failures_and_skips": {
+    "go.temporal.io/server/tools/gomad3/runner:TestDiagnosticsOffPreservesExistingCanonicalIdentities": {
+      "errors": [],
+      "output": "=== RUN   TestDiagnosticsOffPreservesExistingCanonicalIdentities\n    diagnostic_identity_test.go:20: retained baseline is darwin/arm64\n--- SKIP: TestDiagnosticsOffPreservesExistingCanonicalIdentities (0.00s)\n",
+      "result": "skip"
+    },
+    "go.temporal.io/server/tools/gomad3/runner/internal/execution:TestDiagnosticLauncherLocalizesInjectedDraw": {
+      "errors": [
+        "    diagnostics_toolchain_test.go:24: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n"
+      ],
+      "output": "=== RUN   TestDiagnosticLauncherLocalizesInjectedDraw\n    diagnostics_toolchain_test.go:24: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestDiagnosticLauncherLocalizesInjectedDraw (0.00s)\n",
+      "result": "fail"
+    },
+    "go.temporal.io/server/tools/gomad3/runner/internal/execution:TestDiagnosticLauncherRejectsHostTimedSeededDraw": {
+      "errors": [
+        "    diagnostics_toolchain_test.go:76: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n"
+      ],
+      "output": "=== RUN   TestDiagnosticLauncherRejectsHostTimedSeededDraw\n    diagnostics_toolchain_test.go:76: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestDiagnosticLauncherRejectsHostTimedSeededDraw (0.00s)\n",
+      "result": "fail"
+    },
+    "go.temporal.io/server/tools/gomad3/runner/internal/execution:TestDiagnosticDrawCheckStopsHostTimedSeededDraw": {
+      "errors": [
+        "    draw_check_toolchain_test.go:30: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n"
+      ],
+      "output": "=== RUN   TestDiagnosticDrawCheckStopsHostTimedSeededDraw\n    draw_check_toolchain_test.go:30: stat pinned Go command in /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain: lstat /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation\n--- FAIL: TestDiagnosticDrawCheckStopsHostTimedSeededDraw (0.00s)\n",
+      "result": "fail"
+    }
+  }
+}
