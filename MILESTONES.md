@@ -72,7 +72,7 @@ cross-spec gates the conductor holds.
 
 ### fn-126: Read each feature top to bottom: one object per machine
 
-Gate: never alongside fn-124.8; closes before fn-125 resumes. Task 6 runs after fn-124.7. Task 7's lifter work may overlap task 6; its regeneration waits for task 6.
+Gate: never alongside fn-124.8; closes before fn-125 resumes. Task 6 runs after fn-124.7.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -84,7 +84,7 @@ Gate: never alongside fn-124.8; closes before fn-125 resumes. Task 6 runs after 
 | fn-126.6 | ⬜ todo | `product/` and `system/` folders; zoom-ins flattened; structure lint (a)(c); IDs frozen |
 | fn-126.7 | ⬜ todo | Definition IDs are fully qualified Scala names; pins and families removed |
 | fn-126.8 | ⬜ todo | Rename batch (Product and System, history record, actions, designs); level-name lint; docs; close |
-| fn-126.9 | 🔄 in progress | `stuck-state` lint: a reachable non-end state that enables nothing; runs beside task 5 |
+| fn-126.9 | 🔄 in progress | `stuck-state` lint: a reachable non-end state that enables nothing |
 
 ### fn-124: Shrink and simplify the Umpire Go tooling
 
