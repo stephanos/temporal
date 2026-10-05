@@ -241,8 +241,10 @@ declared source no other instruction claims — a source ordinal is the position
 dense stream, and only the emitting instruction can count it.
 
 A rule may instead name one of the Program's evidence declarations (`evidence_id`) and spell nothing
-else: the declaration must be a history event kind and the projected value the recorded
-`HistoryEvent`, and the rule's guard is the presence of the declared attributes arm, its scope,
+else: the declaration must be a history event kind and the projected value the recorded history
+event, the message the Program's history read yields at its path (`historyRead`; the Case names no
+event message), and the rule's guard is the presence of the declared member of that message's
+oneof, its scope,
 operation key and fields the declaration's. `bindEvidence` admits the declarations before the
 instructions: each identity once, each recorded kind once under a source and operation key path
 (`evidenceDeclaration.sameRecord`: one history arm, one Run Event kind at one instruction under one
@@ -259,11 +261,12 @@ reservation, which carries the activity attempt. A fact takes an ordinal only wh
 guard selects it and its evidence was built; a fact two declarations select is an error. A
 reservation's record that cannot be lifted is still published, without evidence and as the event
 from which execution is incomplete, and then fails the Run with `outcome_failed`, unless the record
-itself already fails it. Every lift names
+itself already fails it. Where the Program declares `run_order_is_causal`, every lift names
 as its parent the operation's previously lifted evidence when that came from another source
 (`valueStore.chainEvidence`): ordinals order one source's evidence, only a parent orders evidence
-across sources, and the Run's own order is the order the Program's instructions took, so an
-operation read back by a poll and then by a history read is one comparable chain to the verifier. A read
+across sources, and the Producer declares the Run's own order causal, so an operation read back by
+a poll and then by a history read is one comparable chain to the verifier. A Program that does not
+declare it names no parent. A read
 declaration is polled by a `ReadEvidence` instruction: the Session's `PollRPC` repeats the
 declaration's method with the request the assignments build until `readSatisfied` finds a value
 of the declared path satisfying `until`, and the instruction's one synthesized response read then

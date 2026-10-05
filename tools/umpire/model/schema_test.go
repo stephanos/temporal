@@ -30,7 +30,9 @@ const (
 	// The fields schemaAdded lists, each set. It is current, not captured: no historical bytes have them.
 	schemaAddedSupplement = `{"queries":[{"name":"q","total":"48"}],"functions":[{"name":"g","body":{"construct":{"type":"umpire.Step","choice":"committed"}}}],"realizations":[{"requiredSettings":[{"key":"k","value":"v"}],` +
 		`"behavior":{"visibility":[{"id":"v","position":{"file":"f"},"method":"/s/W","read":"/s/R","eventuallyWithin":{"position":{"file":"f"},"intervalMs":"1","atMostMs":"2"}},{"cause":"CAUSE_KIND_TIMER"}],` +
-		`"causes":[{"id":"c","position":{"file":"f"},"kind":"CAUSE_KIND_TIMER","bound":{"intervalMs":"1"}}]},` +
+		`"causes":[{"id":"c","position":{"file":"f"},"kind":"CAUSE_KIND_TIMER","bound":{"intervalMs":"1"}}],` +
+		`"attemptNumbering":{"position":{"file":"f"},"first":"1","oneRun":true},` +
+		`"instructionDefaults":{"position":{"file":"f"},"timeoutMs":"1","attempts":"1"},"runOrderIsCausal":true},` +
 		`"serverSteps":[{"position":{"file":"f"},"step":{"action":"a"},"kind":"CAUSE_KIND_TIMER","deadlineMs":"2"}]}]}`
 )
 
@@ -75,6 +77,7 @@ const (
 	schemaRepeated = descriptorpb.FieldDescriptorProto_LABEL_REPEATED
 	schemaString   = descriptorpb.FieldDescriptorProto_TYPE_STRING
 	schemaInt64    = descriptorpb.FieldDescriptorProto_TYPE_INT64
+	schemaBool     = descriptorpb.FieldDescriptorProto_TYPE_BOOL
 	schemaEnum     = descriptorpb.FieldDescriptorProto_TYPE_ENUM
 	schemaMessage  = descriptorpb.FieldDescriptorProto_TYPE_MESSAGE
 )
@@ -116,8 +119,22 @@ var (
 		{after: "RequiredSetting", message: &descriptorpb.DescriptorProto{Name: proto.String("ApiBehavior"), Field: []*descriptorpb.FieldDescriptorProto{
 			schemaFieldOf("visibility", 1, schemaRepeated, schemaMessage, "Visibility", "visibility"),
 			schemaFieldOf("causes", 2, schemaRepeated, schemaMessage, "CauseBound", "causes"),
+			// How attempts are numbered, an instruction's default limits and causal run order (fn-124.3).
+			schemaFieldOf("attempt_numbering", 3, schemaOptional, schemaMessage, "AttemptNumbering", "attemptNumbering"),
+			schemaFieldOf("instruction_defaults", 4, schemaOptional, schemaMessage, "InstructionLimit", "instructionDefaults"),
+			schemaFieldOf("run_order_is_causal", 5, schemaOptional, schemaBool, "", "runOrderIsCausal"),
 		}}},
-		{after: "ApiBehavior", message: &descriptorpb.DescriptorProto{Name: proto.String("Visibility"), Field: []*descriptorpb.FieldDescriptorProto{
+		{after: "ApiBehavior", message: &descriptorpb.DescriptorProto{Name: proto.String("AttemptNumbering"), Field: []*descriptorpb.FieldDescriptorProto{
+			schemaFieldOf("position", 1, schemaOptional, schemaMessage, "Position", "position"),
+			schemaFieldOf("first", 2, schemaOptional, schemaInt64, "", "first"),
+			schemaFieldOf("one_run", 3, schemaOptional, schemaBool, "", "oneRun"),
+		}}},
+		{after: "AttemptNumbering", message: &descriptorpb.DescriptorProto{Name: proto.String("InstructionLimit"), Field: []*descriptorpb.FieldDescriptorProto{
+			schemaFieldOf("position", 1, schemaOptional, schemaMessage, "Position", "position"),
+			schemaFieldOf("timeout_ms", 2, schemaOptional, schemaInt64, "", "timeoutMs"),
+			schemaFieldOf("attempts", 3, schemaOptional, schemaInt64, "", "attempts"),
+		}}},
+		{after: "InstructionLimit", message: &descriptorpb.DescriptorProto{Name: proto.String("Visibility"), Field: []*descriptorpb.FieldDescriptorProto{
 			schemaFieldOf("id", 1, schemaOptional, schemaString, "", "id"),
 			schemaFieldOf("position", 2, schemaOptional, schemaMessage, "Position", "position"),
 			schemaFieldOf("method", 3, schemaOptional, schemaString, "", "method", 0),

@@ -11,7 +11,6 @@ import (
 	"github.com/google/uuid"
 	commonpb "go.temporal.io/api/common/v1"
 	"go.temporal.io/sdk/client"
-	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/canary/authority"
 	"go.temporal.io/server/tools/canary/casebinding"
 	"go.temporal.io/server/tools/canary/policy"
@@ -208,9 +207,12 @@ func (r *reconciler) reconcile(ctx context.Context) (string, int, string) {
 	if err := r.lostOrUnknown(ctx, fence, fenced); err != nil {
 		return StatusReconcileUncertain, ExitUncertain, err.Error()
 	}
-	// One RPC's timeout is the canary Profile's instruction default, as the run's cleanup reads it.
-	defaults := casebinding.ProfileSpec(r.policy, nil, testpilotdriver.Environment{}).InstructionDefaults
-	pause := time.Duration(defaults.TimeoutMilliseconds)*time.Millisecond + notFoundMargin
+	// One RPC's timeout is the pinned Case's instruction default, as the run's cleanup reads it.
+	timeout, err := casebinding.InstructionTimeout()
+	if err != nil {
+		return StatusReconcileUncertain, ExitUncertain, err.Error()
+	}
+	pause := timeout + notFoundMargin
 	for _, id := range fenced {
 		closed, terminated := r.close(ctx, id, pause)
 		if terminated {

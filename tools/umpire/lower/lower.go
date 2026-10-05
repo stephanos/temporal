@@ -1048,13 +1048,52 @@ func (a *accounting) requiredSettings() error {
 }
 
 // behavior records each hint of the API behavior by its id, and serverSteps each server step by its
-// class: in the instructions whose waits read it, or unread.
+// class: in the instructions whose waits read it, or unread. The rest of the behavior is carried as
+// declared: how attempts are numbered by every activity entrypoint, the limits of an instruction
+// that writes none and whether the run's record order is causal by the Program.
 func (a *accounting) behavior() error {
-	for _, v := range a.l.a.r.GetBehavior().GetVisibility() {
+	b := a.l.a.r.GetBehavior()
+	for _, v := range b.GetVisibility() {
 		a.read("behavior", v.GetId(), v.GetPosition())
 	}
-	for _, c := range a.l.a.r.GetBehavior().GetCauses() {
+	for _, c := range b.GetCauses() {
 		a.read("behavior", c.GetId(), c.GetPosition())
+	}
+	program := a.c.GetProgram()
+	if n := b.GetAttemptNumbering(); n != nil {
+		declared := fmt.Sprintf("from %d, one run %t", n.GetFirst(), n.GetOneRun())
+		var carriers []string
+		for _, e := range program.GetEntrypoints() {
+			if e.GetActivity() == nil {
+				continue
+			}
+			part := "program.entrypoints[" + e.GetEntrypointId() + "]"
+			carried := e.GetActivity().GetAttemptNumbering()
+			if got := fmt.Sprintf("from %d, one run %t", carried.GetFirst(), carried.GetOneRun()); carried == nil || got != declared {
+				return a.differs("behavior", "attemptNumbering", declared, got, part+".activity.attempt_numbering")
+			}
+			carriers = append(carriers, part)
+		}
+		if len(carriers) > 0 {
+			a.own("behavior", "attemptNumbering", n.GetPosition(), carriers...)
+		} else {
+			a.entries = append(a.entries, Entry{Kind: "behavior", ID: "attemptNumbering", Position: locate(n.GetPosition()), Disposition: Unread})
+		}
+	}
+	if d := b.GetInstructionDefaults(); d != nil {
+		carried := program.GetInstructionDefaults()
+		declared, got := fmt.Sprintf("%d ms, %d attempts", d.GetTimeoutMs(), d.GetAttempts()),
+			fmt.Sprintf("%d ms, %d attempts", carried.GetTimeoutMilliseconds(), carried.GetMaxAttempts())
+		if carried.GetTimeout() == nil || carried.GetAttempts() == nil || got != declared {
+			return a.differs("behavior", "instructionDefaults", declared, got, "program.instruction_defaults")
+		}
+		a.own("behavior", "instructionDefaults", d.GetPosition(), "program.instruction_defaults.timeout_milliseconds", "program.instruction_defaults.max_attempts")
+	}
+	if b.GetRunOrderIsCausal() {
+		if !program.GetRunOrderIsCausal() {
+			return a.differs("behavior", "runOrderIsCausal", "true", "false", "program.run_order_is_causal")
+		}
+		a.own("behavior", "runOrderIsCausal", a.l.a.r.GetPosition(), "program.run_order_is_causal")
 	}
 	return nil
 }

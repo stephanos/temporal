@@ -29,7 +29,7 @@ func activityPlan(t *testing.T) testpilot.EntrypointPlan {
 		program.Entrypoints[0].Instructions[0].GetInstruction().GetInvokeRpc().Method = startActivityMethod
 		program.Entrypoints = append(program.Entrypoints[:1], &testpilotspb.Entrypoint{
 			EntrypointId: "activity",
-			Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}},
+			Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue", AttemptNumbering: &testpilotspb.AttemptNumbering{First: 1, OneRun: true}}},
 			Instructions: []*testpilotspb.InstructionNode{finish},
 		})
 	})

@@ -22,6 +22,13 @@ message Program {
   // The dynamic-configuration settings the Program requires of the environment it runs in.
   // Preparation refuses a Profile whose configuration lacks one or sets it to another value.
   repeated RequiredSetting required_settings = 8;
+  // The limits an instruction that writes none takes, as the Producer declares them. Absent, such an
+  // instruction takes the Profile's instruction defaults.
+  InstructionLimits instruction_defaults = 9;
+  // Whether the Run's record order is the causal order of one operation's evidence across sources:
+  // set, evidence lifted from one source names the operation's previously lifted evidence, from
+  // another source, as its causal parent. Unset, only a source's ordinals order its evidence.
+  bool run_order_is_causal = 10;
 }
 
 // A dynamic-configuration setting a Program requires: its key and its value, each spelled as the
@@ -56,8 +63,9 @@ message EvidenceDeclaration {
   repeated EvidenceFieldDeclaration fields = 8;
 }
 
-// HistoryEventSource is one recorded history event kind: the attributes arm of
-// temporal.api.history.v1.HistoryEvent that a history read lifts, guarded by the arm's presence.
+// HistoryEventSource is one recorded history event kind: a member of a oneof of the event the
+// Program's history read yields, the read whose lift rule names the declaration, guarded by the
+// member's presence.
 message HistoryEventSource { string attributes_field = 1; }
 
 // RunEventSource is the Run's own record of one Run Event kind that carries a payload; the runtime
@@ -163,12 +171,23 @@ message WorkflowActivation {
 
 // ActivityActivation activates the entrypoint for each attempt of a standalone activity of this type
 // the worker role runs on the task-queue role. The entrypoint's instructions are the activity's
-// attempts in order: the attempt Temporal numbers N performs the Nth one, and a reservation carrier
-// reserves one activation per instruction.
+// attempts in order, numbered as attempt_numbering declares, and a reservation carrier reserves one
+// activation per instruction.
 message ActivityActivation {
   string activity_type = 1;
   string worker_role_id = 2;
   string task_queue_role_id = 3;
+  // How the system numbers the activity's attempts; preparation refuses an activity entrypoint that
+  // declares none.
+  AttemptNumbering attempt_numbering = 4;
+}
+
+// AttemptNumbering is how a system numbers the attempts of one activity: the Nth instruction of its
+// entrypoint is the attempt numbered first + N - 1, and with one_run every attempt names the run the
+// first one named.
+message AttemptNumbering {
+  int64 first = 1;
+  bool one_run = 2;
 }
 
 // NexusHandlerActivation activates the entrypoint for each call of this Nexus operation the worker

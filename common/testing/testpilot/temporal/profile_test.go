@@ -37,6 +37,9 @@ func commandCase(command *commandpb.Command) *testpilotspb.Case {
 				},
 			}},
 			Cleanup: &testpilotspb.Cleanup{EntrypointId: "cleanup"},
+			// A Temporal Case declares the limits of an instruction that writes none, as the kit
+			// lowers them; a derived Profile supplies none.
+			InstructionDefaults: limits,
 		},
 		Contract: &testpilotspb.Contract{
 			ContractId: "contract",
@@ -226,7 +229,7 @@ func activityCase() *testpilotspb.Case {
 	}
 	activity := &testpilotspb.Entrypoint{
 		EntrypointId: "activity",
-		Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}},
+		Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue", AttemptNumbering: &testpilotspb.AttemptNumbering{First: 1, OneRun: true}}},
 		Instructions: []*testpilotspb.InstructionNode{{InstructionId: "run-attempt", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: textLiteral("done")}}}}},
 	}
 	controller := &testpilotspb.Entrypoint{
@@ -370,6 +373,34 @@ func TestPrepareRejectsAnActivityScriptUnderAProfileWithoutItsCarrier(t *testing
 	require.ErrorAs(t, err, &diagnostic)
 	require.Equal(t, testpilot.PreparationUnavailable, diagnostic.Category)
 	require.Equal(t, "activity", diagnostic.Path)
+}
+
+// The Driver routes an activity's attempts numbered from 1, every one of the run the first named, so a
+// Case whose activity entrypoint declares another numbering, or none, is refused when its Profile is
+// derived, naming the entrypoint and what it declares.
+func TestDeriveProfileRefusesAnAttemptNumberingTheDriverDoesNotImplement(t *testing.T) {
+	catalog, err := temporal.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	environment := temporal.Environment{Identity: "activity", Namespace: "namespace", TaskQueue: "task-queue", NexusEndpoint: "endpoint"}
+	_, err = temporal.DeriveProfile(activityCase(), catalog, environment)
+	require.NoError(t, err)
+	for name, test := range map[string]struct {
+		numbering *testpilotspb.AttemptNumbering
+		want      string
+	}{
+		"numbered from 2":       {&testpilotspb.AttemptNumbering{First: 2, OneRun: true}, "activity entrypoint activity declares attempts numbered from 2, one run true"},
+		"attempts of many runs": {&testpilotspb.AttemptNumbering{First: 1}, "activity entrypoint activity declares attempts numbered from 1, one run false"},
+		"no numbering":          {nil, "activity entrypoint activity declares attempts numbered from 0, one run false"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			source := activityCase()
+			source.Program.Entrypoints[3].GetActivity().AttemptNumbering = test.numbering
+			_, err := temporal.DeriveProfile(source, catalog, environment)
+			require.ErrorIs(t, err, temporal.ErrInvalid)
+			require.ErrorContains(t, err, test.want)
+			require.ErrorContains(t, err, "the Temporal Driver routes attempts numbered from 1, one run true")
+		})
+	}
 }
 
 // A workflow start carries the attempts of the activity its workflow schedules, routed by the

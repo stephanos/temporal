@@ -186,6 +186,11 @@ type ProgramPlan struct {
 	// RequiredSettings are the dynamic-configuration settings the realized system must run under, in
 	// the order the realization declares them.
 	RequiredSettings []*testpilotspb.RequiredSetting
+	// InstructionDefaults are the limits an instruction that writes none takes, and RunOrderIsCausal
+	// whether the Run's record order orders one operation's evidence across sources, as the
+	// realization's API behavior declares them.
+	InstructionDefaults *testpilotspb.InstructionLimits
+	RunOrderIsCausal    bool
 }
 
 // ActionBinding is what one action class is realized as. Key is the class key a Scenario spells;

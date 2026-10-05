@@ -30,7 +30,8 @@ import (
 //
 // What may differ from it is the closed delta of original.json (Delta): inert fields, entity
 // attachments, since fn-122 the claims the lifter generates from the laws a Model's capabilities
-// bring, and since fn-118.5 the waits a realization leaves to the API behavior (waits.go). A law replacement names one generated claim of one IR file; the expected Model
+// bring, since fn-118.5 the waits a realization leaves to the API behavior (waits.go), and since
+// fn-124.3 the Case members that behavior declares (declared.go). A law replacement names one generated claim of one IR file; the expected Model
 // is the baseline with each replacement's retired Queries removed and its renamed Property under the
 // generated name, every Query that read it reading it so; the current Model is compared without the
 // listed generated claims (Ungenerated). What is compared after that is compared exactly: tables,
@@ -69,7 +70,8 @@ type Delta struct {
 	// and the Cases that carry them are compared on their own as new Cases. So are a realization's API
 	// behavior hints and server steps: no table, ID, fingerprint, answer or Contract reads them. Since
 	// fn-118.4 a Case's waits are lowered from them, and the waits they shape are compared through
-	// DerivedWaits.
+	// DerivedWaits; since fn-124.3 the behavior also declares Case members, compared through
+	// DeclaredMembers.
 	InertFields []string `json:"inert_fields"`
 	// Attachments are the entity attachments of fn-112's R20 task-queue entity. Each sets one field the
 	// baseline left empty, so whatever reads it is derived again from the baseline plus the attachment.
@@ -107,6 +109,16 @@ type Delta struct {
 	// baseline lacks or writes no wait of, or whose current command still writes its wait, fails, and
 	// a wait of a command it does not list stays compared.
 	DerivedWaits []DerivedWait `json:"derived_waits"`
+	// DeclaredMembers are the Case members a realization's API behavior declares since fn-124.3, each a
+	// path of JSON members under the Case's Program (declared.go): "declared_case_members":
+	// ["program.instructionDefaults", "program.runOrderIsCausal",
+	// "program.entrypoints[*].activity.attemptNumbering"], how the system numbers an activity's
+	// attempts, the limits an instruction that writes none runs under, and that the order of a run is
+	// causal. The lowering writes them into every Case of a realization that declares them, and a
+	// baseline has none. Both harnesses compare each current Case without them (Declared.Current) and
+	// refuse a baseline Case that carries one (Declared.Baseline); a member the list does not name stays
+	// compared, and so does every other byte of the Case.
+	DeclaredMembers []string `json:"declared_case_members"`
 }
 
 // Attachment attaches the machine of a name, or the action of an ID, to an entity.
@@ -218,7 +230,10 @@ func (d Delta) check() error {
 		}
 		reduced[key] = true
 	}
-	return d.checkWaits(newFiles)
+	if err := d.checkWaits(newFiles); err != nil {
+		return err
+	}
+	return d.checkDeclared()
 }
 
 // valid reports whether the attachment sets exactly one field the baseline may leave empty: a

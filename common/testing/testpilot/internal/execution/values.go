@@ -22,8 +22,9 @@ type valueStore struct {
 	activations map[string]*activationValues
 	controllers map[string]bool
 	// lastEvidence is, per operation key, the identity of the evidence most recently lifted for
-	// it, whatever its source: the Run's order is the causal order of one operation's evidence
-	// across sources, and a lift names the previous one as its parent when it came from another.
+	// it, whatever its source: where the Program declares the Run's order the causal order of one
+	// operation's evidence across sources, a lift names the previous one as its parent when it came
+	// from another.
 	lastEvidence map[string]*testpilotspb.CorrelatedIdentity
 	slots        map[string]*testpilotspb.Value
 }
@@ -55,11 +56,14 @@ func newValueStore(program *PreparedProgram, runID string) (*valueStore, error) 
 	return &valueStore{program: program, runID: runID, changed: make(chan struct{}), activations: map[string]*activationValues{}, controllers: map[string]bool{}, slots: map[string]*testpilotspb.Value{}}, nil
 }
 
-// chainEvidence gives lifted evidence its causal parent: the operation's previously lifted evidence
-// when that came from another source. Ordinals order the evidence of one source; across sources
-// only a parent does, and the Run's own order is the order the Program's instructions took, so
-// evidence of one operation lifted by successive instructions is comparable to the verifier.
+// chainEvidence gives lifted evidence its causal parent, where the Program declares the Run's order
+// causal: the operation's previously lifted evidence when that came from another source. Ordinals
+// order the evidence of one source; across sources only a parent does, so evidence of one operation
+// lifted by successive instructions is comparable to the verifier only by that declaration.
 func (s *valueStore) chainEvidence(evidence *testpilotspb.CorrelatedEvidence) {
+	if !s.program.source.GetRunOrderIsCausal() {
+		return
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.lastEvidence == nil {

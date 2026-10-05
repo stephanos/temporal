@@ -2338,6 +2338,80 @@ func (this *ApiBehavior) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type AttemptNumbering to the protobuf v3 wire format
+func (val *AttemptNumbering) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type AttemptNumbering from the protobuf v3 wire format
+func (val *AttemptNumbering) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *AttemptNumbering) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two AttemptNumbering values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *AttemptNumbering) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *AttemptNumbering
+	switch t := that.(type) {
+	case *AttemptNumbering:
+		that1 = t
+	case AttemptNumbering:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type InstructionLimit to the protobuf v3 wire format
+func (val *InstructionLimit) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type InstructionLimit from the protobuf v3 wire format
+func (val *InstructionLimit) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *InstructionLimit) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two InstructionLimit values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *InstructionLimit) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *InstructionLimit
+	switch t := that.(type) {
+	case *InstructionLimit:
+		that1 = t
+	case InstructionLimit:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type Visibility to the protobuf v3 wire format
 func (val *Visibility) Marshal() ([]byte, error) {
 	return proto.Marshal(val)

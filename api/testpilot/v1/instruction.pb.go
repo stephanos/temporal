@@ -275,8 +275,8 @@ type InstructionNode struct {
 	// Evaluated once the instruction is ready; when false it is skipped and records no Run Event.
 	// Absent, the instruction runs only when every instruction it runs after succeeded.
 	Guard *Expression `protobuf:"bytes,4,opt,name=guard,proto3" json:"guard,omitempty"`
-	// Absent, both limits are the Profile's instruction defaults. A node with wait hints writes its
-	// timeout.
+	// Absent, both limits are the Program's declared instruction defaults, or else the Profile's. A
+	// node with wait hints writes its timeout.
 	Limits *InstructionLimits `protobuf:"bytes,5,opt,name=limits,proto3" json:"limits,omitempty"`
 	// The declared bounds a polling ReadEvidence waits within, each with the hint it comes from. Set,
 	// the node writes its own timeout, which must equal the sum of their bounds: no Profile default

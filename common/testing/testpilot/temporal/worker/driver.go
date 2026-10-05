@@ -423,13 +423,12 @@ func (h *Driver) validateRPCBindings(instruction testpilot.InstructionPlan, role
 		return ErrInvalid
 	}
 	workerRole := roles[h.options.workerRoleID]
-	// An activity is delivered only through the request that started it or the workflow that
-	// scheduled it, so its reservation rides on StartActivityExecution or StartWorkflowExecution, and
-	// an activity start carries no other activation.
+	// A reservation rides only on a start the Driver carries it on (delivery.Carried): an activity
+	// on the request that started it or the workflow that scheduled it, and an activity start
+	// carries no other activation.
 	reservations := instruction.Reservations()
 	for _, reservation := range reservations {
-		activityStart := invoke.GetMethod() == delivery.StartActivityPath
-		if activityStart && reservation.Kind != testpilot.ActivityEntrypoint || reservation.Kind == testpilot.ActivityEntrypoint && !activityStart && invoke.GetMethod() != primitive.StartWorkflowPath {
+		if !slices.Contains(delivery.Carried[invoke.GetMethod()], reservation.Kind) {
 			return ErrInvalid
 		}
 	}

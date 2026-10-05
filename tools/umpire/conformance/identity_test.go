@@ -238,6 +238,14 @@ func TestTheTypedAttemptOfARunEventIsItsEvidencesIdentity(t *testing.T) {
 	notNeeded := &testpilotspb.ActivityAttempt{ActivityRunId: "run-a", Response: testpilotspb.ACTIVITY_ATTEMPT_RESPONSE_NOT_NEEDED}
 	plain, err := Prepare(admission(t), admissionQuery(current), carrier(current, localKinds, 3), generous)
 	require.NoError(t, err)
+	// A realization that does not declare every attempt of an activity's one run names no run its
+	// operation's evidence must keep to.
+	manyRuns := admission(t)
+	for _, r := range manyRuns.GetRealizations() {
+		r.GetBehavior().GetAttemptNumbering().OneRun = false
+	}
+	unbound, err := Prepare(manyRuns, admissionQuery(current), carrier(current, localKinds, 3), generous)
+	require.NoError(t, err)
 	both := map[string][]*testpilotspb.CorrelatedFieldPolicy{"statusStarted": identityPolicies, "attemptAdmitted": identityPolicies}
 	fielded, err := Prepare(identified(t), admissionQuery(current), carrierWith(current, localKinds, 3, both, false), generous)
 	require.NoError(t, err)
@@ -266,6 +274,8 @@ func TestTheTypedAttemptOfARunEventIsItsEvidencesIdentity(t *testing.T) {
 			conformance: testpilot.ConformanceConformant},
 		"two activity runs of one operation": {factory: plain, commit: offered("run-a", 1, "x"), started: offered("run-b", 1, "x"),
 			refused: `evidence of operation run="run-1";activity-1 on a Run Event of activity run "run-b", and the operation's evidence is of activity run "run-a"`, refusedAtStarted: true},
+		"two activity runs where the realization binds no run": {factory: unbound, commit: offered("run-a", 1, "x"), started: offered("run-b", 1, "x"),
+			conformance: testpilot.ConformanceConformant},
 		"a field that names the attempt the event records": {factory: fielded, fields: identity(1, "x", "activity-1"),
 			commit: offered("run-a", 1, "x"), started: offered("run-a", 1, "x"), conformance: testpilot.ConformanceConformant},
 		"a field that names another attempt than the event records": {factory: fielded, fields: identity(1, "x", "activity-1"),

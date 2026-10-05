@@ -71,9 +71,10 @@ opcodes require, and the environment values of the bindings it references
 Case references, and it rejects a method the catalog does not know, an undeclared role kind, an unset
 instruction, or a referenced binding no role claims. Its resource ceilings are `DefaultCeilings`, the
 one Temporal ceiling set: each is the largest value any checked-in Temporal Case declared when ceilings
-moved out of the Case, and the testcore Profiles use the same set. Its instruction defaults are
-`DefaultInstructionLimits` (a 10000 ms timeout and one attempt, the most common values across the
-Temporal Cases), so a Case writes only the instruction limits that differ. Drivers read ceilings from
+moved out of the Case, and the testcore Profiles use the same set. It has no instruction defaults:
+a Temporal Case declares the limits of an instruction that writes none in
+`Program.instruction_defaults`, as the Temporal kit's `temporalBehavior` declares them, and an
+instruction neither covers is refused. Drivers read ceilings from
 `PreparedProgram.Limits`, the prepared Profile snapshot, never from the Case. The Profile is an authorization snapshot, so the derived value is
 returned for the caller to review and tighten before `Prepare`; canary callers keep hand-authored
 Profiles, and the hand-written caller Profile stays the derivation oracle. MOD-12's `Prepare`

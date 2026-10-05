@@ -92,9 +92,10 @@ carried. Three identities stay apart and are recorded together. The activity run
 with is the logical operation, pinned against the delivery in either order, and every attempt
 belongs to it. The SDK attempt is the server's number, never the coordinate's attempt, which is the
 carrying instruction's. The delivery identity is the SHA-256 digest of the task token, a bounded
-opaque name of the first delivery of the attempt. The attempt Temporal numbers N is the activation
-of the Nth reservation and performs the Nth instruction, whatever order the attempts reach the
-worker in, and an attempt interprets nothing until every earlier attempt has settled.
+opaque name of the first delivery of the attempt. The attempt numbered `first + N - 1`, as the
+entrypoint's `attempt_numbering` declares, is the activation of the Nth reservation and performs the
+Nth instruction, whatever order the attempts reach the worker in, and an attempt interprets nothing
+until every earlier attempt has settled.
 
 Each declared attempt's reservation settles with an outcome whose `activity_attempt` says what the
 worker did, and the Run's reservation event carries it. `response` is the answer the worker offered

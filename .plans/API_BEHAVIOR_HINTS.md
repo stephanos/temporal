@@ -603,6 +603,15 @@ activity status poll, to wait once); read-only call (none: the HTTP binding says
 (none); cause bounds for Driver awaits (the Nexus Cases' `await-completion-authority` and
 `await-nexus-operation`).
 
+### Declared by fn-124.3 (2026-10-05)
+
+The waits that stay explicit no longer take a Profile default: the kit declares
+`instructionDefaults = InstructionLimit(timeoutMs = 10000, attempts = 1)` in `temporalBehavior`, the
+lowering writes it into each Case's `Program.instruction_defaults`, and `temporal.DeriveProfile` and the
+canary Profile supply none (`DefaultInstructionLimits` is gone). The same declaration carries how
+the server numbers an activity's attempts (`attemptNumbering`) and that a run's record order is
+causal across evidence sources (`runOrderIsCausal`); see model/README.md.
+
 ## Helper interface for fn-112.9
 
 fn-112.9 adds no hint field, derived wait or Program change. It shapes the kit so that fn-118.2 can

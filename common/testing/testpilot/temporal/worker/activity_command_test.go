@@ -178,7 +178,7 @@ func routedActivityProgram(attributes *commandpb.ScheduleActivityTaskCommandAttr
 		scheduleActivityProgram(attributes)(program)
 		activity := &testpilotspb.Entrypoint{
 			EntrypointId: "activity",
-			Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}},
+			Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue", AttemptNumbering: &testpilotspb.AttemptNumbering{First: 1, OneRun: true}}},
 		}
 		for index, instruction := range script {
 			activity.Instructions = append(activity.Instructions, &testpilotspb.InstructionNode{InstructionId: fmt.Sprintf("attempt-%d", index+1), Instruction: instruction, Limits: facadetest.Bounds()})

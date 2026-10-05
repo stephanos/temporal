@@ -39,7 +39,7 @@ func activityFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Profile) {
 	source.Program.Roles = append(source.Program.Roles, &testpilotspb.Role{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"}, &testpilotspb.Role{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "queue"})
 	source.Program.Entrypoints = append(source.Program.Entrypoints, &testpilotspb.Entrypoint{
 		EntrypointId: "activity",
-		Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}},
+		Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue", AttemptNumbering: &testpilotspb.AttemptNumbering{First: 1, OneRun: true}}},
 		Instructions: []*testpilotspb.InstructionNode{activityNode("run-attempt", &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: textLiteral("done")}}})},
 	})
 	return source, catalog, policy
@@ -127,6 +127,25 @@ func TestPrepareAdmitsAnActivityScript(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, enabled)
 	require.True(t, proto.Equal(textValue("done"), result))
+}
+
+// An activity entrypoint's attempts are judged by how the Case declares the server numbers them, so
+// one that declares no numbering, or a first attempt number below 1, is refused at the entrypoint.
+func TestPrepareRejectsAnActivityEntrypointThatNumbersNoAttempts(t *testing.T) {
+	for name, numbering := range map[string]*testpilotspb.AttemptNumbering{
+		"no numbering":    nil,
+		"numbered from 0": {OneRun: true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			source, catalog, policy := activityFixture(t)
+			source.Program.Entrypoints[1].GetActivity().AttemptNumbering = numbering
+			_, err := Prepare(source, catalog, policy)
+			var diagnostic *ir.Error
+			require.ErrorAs(t, err, &diagnostic)
+			require.Equal(t, ir.Error{Category: ir.Malformed, Path: "activity",
+				Detail: "an activity entrypoint requires the numbering of its attempts, from a positive first"}, *diagnostic)
+		})
+	}
 }
 
 // The script declares the activity's attempts, one per instruction, and the carrier reserves an

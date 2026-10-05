@@ -34,6 +34,20 @@ func liftedRealizations(t *testing.T) *umpirespb.Model {
 	return m
 }
 
+// preparable gives every realization of m the API behavior a Case needs to be prepared that the
+// lifter fixtures leave out, as the Temporal kit declares it (model/temporal/realize/Behavior.scala):
+// how attempts are numbered and the limits of an instruction that writes none.
+func preparable(m *umpirespb.Model) *umpirespb.Model {
+	for _, r := range m.GetRealizations() {
+		if r.Behavior == nil {
+			r.Behavior = &umpirespb.ApiBehavior{}
+		}
+		r.Behavior.AttemptNumbering = &umpirespb.AttemptNumbering{First: 1, OneRun: true}
+		r.Behavior.InstructionDefaults = &umpirespb.InstructionLimit{TimeoutMs: 10000, Attempts: 1}
+	}
+	return m
+}
+
 func slotOf(e *testpilotspb.Expression) string { return e.GetReference().GetSlotId() }
 
 func assigned(t *testing.T, assignments []*testpilotspb.RequestAssignment, target string) *testpilotspb.Expression {
@@ -62,7 +76,7 @@ func after(n *testpilotspb.InstructionNode) []string {
 // call alone, so neither waits for the other; the history read runs after both. Ordinary preparation
 // admits the Case.
 func TestALearnedTextIsBoundOnceAndReadByIndependentBranches(t *testing.T) {
-	p, err := NewProducer(liftedRealizations(t))
+	p, err := NewProducer(preparable(liftedRealizations(t)))
 	require.NoError(t, err)
 	l, err := p.Lower("run.opens", cp.IdentityFor("temporal.case", "fixture", "learnedRun"))
 	require.NoError(t, err)

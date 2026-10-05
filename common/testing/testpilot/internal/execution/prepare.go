@@ -36,8 +36,11 @@ type admission struct {
 	writers      map[string]slotWriter
 	// Each declared evidence source, and the one instruction that may lift under it.
 	evidenceSources map[string]contract.Coordinate
-	graphIndex      map[string]*graph
-	work            int64
+	// historyEvent is the event the Program's history read yields, where it has one (historyRead).
+	historyEvent ir.Type
+	historyRead  bool
+	graphIndex   map[string]*graph
+	work         int64
 	// declaredLimits are the Profile's ceilings before its bound scale. Every admission check but a
 	// hinted bound's reads them, so whether a Case admits never depends on the scale.
 	declaredLimits *testpilotspb.ProgramLimits
@@ -191,8 +194,35 @@ func (a *admission) bindPolicy(policy Profile) error {
 	a.declaredLimits = policy.Limits
 	a.prepared.limits = policy.BoundScale.Ceilings(policy.Limits)
 	a.prepared.boundScale = policy.BoundScale
-	a.prepared.instructionDefaults = policy.InstructionDefaults
+	defaults, err := programInstructionDefaults(policy.InstructionDefaults, a.prepared.source.GetInstructionDefaults(), policy.Limits)
+	if err != nil {
+		return err
+	}
+	a.prepared.instructionDefaults = defaults
 	return nil
+}
+
+// programInstructionDefaults are the limits an instruction that writes none takes: each one the
+// Program declares, which is the Producer's to say, or else the Profile's. A declared limit is
+// positive and within the ceiling an instruction's own limit must fit.
+func programInstructionDefaults(profile contract.InstructionDefaults, declared *testpilotspb.InstructionLimits, limits *testpilotspb.ProgramLimits) (contract.InstructionDefaults, error) {
+	if declared == nil {
+		return profile, nil
+	}
+	if declared.GetTimeout() != nil && declared.GetTimeoutMilliseconds() <= 0 || declared.GetAttempts() != nil && declared.GetMaxAttempts() <= 0 {
+		return contract.InstructionDefaults{}, ir.Invalid(ir.Malformed, "program.instruction_defaults", "a declared instruction default is positive")
+	}
+	defaults := profile
+	if declared.GetTimeout() != nil {
+		defaults.TimeoutMilliseconds = declared.GetTimeoutMilliseconds()
+	}
+	if declared.GetAttempts() != nil {
+		defaults.MaxAttempts = declared.GetMaxAttempts()
+	}
+	if err := checkInstructionDefaults(defaults, limits); err != nil {
+		return contract.InstructionDefaults{}, ir.Invalid(ir.LimitExceeded, "program.instruction_defaults", "a declared instruction default exceeds the Profile ceiling")
+	}
+	return defaults, nil
 }
 
 // checkInstructionDefaults admits the Profile's instruction defaults: each is absent (zero) or a
@@ -502,6 +532,11 @@ func (a *admission) bindActivation(g *graph) error {
 		worker = binding.Activity.GetWorkerRoleId()
 		queue = binding.Activity.GetTaskQueueRoleId()
 		name = binding.Activity.GetActivityType()
+		// The outcome of each reservation is judged by the attempt it names, which only the Case's
+		// declaration of how attempts are numbered says.
+		if binding.Activity.GetAttemptNumbering().GetFirst() < 1 {
+			return ir.Invalid(ir.Malformed, g.id, "an activity entrypoint requires the numbering of its attempts, from a positive first")
+		}
 	case *testpilotspb.Entrypoint_NexusHandler:
 		worker = binding.NexusHandler.GetWorkerRoleId()
 		queue = binding.NexusHandler.GetTaskQueueRoleId()

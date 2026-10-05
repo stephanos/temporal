@@ -98,5 +98,19 @@ val temporalBehavior: ApiBehavior = ApiBehavior(
     // service/history/timer_queue_active_task_executor.go:1134-1160,
     // service/history/shard/task_key_manager.go:96-101. The bound is the slack after the deadline.
     CauseKind.timer.boundedBy(WaitBound(intervalMs = 250, atMostMs = 3000))
-  )
+  ),
+  // An activity starts with no attempt, its schedule counts the first as 1, and each retry adds one
+  // to the same activity execution, so every attempt is of its one run:
+  // chasm/lib/activity/activity.go:196, statemachine.go:349-352, :681-686.
+  attemptNumbering = Some(AttemptNumbering(first = 1, oneRun = true)),
+  // A call whose response no read waits on, a Driver wait (AwaitLearned, AwaitCommand) or a control
+  // (Fault, Hold, Release) has no API fact that bounds it (.plans/API_BEHAVIOR_HINTS.md, W-11, W-14,
+  // W-15, W-19, W-20), so it is bounded by the limit Temporal Cases have always run such
+  // instructions under: 10 s and one attempt, since no instruction is retried.
+  instructionDefaults = Some(InstructionLimit(timeoutMs = 10000, attempts = 1)),
+  // A read is made after the Run recorded what came before it, and what it reads is visible to it
+  // at once or within the wait derived from the hints above; a Run Event records a call's answer or
+  // a worker's answer once the server took it. So the Run's record order is the order of one
+  // operation's evidence across its sources.
+  runOrderIsCausal = true
 )

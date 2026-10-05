@@ -52,6 +52,10 @@
     ],
     "cleanup": {
       "entrypointId": "cleanup"
+    },
+    "instructionDefaults": {
+      "timeoutMilliseconds": "1000",
+      "maxAttempts": "1"
     }
   },
   "contract": {

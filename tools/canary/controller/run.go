@@ -294,9 +294,14 @@ func (r *invocation) refuse(found recovery.Lease, state string) (*Result, error)
 	return &Result{Lease: &found, Unreconciled: true}, nil
 }
 
-// notFoundPause is one RPC's timeout, the Profile's instruction default, plus a margin.
-func (r *invocation) notFoundPause() time.Duration {
-	return time.Duration(r.Scope.Profile.InstructionDefaults.TimeoutMilliseconds)*time.Millisecond + notFoundMargin
+// notFoundPause is one RPC's timeout, the instruction default the prepared Case declares, plus a
+// margin. A Case that declares none gives no timeout to wait out, which is an error, as reconcile's.
+func (r *invocation) notFoundPause() (time.Duration, error) {
+	ms := r.Scope.Prepared.Snapshot().GetProgram().GetInstructionDefaults().GetTimeoutMilliseconds()
+	if ms <= 0 {
+		return 0, errors.New("the prepared canary Case declares no instruction timeout")
+	}
+	return time.Duration(ms)*time.Millisecond + notFoundMargin, nil
 }
 
 // iterationBound is the longest one iteration can take: a Run spends its total duration running,
@@ -421,9 +426,13 @@ func (r *invocation) cleanup(ctx context.Context, fence Fence, iterations []Iter
 		return uncertain(err)
 	}
 	outcome.Fenced = fenced
+	pause, err := r.notFoundPause()
+	if err != nil {
+		return uncertain(err)
+	}
 	var failures []error
 	for _, id := range fenced {
-		closed, _, err := closeFenced(ctx, r.target, id, r.notFoundPause(), r.wait, ReasonCleanup)
+		closed, _, err := closeFenced(ctx, r.target, id, pause, r.wait, ReasonCleanup)
 		switch {
 		case err != nil:
 			failures = append(failures, err)

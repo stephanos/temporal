@@ -154,9 +154,13 @@ func TestPrepareRejectsEvidenceDeclarations(t *testing.T) {
 		}, ir.Unknown, "program.entrypoints[controller].instructions[pending-attempts].instruction.read_evidence.until.present.reference.run"},
 		{"poll of an unauthorized method", func(_ *testpilotspb.Case, p *Profile) { p.Roles[0].Methods = p.Roles[0].Methods[:1] }, ir.Unsupported, "controller.pending-attempts"},
 		{"poll without the Opcode", func(_ *testpilotspb.Case, p *Profile) { p.Opcodes = p.Opcodes[:2] }, ir.Unsupported, "controller.pending-attempts"},
+		{"history without a read that lifts it", func(c *testpilotspb.Case, _ *Profile) {
+			c.Program.Entrypoints[0].Instructions = c.Program.Entrypoints[0].Instructions[1:2]
+		}, ir.Unknown, "program.evidence[0].history_event"},
 		{"no CorrelatedEvidence Observation", func(c *testpilotspb.Case, _ *Profile) {
 			c.Program.Observations = nil
 			c.Program.Entrypoints[0].Instructions = c.Program.Entrypoints[0].Instructions[1:2]
+			c.Program.Evidence = c.Program.Evidence[1:]
 		}, ir.TypeMismatch, "program.evidence"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -184,6 +188,7 @@ func evidenceOf(t *testing.T, event *testpilotspb.RunEvent) *testpilotspb.Correl
 // the fault as the Run Event it records, and the poll's elements once its condition holds.
 func TestSchedulerLiftsEveryDeclaredEvidenceSource(t *testing.T) {
 	source, catalog, policy := evidenceFixture(t)
+	source.Program.RunOrderIsCausal = true
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)
 	polls := 0
@@ -242,8 +247,8 @@ func TestSchedulerLiftsEveryDeclaredEvidenceSource(t *testing.T) {
 	for kind, want := range map[string]*testpilotspb.CorrelatedEvidence{
 		"started":       {Kind: "started", Operation: "5", Identity: &testpilotspb.CorrelatedIdentity{EvidenceSource: "history", Scope: scope}},
 		"faultInjected": {Kind: "faultInjected", Operation: "queue", Identity: &testpilotspb.CorrelatedIdentity{EvidenceSource: "run-events", Scope: scope}},
-		// The read's evidence follows the operation's history evidence, lifted before it from another
-		// source, as its causal parent.
+		// The Program declares the Run's order causal, so the read's evidence follows the operation's
+		// history evidence, lifted before it from another source, as its causal parent.
 		"pendingAttempts": {Kind: "pendingAttempts", Operation: "5", Identity: &testpilotspb.CorrelatedIdentity{EvidenceSource: "describe", Scope: scope},
 			Parents: []*testpilotspb.CorrelatedIdentity{{EvidenceSource: "history", Scope: scope}},
 			Fields:  []*testpilotspb.NamedValue{{FieldId: "attempts", Value: &testpilotspb.Value{Value: &testpilotspb.Value_UnsignedIntegerValue{UnsignedIntegerValue: "2"}}}}},

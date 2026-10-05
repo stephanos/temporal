@@ -75,7 +75,7 @@ func (m *Model) historyOneofs(tests map[string][]apiTest) (map[string]bool, erro
 			if e.GetHistory() == "" {
 				continue
 			}
-			element, err := m.lowering.Element(e)
+			element, err := m.lowering.Element(r, e)
 			if err != nil {
 				return nil, fmt.Errorf("evidence %s: %w", e.GetId(), err)
 			}
@@ -139,14 +139,14 @@ func (m *Model) apiTests(r *umpirespb.Realization) ([]apiTest, error) {
 		if e == nil {
 			return nil, fmt.Errorf("command %s polls evidence %s, which the realization does not declare", c.GetId(), poll.GetEvidence())
 		}
-		tests, err := m.apiScanOf(e, c.GetPosition(), poll.GetUntil(), facts[e.GetRecords()])
+		tests, err := m.apiScanOf(r, e, c.GetPosition(), poll.GetUntil(), facts[e.GetRecords()])
 		if err != nil {
 			return nil, err
 		}
 		out = append(out, tests...)
 	}
 	for _, e := range r.GetEvidence() {
-		tests, err := m.apiScanOf(e, e.GetPosition(), e.GetRunEvent().GetGuard(), facts[e.GetRecords()])
+		tests, err := m.apiScanOf(r, e, e.GetPosition(), e.GetRunEvent().GetGuard(), facts[e.GetRecords()])
 		if err != nil {
 			return nil, err
 		}
@@ -157,7 +157,7 @@ func (m *Model) apiTests(r *umpirespb.Realization) ([]apiTest, error) {
 
 // apiScanOf is the tests one condition over a kind of evidence makes; records is whether the kind
 // records a fact.
-func (m *Model) apiScanOf(e *umpirespb.Evidence, at *umpirespb.Position, condition *umpirespb.Operand, records bool) ([]apiTest, error) {
+func (m *Model) apiScanOf(r *umpirespb.Realization, e *umpirespb.Evidence, at *umpirespb.Position, condition *umpirespb.Operand, records bool) ([]apiTest, error) {
 	// A history kind lifts one member of the attributes oneof, and no condition of it is counted.
 	if condition == nil || e.GetHistory() != "" {
 		return nil, nil
@@ -165,7 +165,7 @@ func (m *Model) apiScanOf(e *umpirespb.Evidence, at *umpirespb.Position, conditi
 	if m.lowering.Element == nil || m.lowering.Field == nil {
 		return nil, fmt.Errorf("evidence %s: lint reads its fields through lowering's descriptors, and was given none", e.GetId())
 	}
-	element, err := m.lowering.Element(e)
+	element, err := m.lowering.Element(r, e)
 	if err != nil {
 		return nil, fmt.Errorf("evidence %s: %w", e.GetId(), err)
 	}

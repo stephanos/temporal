@@ -25,7 +25,7 @@ import (
 func activityEntrypoint(result *testpilotspb.Expression) *testpilotspb.Entrypoint {
 	return &testpilotspb.Entrypoint{
 		EntrypointId: "activity",
-		Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}},
+		Activation:   &testpilotspb.Entrypoint_Activity{Activity: &testpilotspb.ActivityActivation{ActivityType: "activity-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue", AttemptNumbering: &testpilotspb.AttemptNumbering{First: 1, OneRun: true}}},
 		Instructions: []*testpilotspb.InstructionNode{{
 			InstructionId: "run-attempt",
 			Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: result}}},

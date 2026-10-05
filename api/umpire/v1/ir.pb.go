@@ -668,7 +668,7 @@ func (x Role_Kind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Role_Kind.Descriptor instead.
 func (Role_Kind) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{67, 0}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{69, 0}
 }
 
 type Learned_Kind int32
@@ -728,7 +728,7 @@ func (x Learned_Kind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Learned_Kind.Descriptor instead.
 func (Learned_Kind) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{68, 0}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{70, 0}
 }
 
 type Evidence_Commitment int32
@@ -789,7 +789,7 @@ func (x Evidence_Commitment) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Evidence_Commitment.Descriptor instead.
 func (Evidence_Commitment) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{70, 0}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{72, 0}
 }
 
 type EvidenceField_Role int32
@@ -857,7 +857,7 @@ func (x EvidenceField_Role) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use EvidenceField_Role.Descriptor instead.
 func (EvidenceField_Role) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{72, 0}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{74, 0}
 }
 
 type RunEventSource_Kind int32
@@ -923,7 +923,7 @@ func (x RunEventSource_Kind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use RunEventSource_Kind.Descriptor instead.
 func (RunEventSource_Kind) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{73, 0}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{75, 0}
 }
 
 type ResponseRead_Cardinality int32
@@ -983,7 +983,7 @@ func (x ResponseRead_Cardinality) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ResponseRead_Cardinality.Descriptor instead.
 func (ResponseRead_Cardinality) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{90, 0}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{92, 0}
 }
 
 type Fault_Kind int32
@@ -1047,7 +1047,7 @@ func (x Fault_Kind) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Fault_Kind.Descriptor instead.
 func (Fault_Kind) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{95, 0}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{97, 0}
 }
 
 // A Model: its types, its pure functions, its actions, and its machines.
@@ -5818,9 +5818,11 @@ type Realization struct {
 	// the realization carries them, and preparation refuses an environment that sets one otherwise.
 	RequiredSettings []*RequiredSetting `protobuf:"bytes,15,rep,name=required_settings,json=requiredSettings,proto3" json:"required_settings,omitempty"`
 	// How the APIs a run calls behave between its calls, as the system's kit declares it once: when a
-	// write's effect is visible to a read, and how long each kind of asynchronous cause may take. It
-	// shapes only how a lowered Case waits; no table, ID, fingerprint, Query answer or Contract reads
-	// it. Unset in a realization no kit declares behavior for.
+	// write's effect is visible to a read, how long each kind of asynchronous cause may take, how
+	// attempts are numbered, the limits of an instruction no hint bounds, and whether a run's record
+	// order is causal. It shapes only a lowered Case's Program and how conformance reads a Run's
+	// attempts; no table, ID, fingerprint, Query answer or Contract reads it. Unset in a realization no
+	// kit declares behavior for.
 	Behavior *ApiBehavior `protobuf:"bytes,16,opt,name=behavior,proto3" json:"behavior,omitempty"`
 	// The kind of cause each step class no command performs is, such as an activity's delivery or a
 	// server timer at a deadline the realization set.
@@ -6036,11 +6038,18 @@ func (x *RequiredSetting) GetValue() string {
 // declaration carries an id, which a lowered wait names the hint by, and the position it is
 // declared at, which a wait that runs out reports.
 type ApiBehavior struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Visibility    []*Visibility          `protobuf:"bytes,1,rep,name=visibility,proto3" json:"visibility,omitempty"`
-	Causes        []*CauseBound          `protobuf:"bytes,2,rep,name=causes,proto3" json:"causes,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Visibility []*Visibility          `protobuf:"bytes,1,rep,name=visibility,proto3" json:"visibility,omitempty"`
+	Causes     []*CauseBound          `protobuf:"bytes,2,rep,name=causes,proto3" json:"causes,omitempty"`
+	// How the system numbers an activity's attempts.
+	AttemptNumbering *AttemptNumbering `protobuf:"bytes,3,opt,name=attempt_numbering,json=attemptNumbering,proto3" json:"attempt_numbering,omitempty"`
+	// The limits of an instruction no hint bounds and that writes none: a call whose response no read
+	// waits on, a Driver wait or a control.
+	InstructionDefaults *InstructionLimit `protobuf:"bytes,4,opt,name=instruction_defaults,json=instructionDefaults,proto3" json:"instruction_defaults,omitempty"`
+	// Whether a run's record order is the causal order of one operation's evidence across sources.
+	RunOrderIsCausal bool `protobuf:"varint,5,opt,name=run_order_is_causal,json=runOrderIsCausal,proto3" json:"run_order_is_causal,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *ApiBehavior) Reset() {
@@ -6087,6 +6096,150 @@ func (x *ApiBehavior) GetCauses() []*CauseBound {
 	return nil
 }
 
+func (x *ApiBehavior) GetAttemptNumbering() *AttemptNumbering {
+	if x != nil {
+		return x.AttemptNumbering
+	}
+	return nil
+}
+
+func (x *ApiBehavior) GetInstructionDefaults() *InstructionLimit {
+	if x != nil {
+		return x.InstructionDefaults
+	}
+	return nil
+}
+
+func (x *ApiBehavior) GetRunOrderIsCausal() bool {
+	if x != nil {
+		return x.RunOrderIsCausal
+	}
+	return false
+}
+
+// How a system numbers the attempts of one activity: the Nth delivery is the attempt numbered
+// first + N - 1, and with one_run every attempt belongs to the activity's one run.
+type AttemptNumbering struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Position      *Position              `protobuf:"bytes,1,opt,name=position,proto3" json:"position,omitempty"`
+	First         int64                  `protobuf:"varint,2,opt,name=first,proto3" json:"first,omitempty"`
+	OneRun        bool                   `protobuf:"varint,3,opt,name=one_run,json=oneRun,proto3" json:"one_run,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AttemptNumbering) Reset() {
+	*x = AttemptNumbering{}
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[63]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AttemptNumbering) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AttemptNumbering) ProtoMessage() {}
+
+func (x *AttemptNumbering) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[63]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AttemptNumbering.ProtoReflect.Descriptor instead.
+func (*AttemptNumbering) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{63}
+}
+
+func (x *AttemptNumbering) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *AttemptNumbering) GetFirst() int64 {
+	if x != nil {
+		return x.First
+	}
+	return 0
+}
+
+func (x *AttemptNumbering) GetOneRun() bool {
+	if x != nil {
+		return x.OneRun
+	}
+	return false
+}
+
+// The limits of one instruction: its deadline in milliseconds, and the attempts it may take.
+type InstructionLimit struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Position      *Position              `protobuf:"bytes,1,opt,name=position,proto3" json:"position,omitempty"`
+	TimeoutMs     int64                  `protobuf:"varint,2,opt,name=timeout_ms,json=timeoutMs,proto3" json:"timeout_ms,omitempty"`
+	Attempts      int64                  `protobuf:"varint,3,opt,name=attempts,proto3" json:"attempts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InstructionLimit) Reset() {
+	*x = InstructionLimit{}
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[64]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InstructionLimit) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InstructionLimit) ProtoMessage() {}
+
+func (x *InstructionLimit) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[64]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InstructionLimit.ProtoReflect.Descriptor instead.
+func (*InstructionLimit) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{64}
+}
+
+func (x *InstructionLimit) GetPosition() *Position {
+	if x != nil {
+		return x.Position
+	}
+	return nil
+}
+
+func (x *InstructionLimit) GetTimeoutMs() int64 {
+	if x != nil {
+		return x.TimeoutMs
+	}
+	return 0
+}
+
+func (x *InstructionLimit) GetAttempts() int64 {
+	if x != nil {
+		return x.Attempts
+	}
+	return 0
+}
+
 // When the effect of a write is visible to a read: at once, or eventually within a bound.
 type Visibility struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -6109,7 +6262,7 @@ type Visibility struct {
 
 func (x *Visibility) Reset() {
 	*x = Visibility{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[63]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[65]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6121,7 +6274,7 @@ func (x *Visibility) String() string {
 func (*Visibility) ProtoMessage() {}
 
 func (x *Visibility) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[63]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[65]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6134,7 +6287,7 @@ func (x *Visibility) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Visibility.ProtoReflect.Descriptor instead.
 func (*Visibility) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{63}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{65}
 }
 
 func (x *Visibility) GetId() string {
@@ -6223,7 +6376,7 @@ type WaitBound struct {
 
 func (x *WaitBound) Reset() {
 	*x = WaitBound{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[64]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[66]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6235,7 +6388,7 @@ func (x *WaitBound) String() string {
 func (*WaitBound) ProtoMessage() {}
 
 func (x *WaitBound) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[64]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[66]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6248,7 +6401,7 @@ func (x *WaitBound) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaitBound.ProtoReflect.Descriptor instead.
 func (*WaitBound) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{64}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{66}
 }
 
 func (x *WaitBound) GetPosition() *Position {
@@ -6286,7 +6439,7 @@ type CauseBound struct {
 
 func (x *CauseBound) Reset() {
 	*x = CauseBound{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[65]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[67]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6298,7 +6451,7 @@ func (x *CauseBound) String() string {
 func (*CauseBound) ProtoMessage() {}
 
 func (x *CauseBound) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[65]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[67]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6311,7 +6464,7 @@ func (x *CauseBound) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CauseBound.ProtoReflect.Descriptor instead.
 func (*CauseBound) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{65}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{67}
 }
 
 func (x *CauseBound) GetId() string {
@@ -6357,7 +6510,7 @@ type ServerStep struct {
 
 func (x *ServerStep) Reset() {
 	*x = ServerStep{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[66]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[68]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6369,7 +6522,7 @@ func (x *ServerStep) String() string {
 func (*ServerStep) ProtoMessage() {}
 
 func (x *ServerStep) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[66]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[68]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6382,7 +6535,7 @@ func (x *ServerStep) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ServerStep.ProtoReflect.Descriptor instead.
 func (*ServerStep) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{66}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{68}
 }
 
 func (x *ServerStep) GetPosition() *Position {
@@ -6430,7 +6583,7 @@ type Role struct {
 
 func (x *Role) Reset() {
 	*x = Role{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[67]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[69]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6442,7 +6595,7 @@ func (x *Role) String() string {
 func (*Role) ProtoMessage() {}
 
 func (x *Role) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[67]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[69]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6455,7 +6608,7 @@ func (x *Role) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Role.ProtoReflect.Descriptor instead.
 func (*Role) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{67}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{69}
 }
 
 func (x *Role) GetId() string {
@@ -6505,7 +6658,7 @@ type Learned struct {
 
 func (x *Learned) Reset() {
 	*x = Learned{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[68]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[70]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6517,7 +6670,7 @@ func (x *Learned) String() string {
 func (*Learned) ProtoMessage() {}
 
 func (x *Learned) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[68]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[70]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6530,7 +6683,7 @@ func (x *Learned) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Learned.ProtoReflect.Descriptor instead.
 func (*Learned) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{68}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{70}
 }
 
 func (x *Learned) GetId() string {
@@ -6567,7 +6720,7 @@ type Observed struct {
 
 func (x *Observed) Reset() {
 	*x = Observed{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[69]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[71]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6579,7 +6732,7 @@ func (x *Observed) String() string {
 func (*Observed) ProtoMessage() {}
 
 func (x *Observed) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[69]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[71]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6592,7 +6745,7 @@ func (x *Observed) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Observed.ProtoReflect.Descriptor instead.
 func (*Observed) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{69}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{71}
 }
 
 func (x *Observed) GetId() string {
@@ -6654,7 +6807,7 @@ type Evidence struct {
 
 func (x *Evidence) Reset() {
 	*x = Evidence{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[70]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[72]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6666,7 +6819,7 @@ func (x *Evidence) String() string {
 func (*Evidence) ProtoMessage() {}
 
 func (x *Evidence) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[70]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[72]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6679,7 +6832,7 @@ func (x *Evidence) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Evidence.ProtoReflect.Descriptor instead.
 func (*Evidence) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{70}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{72}
 }
 
 func (x *Evidence) GetId() string {
@@ -6831,7 +6984,7 @@ type Taking struct {
 
 func (x *Taking) Reset() {
 	*x = Taking{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[71]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[73]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6843,7 +6996,7 @@ func (x *Taking) String() string {
 func (*Taking) ProtoMessage() {}
 
 func (x *Taking) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[71]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[73]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6856,7 +7009,7 @@ func (x *Taking) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Taking.ProtoReflect.Descriptor instead.
 func (*Taking) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{71}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{73}
 }
 
 func (x *Taking) GetPosition() *Position {
@@ -6896,7 +7049,7 @@ type EvidenceField struct {
 
 func (x *EvidenceField) Reset() {
 	*x = EvidenceField{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[72]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[74]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6908,7 +7061,7 @@ func (x *EvidenceField) String() string {
 func (*EvidenceField) ProtoMessage() {}
 
 func (x *EvidenceField) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[72]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[74]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6921,7 +7074,7 @@ func (x *EvidenceField) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvidenceField.ProtoReflect.Descriptor instead.
 func (*EvidenceField) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{72}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{74}
 }
 
 func (x *EvidenceField) GetId() string {
@@ -6983,7 +7136,7 @@ type RunEventSource struct {
 
 func (x *RunEventSource) Reset() {
 	*x = RunEventSource{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[73]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[75]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -6995,7 +7148,7 @@ func (x *RunEventSource) String() string {
 func (*RunEventSource) ProtoMessage() {}
 
 func (x *RunEventSource) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[73]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[75]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7008,7 +7161,7 @@ func (x *RunEventSource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunEventSource.ProtoReflect.Descriptor instead.
 func (*RunEventSource) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{73}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{75}
 }
 
 func (x *RunEventSource) GetKind() RunEventSource_Kind {
@@ -7067,7 +7220,7 @@ type AttemptOf struct {
 
 func (x *AttemptOf) Reset() {
 	*x = AttemptOf{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[74]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[76]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7079,7 +7232,7 @@ func (x *AttemptOf) String() string {
 func (*AttemptOf) ProtoMessage() {}
 
 func (x *AttemptOf) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[74]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[76]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7092,7 +7245,7 @@ func (x *AttemptOf) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttemptOf.ProtoReflect.Descriptor instead.
 func (*AttemptOf) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{74}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{76}
 }
 
 func (x *AttemptOf) GetPosition() *Position {
@@ -7129,7 +7282,7 @@ type ReadSource struct {
 
 func (x *ReadSource) Reset() {
 	*x = ReadSource{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[75]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[77]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7141,7 +7294,7 @@ func (x *ReadSource) String() string {
 func (*ReadSource) ProtoMessage() {}
 
 func (x *ReadSource) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[75]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[77]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7154,7 +7307,7 @@ func (x *ReadSource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReadSource.ProtoReflect.Descriptor instead.
 func (*ReadSource) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{75}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{77}
 }
 
 func (x *ReadSource) GetMethod() string {
@@ -7195,7 +7348,7 @@ type Correlation struct {
 
 func (x *Correlation) Reset() {
 	*x = Correlation{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[76]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[78]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7207,7 +7360,7 @@ func (x *Correlation) String() string {
 func (*Correlation) ProtoMessage() {}
 
 func (x *Correlation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[76]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[78]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7220,7 +7373,7 @@ func (x *Correlation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Correlation.ProtoReflect.Descriptor instead.
 func (*Correlation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{76}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{78}
 }
 
 func (x *Correlation) GetPosition() *Position {
@@ -7319,7 +7472,7 @@ type Control struct {
 
 func (x *Control) Reset() {
 	*x = Control{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[77]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[79]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7331,7 +7484,7 @@ func (x *Control) String() string {
 func (*Control) ProtoMessage() {}
 
 func (x *Control) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[77]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[79]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7344,7 +7497,7 @@ func (x *Control) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Control.ProtoReflect.Descriptor instead.
 func (*Control) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{77}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{79}
 }
 
 func (x *Control) GetId() string {
@@ -7420,7 +7573,7 @@ type HoldDispatched struct {
 
 func (x *HoldDispatched) Reset() {
 	*x = HoldDispatched{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[78]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[80]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7432,7 +7585,7 @@ func (x *HoldDispatched) String() string {
 func (*HoldDispatched) ProtoMessage() {}
 
 func (x *HoldDispatched) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[78]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[80]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7445,7 +7598,7 @@ func (x *HoldDispatched) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HoldDispatched.ProtoReflect.Descriptor instead.
 func (*HoldDispatched) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{78}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{80}
 }
 
 func (x *HoldDispatched) GetStep() *ActionClass {
@@ -7475,7 +7628,7 @@ type Script struct {
 
 func (x *Script) Reset() {
 	*x = Script{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[79]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[81]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7487,7 +7640,7 @@ func (x *Script) String() string {
 func (*Script) ProtoMessage() {}
 
 func (x *Script) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[79]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[81]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7500,7 +7653,7 @@ func (x *Script) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Script.ProtoReflect.Descriptor instead.
 func (*Script) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{79}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{81}
 }
 
 func (x *Script) GetId() string {
@@ -7607,7 +7760,7 @@ type WorkflowActivation struct {
 
 func (x *WorkflowActivation) Reset() {
 	*x = WorkflowActivation{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[80]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[82]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7619,7 +7772,7 @@ func (x *WorkflowActivation) String() string {
 func (*WorkflowActivation) ProtoMessage() {}
 
 func (x *WorkflowActivation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[80]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[82]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7632,7 +7785,7 @@ func (x *WorkflowActivation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowActivation.ProtoReflect.Descriptor instead.
 func (*WorkflowActivation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{80}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{82}
 }
 
 func (x *WorkflowActivation) GetWorkflowType() *Name {
@@ -7668,7 +7821,7 @@ type NexusHandlerActivation struct {
 
 func (x *NexusHandlerActivation) Reset() {
 	*x = NexusHandlerActivation{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[81]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[83]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7680,7 +7833,7 @@ func (x *NexusHandlerActivation) String() string {
 func (*NexusHandlerActivation) ProtoMessage() {}
 
 func (x *NexusHandlerActivation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[81]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[83]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7693,7 +7846,7 @@ func (x *NexusHandlerActivation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NexusHandlerActivation.ProtoReflect.Descriptor instead.
 func (*NexusHandlerActivation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{81}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{83}
 }
 
 func (x *NexusHandlerActivation) GetService() string {
@@ -7738,7 +7891,7 @@ type ActivityActivation struct {
 
 func (x *ActivityActivation) Reset() {
 	*x = ActivityActivation{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[82]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[84]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7750,7 +7903,7 @@ func (x *ActivityActivation) String() string {
 func (*ActivityActivation) ProtoMessage() {}
 
 func (x *ActivityActivation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[82]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[84]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7763,7 +7916,7 @@ func (x *ActivityActivation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActivityActivation.ProtoReflect.Descriptor instead.
 func (*ActivityActivation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{82}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{84}
 }
 
 func (x *ActivityActivation) GetActivityType() *Name {
@@ -7807,7 +7960,7 @@ type Name struct {
 
 func (x *Name) Reset() {
 	*x = Name{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[83]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[85]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7819,7 +7972,7 @@ func (x *Name) String() string {
 func (*Name) ProtoMessage() {}
 
 func (x *Name) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[83]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[85]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7832,7 +7985,7 @@ func (x *Name) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Name.ProtoReflect.Descriptor instead.
 func (*Name) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{83}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{85}
 }
 
 func (x *Name) GetPrefix() string {
@@ -7871,7 +8024,7 @@ type Item struct {
 
 func (x *Item) Reset() {
 	*x = Item{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[84]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[86]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7883,7 +8036,7 @@ func (x *Item) String() string {
 func (*Item) ProtoMessage() {}
 
 func (x *Item) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[84]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[86]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7896,7 +8049,7 @@ func (x *Item) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Item.ProtoReflect.Descriptor instead.
 func (*Item) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{84}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{86}
 }
 
 func (x *Item) GetPosition() *Position {
@@ -7939,7 +8092,7 @@ type Performance struct {
 
 func (x *Performance) Reset() {
 	*x = Performance{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[85]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[87]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -7951,7 +8104,7 @@ func (x *Performance) String() string {
 func (*Performance) ProtoMessage() {}
 
 func (x *Performance) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[85]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[87]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7964,7 +8117,7 @@ func (x *Performance) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Performance.ProtoReflect.Descriptor instead.
 func (*Performance) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{85}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{87}
 }
 
 func (x *Performance) GetPosition() *Position {
@@ -8024,7 +8177,7 @@ type Command struct {
 
 func (x *Command) Reset() {
 	*x = Command{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[86]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[88]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8036,7 +8189,7 @@ func (x *Command) String() string {
 func (*Command) ProtoMessage() {}
 
 func (x *Command) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[86]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[88]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8049,7 +8202,7 @@ func (x *Command) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Command.ProtoReflect.Descriptor instead.
 func (*Command) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{86}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{88}
 }
 
 func (x *Command) GetId() string {
@@ -8313,7 +8466,7 @@ type After struct {
 
 func (x *After) Reset() {
 	*x = After{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[87]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[89]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8325,7 +8478,7 @@ func (x *After) String() string {
 func (*After) ProtoMessage() {}
 
 func (x *After) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[87]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[89]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8338,7 +8491,7 @@ func (x *After) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use After.ProtoReflect.Descriptor instead.
 func (*After) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{87}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{89}
 }
 
 func (x *After) GetCommands() []string {
@@ -8363,7 +8516,7 @@ type Rpc struct {
 
 func (x *Rpc) Reset() {
 	*x = Rpc{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[88]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[90]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8375,7 +8528,7 @@ func (x *Rpc) String() string {
 func (*Rpc) ProtoMessage() {}
 
 func (x *Rpc) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[88]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[90]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8388,7 +8541,7 @@ func (x *Rpc) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Rpc.ProtoReflect.Descriptor instead.
 func (*Rpc) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{88}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{90}
 }
 
 func (x *Rpc) GetRole() string {
@@ -8430,7 +8583,7 @@ type Assignment struct {
 
 func (x *Assignment) Reset() {
 	*x = Assignment{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[89]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[91]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8442,7 +8595,7 @@ func (x *Assignment) String() string {
 func (*Assignment) ProtoMessage() {}
 
 func (x *Assignment) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[89]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[91]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8455,7 +8608,7 @@ func (x *Assignment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Assignment.ProtoReflect.Descriptor instead.
 func (*Assignment) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{89}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{91}
 }
 
 func (x *Assignment) GetTarget() string {
@@ -8484,7 +8637,7 @@ type ResponseRead struct {
 
 func (x *ResponseRead) Reset() {
 	*x = ResponseRead{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[90]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[92]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8496,7 +8649,7 @@ func (x *ResponseRead) String() string {
 func (*ResponseRead) ProtoMessage() {}
 
 func (x *ResponseRead) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[90]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[92]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8509,7 +8662,7 @@ func (x *ResponseRead) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResponseRead.ProtoReflect.Descriptor instead.
 func (*ResponseRead) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{90}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{92}
 }
 
 func (x *ResponseRead) GetPath() string {
@@ -8548,7 +8701,7 @@ type Target struct {
 
 func (x *Target) Reset() {
 	*x = Target{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[91]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[93]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8560,7 +8713,7 @@ func (x *Target) String() string {
 func (*Target) ProtoMessage() {}
 
 func (x *Target) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[91]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[93]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8573,7 +8726,7 @@ func (x *Target) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Target.ProtoReflect.Descriptor instead.
 func (*Target) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{91}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{93}
 }
 
 func (x *Target) GetTarget() isTarget_Target {
@@ -8650,7 +8803,7 @@ type Poll struct {
 
 func (x *Poll) Reset() {
 	*x = Poll{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[92]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[94]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8662,7 +8815,7 @@ func (x *Poll) String() string {
 func (*Poll) ProtoMessage() {}
 
 func (x *Poll) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[92]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[94]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8675,7 +8828,7 @@ func (x *Poll) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Poll.ProtoReflect.Descriptor instead.
 func (*Poll) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{92}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{94}
 }
 
 func (x *Poll) GetEvidence() string {
@@ -8724,7 +8877,7 @@ type Finish struct {
 
 func (x *Finish) Reset() {
 	*x = Finish{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[93]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[95]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8736,7 +8889,7 @@ func (x *Finish) String() string {
 func (*Finish) ProtoMessage() {}
 
 func (x *Finish) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[93]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[95]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8749,7 +8902,7 @@ func (x *Finish) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Finish.ProtoReflect.Descriptor instead.
 func (*Finish) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{93}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{95}
 }
 
 func (x *Finish) GetResult() *Operand {
@@ -8769,7 +8922,7 @@ type AttemptFailure struct {
 
 func (x *AttemptFailure) Reset() {
 	*x = AttemptFailure{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[94]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[96]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8781,7 +8934,7 @@ func (x *AttemptFailure) String() string {
 func (*AttemptFailure) ProtoMessage() {}
 
 func (x *AttemptFailure) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[94]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[96]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8794,7 +8947,7 @@ func (x *AttemptFailure) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AttemptFailure.ProtoReflect.Descriptor instead.
 func (*AttemptFailure) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{94}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{96}
 }
 
 func (x *AttemptFailure) GetFailure() *Proto {
@@ -8815,7 +8968,7 @@ type Fault struct {
 
 func (x *Fault) Reset() {
 	*x = Fault{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[95]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[97]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8827,7 +8980,7 @@ func (x *Fault) String() string {
 func (*Fault) ProtoMessage() {}
 
 func (x *Fault) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[95]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[97]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8840,7 +8993,7 @@ func (x *Fault) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Fault.ProtoReflect.Descriptor instead.
 func (*Fault) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{95}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{97}
 }
 
 func (x *Fault) GetRole() string {
@@ -8867,7 +9020,7 @@ type WorkflowCommand struct {
 
 func (x *WorkflowCommand) Reset() {
 	*x = WorkflowCommand{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[96]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[98]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8879,7 +9032,7 @@ func (x *WorkflowCommand) String() string {
 func (*WorkflowCommand) ProtoMessage() {}
 
 func (x *WorkflowCommand) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[96]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[98]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8892,7 +9045,7 @@ func (x *WorkflowCommand) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WorkflowCommand.ProtoReflect.Descriptor instead.
 func (*WorkflowCommand) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{96}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{98}
 }
 
 func (x *WorkflowCommand) GetCommand() *Proto {
@@ -8914,7 +9067,7 @@ type NexusReply struct {
 
 func (x *NexusReply) Reset() {
 	*x = NexusReply{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[97]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[99]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8926,7 +9079,7 @@ func (x *NexusReply) String() string {
 func (*NexusReply) ProtoMessage() {}
 
 func (x *NexusReply) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[97]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[99]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8939,7 +9092,7 @@ func (x *NexusReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NexusReply.ProtoReflect.Descriptor instead.
 func (*NexusReply) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{97}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{99}
 }
 
 func (x *NexusReply) GetReply() *Proto {
@@ -8968,7 +9121,7 @@ type NexusCompletion struct {
 
 func (x *NexusCompletion) Reset() {
 	*x = NexusCompletion{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[98]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[100]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -8980,7 +9133,7 @@ func (x *NexusCompletion) String() string {
 func (*NexusCompletion) ProtoMessage() {}
 
 func (x *NexusCompletion) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[98]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[100]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8993,7 +9146,7 @@ func (x *NexusCompletion) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NexusCompletion.ProtoReflect.Descriptor instead.
 func (*NexusCompletion) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{98}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{100}
 }
 
 func (x *NexusCompletion) GetHandle() string {
@@ -9034,7 +9187,7 @@ type Operand struct {
 
 func (x *Operand) Reset() {
 	*x = Operand{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[99]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[101]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9046,7 +9199,7 @@ func (x *Operand) String() string {
 func (*Operand) ProtoMessage() {}
 
 func (x *Operand) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[99]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[101]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9059,7 +9212,7 @@ func (x *Operand) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Operand.ProtoReflect.Descriptor instead.
 func (*Operand) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{99}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{101}
 }
 
 func (x *Operand) GetPosition() *Position {
@@ -9259,7 +9412,7 @@ type PathOf struct {
 
 func (x *PathOf) Reset() {
 	*x = PathOf{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[100]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[102]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9271,7 +9424,7 @@ func (x *PathOf) String() string {
 func (*PathOf) ProtoMessage() {}
 
 func (x *PathOf) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[100]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[102]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9284,7 +9437,7 @@ func (x *PathOf) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PathOf.ProtoReflect.Descriptor instead.
 func (*PathOf) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{100}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{102}
 }
 
 func (x *PathOf) GetOf() *Operand {
@@ -9310,7 +9463,7 @@ type Present struct {
 
 func (x *Present) Reset() {
 	*x = Present{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[101]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[103]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9322,7 +9475,7 @@ func (x *Present) String() string {
 func (*Present) ProtoMessage() {}
 
 func (x *Present) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[101]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[103]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9335,7 +9488,7 @@ func (x *Present) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Present.ProtoReflect.Descriptor instead.
 func (*Present) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{101}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{103}
 }
 
 func (x *Present) GetOf() *Operand {
@@ -9355,7 +9508,7 @@ type Equal struct {
 
 func (x *Equal) Reset() {
 	*x = Equal{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[102]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[104]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9367,7 +9520,7 @@ func (x *Equal) String() string {
 func (*Equal) ProtoMessage() {}
 
 func (x *Equal) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[102]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[104]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9380,7 +9533,7 @@ func (x *Equal) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Equal.ProtoReflect.Descriptor instead.
 func (*Equal) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{102}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{104}
 }
 
 func (x *Equal) GetLeft() *Operand {
@@ -9407,7 +9560,7 @@ type All struct {
 
 func (x *All) Reset() {
 	*x = All{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[103]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[105]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9419,7 +9572,7 @@ func (x *All) String() string {
 func (*All) ProtoMessage() {}
 
 func (x *All) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[103]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[105]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9432,7 +9585,7 @@ func (x *All) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use All.ProtoReflect.Descriptor instead.
 func (*All) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{103}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{105}
 }
 
 func (x *All) GetOperands() []*Operand {
@@ -9453,7 +9606,7 @@ type Greater struct {
 
 func (x *Greater) Reset() {
 	*x = Greater{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[104]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[106]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9465,7 +9618,7 @@ func (x *Greater) String() string {
 func (*Greater) ProtoMessage() {}
 
 func (x *Greater) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[104]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[106]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9478,7 +9631,7 @@ func (x *Greater) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Greater.ProtoReflect.Descriptor instead.
 func (*Greater) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{104}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{106}
 }
 
 func (x *Greater) GetLeft() *Operand {
@@ -9505,7 +9658,7 @@ type Not struct {
 
 func (x *Not) Reset() {
 	*x = Not{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[105]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[107]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9517,7 +9670,7 @@ func (x *Not) String() string {
 func (*Not) ProtoMessage() {}
 
 func (x *Not) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[105]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[107]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9530,7 +9683,7 @@ func (x *Not) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Not.ProtoReflect.Descriptor instead.
 func (*Not) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{105}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{107}
 }
 
 func (x *Not) GetOf() *Operand {
@@ -9553,7 +9706,7 @@ type Proto struct {
 
 func (x *Proto) Reset() {
 	*x = Proto{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[106]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[108]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9565,7 +9718,7 @@ func (x *Proto) String() string {
 func (*Proto) ProtoMessage() {}
 
 func (x *Proto) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[106]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[108]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9578,7 +9731,7 @@ func (x *Proto) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Proto.ProtoReflect.Descriptor instead.
 func (*Proto) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{106}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{108}
 }
 
 func (x *Proto) GetPosition() *Position {
@@ -9613,7 +9766,7 @@ type ProtoField struct {
 
 func (x *ProtoField) Reset() {
 	*x = ProtoField{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[107]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[109]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9625,7 +9778,7 @@ func (x *ProtoField) String() string {
 func (*ProtoField) ProtoMessage() {}
 
 func (x *ProtoField) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[107]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[109]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9638,7 +9791,7 @@ func (x *ProtoField) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProtoField.ProtoReflect.Descriptor instead.
 func (*ProtoField) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{107}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{109}
 }
 
 func (x *ProtoField) GetName() string {
@@ -9675,7 +9828,7 @@ type ProtoValue struct {
 
 func (x *ProtoValue) Reset() {
 	*x = ProtoValue{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[108]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[110]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9687,7 +9840,7 @@ func (x *ProtoValue) String() string {
 func (*ProtoValue) ProtoMessage() {}
 
 func (x *ProtoValue) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[108]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[110]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9700,7 +9853,7 @@ func (x *ProtoValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProtoValue.ProtoReflect.Descriptor instead.
 func (*ProtoValue) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{108}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{110}
 }
 
 func (x *ProtoValue) GetKind() isProtoValue_Kind {
@@ -9861,7 +10014,7 @@ type ProtoMap struct {
 
 func (x *ProtoMap) Reset() {
 	*x = ProtoMap{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[109]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[111]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9873,7 +10026,7 @@ func (x *ProtoMap) String() string {
 func (*ProtoMap) ProtoMessage() {}
 
 func (x *ProtoMap) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[109]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[111]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9886,7 +10039,7 @@ func (x *ProtoMap) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProtoMap.ProtoReflect.Descriptor instead.
 func (*ProtoMap) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{109}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{111}
 }
 
 func (x *ProtoMap) GetEntries() []*ProtoEntry {
@@ -9906,7 +10059,7 @@ type ProtoEntry struct {
 
 func (x *ProtoEntry) Reset() {
 	*x = ProtoEntry{}
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[110]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[112]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -9918,7 +10071,7 @@ func (x *ProtoEntry) String() string {
 func (*ProtoEntry) ProtoMessage() {}
 
 func (x *ProtoEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[110]
+	mi := &file_temporal_server_api_umpire_v1_ir_proto_msgTypes[112]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9931,7 +10084,7 @@ func (x *ProtoEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProtoEntry.ProtoReflect.Descriptor instead.
 func (*ProtoEntry) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{110}
+	return file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP(), []int{112}
 }
 
 func (x *ProtoEntry) GetKey() string {
@@ -10368,12 +10521,24 @@ const file_temporal_server_api_umpire_v1_ir_proto_rawDesc = "" +
 	"\fserver_steps\x18\x11 \x03(\v2).temporal.server.api.umpire.v1.ServerStepR\vserverSteps\"9\n" +
 	"\x0fRequiredSetting\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value\"\x9b\x01\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\"\x8c\x03\n" +
 	"\vApiBehavior\x12I\n" +
 	"\n" +
 	"visibility\x18\x01 \x03(\v2).temporal.server.api.umpire.v1.VisibilityR\n" +
 	"visibility\x12A\n" +
-	"\x06causes\x18\x02 \x03(\v2).temporal.server.api.umpire.v1.CauseBoundR\x06causes\"\xb1\x02\n" +
+	"\x06causes\x18\x02 \x03(\v2).temporal.server.api.umpire.v1.CauseBoundR\x06causes\x12\\\n" +
+	"\x11attempt_numbering\x18\x03 \x01(\v2/.temporal.server.api.umpire.v1.AttemptNumberingR\x10attemptNumbering\x12b\n" +
+	"\x14instruction_defaults\x18\x04 \x01(\v2/.temporal.server.api.umpire.v1.InstructionLimitR\x13instructionDefaults\x12-\n" +
+	"\x13run_order_is_causal\x18\x05 \x01(\bR\x10runOrderIsCausal\"\x86\x01\n" +
+	"\x10AttemptNumbering\x12C\n" +
+	"\bposition\x18\x01 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12\x14\n" +
+	"\x05first\x18\x02 \x01(\x03R\x05first\x12\x17\n" +
+	"\aone_run\x18\x03 \x01(\bR\x06oneRun\"\x92\x01\n" +
+	"\x10InstructionLimit\x12C\n" +
+	"\bposition\x18\x01 \x01(\v2'.temporal.server.api.umpire.v1.PositionR\bposition\x12\x1d\n" +
+	"\n" +
+	"timeout_ms\x18\x02 \x01(\x03R\ttimeoutMs\x12\x1a\n" +
+	"\battempts\x18\x03 \x01(\x03R\battempts\"\xb1\x02\n" +
 	"\n" +
 	"Visibility\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12C\n" +
@@ -10711,7 +10876,7 @@ func file_temporal_server_api_umpire_v1_ir_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_umpire_v1_ir_proto_enumTypes = make([]protoimpl.EnumInfo, 15)
-var file_temporal_server_api_umpire_v1_ir_proto_msgTypes = make([]protoimpl.MessageInfo, 111)
+var file_temporal_server_api_umpire_v1_ir_proto_msgTypes = make([]protoimpl.MessageInfo, 113)
 var file_temporal_server_api_umpire_v1_ir_proto_goTypes = []any{
 	(CauseKind)(0),                  // 0: temporal.server.api.umpire.v1.CauseKind
 	(Unary_Op)(0),                   // 1: temporal.server.api.umpire.v1.Unary.Op
@@ -10791,55 +10956,57 @@ var file_temporal_server_api_umpire_v1_ir_proto_goTypes = []any{
 	(*Realization)(nil),             // 75: temporal.server.api.umpire.v1.Realization
 	(*RequiredSetting)(nil),         // 76: temporal.server.api.umpire.v1.RequiredSetting
 	(*ApiBehavior)(nil),             // 77: temporal.server.api.umpire.v1.ApiBehavior
-	(*Visibility)(nil),              // 78: temporal.server.api.umpire.v1.Visibility
-	(*WaitBound)(nil),               // 79: temporal.server.api.umpire.v1.WaitBound
-	(*CauseBound)(nil),              // 80: temporal.server.api.umpire.v1.CauseBound
-	(*ServerStep)(nil),              // 81: temporal.server.api.umpire.v1.ServerStep
-	(*Role)(nil),                    // 82: temporal.server.api.umpire.v1.Role
-	(*Learned)(nil),                 // 83: temporal.server.api.umpire.v1.Learned
-	(*Observed)(nil),                // 84: temporal.server.api.umpire.v1.Observed
-	(*Evidence)(nil),                // 85: temporal.server.api.umpire.v1.Evidence
-	(*Taking)(nil),                  // 86: temporal.server.api.umpire.v1.Taking
-	(*EvidenceField)(nil),           // 87: temporal.server.api.umpire.v1.EvidenceField
-	(*RunEventSource)(nil),          // 88: temporal.server.api.umpire.v1.RunEventSource
-	(*AttemptOf)(nil),               // 89: temporal.server.api.umpire.v1.AttemptOf
-	(*ReadSource)(nil),              // 90: temporal.server.api.umpire.v1.ReadSource
-	(*Correlation)(nil),             // 91: temporal.server.api.umpire.v1.Correlation
-	(*Control)(nil),                 // 92: temporal.server.api.umpire.v1.Control
-	(*HoldDispatched)(nil),          // 93: temporal.server.api.umpire.v1.HoldDispatched
-	(*Script)(nil),                  // 94: temporal.server.api.umpire.v1.Script
-	(*WorkflowActivation)(nil),      // 95: temporal.server.api.umpire.v1.WorkflowActivation
-	(*NexusHandlerActivation)(nil),  // 96: temporal.server.api.umpire.v1.NexusHandlerActivation
-	(*ActivityActivation)(nil),      // 97: temporal.server.api.umpire.v1.ActivityActivation
-	(*Name)(nil),                    // 98: temporal.server.api.umpire.v1.Name
-	(*Item)(nil),                    // 99: temporal.server.api.umpire.v1.Item
-	(*Performance)(nil),             // 100: temporal.server.api.umpire.v1.Performance
-	(*Command)(nil),                 // 101: temporal.server.api.umpire.v1.Command
-	(*After)(nil),                   // 102: temporal.server.api.umpire.v1.After
-	(*Rpc)(nil),                     // 103: temporal.server.api.umpire.v1.Rpc
-	(*Assignment)(nil),              // 104: temporal.server.api.umpire.v1.Assignment
-	(*ResponseRead)(nil),            // 105: temporal.server.api.umpire.v1.ResponseRead
-	(*Target)(nil),                  // 106: temporal.server.api.umpire.v1.Target
-	(*Poll)(nil),                    // 107: temporal.server.api.umpire.v1.Poll
-	(*Finish)(nil),                  // 108: temporal.server.api.umpire.v1.Finish
-	(*AttemptFailure)(nil),          // 109: temporal.server.api.umpire.v1.AttemptFailure
-	(*Fault)(nil),                   // 110: temporal.server.api.umpire.v1.Fault
-	(*WorkflowCommand)(nil),         // 111: temporal.server.api.umpire.v1.WorkflowCommand
-	(*NexusReply)(nil),              // 112: temporal.server.api.umpire.v1.NexusReply
-	(*NexusCompletion)(nil),         // 113: temporal.server.api.umpire.v1.NexusCompletion
-	(*Operand)(nil),                 // 114: temporal.server.api.umpire.v1.Operand
-	(*PathOf)(nil),                  // 115: temporal.server.api.umpire.v1.PathOf
-	(*Present)(nil),                 // 116: temporal.server.api.umpire.v1.Present
-	(*Equal)(nil),                   // 117: temporal.server.api.umpire.v1.Equal
-	(*All)(nil),                     // 118: temporal.server.api.umpire.v1.All
-	(*Greater)(nil),                 // 119: temporal.server.api.umpire.v1.Greater
-	(*Not)(nil),                     // 120: temporal.server.api.umpire.v1.Not
-	(*Proto)(nil),                   // 121: temporal.server.api.umpire.v1.Proto
-	(*ProtoField)(nil),              // 122: temporal.server.api.umpire.v1.ProtoField
-	(*ProtoValue)(nil),              // 123: temporal.server.api.umpire.v1.ProtoValue
-	(*ProtoMap)(nil),                // 124: temporal.server.api.umpire.v1.ProtoMap
-	(*ProtoEntry)(nil),              // 125: temporal.server.api.umpire.v1.ProtoEntry
-	(*wrapperspb.Int64Value)(nil),   // 126: google.protobuf.Int64Value
+	(*AttemptNumbering)(nil),        // 78: temporal.server.api.umpire.v1.AttemptNumbering
+	(*InstructionLimit)(nil),        // 79: temporal.server.api.umpire.v1.InstructionLimit
+	(*Visibility)(nil),              // 80: temporal.server.api.umpire.v1.Visibility
+	(*WaitBound)(nil),               // 81: temporal.server.api.umpire.v1.WaitBound
+	(*CauseBound)(nil),              // 82: temporal.server.api.umpire.v1.CauseBound
+	(*ServerStep)(nil),              // 83: temporal.server.api.umpire.v1.ServerStep
+	(*Role)(nil),                    // 84: temporal.server.api.umpire.v1.Role
+	(*Learned)(nil),                 // 85: temporal.server.api.umpire.v1.Learned
+	(*Observed)(nil),                // 86: temporal.server.api.umpire.v1.Observed
+	(*Evidence)(nil),                // 87: temporal.server.api.umpire.v1.Evidence
+	(*Taking)(nil),                  // 88: temporal.server.api.umpire.v1.Taking
+	(*EvidenceField)(nil),           // 89: temporal.server.api.umpire.v1.EvidenceField
+	(*RunEventSource)(nil),          // 90: temporal.server.api.umpire.v1.RunEventSource
+	(*AttemptOf)(nil),               // 91: temporal.server.api.umpire.v1.AttemptOf
+	(*ReadSource)(nil),              // 92: temporal.server.api.umpire.v1.ReadSource
+	(*Correlation)(nil),             // 93: temporal.server.api.umpire.v1.Correlation
+	(*Control)(nil),                 // 94: temporal.server.api.umpire.v1.Control
+	(*HoldDispatched)(nil),          // 95: temporal.server.api.umpire.v1.HoldDispatched
+	(*Script)(nil),                  // 96: temporal.server.api.umpire.v1.Script
+	(*WorkflowActivation)(nil),      // 97: temporal.server.api.umpire.v1.WorkflowActivation
+	(*NexusHandlerActivation)(nil),  // 98: temporal.server.api.umpire.v1.NexusHandlerActivation
+	(*ActivityActivation)(nil),      // 99: temporal.server.api.umpire.v1.ActivityActivation
+	(*Name)(nil),                    // 100: temporal.server.api.umpire.v1.Name
+	(*Item)(nil),                    // 101: temporal.server.api.umpire.v1.Item
+	(*Performance)(nil),             // 102: temporal.server.api.umpire.v1.Performance
+	(*Command)(nil),                 // 103: temporal.server.api.umpire.v1.Command
+	(*After)(nil),                   // 104: temporal.server.api.umpire.v1.After
+	(*Rpc)(nil),                     // 105: temporal.server.api.umpire.v1.Rpc
+	(*Assignment)(nil),              // 106: temporal.server.api.umpire.v1.Assignment
+	(*ResponseRead)(nil),            // 107: temporal.server.api.umpire.v1.ResponseRead
+	(*Target)(nil),                  // 108: temporal.server.api.umpire.v1.Target
+	(*Poll)(nil),                    // 109: temporal.server.api.umpire.v1.Poll
+	(*Finish)(nil),                  // 110: temporal.server.api.umpire.v1.Finish
+	(*AttemptFailure)(nil),          // 111: temporal.server.api.umpire.v1.AttemptFailure
+	(*Fault)(nil),                   // 112: temporal.server.api.umpire.v1.Fault
+	(*WorkflowCommand)(nil),         // 113: temporal.server.api.umpire.v1.WorkflowCommand
+	(*NexusReply)(nil),              // 114: temporal.server.api.umpire.v1.NexusReply
+	(*NexusCompletion)(nil),         // 115: temporal.server.api.umpire.v1.NexusCompletion
+	(*Operand)(nil),                 // 116: temporal.server.api.umpire.v1.Operand
+	(*PathOf)(nil),                  // 117: temporal.server.api.umpire.v1.PathOf
+	(*Present)(nil),                 // 118: temporal.server.api.umpire.v1.Present
+	(*Equal)(nil),                   // 119: temporal.server.api.umpire.v1.Equal
+	(*All)(nil),                     // 120: temporal.server.api.umpire.v1.All
+	(*Greater)(nil),                 // 121: temporal.server.api.umpire.v1.Greater
+	(*Not)(nil),                     // 122: temporal.server.api.umpire.v1.Not
+	(*Proto)(nil),                   // 123: temporal.server.api.umpire.v1.Proto
+	(*ProtoField)(nil),              // 124: temporal.server.api.umpire.v1.ProtoField
+	(*ProtoValue)(nil),              // 125: temporal.server.api.umpire.v1.ProtoValue
+	(*ProtoMap)(nil),                // 126: temporal.server.api.umpire.v1.ProtoMap
+	(*ProtoEntry)(nil),              // 127: temporal.server.api.umpire.v1.ProtoEntry
+	(*wrapperspb.Int64Value)(nil),   // 128: google.protobuf.Int64Value
 }
 var file_temporal_server_api_umpire_v1_ir_proto_depIdxs = []int32{
 	17,  // 0: temporal.server.api.umpire.v1.Model.types:type_name -> temporal.server.api.umpire.v1.Type
@@ -10966,7 +11133,7 @@ var file_temporal_server_api_umpire_v1_ir_proto_depIdxs = []int32{
 	73,  // 121: temporal.server.api.umpire.v1.Query.limits:type_name -> temporal.server.api.umpire.v1.Limits
 	71,  // 122: temporal.server.api.umpire.v1.Query.expected_run:type_name -> temporal.server.api.umpire.v1.RunExpectation
 	68,  // 123: temporal.server.api.umpire.v1.Query.exploration:type_name -> temporal.server.api.umpire.v1.Exploration
-	126, // 124: temporal.server.api.umpire.v1.Query.total:type_name -> google.protobuf.Int64Value
+	128, // 124: temporal.server.api.umpire.v1.Query.total:type_name -> google.protobuf.Int64Value
 	16,  // 125: temporal.server.api.umpire.v1.Exploration.position:type_name -> temporal.server.api.umpire.v1.Position
 	69,  // 126: temporal.server.api.umpire.v1.Exploration.variations:type_name -> temporal.server.api.umpire.v1.Variation
 	70,  // 127: temporal.server.api.umpire.v1.Variation.choices:type_name -> temporal.server.api.umpire.v1.Alternative
@@ -10980,124 +11147,128 @@ var file_temporal_server_api_umpire_v1_ir_proto_depIdxs = []int32{
 	7,   // 135: temporal.server.api.umpire.v1.MonitorExpectation.outcome:type_name -> temporal.server.api.umpire.v1.RunExpectation.Outcome
 	16,  // 136: temporal.server.api.umpire.v1.Progress.position:type_name -> temporal.server.api.umpire.v1.Position
 	16,  // 137: temporal.server.api.umpire.v1.Realization.position:type_name -> temporal.server.api.umpire.v1.Position
-	82,  // 138: temporal.server.api.umpire.v1.Realization.roles:type_name -> temporal.server.api.umpire.v1.Role
-	83,  // 139: temporal.server.api.umpire.v1.Realization.learned:type_name -> temporal.server.api.umpire.v1.Learned
-	84,  // 140: temporal.server.api.umpire.v1.Realization.observations:type_name -> temporal.server.api.umpire.v1.Observed
-	85,  // 141: temporal.server.api.umpire.v1.Realization.evidence:type_name -> temporal.server.api.umpire.v1.Evidence
-	91,  // 142: temporal.server.api.umpire.v1.Realization.correlation:type_name -> temporal.server.api.umpire.v1.Correlation
-	92,  // 143: temporal.server.api.umpire.v1.Realization.controls:type_name -> temporal.server.api.umpire.v1.Control
-	94,  // 144: temporal.server.api.umpire.v1.Realization.scripts:type_name -> temporal.server.api.umpire.v1.Script
+	84,  // 138: temporal.server.api.umpire.v1.Realization.roles:type_name -> temporal.server.api.umpire.v1.Role
+	85,  // 139: temporal.server.api.umpire.v1.Realization.learned:type_name -> temporal.server.api.umpire.v1.Learned
+	86,  // 140: temporal.server.api.umpire.v1.Realization.observations:type_name -> temporal.server.api.umpire.v1.Observed
+	87,  // 141: temporal.server.api.umpire.v1.Realization.evidence:type_name -> temporal.server.api.umpire.v1.Evidence
+	93,  // 142: temporal.server.api.umpire.v1.Realization.correlation:type_name -> temporal.server.api.umpire.v1.Correlation
+	94,  // 143: temporal.server.api.umpire.v1.Realization.controls:type_name -> temporal.server.api.umpire.v1.Control
+	96,  // 144: temporal.server.api.umpire.v1.Realization.scripts:type_name -> temporal.server.api.umpire.v1.Script
 	76,  // 145: temporal.server.api.umpire.v1.Realization.required_settings:type_name -> temporal.server.api.umpire.v1.RequiredSetting
 	77,  // 146: temporal.server.api.umpire.v1.Realization.behavior:type_name -> temporal.server.api.umpire.v1.ApiBehavior
-	81,  // 147: temporal.server.api.umpire.v1.Realization.server_steps:type_name -> temporal.server.api.umpire.v1.ServerStep
-	78,  // 148: temporal.server.api.umpire.v1.ApiBehavior.visibility:type_name -> temporal.server.api.umpire.v1.Visibility
-	80,  // 149: temporal.server.api.umpire.v1.ApiBehavior.causes:type_name -> temporal.server.api.umpire.v1.CauseBound
-	16,  // 150: temporal.server.api.umpire.v1.Visibility.position:type_name -> temporal.server.api.umpire.v1.Position
-	0,   // 151: temporal.server.api.umpire.v1.Visibility.cause:type_name -> temporal.server.api.umpire.v1.CauseKind
-	79,  // 152: temporal.server.api.umpire.v1.Visibility.eventually_within:type_name -> temporal.server.api.umpire.v1.WaitBound
-	16,  // 153: temporal.server.api.umpire.v1.WaitBound.position:type_name -> temporal.server.api.umpire.v1.Position
-	16,  // 154: temporal.server.api.umpire.v1.CauseBound.position:type_name -> temporal.server.api.umpire.v1.Position
-	0,   // 155: temporal.server.api.umpire.v1.CauseBound.kind:type_name -> temporal.server.api.umpire.v1.CauseKind
-	79,  // 156: temporal.server.api.umpire.v1.CauseBound.bound:type_name -> temporal.server.api.umpire.v1.WaitBound
-	16,  // 157: temporal.server.api.umpire.v1.ServerStep.position:type_name -> temporal.server.api.umpire.v1.Position
-	63,  // 158: temporal.server.api.umpire.v1.ServerStep.step:type_name -> temporal.server.api.umpire.v1.ActionClass
-	0,   // 159: temporal.server.api.umpire.v1.ServerStep.kind:type_name -> temporal.server.api.umpire.v1.CauseKind
-	16,  // 160: temporal.server.api.umpire.v1.Role.position:type_name -> temporal.server.api.umpire.v1.Position
-	8,   // 161: temporal.server.api.umpire.v1.Role.kind:type_name -> temporal.server.api.umpire.v1.Role.Kind
-	16,  // 162: temporal.server.api.umpire.v1.Learned.position:type_name -> temporal.server.api.umpire.v1.Position
-	9,   // 163: temporal.server.api.umpire.v1.Learned.kind:type_name -> temporal.server.api.umpire.v1.Learned.Kind
-	16,  // 164: temporal.server.api.umpire.v1.Observed.position:type_name -> temporal.server.api.umpire.v1.Position
-	16,  // 165: temporal.server.api.umpire.v1.Evidence.position:type_name -> temporal.server.api.umpire.v1.Position
-	90,  // 166: temporal.server.api.umpire.v1.Evidence.read:type_name -> temporal.server.api.umpire.v1.ReadSource
-	90,  // 167: temporal.server.api.umpire.v1.Evidence.single:type_name -> temporal.server.api.umpire.v1.ReadSource
-	88,  // 168: temporal.server.api.umpire.v1.Evidence.run_event:type_name -> temporal.server.api.umpire.v1.RunEventSource
-	10,  // 169: temporal.server.api.umpire.v1.Evidence.commitment:type_name -> temporal.server.api.umpire.v1.Evidence.Commitment
-	87,  // 170: temporal.server.api.umpire.v1.Evidence.fields:type_name -> temporal.server.api.umpire.v1.EvidenceField
-	86,  // 171: temporal.server.api.umpire.v1.Evidence.confirms:type_name -> temporal.server.api.umpire.v1.Taking
-	16,  // 172: temporal.server.api.umpire.v1.Taking.position:type_name -> temporal.server.api.umpire.v1.Position
-	63,  // 173: temporal.server.api.umpire.v1.Taking.step:type_name -> temporal.server.api.umpire.v1.ActionClass
-	16,  // 174: temporal.server.api.umpire.v1.EvidenceField.position:type_name -> temporal.server.api.umpire.v1.Position
-	11,  // 175: temporal.server.api.umpire.v1.EvidenceField.role:type_name -> temporal.server.api.umpire.v1.EvidenceField.Role
-	12,  // 176: temporal.server.api.umpire.v1.RunEventSource.kind:type_name -> temporal.server.api.umpire.v1.RunEventSource.Kind
-	114, // 177: temporal.server.api.umpire.v1.RunEventSource.key:type_name -> temporal.server.api.umpire.v1.Operand
-	114, // 178: temporal.server.api.umpire.v1.RunEventSource.guard:type_name -> temporal.server.api.umpire.v1.Operand
-	89,  // 179: temporal.server.api.umpire.v1.RunEventSource.attempt:type_name -> temporal.server.api.umpire.v1.AttemptOf
-	16,  // 180: temporal.server.api.umpire.v1.AttemptOf.position:type_name -> temporal.server.api.umpire.v1.Position
-	16,  // 181: temporal.server.api.umpire.v1.Correlation.position:type_name -> temporal.server.api.umpire.v1.Position
-	16,  // 182: temporal.server.api.umpire.v1.Control.position:type_name -> temporal.server.api.umpire.v1.Position
-	93,  // 183: temporal.server.api.umpire.v1.Control.hold_dispatched:type_name -> temporal.server.api.umpire.v1.HoldDispatched
-	63,  // 184: temporal.server.api.umpire.v1.HoldDispatched.step:type_name -> temporal.server.api.umpire.v1.ActionClass
-	16,  // 185: temporal.server.api.umpire.v1.Script.position:type_name -> temporal.server.api.umpire.v1.Position
-	24,  // 186: temporal.server.api.umpire.v1.Script.controller:type_name -> temporal.server.api.umpire.v1.Empty
-	95,  // 187: temporal.server.api.umpire.v1.Script.workflow:type_name -> temporal.server.api.umpire.v1.WorkflowActivation
-	96,  // 188: temporal.server.api.umpire.v1.Script.nexus_handler:type_name -> temporal.server.api.umpire.v1.NexusHandlerActivation
-	97,  // 189: temporal.server.api.umpire.v1.Script.activity:type_name -> temporal.server.api.umpire.v1.ActivityActivation
-	99,  // 190: temporal.server.api.umpire.v1.Script.items:type_name -> temporal.server.api.umpire.v1.Item
-	98,  // 191: temporal.server.api.umpire.v1.WorkflowActivation.workflow_type:type_name -> temporal.server.api.umpire.v1.Name
-	98,  // 192: temporal.server.api.umpire.v1.ActivityActivation.activity_type:type_name -> temporal.server.api.umpire.v1.Name
-	63,  // 193: temporal.server.api.umpire.v1.ActivityActivation.starts:type_name -> temporal.server.api.umpire.v1.ActionClass
-	16,  // 194: temporal.server.api.umpire.v1.Item.position:type_name -> temporal.server.api.umpire.v1.Position
-	101, // 195: temporal.server.api.umpire.v1.Item.command:type_name -> temporal.server.api.umpire.v1.Command
-	63,  // 196: temporal.server.api.umpire.v1.Item.when:type_name -> temporal.server.api.umpire.v1.ActionClass
-	100, // 197: temporal.server.api.umpire.v1.Item.performs:type_name -> temporal.server.api.umpire.v1.Performance
-	16,  // 198: temporal.server.api.umpire.v1.Performance.position:type_name -> temporal.server.api.umpire.v1.Position
-	63,  // 199: temporal.server.api.umpire.v1.Performance.step:type_name -> temporal.server.api.umpire.v1.ActionClass
-	101, // 200: temporal.server.api.umpire.v1.Performance.command:type_name -> temporal.server.api.umpire.v1.Command
-	16,  // 201: temporal.server.api.umpire.v1.Command.position:type_name -> temporal.server.api.umpire.v1.Position
-	102, // 202: temporal.server.api.umpire.v1.Command.after:type_name -> temporal.server.api.umpire.v1.After
-	103, // 203: temporal.server.api.umpire.v1.Command.rpc:type_name -> temporal.server.api.umpire.v1.Rpc
-	107, // 204: temporal.server.api.umpire.v1.Command.poll:type_name -> temporal.server.api.umpire.v1.Poll
-	108, // 205: temporal.server.api.umpire.v1.Command.finish:type_name -> temporal.server.api.umpire.v1.Finish
-	110, // 206: temporal.server.api.umpire.v1.Command.fault:type_name -> temporal.server.api.umpire.v1.Fault
-	111, // 207: temporal.server.api.umpire.v1.Command.workflow_command:type_name -> temporal.server.api.umpire.v1.WorkflowCommand
-	112, // 208: temporal.server.api.umpire.v1.Command.nexus_reply:type_name -> temporal.server.api.umpire.v1.NexusReply
-	113, // 209: temporal.server.api.umpire.v1.Command.nexus_completion:type_name -> temporal.server.api.umpire.v1.NexusCompletion
-	109, // 210: temporal.server.api.umpire.v1.Command.attempt_failure:type_name -> temporal.server.api.umpire.v1.AttemptFailure
-	24,  // 211: temporal.server.api.umpire.v1.Command.attempt_canceled:type_name -> temporal.server.api.umpire.v1.Empty
-	104, // 212: temporal.server.api.umpire.v1.Rpc.assign:type_name -> temporal.server.api.umpire.v1.Assignment
-	105, // 213: temporal.server.api.umpire.v1.Rpc.reads:type_name -> temporal.server.api.umpire.v1.ResponseRead
-	114, // 214: temporal.server.api.umpire.v1.Assignment.value:type_name -> temporal.server.api.umpire.v1.Operand
-	13,  // 215: temporal.server.api.umpire.v1.ResponseRead.cardinality:type_name -> temporal.server.api.umpire.v1.ResponseRead.Cardinality
-	106, // 216: temporal.server.api.umpire.v1.ResponseRead.targets:type_name -> temporal.server.api.umpire.v1.Target
-	104, // 217: temporal.server.api.umpire.v1.Poll.assign:type_name -> temporal.server.api.umpire.v1.Assignment
-	114, // 218: temporal.server.api.umpire.v1.Poll.until:type_name -> temporal.server.api.umpire.v1.Operand
-	114, // 219: temporal.server.api.umpire.v1.Finish.result:type_name -> temporal.server.api.umpire.v1.Operand
-	121, // 220: temporal.server.api.umpire.v1.AttemptFailure.failure:type_name -> temporal.server.api.umpire.v1.Proto
-	14,  // 221: temporal.server.api.umpire.v1.Fault.kind:type_name -> temporal.server.api.umpire.v1.Fault.Kind
-	121, // 222: temporal.server.api.umpire.v1.WorkflowCommand.command:type_name -> temporal.server.api.umpire.v1.Proto
-	121, // 223: temporal.server.api.umpire.v1.NexusReply.reply:type_name -> temporal.server.api.umpire.v1.Proto
-	121, // 224: temporal.server.api.umpire.v1.NexusCompletion.result:type_name -> temporal.server.api.umpire.v1.Proto
-	16,  // 225: temporal.server.api.umpire.v1.Operand.position:type_name -> temporal.server.api.umpire.v1.Position
-	123, // 226: temporal.server.api.umpire.v1.Operand.literal:type_name -> temporal.server.api.umpire.v1.ProtoValue
-	24,  // 227: temporal.server.api.umpire.v1.Operand.run:type_name -> temporal.server.api.umpire.v1.Empty
-	24,  // 228: temporal.server.api.umpire.v1.Operand.projected:type_name -> temporal.server.api.umpire.v1.Empty
-	115, // 229: temporal.server.api.umpire.v1.Operand.path:type_name -> temporal.server.api.umpire.v1.PathOf
-	116, // 230: temporal.server.api.umpire.v1.Operand.present:type_name -> temporal.server.api.umpire.v1.Present
-	117, // 231: temporal.server.api.umpire.v1.Operand.equal:type_name -> temporal.server.api.umpire.v1.Equal
-	118, // 232: temporal.server.api.umpire.v1.Operand.all:type_name -> temporal.server.api.umpire.v1.All
-	119, // 233: temporal.server.api.umpire.v1.Operand.greater:type_name -> temporal.server.api.umpire.v1.Greater
-	120, // 234: temporal.server.api.umpire.v1.Operand.not:type_name -> temporal.server.api.umpire.v1.Not
-	114, // 235: temporal.server.api.umpire.v1.PathOf.of:type_name -> temporal.server.api.umpire.v1.Operand
-	114, // 236: temporal.server.api.umpire.v1.Present.of:type_name -> temporal.server.api.umpire.v1.Operand
-	114, // 237: temporal.server.api.umpire.v1.Equal.left:type_name -> temporal.server.api.umpire.v1.Operand
-	114, // 238: temporal.server.api.umpire.v1.Equal.right:type_name -> temporal.server.api.umpire.v1.Operand
-	114, // 239: temporal.server.api.umpire.v1.All.operands:type_name -> temporal.server.api.umpire.v1.Operand
-	114, // 240: temporal.server.api.umpire.v1.Greater.left:type_name -> temporal.server.api.umpire.v1.Operand
-	114, // 241: temporal.server.api.umpire.v1.Greater.right:type_name -> temporal.server.api.umpire.v1.Operand
-	114, // 242: temporal.server.api.umpire.v1.Not.of:type_name -> temporal.server.api.umpire.v1.Operand
-	16,  // 243: temporal.server.api.umpire.v1.Proto.position:type_name -> temporal.server.api.umpire.v1.Position
-	122, // 244: temporal.server.api.umpire.v1.Proto.fields:type_name -> temporal.server.api.umpire.v1.ProtoField
-	123, // 245: temporal.server.api.umpire.v1.ProtoField.value:type_name -> temporal.server.api.umpire.v1.ProtoValue
-	121, // 246: temporal.server.api.umpire.v1.ProtoValue.message:type_name -> temporal.server.api.umpire.v1.Proto
-	124, // 247: temporal.server.api.umpire.v1.ProtoValue.mapping:type_name -> temporal.server.api.umpire.v1.ProtoMap
-	98,  // 248: temporal.server.api.umpire.v1.ProtoValue.named:type_name -> temporal.server.api.umpire.v1.Name
-	125, // 249: temporal.server.api.umpire.v1.ProtoMap.entries:type_name -> temporal.server.api.umpire.v1.ProtoEntry
-	123, // 250: temporal.server.api.umpire.v1.ProtoEntry.value:type_name -> temporal.server.api.umpire.v1.ProtoValue
-	251, // [251:251] is the sub-list for method output_type
-	251, // [251:251] is the sub-list for method input_type
-	251, // [251:251] is the sub-list for extension type_name
-	251, // [251:251] is the sub-list for extension extendee
-	0,   // [0:251] is the sub-list for field type_name
+	83,  // 147: temporal.server.api.umpire.v1.Realization.server_steps:type_name -> temporal.server.api.umpire.v1.ServerStep
+	80,  // 148: temporal.server.api.umpire.v1.ApiBehavior.visibility:type_name -> temporal.server.api.umpire.v1.Visibility
+	82,  // 149: temporal.server.api.umpire.v1.ApiBehavior.causes:type_name -> temporal.server.api.umpire.v1.CauseBound
+	78,  // 150: temporal.server.api.umpire.v1.ApiBehavior.attempt_numbering:type_name -> temporal.server.api.umpire.v1.AttemptNumbering
+	79,  // 151: temporal.server.api.umpire.v1.ApiBehavior.instruction_defaults:type_name -> temporal.server.api.umpire.v1.InstructionLimit
+	16,  // 152: temporal.server.api.umpire.v1.AttemptNumbering.position:type_name -> temporal.server.api.umpire.v1.Position
+	16,  // 153: temporal.server.api.umpire.v1.InstructionLimit.position:type_name -> temporal.server.api.umpire.v1.Position
+	16,  // 154: temporal.server.api.umpire.v1.Visibility.position:type_name -> temporal.server.api.umpire.v1.Position
+	0,   // 155: temporal.server.api.umpire.v1.Visibility.cause:type_name -> temporal.server.api.umpire.v1.CauseKind
+	81,  // 156: temporal.server.api.umpire.v1.Visibility.eventually_within:type_name -> temporal.server.api.umpire.v1.WaitBound
+	16,  // 157: temporal.server.api.umpire.v1.WaitBound.position:type_name -> temporal.server.api.umpire.v1.Position
+	16,  // 158: temporal.server.api.umpire.v1.CauseBound.position:type_name -> temporal.server.api.umpire.v1.Position
+	0,   // 159: temporal.server.api.umpire.v1.CauseBound.kind:type_name -> temporal.server.api.umpire.v1.CauseKind
+	81,  // 160: temporal.server.api.umpire.v1.CauseBound.bound:type_name -> temporal.server.api.umpire.v1.WaitBound
+	16,  // 161: temporal.server.api.umpire.v1.ServerStep.position:type_name -> temporal.server.api.umpire.v1.Position
+	63,  // 162: temporal.server.api.umpire.v1.ServerStep.step:type_name -> temporal.server.api.umpire.v1.ActionClass
+	0,   // 163: temporal.server.api.umpire.v1.ServerStep.kind:type_name -> temporal.server.api.umpire.v1.CauseKind
+	16,  // 164: temporal.server.api.umpire.v1.Role.position:type_name -> temporal.server.api.umpire.v1.Position
+	8,   // 165: temporal.server.api.umpire.v1.Role.kind:type_name -> temporal.server.api.umpire.v1.Role.Kind
+	16,  // 166: temporal.server.api.umpire.v1.Learned.position:type_name -> temporal.server.api.umpire.v1.Position
+	9,   // 167: temporal.server.api.umpire.v1.Learned.kind:type_name -> temporal.server.api.umpire.v1.Learned.Kind
+	16,  // 168: temporal.server.api.umpire.v1.Observed.position:type_name -> temporal.server.api.umpire.v1.Position
+	16,  // 169: temporal.server.api.umpire.v1.Evidence.position:type_name -> temporal.server.api.umpire.v1.Position
+	92,  // 170: temporal.server.api.umpire.v1.Evidence.read:type_name -> temporal.server.api.umpire.v1.ReadSource
+	92,  // 171: temporal.server.api.umpire.v1.Evidence.single:type_name -> temporal.server.api.umpire.v1.ReadSource
+	90,  // 172: temporal.server.api.umpire.v1.Evidence.run_event:type_name -> temporal.server.api.umpire.v1.RunEventSource
+	10,  // 173: temporal.server.api.umpire.v1.Evidence.commitment:type_name -> temporal.server.api.umpire.v1.Evidence.Commitment
+	89,  // 174: temporal.server.api.umpire.v1.Evidence.fields:type_name -> temporal.server.api.umpire.v1.EvidenceField
+	88,  // 175: temporal.server.api.umpire.v1.Evidence.confirms:type_name -> temporal.server.api.umpire.v1.Taking
+	16,  // 176: temporal.server.api.umpire.v1.Taking.position:type_name -> temporal.server.api.umpire.v1.Position
+	63,  // 177: temporal.server.api.umpire.v1.Taking.step:type_name -> temporal.server.api.umpire.v1.ActionClass
+	16,  // 178: temporal.server.api.umpire.v1.EvidenceField.position:type_name -> temporal.server.api.umpire.v1.Position
+	11,  // 179: temporal.server.api.umpire.v1.EvidenceField.role:type_name -> temporal.server.api.umpire.v1.EvidenceField.Role
+	12,  // 180: temporal.server.api.umpire.v1.RunEventSource.kind:type_name -> temporal.server.api.umpire.v1.RunEventSource.Kind
+	116, // 181: temporal.server.api.umpire.v1.RunEventSource.key:type_name -> temporal.server.api.umpire.v1.Operand
+	116, // 182: temporal.server.api.umpire.v1.RunEventSource.guard:type_name -> temporal.server.api.umpire.v1.Operand
+	91,  // 183: temporal.server.api.umpire.v1.RunEventSource.attempt:type_name -> temporal.server.api.umpire.v1.AttemptOf
+	16,  // 184: temporal.server.api.umpire.v1.AttemptOf.position:type_name -> temporal.server.api.umpire.v1.Position
+	16,  // 185: temporal.server.api.umpire.v1.Correlation.position:type_name -> temporal.server.api.umpire.v1.Position
+	16,  // 186: temporal.server.api.umpire.v1.Control.position:type_name -> temporal.server.api.umpire.v1.Position
+	95,  // 187: temporal.server.api.umpire.v1.Control.hold_dispatched:type_name -> temporal.server.api.umpire.v1.HoldDispatched
+	63,  // 188: temporal.server.api.umpire.v1.HoldDispatched.step:type_name -> temporal.server.api.umpire.v1.ActionClass
+	16,  // 189: temporal.server.api.umpire.v1.Script.position:type_name -> temporal.server.api.umpire.v1.Position
+	24,  // 190: temporal.server.api.umpire.v1.Script.controller:type_name -> temporal.server.api.umpire.v1.Empty
+	97,  // 191: temporal.server.api.umpire.v1.Script.workflow:type_name -> temporal.server.api.umpire.v1.WorkflowActivation
+	98,  // 192: temporal.server.api.umpire.v1.Script.nexus_handler:type_name -> temporal.server.api.umpire.v1.NexusHandlerActivation
+	99,  // 193: temporal.server.api.umpire.v1.Script.activity:type_name -> temporal.server.api.umpire.v1.ActivityActivation
+	101, // 194: temporal.server.api.umpire.v1.Script.items:type_name -> temporal.server.api.umpire.v1.Item
+	100, // 195: temporal.server.api.umpire.v1.WorkflowActivation.workflow_type:type_name -> temporal.server.api.umpire.v1.Name
+	100, // 196: temporal.server.api.umpire.v1.ActivityActivation.activity_type:type_name -> temporal.server.api.umpire.v1.Name
+	63,  // 197: temporal.server.api.umpire.v1.ActivityActivation.starts:type_name -> temporal.server.api.umpire.v1.ActionClass
+	16,  // 198: temporal.server.api.umpire.v1.Item.position:type_name -> temporal.server.api.umpire.v1.Position
+	103, // 199: temporal.server.api.umpire.v1.Item.command:type_name -> temporal.server.api.umpire.v1.Command
+	63,  // 200: temporal.server.api.umpire.v1.Item.when:type_name -> temporal.server.api.umpire.v1.ActionClass
+	102, // 201: temporal.server.api.umpire.v1.Item.performs:type_name -> temporal.server.api.umpire.v1.Performance
+	16,  // 202: temporal.server.api.umpire.v1.Performance.position:type_name -> temporal.server.api.umpire.v1.Position
+	63,  // 203: temporal.server.api.umpire.v1.Performance.step:type_name -> temporal.server.api.umpire.v1.ActionClass
+	103, // 204: temporal.server.api.umpire.v1.Performance.command:type_name -> temporal.server.api.umpire.v1.Command
+	16,  // 205: temporal.server.api.umpire.v1.Command.position:type_name -> temporal.server.api.umpire.v1.Position
+	104, // 206: temporal.server.api.umpire.v1.Command.after:type_name -> temporal.server.api.umpire.v1.After
+	105, // 207: temporal.server.api.umpire.v1.Command.rpc:type_name -> temporal.server.api.umpire.v1.Rpc
+	109, // 208: temporal.server.api.umpire.v1.Command.poll:type_name -> temporal.server.api.umpire.v1.Poll
+	110, // 209: temporal.server.api.umpire.v1.Command.finish:type_name -> temporal.server.api.umpire.v1.Finish
+	112, // 210: temporal.server.api.umpire.v1.Command.fault:type_name -> temporal.server.api.umpire.v1.Fault
+	113, // 211: temporal.server.api.umpire.v1.Command.workflow_command:type_name -> temporal.server.api.umpire.v1.WorkflowCommand
+	114, // 212: temporal.server.api.umpire.v1.Command.nexus_reply:type_name -> temporal.server.api.umpire.v1.NexusReply
+	115, // 213: temporal.server.api.umpire.v1.Command.nexus_completion:type_name -> temporal.server.api.umpire.v1.NexusCompletion
+	111, // 214: temporal.server.api.umpire.v1.Command.attempt_failure:type_name -> temporal.server.api.umpire.v1.AttemptFailure
+	24,  // 215: temporal.server.api.umpire.v1.Command.attempt_canceled:type_name -> temporal.server.api.umpire.v1.Empty
+	106, // 216: temporal.server.api.umpire.v1.Rpc.assign:type_name -> temporal.server.api.umpire.v1.Assignment
+	107, // 217: temporal.server.api.umpire.v1.Rpc.reads:type_name -> temporal.server.api.umpire.v1.ResponseRead
+	116, // 218: temporal.server.api.umpire.v1.Assignment.value:type_name -> temporal.server.api.umpire.v1.Operand
+	13,  // 219: temporal.server.api.umpire.v1.ResponseRead.cardinality:type_name -> temporal.server.api.umpire.v1.ResponseRead.Cardinality
+	108, // 220: temporal.server.api.umpire.v1.ResponseRead.targets:type_name -> temporal.server.api.umpire.v1.Target
+	106, // 221: temporal.server.api.umpire.v1.Poll.assign:type_name -> temporal.server.api.umpire.v1.Assignment
+	116, // 222: temporal.server.api.umpire.v1.Poll.until:type_name -> temporal.server.api.umpire.v1.Operand
+	116, // 223: temporal.server.api.umpire.v1.Finish.result:type_name -> temporal.server.api.umpire.v1.Operand
+	123, // 224: temporal.server.api.umpire.v1.AttemptFailure.failure:type_name -> temporal.server.api.umpire.v1.Proto
+	14,  // 225: temporal.server.api.umpire.v1.Fault.kind:type_name -> temporal.server.api.umpire.v1.Fault.Kind
+	123, // 226: temporal.server.api.umpire.v1.WorkflowCommand.command:type_name -> temporal.server.api.umpire.v1.Proto
+	123, // 227: temporal.server.api.umpire.v1.NexusReply.reply:type_name -> temporal.server.api.umpire.v1.Proto
+	123, // 228: temporal.server.api.umpire.v1.NexusCompletion.result:type_name -> temporal.server.api.umpire.v1.Proto
+	16,  // 229: temporal.server.api.umpire.v1.Operand.position:type_name -> temporal.server.api.umpire.v1.Position
+	125, // 230: temporal.server.api.umpire.v1.Operand.literal:type_name -> temporal.server.api.umpire.v1.ProtoValue
+	24,  // 231: temporal.server.api.umpire.v1.Operand.run:type_name -> temporal.server.api.umpire.v1.Empty
+	24,  // 232: temporal.server.api.umpire.v1.Operand.projected:type_name -> temporal.server.api.umpire.v1.Empty
+	117, // 233: temporal.server.api.umpire.v1.Operand.path:type_name -> temporal.server.api.umpire.v1.PathOf
+	118, // 234: temporal.server.api.umpire.v1.Operand.present:type_name -> temporal.server.api.umpire.v1.Present
+	119, // 235: temporal.server.api.umpire.v1.Operand.equal:type_name -> temporal.server.api.umpire.v1.Equal
+	120, // 236: temporal.server.api.umpire.v1.Operand.all:type_name -> temporal.server.api.umpire.v1.All
+	121, // 237: temporal.server.api.umpire.v1.Operand.greater:type_name -> temporal.server.api.umpire.v1.Greater
+	122, // 238: temporal.server.api.umpire.v1.Operand.not:type_name -> temporal.server.api.umpire.v1.Not
+	116, // 239: temporal.server.api.umpire.v1.PathOf.of:type_name -> temporal.server.api.umpire.v1.Operand
+	116, // 240: temporal.server.api.umpire.v1.Present.of:type_name -> temporal.server.api.umpire.v1.Operand
+	116, // 241: temporal.server.api.umpire.v1.Equal.left:type_name -> temporal.server.api.umpire.v1.Operand
+	116, // 242: temporal.server.api.umpire.v1.Equal.right:type_name -> temporal.server.api.umpire.v1.Operand
+	116, // 243: temporal.server.api.umpire.v1.All.operands:type_name -> temporal.server.api.umpire.v1.Operand
+	116, // 244: temporal.server.api.umpire.v1.Greater.left:type_name -> temporal.server.api.umpire.v1.Operand
+	116, // 245: temporal.server.api.umpire.v1.Greater.right:type_name -> temporal.server.api.umpire.v1.Operand
+	116, // 246: temporal.server.api.umpire.v1.Not.of:type_name -> temporal.server.api.umpire.v1.Operand
+	16,  // 247: temporal.server.api.umpire.v1.Proto.position:type_name -> temporal.server.api.umpire.v1.Position
+	124, // 248: temporal.server.api.umpire.v1.Proto.fields:type_name -> temporal.server.api.umpire.v1.ProtoField
+	125, // 249: temporal.server.api.umpire.v1.ProtoField.value:type_name -> temporal.server.api.umpire.v1.ProtoValue
+	123, // 250: temporal.server.api.umpire.v1.ProtoValue.message:type_name -> temporal.server.api.umpire.v1.Proto
+	126, // 251: temporal.server.api.umpire.v1.ProtoValue.mapping:type_name -> temporal.server.api.umpire.v1.ProtoMap
+	100, // 252: temporal.server.api.umpire.v1.ProtoValue.named:type_name -> temporal.server.api.umpire.v1.Name
+	127, // 253: temporal.server.api.umpire.v1.ProtoMap.entries:type_name -> temporal.server.api.umpire.v1.ProtoEntry
+	125, // 254: temporal.server.api.umpire.v1.ProtoEntry.value:type_name -> temporal.server.api.umpire.v1.ProtoValue
+	255, // [255:255] is the sub-list for method output_type
+	255, // [255:255] is the sub-list for method input_type
+	255, // [255:255] is the sub-list for extension type_name
+	255, // [255:255] is the sub-list for extension extendee
+	0,   // [0:255] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_umpire_v1_ir_proto_init() }
@@ -11158,27 +11329,27 @@ func file_temporal_server_api_umpire_v1_ir_proto_init() {
 		(*Property_WhenClass)(nil),
 		(*Property_WhenAction)(nil),
 	}
-	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[63].OneofWrappers = []any{
+	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[65].OneofWrappers = []any{
 		(*Visibility_Method)(nil),
 		(*Visibility_Cause)(nil),
 	}
-	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[70].OneofWrappers = []any{
+	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[72].OneofWrappers = []any{
 		(*Evidence_History)(nil),
 		(*Evidence_Read)(nil),
 		(*Evidence_Single)(nil),
 		(*Evidence_RunEvent)(nil),
 	}
-	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[77].OneofWrappers = []any{
+	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[79].OneofWrappers = []any{
 		(*Control_HoldDelivery)(nil),
 		(*Control_HoldDispatched)(nil),
 	}
-	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[79].OneofWrappers = []any{
+	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[81].OneofWrappers = []any{
 		(*Script_Controller)(nil),
 		(*Script_Workflow)(nil),
 		(*Script_NexusHandler)(nil),
 		(*Script_Activity)(nil),
 	}
-	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[86].OneofWrappers = []any{
+	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[88].OneofWrappers = []any{
 		(*Command_Rpc)(nil),
 		(*Command_Poll)(nil),
 		(*Command_AwaitLearned)(nil),
@@ -11193,12 +11364,12 @@ func file_temporal_server_api_umpire_v1_ir_proto_init() {
 		(*Command_AttemptFailure)(nil),
 		(*Command_AttemptCanceled)(nil),
 	}
-	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[91].OneofWrappers = []any{
+	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[93].OneofWrappers = []any{
 		(*Target_Observe)(nil),
 		(*Target_Bind)(nil),
 		(*Target_Lift)(nil),
 	}
-	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[99].OneofWrappers = []any{
+	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[101].OneofWrappers = []any{
 		(*Operand_Literal)(nil),
 		(*Operand_Environment)(nil),
 		(*Operand_Run)(nil),
@@ -11211,7 +11382,7 @@ func file_temporal_server_api_umpire_v1_ir_proto_init() {
 		(*Operand_Greater)(nil),
 		(*Operand_Not)(nil),
 	}
-	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[108].OneofWrappers = []any{
+	file_temporal_server_api_umpire_v1_ir_proto_msgTypes[110].OneofWrappers = []any{
 		(*ProtoValue_Text)(nil),
 		(*ProtoValue_Flag)(nil),
 		(*ProtoValue_Number)(nil),
@@ -11228,7 +11399,7 @@ func file_temporal_server_api_umpire_v1_ir_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_umpire_v1_ir_proto_rawDesc), len(file_temporal_server_api_umpire_v1_ir_proto_rawDesc)),
 			NumEnums:      15,
-			NumMessages:   111,
+			NumMessages:   113,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

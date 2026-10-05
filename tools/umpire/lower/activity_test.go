@@ -87,7 +87,7 @@ func role(t *testing.T, c *testpilotspb.Case, kind testpilotspb.RoleKind) *testp
 // the activity runs under, and the run's id and the Case's own activity type. Ordinary preparation
 // admits the Case under the Profile derived from it.
 func TestAnActivityScriptLowersToItsAttemptsInOrder(t *testing.T) {
-	p, err := NewProducer(liftedRealizations(t))
+	p, err := NewProducer(preparable(liftedRealizations(t)))
 	require.NoError(t, err)
 	l, err := p.Lower("errand.retry", errandIdentity)
 	require.NoError(t, err)
@@ -101,7 +101,8 @@ func TestAnActivityScriptLowersToItsAttemptsInOrder(t *testing.T) {
 	const activityType = "umpire-fixture-errand-errand"
 	worker, queue := role(t, c, testpilotspb.ROLE_KIND_WORKER), role(t, c, testpilotspb.ROLE_KIND_TASK_QUEUE)
 	protorequire.ProtoEqual(t, &testpilotspb.ActivityActivation{ActivityType: activityType, WorkerRoleId: worker.GetRoleId(),
-		TaskQueueRoleId: queue.GetRoleId()}, c.GetProgram().GetEntrypoints()[1].GetActivity())
+		TaskQueueRoleId: queue.GetRoleId(), AttemptNumbering: &testpilotspb.AttemptNumbering{First: 1, OneRun: true}},
+		c.GetProgram().GetEntrypoints()[1].GetActivity())
 
 	protorequire.ProtoEqual(t, &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_ActivityAttemptFailure{
 		ActivityAttemptFailure: &testpilotspb.ActivityAttemptFailure{Failure: &failurepb.Failure{Message: "not yet",
@@ -155,7 +156,7 @@ func TestAnActivityScriptLowersToItsAttemptsInOrder(t *testing.T) {
 	require.True(t, proto.Equal(source, prepared.Snapshot()), "preparation carries the Case unchanged")
 
 	// Identical inputs give identical bytes: the fixture read again, lowered by another producer.
-	again, err := NewProducer(liftedRealizations(t))
+	again, err := NewProducer(preparable(liftedRealizations(t)))
 	require.NoError(t, err)
 	second, err := again.Lower("errand.retry", errandIdentity)
 	require.NoError(t, err)
@@ -288,7 +289,7 @@ func TestARedactedFieldIsNamedAsALimit(t *testing.T) {
 // admits the Case. The Run's record of the push records a fact the door never records, so that kind is
 // off the path.
 func TestEvidenceReadFromOneMessageWithItsFieldsLowers(t *testing.T) {
-	m := liftedRealizations(t)
+	m := preparable(liftedRealizations(t))
 	tally := realizationNamed(t, m, "tallyRealization")
 	for _, f := range tally.GetEvidence()[0].GetFields() {
 		f.Redacted = false

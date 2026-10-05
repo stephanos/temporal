@@ -239,8 +239,8 @@ func (a *admission) bindAwait(g *graph, n *node) error {
 	return nil
 }
 
-// bindNodeBounds resolves a node's limits: each one the Case writes, or the Profile's default where it
-// writes none, within the Profile's ceilings. A hinted wait's timeout is the sum of its hints,
+// bindNodeBounds resolves a node's limits: each one the Case writes, or the Program's declared default
+// or else the Profile's where it writes none, within the Profile's ceilings. A hinted wait's timeout is the sum of its hints,
 // scaled by the Profile's bound scale.
 func (a *admission) bindNodeBounds(g *graph, n *node) error {
 	bounds := n.source.GetLimits()
@@ -251,7 +251,7 @@ func (a *admission) bindNodeBounds(g *graph, n *node) error {
 		}
 	}
 	if (bounds.GetTimeout() == nil && n.timeoutMilliseconds == 0) || (bounds.GetAttempts() == nil && n.maxAttempts == 0) {
-		return ir.Invalid(ir.Malformed, nodePath(g, n), "instruction writes no limit the Profile has no default for")
+		return ir.Invalid(ir.Malformed, nodePath(g, n), "instruction writes no limit that neither the Program nor the Profile has a default for")
 	}
 	// A hinted timeout is scaled, so it is checked against the scaled ceiling; every other one is
 	// unscaled and checked against the declared ceiling, so a scale admits no Case it would refuse.

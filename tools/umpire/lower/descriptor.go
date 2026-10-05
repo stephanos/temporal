@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"slices"
 	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
@@ -19,12 +20,9 @@ import (
 	"google.golang.org/protobuf/types/dynamicpb"
 )
 
-const (
-	historyEventMessage = "temporal.api.history.v1.HistoryEvent"
-	// instructionOutcomeMessage is the payload of the Run Events that are evidence: the outcome of an
-	// instruction, or of an activation it carries.
-	instructionOutcomeMessage = "temporal.server.api.testpilot.v1.InstructionOutcome"
-)
+// instructionOutcomeMessage is the payload of the Run Events that are evidence: the outcome of an
+// instruction, or of an activation it carries.
+const instructionOutcomeMessage = "temporal.server.api.testpilot.v1.InstructionOutcome"
 
 func locate(at *umpirespb.Position) string {
 	if at.GetFile() == "" {
@@ -75,13 +73,13 @@ func methodNamed(at *umpirespb.Position, name string) (protoreflect.MethodDescri
 	}
 }
 
-// EvidenceElement is the message one piece of a kind of evidence is read as: the history event of a
-// history read, the element or the one message of a read's response, or the payload of a Run Event.
-// A poll's condition over the kind, and a Run Event's guard, read its fields.
-func EvidenceElement(e *umpirespb.Evidence) (protoreflect.MessageDescriptor, error) {
+// EvidenceElement is the message one piece of a kind of evidence of r is read as: the history event
+// r's history read reads, the element or the one message of a read's response, or the payload of a
+// Run Event. A poll's condition over the kind, and a Run Event's guard, read its fields.
+func EvidenceElement(r *umpirespb.Realization, e *umpirespb.Evidence) (protoreflect.MessageDescriptor, error) {
 	switch from := e.GetFrom().(type) {
 	case *umpirespb.Evidence_History:
-		return messageNamed(e.GetPosition(), historyEventMessage)
+		return historyElement(r, e, from.History)
 	case *umpirespb.Evidence_Read:
 		return readFrom(e, from.Read, true)
 	case *umpirespb.Evidence_Single:
@@ -91,6 +89,79 @@ func EvidenceElement(e *umpirespb.Evidence) (protoreflect.MessageDescriptor, err
 	default:
 		return nil, errorAt(e.GetPosition(), "evidence %s is recorded nowhere", e.GetId())
 	}
+}
+
+// historyEvent is the message a realization's history is recorded as: what each read that lifts
+// history evidence reads, by its method's response at its path. The realization's own reads declare
+// it, so no message is assumed; nil where no read lifts history.
+func historyEvent(r *umpirespb.Realization) (protoreflect.MessageDescriptor, error) {
+	var found protoreflect.MessageDescriptor
+	for _, c := range scriptCommands(r) {
+		for _, read := range c.GetRpc().GetReads() {
+			if !slices.ContainsFunc(read.GetTargets(), func(t *umpirespb.Target) bool { return t.GetLift() != "" }) {
+				continue
+			}
+			md, err := readMessage(c, read)
+			if err != nil {
+				return nil, err
+			}
+			if found != nil && md.FullName() != found.FullName() {
+				return nil, errorAt(c.GetPosition(), "command %s lifts history evidence from %s, a %s, and another read lifts it from a %s", c.GetId(),
+					read.GetPath(), md.FullName(), found.FullName())
+			}
+			found = md
+		}
+	}
+	return found, nil
+}
+
+// scriptCommands is every command of every script of r: each item's own and each it performs.
+func scriptCommands(r *umpirespb.Realization) []*umpirespb.Command {
+	var out []*umpirespb.Command
+	for _, s := range r.GetScripts() {
+		for _, item := range s.GetItems() {
+			if item.GetCommand() != nil {
+				out = append(out, item.GetCommand())
+			}
+			for _, p := range item.GetPerforms() {
+				out = append(out, p.GetCommand())
+			}
+		}
+	}
+	return out
+}
+
+// readMessage is the message a call's read of its response reads at its path.
+func readMessage(c *umpirespb.Command, read *umpirespb.ResponseRead) (protoreflect.MessageDescriptor, error) {
+	at := c.GetPosition()
+	method, err := methodNamed(at, c.GetRpc().GetMethod())
+	if err != nil {
+		return nil, err
+	}
+	end, err := walk(at, method.Output(), read.GetPath())
+	if err != nil {
+		return nil, err
+	}
+	if end.message() == nil {
+		return nil, errorAt(at, "command %s lifts history evidence from %s, which reads no message", c.GetId(), read.GetPath())
+	}
+	return end.message(), nil
+}
+
+// historyElement is the history event a history kind of evidence is read as, which must have the
+// oneof member `member` the kind names.
+func historyElement(r *umpirespb.Realization, e *umpirespb.Evidence, member string) (protoreflect.MessageDescriptor, error) {
+	event, err := historyEvent(r)
+	if err != nil {
+		return nil, err
+	}
+	if event == nil {
+		return nil, errorAt(e.GetPosition(), "evidence %s is read from history, and no read of realization %s lifts history evidence", e.GetId(), r.GetName())
+	}
+	if fd := event.Fields().ByName(protoreflect.Name(member)); fd == nil || fd.ContainingOneof() == nil {
+		return nil, errorAt(e.GetPosition(), "evidence %s: a history event has no attributes %s", e.GetId(), member)
+	}
+	return event, nil
 }
 
 // FieldAt is the field a path reaches in a message, as a realization's paths are read: a field, each

@@ -60,6 +60,10 @@ func TestARealizationsBehaviorIsAdmitted(t *testing.T) {
 	m := proto.Clone(load(t)).(*umpirespb.Model)
 	admBehave(m.GetRealizations()[0])
 	require.NoError(t, Validate(m))
+	m.GetRealizations()[0].Behavior.AttemptNumbering = &umpirespb.AttemptNumbering{Position: behaviorAt(70), First: 1, OneRun: true}
+	m.GetRealizations()[0].Behavior.InstructionDefaults = &umpirespb.InstructionLimit{Position: behaviorAt(71), TimeoutMs: 10000, Attempts: 1}
+	m.GetRealizations()[0].Behavior.RunOrderIsCausal = true
+	require.NoError(t, Validate(m))
 }
 
 func TestARealizationsBehaviorIsAdmittedBeforeItIsLowered(t *testing.T) {
@@ -111,6 +115,17 @@ func TestARealizationsBehaviorIsAdmittedBeforeItIsLowered(t *testing.T) {
 		{"a cause bound with no bound", func(_ *testing.T, r *umpirespb.Realization) { r.Behavior.Causes[2].Bound = nil },
 			admBehaviorAt + ":50: realization asyncNexus: cause bound cause.timer declares no bound"},
 
+		// Attempts are numbered from a positive first number, and the limits of an instruction that
+		// writes none are positive.
+		{"attempts numbered from zero", func(_ *testing.T, r *umpirespb.Realization) {
+			r.Behavior.AttemptNumbering = &umpirespb.AttemptNumbering{Position: behaviorAt(70), OneRun: true}
+		}, admBehaviorAt + ":70: realization asyncNexus: attempts are numbered from 0; the first attempt's number is positive"},
+		{"an instruction default of no attempts", func(_ *testing.T, r *umpirespb.Realization) {
+			r.Behavior.InstructionDefaults = &umpirespb.InstructionLimit{Position: behaviorAt(71), TimeoutMs: 10000}
+		}, admBehaviorAt + ":71: realization asyncNexus: an instruction that writes no limits takes 10000 ms and 0 attempts; both are positive"},
+		{"an instruction default of no time", func(_ *testing.T, r *umpirespb.Realization) {
+			r.Behavior.InstructionDefaults = &umpirespb.InstructionLimit{Position: behaviorAt(72), Attempts: 1}
+		}, admBehaviorAt + ":72: realization asyncNexus: an instruction that writes no limits takes 0 ms and 1 attempts; both are positive"},
 		// A bound and its interval are positive, and the interval is no greater than the bound.
 		{"an interval of zero", func(_ *testing.T, r *umpirespb.Realization) { r.Behavior.Causes[0].Bound.IntervalMs = 0 },
 			admBehaviorAt + ":31: realization asyncNexus: cause bound cause.workflowTask looks every 0 milliseconds; an interval is positive"},

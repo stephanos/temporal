@@ -10,8 +10,8 @@ Profile; a resource-free Program references none. The Case owns the IDs and rela
 owns their physical values. Symbolic endpoint IDs are not transport addresses, and bindings grant no
 capabilities. Preparation also derives what a Case no longer writes: an instruction's outcome fields
 follow from its instruction, the worker activations a reservation carrier reserves follow from the
-Profile's carriers, and an instruction limit the Case omits takes the Profile's
-`InstructionDefaults`.
+Profile's carriers, and an instruction limit the Case omits takes the Program's declared
+`instruction_defaults`, or else the Profile's `InstructionDefaults`.
 
 `Prepare` performs static admission without Driver I/O, snapshots the Case and Profile, resolves
 private prepared resources, and includes the complete binding fingerprint in Prepared Case identity.
@@ -75,9 +75,9 @@ Correlated Contract that admits no evidence answers inconclusive: silence is not
 
 A Program declares each kind of that evidence once, in `Program.evidence`: the recorded data it is
 read from, the Run coordinates that scope it, the path of its operation key and the fields it
-exposes. The source is one of three. A history event kind is an arm of the recorded `HistoryEvent`'s
-attributes oneof, lifted by a history read whose rule names the declaration (`evidence_id`) and
-spells nothing else. A Run Event kind is lifted by the runtime as it records the event, out of the
+exposes. The source is one of three. A history event kind is a member of the oneof of the event the
+Program's history read yields, lifted by a history read whose rule names the declaration
+(`evidence_id`) and spells nothing else. A Run Event kind is lifted by the runtime as it records the event, out of the
 event's payload: an injected fault becomes `faultInjected` evidence keyed by the role it stopped. A
 read is a repeated field in the response of a unary RPC, polled from a controller by a
 `ReadEvidence` instruction until an element satisfies its `until` or the instruction times out, and
@@ -114,6 +114,28 @@ declarations by kind, so the kind, source, key path and fields are written once 
 a reference to an undeclared kind, the same recorded kind declared twice under a source and key
 path, or a source the Run and an instruction would both count, rejects at preparation. A Program
 that declares nothing keeps the spelled-out lift rules, which slot-bound reads still use.
+
+Where one operation's evidence comes from more than one source, only a causal parent orders it
+across them. The runtime names the operation's previously lifted evidence from another source as
+that parent only where the Program declares `run_order_is_causal`, the Producer's claim that the
+Run's record order is causal; a Program that does not declare it orders its evidence by each
+source's ordinals alone.
+
+## What the Case declares about the system it runs against
+
+Testpilot assumes nothing about the system beyond what a Case declares. Besides the evidence
+declarations and the causal run order above:
+
+- **Attempt numbering.** An activity entrypoint declares how the system numbers its attempts in
+  `ActivityActivation.attempt_numbering`: the reservation at position N, counted from 0, is the
+  attempt numbered `first + N`, and with `one_run` every attempt names the run the first one named.
+  Each reservation's outcome is judged by it, and preparation refuses an activity entrypoint that
+  declares none, or a first number below 1. A Driver may refuse a numbering it cannot route: the
+  Temporal Driver routes only attempts numbered from 1 in one run.
+- **Instruction limits.** An instruction's timeout and attempts are each its own `limits`, else the
+  Program's declared `instruction_defaults`, else the Profile's `InstructionDefaults`; an
+  instruction none of them covers is refused at preparation. A Temporal Case declares its defaults,
+  and a Temporal Profile has none of its own.
 
 ## How a Run is judged
 

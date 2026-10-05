@@ -453,7 +453,11 @@
         ],
         "operation": "attributes<workflow_execution_completed_event_attributes>.workflow_task_completed_event_id"
       }
-    ]
+    ],
+    "instructionDefaults": {
+      "timeoutMilliseconds": "10000",
+      "maxAttempts": "1"
+    }
   },
   "contract": {
     "contractId": "temporal.case.workerOutageTests.survived.contract",

@@ -122,21 +122,29 @@ func compareOriginalCases(expected, actual map[string][]byte, labels ...string) 
 }
 
 // underivedCases gives a tree of Cases with each Case lowered from an IR file the delta lists derived
-// waits of, by its manifest entry, without the waits the lowering derives for them (Waits.Case). Every
+// waits of, by its manifest entry, without the waits the lowering derives for them (Waits.Case), and
+// each lowered Case of a current tree without the members an API behavior declares
+// (Declared.Current); a lowered Case of a baseline tree must carry none (Declared.Baseline). Every
 // other byte of every file stays, the manifest's among them.
-func underivedCases(delta golden.Delta, cases map[string][]byte) (map[string][]byte, error) {
+func underivedCases(delta golden.Delta, cases map[string][]byte, current bool) (map[string][]byte, error) {
 	manifest, err := lower.DecodeManifest(cases[golden.OriginalCases+"manifest.json"])
 	if err != nil {
 		return nil, err
 	}
 	out := maps.Clone(cases)
+	declared := delta.Declared().Baseline
+	if current {
+		declared = delta.Declared().Current
+	}
 	for _, e := range manifest.Queries {
-		waits := delta.Waits(golden.OriginalIR + e.Model)
 		key := golden.OriginalCases + e.File
-		if e.Standing != lower.Lowered || len(waits) == 0 {
+		if e.Standing != lower.Lowered {
 			continue
 		}
-		if out[key], err = waits.Case(cases[key]); err != nil {
+		if out[key], err = delta.Waits(golden.OriginalIR + e.Model).Case(cases[key]); err != nil {
+			return nil, fmt.Errorf("%s: %w", key, err)
+		}
+		if out[key], err = declared(out[key]); err != nil {
 			return nil, fmt.Errorf("%s: %w", key, err)
 		}
 	}
@@ -209,7 +217,9 @@ func ungeneratedCases(delta golden.Delta, cases map[string][]byte) (map[string][
 // model/ir lowers to, and those, without the generated Queries the delta lists, to the archived Cases:
 // when the delta attaches entities or replaces claims, to the Cases the baseline lowers to with
 // exactly that delta. The baseline keeps its explicit waits, so a Case of an IR file with derived
-// waits is compared on both sides without the waits of the instructions they name (underivedCases).
+// waits is compared on both sides without the waits of the instructions they name, and a baseline
+// declares no API behavior, so each current Case is compared without the members it declares
+// (underivedCases).
 func TestOriginalBaselineCases(t *testing.T) {
 	in := readOriginalLowering(t)
 	expected := casesOf(in.archived)
@@ -222,9 +232,9 @@ func TestOriginalBaselineCases(t *testing.T) {
 	require.NoError(t, compareOriginalCases(lowered, casesOf(in.current)), "checked in as lowered from the current IR")
 	ungenerated, err := ungeneratedCases(in.delta, lowered)
 	require.NoError(t, err)
-	want, err := underivedCases(in.delta, expected)
+	want, err := underivedCases(in.delta, expected, false)
 	require.NoError(t, err)
-	got, err := underivedCases(in.delta, ungenerated)
+	got, err := underivedCases(in.delta, ungenerated, true)
 	require.NoError(t, err)
 	require.NoError(t, compareOriginalCases(want, got, labels...), "lowered from the current IR")
 	require.NoError(t, compareOriginalCases(ungenerated, generatedCases(t, in.ungenerated)), "the generated Queries are all the tree adds")
@@ -294,26 +304,30 @@ func TestOriginalBaselineCasesRejectChanges(t *testing.T) {
 	}
 
 	// A Case of an IR file with derived waits is compared without the waits of the instructions they
-	// name, and with every other byte.
+	// name, a current Case without the members its realization's API behavior declares, and each with
+	// every other byte.
 	current := casesOf(in.current)
 	const nexus = golden.OriginalCases + "nexus-caller-retry-case.json"
+	const activity = golden.OriginalCases + "activity-completion-case.json"
 	compare := func(changed map[string][]byte) error {
-		want, err := underivedCases(in.delta, current)
+		want, err := underivedCases(in.delta, current, true)
 		if err != nil {
 			return err
 		}
-		got, err := underivedCases(in.delta, changed)
+		got, err := underivedCases(in.delta, changed, true)
 		if err != nil {
 			return err
 		}
 		return compareOriginalCases(want, got)
 	}
-	replaced := func(old, replacement string) func(map[string][]byte) {
+	replacedIn := func(key, old, replacement string) func(map[string][]byte) {
 		return func(m map[string][]byte) {
-			require.Contains(t, string(m[nexus]), old)
-			m[nexus] = bytes.Replace(m[nexus], []byte(old), []byte(replacement), 1)
+			require.Contains(t, string(m[key]), old)
+			m[key] = bytes.Replace(m[key], []byte(old), []byte(replacement), 1)
 		}
 	}
+	replaced := func(old, replacement string) func(map[string][]byte) { return replacedIn(nexus, old, replacement) }
+	const defaults, numbering = `"instructionDefaults":{"timeoutMilliseconds":"10000","maxAttempts":"1"}`, `"attemptNumbering":{"first":"1","oneRun":true}`
 	scheduled := `"pollIntervalMilliseconds":"250"}},"limits":{"timeoutMilliseconds":"5000"}`
 	for name, c := range map[string]struct {
 		change   func(map[string][]byte)
@@ -324,6 +338,17 @@ func TestOriginalBaselineCasesRejectChanges(t *testing.T) {
 		"listed evidence": {change: replaced(`"evidenceId":"evidence.scheduled","endpointRoleId"`, `"evidenceId":"evidence.started","endpointRoleId"`)},
 		"listed until":    {change: replaced(`"path":"attributes<nexus_operation_scheduled_event_attributes>"}}}},`+scheduled, `"path":"attributes<nexus_operation_started_event_attributes>"}}}},`+scheduled)},
 		"unlisted limits": {change: replaced(`{"instructionId":"await-close",`, `{"instructionId":"await-close","limits":{"timeoutMilliseconds":"5000"},`)},
+		"declared members": {change: func(m map[string][]byte) {
+			replacedIn(activity, defaults, `"instructionDefaults":{"timeoutMilliseconds":"20000"}`)(m)
+			replacedIn(activity, numbering, `"attemptNumbering":{"first":"0"}`)(m)
+		}, admitted: true},
+		"declared members dropped": {change: func(m map[string][]byte) {
+			replacedIn(activity, `,`+defaults+`,"runOrderIsCausal":true`, ``)(m)
+			replacedIn(activity, `,`+numbering, ``)(m)
+		}, admitted: true},
+		"unlisted Program member":    {change: replacedIn(activity, `"runOrderIsCausal":true`, `"runOrderIsCausal":true,"runOrderIsStrict":true`)},
+		"unlisted activity member":   {change: replacedIn(activity, numbering, numbering+`,"attemptLimit":"3"`)},
+		"byte beside a declared one": {change: replacedIn(activity, `"taskQueueRoleId":"temporal.task-queue",`+numbering, `"taskQueueRoleId":"temporal.other-queue",`+numbering)},
 		"waits of an unlisted IR file": {change: func(m map[string][]byte) {
 			const operation = golden.OriginalCases + "nexus-operation-nexusOperation.terminateSettles-case.json"
 			require.Contains(t, string(m[operation]), `"once":true`)
@@ -344,31 +369,37 @@ func TestOriginalBaselineCasesRejectChanges(t *testing.T) {
 
 // reading is how deriveExplorations reads the explorations of the Model of one archive key: each
 // candidate Model as the delta projects that side of the comparison, and each candidate Case without
-// the waits the delta lists as derived for the key.
+// the waits the delta lists as derived for the key, and on the current side without the members an
+// API behavior declares, which a baseline candidate Case must not carry.
 type reading struct {
-	project func(*umpirespb.Model) (*umpirespb.Model, error)
-	waits   golden.Waits
+	project  func(*umpirespb.Model) (*umpirespb.Model, error)
+	waits    golden.Waits
+	declared func([]byte) ([]byte, error)
 }
 
 func readingOf(delta golden.Delta, key string, current bool) reading {
 	project := func(m *umpirespb.Model) (*umpirespb.Model, error) { return delta.ProjectBaseline(key, m) }
+	declared := delta.Declared().Baseline
 	if current {
 		project = func(m *umpirespb.Model) (*umpirespb.Model, error) { return delta.ProjectCurrent(key, m) }
+		declared = delta.Declared().Current
 	}
-	return reading{project: project, waits: delta.Waits(key)}
+	return reading{project: project, waits: delta.Waits(key), declared: declared}
 }
 
 // frozenDelta is the delta the archive's derived outputs were captured under, before it listed derived
-// waits: it reads every candidate Model and Case with its waits, as the archive does.
+// waits and declared members: it reads every candidate Model and Case with its waits and every
+// member, as the archive does.
 func frozenDelta(delta golden.Delta) golden.Delta {
-	delta.DerivedWaits = nil
+	delta.DerivedWaits, delta.DeclaredMembers = nil, nil
 	return delta
 }
 
 // deriveExplorations streams every exploration of one Model: its plan, and each candidate and
 // reduction with its lowered Case. A candidate's own digest covers positions and Function names, so
 // the candidate is named by the digest of its Model as the comparison reads it, everywhere its
-// digest appears, and its Case, without the derived waits, is identified again from those bytes.
+// digest appears, and its Case, without the derived waits and, on the current side, the declared
+// members, is identified again from those bytes.
 func deriveExplorations(m *umpirespb.Model, read reading, s *golden.Stream) error {
 	label := m.GetSource()
 	for _, query := range m.GetQueries() {
@@ -400,6 +431,9 @@ func deriveExplorations(m *umpirespb.Model, read reading, s *golden.Stream) erro
 				}
 				encoded = golden.Located(bytes.ReplaceAll(encoded, []byte(c.Digest), []byte(digest)), label)
 				if encoded, err = read.waits.Case(encoded); err != nil {
+					return err
+				}
+				if encoded, err = read.declared(encoded); err != nil {
 					return err
 				}
 				if named.Identity, err = recordedrun.CaseIdentity(encoded); err != nil {
@@ -455,8 +489,8 @@ func TestCaptureOriginalBaseline(t *testing.T) {
 // TestOriginalBaselineExplorations holds every exploration of the current Models, its candidates,
 // reductions and their Cases, to the original baseline's: of the current Models without the generated
 // claims the delta lists, since a candidate is a whole Model, to the baseline's with the delta. Each
-// side's candidates are read without the waits the delta lists as derived, which the archive, captured
-// before, still reads.
+// side's candidates are read without the waits the delta lists as derived, and the current side's
+// without the members an API behavior declares, which the archive, captured before, still reads.
 func TestOriginalBaselineExplorations(t *testing.T) {
 	if *captureOriginal != "" {
 		t.Skip("capture is separate from verification")
@@ -466,8 +500,8 @@ func TestOriginalBaselineExplorations(t *testing.T) {
 	require.NoError(t, err)
 	expected = in.delta.ComparedOutputs(expected)
 	// The archive reads every wait, so with derived waits the expected explorations are derived again
-	// too, read without them.
-	if in.delta.Rederives() || len(in.delta.DerivedWaits) > 0 {
+	// too, read without them; with declared members, so the current side is read without them.
+	if in.delta.Rederives() || len(in.delta.DerivedWaits) > 0 || len(in.delta.DeclaredMembers) > 0 {
 		require.NoError(t, golden.CompareDerived(expected, explorationDigests(t, in.baselines, frozenDelta(in.delta), false), nil),
 			"the archive explores as it was frozen")
 		expected = explorationDigests(t, in.expected, in.delta, false)
@@ -514,9 +548,10 @@ func TestOriginalBaselineExplorationsRejectChanges(t *testing.T) {
 }
 
 // TestOriginalBaselineExplorationsReadOnlyTheDerivedWaits reads the Nexus caller, whose realization
-// leaves the listed waits to the API behavior: they enter its candidate Models and Cases, so the
-// archive's reading tells the current Model from the baseline, and the reading without them does not.
-// A wait the delta does not list is still read.
+// leaves the listed waits to the API behavior and declares the listed Case members: they enter its
+// candidate Models and Cases, so the archive's reading tells the current Model from the baseline, and
+// the reading without them does not, while a reading with the waits but not the members does. A wait
+// the delta does not list is still read.
 func TestOriginalBaselineExplorationsReadOnlyTheDerivedWaits(t *testing.T) {
 	const key = golden.OriginalIR + "nexus-caller.json"
 	in := readOriginalLowering(t)
@@ -526,7 +561,10 @@ func TestOriginalBaselineExplorationsReadOnlyTheDerivedWaits(t *testing.T) {
 	frozen := frozenDelta(in.delta)
 	require.NotEqual(t, digest(frozen, in.expected[key], false), digest(frozen, in.ungenerated[key], true), "the waits enter the candidates")
 	baseline := digest(in.delta, in.expected[key], false)
-	require.Equal(t, baseline, digest(in.delta, in.ungenerated[key], true), "read without the listed waits")
+	require.Equal(t, baseline, digest(in.delta, in.ungenerated[key], true), "read without the listed waits and members")
+	undeclared := in.delta
+	undeclared.DeclaredMembers = nil
+	require.NotEqual(t, baseline, digest(undeclared, in.ungenerated[key], true), "the declared members enter the candidate Cases")
 	changed := proto.CloneOf(in.ungenerated[key])
 	var closing *umpirespb.Command
 	for _, r := range changed.GetRealizations() {

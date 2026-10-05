@@ -253,24 +253,31 @@ type startBinding struct {
 	activity ActivityBinding
 }
 
-// carries reports whether plan is one the start can carry: a workflow start carries workflows and
-// the Nexus handlers and activities they reach, and an activity start the activations of the one
-// activity it starts; an activity's are one per attempt.
+// Carried names the reservation carriers the Temporal Driver realizes and the entrypoint kinds each
+// delivers, the one table the Driver's Profile derivation and this ledger read: a workflow start
+// carries the reservations of the workflow it starts and of the Nexus handlers and activities that
+// workflow schedules, and an activity start the reservations of the activity it starts; an
+// activity's are one per attempt.
+var Carried = map[string][]testpilot.EntrypointKind{
+	primitive.StartWorkflowPath: {testpilot.WorkflowEntrypoint, testpilot.NexusHandlerEntrypoint, testpilot.ActivityEntrypoint},
+	StartActivityPath:           {testpilot.ActivityEntrypoint},
+}
+
+// carries reports whether plan is one the start can carry: its method is the start's, and each of its
+// reservations of a kind Carried says the method delivers; an activity start carries the one activity
+// it starts, with no route.
 func (b startBinding) carries(plan testpilot.ReservationCarrierPlan) bool {
-	switch b.kind {
-	case workflowRoute:
-		if plan.Method != primitive.StartWorkflowPath || !validBinding(b.workflow) {
+	for _, reservation := range plan.Reservations {
+		if !slices.Contains(Carried[plan.Method], reservation.Kind) {
 			return false
 		}
-		for _, reservation := range plan.Reservations {
-			if reservation.Kind != testpilot.WorkflowEntrypoint && reservation.Kind != testpilot.NexusHandlerEntrypoint && reservation.Kind != testpilot.ActivityEntrypoint {
-				return false
-			}
-		}
-		return true
+	}
+	switch b.kind {
+	case workflowRoute:
+		return plan.Method == primitive.StartWorkflowPath && validBinding(b.workflow)
 	case activityRoute:
 		return plan.Method == StartActivityPath && validActivityBinding(b.activity) && len(plan.Routes) == 0 &&
-			len(plan.Reservations) == 1 && plan.Reservations[0].Kind == testpilot.ActivityEntrypoint && plan.Reservations[0].Count >= 1
+			len(plan.Reservations) == 1 && plan.Reservations[0].Count >= 1
 	default:
 		return false
 	}

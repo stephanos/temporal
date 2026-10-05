@@ -107,8 +107,8 @@ type Lowering struct {
 	// Unrealized is whether a Query is a find Query whose Scenario's machine no realization runs: the
 	// manifest's `no-realization` standing.
 	Unrealized func(q *umpirespb.Query, scenario *umpirespb.Scenario, realizations []*umpirespb.Realization) (bool, error)
-	// Element is the message one piece of a kind of evidence is read as.
-	Element func(e *umpirespb.Evidence) (protoreflect.MessageDescriptor, error)
+	// Element is the message one piece of a kind of evidence of a realization is read as.
+	Element func(r *umpirespb.Realization, e *umpirespb.Evidence) (protoreflect.MessageDescriptor, error)
 	// Field is the field a realization's path reaches in a message.
 	Field func(at *umpirespb.Position, md protoreflect.MessageDescriptor, path string) (protoreflect.FieldDescriptor, error)
 }

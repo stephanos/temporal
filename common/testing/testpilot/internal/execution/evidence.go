@@ -13,10 +13,6 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-// historyEventMessage is the recorded event a history declaration reads, whose attributes oneof
-// names the kind.
-const historyEventMessage = "temporal.api.history.v1.HistoryEvent"
-
 // bindEvidence admits the Program's evidence declarations: each identity once, each recorded kind
 // once under a source and key path, every path typed against the recorded value its source
 // supplies. A declaration a Run Event feeds is lifted by the scheduler as it records the event; a
@@ -34,6 +30,7 @@ func (a *admission) bindEvidence(p *testpilotspb.Program) error {
 			a.prepared.correlatedObservationID = observation.ID
 		}
 	}
+	a.historyEvent, a.historyRead = historyRead(a.prepared.catalog, p, a.expressionLimits())
 	sources := map[string][]*evidenceDeclaration{}
 	for index, source := range p.Evidence {
 		location := fmt.Sprintf("program.evidence[%d]", index)
@@ -83,17 +80,20 @@ func (a *admission) bindEvidenceDeclaration(location string, source *testpilotsp
 	switch recorded := source.Source.(type) {
 	case *testpilotspb.EvidenceDeclaration_HistoryEvent:
 		bound.kind = HistoryEventSource
-		element, err := a.prepared.catalog.BindType(namedMessageType(historyEventMessage))
-		if err != nil {
-			return nil, err
+		// The recorded event is what the Program's history read reads: the Case names no event
+		// message of its own, so none is assumed.
+		if !a.historyRead {
+			return nil, ir.Invalid(ir.Unknown, location+".history_event", "history evidence requires a read that lifts it")
 		}
+		element := a.historyEvent
 		arm := recorded.HistoryEvent.GetAttributesField()
-		oneof := element.Message().Oneofs().ByName("attributes")
-		if oneof == nil || oneof.Fields().ByName(protoreflect.Name(arm)) == nil {
+		member := element.Message().Fields().ByName(protoreflect.Name(arm))
+		if member == nil || member.ContainingOneof() == nil {
 			return nil, ir.Invalid(ir.Unknown, location+".history_event.attributes_field", "history evidence requires an attributes arm of the recorded event")
 		}
 		bound.element, bound.attributesField = element, arm
-		bound.guard, err = a.liftGuard(location+".history_event", element, presentExpression(projectedPath("attributes<"+arm+">")))
+		var err error
+		bound.guard, err = a.liftGuard(location+".history_event", element, presentExpression(projectedPath(string(member.ContainingOneof().Name())+"<"+arm+">")))
 		if err != nil {
 			return nil, err
 		}
@@ -214,8 +214,49 @@ func (a *admission) liftGuard(location string, element ir.Type, source *testpilo
 	return a.prepared.catalog.BindExpression(ir.Site{Context: ir.EvidenceLiftContext, Path: location}, source, &boolean, projected, a.expressionLimits())
 }
 
-func namedMessageType(name string) *testpilotspb.ValueType {
-	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: name}}}}}
+// historyRead is the history event of a Program: the message its response reads that lift a
+// declaration by name yield, each the element its path reads in its method's response. A read
+// preparation refuses is left out here and refused where its instruction is bound, and so is one that
+// yields another message than the first (bindDeclaredRule).
+func historyRead(catalog *ir.Catalog, p *testpilotspb.Program, limits ir.Limits) (ir.Type, bool) {
+	nodes := slices.Clone(p.GetCleanup().GetInstructions())
+	for _, entrypoint := range p.GetEntrypoints() {
+		nodes = append(nodes, entrypoint.GetInstructions()...)
+	}
+	for _, n := range nodes {
+		rpc := n.GetInstruction().GetInvokeRpc()
+		if rpc == nil {
+			continue
+		}
+		method, err := catalog.Method(rpc.GetMethod())
+		if err != nil {
+			continue
+		}
+		output, err := messageType(catalog, method.Output())
+		if err != nil {
+			continue
+		}
+		for _, read := range rpc.GetResponseReads() {
+			names := slices.ContainsFunc(read.GetTargets(), func(t *testpilotspb.ReadTarget) bool {
+				return slices.ContainsFunc(t.GetCorrelatedEvidence().GetRules(), func(r *testpilotspb.CorrelatedEvidenceRule) bool { return r.GetEvidenceId() != "" })
+			})
+			if !names {
+				continue
+			}
+			path, err := catalog.BindPath(output, "", read.GetPath(), limits)
+			if err != nil {
+				continue
+			}
+			typ := path.Type()
+			if read.GetCardinality() == testpilotspb.READ_CARDINALITY_EMIT_EACH && typ.Cardinality() == ir.Repeated {
+				typ = typ.Element()
+			}
+			if typ.Cardinality() == ir.Singular && typ.Message() != nil {
+				return typ, true
+			}
+		}
+	}
+	return ir.Type{}, false
 }
 func presentExpression(operand *testpilotspb.Expression) *testpilotspb.Expression {
 	return &testpilotspb.Expression{Expression: &testpilotspb.Expression_Present{Present: &testpilotspb.PresentExpression{Operand: operand}}}

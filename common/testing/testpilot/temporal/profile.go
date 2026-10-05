@@ -2,6 +2,7 @@ package temporal
 
 import (
 	"cmp"
+	"fmt"
 	"slices"
 	"strings"
 
@@ -80,13 +81,6 @@ func configurationOf(environment Environment) ([]testpilot.ConfigurationValue, e
 	return values, nil
 }
 
-// DefaultInstructionLimits returns the limits a Temporal Profile gives an instruction that writes
-// none: the most common timeout and attempts across the checked-in Temporal Cases when the defaults
-// were introduced. An instruction with any other value writes it.
-func DefaultInstructionLimits() testpilot.InstructionDefaults {
-	return testpilot.InstructionDefaults{TimeoutMilliseconds: 10000, MaxAttempts: 1}
-}
-
 // DefaultCeilings returns fresh copies of the Temporal Profile's resource ceilings: the Program,
 // Contract and correlated limits every Temporal Profile admits a Case under. A Case declares none of
 // them. Each ceiling is the largest value any checked-in Temporal Case declared when the bounds moved
@@ -116,8 +110,9 @@ func DefaultCeilings() (*testpilotspb.ProgramLimits, *testpilotspb.ContractLimit
 // opcodes its instructions require, the environment values its referenced bindings resolve to, and
 // the dynamic configuration and bound scale the environment runs under. Nothing is widened beyond
 // what the Case references, and anything the Case names that the catalog does not know is an error
-// rather than a silently authorized surface. Its resource ceilings are DefaultCeilings and its instruction
-// defaults DefaultInstructionLimits.
+// rather than a silently authorized surface. Its resource ceilings are DefaultCeilings. It has no
+// instruction defaults: the limits of an instruction that writes none are the Case's to declare
+// (Program.instruction_defaults), and a Case that declares none leaves such an instruction refused.
 //
 // The Profile stays an authorization snapshot, so the derived value is returned for the caller to
 // review and tighten before Prepare rather than applied on its behalf.
@@ -158,7 +153,6 @@ func DeriveProfile(source *testpilotspb.Case, catalog *testpilot.Catalog, enviro
 		ProgramLimits:       programLimits,
 		ContractLimits:      contractLimits,
 		CorrelatedLimits:    correlatedLimits,
-		InstructionDefaults: DefaultInstructionLimits(),
 		BoundScale:          environment.BoundScale,
 		DeliveryControl:     environment.DeliveryControl,
 	}, nil
@@ -244,6 +238,9 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.En
 			usage.reservable[kind]++
 		case testpilot.ActivityEntrypoint:
 			activity := entrypoint.GetActivity()
+			if err := implementsNumbering(entrypoint.GetEntrypointId(), activity.GetAttemptNumbering()); err != nil {
+				return nil, err
+			}
 			if scheduled[scheduledActivity{activityType: activity.GetActivityType(), queueRole: activity.GetTaskQueueRoleId()}] {
 				usage.scheduledAttempts += int64(len(entrypoint.GetInstructions()))
 			} else {
@@ -271,13 +268,19 @@ func deriveUsage(program *testpilotspb.Program, contexts map[string]testpilot.En
 	return usage, nil
 }
 
-// carried names the reservation carriers the Temporal Driver realizes and the entrypoint kinds each
-// delivers: a workflow start carries the reservations of the workflow it starts and of the Nexus
-// handlers and activities that workflow schedules, and an activity start the reservations of the
-// activity it starts; an activity's are one per attempt.
-var carried = map[string][]testpilot.EntrypointKind{
-	primitive.StartWorkflowPath: {testpilot.WorkflowEntrypoint, testpilot.NexusHandlerEntrypoint, testpilot.ActivityEntrypoint},
-	delivery.StartActivityPath:  {testpilot.ActivityEntrypoint},
+// implementedNumbering is how the Driver's delivery ledger numbers an activity's attempts: the Nth
+// reservation is the attempt the server numbers N, and every attempt names the run of the first.
+var implementedNumbering = &testpilotspb.AttemptNumbering{First: 1, OneRun: true}
+
+// implementsNumbering refuses an activity entrypoint whose declared attempt numbering is not the one
+// the Driver implements, naming the declaration: the Case says how the server numbers attempts, and
+// the Driver can only route attempts it numbers the same way.
+func implementsNumbering(entrypointID string, declared *testpilotspb.AttemptNumbering) error {
+	if declared.GetFirst() == implementedNumbering.GetFirst() && declared.GetOneRun() == implementedNumbering.GetOneRun() {
+		return nil
+	}
+	return fmt.Errorf("%w: activity entrypoint %s declares attempts numbered from %d, one run %t; the Temporal Driver routes attempts numbered from %d, one run %t",
+		ErrInvalid, entrypointID, declared.GetFirst(), declared.GetOneRun(), implementedNumbering.GetFirst(), implementedNumbering.GetOneRun())
 }
 
 // scheduledActivity names an activity a workflow's schedule command reaches: its type on its
@@ -345,7 +348,7 @@ func (u *programUsage) add(instruction *testpilotspb.InstructionNode, controller
 		return nil
 	}
 	shapes := map[testpilot.EntrypointKind]int64{}
-	for _, kind := range carried[key.method] {
+	for _, kind := range delivery.Carried[key.method] {
 		if count := u.reservableBy(key.method, kind); count > 0 {
 			shapes[kind] = count
 		}
