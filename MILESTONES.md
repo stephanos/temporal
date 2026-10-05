@@ -87,7 +87,7 @@ Gate: starts after fn-124.5 lands; never alongside fn-124.8; closes before fn-12
 
 ### fn-124: Shrink and simplify the Umpire Go tooling
 
-Gates: task 3 after fn-118; task 4 beside task 3; task 5 after fn-127.1 and before fn-126.1 starts; task 7 after fn-114, fn-122 and fn-126 close (fn-120 is closed); task 8 last, never alongside fn-126 or fn-127.
+Gates: task 5 lands before fn-126.1 starts; task 7 after fn-126 closes (fn-114, fn-120 and fn-122 are closed); task 8 last, never alongside fn-126.
 
 | Task | Status | What |
 | --- | --- | --- |
