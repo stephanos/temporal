@@ -4,6 +4,8 @@ satisfies: [R9, R10, R11, R18, R19, R20]
 # fn-126-read-each-feature-top-to-bottom-one.8 Rename batch, level-name lint, Product and System docs; close
 
 ## Description
+Also: rename the Nexus caller's `ForgedCompletion` object and its machine to `Placebo`/`placebo` (decision 17, moved here from task 5).
+
 Also decision 28's task-8 items: Scenario names from their `val`, and the intent note in each feature header and `AGENTS.md`.
 
 Task 6c of the split closing batch: the R18 rename batch with decision 19 and the task-queue rows, R20 (b) level names, R10 retired names, R19 and R9 docs, R11 evidence, and close the spec. Carry-forward constraints (`.flow/tmp/fn-126/carry-forward.md`): `callerSide.close`/`handlerSide.finish` (a recorded deviation), `reply` into `Inputs.reply` in both Nexus features, `result` stays top-level (fix the sketch). Prove with a name map applied to the before-IR and `projtool`. Scope the R10 retired-name check to `model/`, `tools/{umpire,canary}`, `tests/testcore/testpilot`, `common/testing/testpilot` and the R9 docs, word-bounded. Plan sections 3-4.
