@@ -877,6 +877,19 @@ method descriptor (`WorkflowServiceGrpc.METHOD_*`), which every realization make
 standalone activity and `jobsCode` in a lifter fixture; each was `null` at run time, where only the
 lifter, which reads the trees, had read it.
 
+### Starting a new feature
+
+Copy the template, `model/irgen/testdata/layout/lamp/`, to `model/temporal/features/<feature>/`, and
+name its feature file after the folder and its machines after the feature. A feature whose Models
+include a refinement pair keeps its types, signature and `object exports` in that file, its Product
+in `product/Product.scala`, and its System in `system/System.scala` with each zoom-in in a file of its
+own beside it; a feature of one level keeps its machines in its feature file and has neither folder.
+The structure lint (`model/irgen/Structure.scala`, fn-126 R20) refuses any other layout, and an
+object in a machine object named other than `states`, `refinement`, `effects`, `monitors`, `rules`,
+`syncs`, `properties`, `implements` or `queries`; its refusal fixtures are under
+`model/irgen/testdata/layoutRefusals/`. Until the Models move into their levels (fn-126.6), it holds
+only a feature that has a `product/` or `system/` folder.
+
 ### Capabilities and their laws
 
 A capability is what an entity can do, declared on its machine as a binding of a protocol's
