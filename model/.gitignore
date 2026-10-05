@@ -1,4 +1,6 @@
 /build/
+# The build cache had this name before fn-114.9; a checkout may hold it until it is cleaned.
+/gen/
 .scala-build/
 .bsp/
 # scalafix writes the semantic database of a source one project takes from another, as the IR

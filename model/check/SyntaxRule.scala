@@ -237,7 +237,7 @@ private[check] object SyntaxRule:
     val base = root.resolve(directory)
     if !Files.isDirectory(base) then Vector.empty
     else
-      val skipped = Set("test", "testdata", "gen", ".scala-build", ".bsp")
+      val skipped = Set("test", "testdata", "build", ".scala-build", ".bsp")
       val stream = if recursive then Files.walk(base) else Files.list(base)
       try
         stream.iterator.asScala

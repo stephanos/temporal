@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 
@@ -180,4 +181,27 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 	// folder named from model/; neither is one.
 	require.Empty(t, retiredModelMentions("common/testing/testpilot/temporal/worker/api.go", "package worker"))
 	require.Empty(t, retiredModelMentions("common/testing/testpilot/README.md", "(`temporal/worker/outage.go`)"))
+}
+
+// A build cache under model/, the current one or a stale one of the old name, is read by no check:
+// it holds copies of fixtures and generated sources as they were when it was built.
+func TestModelFilesLeaveOutTheBuildCaches(t *testing.T) {
+	root := t.TempDir()
+	files := map[string]string{
+		"model/temporal/A.scala":                             "package temporal",
+		"model/build/history/x/A.scala":                      "import temporal.worker.*",
+		"model/gen/history/lifter.1/A.scala":                 "import temporal.standaloneactivity.*",
+		"model/gen/model-scala.classpath":                    "/repo/model/gen/model-scala.jar",
+		"model/temporal/features/gen/Generated.scala":        "package gen",
+		"model/temporal/features/build/.scala-build/x.scala": "x",
+	}
+	for rel, content := range files {
+		require.NoError(t, os.MkdirAll(filepath.Join(root, filepath.Dir(rel)), 0o755))
+		require.NoError(t, os.WriteFile(filepath.Join(root, rel), []byte(content), 0o644))
+	}
+	var visited []string
+	require.NoError(t, modelFilesUnder(root, func(rel, _ string) { visited = append(visited, rel) }))
+	slices.Sort(visited)
+	require.Equal(t, []string{"model/temporal/A.scala", "model/temporal/features/gen/Generated.scala"}, visited,
+		"only model/'s own build caches are left out, not a folder of the same name deeper down")
 }

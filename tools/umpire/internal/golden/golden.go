@@ -268,8 +268,8 @@ func (c Config) movedTo(root string) error {
 	return nil
 }
 
-// moved gives the inventory paths of underBase under the directories PathMoves moved them to.
-func (c Config) moved(paths map[string]string) map[string]string {
+// movedInventory gives the inventory paths of underBase under the directories PathMoves moved them to.
+func (c Config) movedInventory(paths map[string]string) map[string]string {
 	out := make(map[string]string, len(paths))
 	for path, entry := range paths {
 		out[c.MovedPath(path)] = entry
@@ -277,46 +277,33 @@ func (c Config) moved(paths map[string]string) map[string]string {
 	return out
 }
 
-// MovedPath gives path under the directory PathMoves moved it to, or path when none did.
-func (c Config) MovedPath(path string) string {
-	for _, m := range c.PathMoves {
-		if rest, ok := strings.CutPrefix(path, m.Old); ok {
-			return m.New + rest
+// moved gives s with the prefix of the first move that names it replaced: from Old to New forward,
+// from New to Old backward. s is kept when no move names it.
+func moved(moves []Substitution, s string, forward bool) string {
+	for _, m := range moves {
+		from, to := m.New, m.Old
+		if forward {
+			from, to = m.Old, m.New
+		}
+		if rest, ok := strings.CutPrefix(s, from); ok {
+			return to + rest
 		}
 	}
-	return path
+	return s
 }
 
+// MovedPath gives path under the directory PathMoves moved it to, or path when none did.
+func (c Config) MovedPath(path string) string { return moved(c.PathMoves, path, true) }
+
 // unmovedPath gives a current path under the directory it had before PathMoves moved it.
-func (c Config) unmovedPath(path string) string {
-	for _, m := range c.PathMoves {
-		if rest, ok := strings.CutPrefix(path, m.New); ok {
-			return m.Old + rest
-		}
-	}
-	return path
-}
+func (c Config) unmovedPath(path string) string { return moved(c.PathMoves, path, false) }
 
 // MovedPackage gives a Scala full name of a moved package's declaration under the package PackageMoves
 // moved it to, such as a Function name the substitutions spell as it was before the move.
-func (c Config) MovedPackage(name string) string {
-	for _, m := range c.PackageMoves {
-		if rest, ok := strings.CutPrefix(name, m.Old); ok {
-			return m.New + rest
-		}
-	}
-	return name
-}
+func (c Config) MovedPackage(name string) string { return moved(c.PackageMoves, name, true) }
 
 // unmovedRoot gives a current root under the package it had before PackageMoves moved it.
-func (c Config) unmovedRoot(name string) string {
-	for _, m := range c.PackageMoves {
-		if rest, ok := strings.CutPrefix(name, m.New); ok {
-			return m.Old + rest
-		}
-	}
-	return name
-}
+func (c Config) unmovedRoot(name string) string { return moved(c.PackageMoves, name, false) }
 
 // movesApply refuses a path move that is not of one directory to another, a package move that is not
 // of one package to another, and an entry listed twice.
@@ -442,7 +429,7 @@ func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
 	} else if err != nil {
 		return nil, err
 	}
-	expected, later := c.moved(underBase(c.Inventory, base)), c.moved(underBase(c.Later, base))
+	expected, later := c.movedInventory(underBase(c.Inventory, base)), c.movedInventory(underBase(c.Later, base))
 	found := map[string]bool{}
 	for _, dir := range []string{base + "/ir/", base + "/lifter/testdata/lifts/expected/"} {
 		paths, err := IRFiles(filepath.Join(root, c.MovedPath(dir)))

@@ -4,16 +4,16 @@
 // The model's own vocabulary is held too, by a Go test outside model/ that every run names.
 //
 //   scala-cli run model/check                        lift, require every file of model/ir and
-//                                                   model/cases to be current, lint, test
+//                                                    model/cases to be current, lint, test
 //   scala-cli run model/check -- --update            lift and rewrite model/ir and model/cases
 //   scala-cli run model/check -- --skip-go-checks    either, without `go vet` and `go test`
 //   scala-cli run model/check -- --generate-ir       package the IR's classes and stop; with
-//                                                   --if-stale, only when their inputs changed
+//                                                    --if-stale, only when their inputs changed
 //   scala-cli run model/check -- --generate-api      package linked API classes; --if-stale reuses
-//                                                   a jar whose descriptors and tools are current
+//                                                    a jar whose descriptors and tools are current
 //   scala-cli run model/check -- --check-syntax      hold the sugar to the Syntax.scala files and
-//                                                   their `Core form:` docs (SyntaxRule.scala);
-//                                                   make lint-model runs it
+//                                                    their `Core form:` docs (SyntaxRule.scala);
+//                                                    make lint-model runs it
 //
 // The IR generator's fixtures under irgen/testdata are built and lifted too, by its own tests: the
 // Models it must lift, compared with the IR in irgen/testdata/lifts/expected, which --update
