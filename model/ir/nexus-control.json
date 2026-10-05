@@ -4691,7 +4691,7 @@
     "name": "workerStop",
     "position": {
       "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 63
+      "line": 64
     },
     "party": "worker"
   } ],

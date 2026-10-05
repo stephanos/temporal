@@ -1,5 +1,5 @@
 {
-  "source": "model: temporal.features.nexuscaller.HandlerWorker$.handlerWorker, temporal.features.nexuscaller.NexusCaller$.nexusCaller, temporal.features.nexuscaller.NexusCaller$.queries$.stoppedWorkerRepliesNothing, temporal.features.nexuscaller.NexusRealization$.asyncNexus, temporal.features.nexuscaller.Product$.nexusProduct, temporal.features.nexuscaller.Protocol$.nexusProtocol, temporal.features.nexuscaller.Protocol$.queries$.functionalQueries, temporal.features.nexuscaller.Protocol$.queries$.terminalHolds, temporal.shared.worker.Polling$.polling",
+  "source": "model: temporal.features.nexuscaller.HandlerWorker$.handlerWorker, temporal.features.nexuscaller.NexusCaller$.nexusCaller, temporal.features.nexuscaller.NexusCaller$.queries$.stoppedWorkerRepliesNothing, temporal.features.nexuscaller.NexusRealization$.asyncNexus, temporal.features.nexuscaller.Product$.nexusProduct, temporal.features.nexuscaller.Protocol$.nexusProtocol, temporal.features.nexuscaller.Protocol$.queries$.functionalQueries, temporal.features.nexuscaller.Protocol$.queries$.terminalHolds, temporal.shared.worker.Polling",
   "types": [ {
     "name": "temporal.nexuscaller.NexusCallerState",
     "position": {
@@ -250,7 +250,7 @@
     "name": "temporal.worker.Outcome",
     "position": {
       "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 31
+      "line": 32
     },
     "enum": {
       "cases": [ {
@@ -261,7 +261,7 @@
     "name": "temporal.worker.Phase",
     "position": {
       "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 26
+      "line": 27
     },
     "enum": {
       "cases": [ {
@@ -274,7 +274,7 @@
     "name": "temporal.worker.State",
     "position": {
       "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 29
+      "line": 30
     },
     "record": {
       "fields": [ {
@@ -1420,6 +1420,270 @@
               }
             }
           }
+        }
+      }
+    }
+  }, {
+    "name": "polling.rules.serve",
+    "position": {
+      "file": "model/temporal/shared/worker/Worker.scala",
+      "line": 88
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.worker.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/worker/Worker.scala",
+        "line": 88
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/shared/worker/Worker.scala",
+            "line": 88
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 85
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/shared/worker/Worker.scala",
+                    "line": 85
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 88
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/shared/worker/Worker.scala",
+                    "line": 88
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.worker.Phase",
+                      "case": "polling"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/shared/worker/Worker.scala",
+            "line": 88
+          },
+          "call": {
+            "function": "temporal.shared.worker.Polling$.effects$.serve",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 88
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/shared/worker/Worker.scala",
+            "line": 88
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "polling.rules.workerResume",
+    "position": {
+      "file": "model/temporal/shared/worker/Worker.scala",
+      "line": 87
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.worker.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/worker/Worker.scala",
+        "line": 87
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/shared/worker/Worker.scala",
+            "line": 87
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 85
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/shared/worker/Worker.scala",
+                    "line": 85
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 87
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/shared/worker/Worker.scala",
+                    "line": 87
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.worker.Phase",
+                      "case": "stopped"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/shared/worker/Worker.scala",
+            "line": 87
+          },
+          "call": {
+            "function": "temporal.shared.worker.Polling$.effects$.resume",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 87
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/shared/worker/Worker.scala",
+            "line": 87
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "polling.rules.workerStop",
+    "position": {
+      "file": "model/temporal/shared/worker/Worker.scala",
+      "line": 86
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.worker.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/worker/Worker.scala",
+        "line": 86
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/shared/worker/Worker.scala",
+            "line": 86
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 85
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/shared/worker/Worker.scala",
+                    "line": 85
+                  },
+                  "var": "s"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 86
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/shared/worker/Worker.scala",
+                    "line": 86
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.worker.Phase",
+                      "case": "polling"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/shared/worker/Worker.scala",
+            "line": 86
+          },
+          "call": {
+            "function": "temporal.shared.worker.Polling$.effects$.stop",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 86
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/shared/worker/Worker.scala",
+            "line": 86
+          },
+          "list": { }
         }
       }
     }
@@ -5661,10 +5925,146 @@
       }
     }
   }, {
-    "name": "temporal.shared.worker.Polling$.effects$.resumeStep",
+    "name": "temporal.shared.worker.Polling$.effects$.resume",
     "position": {
       "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 76
+      "line": 79
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.worker.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/worker/Worker.scala",
+        "line": 79
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/temporal/shared/worker/Worker.scala",
+            "line": 79
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 51
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.worker.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 79
+              },
+              "construct": {
+                "type": "temporal.worker.State",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/shared/worker/Worker.scala",
+                    "line": 79
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.worker.Phase",
+                      "case": "polling"
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 79
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 79
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.shared.worker.Polling$.effects$.serve",
+    "position": {
+      "file": "model/temporal/shared/worker/Worker.scala",
+      "line": 82
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.worker.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/worker/Worker.scala",
+        "line": 82
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/temporal/shared/worker/Worker.scala",
+            "line": 82
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 51
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.worker.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 82
+              },
+              "var": "s"
+            }, {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 82
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/worker/Worker.scala",
+                "line": 82
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.shared.worker.Polling$.effects$.stop",
+    "position": {
+      "file": "model/temporal/shared/worker/Worker.scala",
+      "line": 77
     },
     "params": [ {
       "name": "s",
@@ -5677,354 +6077,62 @@
         "file": "model/temporal/shared/worker/Worker.scala",
         "line": 77
       },
-      "if": {
-        "condition": {
+      "list": {
+        "items": [ {
           "position": {
             "file": "model/temporal/shared/worker/Worker.scala",
             "line": 77
           },
-          "binary": {
-            "op": "OP_NE",
-            "left": {
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
               "position": {
                 "file": "model/temporal/shared/worker/Worker.scala",
-                "line": 77
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/shared/worker/Worker.scala",
-                    "line": 77
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/shared/worker/Worker.scala",
-                "line": 77
+                "line": 51
               },
               "literal": {
                 "enum": {
-                  "type": "temporal.worker.Phase",
-                  "case": "stopped"
+                  "type": "temporal.worker.Outcome",
+                  "case": "accepted"
                 }
               }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/shared/worker/Worker.scala",
-            "line": 77
-          },
-          "list": { }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/shared/worker/Worker.scala",
-            "line": 77
-          },
-          "list": {
-            "items": [ {
+            }, {
               "position": {
                 "file": "model/temporal/shared/worker/Worker.scala",
                 "line": 77
               },
               "construct": {
-                "type": "umpire.Step",
+                "type": "temporal.worker.State",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/shared/worker/Worker.scala",
-                    "line": 50
+                    "line": 77
                   },
                   "literal": {
                     "enum": {
-                      "type": "temporal.worker.Outcome",
-                      "case": "accepted"
+                      "type": "temporal.worker.Phase",
+                      "case": "stopped"
                     }
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/shared/worker/Worker.scala",
-                    "line": 77
-                  },
-                  "construct": {
-                    "type": "temporal.worker.State",
-                    "args": [ {
-                      "position": {
-                        "file": "model/temporal/shared/worker/Worker.scala",
-                        "line": 77
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "temporal.worker.Phase",
-                          "case": "polling"
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/shared/worker/Worker.scala",
-                    "line": 77
-                  },
-                  "list": { }
-                }, {
-                  "position": {
-                    "file": "model/temporal/shared/worker/Worker.scala",
-                    "line": 77
-                  },
-                  "literal": {
-                    "text": ""
                   }
                 } ]
               }
-            } ]
-          }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.shared.worker.Polling$.effects$.serveStep",
-    "position": {
-      "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 80
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.worker.State"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 81
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/shared/worker/Worker.scala",
-            "line": 81
-          },
-          "binary": {
-            "op": "OP_NE",
-            "left": {
+            }, {
               "position": {
                 "file": "model/temporal/shared/worker/Worker.scala",
-                "line": 81
+                "line": 77
               },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/shared/worker/Worker.scala",
-                    "line": 81
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            },
-            "right": {
+              "list": { }
+            }, {
               "position": {
                 "file": "model/temporal/shared/worker/Worker.scala",
-                "line": 81
+                "line": 77
               },
               "literal": {
-                "enum": {
-                  "type": "temporal.worker.Phase",
-                  "case": "polling"
-                }
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/shared/worker/Worker.scala",
-            "line": 81
-          },
-          "list": { }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/shared/worker/Worker.scala",
-            "line": 81
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/temporal/shared/worker/Worker.scala",
-                "line": 81
-              },
-              "construct": {
-                "type": "umpire.Step",
-                "args": [ {
-                  "position": {
-                    "file": "model/temporal/shared/worker/Worker.scala",
-                    "line": 50
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.worker.Outcome",
-                      "case": "accepted"
-                    }
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/shared/worker/Worker.scala",
-                    "line": 81
-                  },
-                  "var": "s"
-                }, {
-                  "position": {
-                    "file": "model/temporal/shared/worker/Worker.scala",
-                    "line": 81
-                  },
-                  "list": { }
-                }, {
-                  "position": {
-                    "file": "model/temporal/shared/worker/Worker.scala",
-                    "line": 81
-                  },
-                  "literal": {
-                    "text": ""
-                  }
-                } ]
+                "text": ""
               }
             } ]
           }
-        }
-      }
-    }
-  }, {
-    "name": "temporal.shared.worker.Polling$.effects$.stopStep",
-    "position": {
-      "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 72
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.worker.State"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 73
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/shared/worker/Worker.scala",
-            "line": 73
-          },
-          "binary": {
-            "op": "OP_NE",
-            "left": {
-              "position": {
-                "file": "model/temporal/shared/worker/Worker.scala",
-                "line": 73
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/shared/worker/Worker.scala",
-                    "line": 73
-                  },
-                  "var": "s"
-                },
-                "field": "phase"
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/shared/worker/Worker.scala",
-                "line": 73
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.worker.Phase",
-                  "case": "polling"
-                }
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/shared/worker/Worker.scala",
-            "line": 73
-          },
-          "list": { }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/shared/worker/Worker.scala",
-            "line": 73
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/temporal/shared/worker/Worker.scala",
-                "line": 73
-              },
-              "construct": {
-                "type": "umpire.Step",
-                "args": [ {
-                  "position": {
-                    "file": "model/temporal/shared/worker/Worker.scala",
-                    "line": 50
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.worker.Outcome",
-                      "case": "accepted"
-                    }
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/shared/worker/Worker.scala",
-                    "line": 73
-                  },
-                  "construct": {
-                    "type": "temporal.worker.State",
-                    "args": [ {
-                      "position": {
-                        "file": "model/temporal/shared/worker/Worker.scala",
-                        "line": 73
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "temporal.worker.Phase",
-                          "case": "stopped"
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/shared/worker/Worker.scala",
-                    "line": 73
-                  },
-                  "list": { }
-                }, {
-                  "position": {
-                    "file": "model/temporal/shared/worker/Worker.scala",
-                    "line": 73
-                  },
-                  "literal": {
-                    "text": ""
-                  }
-                } ]
-              }
-            } ]
-          }
-        }
+        } ]
       }
     }
   } ],
@@ -6168,7 +6276,7 @@
     "name": "serve",
     "position": {
       "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 65
+      "line": 66
     },
     "party": "worker",
     "on": "worker"
@@ -6177,7 +6285,7 @@
     "name": "workerResume",
     "position": {
       "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 64
+      "line": 65
     },
     "party": "worker"
   }, {
@@ -6185,7 +6293,7 @@
     "name": "workerStop",
     "position": {
       "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 63
+      "line": 64
     },
     "party": "worker"
   } ],
@@ -6202,14 +6310,14 @@
     "starts": [ {
       "position": {
         "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 86
+        "line": 73
       },
       "construct": {
         "type": "temporal.worker.State",
         "args": [ {
           "position": {
             "file": "model/temporal/shared/worker/Worker.scala",
-            "line": 86
+            "line": 73
           },
           "literal": {
             "enum": {
@@ -6223,7 +6331,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 87
+        "line": 74
       },
       "lambda": {
         "params": [ {
@@ -6235,7 +6343,7 @@
         "body": {
           "position": {
             "file": "model/temporal/shared/worker/Worker.scala",
-            "line": 87
+            "line": 74
           },
           "literal": {
             "bool": true
@@ -6245,17 +6353,17 @@
     },
     "steps": [ {
       "action": "temporal.worker.Worker$package$.workerStop",
-      "function": "temporal.shared.worker.Polling$.effects$.stopStep",
+      "function": "polling.rules.workerStop",
       "position": {
         "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 89
+        "line": 86
       }
     }, {
       "action": "temporal.worker.Worker$package$.serve",
-      "function": "temporal.shared.worker.Polling$.effects$.serveStep",
+      "function": "polling.rules.serve",
       "position": {
         "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 91
+        "line": 88
       }
     } ]
   }, {
@@ -6544,7 +6652,7 @@
     "name": "polling",
     "position": {
       "file": "model/temporal/shared/worker/Worker.scala",
-      "line": 84
+      "line": 71
     },
     "entity": "worker",
     "stateType": "temporal.worker.State",
@@ -6552,14 +6660,14 @@
     "starts": [ {
       "position": {
         "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 86
+        "line": 73
       },
       "construct": {
         "type": "temporal.worker.State",
         "args": [ {
           "position": {
             "file": "model/temporal/shared/worker/Worker.scala",
-            "line": 86
+            "line": 73
           },
           "literal": {
             "enum": {
@@ -6573,7 +6681,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 87
+        "line": 74
       },
       "lambda": {
         "params": [ {
@@ -6585,7 +6693,7 @@
         "body": {
           "position": {
             "file": "model/temporal/shared/worker/Worker.scala",
-            "line": 87
+            "line": 74
           },
           "literal": {
             "bool": true
@@ -6595,24 +6703,24 @@
     },
     "steps": [ {
       "action": "temporal.worker.Worker$package$.workerStop",
-      "function": "temporal.shared.worker.Polling$.effects$.stopStep",
+      "function": "polling.rules.workerStop",
       "position": {
         "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 89
+        "line": 86
       }
     }, {
       "action": "temporal.worker.Worker$package$.workerResume",
-      "function": "temporal.shared.worker.Polling$.effects$.resumeStep",
+      "function": "polling.rules.workerResume",
       "position": {
         "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 90
+        "line": 87
       }
     }, {
       "action": "temporal.worker.Worker$package$.serve",
-      "function": "temporal.shared.worker.Polling$.effects$.serveStep",
+      "function": "polling.rules.serve",
       "position": {
         "file": "model/temporal/shared/worker/Worker.scala",
-        "line": 91
+        "line": 88
       }
     } ]
   } ],

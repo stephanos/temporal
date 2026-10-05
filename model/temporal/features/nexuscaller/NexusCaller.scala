@@ -678,7 +678,7 @@ object HandlerWorker:
    * action no sync line names would stay executable on its own and admit a stop, a resume and then a
    * reply; the operation's timers settle every state a stop leaves.
    */
-  val handlerWorker = shared.worker.Polling.polling.restrict(worker.workerStop, worker.serve)
+  val handlerWorker = shared.worker.Polling.restrict(worker.workerStop, worker.serve)
 
 // ### The operation and the handler's worker
 //
@@ -853,7 +853,7 @@ object exports:
     Protocol.nexusProtocol,
     HandlerWorker.handlerWorker,
     NexusCaller.nexusCaller,
-    shared.worker.Polling.polling,
+    shared.worker.Polling,
     Protocol.queries.functionalQueries,
     Protocol.queries.terminalHolds,
     NexusCaller.queries.stoppedWorkerRepliesNothing,

@@ -328,7 +328,7 @@
     },
     {
       "old": "temporal.worker.Worker$package$.polling",
-      "new": "temporal.worker.Polling$.polling"
+      "new": "temporal.worker.Polling"
     },
     {
       "old": "temporal.nexuscaller.Model$package$.nexusProduct",
@@ -582,15 +582,15 @@
       },
       {
         "old": "temporal.worker.Worker$package$.resumeStep",
-        "new": "temporal.worker.Polling$.effects$.resumeStep"
+        "new": "polling.rules.workerResume"
       },
       {
         "old": "temporal.worker.Worker$package$.serveStep",
-        "new": "temporal.worker.Polling$.effects$.serveStep"
+        "new": "polling.rules.serve"
       },
       {
         "old": "temporal.worker.Worker$package$.stopStep",
-        "new": "temporal.worker.Polling$.effects$.stopStep"
+        "new": "polling.rules.workerStop"
       },
       {
         "old": "temporal.standaloneactivity.Model$package$.attemptStartStep",

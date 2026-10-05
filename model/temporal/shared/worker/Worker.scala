@@ -8,11 +8,12 @@
  * Properties about a worker are the cross-entity ones a composition states.
  *
  * Read top to bottom: the types; the signature (the entity, and the worker party with its
- * actions); then Polling, the worker's one machine.
+ * actions); then Polling, the worker's one machine object.
  */
 package temporal
 package shared.worker
 
+import scala.annotation.unused
 import umpire.*
 
 // The declarations were written in Worker.scala, and every Case that stops a worker carries the
@@ -66,28 +67,22 @@ object worker extends Actor:
 
 // ### The machine
 
-object Polling:
-  object effects:
-    /** A polling worker stops; a stopped one has nothing to stop. */
-    def stopStep(s: State) =
-      if s.phase != Phase.polling then disabled else enter(State(Phase.stopped))
+/** The worker. A worker has no natural end: it may be left polling or stopped. */
+object Polling extends Machine[State, Outcome, Fact]:
+  val entity = shared.worker.entity
+  val init = State(Phase.polling)
+  def end(@unused state: State) = true
 
-    /** A stopped worker resumes polling; a polling one has nothing to resume. */
-    def resumeStep(s: State) =
-      if s.phase != Phase.stopped then disabled else enter(State(Phase.polling))
+  object effects extends Section:
+    def stop(@unused s: State) = enter(State(Phase.stopped))
 
-    /** A polling worker serves and keeps polling; a stopped one serves nothing. */
-    def serveStep(s: State) =
-      if s.phase != Phase.polling then disabled else stay(s)
+    def resume(@unused s: State) = enter(State(Phase.polling))
 
-  /** The worker. A worker has no natural end: it may be left polling or stopped. */
-  val polling = machine[State, Outcome, Fact] {
-    forEntity(entity)
-    starts(State(Phase.polling))
-    ends(_ => true)
-    steps(
-      worker.workerStop ~> effects.stopStep,
-      worker.workerResume ~> effects.resumeStep,
-      worker.serve ~> effects.serveStep
-    )
-  }
+    /** A polling worker serves and keeps polling. */
+    def serve(s: State) = stay(s)
+
+  // A polling worker stops and serves; a stopped one resumes, and has nothing to stop or serve.
+  object rules extends Rules(_.phase):
+    in(Phase.polling)(worker.workerStop ~> effects.stop)
+    in(Phase.stopped)(worker.workerResume ~> effects.resume)
+    in(Phase.polling)(worker.serve ~> effects.serve)
