@@ -1158,13 +1158,15 @@ class Fixtures extends munit.FunSuite:
   // spelled alike.
   concurrently("typed members, syncs, replaces, withMember, synced and own keep the composed keys"):
     import com.fasterxml.jackson.databind.JsonNode
-    val queries = "temporal.features.standaloneactivity.compositions.Queries$package$."
-    val models = "temporal.features.standaloneactivity.compositions.Model$package$."
+    // Each design's object, named as its val is with the first letter raised: its Queries in its
+    // `queries`, or the design itself where no Query runs over it.
+    val designs = "temporal.features.standaloneactivity.withTaskQueue."
+    def designObject(d: String) = designs + d.head.toUpper + d.tail + "$."
     val overQueue = Seq("currentOverQueue", "staleOverQueue")
     val overMatching = Seq("currentOverMatching", "staleOverMatching", "currentOverLossyMatching")
     val unqueried = Seq("currentOverForgetful", "currentOverVolatile")
-    val roots = (overQueue ++ overMatching).map(d => s"$queries${d}Queries") ++
-      unqueried.map(models + _) ++ Seq("switchQueries", "flickedBothOnce")
+    val roots = (overQueue ++ overMatching).map(d => s"${designObject(d)}queries$$.${d}Queries") ++
+      unqueried.map(d => designObject(d) + d) ++ Seq("switchQueries", "flickedBothOnce")
     val (model, _, _) = declarations("members", roots)
     def all(kind: String) = model.path(kind).elements().asScala.toList
     def named(name: String)(n: JsonNode) = n.path("name").asText() == name

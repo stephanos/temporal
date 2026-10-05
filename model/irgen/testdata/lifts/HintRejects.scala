@@ -7,9 +7,9 @@ package fixture.hintrejects
 import umpire.*
 import umpire.realize.*
 import temporal.realize.*
-import temporal.features.standaloneactivity.{activity, activityProtocol}
+import temporal.features.standaloneactivity.activity
+import temporal.features.standaloneactivity.Protocol.activityProtocol
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
-
 given Family = Family("fixture.hintrejects")
 
 private def realizing(hint: Visibility) = temporalRealization(

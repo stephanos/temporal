@@ -162,63 +162,71 @@
     },
     {
       "old": "temporal.standaloneactivity.Claims$package$.functionalQueries",
-      "new": "temporal.standaloneactivity.Functional$.all"
+      "new": "temporal.standaloneactivity.Protocol$.queries$.all"
     },
     {
       "old": "temporal.standaloneactivity.Claims$package$.cancelRequest",
-      "new": "temporal.standaloneactivity.Queries$package$.cancelRequest"
+      "new": "temporal.standaloneactivity.Protocol$.queries$.cancelRequest"
     },
     {
       "old": "temporal.standaloneactivity.Claims$package$.stoppedWorkerStartsNothing",
-      "new": "temporal.standaloneactivity.Queries$package$.stoppedWorkerStartsNothing"
+      "new": "temporal.standaloneactivity.StandaloneActivity$.queries$.stoppedWorkerStartsNothing"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.currentQueries",
-      "new": "temporal.standaloneactivity.admission.Queries$package$.currentQueries"
+      "new": "temporal.standaloneactivity.admission.Admission$.queries$.currentQueries"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.staleQueries",
-      "new": "temporal.standaloneactivity.admission.Queries$package$.staleQueries"
+      "new": "temporal.standaloneactivity.admission.StaleAdmission$.queries$.staleQueries"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.heldStaleDelivery",
-      "new": "temporal.standaloneactivity.admission.Queries$package$.heldStaleDelivery"
+      "new": "temporal.standaloneactivity.admission.HeldAdmission$.queries$.heldStaleDelivery"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.lostAdmissionResponseQuery",
-      "new": "temporal.standaloneactivity.admission.Queries$package$.lostAdmissionResponseQuery"
+      "new": "temporal.standaloneactivity.admission.ResponseLoss$.queries$.lostAdmissionResponseQuery"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.competingTimers",
-      "new": "temporal.standaloneactivity.Queries$package$.competingTimers"
+      "new": "temporal.standaloneactivity.Protocol$.queries$.competingTimers"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.currentOverQueueQueries",
-      "new": "temporal.standaloneactivity.compositions.Queries$package$.currentOverQueueQueries"
+      "new": "temporal.standaloneactivity.compositions.CurrentOverQueue$.queries$.currentOverQueueQueries"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.staleOverQueueQueries",
-      "new": "temporal.standaloneactivity.compositions.Queries$package$.staleOverQueueQueries"
+      "new": "temporal.standaloneactivity.compositions.StaleOverQueue$.queries$.staleOverQueueQueries"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.currentOverMatchingQueries",
-      "new": "temporal.standaloneactivity.compositions.Queries$package$.currentOverMatchingQueries"
+      "new": "temporal.standaloneactivity.compositions.CurrentOverMatching$.queries$.currentOverMatchingQueries"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.staleOverMatchingQueries",
-      "new": "temporal.standaloneactivity.compositions.Queries$package$.staleOverMatchingQueries"
+      "new": "temporal.standaloneactivity.compositions.StaleOverMatching$.queries$.staleOverMatchingQueries"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.currentOverLossyMatchingQueries",
-      "new": "temporal.standaloneactivity.compositions.Queries$package$.currentOverLossyMatchingQueries"
+      "new": "temporal.standaloneactivity.compositions.CurrentOverLossyMatching$.queries$.currentOverLossyMatchingQueries"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.currentOverForgetful",
-      "new": "temporal.standaloneactivity.compositions.Model$package$.currentOverForgetful"
+      "new": "temporal.standaloneactivity.compositions.CurrentOverForgetful$.currentOverForgetful"
     },
     {
       "old": "temporal.standaloneactivity.System$package$.currentOverVolatile",
-      "new": "temporal.standaloneactivity.compositions.Model$package$.currentOverVolatile"
+      "new": "temporal.standaloneactivity.compositions.CurrentOverVolatile$.currentOverVolatile"
+    },
+    {
+      "old": "temporal.standaloneactivity.Model$package$.activityProduct",
+      "new": "temporal.standaloneactivity.Product$.activityProduct"
+    },
+    {
+      "old": "temporal.standaloneactivity.Model$package$.standaloneActivity",
+      "new": "temporal.standaloneactivity.StandaloneActivity$.standaloneActivity"
     },
     {
       "old": "temporal.nexuscaller.Claims$package$.functionalQueries",
@@ -322,8 +330,8 @@
     "temporal.standaloneactivity.Claims$package$.terminalHolds"
   ],
   "source_root_additions": [
-    "temporal.standaloneactivity.Capabilities$package$.productCapabilities",
-    "temporal.standaloneactivity.Capabilities$package$.protocolCapabilities"
+    "temporal.standaloneactivity.Product$.laws$.productCapabilities",
+    "temporal.standaloneactivity.Protocol$.laws$.protocolCapabilities"
   ],
   "source_path_merges": [
     {
@@ -629,6 +637,14 @@
       "new": "model/irgen/"
     },
     {
+      "old": "model/temporal/standaloneactivity/admission/",
+      "new": "model/temporal/features/standaloneactivity/record/"
+    },
+    {
+      "old": "model/temporal/standaloneactivity/compositions/",
+      "new": "model/temporal/features/standaloneactivity/withTaskQueue/"
+    },
+    {
       "old": "model/temporal/standaloneactivity/",
       "new": "model/temporal/features/standaloneactivity/"
     },
@@ -646,6 +662,14 @@
     }
   ],
   "source_package_moves": [
+    {
+      "old": "temporal.standaloneactivity.admission.",
+      "new": "temporal.features.standaloneactivity.record."
+    },
+    {
+      "old": "temporal.standaloneactivity.compositions.",
+      "new": "temporal.features.standaloneactivity.withTaskQueue."
+    },
     {
       "old": "temporal.standaloneactivity.",
       "new": "temporal.features.standaloneactivity."
