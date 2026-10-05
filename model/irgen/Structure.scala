@@ -173,7 +173,7 @@ final private[irgen] class Structure(index: Index):
     val within = forms.map(_._2.symbol).toSet
 
     // (a): a refinement pair makes two levels, each with its folder.
-    val pairs = for (s, c) <- forms; (r, product) <- refines(c) if within(product)
+    val pairs = for (_, c) <- forms; (r, product) <- refines(c) if within(product)
     yield (c, r, product)
     pairs.headOption match
       case Some((machine, refinement, product)) =>
