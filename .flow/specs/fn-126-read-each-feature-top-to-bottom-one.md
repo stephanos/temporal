@@ -4,6 +4,8 @@
 
 A feature developer who wants to know what a machine does, what it promises and what is asked of it should read one file from the top down, the way a Quint module reads. The file holds the types, then the actors and the actions they take, then one object per machine, then the IR files. Each machine object is the machine itself: its start and end, its effects, the rules that say when each action fires, its Properties, its laws and its Queries, each in a section of its own. `Realization.scala` stays beside the feature file.
 
+**Guiding principle (owner, 2026-10-05): lighten the author's cognitive load.** An author writes what the Model means and nothing the tooling can infer: identities come from where code lives (decision 23), roles from the section a member sits in, types from `extends Machine[S, O, F]` (decision 18). Structure is enforced by the gate and shown by a template (R20), not remembered. When two designs are otherwise equal, prefer the one with fewer things an author must declare, name or keep in sync.
+
 Owner decisions (2026-10-05):
 
 - **Layout.** Adopt option (a) of the Quint-module study, `.plans/QUINT_MODULE_LAYOUT.md`: one feature file per folder, read in a fixed order, with a lint that keeps that order safe, because Scala initializes an object's vals in the order they are written.
