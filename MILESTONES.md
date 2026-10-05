@@ -102,6 +102,18 @@ Gates: task 7 beside fn-126.5 and before fn-126.6 (fn-126 proves R5 by the reade
 | fn-124.8 | ⬜ todo | `tools/umpire/model` split into `ir`, `interp`, `check`, `realization` |
 
 
+### fn-128: Close the activity's precision gaps
+
+Gate: starts after fn-126 closes. Source: `.plans/ACTIVITY_MODEL_COMPARISON.md`. Tasks not yet planned.
+
+Dispatch as a field (fixes unpause-after-backoff and schedule-to-start in backoff; adds start delay), rejections as rows (FailedPrecondition, InvalidArgument; repeated RequestCancel), a retry policy, checked stutter facts, the Cancel > Reset > Pause precedence Property, attempt counts in every Case.
+
+### fn-129: Activity coverage
+
+Gate: starts after fn-128 closes. Tasks not yet planned.
+
+Heartbeat, respond by ID, reset, exploration on the activity's `find` Queries.
+
 ## Deferred
 
 Specs the owner deferred as not needed for the current code deliverable (the DSL and its execution).
@@ -158,5 +170,6 @@ Deferred 2026-10-05. Evidence: `.plans/DYNAMIC_CONFIG.md`.
 - Behavior-freeze follow-ups from fn-112: the witness-only Properties `terminated` and
   `cancelRequestedWhileStarted`, and seven pause/unpause rows the server rejects.
 - Whether HSM and CHASM may count Nexus `attempt` differently; no current Query shows a difference (fn-125, deferred).
+- Whether upstream's Go conformance harness (`tests/activity_driver.go`) should run our IR through the Go interpreter instead of its hand-written model, making one Model drive both (`.plans/ACTIVITY_MODEL_COMPARISON.md` P3-12); needs the owning team. A workflow-scheduled activity realization (P3-11) overlaps the deferred fn-119.
 - The canary policy's `workflowPath` names the deleted production-canary workflow, so production dispatch
   fails closed.
