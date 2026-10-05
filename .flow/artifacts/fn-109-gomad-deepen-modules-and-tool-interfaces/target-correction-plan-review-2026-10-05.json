@@ -1,0 +1,68 @@
+{
+  "effort": "high",
+  "findings": {
+    "backend": "codex",
+    "baseSha": "7f68a6e52d0083b6d83c3e442876ad218bf0cfba",
+    "headSha": "7f68a6e52d0083b6d83c3e442876ad218bf0cfba",
+    "items": [
+      {
+        "anchor": {
+          "baseSha": "7f68a6e52d0083b6d83c3e442876ad218bf0cfba",
+          "headSha": "7f68a6e52d0083b6d83c3e442876ad218bf0cfba",
+          "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.38.md",
+          "side": "head",
+          "startLine": 11
+        },
+        "body": "Task 38 overlaps tasks 9, 10, 11, 19 and 22; task 39 overlaps tasks 9, 10 and 11. Existing overlapping pairs also include 3/28, 26/34, 29/31 and 30/33. These pairs require serial dispatch despite lacking dependency edges. The explicit single-writer rule mitigates this, so it is advisory.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-9c5c15c2fba3888791a273da9ca4cf17fcc54453b6ffabae453a3d177a9d171f",
+        "id": "finding-adcc204a4f05ea967fccc91899aac6f2",
+        "lastSeenReceiptId": "review-9c5c15c2fba3888791a273da9ca4cf17fcc54453b6ffabae453a3d177a9d171f",
+        "ordinal": 2,
+        "rIds": [],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Preserve enforced serial dispatch for overlapping owners and task 38’s source-progress-before-task-39 admission order.",
+        "title": "Task 38 overlaps tasks 9, 10, 11, 19 and 22; task 39 overlaps tasks 9, 10 and 11"
+      },
+      {
+        "anchor": {
+          "baseSha": "7f68a6e52d0083b6d83c3e442876ad218bf0cfba",
+          "headSha": "7f68a6e52d0083b6d83c3e442876ad218bf0cfba",
+          "path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md",
+          "side": "head",
+          "startLine": 19
+        },
+        "body": "The inventory omits `target.AdapterPreparedSourceSetSHA256`, which invokes `go list` directly with unbounded stdout/stderr buffers. The normal adapter-regeneration and verification paths reach it. Task 39 checks only its cleanup, so those checks cannot establish R10’s command-lifetime and output-bound guarantees. Task 9’s broader acceptance already covers listing; this is an inventory and verification clarification.",
+        "classification": "pre_existing",
+        "confidence": 75,
+        "firstSeenReceiptId": "review-9c5c15c2fba3888791a273da9ca4cf17fcc54453b6ffabae453a3d177a9d171f",
+        "id": "finding-58a72c2dfa895a0131b98994dbdf2973",
+        "lastSeenReceiptId": "review-9c5c15c2fba3888791a273da9ca4cf17fcc54453b6ffabae453a3d177a9d171f",
+        "ordinal": 1,
+        "rIds": [
+          "R10"
+        ],
+        "severity": "P2",
+        "status": "open",
+        "suggestion": "Include this helper in task 9’s re-anchored inventory and command-seam tests, preserving platform settings and the existing import-comment exception.",
+        "title": "The inventory omits `target"
+      }
+    ],
+    "reviewKind": "plan",
+    "round": 1,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-9c5c15c2fba3888791a273da9ca4cf17fcc54453b6ffabae453a3d177a9d171f"
+  },
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "I’ll read the epic and task specs, then trace the relevant code to check feasibility, consistency, and verification coverage.\nThe plan keeps the Linux transfer explicit and preserves Darwin and shared-source requirements. I’m checking the corrective tasks against the actual file operations and dependency declarations, particularly their cleanup order and failure-testing obligations.\nThe task specs provide concrete test commands, bounded-state checks, and explicit limits on qualification claims. One consistency concern is the overlap between corrective tasks and earlier owners while their dependency lists remain empty; I’m checking whether their stated admission order resolves that.\nI found an R10 gap in the current command inventory: `AdapterPreparedSourceSetSHA256` launches `go list` directly with unbounded buffers, and task 39 covers only its cleanup. I’m treating the overlapping Touches declarations as advisory because the plan explicitly requires one source writer at a time.\nSeverity: P2\nConfidence: 75\nClassification: pre_existing\nFile:Line: .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md:19\nR-IDs: [R10]\nLocation: Go-command call-site inventory.\nProblem: The inventory omits `target.AdapterPreparedSourceSetSHA256`, which invokes `go list` directly with unbounded stdout/stderr buffers. The normal adapter-regeneration and verification paths reach it. Task 39 checks only its cleanup, so those checks cannot establish R10’s command-lifetime and output-bound guarantees. Task 9’s broader acceptance already covers listing; this is an inventory and verification clarification.\nSuggestion: Include this helper in task 9’s re-anchored inventory and command-seam tests, preserving platform settings and the existing import-comment exception.\n\nSeverity: P2\nConfidence: 100\nClassification: introduced\nFile:Line: .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.38.md:11\nR-IDs: []\nLocation: Touches declarations and dependency-independent corrective tasks.\nProblem: Task 38 overlaps tasks 9, 10, 11, 19 and 22; task 39 overlaps tasks 9, 10 and 11. Existing overlapping pairs also include 3/28, 26/34, 29/31 and 30/33. These pairs require serial dispatch despite lacking dependency edges. The explicit single-writer rule mitigates this, so it is advisory.\nSuggestion: Preserve enforced serial dispatch for overlapping owners and task 38’s source-progress-before-task-39 admission order.\n\nThe plan states a concrete test strategy, preserves campaign progress reporting, and specifies bounded-state, performance, security and privacy constraints. The original task chain is ordered; corrective tasks state serial source admission. Genuine cleanup-fault execution and native Darwin qualification remain explicit proof obligations. No tests were executed during this plan review.\n\nmaintainability:\n  duplication: none identified\n  structure: none identified\n\n```json\n{\"classification_counts\":{\"introduced\":1,\"pre_existing\":1},\"unaddressed\":[\"R10\"]}\n```\n\n<verdict>SHIP</verdict> - Plan is solid, ready to implement",
+  "review_reservation_id": "8d7c8c4fd000495886816b19ca985ea1",
+  "session_id": "01a10b26-eed9-7510-968e-18ce7f012792",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-05T08:27:51.401065Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

@@ -220,6 +220,8 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-109.35](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.35.md) | ⛔ Blocked | Preserve corpus reader cleanup and publication failures |
 | [fn-109.36](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.36.md) | ⛔ Blocked | Preserve Choice Exploration stopping predicates and round identities |
 | [fn-109.37](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.37.md) | ⛔ Blocked | Preserve qualification report cleanup and publication paths |
+| [fn-109.38](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.38.md) | ⬜ Todo | Preserve target capability and cache digests while repairing lint |
+| [fn-109.39](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.39.md) | ⬜ Todo | Preserve target file lifetimes while checking cleanup failures |
 
 <a id="runtime-patch-minimization-fn-110"></a>
 

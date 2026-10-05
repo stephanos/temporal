@@ -55,6 +55,10 @@ flowctl validate --spec fn-109-gomad-deepen-modules-and-tool-interfaces
 - fn-105 D12/D14 replay-divergence dispositions stay unchanged. Attribute a failure to those owners with retained evidence instead of relaxing an expectation.
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
+
+### Target lint corrective ownership
+
+Tasks 38 and 39 own the eight target digest/import findings and nine target cleanup findings respectively. Retain their independent source evidence in the final R18/R19 matrix without treating committed source progress as qualification. Both are direct acceptance dependencies of this final gate; neither requires task21 completion for source admission. The original final-gate requirements and historical evidence remain unchanged.
 ## Acceptance
 Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
 
