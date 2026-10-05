@@ -1,0 +1,92 @@
+{
+  "name": "final-consumers",
+  "command": [
+    "go",
+    "test",
+    "-count=1",
+    "-tags",
+    "test_dep",
+    "-v",
+    "./qualification/workload",
+    "./qualification/set",
+    "./qualification/soak"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "base_commit": "22fe28d1d6b641e9deea5bf9b60a1da773c06381",
+  "start": "2026-10-04T23:42:34.644339+00:00",
+  "end": "2026-10-04T23:42:36.463830+00:00",
+  "elapsed_seconds": 1.819478083998547,
+  "exit_code": 0,
+  "status": "terminal",
+  "source_before": {
+    "input_count": 1047,
+    "inventory_sha256": "d96bcd8fd7ad842762130975bcf4c0a94bf282ba13847d23cde31a226d21a3b0",
+    "product": {
+      "tools/gomad3/qualification/qualification.go": "ff04f081063789db75d503e23a1c9a63195ed1add72114b293cd1203c9f49f35",
+      "tools/gomad3/qualification/qualification_test.go": "c4d26e3b02322961d5e1a85f0995b0b5a9cd34d695b2e6e55825700b3e5d7e19"
+    },
+    "protected": {
+      "tools/gomad3/qualification/diagnostics_test.go": "5e9df2120eaad810dd1fd61d822e73c11fa88097b5c03818e3f39b40df330fb4",
+      "tools/gomad3/qualification/events.go": "05c9e52e67209e03509b824a186190dc96b1efa86ce4bd24d80a6b331e371225",
+      "tools/gomad3/Makefile": "727b952b113beaec3b64fed7ce045fba4b3bb860292e82e49798b1a26eb8fdbd",
+      ".flow/config.json": "f7647235bfe3ffbbd86c2d88b85816ea67f133a7b23c79a97b55897678cfce23",
+      ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+      "tools/gomad3/SPEC.md": "cadd7e06015f8bd36ca1d3d98c3256cec610a523c9e39671f7719b35f469323e",
+      "tools/gomad3/README.md": "8b95e9d3ae6103f120f6cadacbeffcc17f27bac6636b923279461fe13ec6e61a"
+    },
+    "admission_sha256": "1884fa3f4a874020e582dd9fe858a5e5de53f539cb52992af4023cae5c31b84e"
+  },
+  "source_after": {
+    "input_count": 1047,
+    "inventory_sha256": "d96bcd8fd7ad842762130975bcf4c0a94bf282ba13847d23cde31a226d21a3b0",
+    "product": {
+      "tools/gomad3/qualification/qualification.go": "ff04f081063789db75d503e23a1c9a63195ed1add72114b293cd1203c9f49f35",
+      "tools/gomad3/qualification/qualification_test.go": "c4d26e3b02322961d5e1a85f0995b0b5a9cd34d695b2e6e55825700b3e5d7e19"
+    },
+    "protected": {
+      "tools/gomad3/qualification/diagnostics_test.go": "5e9df2120eaad810dd1fd61d822e73c11fa88097b5c03818e3f39b40df330fb4",
+      "tools/gomad3/qualification/events.go": "05c9e52e67209e03509b824a186190dc96b1efa86ce4bd24d80a6b331e371225",
+      "tools/gomad3/Makefile": "727b952b113beaec3b64fed7ce045fba4b3bb860292e82e49798b1a26eb8fdbd",
+      ".flow/config.json": "f7647235bfe3ffbbd86c2d88b85816ea67f133a7b23c79a97b55897678cfce23",
+      ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+      "tools/gomad3/SPEC.md": "cadd7e06015f8bd36ca1d3d98c3256cec610a523c9e39671f7719b35f469323e",
+      "tools/gomad3/README.md": "8b95e9d3ae6103f120f6cadacbeffcc17f27bac6636b923279461fe13ec6e61a"
+    },
+    "admission_sha256": "1884fa3f4a874020e582dd9fe858a5e5de53f539cb52992af4023cae5c31b84e"
+  },
+  "source_stable": true,
+  "tools": {
+    "go": {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    "errortype": {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    },
+    "golangci": {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    }
+  },
+  "environment": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2",
+    "GOOS": null,
+    "GOARCH": null,
+    "CGO_ENABLED": null,
+    "GOEXPERIMENT": null,
+    "GOCACHE": null,
+    "GOMODCACHE": null,
+    "GOMADSEED": null,
+    "GOMAD3_CHILD_SEED": null,
+    "GOMAD3_SEED": null
+  },
+  "log": "final-consumers.log",
+  "log_sha256": "52d00573693f8fc75a4aad7a2c5e51fe0f3a8b9280d34f73b1fa522a24e71a30"
+}

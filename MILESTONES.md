@@ -502,6 +502,23 @@ identities and full/completion/formal/affected-consumer/both-native gates stay o
 The full staged diff retains only the immutable empty-GOFLAGS archive EOF warning;
 product/document and every other task-path check pass.
 
+Task 37's qualification-report cleanup checks the five retained staging Remove,
+early writer Close and deferred reader Close results at their original lifetime
+boundaries. Nil cleanup preserves primary error identity; genuine failures join
+primary first, reader failures clear the report, and published paths stay intact.
+All original production/test bodies and 1,045 protected inputs are preserved.
+Saved BASE and final real-file controls bind literal report/evidence bytes,
+private modes, validation and staging-name behavior. Developmental focused 8/8,
+package 23/23, consumers 60/60, five boundaries, purity/edges, errortype and
+formatting pass. Actual unfiltered package lint falls from six findings to the
+one unchanged diagnostics import-order finding; five errcheck findings resolve
+with none introduced. Real first-Close, multiple cleanup, Remove and post-rename
+directory faults remain unexecuted. Root commits independently reviewed source
+progress separately; original R18/R19/R20, task21/predecessor/shared-fn108,
+matched first-baseline identities and complete/full/completion/formal/
+affected-consumer/native-default/both-native acceptance remains required/open
+([qualification-cleanup acceptance](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/acceptance-open.md)).
+
 The remaining nested findings retain bounded source owners
 ([path-policy acceptance](.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/acceptance-open.md)). Task 21 remains the final
 verifier, and original R18/R19 and native acceptance stay open

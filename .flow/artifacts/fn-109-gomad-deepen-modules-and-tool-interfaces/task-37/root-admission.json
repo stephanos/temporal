@@ -1,0 +1,84 @@
+{
+  "schema": "fn109.qualification-cleanup.admission/v1",
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.37",
+  "base_commit": "22fe28d1d6b641e9deea5bf9b60a1da773c06381",
+  "branch": "gomad",
+  "product_paths": [
+    "tools/gomad3/qualification/qualification.go",
+    "tools/gomad3/qualification/qualification_test.go"
+  ],
+  "artifact_directory": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37",
+  "root_owned_artifact_names": [
+    "root-admission.json",
+    "root-verification.json",
+    "root-scope-gate.py",
+    "independent-source-review.md",
+    "independent-source-review.json",
+    "acceptance-open.md",
+    "review-metadata-check.md",
+    "review-metadata-check.json"
+  ],
+  "root_document_paths": [
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md",
+    ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.json",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.json",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.37.md",
+    ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.37.json",
+    "MILESTONES.md"
+  ],
+  "research_note": ".flow/tmp/after-corpus-independent-owner-astra.md",
+  "research_note_sha256": "c5961cfbe8b042b802e995217a68b141d1766ab0ba8e1245604ecc7727396fe5",
+  "baseline_source_sha256": {
+    "tools/gomad3/qualification/qualification.go": "c236bb54627fa0f97bb6087209bc090a26c7a580d8eecef3a0e7c255a43bd8e0",
+    "tools/gomad3/qualification/qualification_test.go": "0235d5254f6ba74c13f5d95d88abee738140ca8be7593ce4217ec9fa28af77ad"
+  },
+  "protected_sha256": {
+    "tools/gomad3/qualification/diagnostics_test.go": "5e9df2120eaad810dd1fd61d822e73c11fa88097b5c03818e3f39b40df330fb4",
+    "tools/gomad3/qualification/events.go": "05c9e52e67209e03509b824a186190dc96b1efa86ce4bd24d80a6b331e371225",
+    "tools/gomad3/Makefile": "727b952b113beaec3b64fed7ce045fba4b3bb860292e82e49798b1a26eb8fdbd",
+    ".flow/config.json": "f7647235bfe3ffbbd86c2d88b85816ea67f133a7b23c79a97b55897678cfce23",
+    ".github/.golangci.yml": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+    "tools/gomad3/SPEC.md": "cadd7e06015f8bd36ca1d3d98c3256cec610a523c9e39671f7719b35f469323e",
+    "tools/gomad3/README.md": "8b95e9d3ae6103f120f6cadacbeffcc17f27bac6636b923279461fe13ec6e61a"
+  },
+  "tools": {
+    "go": {
+      "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+      "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+    },
+    "errortype": {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+      "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+    },
+    "golangci": {
+      "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+      "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+    }
+  },
+  "worker_judge": {
+    "success": true,
+    "available": false,
+    "preset": "tier",
+    "reason": "no_key",
+    "tier_line": "Tier: session (jev-unavailable(no_key))",
+    "spawn_model": null,
+    "implementer": "gpt-6.1-sol"
+  },
+  "requested_implementer": "gpt-6.1-sol",
+  "requested_effort": "high",
+  "actual_worker_model": null,
+  "baseline_handoff": null,
+  "configured_review_backend": "claude:claude-fable-5-1:high",
+  "source_review_requested": "gpt-6.1-sol at high, fresh host context",
+  "formal_review": "deferred until green original qualification; do not invoke CLI or change config in this source checkpoint",
+  "tracker_snapshot": {
+    "success": true,
+    "active": false,
+    "type": null,
+    "ops": {}
+  },
+  "development_host": "linux/arm64",
+  "original_acceptance": "All original R18/R19/R20, task21/predecessor/shared fn108, matched first-baseline fixed identities, complete/full/completion/formal/affected-consumer/native-default and darwin/arm64 plus linux/amd64 gates remain REQUIRED/OPEN.",
+  "cleanup_fault_execution": "Unproved unless separately admitted and actually executed; no blanket wrapper, second Close, unsafe/reflection or racing fault method.",
+  "guardrail": "Worker is the only product/cache writer. Root owns Git/index/Flow/docs/review/commit. No unrelated edits, whole-tree staging, downloads, cache cleanup, worktree, bridge, push/history or full/native acceptance waiver."
+}

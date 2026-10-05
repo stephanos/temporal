@@ -1,0 +1,134 @@
+=== RUN   TestDiagnosticsIdentifyFreshPairAfterEarlierOutputDivergence
+--- PASS: TestDiagnosticsIdentifyFreshPairAfterEarlierOutputDivergence (0.01s)
+=== RUN   TestQualificationRejectsChangedDiagnosticTraceAndEvidence
+=== RUN   TestQualificationRejectsChangedDiagnosticTraceAndEvidence/file
+=== RUN   TestQualificationRejectsChangedDiagnosticTraceAndEvidence/evidence
+=== RUN   TestQualificationRejectsChangedDiagnosticTraceAndEvidence/second_evidence
+=== RUN   TestQualificationRejectsChangedDiagnosticTraceAndEvidence/missing
+--- PASS: TestQualificationRejectsChangedDiagnosticTraceAndEvidence (0.01s)
+    --- PASS: TestQualificationRejectsChangedDiagnosticTraceAndEvidence/file (0.00s)
+    --- PASS: TestQualificationRejectsChangedDiagnosticTraceAndEvidence/evidence (0.00s)
+    --- PASS: TestQualificationRejectsChangedDiagnosticTraceAndEvidence/second_evidence (0.00s)
+    --- PASS: TestQualificationRejectsChangedDiagnosticTraceAndEvidence/missing (0.00s)
+=== RUN   TestDiagnosticsPreserveInterruptedQualificationEvidence
+=== RUN   TestDiagnosticsPreserveInterruptedQualificationEvidence/watchdog_timeout/first=false
+=== RUN   TestDiagnosticsPreserveInterruptedQualificationEvidence/watchdog_timeout/first=true
+=== RUN   TestDiagnosticsPreserveInterruptedQualificationEvidence/runner_cancelled/first=false
+=== RUN   TestDiagnosticsPreserveInterruptedQualificationEvidence/runner_cancelled/first=true
+--- PASS: TestDiagnosticsPreserveInterruptedQualificationEvidence (0.14s)
+    --- PASS: TestDiagnosticsPreserveInterruptedQualificationEvidence/watchdog_timeout/first=false (0.04s)
+    --- PASS: TestDiagnosticsPreserveInterruptedQualificationEvidence/watchdog_timeout/first=true (0.07s)
+    --- PASS: TestDiagnosticsPreserveInterruptedQualificationEvidence/runner_cancelled/first=false (0.02s)
+    --- PASS: TestDiagnosticsPreserveInterruptedQualificationEvidence/runner_cancelled/first=true (0.01s)
+=== RUN   TestDiagnosticsRejectCorruptedSavedReportBindings
+=== RUN   TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/missing
+=== RUN   TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/contradictory
+=== RUN   TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/evidence_missing
+=== RUN   TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/evidence_altered
+=== RUN   TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/status_missing
+=== RUN   TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/status_contradictory
+=== RUN   TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/baseline_digest
+=== RUN   TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/missing
+=== RUN   TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/contradictory
+=== RUN   TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/evidence_missing
+=== RUN   TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/evidence_altered
+=== RUN   TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/status_missing
+=== RUN   TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/status_contradictory
+=== RUN   TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/baseline_digest
+--- PASS: TestDiagnosticsRejectCorruptedSavedReportBindings (0.05s)
+    --- PASS: TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/missing (0.00s)
+    --- PASS: TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/contradictory (0.00s)
+    --- PASS: TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/evidence_missing (0.00s)
+    --- PASS: TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/evidence_altered (0.00s)
+    --- PASS: TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/status_missing (0.00s)
+    --- PASS: TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/status_contradictory (0.00s)
+    --- PASS: TestDiagnosticsRejectCorruptedSavedReportBindings/different=false/baseline_digest (0.01s)
+    --- PASS: TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/missing (0.00s)
+    --- PASS: TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/contradictory (0.00s)
+    --- PASS: TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/evidence_missing (0.00s)
+    --- PASS: TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/evidence_altered (0.00s)
+    --- PASS: TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/status_missing (0.00s)
+    --- PASS: TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/status_contradictory (0.01s)
+    --- PASS: TestDiagnosticsRejectCorruptedSavedReportBindings/different=true/baseline_digest (0.01s)
+=== RUN   TestDiagnosticsCompareAvailablePairsAfterInterruptedBaseline
+--- PASS: TestDiagnosticsCompareAvailablePairsAfterInterruptedBaseline (0.02s)
+=== RUN   TestDiagnosticsUnavailableForEveryInterruptedRun
+--- PASS: TestDiagnosticsUnavailableForEveryInterruptedRun (0.01s)
+=== RUN   TestDiagnosticsOffReportFieldsRemainAbsent
+--- PASS: TestDiagnosticsOffReportFieldsRemainAbsent (0.00s)
+=== RUN   TestQualificationEventStreamReturnsRetainedResult
+--- PASS: TestQualificationEventStreamReturnsRetainedResult (0.00s)
+=== RUN   TestDecodeResultEventRejectsInvalidStreams
+=== RUN   TestDecodeResultEventRejectsInvalidStreams/missing_result
+=== RUN   TestDecodeResultEventRejectsInvalidStreams/unretained_error
+=== RUN   TestDecodeResultEventRejectsInvalidStreams/unsupported_schema
+=== RUN   TestDecodeResultEventRejectsInvalidStreams/duplicate_result
+--- PASS: TestDecodeResultEventRejectsInvalidStreams (0.00s)
+    --- PASS: TestDecodeResultEventRejectsInvalidStreams/missing_result (0.00s)
+    --- PASS: TestDecodeResultEventRejectsInvalidStreams/unretained_error (0.00s)
+    --- PASS: TestDecodeResultEventRejectsInvalidStreams/unsupported_schema (0.00s)
+    --- PASS: TestDecodeResultEventRejectsInvalidStreams/duplicate_result (0.00s)
+=== RUN   TestBuildReportQualifiesRepeatedSuccessfulEvidence
+--- PASS: TestBuildReportQualifiesRepeatedSuccessfulEvidence (0.00s)
+=== RUN   TestBuildReportNamesFirstEvidenceDivergence
+--- PASS: TestBuildReportNamesFirstEvidenceDivergence (0.00s)
+=== RUN   TestBuildReportRecordsFailureReplay
+--- PASS: TestBuildReportRecordsFailureReplay (0.00s)
+=== RUN   TestBuildReportRecordsPerRunSuccessfulReplay
+--- PASS: TestBuildReportRecordsPerRunSuccessfulReplay (0.00s)
+=== RUN   TestBuildReportRequiresExactChoiceStatusForMatchedChoiceReplay
+--- PASS: TestBuildReportRequiresExactChoiceStatusForMatchedChoiceReplay (0.00s)
+=== RUN   TestBuildReportRejectsMismatchedPerRunReplay
+--- PASS: TestBuildReportRejectsMismatchedPerRunReplay (0.00s)
+=== RUN   TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence
+--- PASS: TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence (0.00s)
+=== RUN   TestBuildReportRejectsInvalidEvidenceSet
+--- PASS: TestBuildReportRejectsInvalidEvidenceSet (0.00s)
+=== RUN   TestBuildFailureRetainsFirstUnsupportedBoundary
+--- PASS: TestBuildFailureRetainsFirstUnsupportedBoundary (0.00s)
+=== RUN   TestWriteReportRetainsCanonicalPrivateFile
+--- PASS: TestWriteReportRetainsCanonicalPrivateFile (0.01s)
+=== RUN   TestWriteRejectsInconsistentDeterministicOutcome
+--- PASS: TestWriteRejectsInconsistentDeterministicOutcome (0.00s)
+=== RUN   TestQualificationReportStoragePreservation
+--- PASS: TestQualificationReportStoragePreservation (0.01s)
+=== RUN   TestQualificationReportWriteValidationPreservation
+=== RUN   TestQualificationReportWriteValidationPreservation/empty_root
+=== RUN   TestQualificationReportWriteValidationPreservation/root_before_schema
+=== RUN   TestQualificationReportWriteValidationPreservation/invalid_schema
+=== RUN   TestQualificationReportWriteValidationPreservation/invalid_report
+=== RUN   TestQualificationReportWriteValidationPreservation/non-directory_ancestor
+--- PASS: TestQualificationReportWriteValidationPreservation (0.00s)
+    --- PASS: TestQualificationReportWriteValidationPreservation/empty_root (0.00s)
+    --- PASS: TestQualificationReportWriteValidationPreservation/root_before_schema (0.00s)
+    --- PASS: TestQualificationReportWriteValidationPreservation/invalid_schema (0.00s)
+    --- PASS: TestQualificationReportWriteValidationPreservation/invalid_report (0.00s)
+    --- PASS: TestQualificationReportWriteValidationPreservation/non-directory_ancestor (0.00s)
+=== RUN   TestQualificationReportReadValidationPreservation
+=== RUN   TestQualificationReportReadValidationPreservation/empty
+=== RUN   TestQualificationReportReadValidationPreservation/malformed
+=== RUN   TestQualificationReportReadValidationPreservation/noncanonical
+=== RUN   TestQualificationReportReadValidationPreservation/old_schema
+=== RUN   TestQualificationReportReadValidationPreservation/future_schema
+=== RUN   TestQualificationReportReadValidationPreservation/invalid_evidence
+=== RUN   TestQualificationReportReadValidationPreservation/invalid_evidence_digest
+=== RUN   TestQualificationReportReadValidationPreservation/double_newline
+=== RUN   TestQualificationReportReadValidationPreservation/missing_path
+=== RUN   TestQualificationReportReadValidationPreservation/directory
+=== RUN   TestQualificationReportReadValidationPreservation/oversized_sparse_file
+=== RUN   TestQualificationReportReadValidationPreservation/without_newline
+--- PASS: TestQualificationReportReadValidationPreservation (0.01s)
+    --- PASS: TestQualificationReportReadValidationPreservation/empty (0.00s)
+    --- PASS: TestQualificationReportReadValidationPreservation/malformed (0.00s)
+    --- PASS: TestQualificationReportReadValidationPreservation/noncanonical (0.00s)
+    --- PASS: TestQualificationReportReadValidationPreservation/old_schema (0.00s)
+    --- PASS: TestQualificationReportReadValidationPreservation/future_schema (0.00s)
+    --- PASS: TestQualificationReportReadValidationPreservation/invalid_evidence (0.00s)
+    --- PASS: TestQualificationReportReadValidationPreservation/invalid_evidence_digest (0.00s)
+    --- PASS: TestQualificationReportReadValidationPreservation/double_newline (0.00s)
+    --- PASS: TestQualificationReportReadValidationPreservation/missing_path (0.00s)
+    --- PASS: TestQualificationReportReadValidationPreservation/directory (0.00s)
+    --- PASS: TestQualificationReportReadValidationPreservation/oversized_sparse_file (0.00s)
+    --- PASS: TestQualificationReportReadValidationPreservation/without_newline (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/qualification	0.286s

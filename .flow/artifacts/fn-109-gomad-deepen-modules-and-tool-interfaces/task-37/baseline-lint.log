@@ -1,0 +1,21 @@
+tools/gomad3/qualification/diagnostics_test.go:11:1: File is not properly formatted (gci)
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+^
+tools/gomad3/qualification/qualification.go:248:17: Error return value of `os.Remove` is not checked (errcheck)
+	defer os.Remove(temporaryPath)
+	               ^
+tools/gomad3/qualification/qualification.go:250:18: Error return value of `temporary.Close` is not checked (errcheck)
+		temporary.Close()
+		               ^
+tools/gomad3/qualification/qualification.go:254:18: Error return value of `temporary.Close` is not checked (errcheck)
+		temporary.Close()
+		               ^
+tools/gomad3/qualification/qualification.go:258:18: Error return value of `temporary.Close` is not checked (errcheck)
+		temporary.Close()
+		               ^
+tools/gomad3/qualification/qualification.go:289:18: Error return value of `file.Close` is not checked (errcheck)
+	defer file.Close()
+	                ^
+6 issues:
+* errcheck: 5
+* gci: 1

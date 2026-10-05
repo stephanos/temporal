@@ -1,0 +1,429 @@
+{
+  "schema": "fn109.task37.independent-source-review/v1",
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.37",
+  "verdict": "SOURCE_PROGRESS_COMMIT_ONLY",
+  "base_commit": "22fe28d1d6b641e9deea5bf9b60a1da773c06381",
+  "head_at_review": "22fe28d1d6b641e9deea5bf9b60a1da773c06381",
+  "candidate": "uncommitted integrated working tree",
+  "branch": "gomad",
+  "requested_reviewer": "gpt-6.1-sol at high",
+  "requested_writer": "gpt-6.1-sol at high",
+  "same_requested_family": true,
+  "actual_model": null,
+  "actual_model_evidence": "Host metadata does not expose executed model identity.",
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "configured_formal_backend": "claude:claude-fable-5-1:high (unchanged; not invoked)",
+  "formal_review": false,
+  "strengths": [
+    "Five original cleanup sites only; original operation order, once-only staging Close, existing success Close context and directory Sync-before-Close precedence preserved.",
+    "Nil cleanup leaves original results and contextual concrete primary errors directly; nonnil cleanup joins primary first. Reader clears report on Close failure, writer retains published path and never removes/retries destination.",
+    "Literal saved BASE vectors and additive real-file preservation controls; original production/test bytes reconstructed, protected diagnostics/events and all 1045 pinned nonproduct inputs unchanged.",
+    "Honest residuals, source/tool/config/environment binding, immutable worker proof freeze and separate root-owned final scope gate."
+  ],
+  "findings": {
+    "critical": [],
+    "important": [],
+    "minor": []
+  },
+  "source_reasoning": [
+    {
+      "reference": "tools/gomad3/qualification/qualification.go:224",
+      "conclusion": "Before publication every return keeps empty reportPath. After Rename all returns preserve path. Deferred Remove operates only on temporaryPath after descriptor/directory operations; ErrNotExist is ignored only when reportPath is nonempty; all other sole errors remain raw and multiple errors join after the primary."
+    },
+    {
+      "reference": "tools/gomad3/qualification/qualification.go:260",
+      "conclusion": "Chmod, Write and Sync failure paths each Close exactly once at their original point. Nil Close returns existing contextual primary directly; nonnil Close joins that primary before cleanup. The original success Close and directory operations remain byte-identical."
+    },
+    {
+      "reference": "tools/gomad3/qualification/qualification.go:298",
+      "conclusion": "One deferred Close spans Stat/regular/16MiB/bounded read/one-newline/canonical/semantic decode. Nil Close changes neither result. Nonnil Close zeros the report and returns raw sole or primary-first joined error."
+    },
+    {
+      "reference": "tools/gomad3/qualification/qualification_test.go:232",
+      "conclusion": "Added controls preserve literal full encoded report with one newline, decoded evidence identity, private modes, published names/no staging remnants, root/report validation before effects, read rejection order/messages/causes and repeatability/replay fields. Historical fixture Go/platform values are data, not executed-toolchain claims."
+    },
+    {
+      "reference": "tools/gomad3/qualification/workload/workload.go:146",
+      "conclusion": "Publication returns report/path/error together; CLI runQualifyWith at qualify.go:172 maps storage errors to runner_failure/status3. set.retainedQualification and soak.openBatchReport reject reader errors before consuming report fields. No caller signature migration is introduced."
+    },
+    {
+      "reference": "tools/gomad3/Makefile:6",
+      "conclusion": "Actual version/boundary/compatibility and qualification-manifest generation inputs exclude both changed files. protocol.go GenerateProtocols and identity input lists read their own schemas/templates/runtime/choice/livecap inputs. Those inputs remain pinned; no generation rerun is needed for this bounded source edit."
+    }
+  ],
+  "bindings": {
+    "product_sha256": {
+      "tools/gomad3/qualification/qualification.go": "063486bb1bdd13c0f1c92b454b6f10befaa0e13e7b4dff7fc990710dfa09550c",
+      "tools/gomad3/qualification/qualification_test.go": "c4d26e3b02322961d5e1a85f0995b0b5a9cd34d695b2e6e55825700b3e5d7e19"
+    },
+    "pin_json_sha256": "126938314d7a632e6897bfc74dd21ebb30b42b8ef1a1f94ae6cf905e3b18b4e6",
+    "input_inventory_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+    "input_count": 1047,
+    "protected_nonproduct_inputs": 1045,
+    "worker_freeze_sha256": "4e83647e544ad0bd746c4a3c85f8664a1823d81a177cef2dd24e8a4852e0dce6",
+    "worker_frozen_files": 59,
+    "worker_frozen_bytes": 734100,
+    "root_admission_sha256": "1884fa3f4a874020e582dd9fe858a5e5de53f539cb52992af4023cae5c31b84e",
+    "root_verification_pending_sha256": "02a0bd2ef7a711d041da5df5beff910d3aec865358aeb4bc8e35e052a854f98a",
+    "root_scope_gate_sha256": "1abb9ae3c21690fef6c1ed7af3bcf72c7475c1a370d0625f1cf3d2692ae9fa46",
+    "verify_py_sha256": "72adb99213ffaef19f023879ea8b55db5cb76f05c7f225005f2e4054f2f85833",
+    "evidence_json_sha256": "3630c5971f1789292c615963b91ec1bdb020196d7c2a2dab400a3e71cdf4df47",
+    "lint_config_sha256": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43",
+    "flow_config_sha256": "f7647235bfe3ffbbd86c2d88b85816ea67f133a7b23c79a97b55897678cfce23",
+    "tools": {
+      "go": {
+        "path": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go",
+        "sha256": "1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64"
+      },
+      "errortype": {
+        "path": "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "sha256": "db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc"
+      },
+      "golangci": {
+        "path": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "sha256": "acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc"
+      }
+    }
+  },
+  "environment": {
+    "PATH": "/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin",
+    "GOENV": "off",
+    "GOWORK": "off",
+    "GOTOOLCHAIN": "local",
+    "GOPROXY": "off",
+    "GOFLAGS": "",
+    "GOMAXPROCS": "2",
+    "GOOS": null,
+    "GOARCH": null,
+    "CGO_ENABLED": null,
+    "GOEXPERIMENT": null,
+    "GOCACHE": null,
+    "GOMODCACHE": null,
+    "GOMADSEED": null,
+    "GOMAD3_CHILD_SEED": null,
+    "GOMAD3_SEED": null
+  },
+  "checks": [
+    {
+      "name": "source-verification",
+      "argv": [
+        "python3",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/verify.py"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "start": "2026-10-04T23:57:41.262077+00:00",
+      "end": "2026-10-04T23:57:42.202354+00:00",
+      "elapsed_seconds": 0.7155783749913098,
+      "exit_code": 0,
+      "status": "terminal",
+      "stdout_stderr_sha256": "4c8cae8c5719a3134a0a6cb63cf6602db4b234037df35a5bccfb882ebafad0d3",
+      "source_before_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_after_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_stable": true,
+      "top_level_passes": 0,
+      "top_level_started": 0,
+      "environment_binding": "environment",
+      "tools_binding": "bindings.tools",
+      "source_binding": "bindings.pin_json_sha256",
+      "output_summary": "SOURCE_PROGRESS_ONLY; exact output matches frozen source-verification.log"
+    },
+    {
+      "name": "saved-base-controls",
+      "argv": [
+        "go",
+        "test",
+        "-overlay",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/base-controls-overlay.json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./qualification",
+        "-run",
+        "^(TestQualificationReportStoragePreservation|TestQualificationReportWriteValidationPreservation|TestQualificationReportReadValidationPreservation|TestWriteReportRetainsCanonicalPrivateFile|TestWriteRejectsInconsistentDeterministicOutcome|TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence|TestDiagnosticsRejectCorruptedSavedReportBindings|TestDiagnosticsOffReportFieldsRemainAbsent)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-04T23:57:42.539801+00:00",
+      "end": "2026-10-04T23:57:43.964639+00:00",
+      "elapsed_seconds": 1.0608073759940453,
+      "exit_code": 0,
+      "status": "terminal",
+      "stdout_stderr_sha256": "ce3d12c57ae3ac82e87205cd336db5966ba3f20bc21c5d356d8a3f775f88a1db",
+      "source_before_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_after_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_stable": true,
+      "top_level_passes": 8,
+      "top_level_started": 8,
+      "environment_binding": "environment",
+      "tools_binding": "bindings.tools",
+      "source_binding": "bindings.pin_json_sha256",
+      "output_summary": "8/8 actual top-level tests passed"
+    },
+    {
+      "name": "verified-controls",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./qualification",
+        "-run",
+        "^(TestQualificationReportStoragePreservation|TestQualificationReportWriteValidationPreservation|TestQualificationReportReadValidationPreservation|TestWriteReportRetainsCanonicalPrivateFile|TestWriteRejectsInconsistentDeterministicOutcome|TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence|TestDiagnosticsRejectCorruptedSavedReportBindings|TestDiagnosticsOffReportFieldsRemainAbsent)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-04T23:57:44.205407+00:00",
+      "end": "2026-10-04T23:57:44.882886+00:00",
+      "elapsed_seconds": 0.36581099999602884,
+      "exit_code": 0,
+      "status": "terminal",
+      "stdout_stderr_sha256": "c4fa26306261580a02a8b61cdea9968d6cf84c13d19d2aca07b420c9d5f3fcdb",
+      "source_before_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_after_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_stable": true,
+      "top_level_passes": 8,
+      "top_level_started": 8,
+      "environment_binding": "environment",
+      "tools_binding": "bindings.tools",
+      "source_binding": "bindings.pin_json_sha256",
+      "output_summary": "8/8 actual top-level tests passed"
+    },
+    {
+      "name": "verified-package",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./qualification"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-04T23:57:45.325048+00:00",
+      "end": "2026-10-04T23:57:46.203211+00:00",
+      "elapsed_seconds": 0.37700445800146554,
+      "exit_code": 0,
+      "status": "terminal",
+      "stdout_stderr_sha256": "47593c7f65f100dd13285ca8409329ded63de0772fe206dcee7b17f42dfc6bb0",
+      "source_before_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_after_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_stable": true,
+      "top_level_passes": 23,
+      "top_level_started": 23,
+      "environment_binding": "environment",
+      "tools_binding": "bindings.tools",
+      "source_binding": "bindings.pin_json_sha256",
+      "output_summary": "23/23 actual top-level tests passed"
+    },
+    {
+      "name": "verified-consumers",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./qualification/workload",
+        "./qualification/set",
+        "./qualification/soak"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-04T23:57:47.050836+00:00",
+      "end": "2026-10-04T23:57:48.142223+00:00",
+      "elapsed_seconds": 0.8079865420004353,
+      "exit_code": 0,
+      "status": "terminal",
+      "stdout_stderr_sha256": "38b33f23d13a7c075be398b4acd5f413f3848fccaf645e3c3d5caf1002bc08f2",
+      "source_before_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_after_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_stable": true,
+      "top_level_passes": 60,
+      "top_level_started": 60,
+      "environment_binding": "environment",
+      "tools_binding": "bindings.tools",
+      "source_binding": "bindings.pin_json_sha256",
+      "output_summary": "60/60 actual top-level tests passed"
+    },
+    {
+      "name": "verified-boundaries",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        ".",
+        "-run",
+        "^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-04T23:57:48.454296+00:00",
+      "end": "2026-10-04T23:57:57.989781+00:00",
+      "elapsed_seconds": 9.355946670999401,
+      "exit_code": 0,
+      "status": "terminal",
+      "stdout_stderr_sha256": "2d4cd4aad5beced88952b00fc6590a913f81366859cf004fa40d52ab1f2daea7",
+      "source_before_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_after_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_stable": true,
+      "top_level_passes": 5,
+      "top_level_started": 5,
+      "environment_binding": "environment",
+      "tools_binding": "bindings.tools",
+      "source_binding": "bindings.pin_json_sha256",
+      "output_summary": "5/5 actual top-level tests passed"
+    },
+    {
+      "name": "verified-purity-edges",
+      "argv": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        ".",
+        "-run",
+        "^(TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-04T23:57:58.214584+00:00",
+      "end": "2026-10-04T23:58:27.993971+00:00",
+      "elapsed_seconds": 29.698032722997596,
+      "exit_code": 0,
+      "status": "terminal",
+      "stdout_stderr_sha256": "0c9115d57a212c5f1fe1e08df94b1457cc167c295828ad2b5b5281dcdaf3931e",
+      "source_before_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_after_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_stable": true,
+      "top_level_passes": 2,
+      "top_level_started": 2,
+      "environment_binding": "environment",
+      "tools_binding": "bindings.tools",
+      "source_binding": "bindings.pin_json_sha256",
+      "output_summary": "2/2 actual top-level tests passed"
+    },
+    {
+      "name": "verified-errortype",
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-tags",
+        "test_dep",
+        "./qualification"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-04T23:58:28.071947+00:00",
+      "end": "2026-10-04T23:58:28.807470+00:00",
+      "elapsed_seconds": 0.6549612509988947,
+      "exit_code": 0,
+      "status": "terminal",
+      "stdout_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_before_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_after_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_stable": true,
+      "top_level_passes": 0,
+      "top_level_started": 0,
+      "environment_binding": "environment",
+      "tools_binding": "bindings.tools",
+      "source_binding": "bindings.pin_json_sha256",
+      "output_summary": "empty combined output"
+    },
+    {
+      "name": "verified-gofmt",
+      "argv": [
+        "bash",
+        "-c",
+        "result=$(gofmt -l qualification/qualification.go qualification/qualification_test.go); printf \"%s\" \"$result\"; test -z \"$result\""
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-04T23:58:28.884540+00:00",
+      "end": "2026-10-04T23:58:28.963605+00:00",
+      "elapsed_seconds": 0.010444958999869414,
+      "exit_code": 0,
+      "status": "terminal",
+      "stdout_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source_before_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_after_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_stable": true,
+      "top_level_passes": 0,
+      "top_level_started": 0,
+      "environment_binding": "environment",
+      "tools_binding": "bindings.tools",
+      "source_binding": "bindings.pin_json_sha256",
+      "output_summary": "empty combined output"
+    },
+    {
+      "name": "final-lint-corrected",
+      "argv": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml",
+        "--build-tags",
+        "test_dep",
+        "--fix=false",
+        "./qualification"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "start": "2026-10-05T00:00:05.930103+00:00",
+      "end": "2026-10-05T00:00:06.323633+00:00",
+      "elapsed_seconds": 0.3935174159996677,
+      "exit_code": 1,
+      "status": "terminal",
+      "stdout_stderr_sha256": "b3bd0c77e64a957cd41fc9289e53d250175b110051482028c493038584c18f65",
+      "source_before_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_after_sha256": "53cbf9855d4061216626f9265d3b17ec68b4ae64fa59f2c3596bfd85b7264f0f",
+      "source_stable": true,
+      "environment_binding": "environment",
+      "tools_binding": "bindings.tools",
+      "source_binding": "bindings.pin_json_sha256",
+      "output_summary": "tools/gomad3/qualification/diagnostics_test.go:11:1: File is not properly formatted (gci)\n\t\"go.temporal.io/server/tools/gomad3/internal/canonicaljson\"\n^\n1 issues:\n* gci: 1\n"
+    }
+  ],
+  "scope_review": {
+    "start": "2026-10-04T23:59:05.725372+00:00",
+    "end": "2026-10-04T23:59:15.418249+00:00",
+    "elapsed_seconds": 9.692827712991857,
+    "protected_tracked_paths": 31879,
+    "allowed_paths": 74,
+    "all_existing_record_hashes_valid": true,
+    "root_document_reconstruction": true,
+    "task21_dependency_only": true,
+    "historical_blocked_reason_unchanged": true,
+    "task37_original_prefix_metadata_preserved": true,
+    "parent_state": "open/unknown 2/37",
+    "head": "22fe28d1d6b641e9deea5bf9b60a1da773c06381",
+    "branch": "gomad",
+    "index_sha256": "76a5e449d6b841adfa440a08dbb49bb7d97a041c48a896c2297989075842b450",
+    "root_verification_sha256": "02a0bd2ef7a711d041da5df5beff910d3aec865358aeb4bc8e35e052a854f98a",
+    "staged_gate": "NOT RUN: pending reviewer report binding",
+    "writes": 0,
+    "command": "python3 - (inline read-only scope checker; argv and inspection description below)",
+    "argv": [
+      "python3",
+      "-"
+    ],
+    "exit_code": 0,
+    "inspection": "Complete git ls-tree -rz --full-tree BASE; git show BASE:path; hash/mode/symlink/Gitlink validation outside exact allowed set; additive root-document reconstruction; parent/task21/task37 metadata and original task prefix comparisons; all existing root record hashes; git diff --name-only BASE; flowctl show task37/task21/spec --json; index SHA256. No root gate bypass or staged-gate invocation."
+  },
+  "prior_evidence_review": "Inspected raw baseline-lint (5 errcheck plus protected gci), intermediate QF1001, final corrected lint, authoring malformed-message failure, saved BASE source/overlays and terminal source-bound controls/receipts. Initial malformed expected literal was corrected before production changes; no old assertion weakened. The 419-finding task25 receipt remains historical; no current whole-scope count by subtraction.",
+  "execution_note": "All check handles terminal. Initial aggregate terminal output was truncated while printing the large input inventory; first nine complete receipts were retained, and lint alone was rerun to retain its terminal metadata. No source, config, tool or environment adjustment.",
+  "execution_gaps": [
+    "Real first-Close errors, early primary plus Close errors, reader primary plus Close errors, sole/multiple staging Remove errors, and post-Rename directory open/Sync/Close errors are UNEXECUTED. Source inspection and ordinary files are not runtime fault proof.",
+    "Actual unfiltered qualification package lint is RED on protected diagnostics_test.go:11:1 gci. Original root-fast/full host and formal review have not passed.",
+    "All original R18/R19/R20, predecessors/task21/shared fn108, availability/default/format, matched first-baseline fixed identities, complete/full/completion/formal/affected-consumer/native-default, integration/smoke/core/runtime/process/overlay and both darwin/arm64 plus linux/amd64 obligations remain REQUIRED/OPEN.",
+    "Developmental linux/arm64 stock Go results establish no supported-platform patched runtime confidence or replay qualification.",
+    "Root must bind these reports and verdict, run the unmodified root-scope-gate.py --staged for the exact 74 paths, commit separately and verify after commit. That gate is NOT RUN by this reviewer."
+  ],
+  "reviewer_writes": [
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/independent-source-review.md",
+    ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/independent-source-review.json"
+  ],
+  "live_handles": 0,
+  "delegates": 0,
+  "transient_report_path_correction": "The first apply_patch used relative paths and created only these two report copies under /Users/stephan/Workspace/skunkworks/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37. Removed both misplaced copies with apply_patch and wrote the intended absolute repo report paths. No product/proof/config/Git/Flow record changed."
+}

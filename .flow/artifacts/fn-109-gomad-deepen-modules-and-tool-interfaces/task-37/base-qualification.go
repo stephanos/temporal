@@ -221,7 +221,7 @@ func BuildQualificationFailure(command []string, seed uint64, repeat uint64, com
 	return report, nil
 }
 
-func WriteQualificationReport(artifactRoot string, report QualificationReport) (reportPath string, retErr error) {
+func WriteQualificationReport(artifactRoot string, report QualificationReport) (string, error) {
 	if artifactRoot == "" {
 		return "", fmt.Errorf("artifact root is required")
 	}
@@ -245,31 +245,17 @@ func WriteQualificationReport(artifactRoot string, report QualificationReport) (
 		return "", fmt.Errorf("create qualification report staging file: %w", err)
 	}
 	temporaryPath := temporary.Name()
-	defer func() {
-		if removeErr := os.Remove(temporaryPath); removeErr != nil && (reportPath == "" || !errors.Is(removeErr, os.ErrNotExist)) {
-			if retErr == nil {
-				retErr = removeErr
-			} else {
-				retErr = errors.Join(retErr, removeErr)
-			}
-		}
-	}()
+	defer os.Remove(temporaryPath)
 	if err := temporary.Chmod(0o600); err != nil {
-		if closeErr := temporary.Close(); closeErr != nil {
-			return "", errors.Join(fmt.Errorf("make qualification report private: %w", err), closeErr)
-		}
+		temporary.Close()
 		return "", fmt.Errorf("make qualification report private: %w", err)
 	}
 	if _, err := temporary.Write(encoded); err != nil {
-		if closeErr := temporary.Close(); closeErr != nil {
-			return "", errors.Join(fmt.Errorf("write qualification report: %w", err), closeErr)
-		}
+		temporary.Close()
 		return "", fmt.Errorf("write qualification report: %w", err)
 	}
 	if err := temporary.Sync(); err != nil {
-		if closeErr := temporary.Close(); closeErr != nil {
-			return "", errors.Join(fmt.Errorf("sync qualification report: %w", err), closeErr)
-		}
+		temporary.Close()
 		return "", fmt.Errorf("sync qualification report: %w", err)
 	}
 	if err := temporary.Close(); err != nil {
@@ -295,21 +281,12 @@ func WriteQualificationReport(artifactRoot string, report QualificationReport) (
 	return path, nil
 }
 
-func OpenQualificationReport(path string) (report QualificationReport, retErr error) {
+func OpenQualificationReport(path string) (QualificationReport, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return QualificationReport{}, fmt.Errorf("open qualification report: %w", err)
 	}
-	defer func() {
-		if closeErr := file.Close(); closeErr != nil {
-			report = QualificationReport{}
-			if retErr == nil {
-				retErr = closeErr
-			} else {
-				retErr = errors.Join(retErr, closeErr)
-			}
-		}
-	}()
+	defer file.Close()
 	info, err := file.Stat()
 	if err != nil {
 		return QualificationReport{}, fmt.Errorf("stat qualification report: %w", err)

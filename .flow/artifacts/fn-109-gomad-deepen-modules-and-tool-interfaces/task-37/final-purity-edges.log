@@ -1,0 +1,6 @@
+=== RUN   TestPureModulesHaveNoHostEffects
+--- PASS: TestPureModulesHaveNoHostEffects (28.63s)
+=== RUN   TestExactModuleEdges
+--- PASS: TestExactModuleEdges (1.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3	29.647s

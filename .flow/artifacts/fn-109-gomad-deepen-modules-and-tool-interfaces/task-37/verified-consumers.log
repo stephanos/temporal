@@ -1,0 +1,216 @@
+=== RUN   TestRunWorkloadRepeatsOneCampaignAndPublishesTheClaim
+--- PASS: TestRunWorkloadRepeatsOneCampaignAndPublishesTheClaim (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/qualification/workload	0.005s
+=== RUN   TestPruneQualifiedCampaignsRemovesOnlyReplayedCampaigns
+--- PASS: TestPruneQualifiedCampaignsRemovesOnlyReplayedCampaigns (0.00s)
+=== RUN   TestPruneQualifiedCampaignsRemovesASharedTargetOnlyWithItsLastArtifact
+--- PASS: TestPruneQualifiedCampaignsRemovesASharedTargetOnlyWithItsLastArtifact (0.01s)
+=== RUN   TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence
+=== RUN   TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/artifact_outside_campaign
+=== RUN   TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/campaign_is_a_symlink
+=== RUN   TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/not_qualified
+=== RUN   TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/replay_not_attempted
+=== RUN   TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/replay_diverged
+=== RUN   TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/campaign_outside_root
+=== RUN   TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/campaign_is_the_root_layout
+--- PASS: TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence (0.00s)
+    --- PASS: TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/artifact_outside_campaign (0.00s)
+    --- PASS: TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/campaign_is_a_symlink (0.00s)
+    --- PASS: TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/not_qualified (0.00s)
+    --- PASS: TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/replay_not_attempted (0.00s)
+    --- PASS: TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/replay_diverged (0.00s)
+    --- PASS: TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/campaign_outside_root (0.00s)
+    --- PASS: TestPruneQualifiedCampaignsRefusesUnverifiedOrEscapingEvidence/campaign_is_the_root_layout (0.00s)
+=== RUN   TestRunRecordsPruningAndKeepsUnqualifiedSeedArtifacts
+--- PASS: TestRunRecordsPruningAndKeepsUnqualifiedSeedArtifacts (0.02s)
+=== RUN   TestRunKeepsCampaignsOfQualifiedSeedsWithoutReplay
+--- PASS: TestRunKeepsCampaignsOfQualifiedSeedsWithoutReplay (0.01s)
+=== RUN   TestRecordSeedCheckpointsPruningBeforeDeletingCampaigns
+--- PASS: TestRecordSeedCheckpointsPruningBeforeDeletingCampaigns (0.00s)
+=== RUN   TestValidateSetReportRejectsPruningWithoutReplayedQualification
+=== RUN   TestValidateSetReportRejectsPruningWithoutReplayedQualification/not_replayed
+=== RUN   TestValidateSetReportRejectsPruningWithoutReplayedQualification/replay_diverged
+=== RUN   TestValidateSetReportRejectsPruningWithoutReplayedQualification/mode_not_recorded
+--- PASS: TestValidateSetReportRejectsPruningWithoutReplayedQualification (0.07s)
+    --- PASS: TestValidateSetReportRejectsPruningWithoutReplayedQualification/not_replayed (0.01s)
+    --- PASS: TestValidateSetReportRejectsPruningWithoutReplayedQualification/replay_diverged (0.01s)
+    --- PASS: TestValidateSetReportRejectsPruningWithoutReplayedQualification/mode_not_recorded (0.02s)
+=== RUN   TestRunPublishesCheckedExpectedBoundaryEvidence
+--- PASS: TestRunPublishesCheckedExpectedBoundaryEvidence (0.01s)
+=== RUN   TestRunRetainsAllEvidenceWhenAnExpectationChanges
+--- PASS: TestRunRetainsAllEvidenceWhenAnExpectationChanges (0.02s)
+=== RUN   TestRunReportRetainsRequestedSeeds
+--- PASS: TestRunReportRetainsRequestedSeeds (0.01s)
+=== RUN   TestOpenReportRejectsCountersThatDisagreeWithWorkloads
+--- PASS: TestOpenReportRejectsCountersThatDisagreeWithWorkloads (0.01s)
+=== RUN   TestOpenReportRejectsInvalidModuleDigest
+--- PASS: TestOpenReportRejectsInvalidModuleDigest (0.00s)
+=== RUN   TestOpenReportRejectsHardLinkedEvidence
+--- PASS: TestOpenReportRejectsHardLinkedEvidence (0.01s)
+=== RUN   TestRunCountsRetainedRunnerFailureAsInfrastructure
+--- PASS: TestRunCountsRetainedRunnerFailureAsInfrastructure (0.01s)
+=== RUN   TestRunPreservesRequestedSeedWhenEvidenceProjectionFails
+--- PASS: TestRunPreservesRequestedSeedWhenEvidenceProjectionFails (0.01s)
+=== RUN   TestRunKeepsNondeterministicSeedClassification
+--- PASS: TestRunKeepsNondeterministicSeedClassification (0.01s)
+=== RUN   TestProjectSeedReportDoesNotClaimExactReplayForDivergedReplay
+--- PASS: TestProjectSeedReportDoesNotClaimExactReplayForDivergedReplay (0.00s)
+=== RUN   TestProjectSeedReportDoesNotClaimExactReplayWithoutOneChoiceTape
+--- PASS: TestProjectSeedReportDoesNotClaimExactReplayWithoutOneChoiceTape (0.00s)
+=== RUN   TestProjectSeedReportClaimsNoReplayForAnUntracedWorkload
+--- PASS: TestProjectSeedReportClaimsNoReplayForAnUntracedWorkload (0.00s)
+=== RUN   TestRunMeetsUnrepeatableExpectationForEitherOutcome
+=== RUN   TestRunMeetsUnrepeatableExpectationForEitherOutcome/nondeterministic
+=== RUN   TestRunMeetsUnrepeatableExpectationForEitherOutcome/replay_divergence
+--- PASS: TestRunMeetsUnrepeatableExpectationForEitherOutcome (0.02s)
+    --- PASS: TestRunMeetsUnrepeatableExpectationForEitherOutcome/nondeterministic (0.01s)
+    --- PASS: TestRunMeetsUnrepeatableExpectationForEitherOutcome/replay_divergence (0.01s)
+=== RUN   TestUnrepeatableExpectationRejectsQualifiedSeeds
+--- PASS: TestUnrepeatableExpectationRejectsQualifiedSeeds (0.00s)
+=== RUN   TestIntermittentExpectationAcceptsQualifiedAndUnrepeatableSeeds
+--- PASS: TestIntermittentExpectationAcceptsQualifiedAndUnrepeatableSeeds (0.00s)
+=== RUN   TestRunMeetsIntermittentExpectationForQualifiedAndUnrepeatableOutcomes
+=== RUN   TestRunMeetsIntermittentExpectationForQualifiedAndUnrepeatableOutcomes/nondeterministic
+=== RUN   TestRunMeetsIntermittentExpectationForQualifiedAndUnrepeatableOutcomes/replay_divergence
+--- PASS: TestRunMeetsIntermittentExpectationForQualifiedAndUnrepeatableOutcomes (0.01s)
+    --- PASS: TestRunMeetsIntermittentExpectationForQualifiedAndUnrepeatableOutcomes/nondeterministic (0.01s)
+    --- PASS: TestRunMeetsIntermittentExpectationForQualifiedAndUnrepeatableOutcomes/replay_divergence (0.01s)
+=== RUN   TestLoadManifestRejectsDuplicateWorkloadNames
+--- PASS: TestLoadManifestRejectsDuplicateWorkloadNames (0.00s)
+=== RUN   TestLoadManifestRejectsUnknownRequiredProbes
+--- PASS: TestLoadManifestRejectsUnknownRequiredProbes (0.00s)
+=== RUN   TestLoadManifestRequiresFindingOnFailureExpectations
+=== RUN   TestLoadManifestRequiresFindingOnFailureExpectations/intermittent_with_finding
+=== RUN   TestLoadManifestRequiresFindingOnFailureExpectations/intermittent_without_finding
+=== RUN   TestLoadManifestRequiresFindingOnFailureExpectations/target_failure_blank_finding
+=== RUN   TestLoadManifestRequiresFindingOnFailureExpectations/qualified_with_finding
+=== RUN   TestLoadManifestRequiresFindingOnFailureExpectations/unsupported_with_finding
+=== RUN   TestLoadManifestRequiresFindingOnFailureExpectations/unsupported_without_finding
+--- PASS: TestLoadManifestRequiresFindingOnFailureExpectations (0.00s)
+    --- PASS: TestLoadManifestRequiresFindingOnFailureExpectations/intermittent_with_finding (0.00s)
+    --- PASS: TestLoadManifestRequiresFindingOnFailureExpectations/intermittent_without_finding (0.00s)
+    --- PASS: TestLoadManifestRequiresFindingOnFailureExpectations/target_failure_blank_finding (0.00s)
+    --- PASS: TestLoadManifestRequiresFindingOnFailureExpectations/qualified_with_finding (0.00s)
+    --- PASS: TestLoadManifestRequiresFindingOnFailureExpectations/unsupported_with_finding (0.00s)
+    --- PASS: TestLoadManifestRequiresFindingOnFailureExpectations/unsupported_without_finding (0.00s)
+=== RUN   TestIdentifyModuleRequiresExactSafeGoMod
+--- PASS: TestIdentifyModuleRequiresExactSafeGoMod (0.00s)
+=== RUN   TestRunAnalyzesEveryWorkloadBeforeTargetExecution
+--- PASS: TestRunAnalyzesEveryWorkloadBeforeTargetExecution (0.01s)
+=== RUN   TestAnalysisCommandBoundsAnalysisByWorkloadBudget
+=== RUN   TestAnalysisCommandBoundsAnalysisByWorkloadBudget/manifest
+=== RUN   TestAnalysisCommandBoundsAnalysisByWorkloadBudget/workload_override
+=== RUN   TestAnalysisCommandBoundsAnalysisByWorkloadBudget/analyzer_maximum
+--- PASS: TestAnalysisCommandBoundsAnalysisByWorkloadBudget (0.00s)
+    --- PASS: TestAnalysisCommandBoundsAnalysisByWorkloadBudget/manifest (0.00s)
+    --- PASS: TestAnalysisCommandBoundsAnalysisByWorkloadBudget/workload_override (0.00s)
+    --- PASS: TestAnalysisCommandBoundsAnalysisByWorkloadBudget/analyzer_maximum (0.00s)
+=== RUN   TestWorkloadCommandCarriesTheClockTick
+--- PASS: TestWorkloadCommandCarriesTheClockTick (0.00s)
+=== RUN   TestRunClassifiesEveryWorkloadWhenAnalysisFails
+--- PASS: TestRunClassifiesEveryWorkloadWhenAnalysisFails (0.01s)
+=== RUN   TestAggregateChoiceCoverageRejectsIdentityMismatch
+--- PASS: TestAggregateChoiceCoverageRejectsIdentityMismatch (0.00s)
+=== RUN   TestRunLeavesPrivateCheckpointWhenInterrupted
+--- PASS: TestRunLeavesPrivateCheckpointWhenInterrupted (0.00s)
+=== RUN   TestLoadManifestResolvesPlatformExpectationsForTheHost
+--- PASS: TestLoadManifestResolvesPlatformExpectationsForTheHost (0.00s)
+=== RUN   TestShardSelectsOrdinalModuloWorkloadsOfTheManifest
+=== RUN   TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/whole_manifest
+=== RUN   TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/single_shard
+=== RUN   TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/first_of_two
+=== RUN   TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/second_of_two
+=== RUN   TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/index_past_count
+=== RUN   TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/index_without_count
+=== RUN   TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/count_past_manifest
+--- PASS: TestShardSelectsOrdinalModuloWorkloadsOfTheManifest (0.00s)
+    --- PASS: TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/whole_manifest (0.00s)
+    --- PASS: TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/single_shard (0.00s)
+    --- PASS: TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/first_of_two (0.00s)
+    --- PASS: TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/second_of_two (0.00s)
+    --- PASS: TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/index_past_count (0.00s)
+    --- PASS: TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/index_without_count (0.00s)
+    --- PASS: TestShardSelectsOrdinalModuloWorkloadsOfTheManifest/count_past_manifest (0.00s)
+=== RUN   TestRunShardReportsOnlyItsWorkloadsUnderTheWholeManifestDigest
+--- PASS: TestRunShardReportsOnlyItsWorkloadsUnderTheWholeManifestDigest (0.02s)
+=== RUN   TestMergeCombinesShardReportsIntoTheWholeManifestReport
+--- PASS: TestMergeCombinesShardReportsIntoTheWholeManifestReport (0.03s)
+=== RUN   TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce
+=== RUN   TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/missing_shard
+=== RUN   TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/repeated_shard
+=== RUN   TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/another_manifest
+=== RUN   TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/another_run_configuration
+=== RUN   TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/another_source_revision
+=== RUN   TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/missing_report
+--- PASS: TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce (0.06s)
+    --- PASS: TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/missing_shard (0.00s)
+    --- PASS: TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/repeated_shard (0.00s)
+    --- PASS: TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/another_manifest (0.00s)
+    --- PASS: TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/another_run_configuration (0.00s)
+    --- PASS: TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/another_source_revision (0.00s)
+    --- PASS: TestMergeRejectsShardsThatDoNotCoverTheManifestExactlyOnce/missing_report (0.00s)
+=== RUN   TestMergeRetainsShardExpectationMismatches
+--- PASS: TestMergeRetainsShardExpectationMismatches (0.02s)
+=== RUN   TestTestArgumentsAnchorEverySkippedSubtestElement
+=== RUN   TestTestArgumentsAnchorEverySkippedSubtestElement/no_skips
+=== RUN   TestTestArgumentsAnchorEverySkippedSubtestElement/nested_and_sibling_subtests
+=== RUN   TestTestArgumentsAnchorEverySkippedSubtestElement/parallelism
+--- PASS: TestTestArgumentsAnchorEverySkippedSubtestElement (0.00s)
+    --- PASS: TestTestArgumentsAnchorEverySkippedSubtestElement/no_skips (0.00s)
+    --- PASS: TestTestArgumentsAnchorEverySkippedSubtestElement/nested_and_sibling_subtests (0.00s)
+    --- PASS: TestTestArgumentsAnchorEverySkippedSubtestElement/parallelism (0.00s)
+=== RUN   TestRunPassesSkippedSubtestsToAnalysisAndQualification
+--- PASS: TestRunPassesSkippedSubtestsToAnalysisAndQualification (0.01s)
+=== RUN   TestRunStopsBeforeASeedWhenFreeSpaceIsUnderTheBound
+--- PASS: TestRunStopsBeforeASeedWhenFreeSpaceIsUnderTheBound (0.01s)
+=== RUN   TestRunAnalyzesEachAnalysisIdentityOnce
+--- PASS: TestRunAnalyzesEachAnalysisIdentityOnce (0.04s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/qualification/set	0.437s
+=== RUN   TestCohortBatchSequenceAAThenBBIsADivergence
+--- PASS: TestCohortBatchSequenceAAThenBBIsADivergence (0.00s)
+=== RUN   TestNewToolchainIdentityStartsANewCohort
+--- PASS: TestNewToolchainIdentityStartsANewCohort (0.00s)
+=== RUN   TestCumulativeCountsAccumulateAcrossRetainedRuns
+--- PASS: TestCumulativeCountsAccumulateAcrossRetainedRuns (0.00s)
+=== RUN   TestLoadLedgerRejectsTamperedCohort
+--- PASS: TestLoadLedgerRejectsTamperedCohort (0.00s)
+=== RUN   TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence
+=== RUN   TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/qualified
+=== RUN   TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/fresh_runs_disagree
+=== RUN   TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/overflow_before_divergence
+=== RUN   TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/runner_failure
+=== RUN   TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/overall_timeout
+=== RUN   TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/deterministic_target_failure
+--- PASS: TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence (0.00s)
+    --- PASS: TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/qualified (0.00s)
+    --- PASS: TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/fresh_runs_disagree (0.00s)
+    --- PASS: TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/overflow_before_divergence (0.00s)
+    --- PASS: TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/runner_failure (0.00s)
+    --- PASS: TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/overall_timeout (0.00s)
+    --- PASS: TestClassifyBatchKeepsOverflowAndInfrastructureApartFromDivergence/deterministic_target_failure (0.00s)
+=== RUN   TestRunRetainsBothTracesAndDifferOutputForACrossBatchDivergence
+--- PASS: TestRunRetainsBothTracesAndDifferOutputForACrossBatchDivergence (0.03s)
+=== RUN   TestRunGivesBatchesAbsolutePaths
+--- PASS: TestRunGivesBatchesAbsolutePaths (0.01s)
+=== RUN   TestRunComparesWithTheBaselineOfAnEarlierRetainedRun
+--- PASS: TestRunComparesWithTheBaselineOfAnEarlierRetainedRun (0.03s)
+=== RUN   TestRunRetainsTheLocalisedPairOfAWithinBatchDivergence
+--- PASS: TestRunRetainsTheLocalisedPairOfAWithinBatchDivergence (0.03s)
+=== RUN   TestInformationalPlatformReportsADivergenceWithoutFailing
+--- PASS: TestInformationalPlatformReportsADivergenceWithoutFailing (0.01s)
+=== RUN   TestInfrastructureFailureIsNotAPassOrADivergence
+--- PASS: TestInfrastructureFailureIsNotAPassOrADivergence (0.00s)
+=== RUN   TestRunStopsAddingRoundsPastTheMinimumWhenTheBudgetIsShort
+--- PASS: TestRunStopsAddingRoundsPastTheMinimumWhenTheBudgetIsShort (0.02s)
+=== RUN   TestExhaustedBudgetIsReportedAsInfrastructure
+--- PASS: TestExhaustedBudgetIsReportedAsInfrastructure (0.00s)
+=== RUN   TestSelectedManifestIsValid
+--- PASS: TestSelectedManifestIsValid (0.00s)
+=== RUN   TestOverflowRepetitionsDoNotEnterTheBound
+--- PASS: TestOverflowRepetitionsDoNotEnterTheBound (0.00s)
+=== RUN   TestFailedBaselineRetentionIsInfrastructureAndLeavesNoBaseline
+--- PASS: TestFailedBaselineRetentionIsInfrastructureAndLeavesNoBaseline (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/qualification/soak	0.154s

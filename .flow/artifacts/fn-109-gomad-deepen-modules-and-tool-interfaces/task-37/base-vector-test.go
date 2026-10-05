@@ -1,17 +1,12 @@
 package qualification
 
 import (
-	"bytes"
-	"errors"
 	"os"
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"path/filepath"
-	"reflect"
-	"strings"
-	"syscall"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
 )
@@ -229,197 +224,6 @@ func TestWriteRejectsInconsistentDeterministicOutcome(t *testing.T) {
 	}
 }
 
-func TestQualificationReportStoragePreservation(t *testing.T) {
-	report := qualificationStorageReport(t)
-	root := t.TempDir()
-	paths := make(map[string]bool)
-	for range 2 {
-		path, err := WriteQualificationReport(root, report)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if paths[path] || filepath.Dir(path) != filepath.Join(root, "qualifications", "v1") || !strings.HasPrefix(filepath.Base(path), "qualification-") || !strings.HasSuffix(path, ".json") || filepath.Base(path) == "qualification-.json" {
-			t.Fatalf("published path = %q", path)
-		}
-		paths[path] = true
-		for _, entry := range []struct {
-			path string
-			mode os.FileMode
-		}{
-			{path, 0o600},
-			{filepath.Join(root, "qualifications"), 0o700},
-			{filepath.Dir(path), 0o700},
-		} {
-			info, err := os.Stat(entry.path)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if info.Mode().Perm() != entry.mode {
-				t.Fatalf("mode of %s = %o, want %o", entry.path, info.Mode().Perm(), entry.mode)
-			}
-		}
-		data, err := os.ReadFile(path)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if record.HashBytes(data) != "sha256:9a97f5ddf123343cdfe99228e01305e5e29ec6b2899068af4f30f0de9cc5ca8e" || bytes.Count(data, []byte{'\n'}) != 1 || data[len(data)-1] != '\n' {
-			t.Fatalf("encoded report changed: digest=%s bytes=%q", record.HashBytes(data), data)
-		}
-		opened, err := OpenQualificationReport(path)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !reflect.DeepEqual(opened, report) || opened.EvidenceDigest != "sha256:d7b711fe2e3bffde498345f09b399c6e767d64af6e1dcac5b880db46f4482a82" || opened.Executions[0].EvidenceDigest != opened.EvidenceDigest || opened.Executions[1].EvidenceDigest != opened.EvidenceDigest || !opened.Qualified || !opened.Deterministic || !opened.TargetSuccess || opened.Executions[0].Replay != nil || opened.Executions[1].Replay != nil {
-			t.Fatalf("decoded report = %#v", opened)
-		}
-		evidence, err := canonicaljson.CanonicalJSON(opened.Evidence)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if record.HashBytes(evidence) != "sha256:ff9b34a5312f326dc1c21edf7d2472e2dbeff2d062eb108fc846841bdfa33722" {
-			t.Fatalf("decoded evidence digest = %s", record.HashBytes(evidence))
-		}
-	}
-	entries, err := os.ReadDir(filepath.Join(root, "qualifications", "v1"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(entries) != 2 {
-		t.Fatalf("published entries = %#v", entries)
-	}
-	for _, entry := range entries {
-		if !paths[filepath.Join(root, "qualifications", "v1", entry.Name())] || entry.IsDir() {
-			t.Fatalf("unexpected publication or staging remnant = %s", entry.Name())
-		}
-	}
-}
-
-func TestQualificationReportWriteValidationPreservation(t *testing.T) {
-	report := qualificationStorageReport(t)
-	for _, test := range []struct {
-		name   string
-		root   string
-		report QualificationReport
-		want   string
-	}{
-		{"empty root", "", report, "artifact root is required"},
-		{"root before schema", "", QualificationReport{}, "artifact root is required"},
-		{"invalid schema", filepath.Join(t.TempDir(), "absent"), QualificationReport{}, "unsupported qualification report schema \"\""},
-		{"invalid report", filepath.Join(t.TempDir(), "absent"), QualificationReport{Schema: QualificationReportSchema}, "qualification report command or repetition count is invalid"},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			path, err := WriteQualificationReport(test.root, test.report)
-			if path != "" || err == nil || err.Error() != test.want || errors.Unwrap(err) != nil {
-				t.Fatalf("write = %q, %v, want empty path and %q", path, err, test.want)
-			}
-			if test.root != "" {
-				if _, err := os.Stat(test.root); !errors.Is(err, os.ErrNotExist) {
-					t.Fatalf("validation changed filesystem: %v", err)
-				}
-			}
-		})
-	}
-	t.Run("non-directory ancestor", func(t *testing.T) {
-		root := filepath.Join(t.TempDir(), "file")
-		if err := os.WriteFile(root, []byte("unchanged"), 0o600); err != nil {
-			t.Fatal(err)
-		}
-		path, err := WriteQualificationReport(root, report)
-		var pathErr *os.PathError
-		if path != "" || err == nil || !strings.HasPrefix(err.Error(), "create qualification report directory: ") || !errors.As(err, &pathErr) || errors.Unwrap(err) != pathErr || pathErr.Op != "mkdir" || pathErr.Path != root || !errors.Is(err, syscall.ENOTDIR) {
-			t.Fatalf("write = %q, %#v", path, err)
-		}
-		data, err := os.ReadFile(root)
-		if err != nil || string(data) != "unchanged" {
-			t.Fatalf("ancestor = %q, %v", data, err)
-		}
-	})
-}
-
-func TestQualificationReportReadValidationPreservation(t *testing.T) {
-	path, err := WriteQualificationReport(t.TempDir(), qualificationStorageReport(t))
-	if err != nil {
-		t.Fatal(err)
-	}
-	data, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, test := range []struct {
-		name string
-		data []byte
-		want string
-	}{
-		{"empty", nil, "qualification report must be between 1 and 16777216 bytes"},
-		{"malformed", []byte("{"), "decode qualification report: decode JSON object key: unexpected end of JSON input"},
-		{"noncanonical", append([]byte(" "), data...), "decode qualification report: JSON is not canonical"},
-		{"old schema", bytes.Replace(data, []byte("gomad3.qualification/v1"), []byte("gomad3.qualification/v0"), 1), "unsupported qualification report schema \"gomad3.qualification/v0\""},
-		{"future schema", bytes.Replace(data, []byte("gomad3.qualification/v1"), []byte("gomad3.qualification/v2"), 1), "unsupported qualification report schema \"gomad3.qualification/v2\""},
-		{"invalid evidence", bytes.Replace(data, []byte("gomad3.execution-evidence/v1"), []byte("gomad3.execution-evidence/v0"), 1), "qualification baseline evidence identity is invalid"},
-		{"invalid evidence digest", bytes.Replace(data, []byte("sha256:d7b711fe2e3bffde498345f09b399c6e767d64af6e1dcac5b880db46f4482a82"), []byte("sha256:invalid"), 1), "qualification baseline evidence digest is invalid"},
-		{"double newline", append(append([]byte(nil), data...), '\n'), "decode qualification report: JSON is not canonical"},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			path := filepath.Join(t.TempDir(), "report.json")
-			if err := os.WriteFile(path, test.data, 0o600); err != nil {
-				t.Fatal(err)
-			}
-			opened, err := OpenQualificationReport(path)
-			if !reflect.DeepEqual(opened, QualificationReport{}) || err == nil || err.Error() != test.want {
-				t.Fatalf("read = %#v, %v, want zero report and %q", opened, err, test.want)
-			}
-		})
-	}
-	t.Run("missing path", func(t *testing.T) {
-		path := filepath.Join(t.TempDir(), "absent")
-		opened, err := OpenQualificationReport(path)
-		var pathErr *os.PathError
-		if !reflect.DeepEqual(opened, QualificationReport{}) || err == nil || !strings.HasPrefix(err.Error(), "open qualification report: ") || !errors.As(err, &pathErr) || errors.Unwrap(err) != pathErr || pathErr.Op != "open" || pathErr.Path != path || !errors.Is(err, os.ErrNotExist) {
-			t.Fatalf("read = %#v, %#v", opened, err)
-		}
-	})
-	for _, kind := range []string{"directory", "oversized sparse file"} {
-		t.Run(kind, func(t *testing.T) {
-			path := t.TempDir()
-			if kind == "oversized sparse file" {
-				path = filepath.Join(path, "large.json")
-				if err := os.WriteFile(path, nil, 0o600); err != nil {
-					t.Fatal(err)
-				}
-				if err := os.Truncate(path, 16777217); err != nil {
-					t.Fatal(err)
-				}
-			}
-			opened, err := OpenQualificationReport(path)
-			if !reflect.DeepEqual(opened, QualificationReport{}) || err == nil || err.Error() != "qualification report must be a regular file no larger than 16777216 bytes" || errors.Unwrap(err) != nil {
-				t.Fatalf("read = %#v, %v", opened, err)
-			}
-		})
-	}
-	t.Run("without newline", func(t *testing.T) {
-		path := filepath.Join(t.TempDir(), "report.json")
-		if err := os.WriteFile(path, bytes.TrimSuffix(data, []byte{'\n'}), 0o600); err != nil {
-			t.Fatal(err)
-		}
-		opened, err := OpenQualificationReport(path)
-		if err != nil || !reflect.DeepEqual(opened, qualificationStorageReport(t)) {
-			t.Fatalf("read = %#v, %v", opened, err)
-		}
-	})
-}
-
-func qualificationStorageReport(t *testing.T) QualificationReport {
-	t.Helper()
-	report, err := BuildQualificationReport(QualificationInput{Command: []string{"gomad", "qualify"}, Executions: []QualificationExecution{
-		{CampaignPath: "/artifacts/run-1", Evidence: successfulEvidence()},
-		{CampaignPath: "/artifacts/run-2", Evidence: successfulEvidence()},
-	}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	return report
-}
-
 func successfulEvidence() runner.ExecutionEvidence {
 	return runner.ExecutionEvidence{
 		Schema: runner.ExecutionEvidenceSchema, Seed: 7, RunnerBuild: "sha256:runner",
@@ -442,4 +246,22 @@ func withSeed(evidence runner.ExecutionEvidence, seed record.Uint64String) runne
 func withSchema(evidence runner.ExecutionEvidence, schema string) runner.ExecutionEvidence {
 	evidence.Schema = schema
 	return evidence
+}
+
+func TestTask37CaptureVector(t *testing.T) {
+ report, err := BuildQualificationReport(QualificationInput{Command: []string{"gomad", "qualify"}, Executions: []QualificationExecution{
+  {CampaignPath: "/artifacts/run-1", Evidence: successfulEvidence()},
+  {CampaignPath: "/artifacts/run-2", Evidence: successfulEvidence()},
+ }})
+ if err != nil { t.Fatal(err) }
+ path, err := WriteQualificationReport(t.TempDir(), report)
+ if err != nil { t.Fatal(err) }
+ data, err := os.ReadFile(path)
+ if err != nil { t.Fatal(err) }
+ t.Logf("BASE_ENCODED=%s", data)
+ t.Logf("BASE_SHA256=%s", record.HashBytes(data))
+ t.Logf("BASE_EVIDENCE_DIGEST=%s", report.EvidenceDigest)
+ evidence, err := canonicaljson.CanonicalJSON(report.Evidence)
+ if err != nil { t.Fatal(err) }
+ t.Logf("BASE_EVIDENCE_BYTES_SHA256=%s", record.HashBytes(evidence))
 }

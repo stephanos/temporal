@@ -1,0 +1,633 @@
+{
+  "schema": "fn109.task37.source-progress/v1",
+  "task": "fn-109-gomad-deepen-modules-and-tool-interfaces.37",
+  "status": "in_progress",
+  "outcome": "SOURCE_PROGRESS_ONLY",
+  "base_commit": "22fe28d1d6b641e9deea5bf9b60a1da773c06381",
+  "commits": [],
+  "prs": [],
+  "tier": "Tier: session (jev-unavailable(no_key))",
+  "requested_implementer": "gpt-6.1-sol at high",
+  "model_evidence": "Host metadata does not establish executed model; no actual_model supplied.",
+  "source_sha256": {
+    "tools/gomad3/qualification/qualification.go": "063486bb1bdd13c0f1c92b454b6f10befaa0e13e7b4dff7fc990710dfa09550c",
+    "tools/gomad3/qualification/qualification_test.go": "c4d26e3b02322961d5e1a85f0995b0b5a9cd34d695b2e6e55825700b3e5d7e19"
+  },
+  "admission": {
+    "path": "root-admission.json",
+    "sha256": "1884fa3f4a874020e582dd9fe858a5e5de53f539cb52992af4023cae5c31b84e",
+    "unchanged": true
+  },
+  "pin": "pin.json",
+  "summary": "handover.md",
+  "freeze": "freeze.json",
+  "verifier": {
+    "command": "python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/verify.py",
+    "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+    "receipt": "source-verification.json",
+    "output": "source-verification.log",
+    "deterministic": true,
+    "read_only": true,
+    "post_commit_compatible": true
+  },
+  "tests": [
+    "bash -c \"go version; /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 version; go version -m /tmp/fn109-lint-tools.ZdNe1t50/errortype\"",
+    "go env -json GOOS GOARCH GOVERSION GOROOT GOENV GOWORK GOTOOLCHAIN GOPROXY GOFLAGS GOMOD GOCACHE GOMODCACHE GOEXPERIMENT CGO_ENABLED",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config /Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --build-tags test_dep --fix=false ./qualification",
+    "go test -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/base-vector-overlay.json -count=1 -tags test_dep -v ./qualification -run ^TestTask37CaptureVector$",
+    "go test -count=1 -tags test_dep -v ./qualification -run ^(TestQualificationReportStoragePreservation|TestQualificationReportWriteValidationPreservation|TestQualificationReportReadValidationPreservation|TestWriteReportRetainsCanonicalPrivateFile|TestWriteRejectsInconsistentDeterministicOutcome|TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence|TestDiagnosticsRejectCorruptedSavedReportBindings|TestDiagnosticsOffReportFieldsRemainAbsent)$",
+    "go test -count=1 -tags test_dep -v ./qualification -run ^(TestQualificationReportStoragePreservation|TestQualificationReportWriteValidationPreservation|TestQualificationReportReadValidationPreservation|TestWriteReportRetainsCanonicalPrivateFile|TestWriteRejectsInconsistentDeterministicOutcome|TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence|TestDiagnosticsRejectCorruptedSavedReportBindings|TestDiagnosticsOffReportFieldsRemainAbsent)$",
+    "go test -overlay /Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/base-controls-overlay.json -count=1 -tags test_dep -v ./qualification -run ^(TestQualificationReportStoragePreservation|TestQualificationReportWriteValidationPreservation|TestQualificationReportReadValidationPreservation|TestWriteReportRetainsCanonicalPrivateFile|TestWriteRejectsInconsistentDeterministicOutcome|TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence|TestDiagnosticsRejectCorruptedSavedReportBindings|TestDiagnosticsOffReportFieldsRemainAbsent)$",
+    "go test -count=1 -tags test_dep -v ./qualification -run ^(TestQualificationReportStoragePreservation|TestQualificationReportWriteValidationPreservation|TestQualificationReportReadValidationPreservation|TestWriteReportRetainsCanonicalPrivateFile|TestWriteRejectsInconsistentDeterministicOutcome|TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence|TestDiagnosticsRejectCorruptedSavedReportBindings|TestDiagnosticsOffReportFieldsRemainAbsent)$",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config /Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --build-tags test_dep --fix=false ./qualification",
+    "go test -count=1 -tags test_dep -v ./qualification",
+    "go test -count=1 -tags test_dep -v ./qualification/workload ./qualification/set ./qualification/soak",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype -tags test_dep ./qualification",
+    "go test -count=1 -tags test_dep -v . -run ^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$",
+    "go test -count=1 -tags test_dep -v . -run ^(TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$",
+    "bash -c \"result=$(gofmt -l qualification/qualification.go qualification/qualification_test.go); printf \\\"%s\\\" \\\"$result\\\"; test -z \\\"$result\\\"\"",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config /Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml --build-tags test_dep --fix=false ./qualification",
+    "go test -count=1 -tags test_dep -v ./qualification -run ^(TestQualificationReportStoragePreservation|TestQualificationReportWriteValidationPreservation|TestQualificationReportReadValidationPreservation|TestWriteReportRetainsCanonicalPrivateFile|TestWriteRejectsInconsistentDeterministicOutcome|TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence|TestDiagnosticsRejectCorruptedSavedReportBindings|TestDiagnosticsOffReportFieldsRemainAbsent)$",
+    "go test -count=1 -tags test_dep -v ./qualification",
+    "go test -count=1 -tags test_dep -v ./qualification/workload ./qualification/set ./qualification/soak",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype -tags test_dep ./qualification",
+    "go test -count=1 -tags test_dep -v . -run ^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$",
+    "go test -count=1 -tags test_dep -v . -run ^(TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$",
+    "bash -c \"result=$(gofmt -l qualification/qualification.go qualification/qualification_test.go); printf \\\"%s\\\" \\\"$result\\\"; test -z \\\"$result\\\"\"",
+    "python3 .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/verify.py"
+  ],
+  "receipts": [
+    {
+      "receipt": "tool-versions.json",
+      "name": "tool-versions",
+      "command": [
+        "bash",
+        "-c",
+        "go version; /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 version; go version -m /tmp/fn109-lint-tools.ZdNe1t50/errortype"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 0.28457508399151266,
+      "source_stable": true,
+      "log": "tool-versions.log",
+      "log_sha256": "b5ec800e666bc4bc066d22221e1a81d42bbcde58fb7b011188a71cebe6dd75a6"
+    },
+    {
+      "receipt": "go-env.json",
+      "name": "go-env",
+      "command": [
+        "go",
+        "env",
+        "-json",
+        "GOOS",
+        "GOARCH",
+        "GOVERSION",
+        "GOROOT",
+        "GOENV",
+        "GOWORK",
+        "GOTOOLCHAIN",
+        "GOPROXY",
+        "GOFLAGS",
+        "GOMOD",
+        "GOCACHE",
+        "GOMODCACHE",
+        "GOEXPERIMENT",
+        "CGO_ENABLED"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 0.14709250000305474,
+      "source_stable": true,
+      "log": "go-env.log",
+      "log_sha256": "d7c59d55606ee4e2763d76a0cc89f63cdef981590c3a6bff51ea2671d9a5649c"
+    },
+    {
+      "receipt": "baseline-lint.json",
+      "name": "baseline-lint",
+      "command": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml",
+        "--build-tags",
+        "test_dep",
+        "--fix=false",
+        "./qualification"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 1,
+      "status": "terminal",
+      "elapsed_seconds": 2.0232165009947494,
+      "source_stable": true,
+      "log": "baseline-lint.log",
+      "log_sha256": "ee8f8873034395d0faa8c59380e99ef0048ab6fb8141a875923ed320f90d326e"
+    },
+    {
+      "receipt": "base-vector.json",
+      "name": "base-vector",
+      "command": [
+        "go",
+        "test",
+        "-overlay",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/base-vector-overlay.json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./qualification",
+        "-run",
+        "^TestTask37CaptureVector$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 0.5691359170014039,
+      "source_stable": true,
+      "log": "base-vector.log",
+      "log_sha256": "ca575e0bbf49d35cc3a415b2bfb914dfc901d023f0d6f200332034c03fc1a8f3"
+    },
+    {
+      "receipt": "baseline-controls.json",
+      "name": "baseline-controls",
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./qualification",
+        "-run",
+        "^(TestQualificationReportStoragePreservation|TestQualificationReportWriteValidationPreservation|TestQualificationReportReadValidationPreservation|TestWriteReportRetainsCanonicalPrivateFile|TestWriteRejectsInconsistentDeterministicOutcome|TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence|TestDiagnosticsRejectCorruptedSavedReportBindings|TestDiagnosticsOffReportFieldsRemainAbsent)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 1,
+      "status": "terminal",
+      "elapsed_seconds": 0.5752574580110377,
+      "source_stable": true,
+      "log": "baseline-controls.log",
+      "log_sha256": "0b256025cec703aee2463d96897db805b16e53cfadc2387deb76757f418a9b1c"
+    },
+    {
+      "receipt": "baseline-controls-corrected.json",
+      "name": "baseline-controls-corrected",
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./qualification",
+        "-run",
+        "^(TestQualificationReportStoragePreservation|TestQualificationReportWriteValidationPreservation|TestQualificationReportReadValidationPreservation|TestWriteReportRetainsCanonicalPrivateFile|TestWriteRejectsInconsistentDeterministicOutcome|TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence|TestDiagnosticsRejectCorruptedSavedReportBindings|TestDiagnosticsOffReportFieldsRemainAbsent)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 0.5663567499868805,
+      "source_stable": true,
+      "log": "baseline-controls-corrected.log",
+      "log_sha256": "5b8225e95fe04f1ad03c3ad4cbd3cdfcefefa16f5f13e173119099dd49c92aaa"
+    },
+    {
+      "receipt": "saved-base-controls.json",
+      "name": "saved-base-controls",
+      "command": [
+        "go",
+        "test",
+        "-overlay",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/base-controls-overlay.json",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./qualification",
+        "-run",
+        "^(TestQualificationReportStoragePreservation|TestQualificationReportWriteValidationPreservation|TestQualificationReportReadValidationPreservation|TestWriteReportRetainsCanonicalPrivateFile|TestWriteRejectsInconsistentDeterministicOutcome|TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence|TestDiagnosticsRejectCorruptedSavedReportBindings|TestDiagnosticsOffReportFieldsRemainAbsent)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 0.4674657499999739,
+      "source_stable": true,
+      "log": "saved-base-controls.log",
+      "log_sha256": "fb23ad8d63701b837f39d1534a76ff6debcf79bd94396d7762ba74211531420f"
+    },
+    {
+      "receipt": "final-controls.json",
+      "name": "final-controls",
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./qualification",
+        "-run",
+        "^(TestQualificationReportStoragePreservation|TestQualificationReportWriteValidationPreservation|TestQualificationReportReadValidationPreservation|TestWriteReportRetainsCanonicalPrivateFile|TestWriteRejectsInconsistentDeterministicOutcome|TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence|TestDiagnosticsRejectCorruptedSavedReportBindings|TestDiagnosticsOffReportFieldsRemainAbsent)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 1.0194708339986391,
+      "source_stable": true,
+      "log": "final-controls.log",
+      "log_sha256": "c4f941b5204a39b20916793ba62ea3ff675735e3525781fb3430f30a14dbc896"
+    },
+    {
+      "receipt": "final-lint.json",
+      "name": "final-lint",
+      "command": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml",
+        "--build-tags",
+        "test_dep",
+        "--fix=false",
+        "./qualification"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 1,
+      "status": "terminal",
+      "elapsed_seconds": 1.63562370899308,
+      "source_stable": true,
+      "log": "final-lint.log",
+      "log_sha256": "cdc671b01cdf57b24d6afa72e65ec22e722e2c8a61beb689e02ade370447d451"
+    },
+    {
+      "receipt": "final-package.json",
+      "name": "final-package",
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./qualification"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 1.2383175430004485,
+      "source_stable": true,
+      "log": "final-package.log",
+      "log_sha256": "1e6f46bf33d3815290864cdb345f8d59b0b08cc9663f6e3eb5138b9e4c0dd1fd"
+    },
+    {
+      "receipt": "final-consumers.json",
+      "name": "final-consumers",
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./qualification/workload",
+        "./qualification/set",
+        "./qualification/soak"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 1.819478083998547,
+      "source_stable": true,
+      "log": "final-consumers.log",
+      "log_sha256": "52d00573693f8fc75a4aad7a2c5e51fe0f3a8b9280d34f73b1fa522a24e71a30"
+    },
+    {
+      "receipt": "final-errortype.json",
+      "name": "final-errortype",
+      "command": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-tags",
+        "test_dep",
+        "./qualification"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 1.656054042003234,
+      "source_stable": true,
+      "log": "final-errortype.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "receipt": "final-boundaries.json",
+      "name": "final-boundaries",
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        ".",
+        "-run",
+        "^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 10.520981130001019,
+      "source_stable": true,
+      "log": "final-boundaries.log",
+      "log_sha256": "d69edb45b339332e4d3440ee31449d96add44f25c718e03335149604e028ec36"
+    },
+    {
+      "receipt": "final-purity-edges.json",
+      "name": "final-purity-edges",
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        ".",
+        "-run",
+        "^(TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 30.116813055996317,
+      "source_stable": true,
+      "log": "final-purity-edges.log",
+      "log_sha256": "07e7135620cc6020cc7c9c230177ecdffbb711b7772f7a4cedcb8aa0794314d6"
+    },
+    {
+      "receipt": "final-gofmt.json",
+      "name": "final-gofmt",
+      "command": [
+        "bash",
+        "-c",
+        "result=$(gofmt -l qualification/qualification.go qualification/qualification_test.go); printf \"%s\" \"$result\"; test -z \"$result\""
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 0.23379891700460576,
+      "source_stable": true,
+      "log": "final-gofmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "receipt": "final-lint-corrected.json",
+      "name": "final-lint-corrected",
+      "command": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+        "run",
+        "--config",
+        "/Users/stephan/Workspace/skunkworks/gomad/temporal/.github/.golangci.yml",
+        "--build-tags",
+        "test_dep",
+        "--fix=false",
+        "./qualification"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 1,
+      "status": "terminal",
+      "elapsed_seconds": 1.9037233340059174,
+      "source_stable": true,
+      "log": "final-lint-corrected.log",
+      "log_sha256": "b3bd0c77e64a957cd41fc9289e53d250175b110051482028c493038584c18f65"
+    },
+    {
+      "receipt": "verified-controls.json",
+      "name": "verified-controls",
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./qualification",
+        "-run",
+        "^(TestQualificationReportStoragePreservation|TestQualificationReportWriteValidationPreservation|TestQualificationReportReadValidationPreservation|TestWriteReportRetainsCanonicalPrivateFile|TestWriteRejectsInconsistentDeterministicOutcome|TestBuildReportClassifiesExactChoiceReplayWithEvidenceDivergence|TestDiagnosticsRejectCorruptedSavedReportBindings|TestDiagnosticsOffReportFieldsRemainAbsent)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 0.8520934580010362,
+      "source_stable": true,
+      "log": "verified-controls.log",
+      "log_sha256": "2aba773800f17a5428f0b64871f67493eb13693e380d36e3cf265dbeceef7a1b"
+    },
+    {
+      "receipt": "verified-package.json",
+      "name": "verified-package",
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./qualification"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 0.7427694590005558,
+      "source_stable": true,
+      "log": "verified-package.log",
+      "log_sha256": "dc8f5dc317b88dd0ddad7af4cc42ee73910d36acafa550c53271fcf48326d5bc"
+    },
+    {
+      "receipt": "verified-consumers.json",
+      "name": "verified-consumers",
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        "./qualification/workload",
+        "./qualification/set",
+        "./qualification/soak"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 1.718684834006126,
+      "source_stable": true,
+      "log": "verified-consumers.log",
+      "log_sha256": "adea5cadbb821c8c5a5ff33744356b85e84e703a1019d59c22e97146813976d9"
+    },
+    {
+      "receipt": "verified-errortype.json",
+      "name": "verified-errortype",
+      "command": [
+        "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+        "-tags",
+        "test_dep",
+        "./qualification"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 1.5173934170015855,
+      "source_stable": true,
+      "log": "verified-errortype.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "receipt": "verified-boundaries.json",
+      "name": "verified-boundaries",
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        ".",
+        "-run",
+        "^(TestPackageArchitecture|TestPublicPackagesDoNotExportTypeAliases|TestArchitecturePublicSignatureFixtures|TestRunnerRequestsCompileInExternalModule|TestRunnerExternalConsumerCompiles)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 9.15409008700226,
+      "source_stable": true,
+      "log": "verified-boundaries.log",
+      "log_sha256": "414de843917e83f8d1baec36da1721d76ec4ed67d5414ea52e28c820903bfcf7"
+    },
+    {
+      "receipt": "verified-purity-edges.json",
+      "name": "verified-purity-edges",
+      "command": [
+        "go",
+        "test",
+        "-count=1",
+        "-tags",
+        "test_dep",
+        "-v",
+        ".",
+        "-run",
+        "^(TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 43.606265311987954,
+      "source_stable": true,
+      "log": "verified-purity-edges.log",
+      "log_sha256": "e5c32e726f09d6334b80d116d519b7aafc8402df7c884bb38b4b232999474307"
+    },
+    {
+      "receipt": "verified-gofmt.json",
+      "name": "verified-gofmt",
+      "command": [
+        "bash",
+        "-c",
+        "result=$(gofmt -l qualification/qualification.go qualification/qualification_test.go); printf \"%s\" \"$result\"; test -z \"$result\""
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 0.3738920009927824,
+      "source_stable": true,
+      "log": "verified-gofmt.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "receipt": "source-verification.json",
+      "name": "source-verification",
+      "command": [
+        "python3",
+        ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/verify.py"
+      ],
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 0,
+      "status": "terminal",
+      "elapsed_seconds": 0.5233956250012852,
+      "source_stable": true,
+      "log": "source-verification.log",
+      "log_sha256": "4c8cae8c5719a3134a0a6cb63cf6602db4b234037df35a5bccfb882ebafad0d3"
+    }
+  ],
+  "baseline": {
+    "production_unchanged": true,
+    "analyzer": "red; five errcheck plus one protected gci, exit 1",
+    "real_file_preservation": "green on saved BASE before production change",
+    "failed_authoring_expectation": "baseline-controls.log; one wrong new malformed-JSON message; corrected pre-production, not cleanup runtime RED",
+    "green_handoff": false
+  },
+  "preservation": {
+    "original_production_reconstructed": true,
+    "original_tests_reconstructed": true,
+    "pre_production_controls_match_final": true,
+    "nonproduct_pinned_inputs_unchanged": 1045,
+    "complete_report_sha256": "9a97f5ddf123343cdfe99228e01305e5e29ec6b2899068af4f30f0de9cc5ca8e",
+    "exact_trailing_newlines": 1,
+    "evidence_identity": "sha256:d7b711fe2e3bffde498345f09b399c6e767d64af6e1dcac5b880db46f4482a82",
+    "decoded_evidence_bytes_sha256": "ff9b34a5312f326dc1c21edf7d2472e2dbeff2d062eb108fc846841bdfa33722",
+    "report_mode": "0600",
+    "directory_mode": "0700",
+    "staging_remnants": 0,
+    "successful_repetitions": 2,
+    "saved_BASE_overlay": "base-controls-overlay.json"
+  },
+  "lint": {
+    "baseline_issues": 6,
+    "baseline_errcheck": 5,
+    "baseline_gci": 1,
+    "final_issues": 1,
+    "resolved": 5,
+    "introduced": 0,
+    "residual": "tools/gomad3/qualification/diagnostics_test.go:11:1 gci; protected unchanged",
+    "intermediate": "final-lint.log introduced QF1001; equivalent De Morgan cleanup guard removes it; final full bounded batch verified final bytes",
+    "whole_scope_count": "Not measured; historical task24/25 count remains historical."
+  },
+  "final_checks": {
+    "focused_top_level": 8,
+    "ordinary_package_top_level": 23,
+    "consumer_top_level": 60,
+    "boundary_top_level": 5,
+    "purity_edges_top_level": 2,
+    "errortype_exit": 0,
+    "gofmt_exit": 0,
+    "actual_package_lint_exit": 1,
+    "all_sources_stable": true
+  },
+  "development_platform": "linux/arm64",
+  "generation": {
+    "executed": false,
+    "reason": "Admitted files excluded from Make/protocol identity input sets; Make/descriptor/schema/template/generated/runtime and nested inputs remain equal to BASE; no changed input warrants rerun.",
+    "proof": "pin.json and source-verification.log"
+  },
+  "unproved": [
+    "Genuine first-Close failures",
+    "Simultaneous Chmod/Write/Sync primary and first-Close failure",
+    "Reader primary and Close failure",
+    "Sole/multiple staging Remove failure",
+    "Post-publication directory open/Sync/Close faults",
+    "Full/root-fast/complete host/native qualification",
+    "Formal independent CLI review and completion review",
+    "Native-default integration, functional smoke and affected qualified workload suites",
+    "Native darwin/arm64 and linux/amd64 gates",
+    "Matched first-task baseline fixed identities and original availability/default/format obligations"
+  ],
+  "acceptance": "Original R18/R19/R20, task21/predecessors/shared fn108 and all original full/completion/formal/affected-consumer/native-default/both-native obligations remain REQUIRED/OPEN.",
+  "stage_outcomes": [
+    "stage: impl-review - skipped(policy: host-deferred; root owns bounded source review and formal qualification)"
+  ],
+  "root_pending": [
+    "Independent fresh bounded source review",
+    "Root documentation/Flow receipt projection",
+    "Root source-progress commit before another source writer",
+    "Original required qualification"
+  ],
+  "delegates": 0,
+  "live_worker_handles": []
+}

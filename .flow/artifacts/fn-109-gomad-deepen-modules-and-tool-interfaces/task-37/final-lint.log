@@ -1,0 +1,9 @@
+tools/gomad3/qualification/diagnostics_test.go:11:1: File is not properly formatted (gci)
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+^
+tools/gomad3/qualification/qualification.go:249:65: QF1001: could apply De Morgan's law (staticcheck)
+		if removeErr := os.Remove(temporaryPath); removeErr != nil && !(reportPath != "" && errors.Is(removeErr, os.ErrNotExist)) {
+		                                                              ^
+2 issues:
+* gci: 1
+* staticcheck: 1
