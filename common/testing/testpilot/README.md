@@ -115,6 +115,47 @@ a reference to an undeclared kind, the same recorded kind declared twice under a
 path, or a source the Run and an instruction would both count, rejects at preparation. A Program
 that declares nothing keeps the spelled-out lift rules, which slot-bound reads still use.
 
+## How a Run is judged
+
+These are the judge's generic rules. They hold for every Contract, whichever Model its Case came
+from, and for the live Monitor and the offline `Evaluate` alike. Each names the test that fails when
+the rule is broken.
+
+1. **Verdict aggregation.** One function, `testpilot.ConcludeVerdict` (`internal/execution/verdict.go`),
+   concludes a closed Run's Verdict from its rules' statuses and its disposition. Any violated rule
+   makes the Verdict violated and the Run stopped by its Monitor. A completed Run whose rules are
+   all satisfied, none at all included, is satisfied. Anything else, a rule pending, unspecified or
+   inconclusive or a Run that did not complete, is inconclusive and keeps its disposition. The
+   evaluator concludes its rules through it, the recorder the Monitor's answer;
+   `recordedrun.Agreement` checks a recorded Verdict against it and also refuses a Run stopped
+   without a violation, which `ConcludeVerdict` leaves stopped; `replay.ViolatedForm` asks it
+   whether the rules violate. Test: `TestConclude` (`internal/execution/verdict_test.go`).
+2. **Silence is inconclusive.** A rule nothing in the Run resolved is inconclusive, never
+   satisfied: a plain rule still pending when a completed Run closes, and a correlated rule whose
+   evidence stream admitted nothing, though a Model trace, being total, reads an empty obligation
+   list as vacuously satisfied. Test: `TestSilenceIsInconclusive` (`internal/verification/judge_test.go`).
+3. **Freeze after the first violation.** The event that commits the first violation makes the
+   Monitor answer `Stop`, and no later event, drain, cleanup or closure included, violates,
+   satisfies or supports anything: the Verdict is the proved bad prefix. Test:
+   `TestEvaluationFreezesAtTheFirstViolation` (`internal/verification/judge_test.go`).
+4. **Deadline before transitions.** A bounded-liveness rule's Deadline is checked on each event
+   before that event's transitions, so an event at or past the deadline violates the rule even when
+   its transition would have satisfied it, and a witness must come strictly earlier. An incomplete
+   Run never concludes an expiry. Test: `TestEvaluatorDeadlinesAndReplay`
+   (`internal/verification/evaluator_test.go`).
+5. **Disposition precedence.** The recorder settles a Run's disposition at close, strongest first.
+   A violated Verdict stops the Run by its Monitor, also when it was found at closure or beside a
+   failure. Otherwise an incomplete execution or recording makes the Run incomplete, also when its
+   Monitor stopped it. Otherwise the Monitor's stop or the completion stands, and a Run its Monitor
+   stopped without a violation is inconclusive. The cleanup outcome is reported beside the Run and
+   never changes its disposition or Verdict. Test: `TestRunDispositionPrecedence`
+   (`internal/execution/verdict_test.go`).
+6. **Correlated evidence deduplicated by identity.** A piece of correlated evidence is identified
+   by its scope, source and ordinal. The same evidence recorded again under an admitted identity is
+   that piece, and adds no transition and no support; different evidence under it is malformed and
+   fails the evaluation. Test: `TestCorrelatedEvidenceIsDeduplicatedByIdentity`
+   (`internal/verification/judge_test.go`).
+
 ## Field paths and enum literals
 
 A Case reads and writes protobuf fields through field paths: `PathExpression.path`, a request
