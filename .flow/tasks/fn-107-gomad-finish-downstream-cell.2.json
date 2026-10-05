@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-107-gomad-finish-downstream-cell",
   "spec_path": ".flow/tasks/fn-107-gomad-finish-downstream-cell.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Inject an in-process storage profile and TCP-only membership",
   "updated_at": "2026-10-01T00:47:39.200819Z"
 }

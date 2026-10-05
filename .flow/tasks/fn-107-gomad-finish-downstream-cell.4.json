@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-107-gomad-finish-downstream-cell",
   "spec_path": ".flow/tasks/fn-107-gomad-finish-downstream-cell.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Run a real storage-backed workflow through the dedicated downstream smoke harness",
   "updated_at": "2026-10-01T00:47:39.639817Z"
 }

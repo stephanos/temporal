@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-107-gomad-finish-downstream-cell",
   "spec_path": ".flow/tasks/fn-107-gomad-finish-downstream-cell.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Inject storage filesystems and deterministic capacity through volume and restore paths",
   "updated_at": "2026-10-01T00:47:38.725815Z"
 }

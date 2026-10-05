@@ -29,9 +29,18 @@ D12 and all other specs' qualification gates remain unchanged.
 - Close fn-107 under the amended scope and remove its task table from MILESTONES.md; keep deferred work visible under fn-105.
 
 ## Done summary
-TBD
+Closed fn-107's implementation scope under the owner's explicit approval,
+with final downstream qualification deferred rather than reported as passing.
+The six accepted implementation tasks and historical checkpoint are retained.
+Final support analysis, workflow repeatability/exact replay on both platforms,
+source/native reconciliation/reviews, packs/driver verification and measured
+documentation remain with fn-105.8/.9/.10; their states and acceptance remain open.
+No new native or downstream checks ran and no qualified downstream support
+claim is made. D12 and all other specs' gates remain unchanged.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 31fd85cc16be059636a6a518da91ba4cc63cc50e
+- Tests: flowctl validate --spec fn-107 --json (valid, 0 errors; uncovered R7/R8/R10/R12 are deferred external obligations), flowctl validate --spec fn-105 --json (valid, 0 errors, 0 warnings), git diff --check (pass; administrative scope closure only; no consumer/native qualification)
 - PRs:

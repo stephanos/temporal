@@ -27,7 +27,7 @@ Completed specs and their evidence remain in `.flow/` and Git history.
 2. Qualify the merged fn-112 tasks 16 and 9, fn-113 tasks 1–4, and fn-109 tasks 2–6 against the integrated source; retain each task's acceptance checks.
 3. Investigate D12 with loaded native linux/amd64 cohorts and the existing diagnostics, then restore strict replay expectations when a causal fix qualifies.
 4. Qualify the merged fn-109 tasks 7–12 and fn-110 tasks 3–4, and continue fn-109 tasks 13–21 and fn-110 task 5 in their delivery order. Source implementation may advance after its predecessor candidate is integrated and reviewed; keep acceptance open until its required native gates pass. Complete other platform-only gates when native hosts or CI are available.
-5. Resume fn-107's downstream cell when its checkout is available, and run the final both-platform consumer gates.
+5. Resume fn-105 D8–D10's deferred downstream qualification when its checkout is available, and run the final both-platform consumer gates.
 
 ## Verification instructions for agents
 
@@ -169,18 +169,6 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-105.30](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.30.md) | ✅ Done | D17: deliver explicit target environment and enable the two-cluster Nexus test |
 | [fn-105.31](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.31.md) | 🚧 In progress | D26: put forward clock ticks on the virtual clock and remove the D16 skip |
 | [fn-105.32](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.32.md) | ⛔ Blocked | D27: state, pin, and remedy host-clock reporting escapes |
-
-## Downstream cell — [fn-107](.flow/specs/fn-107-gomad-finish-downstream-cell.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-107.1](.flow/tasks/fn-107-gomad-finish-downstream-cell.1.md) | ✅ Done | Inject storage filesystems and deterministic capacity through volume and restore paths |
-| [fn-107.2](.flow/tasks/fn-107-gomad-finish-downstream-cell.2.md) | ✅ Done | Inject an in-process storage profile and TCP-only membership |
-| [fn-107.3](.flow/tasks/fn-107-gomad-finish-downstream-cell.3.md) | ✅ Done | Compose CDS persistence from injected auxiliary stores and remove host-only source dependencies |
-| [fn-107.4](.flow/tasks/fn-107-gomad-finish-downstream-cell.4.md) | ✅ Done | Run a real storage-backed workflow through the dedicated downstream smoke harness |
-| [fn-107.5](.flow/tasks/fn-107-gomad-finish-downstream-cell.5.md) | 🚧 In progress | Reconcile dual-platform qualification evidence and completion requirements |
-| [fn-107.6](.flow/tasks/fn-107-gomad-finish-downstream-cell.6.md) | ✅ Done | Implement bounded CDS auxiliary stores and in-process WAL |
-| [fn-107.7](.flow/tasks/fn-107-gomad-finish-downstream-cell.7.md) | ✅ Done | Add injectable CDS factory and host source seams |
 
 <a id="deep-modules-and-tool-interfaces-fn-109"></a>
 
