@@ -4,6 +4,9 @@ satisfies: [R13, R18, R19]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.31 Preserve artifact directory and shared-verifier cleanup
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Bounded R13/R18/R19 source repair after public-copy checkpoint 2f75b26addcbc9b1948437407ff52f98da798917 and evidence follow-up 39fc19c4618322b6a939f5b603d9ba69aab00b9b. Preserve original task 12/predecessors and task 21 acceptance. Root owns Flow, parent, MILESTONES, review and Git/index/commit.
 
 **Size:** M
@@ -28,6 +31,9 @@ Pinned Go /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm6
 Keep all bytes outside admitted helper/cleanup/test additions unchanged. Original R13/R18/R19, task12/predecessors/task21, matched original first-baseline fixed identities, complete/full/formal/both patched-native and affected consumer qualification stay open wherever unproved. Worker owns only five source/test files and task31 artifacts; root alone reviews, stages/commits and handles Flow. No worktrees/stash/bridge/push/history rewrite or unrelated writes; no flowctl done or formal SHIP. Return with lean task31 handover.md/evidence.json only when all owned commands/delegates terminal. Root verifies/reviews/commits verified progress before another source writer.
 
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] Three production and three related test cleanup findings are resolved at their existing lifetimes with one Close attempt per descriptor, file-before-root verifier release and directory Close before post-context.
 - [ ] Directory pre/operation/post-context precedence, exact nil-close primary identity, raw sole cleanup errors and verifier zero metadata on cleanup failure are preserved or explicitly source-inspected where genuine fault execution is absent.
 - [ ] Original helper operation bytes, publication/pool transaction owners, fixed-input bytes/identities/costs, public/private payload APIs and all original assertions retain their strength.
@@ -68,3 +74,7 @@ Blocked: original qualification and genuine fault/timing proof remain open. See
 - Commits: c0e21c9cbb54a9d2909d0d47da081fdd44c94d6c
 - Tests: task-31/evidence.json and independent-source-review-checks.json retain exact commands, exits and source-bound logs
 - PRs: none
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

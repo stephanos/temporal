@@ -4,6 +4,9 @@ satisfies: [R12]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.17 Select backend-specific network listener and connection implementations at creation
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stage 5, first half of R12 (F11): the network handle family. `Listener` and `Conn` each hold fields for three backends (process handle, in-process simulation endpoint, standalone state) and every method branches on which is set. Choose the implementation once at creation and let each implementation own its valid state. Filesystem handles follow in the next task; do one family at a time.
 
 **External coordination:** overlay edit; same fn-110 and toolchain-rebuild rules as the simulation-time task.
@@ -49,6 +52,9 @@ cd ../.. && tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_t
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] Network listener and connection creation selects one private backend implementation; exported handle methods no longer branch on `processHandle` or backend fields.
 - [ ] Each implementation owns only its valid state; the simulation network model is shared, not duplicated, and no generic backend registry exists.
 - [ ] Shared operation tests pass for standalone, in-process and process backends; backend-specific tests retain hard-isolation distinctions.
@@ -103,3 +109,7 @@ or push is included.
 - Commits:
 - Tests:
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

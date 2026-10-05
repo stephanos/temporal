@@ -4,6 +4,9 @@ satisfies: [R13, R18, R19]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.30 Preserve public artifact copy cleanup and handle lifetime
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Bounded R13/R18/R19 source repair after private payload checkpoint 8ac436447572c55d494ca4c2088f6ba441db16db and evidence commit 08096389f252e35ff2cd898ca5e381f9b878f46c. Preserve original task 12/predecessors and task 21 acceptance; do not force-start or complete them.
 
 **Size:** M
@@ -29,6 +32,9 @@ Reuse task29's run-gate.py pattern under task30. Record exact commands/env/cwd/s
 Worker owns only these two source/test files and task30 artifacts. Root alone reviews, stages/commits and handles Flow. No worktrees/stash/bridge/push/history rewrite or unrelated writes. Do not call flowctl done or claim formal SHIP. Return with task-unique handover.md/evidence.json only after all owned commands/delegates are terminal. Root verifies/reviews/commits source progress before the next writer.
 
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] Six public-copy and five opened-test cleanup findings are resolved at their existing lifetimes with exactly one destination/source Close attempt and destination-before-source ordering.
 - [ ] Nil-close cleanup preserves exact primary object/type/unwrap shape and current error precedence; single destination-Close error remains direct; added cleanup-failure behavior and missing genuine fault execution are disclosed.
 - [ ] Public signatures, pinned source/private manifest, OpenPayload checks, exclusive destinations, modes, copy/hash/count/EOF/Sync, partial destinations and caller/root ownership remain unchanged; all original test assertions retain their strength.
@@ -57,3 +63,7 @@ Root commits this verified progress before admitting another source writer. All 
 - Tests: [worker handover](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/handover.md), [worker evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/evidence.json), [independent source review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/independent-source-review.md), [review checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/independent-source-review-checks.json), [root verification](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/source-checkpoint-verification.json).
 - Open qualification: [acceptance-open.md](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/acceptance-open.md).
 - PRs: none; no push authorized.
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

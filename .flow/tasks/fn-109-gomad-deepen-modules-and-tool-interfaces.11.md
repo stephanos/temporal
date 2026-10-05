@@ -4,6 +4,9 @@ satisfies: [R17]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.11 Separate capability collection, pure evaluation and linked projection, with one source-inventory owner
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stage 3, R17 (S5). `target/capability.go` (1,350 lines) mixes host evidence collection, validation, policy evaluation and linked projection, and adapter source-inventory hashing is exported from `target` only so `deterministicio` can wrap it. Separate the three concerns internally behind the unchanged review interface and give inventory hashing one neutral private owner.
 
 **External ordering:** after `fn-108-gomad-reduce-code-size-without-removing.2` (local cleanup of `target/capability.go`; it deletes `validateGoCapabilityClosure`, `:184`).
@@ -48,6 +51,9 @@ make test-live-capability
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] Collection, pure evaluation and linked projection have separate private owners behind the unchanged `ReviewCapabilities` / `ReviewCapabilityClosure` contract; the evaluator performs no host effect and reuses the existing compatibility policy.
 - [ ] Adapter source-inventory hashing has one neutral private owner used by both target and adapter preparation, with an architectural owner registered.
 - [ ] Golden canonical reviews (ordered findings, live and eliminated blockers, inventories) and embedded-adapter inventory digests are byte-identical before and after.
@@ -81,3 +87,7 @@ Remaining native gates: on darwin/arm64 and linux/amd64 hosts (task 21), full `m
 - Commits:
 - Tests:
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

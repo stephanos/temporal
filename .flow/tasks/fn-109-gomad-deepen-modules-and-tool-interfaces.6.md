@@ -4,6 +4,9 @@ satisfies: [R5]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.6 Move public executor injection behind private dependencies (fulfils fn-105.3 D3)
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stage 3, R5 (F5). Public `Executor` and `ReplayExecutor` take and return `runner/internal/execution` types that no consumer outside the Runner subtree can import. This task is the single implementation owner of fn-105.3 (D3, origin brief `.flow/tasks/fn-102-gomad-architecture-consolidate.4.md`): do the work here, then close fn-105.3 by reference to this task's evidence. Do not implement it twice.
 
 **External ordering:** start only after the fn-108 R6/R7 tasks are done and verified: `fn-108-gomad-reduce-code-size-without-removing.5` (shared assessment, R6) and `.6` (retention and artifact-input composition, R7) in `tools/gomad3/runner`. Re-anchor the line references below against the post-fn-108 source first. flowctl cannot record a cross-spec task edge, so check `flowctl tasks --spec fn-108-gomad-reduce-code-size-without-removing` before `flowctl start`. Public Go changes overlapping fn-108 follow its completed extraction.
@@ -48,6 +51,9 @@ cd ../.. && flowctl show fn-105-gomad-follow-ups-deferred-scope.3
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [x] `go-interface-changes.md` lists every removed or changed exported declaration, its consumers, the replacement and the migration, written before the edits and updated to match the result.
 - [x] No exported Runner signature or field mentions a `runner/internal/execution` type; `Executor`/`ReplayExecutor` injection exists only as private dependencies.
 - [x] `Preparer` and `ArtifactReplayer` seams remain public and usable; the external-consumer fixture compiles from outside the Runner subtree.

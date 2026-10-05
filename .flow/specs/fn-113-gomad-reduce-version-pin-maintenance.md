@@ -1,5 +1,12 @@
 # Gomad: reduce version-pin maintenance
 
+## Linux ownership amendment (2026-10-04)
+
+The owner transferred all remaining native linux/amd64 execution and Linux-only deferred work to [fn-128](fn-128-gomad-deferred-linux-qualification-and.md) on 2026-10-04. Missing transferred Linux evidence does not block this spec or its retained tasks. Darwin, shared implementation, static coverage of both supported source sets, preservation, size, full-host, review and other independent requirements remain here. Historical reports and completed-task evidence remain unchanged and do not establish current-source qualification.
+
+Linux owners: [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). The [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md) maps each affected task and requirement to its owner. Native execution clauses below apply to Darwin within this spec; references to both platforms retain static/API behavior and historical scope, with outstanding Linux execution owned by fn-128. This explicit owner decision supersedes older no-renewed-deferral and unavailable-Linux completion rules only for the transferred obligations.
+
+
 **Plan date:** 2026-10-01
 
 ## Goal & Context
@@ -100,8 +107,7 @@ adapters and packs carry new identities, and retained artifacts keep theirs.
   R1 baseline.
 
 - **R6:** `make -C tools/gomad3 validate` and `test`, compatibility-pack
-  qualification, and the core set pass on both platforms. Errors: missing
-  linux/amd64 evidence leaves acceptance incomplete.
+  qualification, and the core set pass on native Darwin. Linux execution belongs to fn-128.4/.7. Errors: missing required Darwin execution leaves this spec's acceptance incomplete.
 
 ## Boundaries
 
@@ -184,4 +190,4 @@ registry before tasks 2 and 3.
 | R3 | Adapter regeneration behind approval | .2 | — |
 | R4 | Pack refresh and stale variants | .3 | — |
 | R5 | Bump procedure documented and measured | .4 | — |
-| R6 | Gates pass on both platforms | .4 | — |
+| R6 | Darwin gates pass; Linux execution owned by fn-128.4/.7 | .4 | — |

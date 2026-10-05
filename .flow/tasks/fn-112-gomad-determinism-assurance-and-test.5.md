@@ -4,6 +4,9 @@ satisfies: [R3, R5]
 # fn-112-gomad-determinism-assurance-and-test.5 Inventory seeded-stream draw sites and check host-timed paths at runtime
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Draw inventory/collector-contract reconciliation, current-source Darwin runtime/core/smoke and full/review gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stream isolation (R5): a checked-in, classified inventory of every seeded draw site, rerouting of any host-timed site still on the seeded stream, and a diagnostic-mode runtime check.
 
 **Size:** M
@@ -27,19 +30,22 @@ Stream isolation (R5): a checked-in, classified inventory of every seeded draw s
 
 **Optional** (reference as needed):
 - `tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go:369-477` — overlay rand helpers
-- `tools/gomad3/toolchain/runtime/go1.27.1.patch:121-127` — the one-shot syscall wait in `suspendG` (Q3, owned by fn-105 D12)
+- `tools/gomad3/toolchain/runtime/go1.27.1.patch:121-127` — the one-shot syscall wait in `suspendG` (Q3, owned by fn-128.2 (transferred D12))
 
 ### Key context
 - Rerouting a draw shifts every seed's schedule. Seed-specific expectations (seeds 11 and 17 in the manifests, D16 seed lists) must be requalified, so batch this with the other runtime edits named in spec Open Questions 2.
 - fn-105 D26 moves forward-clock draws; if it has landed, the inventory reflects it.
 
 ### Re-anchor (2026-10-02)
-Q2 is changed: purpose streams already exist, but runqputbatch still routes target/global admission and host netpoll/no-P admission through the same seeded shuffle helper. Preserve target-purpose diversification and route only host-timed batches to the M-local stream. Q3's one-shot wait remains confirmed by source and belongs to D12; this task does not change suspendG.
+Q2 is changed: purpose streams already exist, but runqputbatch still routes target/global admission and host netpoll/no-P admission through the same seeded shuffle helper. Preserve target-purpose diversification and route only host-timed batches to the M-local stream. Q3's one-shot wait remains confirmed by source and belongs to fn-128.2 (transferred D12); this task does not change suspendG.
 
 Go 1.27.1 enables Green Tea by default. Runner preparation explicitly selects the qualified classic collector, while the current raw seeded conformance builders and Make launchers omit that compile profile. Inventory classification must reflect the qualified profile; seeded Green Tea activation is refused outside it without editing collector files. Seeded harness/helper builds and the supported seeded launchers must establish the classic profile themselves. Keep a raw Green Tea rejection and unseeded control; a one-off environment override is not qualification evidence. These launcher and generated-protocol updates are directly implied by the runtime acceptance boundary.
 
 Extend the existing trusted diagnostic fault switch with an explicit host:<ordinal> mode for the host-path negative control. The numeric ordinal mode continues to perturb a target draw and must retain task 3's successful diagnostic localization. Per-M host-path scope must be checked before seeded counters or state change.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] Findings Q2 and Q3 re-anchored and marked confirmed, changed, or refuted
 - [ ] The inventory test lists every seeded-stream reference with a classification and fails on an unclassified one; a deliberate unclassified reference demonstrates the failure
 - [ ] Every host-timed site draws from the M-local stream, or is recorded as blocked by the collector prohibition
@@ -70,3 +76,7 @@ Tracker sync: n/a (bridge inactive)
 - Commits:
 - Tests: make -C tools/gomad3 validate test-toolchain test-runtime (Darwin, exit 0; required-gates.log), Final cross-file alias census: focused and full toolchain tests, stock Go1.27.1, -tags test_dep -count=1, exit0; scoped toolchain vet exit0, make -C tools/gomad3 -o toolchain test-toolchain (candidate patched driver, -tags test_dep -count=1; census-final.log), Focused numeric diagnostic perturb, host:5 rejection, GreenTea seeded rejection/unseeded control, collector-profile unit control: exit0, make -C tools/gomad3 -o test-toolchain -o test-runtime test: harness/interception/45-package host/nine-overlay packages passed; simulation integration exposed a raw builder collector-profile gap, make -C tools/gomad3 -o test-harness -o test-toolchain -o intercept-test -o test-host -o overlay-test -o test-runtime test: exit0, 252.304s; simulation/World race/builder/live capability/upstream passed; unchanged green components reused explicitly, make -C tools/gomad3 core-qualification: exit0,192.040s,7/7 qualified and replayed on2ecdbd33, make gomad3-smoke-qualification: exit0,402.453s,4/4 qualified and replayed on2ecdbd33, Patched Go vet -tags test_dep ./toolchain ./internal/gomadtool/conformance ./runner/internal/execution ./runner ./target/internal/livecap: exit0, Patched Go vet -tags test_dep,integration ./runner/internal/execution: exit0, GOOS=linux GOARCH=amd64 GOEXPERIMENT=nogreenteagc CGO_ENABLED=0 patched Go build runtime: exit0; cross-compilation only, Pinned gofmt: no output; git diff --check: exit0; 16/16 source SHA256 bindings match, flowctl codex impl-review standalone working tree --base HEAD --spec codex:gpt-6-sol:high: SHIP; working-tree-review.json, NOT VERIFIED: native linux/amd64; representative qualification is still running under fn114.14, ROOT LINT UNAVAILABLE: root module cannot load nested module paths; reuse fn114/task-13/integrated-root-lint.log environment failure
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Draw inventory/collector-contract reconciliation, current-source Darwin runtime/core/smoke and full/review gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

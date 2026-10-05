@@ -4,6 +4,9 @@ satisfies: [R14]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.14 Hide generic model-wire slots behind typed network and volume commands
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stage 4, R14 (S2). Process-backend network and volume adapters fill and read the generic `String1/String2/Int1/Int2/Uint1/Uint2` slots of the compact model envelope by hand at about 70 sites, so each site must know which slot means what per operation. Introduce typed domain commands and one translation owner per domain; the wire bytes do not change.
 
 **External coordination:** overlay edit; same fn-110 and toolchain-rebuild rules as the simulation-time task.
@@ -46,6 +49,9 @@ cd ../.. && tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_t
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] Typed network and volume commands own argument and response semantics; only one translation owner per domain names the generic `String*/Int*/Uint*` slots.
 - [ ] Fixed vectors for every network and volume operation produce the same request and response bytes as before.
 - [ ] Partial I/O with errors, invalid and stale handles, capacities and unavailable backend operations keep their domain information and error values.
@@ -90,3 +96,7 @@ and unrelated changes. The older user-only commit instructions are superseded.
 - Commits:
 - Tests:
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

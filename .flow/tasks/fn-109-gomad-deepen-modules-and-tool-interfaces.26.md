@@ -4,6 +4,9 @@ satisfies: [R6]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.26 Restore Runner semantic ownership in CLI callers
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Correct the current R6 source gap after task25 progress commit 984fa118347ebc7b39b7080dd5b9e95e941a00d4. Original task5 requires Runner-owned presence-neutral semantics but the current CLI duplicates base-seed cardinality, coverage/probe validation, trace capacity and choice-coverage dependency. Its earlier summary is historical evidence, not proof of current caller ownership. Task5 is todo with task4 dependency still open; this separate correction does not force-start either, change their original acceptance, or treat their native/predecessor requirements as done.
 
 **Size:** M
@@ -25,14 +28,17 @@ Inspect generator VERSION_INPUTS/BOUNDARY_INPUTS/COMPATIBILITY_INPUTS before edi
 Use lean raw logs and terminal receipts with exact command, cwd, env, tool/source SHA, start/end, exit, elapsed and before/after stability. One focused freeze per actual revision; reference prior broader evidence instead of duplicating inventories. No tools/downloads/config/pin changes.
 
 ### Ownership and completion
-One checkout writer. Root is sole Git/Flow/review/commit owner under conductor-deferred override; no worker lifecycle, formal review or commit. Read-only scouting may run in parallel; no worktree, stash, bridge, push, history rewrite or edits outside Touches. No green baseline handoff. Return only when commands and delegated work are terminal with task-unique handover/evidence and precise remaining requirements; any out-of-scope defect returns SCOPE_EXCEEDED. Root runs fresh independent source review and commits verified progress before the next implementation task. Full R6/R18/R19, task5/predecessors, final task21, full green-tree formal review and both qualified native gates remain open wherever evidence is incomplete.
+One checkout writer. Root is sole Git/Flow/review/commit owner under conductor-deferred override; no worker lifecycle, formal review or commit. Read-only scouting may run in parallel; no worktree, stash, bridge, push, history rewrite or edits outside Touches. No green baseline handoff. Return only when commands and delegated work are terminal with task-unique handover/evidence and precise remaining requirements; any out-of-scope defect returns SCOPE_EXCEEDED. Root runs fresh independent source review and commits verified progress before the next implementation task. Full R6/R18/R19, task5/predecessors, final task21, full green-tree formal review and the qualified Darwin native gate remain open wherever source-owned evidence is incomplete. Linux native execution, pack/report/replay and qualification documentation belong to fn-128.1, fn-128.4 and fn-128.7; missing transferred Linux evidence does not block this task.
 
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] Runner's existing semantic helpers own the actual CLI rules at their original validation points; no duplicated cardinality/probe/capacity/choice-coverage rule remains.
 - [ ] Ownership regression fails before production edits and passes after; behavioral characterization preserves first-error messages, explicit-zero/irrelevant flags, guided defaults, plan routing and writer statuses.
 - [ ] All ordinary affected CLI tests, focused Runner canonical/error tests, architecture and external compilation have terminal source-bound receipts; public seams/signatures and generator/fixed-identity inputs are preserved or their required gates explicitly remain open.
 - [ ] Actual unfiltered affected lint/errortype have terminal before/after receipts with exact introduced versus inherited findings; no filter, suppression, error discard, pin or comparison change manufactures qualification.
-- [ ] Independent source review finds no actionable introduced defect and verified owned source progress is committed before another implementation task; original task5/predecessor, R18/R19, task21 and both native/formal requirements remain open if unproven.
+- [ ] Independent source review finds no actionable introduced defect and verified owned source progress is committed before another implementation task; original task5/predecessor, R18/R19, task21, Darwin native and formal requirements remain open if unproven. Linux native execution, pack/report/replay and qualification documentation belong to fn-128.1, fn-128.4 and fn-128.7; missing transferred Linux evidence does not block this task.
 
 ## Done summary
 SOURCE_PROGRESS_ONLY. Authoritative Flow status is blocked on qualification.
@@ -62,3 +68,7 @@ stage: plan-sync - skipped(empty: task not done; no completed wave to project)
 
 ## Blocked
 [Qualification gaps](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/acceptance-open.md) retain original acceptance and required native/formal gates.
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

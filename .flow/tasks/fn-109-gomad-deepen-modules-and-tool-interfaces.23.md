@@ -4,6 +4,9 @@ satisfies: [R19]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.23 Repair module-aware lint routing and supply the nested host gates
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Repair the confirmed qualification-tooling defect returned by fn-109.21. This is
 a separate R19 implementation owner, not an edit under task 21's verification
 scope or task 20's guidance ownership. The predecessor CLI progress checkpoint
@@ -85,6 +88,9 @@ Retain a small handover and evidence under task-23; root commits verified progre
 before starting the next implementation task per MILESTONES instruction 5.
 
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] Behavioral regressions reproduce the old wrong-owner dispatch and prove the repaired root, Gomad and mixedbrain routes, exact fixture/evidence/overlay dispositions, hidden live tooling, unknown-source rejection and tracked/untracked/deletion/rename behavior.
 - [ ] Root fast lint preserves its existing comparison and lint policy; ordinary root packages remain checked and a nested failure propagates as failure.
 - [ ] Ordinary Gomad host and mixedbrain lint have reproducible pinned-tool/config targets from their own modules, with no overlay or compiler-negative fixture loading and no silently omitted ordinary host source.
@@ -108,3 +114,6 @@ stage: plan-sync - skipped(empty: task not done; no completed wave to project)
 - Acceptance: task-23/acceptance-open.md; task remains blocked on qualification.
 - PRs: none.
 
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

@@ -4,6 +4,9 @@ satisfies: [R3]
 # fn-113-gomad-reduce-version-pin-maintenance.2 Regenerate adapter anchors for a new module version behind an approval digest
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Platform-aware pin/pack behavior, unavailable-platform refusal/unknown handling, measured steps, source reconciliation, Darwin gates and review. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 One governed `gomadtool` command that re-derives an adapter's rewrite and digest anchors for a new exact module version (R3).
 
 **Size:** M
@@ -35,6 +38,9 @@ One governed `gomadtool` command that re-derives an adapter's rewrite and digest
 - fn-112 task 9 consolidates the adapter test family; coordinate edits to those tests.
 - Changing an adapter changes target identity; `.bin/gomad` must be rebuilt before qualification.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] A dry run prints changed upstream source, proposed anchors, and an approval digest, and writes nothing
 - [ ] Apply with the matching digest updates constants, descriptor, and pinned test data together; a wrong digest writes nothing
 - [ ] Negative fixtures: moved anchor, anchor matching twice, rewritten file deleted upstream, generation failure in staging, interrupted publication, checkout changed between staging and publication, and two competing apply operations

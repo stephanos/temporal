@@ -4,6 +4,9 @@ satisfies: [R8]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.19 Enforce package coverage, host-effect and public-signature rules in the architecture checks (fulfils fn-105.4 D4)
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stage 6, R8 (F7). The architecture test lists a fixed set of roots and ignores standard-library and external imports, so a new top-level package or a host effect in a pure module goes unnoticed. This task is the single implementation owner of fn-105.4 (D4, origin brief `.flow/tasks/fn-102-gomad-architecture-consolidate.5.md`); close fn-105.4 by reference afterwards. It runs after the refactors so the rules describe the final owners.
 
 **Size:** M
@@ -44,14 +47,17 @@ cd ../.. && flowctl show fn-105-gomad-follow-ups-deferred-scope.4
 ```
 
 ### Constraints
-- Follow MILESTONES verification instruction 5: commit each verified task separately, including implementation, tests, documentation and Flow records. Keep unavailable native gates incomplete and acceptance open; preserve unrelated changes and push only when authorized.
+- Follow MILESTONES verification instruction 5: commit each verified task separately, including implementation, tests, documentation and Flow records. Keep source-owned unavailable Darwin gates incomplete and acceptance open; transferred Linux gates remain open under fn-128; preserve unrelated changes and push only when authorized.
 - No new third-party dependency. `tools/gomad3/go.mod` requires only `golang.org/x/mod`, so testify is unavailable inside `tools/gomad3`: follow the existing `t.Fatalf` style with whole-value comparisons there. In the root module (`tools/gomad3sim`, `tools/gomad3integration`) use `require` with `Equal`/`EqualValues`.
 - Preserve existing comments with their owning code, CLI grammar/defaults, canonical bytes for fixed supplied identities, and error precedence/classification.
-- Actual host is `linux/arm64`, not the inherited `darwin/arm64` assumption. Architecture/type/static-vet checks inspect both qualified source sets without native target execution; report that scope precisely. Required native darwin/arm64 and linux/amd64 qualification remains incomplete and cannot be inferred from stock-host or cross-vet results.
+- Actual host is `linux/arm64`, not the inherited `darwin/arm64` assumption. Architecture/type/static-vet checks inspect both qualified source sets without native target execution; report that scope precisely. Required native Darwin qualification remains incomplete here; Linux qualification remains incomplete under fn-128.1/.4/.7. Neither can be inferred from stock-host or cross-vet results.
 - fn-105 D12/D14 replay-divergence dispositions stay unchanged. Attribute a failure to those owners with retained evidence instead of relaxing an expectation.
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] Package discovery covers every host package on both qualified source sets with explicit, justified exclusions; an ownerless package or a stale exclusion fails.
 - [ ] Targeted host-effect rules cover the named pure modules, including file-level rules for mixed packages, and catch effects reached through the standard library or a dependency.
 - [ ] A public-signature rule rejects exported declarations that mention inaccessible internal types.
@@ -132,3 +138,8 @@ stage: plan-sync - skipped(policy: no task reached accepted done)
 - Commits:
 - Tests:
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.
+The recorded formal-review dispatch failed with sidecar_publish_failed; no passing verdict exists for that dispatch.

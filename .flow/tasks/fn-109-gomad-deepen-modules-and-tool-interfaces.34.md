@@ -4,6 +4,9 @@ satisfies: [R6, R18, R19]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.34 Check CLI private-mode fixture reader cleanup
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Check the actual private-mode characterization fixture's pipe-reader Close return once while retaining stdin restoration before close and every existing command/output/status assertion. Task 33's reviewed source progress is committed at e521cbd2e39e8521bff013de19e569eff8a1392c, with metadata at base 608df98bdbf1e079e6db8a87849330797ba34439. Original predecessor acceptance stays open. This owner advances R6/R18/R19 test-support qualification, not a production output-failure redesign.
 
 **Touches:** tools/gomad3/cmd/gomad/internal/cli/characterization_test.go, .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-34/**
@@ -15,11 +18,14 @@ Root owns all Flow, parent/MILESTONES, admissions, reviews, staging and commits.
 **Quick commands:** offline cached stock Go 1.27.1 first on PATH, GOWORK=off GOTOOLCHAIN=local GOPROXY=off, no GOROOT/GOMADSEED/GOMAD3_CHILD_SEED; -count=1 -tags test_dep. Baseline and final private-mode regression plus task-26's portable CLI characterization selection; five actual nested-root architecture/public-signature/external-consumer boundaries; baseline/final pinned unfiltered configured complete CLI lint with --fix=false; errortype; source/gofmt and generator-input inspection (validate when relevant). Checks using shared caches/toolchains run serially. Retain exact commands, start/end/elapsed/exit, source/tool hashes and diagnostic multisets. Do not rerun unchanged unsupported-host, missing patched launcher, whole419/root-fast/native/full failures. No green baseline handoff is implied.
 
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - The existing defer restores os.Stdin before a single reader.Close attempt. A returned close error is reported through t.Errorf without replacing a preceding primary failure. Existing command/output/status assertions and all other test bodies remain byte-for-byte unchanged.
 - Retain baseline and final actual private-mode test and portable characterization controls, the actual five nested-root boundaries, errortype and format/source checks on the available pinned stock Go. Inspect generator inputs and validate if affected. Baseline errcheck is RED; the normal real-pipe case is exercised, and real close-error execution remains explicitly unproved.
 - Actual unfiltered pinned complete CLI lint runs before and after; resolve exactly the fixture-close diagnostic with no introduced findings. Retain all actual production residual diagnostics without suppressing, filtering, changing error semantics or claiming whole lint clean. Historical whole-Gomad counts remain historical.
 - Only characterization_test.go changes in product sources; protected inputs, earlier evidence and original acceptance remain unchanged. Independent source review must authorize only a source-progress checkpoint before another writer. Root commits the implementation, proof and Flow/docs together.
-- Original task4/task5/predecessor and task21 acceptance, R6/R18/R19, matched first-baseline fixed identities, full/completion/formal/affected-consumer and native darwin/arm64 plus linux/amd64 qualification remain required. Stock developmental linux/arm64 checks do not fulfill them. Complete this task only when all its corresponding original gates pass; otherwise record reviewed source progress and keep acceptance blocked.
+- Original task4/task5/predecessor and task21 acceptance, R6/R18/R19, matched first-baseline fixed identities, full/completion/formal/affected-consumer and native darwin/arm64 qualification remain required. Stock developmental linux/arm64 checks do not fulfill them. Complete this task only when all its corresponding source-owned gates pass; otherwise record reviewed source progress and keep acceptance blocked. Linux native execution, pack/report/replay and qualification documentation belong to fn-128.1, fn-128.4 and fn-128.7; missing transferred Linux evidence does not block this task.
 
 
 
@@ -55,3 +61,7 @@ stage: plan-sync - skipped(config: disabled; task remains blocked rather than do
 - Commits: source/proof checkpoint retained in this task's Git history.
 - Tests: serial baseline/final private1/1, portable34/34, boundaries5/5, errortype/gofmt0; lint exit1 54 to53.
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

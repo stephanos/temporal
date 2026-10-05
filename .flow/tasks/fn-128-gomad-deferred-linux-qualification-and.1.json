@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-05T05:42:06.149568Z",
+  "depends_on": [],
+  "id": "fn-128-gomad-deferred-linux-qualification-and.1",
+  "priority": null,
+  "spec": "fn-128-gomad-deferred-linux-qualification-and",
+  "spec_path": ".flow/tasks/fn-128-gomad-deferred-linux-qualification-and.1.md",
+  "status": "todo",
+  "title": "Establish native Linux candidate and runtime/host evidence",
+  "updated_at": "2026-10-05T05:42:06.149568Z"
+}

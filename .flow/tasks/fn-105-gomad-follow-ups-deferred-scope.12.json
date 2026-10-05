@@ -12,6 +12,6 @@
   "spec_path": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.12.md",
   "status": "todo",
   "sync": null,
-  "title": "D12: fix Linux replay divergence and restore strict CI qualification",
-  "updated_at": "2026-10-02T03:18:24.119161Z"
+  "title": "D12: record transfer of Linux replay correction",
+  "updated_at": "2026-10-05T06:03:02.762719Z"
 }

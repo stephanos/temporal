@@ -4,6 +4,9 @@ satisfies: [R19]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.24 Restore repository-relative lint exclusion matching
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Restore the intended repository-relative lint path policy after task 23's source-progress checkpoint ce80d2425cf34da103939b5aa23f90bde1c2092f. This is a separate R19 configuration owner, not permission for task 21 to change implementation or task 23 to exceed its routing Touches. Original fn-109 criteria, source baselines, format preservation and native requirements remain unchanged.
 
 **Size:** M
@@ -29,12 +32,15 @@ Read AGENTS.md, Gomad README, MILESTONES, original fn-109 spec and this task. Ap
 
 Formal implementation review is only dispatched on a green qualification tree. If product gates remain red, return source progress and typed gaps for fresh independent source review and a progress commit, never formal SHIP or task completion. Stock Linux aarch64 checks cannot close native darwin/arm64 or linux/amd64 gates. Keep source stable during commands, return only after commands are terminal with task-unique handover/evidence. Root commits each verified task progress before another implementation task.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] Existing exclusion path/path-except expressions are inventoried with independent behavioral positive/negative cases; meaningful real-tool RED reproduces the inherited path-base defect, working regexes remain unchanged, and source-bound evidence records the refuted escaping hypothesis. No new suppression or non-path policy change is introduced.
 - [ ] Actual pinned golangci with the actual copied config proves repository-relative matching from root and nested module cwd; a disallowed ordinary application finding still fails, while only preexisting intended exclusions apply.
 - [ ] Enabled linters, settings, forbid/text patterns, pins, baseline comparison, fix flags, manifests and product Go source remain unchanged. Existing ^.git's reporting consequence remains explicit.
 - [ ] Focused policy tests, all routing contracts, unfiltered helper lint/vet, affected Make ownership, generated validation and config validation pass on frozen inputs; real root/nested/tagged gates have terminal source-bound receipts and any remaining findings retain failing qualification.
 - [ ] Fresh independent source review assesses the bounded repair; no old report, original criterion, workload expectation or native gate is rewritten or declared complete without actual proof.
-- [ ] Source progress, tests, docs and Flow evidence are committed before the next implementation task; formal review, original R18/R19 and both native gates remain open whenever their required checks have not passed.
+- [ ] Source progress, tests, docs and Flow evidence are committed before the next implementation task; formal review, original R18/R19 and the Darwin native gate remain open whenever their source-owned required checks have not passed. Linux native execution, pack/report/replay and qualification documentation belong to fn-128.1, fn-128.4 and fn-128.7; missing transferred Linux evidence does not block this task.
 ## Done summary
 SOURCE PROGRESS ONLY: repository-relative matching repaired and independently reviewed; qualification remains red. See [acceptance and remaining owners](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/acceptance-open.md). Root will commit this checkpoint before the next implementation task. Original R18/R19, task 21, formal review and both native gates remain open.
 
@@ -45,3 +51,7 @@ stage: plan-sync - skipped(empty: task not done; no completed wave to project)
 - Commits: root-owned source-progress checkpoint in Git history; no worker commit.
 - Tests: [terminal worker receipts](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/evidence.json), [independent checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/independent-source-review-checks.json), [root verification](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/source-checkpoint-verification.json).
 - PRs: none; no push authorized.
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

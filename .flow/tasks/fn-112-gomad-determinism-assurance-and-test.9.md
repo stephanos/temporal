@@ -4,6 +4,9 @@ satisfies: [R10]
 # fn-112-gomad-determinism-assurance-and-test.9 Consolidate the change-detector tests with a retained mapping
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Current-source full Darwin gates, semantic preservation/mapping, real built-CLI evidence and review. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Shrink tests that detect change more than defects into table-driven or generated form, with no loss of asserted behavior (R10).
 
 **Size:** M
@@ -35,6 +38,9 @@ Shrink tests that detect change more than defects into table-driven or generated
 - fn-113 task 2 regenerates adapters; coordinate edits to adapter tests with it.
 - fn-108 measured test lines with one counting script; reuse it for the before and after report.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] A mapping file lists every removed test and the table row or case that replaces it
 - [ ] No recorded behavior is lost; removed housekeeping checks each carry a reason
 - [ ] Test code lines and test counts before and after are reported with the fn-108 counting script
@@ -57,3 +63,7 @@ Remaining native gates: on darwin/arm64 and on linux/amd64, run `make -C tools/g
 - Commits:
 - Tests:
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Current-source full Darwin gates, semantic preservation/mapping, real built-CLI evidence and review. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

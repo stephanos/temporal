@@ -1,5 +1,12 @@
 # Gomad remaining work and decisions
 
+## Linux ownership amendment (2026-10-04)
+
+The owner transferred all remaining native linux/amd64 execution and Linux-only deferred work to [fn-128](fn-128-gomad-deferred-linux-qualification-and.md) on 2026-10-04. Missing transferred Linux evidence does not block this spec or its retained tasks. Darwin, shared implementation, static coverage of both supported source sets, preservation, size, full-host, review and other independent requirements remain here. Historical reports and completed-task evidence remain unchanged and do not establish current-source qualification.
+
+Linux owners: [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.2](../tasks/fn-128-gomad-deferred-linux-qualification-and.2.md), [fn-128.3](../tasks/fn-128-gomad-deferred-linux-qualification-and.3.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.6](../tasks/fn-128-gomad-deferred-linux-qualification-and.6.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). The [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md) maps each affected task and requirement to its owner. Native execution clauses below apply to Darwin within this spec; references to both platforms retain static/API behavior and historical scope, with outstanding Linux execution owned by fn-128. This explicit owner decision supersedes older no-renewed-deferral and unavailable-Linux completion rules only for the transferred obligations.
+
+
 [fn-105](fn-105-gomad-follow-ups-deferred-scope.md) owns the tasks and
 acceptance criteria for all 27 remaining items. Required fixes stay open until
 their acceptance criteria are met. Deferred items record why they are deferred
@@ -23,16 +30,7 @@ open or close as won't-do.
   coverage. Any affected replay divergence remains required work under D12/D14;
   adding the job alone cannot close its acceptance.
 
-- **R12:** Fix the linux/amd64 replay-divergence channel in D12
-  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.12.md)). Decision on
-  2026-09-30: this must be fixed; host availability is an execution prerequisite,
-  not a deferral trigger. Identify and fix the cause, retain a regression reproducer,
-  and demonstrate repeated exact replay for the affected F5/F6 suites on seeds 11
-  and 17 on native linux/amd64, including host-load runs. Retain commands, platform
-  identity, repetition counts, and outcomes. Restore the affected expectations to
-  `qualified` and remove CI acceptance of `nondeterministic` and `replay_divergence`
-  only after that evidence passes. Diagnosis or classification alone cannot close
-  D12; an unavailable host or unresolved cause leaves the task open.
+- **R12:** Record the administrative transfer of D12 to [fn-128.2](../tasks/fn-128-gomad-deferred-linux-qualification-and.2.md) with its original causal-fix, reproducer, loaded traced seeds 11/17, exact-replay and strict-CI-restoration acceptance intact. Linux execution remains deferred under fn-128.2; this source requirement claims no divergence fix or Linux pass. Errors: absent receiving ownership or lost strict-restoration acceptance leaves the transfer incomplete.
 
 - **R13:** Make runtime choice tracing opt-in for routine full-suite functional
   qualification in D13 ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.13.md)).
@@ -118,7 +116,7 @@ open or close as won't-do.
   Preserve `strict` identities and behavior. The tick policy stays part of
   execution identity, and the changed runtime produces a new toolchain identity.
   Errors: a remaining lead of `time.Now` over the timer clock, a changed
-  `strict` result, or missing linux/amd64 evidence leaves this requirement open.
+  `strict` result, or missing required Darwin evidence leaves this requirement open. Linux execution belongs to fn-128.1/.4/.7.
 
 - **R27:** Apply the host-clock escape remedies in D27
   ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.32.md)). Decision on
@@ -131,7 +129,7 @@ open or close as won't-do.
   recorded approval before implementation; without it the stamps stay a stated
   limitation. The collector and assembly patch prohibitions remain in force.
   Errors: an unclassified clock reference, a remedy that edits a prohibited
-  file without approval, or missing linux/amd64 evidence leaves this open.
+  file without approval, or missing required Darwin evidence leaves this open. Linux execution belongs to fn-128.1/.4/.7.
 
 ### Approved investigations
 
@@ -209,17 +207,7 @@ receipt does not claim the underlying issue is fixed.
 
 ### Conditional Linux clock audit
 
-- **R11:** Make the dynamic linux/amd64 clock audit conditional on D21
-  ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.11.md)). Decision on
-  2026-09-30: D11 depends on completion of D21's host-clock investigation.
-  Keep implementation deferred until those findings establish the need and
-  feasible scope of this audit. D21 must record the recommendation, evidence,
-  and next action. If needed, implement a bounded fixture that disables its vDSO
-  clock path and detects forbidden host-clock syscalls after activation, with an
-  unseeded positive control and a passing seeded run in Linux CI. Account for
-  intentionally retained host-clock paths and existing patch restrictions.
-  Completion of D21 alone does not claim the audit is implemented; any required
-  audit stays open until verified, while a continued deferral retains its reason.
+- **R11:** Record the administrative transfer of D11 to [fn-128.3](../tasks/fn-128-gomad-deferred-linux-qualification-and.3.md) with its original audit acceptance and completed D21 prerequisite intact. The audit remains deferred under fn-128.3; this source requirement claims no implemented audit or Linux pass. Errors: absent receiving ownership or a missing D21 trigger record leaves the transfer incomplete.
 
 ### Deferred clock policies
 
@@ -273,16 +261,16 @@ receipt does not claim the underlying issue is fixed.
 - **R8:** Complete downstream closure-mode support through D8
   ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.8.md)) as reused by
   [fn-107](fn-107-gomad-finish-downstream-cell.md) R7/R9. Retain supported final-target
-  closure analysis on both platforms, with exact reachable adapters and identity
+  closure analysis on Darwin, with exact reachable adapters and identity
   drift rejection or fresh evidence that the dependency was eliminated.
-- **R9:** Complete downstream dual-platform packs and qualification through D9
+- **R9:** Complete downstream Darwin packs and qualification through D9
   ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.9.md)) as reused by
   fn-107 R8/R10. Retain reproducible identities, supported closure/linked analysis,
-  seeds 11 and 17 repeated twice on each qualified host, and exact retained replay.
+  seeds 11 and 17 repeated twice on native Darwin, and exact retained replay. Linux analyses, packs, execution and guide requirements belong to fn-128.6/.7.
 - **R10:** Complete the reusable downstream-seam guide through D10
   ([task](../tasks/fn-105-gomad-follow-ups-deferred-scope.10.md)) as reused by
   fn-107 R12. Keep generic guidance independent of consumer names and concrete
-  consumer commands consistent with retained successful dual-platform evidence.
+  consumer commands consistent with retained successful Darwin evidence. Linux commands and support claims belong to fn-128.6/.7.
 
 Reuse or transfer each coordinated obligation exactly once during task breakdown.
 The named specs supply their full delivery and qualification criteria. Registration,
@@ -329,9 +317,9 @@ claiming completion or changing task status.
 | --- | --- | --- | --- |
 | D6 | `seeded` and `fixed=<d>` clock ticks, manifest settings and qualified fixtures (`fn-103`) | Explicitly deferred 2026-09-30 under R6; `forward` addresses known ties and the extra policies are exploration features | A specific bug class needs deliberate ties or constant quanta |
 | D8 | Downstream closure-mode adapter for the signal-handling metrics library (`fn-104` C3/R2) | Revived by fn-107 R7/R9 under R8 | Final downstream target and closure evidence as specified by fn-107 |
-| D9 | linux/amd64 downstream packs and qualification (`fn-104`) | Revived by fn-107 R8/R10 under R9 | D8 and the final downstream target; qualify both actual hosts |
+| D9 | Shared/Darwin downstream packs and qualification (`fn-104`) | Revived by fn-107 R8/R10 under R9 | D8 and the final downstream target; qualify native Darwin here, Linux under fn-128.6 |
 | D10 | Downstream seam guide (`fn-104` R4) | Revived by fn-107 R12 under R10 | D9's retained qualification and pack evidence |
-| D11 | Dynamic Linux clock audit with disabled vDSO, seccomp denial, and positive control (`fn-101.3`, pre-amendment R5) | Conditional on D21, decided 2026-09-30 under R11 | Complete D21 and retain findings establishing audit need and feasible scope |
+| D11 | Dynamic Linux clock audit with disabled vDSO, seccomp denial, and positive control (`fn-101.3`, pre-amendment R5) | Conditional on D21, decided 2026-09-30 under R11 | Transferred to fn-128.3; retain D21 findings establishing audit need and feasible scope |
 | D15 | Larger choice traces (`fn-106.3`, split from D13 on 2026-09-30) | Routine qualification uses seed repeatability; the opt-in policy does not require larger tapes | A named workload needs a retained decision tape beyond 64 MiB for debugging, replay verification, exploration, or minimization |
 
 The constraints in [MILESTONES.md](../../MILESTONES.md#constraints) apply throughout.

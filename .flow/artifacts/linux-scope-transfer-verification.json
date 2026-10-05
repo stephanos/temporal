@@ -1,0 +1,63 @@
+{
+  "checked_at": "2026-10-05 06:03:01 UTC",
+  "baseline": "10d884c6f9d97681d08aaf2636f5850407f1586a",
+  "phase": "scope transfer before administrative completion receipts",
+  "verification": {
+    "valid": true,
+    "source_specs": 6,
+    "affected_open_tasks": 59,
+    "mixed_tasks": 57,
+    "linux_only_transfers": 2,
+    "residual_completed_task": 1,
+    "deferred_linux_tasks": 7,
+    "milestone_rows": 117,
+    "source_histories_preserved": 57,
+    "source_dependencies_unchanged": true,
+    "static_both_source_set_R8_unchanged": true,
+    "closed_fn107_fn108_unchanged": true,
+    "D6_D15_unchanged": true,
+    "completed_transfer_receipts": false
+  },
+  "commands": [
+    {
+      "command": "node .flow/tmp/linux-scope-transfer/verify.mjs",
+      "exit_code": 0,
+      "scratch_checker": true
+    },
+    {
+      "command": "/home/agent/.codex/scripts/flowctl validate --all --json",
+      "exit_code": 0,
+      "valid": true
+    },
+    {
+      "command": "/home/agent/.codex/scripts/flowctl validate --spec fn-128-gomad-deferred-linux-qualification-and --coverage --json",
+      "exit_code": 0,
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "task_count": 7
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "reviews": {
+    "plan": {
+      "verdict": "SHIP",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "receipt": ".flow/artifacts/linux-scope-transfer-plan-review.json"
+    },
+    "migration": {
+      "verdict": "SHIP",
+      "fresh_context": true,
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "writer_reviewer_family": "Codex (same family)",
+      "findings": []
+    }
+  },
+  "native_linux_execution": "not run; deferred, unverified",
+  "source_code_changed": false
+}

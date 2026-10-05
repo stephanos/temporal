@@ -1,5 +1,12 @@
 # Gomad: correct search-path defects and remove wasted work
 
+## Linux ownership amendment (2026-10-04)
+
+The owner transferred all remaining native linux/amd64 execution and Linux-only deferred work to [fn-128](fn-128-gomad-deferred-linux-qualification-and.md) on 2026-10-04. Missing transferred Linux evidence does not block this spec or its retained tasks. Darwin, shared implementation, static coverage of both supported source sets, preservation, size, full-host, review and other independent requirements remain here. Historical reports and completed-task evidence remain unchanged and do not establish current-source qualification.
+
+Linux owners: [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). The [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md) maps each affected task and requirement to its owner. Native execution clauses below apply to Darwin within this spec; references to both platforms retain static/API behavior and historical scope, with outstanding Linux execution owned by fn-128. This explicit owner decision supersedes older no-renewed-deferral and unavailable-Linux completion rules only for the transferred obligations.
+
+
 **Plan date:** 2026-10-01
 
 ## Goal & Context
@@ -38,7 +45,7 @@ GOMAD_CMP.md.
 
 ### Relationship to existing work
 
-- fn-105 D12 keeps the linux/amd64 replay-divergence fix. fn-105 D15 keeps trace
+- fn-128.2 owns the transferred linux/amd64 D12 replay-divergence fix. fn-105 D15 keeps trace
   capacity; E3 and E4 report the bytes they save and change no capacity bound.
 - fn-105 task 30 delivered the target environment and is done, so C1 is
   reachable today.
@@ -177,8 +184,7 @@ evaluated attempts.
   across resume.
 - E3's reduction is sound only for the cases its fixture covers. Any select
   shape outside them stays expanded.
-- linux/amd64 evidence needs a native host. A missing host leaves the affected
-  criteria incomplete.
+- Remaining linux/amd64 evidence belongs to fn-128. A missing Linux host leaves only those transferred Linux obligations incomplete.
 
 ## Acceptance Criteria
 
@@ -243,7 +249,7 @@ evaluated attempts.
 
 - **R12:** The candidate toolchain and Runner pass `make -C tools/gomad3
   validate` and `test`, the core set, the smoke set, and the representative
-  Temporal set on darwin/arm64 and linux/amd64, with exact replay where the
+  Temporal set on native darwin/arm64, with exact replay where the
   manifests require it. README, CLI, ARCHITECTURE, and the milestones describe
   the delivered behavior. Errors: missing native-host evidence leaves this
   criterion incomplete.
@@ -456,5 +462,4 @@ fn-114-gomad-correct-search-path-defects-and.2 and later tasks.
 | R9 | (E4): A program with two user goroutines records only decisions among user goroutines, and the contract states the rule for runtime-owned goroutines. Decision counts for the control probe are reported before and after. | fn-114-gomad-correct-search-path-defects-and.13 | — |
 | R10 | (E5): With a start ordinal at the first test body of a functional suite, choice exploration expands decisions at and after that ordinal only, and a resumed campaign keeps the same start. The default behavior is byte-identical to today for a fixed identity. | fn-114-gomad-correct-search-path-defects-and.6 | — |
 | R11 | (E6): A `minimize` run killed after an accepted reduction resumes from its persisted state, repeats no evaluated attempt, and publishes the same result as an uninterrupted run. Errors: a changed parent artifact or budget is rejected. | fn-114-gomad-correct-search-path-defects-and.8 | — |
-| R12 | The candidate toolchain and Runner pass `make -C tools/gomad3 validate` and `test`, the core set, the smoke set, and the representative Temporal set on darwin/arm64 and linux/amd64, with exact replay where the manifests require it. README, CLI, ARCHITECTURE, and the milestones describe the delivered behavior. Errors: missing native-host evidence leaves this criterion incomplete. | fn-114-gomad-correct-search-path-defects-and.14 | — |
-
+| R12 | The candidate toolchain and Runner pass `make -C tools/gomad3 validate` and `test`, the core set, the smoke set, and the representative Temporal set on native darwin/arm64, with exact replay where the manifests require it. README, CLI, ARCHITECTURE, and the milestones describe the delivered behavior. Errors: missing native-host evidence leaves this criterion incomplete. | fn-114-gomad-correct-search-path-defects-and.14 | — |

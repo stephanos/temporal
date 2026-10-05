@@ -4,6 +4,9 @@ satisfies: [R9, R18, R19]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.27 Correct current R18 preservation disclosures
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Correct current preservation disclosure after task26 progress commit fec3ce56e7ea2f1498617148cb2c6d47f1297bc0. This advances R9/R18/R19 documentation and provenance only. Original first-task baseline, availability, fixed-identity and native/full/formal criteria remain unchanged.
 
 **Size:** S
@@ -21,6 +24,9 @@ Documentation-only verification uses before/after owned/protected file hashes, a
 Root owns Git, Flow lifecycle, independent fresh source review and progress commit under conductor-deferred override. No worker stage/commit/review/Flow state, worktree, stash, bridge, push or history rewrite. Delegate only independent read-only work if useful; all handles must be terminal on return. No green qualification handoff. Original R18/R19/task21/native/full/formal requirements remain open; final completion is not supplied by this disclosure.
 
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] Three independent format/controller/workload baseline differences have exact owner and immutable evidence links in a dated supplement.
 - [ ] Current MILESTONES v041 wording and both aggregate disclosure pointers are corrected; current rootfast wording reflects repaired routing and retained red419 qualification.
 - [ ] Original audit, first-task baseline manifest, commit captures, historical owner evidence and original criteria remain unchanged; preservation/native requirements remain open.
@@ -56,3 +62,7 @@ stage: plan-sync - skipped(empty: task not done; no completed wave to project)
 
 ## Blocked
 [Qualification gaps](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27/acceptance-open.md) retain original acceptance and required native/formal gates.
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

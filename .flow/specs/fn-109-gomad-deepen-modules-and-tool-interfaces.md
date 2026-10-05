@@ -1,5 +1,12 @@
 # Gomad deep modules and tool interfaces
 
+## Linux ownership amendment (2026-10-04)
+
+The owner transferred all remaining native linux/amd64 execution and Linux-only deferred work to [fn-128](fn-128-gomad-deferred-linux-qualification-and.md) on 2026-10-04. Missing transferred Linux evidence does not block this spec or its retained tasks. Darwin, shared implementation, static coverage of both supported source sets, preservation, size, full-host, review and other independent requirements remain here. Historical reports and completed-task evidence remain unchanged and do not establish current-source qualification.
+
+Linux owners: [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). The [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md) maps each affected task and requirement to its owner. Native execution clauses below apply to Darwin within this spec; references to both platforms retain static/API behavior and historical scope, with outstanding Linux execution owned by fn-128. This explicit owner decision supersedes older no-renewed-deferral and unavailable-Linux completion rules only for the transferred obligations.
+
+
 **Plan date:** 2026-09-30
 
 ## Goal & Context
@@ -38,7 +45,7 @@ reproduction or new qualification was performed while authoring the assessment.
 - [fn-107](fn-107-gomad-finish-downstream-cell.md) retains downstream service
   integration and qualification ownership. Preparation changes must preserve
   its external-module path and qualified configuration.
-- fn-105 D12/D14 retain Linux and Darwin replay-divergence ownership. This spec
+- fn-128.2 owns the transferred Linux D12 fix; fn-105 D14 retains Darwin replay-divergence ownership. This spec
   neither fixes those channels by assertion nor changes their qualification
   dispositions. Affected final verification must identify failures attributable
   to those owners and retain actual evidence.
@@ -278,7 +285,7 @@ interface does not fulfill a depth requirement.
   [paraphrase]
 - **R7:** Simulation-time layout and codecs have one generated definition with
   host and runtime-safe consumers. Cross-consumer vectors preserve bytes and
-  exercise actual runtime consumption on both platforms. Errors: truncated
+  exercise actual runtime consumption on native Darwin. Linux runtime consumption belongs to fn-128.1/.7. Errors: truncated
   frames, wrong magic/kind, nonzero reserved bytes, generation mismatch and
   time regression fail as before. Generated-output drift fails validation.
   [paraphrase]
@@ -360,7 +367,7 @@ interface does not fulfill a depth requirement.
   host-I/O grant fails acceptance. [inferred]
 - **R19:** Retain baseline revision/inputs, interface decisions, consumer
   migrations, commands and platform-specific results. Focused tests, generator
-  validation, architecture checks, complete Gomad gates on both platforms,
+  validation, architecture checks, complete Gomad gates on native Darwin,
   native/default integration, functional smoke and affected qualification
   suites pass against unchanged dispositions. Exercise 10-job/100-job bounded
   control cases without new selection-sized policy storage or full-payload

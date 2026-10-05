@@ -4,6 +4,9 @@ satisfies: [R10]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.9 Give target Go commands one private host-command seam with bounded output
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stage 3, R10 (F9). Target compilation, Go identity queries and package listing each start processes their own way; the build captures unbounded combined output. Route them through one private Go-command adapter over the existing `hostexec` primitives while keeping the two output contracts distinct.
 
 **External ordering:** after `fn-108-gomad-reduce-code-size-without-removing.2` (local cleanup; it removes `validateGoCapabilityClosure`, `target/capability.go:184`). Re-anchor `capability.go` line references after it lands.
@@ -46,6 +49,9 @@ make test-live-capability
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [x] Target compilation, Go identity queries and listing run through one private Go-command adapter built on `hostexec`; `target` no longer calls `exec.Command` directly for them.
 - [x] Structured-output overflow is rejected and never decoded; compiler diagnostics are bounded head/tail with full hashes.
 - [x] Tests through the adapter cover cancellation and process termination, long diagnostics, structured overflow, malformed listing, build failure and build-cache lock release on every path.

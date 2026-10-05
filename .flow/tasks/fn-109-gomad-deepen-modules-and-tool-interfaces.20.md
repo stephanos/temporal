@@ -4,6 +4,9 @@ satisfies: [R9]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.20 Reconcile architectural guidance with the delivered owners and interfaces (fulfils fn-105.5 D5)
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stage 6, R9 (F8). Most of the original F8 premise is already fixed: verify and cite that, then document what this spec changed. This task is the single owner of fn-105.5 (D5, origin brief `.flow/tasks/fn-102-gomad-architecture-consolidate.6.md`); close fn-105.5 by reference afterwards.
 
 **Size:** S/M
@@ -49,6 +52,9 @@ cd ../.. && flowctl show fn-105-gomad-follow-ups-deferred-scope.5 && flowctl tas
 
 The five guides and permitted fn-109 milestone status lines have passed the focused Quick commands, document checks and independent corrective source review. The generated host-codec path finding is corrected. See `task-20/source-checkpoint.md`, the immutable original and corrective review reports, and the worker handover/evidence for the frozen hashes and commands. Root will commit this verified source progress before successor source work. Formal task-20 review, task-19 formal/native gates, acceptance and fn-105.5 closure remain open; task 21 remains unadmitted. No acceptance criteria or dependency is waived.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] `documentation-evidence.md` cites, with file and line, the already-correct platform, choice replay/exploration and backend statements, and links fn-111's evidence instead of duplicating it.
 - [ ] Architecture guidance describes the delivered owners (options, preparation, command seam, installation description, generated simulation-time protocol, progress lifecycle, backend handles, architecture checks) using existing requirement IDs.
 - [ ] Every intentional Go interface/behavior migration in go-interface-changes.md, including executor injection, Artifact reference/handle and task 19's public reports, pack-directory intent and detached World terminal boundary, is documented with its actual replacement and caller migration.
@@ -68,3 +74,7 @@ stage: impl-review - skipped(policy: red root lint and incomplete qualification;
 - Commits:
 - Tests:
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

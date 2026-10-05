@@ -4,6 +4,9 @@ satisfies: [R4]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.7 Introduce the complete preparation owner and migrate explore and portable planning
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stage 3, first half of R4 (F4). Runner and portable planning each run the same four-step protocol: prepare build adapters, call the preparer, attach adapter identity, validate the prepared target. Create one composition module above `target` and `deterministicio` and move these two callers onto it. Analysis and compatibility review follow in the next task.
 
 **Size:** M
@@ -47,6 +50,9 @@ env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [x] Explore and portable planning obtain a validated prepared target with adapter identities attached from one preparation owner; neither attaches adapters nor orders validation itself.
 - [x] Implementation-only workspace cleanup is owned by the module, and cleanup failure is reported; campaign and bundle owners keep their durable destinations and journal transitions.
 - [x] Tests through the new interface cover fresh and cache builds, an external module with a local replacement, a custom preparer and two independent preparations of the same target.

@@ -4,6 +4,9 @@ satisfies: [R16]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.3 Give the seed controller one atomic completion transition
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stage 2 (S4). R2/R3 need no task here: fn-108 R6/R7 own shared assessment and retention, and the final evidence task links them. This task covers the remaining stage-2 work: `SeedController` requires callers to pair `FinishAttempt` with a later `RecordSuccess`/`RecordCancelled`/`RecordFailure`, so attempted, active and classified counters can disagree between the two calls.
 
 **External ordering:** start only after the fn-108 R6/R7 tasks are done and verified: `fn-108-gomad-reduce-code-size-without-removing.5` (shared assessment, R6) and `.6` (retention and artifact-input composition, R7) in `tools/gomad3/runner`. Re-anchor the line references below against the post-fn-108 source first. flowctl cannot record a cross-spec task edge, so check `flowctl tasks --spec fn-108-gomad-reduce-code-size-without-removing` before `flowctl start`. The call sites below sit inside the seed completion loop that fn-108 restructures.
@@ -44,6 +47,9 @@ env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [x] `SeedController` exposes one completion transition; the `FinishAttempt` plus `Record*` pairing no longer exists and `runner.go` calls the transition once per completed job.
 - [x] Controller tests cover success, cancellation, watchdog, replay divergence, distinct and duplicate failures, resume-seeded counters and each failure policy (`all`, `first`, `budget`), comparing whole `CampaignStatistics` values.
 - [x] Completion without active work is rejected as an invariant violation; no path leaves attempted and classified counters partially updated.

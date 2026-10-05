@@ -95,6 +95,12 @@ Before starting the implementation of any request, you MUST REVIEW the following
   run on both. The macOS sandbox test and the DTrace clock audit are darwin-only; the modernc
   libc adapter and the core SQLite workloads qualify on both. The toolchain builder downloads the Go source
   archive from go.dev, which cloud sessions cannot reach; GitHub CI can.
+- Remaining native Linux verification and Linux-only deferred work belong to
+  [fn-128](.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md). Missing transferred Linux evidence
+  does not block the linked source specs; their implementation, Darwin, full-host, review,
+  static both-source-set checks and other independent requirements remain in force.
+  Linux stays unverified until its owner retains native linux/amd64 evidence. Keep fn-128
+  deferred until the owner requests qualification and supplies native execution.
 - `MILESTONES.md` is the operative delivery order; `.plans/GOMAD_NEXT.md` is the
   capability roadmap it draws from. For task state and acceptance criteria, use `flowctl brief`
   and the open specs under `.flow/specs/`. Current contracts belong to `tools/gomad3/SPEC.md`

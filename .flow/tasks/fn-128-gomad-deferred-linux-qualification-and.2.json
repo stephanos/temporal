@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-05T05:42:06.149704Z",
+  "depends_on": [
+    "fn-128-gomad-deferred-linux-qualification-and.1"
+  ],
+  "id": "fn-128-gomad-deferred-linux-qualification-and.2",
+  "priority": null,
+  "spec": "fn-128-gomad-deferred-linux-qualification-and",
+  "spec_path": ".flow/tasks/fn-128-gomad-deferred-linux-qualification-and.2.md",
+  "status": "todo",
+  "title": "Fix Linux replay divergence and restore strict CI",
+  "updated_at": "2026-10-05T05:42:06.149704Z"
+}

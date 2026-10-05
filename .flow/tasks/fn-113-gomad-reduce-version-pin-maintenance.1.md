@@ -4,6 +4,9 @@ satisfies: [R1, R2]
 # fn-113-gomad-reduce-version-pin-maintenance.1 Baseline the pins and add the pin impact report
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Platform-aware pin/pack behavior, unavailable-platform refusal/unknown handling, measured steps, source reconciliation, Darwin gates and review. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Re-measure the pin baseline (R1) and add a `gomadtool` subcommand that reports every pin a candidate `go.mod` invalidates (R2). This is the spec's early proof point.
 
 **Size:** M
@@ -36,6 +39,9 @@ Re-measure the pin baseline (R1) and add a `gomadtool` subcommand that reports e
 - A new package must satisfy the import allowlist in `architecture_test.go`.
 
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] Baseline of pin classes, counts, and per-bump manual steps retained under the spec's artifacts directory; milestone counts corrected if different
 - [ ] The report lists invalidated adapters, pack rules, interception fingerprints, and clock-inventory references for a candidate `go.mod`
 - [ ] A fixture bump of one adapted and one packed module yields exactly the expected entries, and the build's fail-closed check rejects the same pins

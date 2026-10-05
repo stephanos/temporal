@@ -1,5 +1,12 @@
 # Gomad: determinism assurance and test strategy
 
+## Linux ownership amendment (2026-10-04)
+
+The owner transferred all remaining native linux/amd64 execution and Linux-only deferred work to [fn-128](fn-128-gomad-deferred-linux-qualification-and.md) on 2026-10-04. Missing transferred Linux evidence does not block this spec or its retained tasks. Darwin, shared implementation, static coverage of both supported source sets, preservation, size, full-host, review and other independent requirements remain here. Historical reports and completed-task evidence remain unchanged and do not establish current-source qualification.
+
+Linux owners: [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.5](../tasks/fn-128-gomad-deferred-linux-qualification-and.5.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). The [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md) maps each affected task and requirement to its owner. Native execution clauses below apply to Darwin within this spec; references to both platforms retain static/API behavior and historical scope, with outstanding Linux execution owned by fn-128. This explicit owner decision supersedes older no-renewed-deferral and unavailable-Linux completion rules only for the transferred obligations.
+
+
 **Plan date:** 2026-10-01
 
 ## Goal & Context
@@ -23,7 +30,7 @@ fresh runs under host load.
 
 ### Relationship to existing work
 
-- fn-105 D12 keeps ownership of the linux/amd64 fix and its R12 acceptance.
+- fn-128.2 owns the transferred linux/amd64 D12 fix and its original acceptance.
   This spec supplies the localiser D12 needs. The two D12 candidates from the
   assessment (the one-shot syscall wait in `suspendG`, and uncontrolled linux
   ASLR and `runtime.NumCPU`) are recorded on the D12 task.
@@ -138,15 +145,14 @@ original identity, and qualification of the candidate records fresh artifacts.
   a test.
 - Test consolidation cannot lower the count of distinct asserted behaviors.
   Each removed test maps to the table row or generated case that replaces it.
-- linux/amd64 evidence needs a native host. A missing host leaves the affected
-  criteria incomplete.
+- Remaining linux/amd64 evidence belongs to fn-128. A missing Linux host leaves only those transferred Linux obligations incomplete.
 
 ## Acceptance Criteria
 
 - **R1:** `gomad3.yml` and the smoke workflow pass on both platforms at the
   spec's starting commit, beginning with `make -C tools/gomad3 validate`.
   Errors: a failing or skipped job is recorded with its cause; the open D12
-  allowances stay as they are until fn-105 R12 removes them.
+  allowances stay as they are until fn-128.2 removes them after native qualification.
 
 - **R2:** Existing tests that no target runs are executed by a gate: the tagged
   `tools/gomad3sim/*_toolchain_test.go` files, the overlay packages
@@ -171,17 +177,17 @@ original identity, and qualification of the candidate records fresh artifacts.
   the process on a violation. A negative fixture triggers the check. Errors:
   an unclassified site fails the toolchain tier.
 
-- **R6:** A scheduled soak gate on each platform reports zero divergences over
+- **R6:** A scheduled soak gate on Darwin reports zero divergences over
   a stated N fresh repetitions per seed under load, and retains both traces
   and the differ output on a divergence. Errors: on linux/amd64 the gate stays
-  informational until fn-105 R12 closes D12, and says so in its report.
+  informational until fn-128.2 fulfills the transferred D12 acceptance, and says so in its report.
 
 - **R7:** Each channel named under conformance fixtures has a seeded fixture
   with a positive control or a contract sentence that places it outside the
   contract. README and SPEC state that closure mode compiles no guards.
 
 - **R8:** Generated-sequence model conformance tests compare the filesystem
-  and loopback TCP models with the host OS on both platforms, with every
+  and loopback TCP models with the Darwin host OS, with every
   declared difference listed and tested. Errors: an undeclared difference is
   a defect in the model or a new declared difference with a reason.
 
@@ -199,8 +205,7 @@ original identity, and qualification of the candidate records fresh artifacts.
 
 ## Boundaries
 
-- The D12 fix, the D16 clock correction, patch relocation, and interface
-  migrations keep their fn-105, fn-110, and fn-109 owners.
+- The D12 fix belongs to fn-128.2. The D16 clock correction, patch relocation and interface migrations keep their fn-105, fn-110 and fn-109 owners.
 - No feature is removed. Deterministic GC, multi-P scheduling, and rr-style
   machine recording remain research items.
 - No capability is widened and no test in `./tests` is rewritten for Gomad.

@@ -1,10 +1,13 @@
 ---
 satisfies: [R12]
 ---
-# fn-114-gomad-correct-search-path-defects-and.14 Qualify the combined toolchain and Runner on both platforms and update the docs
+# fn-114-gomad-correct-search-path-defects-and.14 Qualify the combined toolchain and Runner on Darwin and update the docs
 
 ## Description
-R12: one qualification of the candidate that holds every delivered fn-114 change, on both platforms, and the documentation of the delivered behavior.
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implemented scheduler/search behavior, current-source Darwin runtime/full/core/smoke/representative exact replay, measurements, docs and review. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
+R12 here: one Darwin qualification of the candidate that holds every delivered fn-114 change, and the documentation of the delivered behavior. Linux qualification, reports and documentation belong to fn-128.1, fn-128.4 and fn-128.7.
 
 **Size:** M
 **Files:** `tools/gomad3/README.md`, `CLI.md`, `ARCHITECTURE.md`, `SPEC.md`, `MILESTONES.md`, `.plans/GOMAD_NEXT.md`, qualification reports retained under `.flow/artifacts/fn-114-gomad-correct-search-path-defects-and/qualification/`
@@ -13,7 +16,7 @@ R12: one qualification of the candidate that holds every delivered fn-114 change
 ### Approach
 - Record the toolchain build key under test and which runtime edits it contains (tasks 5, 11, 13, and any fn-110, fn-112, or fn-109 runtime task that landed). If another spec's runtime change is about to land, agree one candidate with its owner and qualify once.
 - Run on darwin/arm64: `validate`, `test`, the core set, the smoke set, and the representative Temporal set, with exact replay where the manifests require it.
-- Run the same on a native linux/amd64 host. With no host, R12 stays incomplete: record that and do not mark the criterion met.
+- The corresponding native linux/amd64 gates and reports belong to fn-128.1, fn-128.4 and fn-128.7. Those owners retain Linux as unverified until native evidence exists; missing transferred Linux evidence does not keep source-owned R12 incomplete here.
 - A workload whose disposition changes is investigated. Dispositions and manifests are not weakened to obtain a pass.
 - Take the after measurements that need this run: representative retained bytes (task 10) and the Signal suite counts (task 12), if those tasks deferred them.
 - Docs, each to the delivered state and nothing planned:
@@ -43,10 +46,13 @@ R12: one qualification of the candidate that holds every delivered fn-114 change
 - The full `./tests` set is not a gate (milestone constraint on validation scope).
 - A finding closed as refuted is documented as refuted, with its evidence, and changes no behavior text.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] The build key under test and the runtime edits it contains are recorded
 - [ ] `make -C tools/gomad3 validate` and `test` pass on darwin/arm64
 - [ ] The core, smoke, and representative sets pass on darwin/arm64 with exact replay where required, with reports retained
-- [ ] The same gates pass on native linux/amd64 with reports retained, or R12 is recorded as incomplete for lack of a host
+- [ ] The corresponding native linux/amd64 gates and retained reports are explicitly assigned to fn-128.1, fn-128.4 and fn-128.7; missing transferred Linux evidence does not keep source-owned R12 incomplete here
 - [ ] No disposition or manifest was weakened; any changed disposition has a recorded cause
 - [ ] README, CLI guide, SPEC, ARCHITECTURE, milestones, roadmap, and assessment describe the delivered behavior, and every documented flag is accepted by the CLI
 - [ ] Each of the ten findings is marked delivered, refuted, or open in the assessment and the milestones
@@ -57,3 +63,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implemented scheduler/search behavior, current-source Darwin runtime/full/core/smoke/representative exact replay, measurements, docs and review. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

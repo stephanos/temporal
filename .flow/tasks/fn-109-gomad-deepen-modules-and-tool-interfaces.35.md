@@ -4,6 +4,9 @@ satisfies: [R3, R13, R18, R19]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.35 Preserve corpus reader cleanup and publication failures
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Repair the corpus reader's two ignored production Close returns and four original corpus fixture Close returns while preserving all existing helper bodies, error precedence, resource lifetimes and corpus transactions. Task34 reviewed source progress is committed at a80ad9b9d1a4195c4aeb2fe135557f71e6e6552a. Original predecessor acceptance remains open.
 
 **Touches:** tools/gomad3/runner/internal/corpus/corpus.go, tools/gomad3/runner/internal/corpus/corpus_test.go, .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/**
@@ -17,11 +20,14 @@ Root owns all Flow, parent/MILESTONES, admission, reviews, staging and commits. 
 **Quick commands:** offline cached stock Go1.27.1 first on PATH, GOENV=off GOWORK=off GOTOOLCHAIN=local GOPROXY=off, no GOROOT/Gomad seed variables; -count=1 -tags test_dep. Baseline and final full corpus package and focused old/new preservation controls; actual five nested-root architecture/public-signature/external-consumer boundaries; actual unfiltered pinned configured corpus lint --fix=false before/after; errortype; source/gofmt and generator-input inspection, validate if relevant. Run shared-cache/toolchain checks serially. Retain commands, actual exit/time, source/tool/config hashes and diagnostic delta with one lean handover. Do not retry unchanged rootfast419/full/native/missing patched launcher failures or claim package checks fulfill full qualification.
 
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - Both production cleanup attempts stay at their original lifetime boundaries, one attempt each. Nil cleanup preserves exact original result/error identity and all original operations/comments. A sole genuine cleanup failure returns its raw error and zero result; simultaneous failure joins primary first and cleanup second, zero result. No publication follows failed validation, and existing committed true,error paths remain unchanged.
 - Four original fixture defers check actual Close via nonfatal testing.T at the same positions; every original assertion remains intact. Append direct real-file success/error-order/zero-result/snapshot-publication controls and fixed BASE canonical bytes/digests. Run them before and after production changes. Disclose genuine first-Close and simultaneous failure execution gaps.
 - Baseline and final full corpus, focused controls, five actual nested-root boundaries, errortype and source/gofmt pass on available pinned stock Go. Inspect generator inputs and validate when affected. Actual unfiltered pinned corpus analyzer reproduces original findings and resolves the six admitted sites with none introduced; retain actual residual diagnostics if any. No inferred fresh whole-Gomad count or suppression.
 - Only corpus.go/corpus_test.go product sources change; all protected inputs and original acceptance remain unchanged. Independent fresh source review must permit only a source-progress checkpoint before another writer. Root commits implementation, proof and Flow/docs together.
-- Original R3/R13/R18/R19, shared fn108 assessment/retention, task12/relevant predecessors/task21, matched first-baseline fixed identities, full/completion/formal/affected-consumer and qualified native darwin/arm64 plus linux/amd64 gates remain required. Stock developmental checks do not fulfill them. Complete the task only after all corresponding original gates pass; otherwise keep acceptance blocked and retain reviewed source progress.
+- Original R3/R13/R18/R19, shared fn108 assessment/retention, task12/relevant predecessors/task21, matched first-baseline fixed identities, full/completion/formal/affected-consumer and qualified native darwin/arm64 gates remain required. Stock developmental checks do not fulfill them. Complete the task only after all corresponding source-owned gates pass; otherwise keep acceptance blocked and retain reviewed source progress. Linux native execution, pack/report/replay and qualification documentation belong to fn-128.1, fn-128.4 and fn-128.7; missing transferred Linux evidence does not block this task.
 
 
 ## Done summary
@@ -64,3 +70,7 @@ stage: plan-sync - skipped(config: disabled; task remains blocked rather than do
 - Tests: Worker handover.md/evidence.json, independent-source-review.md/json and root-reaudit.json under .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/.
 - PRs: None.
 - Acceptance: [.flow task35 open gates](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/acceptance-open.md).
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

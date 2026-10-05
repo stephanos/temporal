@@ -4,6 +4,9 @@ satisfies: [R13, R18, R19]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.33 Preserve artifact reflection helper coverage and clone isolation
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Repair the two exhaustive reflection-helper findings in artifact/opened_test.go while preserving the existing manifest-clone and opened-handle assertions. The reviewed task 31 and task 32 candidates are integrated at 1ee85b004cfaac41e178784701decbf0dd277968; their original acceptance remains open. This owner advances R13/R18/R19 test-support qualification, not a production clone redesign.
 
 **Touches:** tools/gomad3/artifact/opened_test.go; .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-33/**
@@ -17,11 +20,14 @@ Root owns Flow, spec/MILESTONES updates, review, staging and commits. The worker
 **Quick commands:** cached pinned Go 1.27.1 linux/arm64: full artifact package and focused clone/opened/copy-isolation/cleanup controls with -count=1 -tags test_dep; actual nested-root architecture/public-signature/external-consumer boundaries; pinned unfiltered configured artifact lint; errortype; source diff/gofmt checks; make validate after inspecting generator inputs. Retain command, actual exit, time, source bindings and meaningful RED evidence. Use offline GOWORK=off, GOTOOLCHAIN=local, GOPROXY=off with Go first on PATH. Native/full/formal failures already tied to unchanged environment are not retried.
 
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - Both Kind switches explicitly account for all 27 pinned reflect.Kind values without a passing default or analyzer bypass. Existing population branch operations and initialized values remain unchanged apart from testing.T propagation. Existing no-sharing checks and record/opened-handle assertions remain intact; arrays recursively inspect every element.
 - Supported synthetic array/reference controls exercise actual deepCopy, equality, no-sharing and clone mutation/original isolation. Literal nil/nonnil-empty containers and nonzero uintptr/float/complex controls retain values and container distinctions. Direct unchanged production-guard controls cover valid Interface/Func/Chan/UnsafePointer values including typed nils and exact invariant messages; supported controls distinguish indiscriminate rejection.
 - Retain a real baseline and final full artifact package, focused tests, actual architecture/public/external boundaries, errortype, source/gofmt and generator validation on the available pinned stock toolchain. Run the actual unfiltered pinned artifact analyzer before and after. Prove the two helper findings resolved with no introduced diagnostics; retain actual residual findings without claiming clean whole lint. Disclose helper fatal/shared-array rejection proof limits.
 - The only product diff is opened_test.go. All production sources, other old tests, public APIs, schemas, generator inputs, config, dependencies/pins, older artifacts and original acceptance criteria are preserved. Independent source review permits a source-progress checkpoint before the next writer. Root commits the reviewed implementation, proof and Flow/docs together.
-- Original task12/predecessor and task21 acceptance, R13/R18/R19, matched first-baseline fixed identities, full/completion/formal/affected-consumer and native darwin/arm64 plus linux/amd64 qualification remain required. Developmental stock linux/arm64 checks do not satisfy these. Complete this task only when its corresponding original gates actually pass; otherwise record reviewed source progress and retain blocked acceptance.
+- Original task12/predecessor and task21 acceptance, R13/R18/R19, matched first-baseline fixed identities, full/completion/formal/affected-consumer and native darwin/arm64 qualification remain required. Developmental stock linux/arm64 checks do not satisfy these. Complete this task only when its corresponding source-owned gates actually pass; otherwise record reviewed source progress and retain blocked acceptance. Linux native execution, pack/report/replay and qualification documentation belong to fn-128.1, fn-128.4 and fn-128.7; missing transferred Linux evidence does not block this task.
 
 
 ## Done summary
@@ -57,3 +63,7 @@ stage: plan-sync - skipped(config: disabled; task remains blocked rather than do
 - Commits: e521cbd2e39e8521bff013de19e569eff8a1392c
 - Tests: serial artifact49/49, focused23/23, boundaries5/5; errortype/static/generator exit0; lint exit1 two unchanged findings.
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

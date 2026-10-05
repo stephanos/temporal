@@ -4,6 +4,9 @@ satisfies: [R12]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.18 Select backend-specific filesystem handle and mapping implementations at creation
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stage 5, second half of R12: the filesystem handle and mapping family, using the pattern proven on network handles in task 17. `Handle` and `Mapping` carry a `processHandle` next to local in-memory state, and about sixteen handle operations branch to `processHandle*` functions.
 
 **External coordination:** overlay edit; same fn-110 and toolchain-rebuild rules as the simulation-time task.
@@ -42,14 +45,17 @@ cd ../.. && tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_t
 ```
 
 ### Constraints
-- Follow MILESTONES verification instruction 5: commit each verified task separately, including implementation, tests, documentation and Flow records. Keep unavailable native gates incomplete and acceptance open; preserve unrelated changes and push only when authorized.
+- Follow MILESTONES verification instruction 5: commit each verified task separately, including implementation, tests, documentation and Flow records. Keep source-owned unavailable Darwin gates incomplete and acceptance open; transferred Linux gates remain open under fn-128; preserve unrelated changes and push only when authorized.
 - No new third-party dependency. `tools/gomad3/go.mod` requires only `golang.org/x/mod`, so testify is unavailable inside `tools/gomad3`: follow the existing `t.Fatalf` style with whole-value comparisons there. In the root module (`tools/gomad3sim`, `tools/gomad3integration`) use `require` with `Equal`/`EqualValues`.
 - Preserve existing comments with their owning code, CLI grammar/defaults, canonical bytes for fixed supplied identities, and error precedence/classification.
-- Actual development host is `linux/arm64`, which cannot qualify the complete patched toolchain. Keep both required `darwin/arm64` and `linux/amd64` gates open until their exact native evidence passes.
+- Actual development host is `linux/arm64`, which cannot qualify the complete patched toolchain. Keep the required `darwin/arm64` gates open here until their exact native evidence passes. Linux gates remain deferred under fn-128.1/.4/.7.
 - fn-105 D12/D14 replay-divergence dispositions stay unchanged. Attribute a failure to those owners with retained evidence instead of relaxing an expectation.
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] Filesystem handle and mapping creation selects one private backend implementation; handle operations no longer branch on `processHandle`.
 - [ ] Mapping capabilities, read-only mount immutability and capacity accounting remain explicit per backend; volume semantics are shared, not duplicated.
 - [ ] Shared operation tests pass for standalone, in-process and process backends; backend-specific tests retain hard-isolation and mapping distinctions.
@@ -106,3 +112,7 @@ disposition. Keep task 18 and R12 open until required native gates pass.
 - Commits:
 - Tests:
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

@@ -1,5 +1,12 @@
 # Gomad: minimize the runtime patch without losing functionality
 
+## Linux ownership amendment (2026-10-04)
+
+The owner transferred all remaining native linux/amd64 execution and Linux-only deferred work to [fn-128](fn-128-gomad-deferred-linux-qualification-and.md) on 2026-10-04. Missing transferred Linux evidence does not block this spec or its retained tasks. Darwin, shared implementation, static coverage of both supported source sets, preservation, size, full-host, review and other independent requirements remain here. Historical reports and completed-task evidence remain unchanged and do not establish current-source qualification.
+
+Linux owners: [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). The [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md) maps each affected task and requirement to its owner. Native execution clauses below apply to Darwin within this spec; references to both platforms retain static/API behavior and historical scope, with outstanding Linux execution owned by fn-128. This explicit owner decision supersedes older no-renewed-deferral and unavailable-Linux completion rules only for the transferred obligations.
+
+
 **Plan date:** 2026-09-30
 
 ## Goal & Context
@@ -103,7 +110,7 @@ builds is part of this change.
 - Crypto relocation retains initialization timing and both random-reader
   assignments. Syscall relocation retains exact symbols/signatures, Unix
   source selection, lazy environment copying, write guards, and instrumentation.
-- Existing Linux and Darwin replay findings remain owned by fn-105 D12/D14.
+- fn-128.2 owns the transferred Linux D12 fix; fn-105 D14 retains the Darwin replay finding.
   Record baseline dispositions and preserve any stricter expectations present
   at implementation time. New unexplained regressions fail this work; a
   missing host or gate is incomplete validation.
@@ -135,8 +142,8 @@ builds is part of this change.
   relocation; package lifecycle and build constraints remain intact.
 
 - **R4:** The canonical regenerator emits `-U1`, and repeated regeneration
-  from the same pinned final candidate yields identical patch bytes. On both
-  supported hosts, final `-U3` and `-U1` candidates apply with zero fuzz and
+  from the same pinned final candidate yields identical patch bytes. On native
+  Darwin, final `-U3` and `-U1` candidates apply with zero fuzz and
   produce byte-identical files. The pinned regeneration check reads the
   descriptor and executes when its verified archive is available. Errors:
   malformed patches, unexpected paths, archive/version mismatches, fuzz-only
@@ -156,7 +163,7 @@ builds is part of this change.
   disabled behavior fails acceptance even if the patch becomes smaller.
 
 - **R7:** The integrated toolchain passes the full Gomad gate on
-  `darwin/arm64` and `linux/amd64`, plus affected entropy, process-simulation,
+  `darwin/arm64`, plus affected entropy, process-simulation,
   Temporal integration, smoke, and qualification suites. Use the existing
   native entrypoints and `test_dep` conventions; require fresh same-seed runs
   and exact replay where the baseline contract requires them, including seeds

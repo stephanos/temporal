@@ -4,6 +4,9 @@ satisfies: [R6]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.5 Share plan and explore parsing directly and move semantic normalization to Runner
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stage 3, second half of R6. `gomad plan` re-enters `runExplore` through a hidden flag, and application rules live in both the CLI and Runner validation. Parse once, invoke each operation directly, and leave semantic normalization with the options owner from task 2.
 
 **Size:** M
@@ -40,6 +43,9 @@ env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [x] Plan and explore share one parse step and each calls its own Runner operation; no hidden plan-only argument route remains, and `--__plan` is rejected as an unknown flag.
 - [x] Semantic normalization has one owner in Runner; the CLI keeps only presence-sensitive validation and reporting.
 - [x] The characterization tests from task 4 plus the plan cases pass with identical messages, classifications, stdout/stderr routing and exit statuses.

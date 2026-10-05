@@ -1,16 +1,17 @@
 ---
 satisfies: [R11]
 ---
-# fn-105-gomad-follow-ups-deferred-scope.11 D11: dynamic linux/amd64 host-clock audit
+# fn-105-gomad-follow-ups-deferred-scope.11 D11: record transfer of conditional Linux clock audit
 
 ## Description
-Origin: fn-101.3 (F7 R5, before its 2026-09-29 amendment). Decision on 2026-09-30: depend on D21's host-clock investigation and keep implementation deferred until its findings establish audit need and feasible scope. Static inventories already cover both platforms, and Darwin DTrace exercises interception. The proposed fixture disables its runtime vDSO clock symbols and uses seccomp to detect clock_gettime/gettimeofday/time after activation. D21 must establish how this bounded check accounts for intentionally retained host-clock paths and the current patch restrictions before implementation.
+
+Administrative handoff to [fn-128.3](../tasks/fn-128-gomad-deferred-linux-qualification-and.3.md) authorized by the owner on 2026-10-04. Preserve the original Linux obligation at commit 10d884c6f9d97681d08aaf2636f5850407f1586a and in the receiving task. This record completes the transfer only; Linux execution stays deferred and no audit, fix or qualification is claimed.
 
 ## Acceptance
-- D21 completes first and records the recommendation, exposure evidence, feasible audit scope, and next action in fn-105. Retain the formal dependency on fn-105 D21.
-- If the findings require the audit, retain a bounded fixture, activation boundary, an unseeded positive control that fails for the expected forbidden clock read, and a seeded run that passes in core-linux. Retain commands, platform/toolchain identity, and CI evidence.
-- Account for known host-by-design paths without widening generic syscall access or overriding collector/assembly patch policy. A policy change needs its own recorded decision.
-- D21 completion does not claim an implemented audit. Keep a required audit open until verified; if it remains deferred, record why and what evidence would revive it.
+
+- [x] The receiving task and spec exist and retain all original Linux acceptance, restrictions, exact command/evidence requirements and revival prerequisites.
+- [x] The transfer manifest maps this original requirement to its new owner; no source task/spec depends on the deferred Linux execution.
+- [x] The source task's milestone and completion record explicitly identify this as an administrative transfer.
 
 ## Done summary
 TBD

@@ -4,6 +4,9 @@ satisfies: [R7]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.13 Generate host and runtime simulation-time codecs from one versioned definition
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stage 4, R7 (F6). The 40-byte request and 32-byte response of the simulation-time protocol are hand-written twice: in the host Runner and in the allocation-restricted runtime overlay. Add one definition to the existing protocol generator and consume generated layouts on both sides. Bootstrap generation is already complete and is not part of this task.
 
 **External coordination:** this edits the runtime overlay and its source inventory, which fn-110 (runtime patch minimization) also touches. Check `flowctl tasks --spec fn-110-gomad-minimize-the-runtime-patch` and do not run concurrently with an fn-110 overlay task. An overlay change alters the toolchain build key and triggers a toolchain rebuild; never rebuild `.toolchain` while another task's tests are running.
@@ -50,6 +53,9 @@ cd ../.. && tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_t
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] Simulation-time layout and codecs come from one versioned definition with generated host and runtime-safe consumers; the hand-written offsets, magics and kind constants are gone from both sides.
 - [ ] Fixed vectors show request and response bytes are unchanged; truncated frames, wrong magic/kind, nonzero reserved bytes, generation mismatch and time regression fail as before on both consumers.
 - [ ] The runtime consumer is exercised by an actual runtime execution on darwin/arm64 and keeps its allocation, stack, dependency and nosplit constraints; linux/amd64 runtime consumption is recorded as incomplete.
@@ -162,3 +168,7 @@ evidence and unrelated changes, and push only when authorized.
 - Commits:
 - Tests:
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

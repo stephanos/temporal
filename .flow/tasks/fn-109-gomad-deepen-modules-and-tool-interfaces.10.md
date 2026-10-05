@@ -4,6 +4,9 @@ satisfies: [R15]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.10 Supply build, cache and adapter locations from one validated installation description
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stage 3, R15 (S3). The layout of a toolchain installation (`bin/go`, `build-key`, `builds/<key>/...`, `adapters`) is re-derived with `filepath.Join` in target, deterministic I/O and the CLI. Give that knowledge one validated value and make ordinary consumers read locations from it.
 
 **Size:** M
@@ -46,6 +49,9 @@ make test-builder
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] One validated installation description supplies pinned identity and every owned build, cache and adapter location; ordinary consumers no longer join installation-relative paths themselves.
 - [ ] A test pins each location for a fixed root and build key, and the stable adapter replacement location is unchanged, so path-stamped target identities do not move.
 - [ ] Tests cover each resolution source (explicit, environment, manifest, executable-relative).
@@ -72,3 +78,7 @@ Remaining native gates: darwin/arm64 and linux/amd64 full `make -C tools/gomad3 
 - Commits:
 - Tests:
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

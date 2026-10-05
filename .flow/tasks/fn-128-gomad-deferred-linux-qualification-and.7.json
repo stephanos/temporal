@@ -1,0 +1,21 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-05T05:42:06.151898Z",
+  "depends_on": [
+    "fn-128-gomad-deferred-linux-qualification-and.1",
+    "fn-128-gomad-deferred-linux-qualification-and.2",
+    "fn-128-gomad-deferred-linux-qualification-and.3",
+    "fn-128-gomad-deferred-linux-qualification-and.4",
+    "fn-128-gomad-deferred-linux-qualification-and.5",
+    "fn-128-gomad-deferred-linux-qualification-and.6"
+  ],
+  "id": "fn-128-gomad-deferred-linux-qualification-and.7",
+  "priority": null,
+  "spec": "fn-128-gomad-deferred-linux-qualification-and",
+  "spec_path": ".flow/tasks/fn-128-gomad-deferred-linux-qualification-and.7.md",
+  "status": "todo",
+  "title": "Reconcile final Linux qualification and documentation",
+  "updated_at": "2026-10-05T05:42:06.151898Z"
+}

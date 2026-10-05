@@ -4,6 +4,9 @@ satisfies: [R11]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.15 Characterize simulation progress ordering and choose the lifecycle interface from two designs
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stage 5, first half of R11 (F10). Before changing the arbiter, pin its current guarantees with tests written against behaviour, then compare at least two lifecycle interfaces against those guarantees and record the choice. This task alone leaves R11 unmet; the next task implements the chosen design.
 
 **Size:** M
@@ -44,6 +47,9 @@ env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] Behavioural characterization tests cover forwarding, acknowledged arrivals, delivered-but-unconsumed work, arrival at quiescence, cancellation with a late committed response, death, restart, unknown acknowledgement, abandoned response, stale incarnation and concurrent blocking operations, and pass against the unchanged implementation.
 - [ ] `simulation-progress-design.md` compares at least two concrete interfaces against those guarantees and records the selected design, the rejected one and the reasons.
 - [ ] No production code changes in this task; the summary states that R11 stays open until the implementation task is done.
@@ -97,3 +103,7 @@ overwriting successor working-tree source or pushing.
 - Commits:
 - Tests:
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

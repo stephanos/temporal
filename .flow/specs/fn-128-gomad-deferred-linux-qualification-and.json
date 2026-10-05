@@ -1,0 +1,131 @@
+{
+  "branch_name": "fn-128-gomad-deferred-linux-qualification-and",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-05T05:41:18.007283Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-128-gomad-deferred-linux-qualification-and",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-05T05:56:24.174135Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "bc055733075576f52ef85ec76b03721508bc4b9f65cd057850715dc379980243",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-4da0d4d8814dd2fb2d4c714ff69164f8",
+            "classification": "introduced",
+            "findingId": "finding-4da0d4d8814dd2fb2d4c714ff69164f8",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "10d884c6f9d97681d08aaf2636f5850407f1586a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 496709,
+      "output_sha256": "1e2ed505564a27d113834293b068089df93d01b1287892d3f7cf81757a8c40af",
+      "reservation_id": "774a2ee1a78c460f90e57f29d9748863",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-05T05:53:40.627015Z",
+      "tool_calls": 21,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "7d73bd8307a1f0c6acbfcd9c12f3a8a2f6b4b0a0522084353dced5c0c8c344db",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-4da0d4d8814dd2fb2d4c714ff69164f8",
+            "classification": "introduced",
+            "findingId": "finding-4da0d4d8814dd2fb2d4c714ff69164f8",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "10d884c6f9d97681d08aaf2636f5850407f1586a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 671,
+      "output_sha256": "ad51bde208b010018f901e7868d1df68eed0befb5b120aea78a8efd662a7b3b4",
+      "reservation_id": "e24e8519dbec4a949bfc8b40825c2e69",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-05T05:56:24.082656Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 2,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-128-gomad-deferred-linux-qualification-and.md",
+  "status": "open",
+  "title": "Gomad deferred Linux qualification and repairs",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-05T05:56:24.177542Z"
+}

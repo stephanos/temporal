@@ -4,6 +4,9 @@ satisfies: [R11]
 # fn-109-gomad-deepen-modules-and-tool-interfaces.16 Implement the simulation progress lifecycle owner and remove caller-side accounting
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Stage 5, second half of R11. Implement the design selected in `simulation-progress-design.md` so one private module owns admission, forwarding, delivered-but-unconsumed work, abandonment and participant removal. Callers stop sequencing several accounting calls and the parallel response-barrier state machine disappears.
 
 **Size:** M (if the migration exceeds one session, migrate the coordinator-owned paths first and report the remaining call sites; do not leave two accounting schemes active for the same operation)
@@ -45,6 +48,9 @@ cd ../.. && tools/gomad3/.toolchain/bin/go test -count=1 -tags test_dep,gomad3_t
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] One private lifecycle owner handles admission, forwarding, delivered-but-unconsumed work, abandonment and participant removal; callers no longer sequence multiple accounting updates.
 - [ ] The response-barrier map and its helpers are removed, with no second bookkeeping structure replacing them outside the lifecycle owner.
 - [ ] Task 15's valid-behavior characterization test bodies and assertions pass unchanged, including concurrent blocking operations and cancellation with a late committed response. Only migration-sensitive wiring in `simulation_progress_fixture_test.go` may adapt to the new interface. The two explicitly named `Preexisting` defect pins are strengthened to rejection-before-mutation regressions, with retained failures against the old production source; preserving their confirmed incorrect behavior does not satisfy R11.
@@ -82,3 +88,7 @@ Keep task 16 acceptance and R11 open. No Flow completion or push is included.
 - Commits:
 - Tests:
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

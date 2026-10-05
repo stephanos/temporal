@@ -4,6 +4,9 @@ satisfies: [R2, R6]
 # fn-110-gomad-minimize-the-runtime-patch.2 Move the three scheduler implementations into the runtime overlay
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Representation/overlay implementation, byte equivalence, pinned checks, preservation, review, Darwin gates and unmet R8 size reduction. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 Move the three scheduler implementations out of the `src/runtime/proc.go` section of the patch into the existing runtime overlay file, leaving hooks in upstream code. Split from the crypto/syscall relocation because this is the behavior-sensitive part: lock state, draw order, and host-timing decisions must not move. The patch stays at three context lines here (the regenerator is unchanged until task 4), which gives the intermediate `-U3` measurement.
 
 **Size:** M
@@ -53,10 +56,10 @@ wc -c -l tools/gomad3/toolchain/runtime/go1.27.1.patch
 
 **Working constraints (apply to every fn-110 task):**
 - Commit verified progress in bounded batches, as requested by the user. The conductor owns staging and commits; preserve unrelated changes and leave active shared-source edits unstaged until their verification boundary. Do not push, stash, create worktrees or rewrite history without separate authorization.
-- Recheck the actual host before gates. This development session is `linux/arm64`; neither qualified native `darwin/arm64` nor native `linux/amd64` execution is available here. Keep each platform gate incomplete until source-bound native evidence exists; cross-compilation, emulation and developmental stock-host checks qualify neither.
+- Recheck the actual host before gates. This development session is `linux/arm64`; neither qualified native `darwin/arm64` nor native `linux/amd64` execution is available here. Keep source-owned Darwin gates incomplete until source-bound native evidence exists; Linux execution belongs to fn-128.1/.4/.7; cross-compilation, emulation and developmental stock-host checks qualify neither.
 - Disk: about 19 GB was free at planning time and each toolchain build directory under `tools/gomad3/.toolchain/builds/<key>` is 2–6 GB. Run `df -h .` before every rebuild and stop if less than 8 GB is free. Only delete build directories that this spec's own intermediate candidates created, once superseded and not referenced by retained evidence. Never delete the baseline key recorded by task 1 or the active key in `.toolchain/build-key`. Pre-existing directories and `make clean-qualifications` need the user's confirmation.
 - Patch and overlay bytes feed the build key (`tools/gomad3/toolchain/buildkey.go:48-58`), so every patch or overlay edit yields a new toolchain identity. Never relabel old artifacts.
-- fn-105 D12 (Linux replay divergence) and D14 (Darwin `TestSignalWorkflowTestSuiteChasm`) keep their owners and dispositions. Do not edit qualification expectations to get a passing gate.
+- fn-128.2 owns the transferred D12 Linux replay fix; fn-105 D14 retains Darwin `TestSignalWorkflowTestSuiteChasm`. Keep their existing dispositions until their own qualification passes. Do not edit qualification expectations to get a passing gate.
 - Existing comments move with their code, unchanged. Add no allocations, host reads, dependencies, CLI flags, or capability grants.
 - Always pass `-tags test_dep`. In testify code use `require`, not `assert`; plain `testing` files keep their existing style.
 
@@ -69,6 +72,9 @@ wc -c -l tools/gomad3/toolchain/runtime/go1.27.1.patch
 
 The descriptor requires `patch_allowlist` and `overlay_allowlist` to equal the checked trees exactly (`toolchain/version/descriptor.go:114-160`), so a task that adds an overlay file or empties a patched file updates `version.json` and regenerates in the same task.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] The three implementations live in `overlay/src/runtime/gomad.go` behind private helpers; `proc.go` keeps the hooks, arrival admission, transport accounting, and stock timer-wake path; every moved comment is byte-identical
 - [ ] Retry, external, deadlock, and transport-failure responses keep their returns, fatal messages, and `sched.lock` state; no helper adds an allocation, closure, or host read
 - [ ] Fixture comparison for seeds 0, 1, 7, 42 and disabled mode matches the baseline toolchain; candidate same-seed repeatability and exact replay pass in the runtime, upstream, live-capability, and process-simulation checks
@@ -115,3 +121,8 @@ acceptance, which is presently unmet rather than merely unmeasured.
 - Commits:
 - Tests:
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Representation/overlay implementation, byte equivalence, pinned checks, preservation, review, Darwin gates and unmet R8 size reduction. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.
+R8 remains independently unmet: baseline U3 patch 32,652 bytes, final U3 38,362 bytes (5,710-byte increase); U1 context reduction does not satisfy the extraction-size reduction.

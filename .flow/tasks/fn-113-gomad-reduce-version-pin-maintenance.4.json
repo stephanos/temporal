@@ -12,6 +12,6 @@
   "spec": "fn-113-gomad-reduce-version-pin-maintenance",
   "spec_path": ".flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.4.md",
   "status": "todo",
-  "title": "Document the bump procedure, measure it against the baseline, and run both-platform gates",
-  "updated_at": "2026-10-03T10:01:57.499740Z"
+  "title": "Document and measure the bump procedure; run Darwin gates",
+  "updated_at": "2026-10-05T05:55:27.151609Z"
 }

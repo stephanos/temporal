@@ -10,6 +10,11 @@ same seed produces the same run and a retained artifact replays byte-exactly.
 ## Work tracking
 
 Flow specs and tasks own scope, acceptance criteria (R-IDs), blockers, and evidence.
+The owner-authorized Linux scope transfer makes [fn-128](.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md)
+the owner of remaining native linux/amd64 verification and Linux-only deferred work from
+the linked open Gomad specs. Missing transferred Linux evidence does not block their
+completion. They retain implementation, Darwin, full-host, review and other independent
+acceptance requirements. Linux remains unverified until its owning task retains native proof.
 List every task of each open spec below, including completed tasks; remove a spec's
 entire section only when the spec is complete. Keep descriptions to one line and
 spec sections to task tables—no progress prose. Refresh statuses from `flowctl list --json`;
@@ -23,11 +28,11 @@ Completed specs and their evidence remain in `.flow/` and Git history.
 
 ## Immediate delivery order
 
-1. Verify the combined D26/fn-110 candidate, then qualify fn-114 task 13, fn-112 task 5, D26, D27, and fn-110 task 2 on both native platforms; run fn-114 task 14 against that same candidate.
+1. Verify the combined D26/fn-110 candidate, then qualify fn-114 task 13, fn-112 task 5, D26, D27, and fn-110 task 2 on native Darwin; run fn-114 task 14 against that same candidate.
 2. Qualify the merged fn-112 tasks 16 and 9, fn-113 tasks 1–4, and fn-109 tasks 2–6 against the integrated source; retain each task's acceptance checks.
-3. Investigate D12 with loaded native linux/amd64 cohorts and the existing diagnostics, then restore strict replay expectations when a causal fix qualifies.
-4. Qualify the merged fn-109 tasks 7–12 and fn-110 tasks 3–4, and continue fn-109 tasks 13–21 and fn-110 task 5 in their delivery order. Source implementation may advance after its predecessor candidate is integrated and reviewed; keep acceptance open until its required native gates pass. Complete other platform-only gates when native hosts or CI are available.
-5. Resume fn-105 D8–D10's deferred downstream qualification when its checkout is available, and run the final both-platform consumer gates.
+3. Qualify the merged fn-109 tasks 7–12 and fn-110 tasks 3–4, and continue fn-109 tasks 13–21 and fn-110 task 5 in their delivery order. Source implementation may advance after its predecessor candidate is integrated and reviewed; keep acceptance open until its required native gates pass. Linux-only gates are deferred under fn-128 and do not hold these source specs open.
+4. Resume fn-105 D8–D10's deferred downstream qualification when its checkout is available, and run the final Darwin consumer gates. Linux consumer analyses, packs, exact replay and guidance belong to fn-128.6.
+5. Keep fn-128 deferred until the owner requests Linux qualification and native linux/amd64 execution is available. Establish its source/toolchain baseline, investigate D12 under load and restore strict replay only after the causal fix qualifies, then reconcile its final Linux matrix. The D11 audit retains its D21 trigger.
 
 ## Verification instructions for agents
 
@@ -61,9 +66,10 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 5. **Commit each task separately.** After its source checks and review pass, commit the task's
    implementation, tests, documentation, and Flow records together before starting the next
    task. This supersedes older
-   task instructions reserving commits for the user. If required native gates are unavailable,
-   commit the verified progress with those gates recorded as incomplete and keep acceptance
-   open. Complete the Flow task only when all its required gates pass. Preserve unrelated
+   task instructions reserving commits for the user. If a required gate still owned by the task
+   is unavailable, commit verified progress and keep its acceptance open. Record transferred
+   Linux gates under fn-128 and link that owner from the source task. Complete the source
+   task only after all requirements it still owns pass. Preserve unrelated
    changes; push only when authorized. Broaden testing only for a concrete remaining risk,
    and retry an unchanged environment failure only when its cause or relevant inputs change.
 
@@ -96,8 +102,9 @@ recommendation, and move to implementation. Revisit a decision only when new evi
   on-demand local run.
 - **Qualification identity.** Reports bind exact source and toolchain identities;
   pre-integration results do not qualify a combined candidate, and Darwin results do
-  not substitute for Linux gates. An unavailable host or unexplained regression
-  leaves acceptance incomplete.
+  not substitute for Linux gates. An unavailable host or unexplained regression leaves
+  acceptance incomplete in the task that owns the requirement. Transferred Linux requirements
+  remain incomplete under fn-128 and do not hold source-spec acceptance open.
 - **Patch-policy boundary.** The collector-file prohibition remains in force.
   Overwriting collector-owned GC stamps requires an explicit patch-policy owner decision.
 - **Preservation.** Keep CLI grammar/defaults, recorded formats, fixed-identity
@@ -145,10 +152,10 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-105.6](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.6.md) | ⬜ Todo | D6: seeded and fixed virtual-clock tick policies |
 | [fn-105.7](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.7.md) | ✅ Done | D7: add required macOS functional smoke CI |
 | [fn-105.8](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.8.md) | 🚧 In progress | D8: closure-mode support for downstream targets |
-| [fn-105.9](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.9.md) | ⬜ Todo | D9: linux/amd64 downstream packs and qualification |
+| [fn-105.9](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.9.md) | ⬜ Todo | D9: shared and Darwin downstream packs and qualification; Linux moved to fn-128.6 |
 | [fn-105.10](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.10.md) | ⬜ Todo | D10: downstream-seam guide |
-| [fn-105.11](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.11.md) | ⬜ Todo | D11: dynamic linux/amd64 host-clock audit |
-| [fn-105.12](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.12.md) | ⬜ Todo | D12: fix Linux replay divergence and restore strict CI qualification |
+| [fn-105.11](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.11.md) | ⬜ Todo | D11: transfer conditional Linux audit to fn-128.3 (audit remains deferred) |
+| [fn-105.12](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.12.md) | ⬜ Todo | D12: transfer Linux replay correction to fn-128.2 (fix remains deferred) |
 | [fn-105.13](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.13.md) | ✅ Done | D13: make choice tracing opt-in for routine qualification |
 | [fn-105.14](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.14.md) | ✅ Done | D14: fix Darwin Chasm replay divergence and restore qualification |
 | [fn-105.15](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.15.md) | ⬜ Todo | D15: support larger choice traces when a workload needs them |
@@ -236,7 +243,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-112.2](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.2.md) | ✅ Done | Run the orphaned simulation, overlay, and choice-replay tests in a gate |
 | [fn-112.3](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.3.md) | ✅ Done | Record a runtime-state digest at each choice point in a diagnostic trace |
 | [fn-112.4](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.4.md) | ✅ Done | Plumb diagnostics through the Runner and add the trace differ |
-| [fn-112.5](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.5.md) | ⬜ Todo | Inventory seeded-stream draw sites and check host-timed paths at runtime |
+| [fn-112.5](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.5.md) | ⛔ Blocked | Inventory seeded-stream draw sites and check host-timed paths at runtime |
 | [fn-112.6](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.6.md) | ✅ Done | Add conformance fixtures for unverified channels and state the closure-mode limit |
 | [fn-112.7](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.7.md) | ✅ Done | Compare the filesystem and TCP models with the host OS on generated sequences |
 | [fn-112.8](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md) | ✅ Done | Drive explore, replay, and kill-then-resume through the built CLI |
@@ -247,7 +254,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-112.13](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.13.md) | ✅ Done | Execute watchdog diagnostic replay without requiring an exact I/O transcript |
 | [fn-112.14](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.14.md) | ✅ Done | Preserve parent cancellation classification when an exploration round finishes |
 | [fn-112.15](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.15.md) | ✅ Done | Make TestWatchdogDiagnosticReplayUsesCapturedInputs reliable |
-| [fn-112.16](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.16.md) | ⬜ Todo | Keep two retained successes with one outcome signature as distinct artifacts |
+| [fn-112.16](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.16.md) | ⛔ Blocked | Keep two retained successes with one outcome signature as distinct artifacts |
 
 <a id="maintenance-cost"></a>
 
@@ -258,7 +265,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-113.1](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.1.md) | ⬜ Todo | Baseline the pins and add the pin impact report |
 | [fn-113.2](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.2.md) | ⬜ Todo | Regenerate adapter anchors for a new module version behind an approval digest |
 | [fn-113.3](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.3.md) | ⬜ Todo | Refresh invalidated packs in one command and remove unselected variants |
-| [fn-113.4](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.4.md) | ⬜ Todo | Document the bump procedure, measure it against the baseline, and run both-platform gates |
+| [fn-113.4](.flow/tasks/fn-113-gomad-reduce-version-pin-maintenance.4.md) | ⬜ Todo | Document the bump procedure, measure it against the baseline, and run Darwin gates |
 
 <a id="search-path-findings-fn-114"></a>
 
@@ -278,7 +285,19 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-114.10](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.10.md) | ✅ Done | Account, prune, and merge shared targets and measure retained bytes |
 | [fn-114.11](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.11.md) | ✅ Done | Record select readiness in the runtime and the Choice Trace |
 | [fn-114.12](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.12.md) | ✅ Done | Check the select-poll reduction for soundness and stop expanding no-op decisions |
-| [fn-114.13](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md) | ⬜ Todo | Order runtime-owned goroutines by a fixed rule and offer only user goroutines as alternatives |
-| [fn-114.14](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.14.md) | ⬜ Todo | Qualify the combined toolchain and Runner on both platforms and update the docs |
+| [fn-114.13](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.13.md) | ⛔ Blocked | Order runtime-owned goroutines by a fixed rule and offer only user goroutines as alternatives |
+| [fn-114.14](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.14.md) | ⛔ Blocked | Qualify the combined toolchain and Runner on Darwin; Linux moved to fn-128 |
 | [fn-114.15](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.15.md) | ✅ Done | Scope minimizer workspace state per parent artifact |
 | [fn-114.16](.flow/tasks/fn-114-gomad-correct-search-path-defects-and.16.md) | ✅ Done | Finish shared-target byte accounting inside a campaign and in merged-record validation |
+
+## Deferred Linux qualification and repairs — [fn-128](.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-128.1](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.1.md) | ⛔ Blocked | Native Linux candidate and runtime/host evidence |
+| [fn-128.2](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.2.md) | ⛔ Blocked | Causal Linux replay fix and strict CI restoration |
+| [fn-128.3](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.3.md) | ⛔ Blocked | Conditional Linux host-clock audit or owner disposition |
+| [fn-128.4](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.4.md) | ⛔ Blocked | Linux model, architecture, pack and affected-workload qualification |
+| [fn-128.5](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.5.md) | ⛔ Blocked | Actual Linux determinism soak and measured bound |
+| [fn-128.6](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.6.md) | ⛔ Blocked | Downstream Linux analyses, packs, exact replay and guidance |
+| [fn-128.7](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.7.md) | ⛔ Blocked | Final source-bound Linux matrix, review and documentation |

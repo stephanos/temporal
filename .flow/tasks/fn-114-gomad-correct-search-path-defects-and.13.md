@@ -4,6 +4,9 @@ satisfies: [R9]
 # fn-114-gomad-correct-search-path-defects-and.13 Order runtime-owned goroutines by a fixed rule and offer only user goroutines as alternatives
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Implemented scheduler/search behavior, current-source Darwin runtime/full/core/smoke/representative exact replay, measurements, docs and review. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 E4 (R9): the run-queue choice offers only user goroutines; runtime-owned goroutines are ordered by a fixed rule. Last of the three runtime edits. Depends on task 12 only to keep the overlay, patch, and fixture edits serial.
 
 **Size:** M
@@ -39,6 +42,9 @@ E4 (R9): the run-queue choice offers only user goroutines; runtime-owned gorouti
 - The run-queue choice runs on the system stack with fixed buffers. Classification must not allocate.
 - fn-110 task 2 moves the scheduler implementations into the overlay; fn-112 tasks 3 and 5 edit the same file. Check their state first and rebase onto whichever landed.
 ## Acceptance
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
 - [ ] The cause is confirmed on the control probe, or E4 is recorded as changed with the evidence
 - [ ] A program with two user goroutines records only decisions whose alternatives are user goroutines
 - [ ] A queue with zero or one user goroutine records no decision and the pick is equal across runs
@@ -57,3 +63,7 @@ Independent codex review returned SHIP after a pin-impact input guard outside th
 - Commits:
 - Tests: make -C tools/gomad3 validate test-toolchain test-runtime overlay-test, GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host, go -C tools/gomad3 vet -tags test_dep ./runner ./runner/internal/execution, TestRuntimeOwnedControlProbe and TestRuntimeOwnedRejectsPreviousController
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implemented scheduler/search behavior, current-source Darwin runtime/full/core/smoke/representative exact replay, measurements, docs and review. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

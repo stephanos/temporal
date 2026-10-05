@@ -4,6 +4,9 @@ satisfies: [R6, R7, R11]
 # fn-112-gomad-determinism-assurance-and-test.10 Add the scheduled determinism soak gate and update the docs to the delivered state
 
 ## Description
+
+Owner amendment (2026-10-04): this task transfers every remaining native Linux execution, Linux pack/report/replay and Linux-specific qualification-documentation requirement to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.5](../tasks/fn-128-gomad-deferred-linux-qualification-and.5.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). Native execution/full/affected gates still owned here apply to Darwin. Missing transferred Linux proof cannot block this task. Static coverage of both supported source sets, shared implementation, preservation, review and other non-Linux requirements remain unchanged. Retained scope: Actual Darwin soak report/ledger/measured bound, cohort/diagnostic controls and shared documentation. See the [transfer manifest](../artifacts/linux-scope-transfer-2026-10-04.md). Historical progress below retains its original meaning and is not current-candidate proof.
+
 The soak gate (R6) and final documentation (R11). Combined because the docs report the bound the soak measures.
 
 **Size:** M
@@ -18,7 +21,7 @@ The soak gate (R6) and final documentation (R11). Combined because the docs repo
 - The gate accepts zero divergences. A trace overflow or infrastructure failure is reported separately and is not a pass.
 - On a divergence, upload both diagnostic traces and the differ output.
 - The report states repetitions, seeds, load, platform, toolchain identity, and a cumulative count across retained scheduled runs.
-- linux/amd64 stays informational until fn-105 R12 closes D12, and the report says so. Coordinate the workflow edit with fn-105 task 12, which removes the D12 allowances.
+- Linux soak runs and reports belong to fn-128.5 and fn-128.7. linux/amd64 stays informational until fn-128.2 closes D12, and the report says so. Coordinate the deferred Linux workflow edit with fn-128.2, which owns removal of the D12 allowances; missing transferred Linux evidence does not block this task.
 - Docs: take the flag and subcommand names, the gate name, the inventory location, the declared-differences table, and the drafted contract sentences from the done summaries of tasks 2, 4, 5, 6, and 7. Update the milestones quality-assessment section, README Contract and Development, SPEC, ARCHITECTURE choice-trace section, and TUTORIAL determinism section to the delivered state, including the measured bound. Rerun fn-111's manual link and command-inventory checks; they have no Make target. Keep the `MILESTONES.md` headings `Quality assessment (2026-10-01)`, `Maintenance cost`, and `Constraints`, which specs link to.
 
 ### Investigation targets
@@ -37,13 +40,16 @@ The soak gate (R6) and final documentation (R11). Combined because the docs repo
 - The bound is measured with diagnostics on; say so wherever it is quoted.
 - Spec Open Question 1 (target bound and runners) is unanswered; deliver the cumulative report and state the count reached.
 ## Acceptance
-- [ ] A scheduled job on each platform runs the soak with stated N, seeds, load, and identities, and fails on any divergence on darwin/arm64
-- [ ] The linux job reports its result as informational while D12 is open
+
+Current native-execution acceptance is Darwin-only here. The corresponding Linux clauses and any older missing-Linux completion rule are transferred to [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.5](../tasks/fn-128-gomad-deferred-linux-qualification-and.5.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md). All other acceptance below remains in force.
+
+- [ ] A scheduled darwin/arm64 job runs the soak with stated N, seeds, load, and identities, and fails on any divergence; the corresponding Linux job execution and report belong to fn-128.5 and fn-128.7
+- [ ] Darwin-owned shared documentation identifies fn-128.5 and fn-128.7 as the Linux job/report owners and fn-128.2 as the D12 owner; the Linux informational result while D12 is open is verified by those deferred owners
 - [ ] A divergence retains both traces and the differ output as workflow artifacts
 - [ ] Overflow and infrastructure failures are reported separately from divergence
 - [ ] Batches of one cohort are compared against each other; an A, A then B, B sequence is reported as a divergence by a test
 - [ ] Cumulative counts are per cohort, and a new toolchain identity starts a new cohort
-- [ ] One completed scheduled or dispatched run per platform is retained with its report
+- [ ] One completed scheduled or dispatched darwin/arm64 run is retained with its report; the corresponding Linux run and report belong to fn-128.5 and fn-128.7 and do not block this task
 - [ ] Milestones, README, SPEC, CLI.md, ARCHITECTURE, TUTORIAL, and `AGENTS.md` describe the delivered gate, localiser flag and differ, inventory, fixtures, closure-mode limit, declared differences, and measured bound; links and command inventories checked
 - [ ] `make -C tools/gomad3 validate` passes
 ## Done summary
@@ -110,3 +116,7 @@ Remaining native gates:
 - Commits:
 - Tests:
 - PRs:
+
+## Linux ownership blocker (2026-10-04)
+
+Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Actual Darwin soak report/ledger/measured bound, cohort/diagnostic controls and shared documentation. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.
