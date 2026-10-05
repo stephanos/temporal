@@ -27,20 +27,31 @@ enum Fact derives Finite:
   case stored, staged
   case lost(hard: Boolean)
 
-// A party, entities and an observation named after their vals. An entity that refers to another is
+// Entities and an observation named after their vals. An entity that refers to another is
 // compiled as a block that binds the reference before the call, which the lifter reads through.
-val client: Party = Party()
 val owner: Entity = Entity()
 val entry: Entity = Entity(key = "entryId", refer = Map("owner" -> owner))
 val lostData: Observation = Observation(on = entry, read = "lost")
 
-val put = action(client)
-val flush = internal
-val crash = action(Party("fault"))
-val expire = timer
+// The actions, grouped by who takes them (fn-126 R14). An actor object is the party of its name,
+// and it and the sections are transparent to Definition IDs: each action keeps the ID the file's pin
+// gives it, fixture.spelled.Spelled$package$.<name>, as the lifter's tests check.
+
+/** The party `client`, whose members are the actions it takes. */
+object client extends Actor:
+  val put = action(this)
+
+/** The system's own steps: a flush and a timer. */
+object background extends Section:
+  val flush = internal
+  val expire = timer
+
+/** A fault, taken by a party named by its argument. */
+object faults extends Section:
+  val crash = action(Party("fault"))
 
 val storeOpaque = assume
-val flushRuns = assume.fair(flush)
+val flushRuns = assume.fair(background.flush)
 val crashUnmodeled = hole
 
 def putStore(s: Store): List[Step[Store, Outcome, Fact]] =
@@ -57,7 +68,7 @@ val store = machine[Store, Outcome, Fact] {
   starts(Store(Kept.nothing))
   ends(s => s.kept == Kept.held)
   evidence { case Fact.lost(_) => lostData.name }
-  steps(put ~> putStore, expire ~> expireStore)
+  steps(client.put ~> putStore, background.expire ~> expireStore)
 }
 
 enum Stage derives Finite:
@@ -108,22 +119,22 @@ val disk: Machine[Disk, Outcome, Fact] = machine {
   starts(Disk(Stage.empty))
   ends(d => d.stage != Stage.staged)
   evidence { case Fact.lost(_) => "lostData" }
-  steps(put ~> putDisk, flush ~> flushDisk, crash ~> crashDisk)
+  steps(client.put ~> putDisk, background.flush ~> flushDisk, faults.crash ~> crashDisk)
 }
 
 /** A machine derived by keeping some of another's actions. */
-val putOnly = disk.restrict(put)
+val putOnly = disk.restrict(client.put)
 
 final case class DetailedPair(front: Store, back: Disk)
 
 // Its sync is named after its first member's action, `put`.
 val detailedPair =
   compose[DetailedPair](_.front -> store, _.back -> disk)
-    .sync(_.front -> put, _.back -> put)
+    .sync(_.front -> client.put, _.back -> client.put)
     .replaces(_.back, store)
     .ends(p => p.front.kept == Kept.held)
 
-val putStores = store.property when put holds (after => after.facts.contains(Fact.stored))
+val putStores = store.property when client.put holds (after => after.facts.contains(Fact.stored))
 val durableStays = disk.property holdsAcross { (before, after) =>
   before.stage != Stage.durable || after.state.stage == Stage.durable
 }
@@ -131,9 +142,9 @@ val frontHeld = detailedPair.property holds (after => after.state.front.kept == 
 
 // Each starts in its machine's declared start, or in its members' starts. `put()` is the one class
 // of an action with no input, as `put` is.
-val putOnce = store.scenario.actions(put())
-val putThenFlush = disk.scenario.actions(put, flush)
-val bothPut = detailedPair.scenario.actions(detailedPair.synced(_.back -> put))
+val putOnce = store.scenario.actions(client.put())
+val putThenFlush = disk.scenario.actions(client.put, background.flush)
+val bothPut = detailedPair.scenario.actions(detailedPair.synced(_.back -> client.put))
 
 val two = Limits(steps = 2, actions = 2, search = 64)
 
@@ -209,7 +220,9 @@ given Finite[Relay] =
 enum Note derives Finite:
   case heard, missed
 
-val send = action(Party("client"))
+/** The client's send, which names the actor object as its party. */
+object relaying extends Section:
+  val send = action(client)
 
 def sendStep(r: Relay): List[Step[Relay, Outcome, Note]] =
   if r.wire.isFull then Nil else List(Step(Outcome.accepted, r.copy(wire = r.wire.send(Kept.held))))
@@ -224,5 +237,5 @@ def drop(r: Relay, k: Kept): List[Step[Relay, Outcome, Note]] =
 val relay = machine[Relay, Outcome, Note] {
   starts(Relay(Kept.nothing, wire.empty))
   ends(_ => true)
-  steps(send ~> sendStep, wire.deliver ~> hear, wire.lose ~> drop)
+  steps(relaying.send ~> sendStep, wire.deliver ~> hear, wire.lose ~> drop)
 }

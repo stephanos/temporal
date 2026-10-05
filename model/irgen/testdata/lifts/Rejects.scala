@@ -1154,3 +1154,51 @@ val levelStarted =
 val levelLit = oneStart.property holds (after => after.state.lit)
 val levelScenario: Query =
   query verify levelLit in levelStarted.actions(flip) limits one total 2
+
+// ### Sections (fn-126 R14): transparent to Definition IDs, so where one may sit is narrow
+
+/** A section in a section: a section sits at a file's top level or in a machine's object. */
+object outerSection extends Section:
+  object innerSection extends Section:
+    val nestedTick = action(Party("fixture"))
+
+val sectionNested = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(outerSection.innerSection.nestedTick ~> lampStep)
+}
+
+/** A section in an object that holds no machine. */
+object Holder:
+  object heldSection extends Section:
+    val heldTick = action(Party("fixture"))
+
+val sectionMisplaced = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(Holder.heldSection.heldTick ~> lampStep)
+}
+
+/** Two sections of one owner, each with an action of one name, which would share its ID. */
+object leftHand extends Section:
+  val clap = action(Party("fixture"))
+
+object rightHand extends Section:
+  val clap = action(Party("fixture"))
+
+val sectionTwins = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(leftHand.clap ~> lampStep, rightHand.clap ~> lampStep)
+}
+
+/** A section that pins: its members take the IDs of the owner it stands in. */
+object pinningSection extends Section:
+  given DefinitionScope = DefinitionScope("fixture.rejects.Former$package$")
+  val pinnedTick = action(Party("fixture"))
+
+val sectionPinned = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(pinningSection.pinnedTick ~> lampStep)
+}

@@ -371,7 +371,16 @@ class Fixtures extends munit.FunSuite:
     "ComputedFamily$.familyComputed",
     "Anonymous$.anonymous",
     "ComputedOk$.computedOk"
-  ).map("fixture.rejects." + _) ++ scriptRejects ++ capabilityRejects ++ hintRejects
+  ).map("fixture.rejects." + _) ++ Seq(
+    // fn-126 R14: a section in a section or in an object of no machine, two sections' members of
+    // one name, and a section that pins.
+    "sectionNested",
+    "sectionMisplaced",
+    "sectionTwins",
+    "sectionPinned"
+  ).map(
+    "fixture.rejects.Rejects$package$." + _
+  ) ++ scriptRejects ++ capabilityRejects ++ hintRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
   private lazy val liftsJars = s"$liftsJar=${stored("lifts")},$modelJar=model/"
@@ -845,7 +854,8 @@ class Fixtures extends munit.FunSuite:
   // Captured.scala takes every name from its val, its family from a given, its starts and evidence by
   // default and reads a refinement with no given; expected/captured.json pins its IR. Its one
   // DefinitionScope pins the owner fixture.spelled.Spelled$package$, so its symbol-based Definition
-  // IDs and the names of its top-level types are that owner's, not its own.
+  // IDs and the names of its top-level types are that owner's, not its own, and so are the IDs of
+  // the actions its actor object and sections hold (fn-126 R14).
   test("a DefinitionScope keeps the captured fixture's IDs and type names its former owner's"):
     val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("captured"))
     val owner = "fixture.spelled.Spelled$package$."
@@ -861,6 +871,26 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       model.path("monitors").elements().asScala.map(_.path("id").asText()).toList.sorted,
       List("storedOnce", "storedTwice").map(owner + _)
+    )
+    // Its actions sit in an actor object and in sections, which are transparent: each takes the ID
+    // the file's pin gives a top-level val of its name, and the actor object names the party.
+    assertEquals(
+      model
+        .path("actions")
+        .elements()
+        .asScala
+        .map(a => a.path("id").asText() -> a.path("party").asText())
+        .toList
+        .sorted,
+      List(
+        "crash" -> "fault",
+        "expire" -> "system",
+        "flush" -> "system",
+        "put" -> "client",
+        "send" -> "client",
+        "wire.deliver" -> "system",
+        "wire.lose" -> "system"
+      ).map((name, party) => (owner + name) -> party)
     )
     val types = model.path("types").elements().asScala.map(_.path("name").asText()).toList
     assert(types.nonEmpty, "Captured.scala declares no types")

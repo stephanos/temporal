@@ -262,19 +262,84 @@ final private[irgen] class Context(val index: Index):
   /**
    * The Definition ID of an action, monitor, assumption, hole, channel or realization: its val's
    * owner and name, where the owner is the former owner its `DefinitionScope` pins, if it pins one.
+   * A section object (umpire.Section) is transparent: its member takes the ID it would take as a
+   * direct member of the section's enclosing owner.
    */
   def definitionId(sym: Symbol, at: Tree): String =
     val owner = sym.owner
-    val id = pinOf(owner).fold(sym.fullName)(_ + "." + sym.name)
+    val id =
+      if isSection(owner) then s"${sectionOwner(owner, at)}.${sym.name}"
+      else pinOf(owner).fold(sym.fullName)(_ + "." + sym.name)
     idTakenBy.get(id) match
       case Some(other) if other != sym =>
+        val why =
+          if isSection(owner) || isSection(other.owner) then
+            "a section is transparent to Definition IDs, so the members of one owner's sections " +
+              "and the owner's own members keep distinct names"
+          else "two declarations pinned to one former owner keep the distinct names they had there"
         fail(
           at,
-          s"${sym.fullName} and ${other.fullName} would share the Definition ID $id: two declarations " +
-            "pinned to one former owner keep the distinct names they had there"
+          s"${sym.fullName} and ${other.fullName} would share the Definition ID $id: $why"
         )
       case _ => idTakenBy(id) = sym
     id
+
+  private lazy val sectionClass = Symbol.requiredClass("umpire.Section")
+
+  /** Whether `owner` is a section object, `object timers extends Section` or an actor object. */
+  def isSection(owner: Symbol): Boolean =
+    owner.isClassDef && owner.flags.is(Flags.Module) && owner.typeRef.derivesFrom(sectionClass)
+
+  /**
+   * The owner whose Definition IDs a section's members take, as its pin or its full name: at the top
+   * level of a file, the file's package object; directly in a machine's object, that object. A
+   * section anywhere else, a section in a section and a section that pins are refused at its line.
+   */
+  private def sectionOwner(section: Symbol, member: Tree): String =
+    val at: Tree = scala.util.Try(section.tree).getOrElse(member)
+    val name = section.name.stripSuffix("$")
+    for scope <- scopes.get(section).flatMap(_.headOption) do
+      fail(
+        scope,
+        s"the section $name pins its Definition IDs, and a section is transparent to them: its " +
+          "members take the IDs of its enclosing owner, which pins them"
+      )
+    val enclosing = section.maybeOwner
+    if isSection(enclosing) then
+      fail(
+        at,
+        s"the section $name sits in the section ${enclosing.name.stripSuffix("$")}: a section sits " +
+          "at the top level of a Model file or directly in a machine's object, never in another"
+      )
+    else if enclosing.isPackageDef then
+      val file = pos(at).file
+      val stem = scala.util
+        .Try(at.pos.sourceFile.name.stripSuffix(".scala"))
+        .getOrElse(fail(at, s"the section $name has no source file"))
+      scopes.keys
+        .find(o =>
+          o.maybeOwner == enclosing && o.name.endsWith("$package$") && scopeFile(o) == file
+        )
+        .flatMap(pinOf)
+        .getOrElse(s"${enclosing.fullName}.$stem$$package$$")
+    else if machineObject(enclosing) then pinOf(enclosing).getOrElse(enclosing.fullName)
+    else
+      fail(
+        at,
+        s"the section $name sits in ${enclosing.fullName}, which is no machine's object: a section " +
+          "sits at the top level of a Model file or directly in a machine's object"
+      )
+
+  /** Whether `owner` is a machine's object: an object at a file's top level holding a machine. */
+  private def machineObject(owner: Symbol): Boolean =
+    owner.isClassDef && owner.flags.is(Flags.Module) && owner.maybeOwner.isPackageDef &&
+      !isSection(owner) && defs.values.exists {
+        case v: ValDef =>
+          v.symbol.maybeOwner == owner &&
+          Seq("umpire.Machine", "umpire.Composition")
+            .contains(v.tpt.tpe.widen.dealias.typeSymbol.fullName)
+        case _ => false
+      }
 
   // The type each IR type name was taken by, and the name each type takes, computed once.
   private val typeTakenBy = mutable.Map.empty[String, Symbol]
