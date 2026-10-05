@@ -95,7 +95,7 @@ Gates: task 5 lands before fn-126.1 starts; task 7 after fn-126 closes (fn-114, 
 | fn-124.2 | ✅ done | Duplicate refinement and test-only APIs removed |
 | fn-124.3 | 🔄 in progress | Temporal facts the judge hard-codes declared in the realization |
 | fn-124.4 | ✅ done | Verdict aggregation defined once; judge rules documented |
-| fn-124.5 | ⬜ todo | Generated-Case outcomes compared by declared ids |
+| fn-124.5 | 🔄 in progress | Generated-Case outcomes compared by declared ids |
 | fn-124.6 | ⬜ todo | Model assessment as the command-line judge; Evaluation Profile derived or retired |
 | fn-124.7 | ⬜ todo | Migration harness and frozen snapshots retired |
 | fn-124.8 | ⬜ todo | `tools/umpire/model` split into `ir`, `interp`, `check`, `realization` |
