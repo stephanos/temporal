@@ -524,10 +524,10 @@ func neverEnabled(m *Model) ([]Tally, error) {
 }
 
 // stuckStates is each reachable state of a machine that is no end and in which no row has a result:
-// no action class, a timer's and an internal step's included, can happen there. A hole row is no
-// enabled row, as the reader's own stuck state reads it, so a state whose only pairs are holes is
-// one, and its message says so. The finding is at the machine and carries the shortest path from a
-// start to the state.
+// no action class, a timer's and an internal step's included, can happen there. A state with a hole
+// row is not stuck: a hole declares that unmodeled behavior may happen there, not a forgotten rule,
+// as the progress check reads it (model/SEMANTICS.md, Progress). The finding is at the machine and
+// carries the shortest path from a start to the state.
 func stuckStates(m *Model) ([]Tally, error) {
 	t := tally(StuckState)
 	for _, decl := range m.IR.GetMachines() {
@@ -542,26 +542,14 @@ func stuckStates(m *Model) ([]Tally, error) {
 				steps[row.Source] = true
 			}
 		}
+		for _, h := range machine.Holes {
+			steps[h.Source] = true
+		}
 		for _, s := range table.Reachable {
-			stuck := !steps[s] && !slices.Contains(table.Ends, s)
-			if !stuck {
-				t.add(decl.GetName(), true, s, decl.GetPosition(), "")
-				continue
-			}
-			var holes []string
-			for _, h := range machine.Holes {
-				if h.Source == s {
-					holes = append(holes, h.Class)
-				}
-			}
-			why := "no action can happen in it, so a timer or an internal step may be missing a rule; " +
-				"if it is meant to be final, declare it in the machine's ends"
-			if len(holes) > 0 {
-				why = fmt.Sprintf("its only pairs are holes (%s), which no step takes until a rule replaces them",
-					strings.Join(holes, ", "))
-			}
-			t.add(decl.GetName(), false, s, decl.GetPosition(), "%s is reachable, is no end and enables no action class: %s; reached by %s",
-				s, why, spellPath(table.PathTo(s)))
+			t.add(decl.GetName(), steps[s] || slices.Contains(table.Ends, s), s, decl.GetPosition(),
+				"%s is reachable, is no end and enables no action class: no action can happen in it, so a timer or an "+
+					"internal step may be missing a rule; if it is meant to be final, declare it in the machine's ends; "+
+					"reached by %s", s, spellPath(table.PathTo(s)))
 		}
 	}
 	return t.list(), nil

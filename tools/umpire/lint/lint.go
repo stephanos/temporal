@@ -28,7 +28,8 @@ const (
 	// NeverEnabled is an action class with no enabled row in a reachable state.
 	NeverEnabled Kind = "never-enabled"
 	// StuckState is a reachable state of a machine that is no end and in which no action class has an
-	// enabled row: nothing, not a timer nor an internal step, can happen there (fn-126 R21).
+	// enabled row: nothing, not a timer nor an internal step, can happen there (fn-126 R21). A state
+	// with a hole row is not stuck: the hole declares that unmodeled behavior may happen there.
 	StuckState Kind = "stuck-state"
 	// Unproduced is an outcome or a fact no reachable row produces.
 	Unproduced Kind = "unproduced"

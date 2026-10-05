@@ -284,7 +284,8 @@ func TestStuckState(t *testing.T) {
 	table := m.Machines["putOnly"].Table
 	require.NoError(t, table.Replay(table.PathTo("staged")), "the path is a witness of the table")
 
-	// A state whose only pair is a hole takes no step either; the finding names the hole.
+	// A state whose only pair is a hole is not stuck: the hole declares that unmodeled behavior may
+	// happen there, as the progress check reads it.
 	holed := read(t, declarationsIR, func(ir *umpirespb.Model) {
 		ir.Queries, ir.Scenarios, ir.Progress = nil, nil, nil
 		for _, d := range ir.GetMachines() {
@@ -295,15 +296,15 @@ func TestStuckState(t *testing.T) {
 			}
 		}
 	})
-	tallies, err = stuckStates(holed)
-	require.NoError(t, err)
-	findings = nil
-	for _, x := range tallies {
-		findings = append(findings, x.Findings...)
-	}
-	require.Len(t, findings, 1)
-	require.Equal(t, "staged", findings[0].Subject)
-	require.Contains(t, findings[0].Message, "its only pairs are holes (crash)")
+	disk := holed.Machines["disk"]
+	require.Empty(t, disk.Table.RowsFrom("staged"), "staged has no row")
+	require.Len(t, disk.Holes, 1)
+	require.Equal(t, []string{"staged", "crash"}, []string{disk.Holes[0].Source, disk.Holes[0].Class}, "its one pair is a hole")
+	require.Contains(t, disk.Table.Reachable, "staged")
+	require.NotContains(t, disk.Table.Ends, "staged")
+	r = run(t, holed, stuckStates)
+	require.Empty(t, r.subjects)
+	require.Equal(t, 2, r.population["disk"])
 }
 
 func TestUnproduced(t *testing.T) {
