@@ -1,0 +1,13 @@
+{
+  "effort": "high",
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "Prior finding: not-fixed\n\nSeverity: P2\nConfidence: 100\nClassification: pre_existing\nFile:Line: .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.24.md:13\nR-IDs: [R19]\nLocation: Task pairs 23/24, 26/34, 29/31 and 30/33.\nProblem: Dependency-independent Touches sets still overlap. This remains advisory because the plan explicitly requires serial source writers.\nSuggestion: Preserve serial admission for these pairs.\n\nNo new blocking findings. Task44\u2019s three conversions are valid for the current struct layouts and preserve destination types and digest framing. Its scope matches the epic and task21 dependency. Baseline controls, generator validation, diagnostic comparisons and original qualification requirements are explicit.\n\nmaintainability:\n  duplication: Tasks 28\u201331, 35, 37, 39 and 40 repeat the nil-cleanup/direct-sole-error/primary-first-join decision.\n  structure: hostexec.Run contains the four admitted deferred cleanup-error branches.\n\n```json\n{\"classification_counts\":{\"pre_existing\":1},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "eeeb2436b914499e859c589fed59aa98",
+  "session_id": "01a10bbb-15ae-7fe0-8a42-9356a64a8756",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-05T19:20:03.115775Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}
