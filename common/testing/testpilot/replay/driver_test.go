@@ -47,6 +47,9 @@ func preparerIn(t testing.TB, environment testpilotdriver.Environment) Preparer 
 		if err != nil {
 			return nil, err
 		}
+		// The corpus Cases are written for the facade conformance Profile's instruction defaults; a
+		// Temporal Case declares its own, which take their place.
+		profile.InstructionDefaults = testpilot.InstructionDefaults{TimeoutMilliseconds: 10000, MaxAttempts: 1}
 		return testpilot.Prepare(source, profile)
 	}
 }
