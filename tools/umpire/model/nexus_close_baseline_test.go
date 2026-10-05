@@ -1,11 +1,12 @@
 package model
 
-// What the close and reset designs share with the frozen Go nexus caller baseline, and what they do
-// not. The baseline models one run and neither a close nor a reset, so the one behavior both have is
-// an open caller accepting an asynchronous completion: the baseline's `complete` rows of a started
-// operation. That is compared here, row by row and Query by Query. Everything else the designs claim
-// is an authored design promise with no baseline to agree with. The immutable baseline records the
-// original claims; the source inventory below checks every current design declaration.
+// What the close and reset designs share with the Nexus caller Model, the baseline here, and what they
+// do not. The baseline (model/ir/nexus-caller.json, the Scala port of the Go Model the tests are named
+// after) models one run and neither a close nor a reset, so the one behavior both have is an open
+// caller accepting an asynchronous completion: the baseline's `complete` rows of a started operation.
+// That is compared here, row by row and Query by Query. Everything else the designs claim is an
+// authored design promise with no baseline to agree with; the source inventory below checks every
+// current design declaration.
 
 import (
 	"maps"
@@ -31,7 +32,7 @@ type closeAccepted struct {
 // baseline names, on every design: the policies differ only once the caller closed or was reset.
 func TestNexusCloseOpenCallerAcceptsACompletionAsTheGoModel(t *testing.T) {
 	c := closeModel(t)
-	product, protocol := frozenNexusTable(t, "nexusProduct"), frozenNexusTable(t, "nexusProtocol")
+	product, protocol := baselineNexusTable(t, "nexusProduct"), baselineNexusTable(t, "nexusProtocol")
 	for resolution, from := range map[string]string{
 		"succeeded": "open-none-done-succeeded-inFlight-succeeded-none-none",
 		"failed":    "open-none-done-failed-inFlight-failed-none-none",
@@ -56,7 +57,7 @@ func TestNexusCloseOpenCallerAcceptsACompletionAsTheGoModel(t *testing.T) {
 // operation, with the baseline's input and result domain.
 func TestNexusCloseCompleteIsTheBaselinesAction(t *testing.T) {
 	var original, lifted *umpirespb.Action
-	for _, a := range frozenReaderModel(t, "nexus-caller").GetActions() {
+	for _, a := range baselineNexusModel(t).GetActions() {
 		if a.GetName() == "complete" {
 			original = a
 		}
@@ -80,15 +81,18 @@ func TestNexusCloseCompleteIsTheBaselinesAction(t *testing.T) {
 	require.Equal(t, want, got)
 }
 
-func frozenNexusTable(t *testing.T, name string) *Table {
+func baselineNexusModel(t *testing.T) *umpirespb.Model {
 	t.Helper()
-	for _, subject := range frozenReaderMeaning(t, "nexus-caller").Subjects {
-		if subject.Name == name {
-			return &Table{Rows: subject.Table.Table.Rows, Evidence: subject.Table.Evidence}
-		}
-	}
-	require.FailNow(t, "no frozen Nexus table", name)
-	return nil
+	m, err := Load(irPath)
+	require.NoError(t, err)
+	return m
+}
+
+func baselineNexusTable(t *testing.T, name string) *Table {
+	t.Helper()
+	mm, ok := machines(t)[name]
+	require.True(t, ok, "no Nexus caller machine %s", name)
+	return mm.Table
 }
 
 // closeStep is a witness's last step without what differs by construction: the state, which each side
@@ -104,7 +108,7 @@ type closeStep struct {
 func TestNexusCloseCompletionClaimsEqualTheGoModel(t *testing.T) {
 	c := closeModel(t)
 	compared := 0
-	for _, q := range frozenReaderMeaning(t, "nexus-caller").Receipts {
+	for _, q := range checked(t, baselineNexusModel(t)).Receipts {
 		if q.Subject != QuerySubject || (q.Key.Name != "asyncCompletion" && q.Key.Name != "asyncFailure") {
 			continue
 		}
@@ -126,12 +130,12 @@ func TestNexusCloseCompletionClaimsEqualTheGoModel(t *testing.T) {
 // under their own answer.
 func TestNexusCloseLateCompletionDiffersFromTheGoModel(t *testing.T) {
 	c := closeModel(t)
-	baseline := plainResults(t, frozenNexusTable(t, "nexusProduct"), "succeeded-complete-succeeded")
+	baseline := plainResults(t, baselineNexusTable(t, "nexusProduct"), "succeeded-complete-succeeded")
 	require.Equal(t, []Result{{Outcome: "notFound", State: "succeeded", Facts: []string{}}}, baseline)
 	duplicate := plainResults(t, c.built["retainAndRoute"].Table,
 		"open-none-done-succeeded-inFlight-succeeded-none-original-succeeded-complete-succeeded")
 	require.Equal(t, "accepted", duplicate[0].Outcome)
-	late := plainResults(t, frozenNexusTable(t, "nexusProduct"), "timedOut-complete-succeeded")
+	late := plainResults(t, baselineNexusTable(t, "nexusProduct"), "timedOut-complete-succeeded")
 	require.Equal(t, []Result{{Outcome: "notFound", State: "timedOut", Facts: []string{}}}, late)
 	require.Equal(t, []Result{{Outcome: "rejectedPermanent", State: "open-none-done-succeeded-none-none-expired",
 		Facts: []string{"completionDropped"}}},
@@ -296,7 +300,7 @@ func TestNexusCloseEvidenceNamesTheBaselinesEvents(t *testing.T) {
 	c := closeModel(t)
 	shared := 0
 	design := c.built["retainAndRouteWithDeadline"].Table.Evidence
-	for _, line := range frozenNexusTable(t, "nexusProduct").Evidence {
+	for _, line := range baselineNexusTable(t, "nexusProduct").Evidence {
 		if slices.Contains([]string{"nexusOperationCompleted", "nexusOperationFailed", "nexusOperationCanceled",
 			"nexusOperationTimedOut"}, line[0]) {
 			shared++

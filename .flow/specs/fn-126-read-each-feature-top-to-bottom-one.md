@@ -510,7 +510,7 @@ Decided 2026-10-05.
 2. **One machine object per machine everywhere,** including one-machine folders. One rule for the lint and the README.
 3. **The `irFile` roots go in the feature file,** now `object Files`, not in `IrFiles.scala`.
 4. **Step naming.** Superseded. Step functions became effects in `effects`, named for what they do (`startAttempt`, `settle`), so no step shadows its action and no `Steps` object or `…Step` suffix is needed.
-5. **Land before fn-124.7 retires the golden harness.** Yes. R5's deltas and R18's re-capture use it.
+5. **Land before fn-124.7 retires the golden harness.** *Revised 2026-10-05 (host, for the owner):* from task 4 on, R5 is proved by the reader projection (tables and every Check receipt) and a before/after IR projection, not by the harness; fn-124.7 retires the harness beside task 5, and task 6 proves R18 the same way, with no golden re-capture.
 6. **Fold the approved study items in.** Ranks 3, 4 and 5 and the package renames, so files and names change once.
 7. **Rules and effects.** One block that says only when things fire, referencing effects defined separately. `when` exists only as a rule heading (R16).
 8. **Sections for every kind of member.** Section objects are transparent to Definition IDs. Only actions, monitors, assumptions, holes, channels and realizations bear IDs; Properties, Scenarios, Queries, capabilities and machines are named by their simple names, so nesting changes none of them, only function symbols. The marker still serves the lint and the ID-bearing `monitors` section and actor objects.

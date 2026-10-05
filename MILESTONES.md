@@ -34,19 +34,17 @@ Apply these instructions when implementing the milestones:
   output in the task's `.flow/tmp/` directory. Use test completion events to identify slow tests;
   package times overlap and must not be summed as wall time. Record elapsed wall time separately.
   Keep a running process running; add instrumentation to the next run instead of restarting it.
-- Optimize measured bottlenecks, starting with duplicated model construction or golden decoding
-  if the timings implicate them. Preserve independent assertions and immutable fixtures; shared
+- Optimize measured bottlenecks, starting with duplicated model construction if the timings
+  implicate it. Preserve independent assertions and immutable fixtures; shared
   test setup must not leak mutable state. Compare timings on equivalent inputs before claiming a
   speedup. Do not add a profiling or caching framework without evidence it is needed.
 - Commands that hold: run the full Go tooling suite with `-tags test_dep -p 2 -timeout 30m` (the
-  lower, model and export test binaries take 3.5-5 GB each, so never more than two at once, and
-  `-p 1` doubles wall time); run the model gate with `MODEL_GATE_ARGS=--skip-go-checks` when the Go
+  lower, model and export test binaries take up to about 6.5 GB each (export), so never more than
+  two at once, and `-p 1` doubles wall time); run the model gate with `MODEL_GATE_ARGS=--skip-go-checks` when the Go
   suite runs separately, since its Go phase repeats it. Agents sharing one machine serialize heavy
-  suites with one `flock` lock file. After any Model or lifter change, run `make umpire-gen-model` and
-  the original-baseline check from fn-112.1: `go test -tags test_dep -count=1 -p 2 -run
-  OriginalBaseline ./tools/umpire/internal/golden ./tools/umpire/model ./tools/umpire/lower`. Its
-  allowed differences are listed in `tools/umpire/internal/golden/original.json`, which only the
-  task introducing a difference extends.
+  suites with one `flock` lock file. After any Model or lifter change, run `make umpire-gen-model`,
+  review the diff of `model/ir` and `model/cases`, and run `make umpire-check-cases`: the reader's
+  tests over `model/ir` pin what a Model means, and the managed Case trees what its Cases contain.
 - Keep handovers concise and link existing evidence. Add audits, inventories or verification gates
   only for an explicit requirement or a concrete uncovered risk. Move to the next implementation
   task once the required checks and review pass.
@@ -74,7 +72,7 @@ cross-spec gates the conductor holds.
 
 ### fn-126: Read each feature top to bottom: one object per machine
 
-Gate: never alongside fn-124.8; closes before fn-124.7 and before fn-125 resumes.
+Gate: never alongside fn-124.8; closes before fn-125 resumes. Task 6 runs after fn-124.7. Task 7's lifter work may overlap task 6; its regeneration waits for task 6.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -83,11 +81,13 @@ Gate: never alongside fn-124.8; closes before fn-124.7 and before fn-125 resumes
 | fn-126.3 | ✅ done | Actions grouped by actor in section objects that keep Definition IDs |
 | fn-126.4 | ✅ done | Machine objects with effects, rules and sections; lifter reshaped; standalone activity converted |
 | fn-126.5 | 🔄 in progress | Remaining Models as machine objects; builder forms retired |
-| fn-126.6 | ⬜ todo | One rename batch: Product and System, history record, actions and designs; close |
+| fn-126.6 | ⬜ todo | `product/` and `system/` folders; zoom-ins flattened; structure lint (a)(c); IDs frozen |
+| fn-126.7 | ⬜ todo | Definition IDs are fully qualified Scala names; pins and families removed |
+| fn-126.8 | ⬜ todo | Rename batch (Product and System, history record, actions, designs); level-name lint; docs; close |
 
 ### fn-124: Shrink and simplify the Umpire Go tooling
 
-Gates: task 7 after fn-126 closes (fn-114, fn-120 and fn-122 are closed); task 8 last, never alongside fn-126.
+Gates: task 7 beside fn-126.5 and before fn-126.6 (fn-126 proves R5 by the reader projection, not the harness); task 8 last, never alongside fn-126.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -97,7 +97,7 @@ Gates: task 7 after fn-126 closes (fn-114, fn-120 and fn-122 are closed); task 8
 | fn-124.4 | ✅ done | Verdict aggregation defined once; judge rules documented |
 | fn-124.5 | ✅ done | Generated-Case outcomes compared by declared ids |
 | fn-124.6 | ✅ done | Model assessment as the command-line judge; Evaluation Profile derived or retired |
-| fn-124.7 | ⬜ todo | Migration harness and frozen snapshots retired |
+| fn-124.7 | ✅ done | Migration harness and frozen snapshots retired |
 | fn-124.8 | ⬜ todo | `tools/umpire/model` split into `ir`, `interp`, `check`, `realization` |
 
 

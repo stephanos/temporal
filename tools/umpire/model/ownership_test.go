@@ -13,11 +13,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tools/umpire/internal/golden"
 )
 
 func TestCheckerAndProducerHaveOneLiveOwner(t *testing.T) {
-	root, err := golden.Root()
+	root, err := filepath.Abs(repoRoot)
 	require.NoError(t, err)
 	base := filepath.Join(root, "tools", "umpire")
 	require.NoError(t, filepath.WalkDir(base, func(path string, entry fs.DirEntry, err error) error {
@@ -59,12 +58,7 @@ func TestCheckerAndProducerHaveOneLiveOwner(t *testing.T) {
 func modelImportProblem(file string, external bool, imported string) string {
 	const module = "go.temporal.io/server/"
 	test := strings.HasSuffix(file, "_test.go")
-	support := strings.HasPrefix(file, "tools/umpire/internal/golden/")
 	if !strings.HasPrefix(imported, module) {
-		// A first element without a dot is the standard library.
-		if support && !test && strings.Contains(strings.Split(imported, "/")[0], ".") && !strings.HasPrefix(imported, "google.golang.org/protobuf/") {
-			return "golden support imports more than the IR, protobuf and the standard library"
-		}
 		return ""
 	}
 	name := strings.TrimPrefix(imported, module)
@@ -79,17 +73,11 @@ func modelImportProblem(file string, external bool, imported string) string {
 	}
 	part := strings.TrimPrefix(file, "tools/umpire/")
 	owner := strings.Split(part, "/")[0]
-	if support && name != "api/umpire/v1" && name != "tools/umpire/internal/golden" {
-		return "golden support imports more than the IR, protobuf and the standard library"
-	}
 	if strings.HasPrefix(name, "tools/umpire/model/internal/checker") && owner != "model" {
 		return "checker is private to reader"
 	}
 	if strings.HasPrefix(name, "tools/umpire/lower/internal/producer") && owner != "lower" {
 		return "producer is private to lowering"
-	}
-	if name == "tools/umpire/internal/golden" && !test {
-		return "golden support is test-only"
 	}
 	if name == "common/testing/testpilot" && owner == "internal" {
 		return "unapproved Testpilot helper dependency"
@@ -124,7 +112,7 @@ func modelImportProblem(file string, external bool, imported string) string {
 	if strings.HasPrefix(name, "tools/umpire/") {
 		dependency := strings.TrimPrefix(name, "tools/umpire/")
 		dependency = strings.Split(dependency, "/")[0]
-		if dependency == owner || owner == "cmd" || (test && name == "tools/umpire/internal/golden") {
+		if dependency == owner || owner == "cmd" {
 			return ""
 		}
 		// Lint reads lowering only through what its command hands it, so the reader is its one edge.
@@ -152,7 +140,7 @@ func modelImportProblem(file string, external bool, imported string) string {
 }
 
 func TestLiveModelDependencyGraph(t *testing.T) {
-	root, err := golden.Root()
+	root, err := filepath.Abs(repoRoot)
 	require.NoError(t, err)
 	require.NoDirExists(t, filepath.Join(root, "model", "scalav2"))
 	scanned := 0
@@ -229,7 +217,7 @@ func toolingCallerProblem(directory, name string, importers []string, commands s
 }
 
 func TestEveryToolingPackageHasALiveCaller(t *testing.T) {
-	root, err := golden.Root()
+	root, err := filepath.Abs(repoRoot)
 	require.NoError(t, err)
 	var commands strings.Builder
 	for _, file := range []string{"Makefile", ".github/workflows/umpire.yml"} {
@@ -271,7 +259,6 @@ func TestToolingCallerProblemRejectsAnUncalledPackage(t *testing.T) {
 		called          bool
 	}{
 		{directory: "tools/umpire/lower", name: "lower", importers: []string{"tools/umpire/explore/explore.go"}, called: true},
-		{directory: "tools/umpire/internal/golden", name: "golden", importers: []string{"tools/umpire/model/load_test.go"}, called: true},
 		{directory: "tools/umpire/export", name: "export", called: true},
 		{directory: "tools/umpire/cmd/umpire-run", name: "main", called: true},
 		{directory: "tools/umpire/unused", name: "unused"},
@@ -354,21 +341,7 @@ func TestModelDependencyGraphRejectsCrossedOwners(t *testing.T) {
 		{file: "tools/umpire/explore/explore.go", dependency: module + "common/testing/testpilot/evaluation"},
 		{file: "tools/umpire/explore/explore.go", dependency: module + "tools/umpire/conformance"},
 		{file: "tools/umpire/explore/explore.go", dependency: module + "tools/umpire/export"},
-		{file: "tools/umpire/internal/cli/cli.go", dependency: module + "tools/umpire/internal/golden"},
 		{file: "tools/umpire/internal/cli/cli.go", dependency: module + "common/testing/testpilot"},
-		{file: "tools/umpire/cmd/x/main.go", dependency: module + "tools/umpire/internal/golden"},
-		{file: "tools/umpire/cmd/x/main_test.go", dependency: module + "tools/umpire/internal/golden", allowed: true},
-		{file: "tools/umpire/model/load_test.go", dependency: module + "tools/umpire/internal/golden", allowed: true},
-		{file: "tools/umpire/internal/golden/golden.go", dependency: module + "api/umpire/v1", allowed: true},
-		{file: "tools/umpire/internal/golden/golden.go", dependency: "google.golang.org/protobuf/proto", allowed: true},
-		{file: "tools/umpire/internal/golden/golden.go", dependency: "encoding/json", allowed: true},
-		{file: "tools/umpire/internal/golden/golden.go", dependency: "github.com/stretchr/testify/require"},
-		{file: "tools/umpire/internal/golden/golden_test.go", dependency: "github.com/stretchr/testify/require", allowed: true},
-		{file: "tools/umpire/internal/golden/golden.go", dependency: module + "tools/umpire/model"},
-		{file: "tools/umpire/internal/golden/golden_test.go", dependency: module + "tools/umpire/model"},
-		{file: "tools/umpire/internal/golden/golden.go", dependency: module + "api/testpilot/v1"},
-		{file: "tools/umpire/internal/golden/golden.go", dependency: module + "common/testing/testpilot"},
-		{file: "tools/umpire/internal/golden/golden.go", dependency: module + "common/log"},
 		{file: "tools/umpire/cmd/x/main_test.go", dependency: module + "tests/testcore/testpilot"},
 		{file: "service/history/handler.go", dependency: module + "model/go/umpire"},
 	} {

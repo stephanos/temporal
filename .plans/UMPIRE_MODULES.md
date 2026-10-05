@@ -10,6 +10,8 @@ The [package audit](umpire-migration-audit.json) records each source package/mod
 Make/CI evidence and disposition. The [migration manifest](umpire-migration-manifest.json) records
 current files, the index, protected originals, source substitutions and every retained Case fixture.
 The JSON files are evidence inventories; this map supplies their architectural decisions.
+fn-124.7 retired the migration goldens and their harness (see "Migration goldens, retired"); the
+passages below that describe them are history.
 
 ## Module ownership
 
@@ -101,7 +103,8 @@ Temporal's driver tooling names Temporal concepts by design:
   `common/testing/testpilot/temporal`) are the Temporal driver.
 
 The [parity claim inventory](umpire-migration-claims.json) maps retired oracle comparisons to
-frozen evidence and surviving checks, and preserves their original commentary with source attribution.
+frozen evidence and surviving checks, and preserves their original commentary with source attribution. It is
+history: its paths point at snapshots fn-124.7 retired.
 
 ## Public types and file boundaries
 
@@ -228,14 +231,14 @@ Task 9 renamed the IR namespace to `umpire/v1` (Go alias `umpirespb`, JVM packag
 `io.temporal.server.api.umpire.v1`); `modelir` is renamed, not kept. The migration manifest and
 audit JSON keep the old names as the captured baseline. `tools/umpire/model/schema_test.go` with
 `testdata/schema/before-rename` freezes the pre-rename descriptor and wire bytes and names the old
-package on purpose, so retired-name checks exempt them; its 14 `.gz` files are separate from the
-1,411 migration goldens. `make lint-api` passes; `proto/api-linter.yaml` excludes the IR proto's path from the AIP
+package on purpose, so retired-name checks exempt them; its 14 `.gz` files outlived the 1,411
+migration goldens. `make lint-api` passes; `proto/api-linter.yaml` excludes the IR proto's path from the AIP
 rules it predates.
 
 Task 12 made the dependency rules executable in `tools/umpire/model/ownership_test.go` and the
 Testpilot boundary tests: production and test imports are checked separately, the lowerer reaches
-`explore`, `conformance` and `recordedrun` only from `package lower_test`, the golden helper imports
-only IR, protobuf and the standard library, and no live file imports an archive. The lowerer's and
+`explore`, `conformance` and `recordedrun` only from `package lower_test`, and no live file imports
+an archive. The lowerer's and
 conformance's own tests may import the Temporal Driver package for admission (catalog and derived
 Profile) only. `TestEveryToolingPackageHasALiveCaller` requires a live importer or a Make/CI runner
 for every package under `tools/umpire`. `TestModelNamesNoRetiredFrontEnd` is the vocabulary check
@@ -246,67 +249,21 @@ tool versions there); `run.sh`, `UMPIRE_BACKEND_FLAGS` and `--install` are gone,
 `common/testing/testpilot/campaign/integration_test.go` is removed (its subject is archived), CI no
 longer builds the descriptor set, and `make lint-code` shares `lint-code-fast`'s Go-only patch.
 
-## Immutable migration goldens
+## Migration goldens, retired
 
-The test-only helper `model/scalav2/goir/internal/golden` moves to
-`tools/umpire/internal/golden`. It admits the fixed twelve-input inventory and the eighteen
-path/twelve source-label substitutions above plus the six fixture renames, with only
-standard-library, protobuf and IR imports.
-No production package imports it. Reader tests and their data move to `tools/umpire/model`;
-lowerer tests and their data move to `tools/umpire/lower`. Task 3 removes the existing legacy
-oracle edges that currently bring Testpilot into the reader's test graph. The new reader golden
-support introduces no such edge or production test-construction API.
+fn-124.7 retired the immutable migration goldens with the test-only helper that read them: its
+closed projection and original-baseline delta, the original archive, the 48 reader snapshots and the
+1,363 artifact snapshots, and the migration, original-baseline and comparative-Model tests. Since
+fn-126.4, fn-126 proves equality with the reader projection (tables and every Check receipt), not
+with these snapshots. The behaviour tests only the goldens exercised were restated against
+`model/ir` first: they pin counts, rows, witnesses and Case members, and each fails on a seeded
+change to the live IR. What a Model means is pinned by the reader's tests over `model/ir`; what a
+Case contains, by the managed Case trees `umpire-check-cases` compares byte for byte. The
+schema-rename capture `tools/umpire/model/testdata/schema/before-rename` stays.
 
 Only the lowerer's external test package may import exploration, conformance, Testpilot runtime
-and recordedrun to verify the complete artifact identity chain. This integration-test exception
-does not permit those edges in lowerer production code. A narrow bridge defined only in a lowerer
-`*_test.go` file may expose the existing local Query/realization conversion to that external test
-package. The original Nexus oracle transfer reuses frozen IR with the five existing comparative
-history `Exhaustive` adjustments and the captured original Source/Identity. Admission also requires
-removing the corresponding `asyncNexus` / `controller` / `history` closing-read declarations.
-Both ordered vectors must equal `temporal.nexus.caller.evidence.` followed by `started`, `completed`,
-`failed`, `canceled`, `timedOut`; no other declaration is removed. Full oracle equality must prove
-that every other value is unchanged. This bridge is absent from production builds.
-Task 12 checks production and test imports separately. When removing parity tests, retain `tableSide`/`sideOf` as dedicated reader test support;
-replace the temporary refined-row oracle comparison while retaining its frozen golden values.
-
-There are 48 reader snapshots (inputs, semantics, declarations and refined Properties) and 1,363
-artifact snapshots (original, mapped and original producer-oracle evidence). Each complete Case
-has independently inspectable Program and Contract files. Read-only verification strictly matches
-the current IR inputs, then regenerates both complete original and mapped artifact variants plus
-the producer-oracle inventory from frozen inputs. It compares every entry, including the inactive
-variant, and rejects missing or additional entries. Capture is an explicit test entry point that
-rejects any existing destination. Run captures sequentially,
-using separate new absolute directories whose parents exist:
-
-```sh
-CC=/usr/bin/clang mise exec -- go test -tags test_dep ./tools/umpire/model -run '^TestCaptureMigrationGoldens$' -count=1 -args -capture-goldens=/absolute/new-reader-capture
-CC=/usr/bin/clang mise exec -- go test -tags test_dep ./tools/umpire/lower -run '^TestCaptureMigrationGoldens$' -count=1 -args -capture-goldens=/absolute/new-artifact-capture
-CC=/usr/bin/clang mise exec -- go test -tags test_dep ./tools/umpire/model/... ./tools/umpire/lower/...
-```
-
-The commands name the packages at their current locations. The captured original evidence stays immutable when the
-legacy oracles retire; subsequent capture generators must preserve those original inputs and
-relationships through admitted IR when each old constructor retires. Task 3 replaces the Nexus
-handwritten Model oracle; generic job-only checker builders remain until task 5 copies the producer
-and performs their admitted-IR transfer. Capture output is never automatically installed over a baseline.
-Two independent captures must match byte-for-byte before any intentional baseline addition.
-Read one Contract without rewriting or expanding the whole baseline:
-
-```sh
-python3 - <<'INSPECT'
-import gzip, json
-from pathlib import Path
-root = Path('tools/umpire/lower/testdata/migration')
-path = next(root.glob('original/ir/nexus-caller.json/queries/*/contract.json.gz'))
-print(path)
-print(json.dumps(json.loads(gzip.decompress(path.read_bytes())), indent=2))
-INSPECT
-```
-
-After relocation the inspection root is `tools/umpire/lower/testdata/migration`. Reject missing or
-additional baseline entries. Task 12 removed the branch's blanket `testdata/` ignore rule and its
-exceptions, so fixture trees need no ignore exception.
+and recordedrun. This integration-test exception does not permit those edges in lowerer production
+code. `tableSide`/`sideOf` stay as dedicated reader test support.
 
 ## Scala layout and commands
 
@@ -449,23 +406,23 @@ this temporary command exception; final main-module checks have no such skip.
 
 Only the eighteen observed source paths and twelve exact Model source labels in the manifest may
 change in their typed fields, plus the six lifter fixture renames of task 14 (`*.scala.fixture` to
-`*.scala`), which the golden helper applies as a separate exact `source_path_renames` list to the
-current IR only; the frozen mapped goldens keep the captured `.scala.fixture` spelling in their
+`*.scala`), which the golden helper applied as a separate exact `source_path_renames` list to the
+current IR only; the frozen mapped goldens kept the captured `.scala.fixture` spelling in their
 derived digests and Case IDs. Preserve every line and column; historical-attribution removal leaves
 blank lines where necessary. New, unexpected source strings fail migration verification rather than
 being accepted by a generic prefix normalizer. The six checked Models and six expected fixture IR
 files form the initial IR inventory; all their Queries and unsupported standings enter task 2's
 baseline. Confinement remains the existing source-position test, not a new runtime loader rule.
 
-fn-113 extends this historical migration contract with the closed projection in
-`tools/umpire/internal/golden/config.json`: positions by file, alpha-normalized parameters, exact
+fn-113 extended this historical migration contract with the golden helper's closed projection
+(retired by fn-124.7): positions by file, alpha-normalized parameters, exact
 listed function and type renames, and the Nexus source-path rename. Only a mapped-original type
 catalog with an actual listed type substitution is re-sorted by its resulting names; current type
 order, enum cases and record fields remain strict. Exploration Case IDs may vary because they hash
 the whole candidate IR. Tables, Definition IDs, refinement rows, fingerprints, Query answers,
 Query Case bytes and every other exploration Case byte retain the independent frozen baseline.
-fn-114.9's folder moves are two more append-only lists there, `source_path_moves` and
-`source_package_moves`; a test fails if an old path reappears.
+fn-114.9's folder moves were two more append-only lists there, `source_path_moves` and
+`source_package_moves`; `tools/umpire/model/layout_test.go` still fails if an old path reappears.
 
 Recompute hashes in the manifest's dependency order. Ordinary generated Cases retain the same
 `IdentityFor` inputs and IDs while mapped provenance changes their canonical checksum. Exploration
@@ -517,7 +474,8 @@ Recorded R22 gap: a Property phase clause lowers to no `STATE` rule (only whole-
 does), so the legacy control rule `state-succeeded` has no lowered counterpart. Per-fixture results
 are in the manifest's `fixtures[].result` and `fixture_migration`.
 
-All subsequent tasks run the task-2 golden and relevant consumer checks. Closing checks compare gate
+All subsequent tasks ran the task-2 golden, until fn-124.7 retired it, and run the relevant consumer
+checks. Closing checks compare gate
 outputs against the dirty authorized baseline, include existing production/test import directions,
 verify future generated fixtures are not ignored, and enforce R25 from a file outside `model/`.
 An independent reviewer evaluates this map before implementation moves; the conductor owns the

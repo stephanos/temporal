@@ -2,16 +2,12 @@ package model
 
 import (
 	"cmp"
-	"encoding/json"
-	"path/filepath"
 	"slices"
 	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	"go.temporal.io/server/tools/umpire/internal/golden"
-	"google.golang.org/protobuf/encoding/protojson"
 )
 
 const activityIR = "../../../model/ir/activity.json"
@@ -95,33 +91,4 @@ func rowIndex(t *testing.T, table *Table, key string) int {
 	}
 	require.Failf(t, "no row", "no row %s in %s", key, table.Machine)
 	return -1
-}
-
-var readerBaseline = sync.OnceValues(func() (map[string][]byte, error) {
-	return golden.Read(filepath.Join("testdata", "migration"))
-})
-
-func frozenReaderJSON(t *testing.T, path string, into any) {
-	t.Helper()
-	files, err := readerBaseline()
-	require.NoError(t, err)
-	encoded, ok := files[path]
-	require.True(t, ok, path)
-	require.NoError(t, json.Unmarshal(encoded, into), path)
-}
-
-func frozenReaderModel(t *testing.T, name string) *umpirespb.Model {
-	t.Helper()
-	files, err := readerBaseline()
-	require.NoError(t, err)
-	m := new(umpirespb.Model)
-	require.NoError(t, protojson.Unmarshal(files["inputs/ir/"+name+".json"], m))
-	return m
-}
-
-func frozenReaderMeaning(t *testing.T, name string) migrationSemantics {
-	t.Helper()
-	var meaning migrationSemantics
-	frozenReaderJSON(t, "semantics/ir/"+name+".json", &meaning)
-	return meaning
 }

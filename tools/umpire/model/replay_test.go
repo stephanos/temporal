@@ -6,13 +6,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/tools/umpire/internal/golden"
 )
 
 // Every witness the model packages' Queries report replays under its own Definition IDs, and none
 // replays once one value is bound to another definition.
 func TestEveryReportedWitnessReplaysUnderItsDefinitionIDs(t *testing.T) {
-	root, err := golden.Root()
+	root, err := filepath.Abs(repoRoot)
 	require.NoError(t, err)
 	var queries []*Query
 	expected := map[string][]string{

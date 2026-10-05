@@ -1,8 +1,7 @@
 package model
 
 // The Nexus caller Model, lifted from model/temporal into model/ir/nexus-caller.json and interpreted
-// here. The immutable reader goldens retain its complete tables and identities;
-// the IR carries the Model whole: nothing of the Scala code is run to get these tables.
+// here. The IR carries the Model whole: nothing of the Scala code is run to get these tables.
 
 import (
 	"testing"

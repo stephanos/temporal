@@ -18,14 +18,13 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/replay"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/umpire/explore"
-	"go.temporal.io/server/tools/umpire/internal/golden"
 	umpiremodel "go.temporal.io/server/tools/umpire/model"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
 func TestIRBridgeProtocol(t *testing.T) {
-	root, err := golden.Root()
+	root, err := filepath.Abs(filepath.Join("..", "..", "..", ".."))
 	require.NoError(t, err)
 	binary := filepath.Join(t.TempDir(), "umpire-ir-bridge")
 	build := exec.CommandContext(t.Context(), "go", "build", "-tags", "test_dep", "-o", binary, "./tools/umpire/cmd/umpire-ir-bridge")
