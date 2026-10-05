@@ -68,7 +68,9 @@ func TestDeclaredRunsReadTheArchiveAsItsReaderDid(t *testing.T) {
 	require.Equal(t, run(umpirespb.RunExpectation_OUTCOME_VIOLATED, umpirespb.RunExpectation_OUTCOME_VIOLATED, umpirespb.RunExpectation_DISPOSITION_STOPPED_BY_MONITOR,
 		umpirespb.RunExpectation_REASON_EVERY_EXPLANATION_VIOLATES, umpirespb.RunExpectation_CONFORMANCE_INCONCLUSIVE).String(), m.GetQueries()[1].GetExpectedRun().String())
 	require.Nil(t, m.GetQueries()[2].GetExpectedRun())
-	require.Equal(t, `{
+	// The manifest is rewritten in GenerateCases's layout, line by line.
+	manifest := string(declared[OriginalCases+"manifest.json"])
+	require.JSONEq(t, `{
   "queries": [
     {
       "expected": {
@@ -102,7 +104,9 @@ func TestDeclaredRunsReadTheArchiveAsItsReaderDid(t *testing.T) {
     }
   ]
 }
-`, string(declared[OriginalCases+"manifest.json"]))
+`, manifest)
+	require.Contains(t, manifest, "\"expected\": {\n        \"contract\": \"violated\",\n        \"disposition\": \"stopped_by_monitor\",\n"+
+		"        \"cleanup\": \"succeeded\",\n        \"conformance\": \"inconclusive\",")
 	require.Equal(t, archived[OriginalCases+"m-plain-case.json"], declared[OriginalCases+"m-plain-case.json"], "a Case is no expected Run")
 
 	for name, test := range map[string]struct {

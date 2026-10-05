@@ -137,10 +137,11 @@ func (r DeclaredRuns) run(run map[string]any, used map[string]bool) error {
 	run["disposition"] = "DISPOSITION_" + disposition(run["contract"] == "OUTCOME_VIOLATED")
 	run["cleanup"] = "CLEANUP_SUCCEEDED"
 	reasoned := []map[string]any{run}
-	monitors, _ := run["monitors"].([]any)
-	for _, monitor := range monitors {
-		if m, ok := monitor.(map[string]any); ok {
-			reasoned = append(reasoned, m)
+	if monitors, ok := run["monitors"].([]any); ok {
+		for _, monitor := range monitors {
+			if m, ok := monitor.(map[string]any); ok {
+				reasoned = append(reasoned, m)
+			}
 		}
 	}
 	for _, claim := range reasoned {
