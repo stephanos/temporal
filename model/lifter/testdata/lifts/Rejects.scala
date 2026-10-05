@@ -1107,6 +1107,16 @@ val levelMonitor = machine[Lamp, Outcome, Nothing] {
   steps(flip ~> lampStep)
 }
 
+/** A step function whose precondition asks whether another step function gives a step. */
+def requiringStep(l: Lamp): List[LampStep] =
+  require(lampStep(l) != Nil)
+  lampStep(l)
+val levelRequire = machine[Lamp, Outcome, Nothing] {
+  starts(Lamp(false))
+  ends(_ => true)
+  steps(flip ~> requiringStep)
+}
+
 /** A same-step Property that asks what the step function gives after the step. */
 val levelHolds = oneStart.property holds (after => lampStep(after.state) == Nil)
 val levelProperty: Query = query verify levelHolds in lampFlips limits one total 2

@@ -249,6 +249,7 @@ class Fixtures extends munit.FunSuite:
     "levelEvidence",
     "levelRefinement",
     "levelMonitor",
+    "levelRequire",
     "levelProperty",
     "levelTransition",
     "levelPattern",

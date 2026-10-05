@@ -159,17 +159,17 @@ final private[lift] class Context(val index: Index):
     try body
     finally choosing = was
 
-  // While a function's body is lifted: the type it gives, so that only a function that gives steps,
-  // a step function or one it calls, makes a step (model/SEMANTICS.md, Levels). None while a
-  // declared value, such as a start, is lifted.
-  var giving: Option[TypeRepr] = None // scalafix:ok DisableSyntax.var
+  // What is being lifted: whether it may make a step, being the body of a function that gives
+  // steps, a step function or one it calls (model/SEMANTICS.md, Levels), and where it is, for the
+  // refusal of a step made anywhere else. A declared value, such as a start, makes none.
+  var making: (Boolean, String) = (false, "a declared value") // scalafix:ok DisableSyntax.var
 
-  /** `body`, lifted as the body of a function that gives `result`, or, with None, as a value. */
-  def givingOf[A](result: Option[TypeRepr])(body: => A): A =
-    val was = giving
-    giving = result
+  /** `body`, lifted where `where` says, making steps only when `steps` holds. */
+  def makingIn[A](steps: Boolean, where: String)(body: => A): A =
+    val was = making
+    making = (steps, where)
     try body
-    finally giving = was
+    finally making = was
 
   // Where each machine declared each of its capabilities, by kind: a machine declares each once.
   val capabilityKinds = mutable.Map.empty[(String, String), String]

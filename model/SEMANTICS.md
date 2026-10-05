@@ -105,11 +105,12 @@ step records, belongs to the function a step binding names and the functions it 
 else it is at the wrong level, as an `ends` that asks whether a step function gives a step, or a
 Property that calls the step function on the state after its step, would be. The IR does not mark
 levels; the lifter keeps them, refusing at its line an expression that makes a step in a function
-that gives anything else or in a declared value. Its fixtures hold one refusal for each declaration
-whose Scala type admits one: a machine's start, `ends`, evidence and refinement, a monitor, a
-same-step Property, a transition Property, a claim pattern, a progress claim, a composition's `ends`
-and a Scenario's start (`level*` in `model/lifter/testdata/lifts/Rejects.scala`). The Scala types
-rule out every other wrong level, so it has no fixture:
+that gives anything else, in a function's precondition or in a declared value. Its fixtures hold one
+refusal for each place whose Scala type admits one: a machine's start, `ends`, evidence and
+refinement, a monitor, a precondition, a same-step Property, a transition Property, a claim
+pattern, a progress claim, a composition's `ends` and a Scenario's start (`level*` in
+`model/lifter/testdata/lifts/Rejects.scala`). The Scala types rule out every other wrong level, so
+it has no fixture:
 
 - a value reads no state and no step record: these enter an expression only as parameters of the
   places that read them, and a start, evidence, what a refinement names visible and a monitor's
