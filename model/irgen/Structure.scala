@@ -79,6 +79,7 @@ final private[irgen] class Structure(index: Index):
       case c: ClassDef if c.symbol.flags.is(Flags.Module) => c
     }
     def level: Boolean = sub.sizeIs == 1 && Structure.levels(sub.head)
+
     /** Whether its folders end with the feature's and its subpackage's, as its package names them. */
     def mirrors: Boolean =
       folder.split('/').filter(_.nonEmpty).toList.takeRight(sub.size + 1) ==

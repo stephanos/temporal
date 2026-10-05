@@ -1836,8 +1836,10 @@ class Fixtures extends munit.FunSuite:
       "the Product in product/Product.scala, the System in system/System.scala, beside the root " +
       "feature file named after the feature's folder, which holds the types, the signature and " +
       "object exports (model/irgen/testdata/layout/lamp is the template)"
-    val urn = two.replace("KettleSystem refines KettleProduct, so kettle", "UrnSystem refines " +
-      "UrnProduct, so urn")
+    val urn = two.replace(
+      "KettleSystem refines KettleProduct, so kettle",
+      "UrnSystem refines UrnProduct, so urn"
+    )
     assertEquals(
       refused(result),
       Seq(
