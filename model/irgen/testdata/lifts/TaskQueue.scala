@@ -6,6 +6,8 @@
 package fixture.taskqueue
 
 import temporal.shared.taskqueue.*
+import temporal.shared.taskqueue.DispatchQueue.dispatchQueue
+import temporal.shared.taskqueue.MatchingQueue.{forgetfulQueue, matchingQueue}
 import umpire.*
 
 given Family = Family("fixture.taskqueue")

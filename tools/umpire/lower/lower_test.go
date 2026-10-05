@@ -23,7 +23,7 @@ import (
 
 const realizationAt = "model/temporal/features/nexuscaller/Realization.scala:"
 
-// functionalQueries is the functional set of model/temporal/features/nexuscaller/Queries.scala,
+// functionalQueries is the functional set of model/temporal/features/nexuscaller/NexusCaller.scala,
 // in its declaration order.
 var functionalQueries = []string{"syncCompletion", "asyncCompletion", "asyncFailure", "handlerError", "retry",
 	"scheduleToStartTimeout", "startToCloseTimeout"}
@@ -308,7 +308,7 @@ func TestALoweredCaseIsTheComparativeGoModelsCase(t *testing.T) {
 		}
 		return want
 	}
-	written := &testpilotspb.SourceLocation{Path: "model/temporal/features/nexuscaller/Queries.scala", Line: 1, Column: 1,
+	written := &testpilotspb.SourceLocation{Path: "model/temporal/features/nexuscaller/NexusCaller.scala", Line: 1, Column: 1,
 		Provenance: "scala-model"}
 	rewritten := func(c *testpilotspb.Case) *testpilotspb.Case {
 		for i := range c.GetProvenance().GetSources() {

@@ -333,6 +333,8 @@ func TestMigrationGoldensAdmitOnlyTheLawReplacements(t *testing.T) {
 	original := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal(frozen[migrationKey(path)], original))
 	cfg, models := migrationInputs(t)
+	// Every listed rename is to a Function the current IR declares.
+	require.NoError(t, cfg.FunctionsCurrent(models))
 	current, key := models[path], golden.OriginalKey(path)
 	_, err = cfg.MatchAt(key, original, current)
 	require.NoError(t, err)
@@ -380,6 +382,8 @@ func TestMigrationGoldensAdmitOnlyTheDerivedWaits(t *testing.T) {
 	original := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal(frozen[migrationKey(path)], original))
 	cfg, models := migrationInputs(t)
+	// Every listed rename is to a Function the current IR declares.
+	require.NoError(t, cfg.FunctionsCurrent(models))
 	current, key := models[path], golden.OriginalKey(path)
 	_, err = cfg.MatchAt(key, original, current)
 	require.NoError(t, err)
@@ -676,9 +680,11 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 	original := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal(frozen[migrationKey(path)], original))
 	cfg, models := migrationInputs(t)
+	// Every listed rename is to a Function the current IR declares.
+	require.NoError(t, cfg.FunctionsCurrent(models))
 	current, key := models[path], golden.OriginalKey(path)
 	require.NotNil(t, functionNamed(original, kernel))
-	moved := "temporal.features.nexuscaller.Protocol$.completeStep"
+	moved := "temporal.features.nexuscaller.Protocol$.effects$.completeStep"
 	if i := slices.IndexFunc(cfg.Projection.Functions, func(s golden.Substitution) bool { return s.Old == kernel }); i >= 0 {
 		moved = cfg.Projection.Functions[i].New
 	} else {
@@ -752,7 +758,7 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 		})
 	}
 	t.Run("position in an unlisted file", func(t *testing.T) {
-		changed := migrationRewrite(t, admitted, rename("model/temporal/features/nexuscaller/Queries.scala", "model/temporal/features/nexuscaller/Query.scala"))
+		changed := migrationRewrite(t, admitted, rename("model/temporal/features/nexuscaller/NexusCaller.scala", "model/temporal/features/nexuscaller/Caller.scala"))
 		_, err := cfg.MatchAt(key, original, changed)
 		require.Error(t, err)
 	})

@@ -171,8 +171,8 @@ var closePromises = map[string]string{
 // closeDeclared finds each declaration of the sources by its kind: by the name it states, or by the
 // val it takes its name from. A pattern's first group that matched is the name.
 var closeDeclared = map[string]*regexp.Regexp{
-	"machine":    regexp.MustCompile(`(?m)^val (\w+) =\s*(?:machine\[|\w+\s*\.(?:assuming|rebind|extend|restrict)\()`),
-	"monitor":    regexp.MustCompile(`(?m)^val (\w+) =\s*(?:monitor\[|sticky\(|stickyAcross\()`),
+	"machine":    regexp.MustCompile(`(?m)^\s*val (\w+) =\s*(?:machine\[|\w+\s*\.(?:assuming|rebind|extend|restrict)\()`),
+	"monitor":    regexp.MustCompile(`(?m)^\s*val (\w+) =\s*(?:monitor\[|sticky\(|stickyAcross\()`),
 	"assumption": regexp.MustCompile(`assume\(\s*"([^"]+)"\s*\)`),
 	"progress":   regexp.MustCompile(`\.leadsTo\(\s*"([^"]+)"\s*\)`),
 	"property":   regexp.MustCompile(`\.property\(\s*"([^"]+)"\s*\)|val (\w+) = m\.property[\s.]`),
@@ -328,9 +328,10 @@ type closeClaim struct {
 func TestNexusCloseProgressClaimsAreTheSpecimens(t *testing.T) {
 	m := closeModel(t).model
 	// An action keeps the Definition ID of the package the Model was written in; a Function takes the
-	// compiler's name, in the package the Model moved to (fn-114.9).
+	// compiler's name, in the package the Model moved to (fn-114.9) and the object that holds it
+	// (fn-126).
 	const model = "temporal.nexuscaller.closepolicy.Model$package$."
-	const functions, properties = "temporal.features.nexuscaller.closepolicy.Model$package$.", "temporal.features.nexuscaller.closepolicy.Properties$package$."
+	const functions, properties = "temporal.features.nexuscaller.closepolicy.RejectAfterClose$.", "temporal.features.nexuscaller.closepolicy.RejectAfterClose$.properties$."
 	names := map[string]string{}
 	fair := map[string][]string{}
 	for _, a := range m.GetAssumptions() {

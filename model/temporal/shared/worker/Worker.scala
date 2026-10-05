@@ -6,6 +6,9 @@
  *
  * The package declares no set, Case or Query: nothing here is realized on its own, and the
  * Properties about a worker are the cross-entity ones a composition states.
+ *
+ * Read top to bottom: the types; the signature (the worker party, the entity and its actions); then
+ * Polling, the worker's one machine.
  */
 package temporal
 package shared.worker
@@ -18,16 +21,7 @@ given DefinitionScope = DefinitionScope("temporal.worker.Worker$package$")
 
 given Family = Family("temporal.worker")
 
-/** The worker party, which stops and resumes the worker. */
-val party = Party("worker")
-
-// ### Entities and domains
-
-/**
- * Named by the task queue it polls: the handler's worker and the workflow's worker are two
- * instances of this entity, told apart by their queue.
- */
-val entity = Entity("worker", key = "taskQueue")
+// ### Types
 
 enum Phase derives Finite:
   case polling, stopped
@@ -37,8 +31,6 @@ final case class State(phase: Phase) derives Finite
 enum Outcome derives Finite:
   case accepted
 
-given Ok[Outcome] = Ok(Outcome.accepted)
-
 /**
  * A worker records nothing of its own. Its stop and resume are faults the Run records against no
  * entity, and what it serves is recorded by the work it serves.
@@ -47,8 +39,19 @@ type Fact = Nothing
 
 type WorkerStep = Step[State, Outcome, Fact]
 
-// ### The actions
-//
+// ### Signature
+
+/** The worker party, which stops and resumes the worker. */
+val party = Party("worker")
+
+/**
+ * Named by the task queue it polls: the handler's worker and the workflow's worker are two
+ * instances of this entity, told apart by their queue.
+ */
+val entity = Entity("worker", key = "taskQueue")
+
+given Ok[Outcome] = Ok(Outcome.accepted)
+
 // The two faults are the worker party's and name no entity, as the outage machine spells them. The
 // serve action is the worker's own and takes no input, so a composition may synchronize it with an
 // action of any class.
@@ -64,22 +67,28 @@ val serve = action(party) on entity
 
 // ### The machine
 
-/** A polling worker stops; a stopped one has nothing to stop. */
-def stopStep(s: State) =
-  if s.phase != Phase.polling then disabled else enter(State(Phase.stopped))
+object Polling:
+  object effects:
+    /** A polling worker stops; a stopped one has nothing to stop. */
+    def stopStep(s: State) =
+      if s.phase != Phase.polling then disabled else enter(State(Phase.stopped))
 
-/** A stopped worker resumes polling; a polling one has nothing to resume. */
-def resumeStep(s: State) =
-  if s.phase != Phase.stopped then disabled else enter(State(Phase.polling))
+    /** A stopped worker resumes polling; a polling one has nothing to resume. */
+    def resumeStep(s: State) =
+      if s.phase != Phase.stopped then disabled else enter(State(Phase.polling))
 
-/** A polling worker serves and keeps polling; a stopped one serves nothing. */
-def serveStep(s: State) =
-  if s.phase != Phase.polling then disabled else stay(s)
+    /** A polling worker serves and keeps polling; a stopped one serves nothing. */
+    def serveStep(s: State) =
+      if s.phase != Phase.polling then disabled else stay(s)
 
-/** The worker. A worker has no natural end: it may be left polling or stopped. */
-val polling = machine[State, Outcome, Fact] {
-  forEntity(entity)
-  starts(State(Phase.polling))
-  ends(_ => true)
-  steps(workerStop ~> stopStep, workerResume ~> resumeStep, serve ~> serveStep)
-}
+  /** The worker. A worker has no natural end: it may be left polling or stopped. */
+  val polling = machine[State, Outcome, Fact] {
+    forEntity(entity)
+    starts(State(Phase.polling))
+    ends(_ => true)
+    steps(
+      workerStop ~> effects.stopStep,
+      workerResume ~> effects.resumeStep,
+      serve ~> effects.serveStep
+    )
+  }

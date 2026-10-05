@@ -88,7 +88,7 @@ func TestValidateReportsEveryProblemAtItsScalaPosition(t *testing.T) {
 	lines := strings.Split(err.Error(), "\n")
 	require.GreaterOrEqual(t, len(lines), 5, "every renamed call is reported, not only the first")
 	for _, l := range lines {
-		require.Regexp(t, `^model/temporal/features/nexuscaller/Model\.scala:\d+: no function temporal\.features\.nexuscaller\.Protocol\$\.move$`, l)
+		require.Regexp(t, `^model/temporal/features/nexuscaller/NexusCaller\.scala:\d+: no function temporal\.features\.nexuscaller\.Protocol\$\.move$`, l)
 	}
 }
 
@@ -96,12 +96,12 @@ func TestValidateRejectsAStepWithTheWrongArity(t *testing.T) {
 	m := proto.Clone(load(t)).(*umpirespb.Model)
 	for _, mm := range m.GetMachines() {
 		for _, b := range mm.GetSteps() {
-			if strings.HasSuffix(b.GetFunction(), "Protocol$.handlerReplyStep") {
-				b.Function = "temporal.features.nexuscaller.Protocol$.backoffStep"
+			if strings.HasSuffix(b.GetFunction(), "Protocol$.effects$.handlerReplyStep") {
+				b.Function = "temporal.features.nexuscaller.Protocol$.effects$.backoffStep"
 			}
 		}
 	}
-	require.ErrorContains(t, Validate(m), "model/temporal/features/nexuscaller/Model.scala:424: temporal.features.nexuscaller.Protocol$.backoffStep "+
+	require.ErrorContains(t, Validate(m), "model/temporal/features/nexuscaller/NexusCaller.scala:460: temporal.features.nexuscaller.Protocol$.effects$.backoffStep "+
 		"steps handlerReply, which has 1 inputs, so it takes the state and 1 arguments, not 0")
 }
 
@@ -120,7 +120,7 @@ func TestValidateReportsUnrelatedSameStateMachinesAtQueryPosition(t *testing.T) 
 	require.NotNil(t, other)
 	q.Scenario = proto.Clone(other.GetScenario()).(*umpirespb.ClaimRef)
 	// The refusal is at the Query's own line, wherever the Query sits in its file.
-	require.EqualError(t, Validate(m), fmt.Sprintf("model/temporal/features/nexuscaller/closepolicy/Queries.scala:%d: query ackByOriginal.ackedThenReset "+
+	require.EqualError(t, Validate(m), fmt.Sprintf("model/temporal/features/nexuscaller/closepolicy/ClosePolicy.scala:%d: query ackByOriginal.ackedThenReset "+
 		"pairs a Property of ackByOriginal with a Scenario of rejectAfterClose", q.GetPosition().GetLine()))
 }
 

@@ -749,6 +749,8 @@ class Fixtures extends munit.FunSuite:
         // (d): a Model declaration beside the feature file
         s"lift: ${at}Forward.scala:23: stray is a Scenario, which a feature declares in its " +
           s"feature file, $feature: in the `queries` object of its machine's object there",
+        s"lift: ${at}Forward.scala:29: strayInCompanion is a Scenario, which a feature declares " +
+          s"in its feature file, $feature: in the `queries` object of its machine's object there",
         // (d): a machine in a type's companion, a Property at the top level, a machine object in
         // an object of the signature
         s"lift: $feature:24: bulb is a machine or composition, declared inside Bulb, the " +
@@ -784,6 +786,29 @@ class Fixtures extends munit.FunSuite:
           "it belongs in Switch.queries",
         // (d): a val in Files that is no IR file
         s"lift: $feature:102: note is declared in Files, which holds the feature's IR files alone"
+      )
+    )
+
+  // A Model folder must name its feature file after itself (misnamed/Lamp.scala): a file of another
+  // name in a folder with no feature file would otherwise be held to no reading order.
+  concurrently("the declaration-order lint refuses a Model in a folder with no feature file"):
+    val jar = packaged("misnamed", materialize("misnamed"))
+    val out = scratch.resolve("misnamed-out")
+    val at = stored("misnamed")
+    val result = liftIr(out, s"$jar=$at,$modelJar=model/")
+    assertNotEquals(result.exit, 0)
+    assertEquals(listed(out), Nil)
+    val home = "a Model folder declares its Models in its feature file, the file named after " +
+      s"the folder, in $at"
+    assertEquals(
+      refused(result),
+      Seq(
+        s"lift: ${at}Lamp.scala:18: Switch holds a Model declaration in a file not named after " +
+          s"its folder: $home",
+        s"lift: ${at}Lamp.scala:29: loose is a Property, declared in a file not named after its " +
+          s"folder: $home",
+        s"lift: ${at}Lamp.scala:34: Spare holds a Model declaration in a file not named after " +
+          s"its folder: $home"
       )
     )
 

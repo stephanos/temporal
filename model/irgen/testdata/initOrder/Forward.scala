@@ -21,3 +21,9 @@ def applied(body: Int ?=> Int): Int = body(using 0)
 
 // (d): a Model declaration beside the feature file.
 def stray = Switch.switch.scenario.actions(flip)
+
+// (d): a Model declaration in a type's companion beside the feature file.
+final case class Spare(lit: Boolean)
+
+object Spare:
+  def strayInCompanion = Switch.switch.scenario.actions(flip)

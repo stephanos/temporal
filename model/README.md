@@ -25,11 +25,11 @@ A **Model** is the description of one feature: its state machines and everything
 them. A **machine** is a finite state machine: its states, the actions that can happen, and a step
 function per action that says what the next state is and which facts the step records. The Nexus
 caller Model is in `model/temporal/features/nexuscaller`, and its machine `nexusProtocol` is declared in
-`Model.scala`.
+its feature file, `NexusCaller.scala`, in the machine's object `Protocol`.
 
 A **Property** is one promise a machine makes: a condition its steps must meet. This is the
-example's Property (`model/temporal/features/nexuscaller/Properties.scala`, line 22), named after its
-`val`:
+example's Property (`model/temporal/features/nexuscaller/NexusCaller.scala`, line 473, in
+`Protocol.properties`), named after its `val`:
 
 ```scala
 /** A synchronous reply settles the operation as succeeded, and the completed event records it. */
@@ -39,8 +39,8 @@ val syncSucceeds = nexusProtocol.property when handlerReply(Reply.syncSuccess) h
 ```
 
 A **Scenario** is a path through a machine: a start state and a sequence of actions. Here the
-caller schedules the operation and the handler replies synchronously
-(`model/temporal/features/nexuscaller/Queries.scala`, line 28):
+caller schedules the operation and the handler replies synchronously (line 540, in
+`Protocol.queries`):
 
 ```scala
 val syncReplied = nexusProtocol.scenario.actions(schedule(), handlerReply(Reply.syncSuccess))
@@ -51,11 +51,11 @@ The path starts where the machine does, in `unscheduled`, the state before the o
 `schedule(Inputs.scheduleToStart := expires)` sets one by name.
 
 A **Query** is a bounded question that joins the two: find a path of this Scenario on which the
-Property is put to work, or verify that the Property holds on every path of it (line 106, without
-its exploration settings):
+Property is put to work, or verify that the Property holds on every path of it (line 585, beside
+its Scenario, without its exploration settings):
 
 ```scala
-val syncCompletion = (query find syncSucceeds in syncReplied limits two total 384)
+val syncCompletion = (query find properties.syncSucceeds in syncReplied limits two total 384)
   .expect(satisfied)
 ```
 
@@ -175,13 +175,13 @@ The waivers' reasons have one source, the sidecar: `make umpire-gen-model` rewri
 `waived-law` acceptance from it, after the acceptances an author wrote, and a check fails on a
 `<file>.lint.json` that does not carry them, and on a forwarded acceptance whose waiver is gone.
 
-Each file of `model/ir` is declared once, in Scala, beside the Models it holds (the feature file's
-`object Files`, or the folder's `IrFiles.scala` in a Model not yet laid out as one feature file): its
-name and its roots, named by value.
+Each file of `model/ir` is declared once, in Scala, beside the Models it holds, in the feature
+file's `object Files`: its name and its roots, named by value.
 
 ```scala
-val nexusControlFile =
-  irFile("nexus-control")(forgedCompletion, NexusRealization.forgedCompletion)
+object Files:
+  val nexusControlFile =
+    irFile("nexus-control")(Control.queries.forgedCompletion, NexusRealization.forgedCompletion)
 ```
 
 A root is a machine, a composition, a Query, a list of Queries, a progress claim or a realization;
@@ -214,8 +214,8 @@ entry there, without the `exploration` field:
 {
   "name": "syncCompletion",
   "position": {
-    "file": "model/temporal/features/nexuscaller/Queries.scala",
-    "line": 106
+    "file": "model/temporal/features/nexuscaller/NexusCaller.scala",
+    "line": 585
   },
   "form": "FORM_FIND",
   "property": {
@@ -515,19 +515,39 @@ binds. A monitor a Query's expected Run names by value is refused where no `val`
 Query's machine does not watch it, and a `given Family` whose root is not a string literal.
 
 A feature reads top to bottom in one feature file per folder, named after the folder, beside its
-`Realization.scala` and its tests; its larger subjects are subfolders laid out the same way. The
-standalone activity is the example (fn-126; the Nexus Models and `shared/` still split their files
-by kind, `Model.scala`, `Properties.scala`, `Queries.scala`, until fn-126 lays them out alike):
+`Realization.scala` and its tests; its larger subjects are subfolders laid out the same way. Every
+Model folder is laid out so, and the standalone activity is the example:
 
 ```text
-standaloneactivity/
-  StandaloneActivity.scala   types, signature; Product, Protocol, ActivityWorker, StandaloneActivity; Files
-  Realization.scala          the realization
-  record/
-    Record.scala             the record and its designs: Admission, StaleAdmission, HeldAdmission, ResponseLoss
-  withTaskQueue/
-    WithTaskQueue.scala      the designs over the task queue: CurrentRecord, StaleRecord, CurrentOverQueue, …
+features/
+  standaloneactivity/
+    StandaloneActivity.scala   types, signature; Product, Protocol, ActivityWorker, StandaloneActivity; Files
+    Realization.scala          the realization
+    record/
+      Record.scala             the record and its designs: Admission, StaleAdmission, HeldAdmission, ResponseLoss
+    withTaskQueue/
+      WithTaskQueue.scala      the designs over the task queue: CurrentRecord, StaleRecord, CurrentOverQueue, …
+  nexuscaller/
+    NexusCaller.scala          Product, Protocol, HandlerWorker, NexusCaller, Control; Files
+    Realization.scala
+    closepolicy/
+      ClosePolicy.scala        RejectAfterClose and the nine designs derived from it; Files
+  nexusoperation/
+    NexusOperation.scala       Operation; Files
+    Realization.scala
+shared/
+  Bounds.scala                 the bounds more than one folder's Queries run under
+  taskqueue/
+    TaskQueue.scala            DispatchQueue, the opaque contract; MatchingQueue, the provider that refines it
+  worker/
+    Worker.scala               Polling
 ```
+
+A Model folder holds no file named by kind (`Model.scala`, `Properties.scala`, `Queries.scala`,
+`Capabilities.scala`, `IrFiles.scala`): `TestRetiredModelPathsStayRetired` in `tools/umpire/model`
+fails on one, and on a live file that names one. A bound that two folders run their Queries under
+is declared once, in `shared/Bounds.scala`, and keeps its name, which a Query's receipt reads; a
+bound whose name another folder gives another budget stays in its own feature file.
 
 A feature file reads in this order:
 
@@ -782,16 +802,17 @@ line, as `lift: <file>:<line>: …`:
 | (a) | a `val` read while its object initializes, before the object declares it: it is still `null` there | declare it before the declaration that reads it |
 | (b) | a cycle of objects, files' top levels and the objects nested in them, each read while the one before it initializes | read it in a `def`, a lambda or a lazy `val`, or move what is read into an object of its own, as the protocol's `laws` is |
 | (c) | in a feature file, a declaration out of the order above: at the top level, or among a machine object's members and sections, or a Scenario after a Query in `queries` | move it |
-| (d) | in a feature file, a declaration outside its place: a step function outside `effects`, a Property outside `properties`, capabilities outside `laws`, a Scenario or Query outside `queries`, any of them or a machine at the top level, an IR file outside `Files`, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario; and beside a feature file, a Model declaration in another file | move it to the place the message names |
+| (d) | in a feature file, a declaration outside its place: a step function outside `effects`, a Property outside `properties`, capabilities outside `laws`, a Scenario or Query outside `queries`, any of them or a machine at the top level, an IR file outside `Files`, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario; beside a feature file, a Model declaration in another file; and in a Model folder with no feature file, a Model declaration in a file not named after the folder | move it to the place the message names, or name the file after its folder |
 
 A read inside a `def`, a lambda, a by-name argument or a lazy `val`, and an object declared but never
 read while another initializes, initializes nothing and is not refused; a context function the DSL
 applies at once, `machine[S, O, F] { … }`, is read where it is written. The lint follows no call: a
 `def` called during initialization that reads a later `val` is not caught. A feature file is a
-source named after its folder in a package under `features` or `shared`; the other Models' files
-answer to (a) and (b) only. The lifter's refusal specimens (`*Rejects.scala` among its fixtures),
+source named after its folder in a package under `features` or `shared`; the other files of a
+feature folder, its `Realization.scala` and tests, and the kit's files answer to (a) and (b) only. The lifter's refusal specimens (`*Rejects.scala` among its fixtures),
 which read a `val` before it is declared on purpose, are left to the refusals they are specimens of. Each
-kind has its refusal fixture, `model/irgen/testdata/initOrder/`.
+kind has its refusal fixture, `model/irgen/testdata/initOrder/`, and a misnamed feature file its
+own, `model/irgen/testdata/misnamed/`.
 
 The lint is the IR generator's own because neither of Scala's checkers serves (fn-126): `-Wsafe-init`
 checks classes and not objects, as of Scala 3.9, and every owner here is an object or a file's top
@@ -890,12 +911,12 @@ forwards each waiver's reason into `<file>.lint.json` and reports a binding left
 
 **How a new entity gets its laws.**
 
-1. Give its machine object a `laws` object (in a Model not yet one feature file, its folder a
-   `Capabilities.scala`) whose file imports `temporal.capabilities.{given, *}` and that declares
+1. Give its machine object a `laws` object, in a feature file that imports
+   `temporal.capabilities.{given, *}`, that declares
    `capabilities(m, limits)(…)` with the capabilities the machine has, each field a def or an action
    class of the Model, and each parameter its law lists under `parameters` written with `cited`.
 2. Name the declaration as a root of the folder's `irFile`, as `nexusOperationFile` names
-   `operationCapabilities`.
+   `Operation.laws.operationCapabilities`.
 3. Run `make umpire-gen-model`: it writes the generated claims, the Cases of the generated finds and
    the law sidecar. A law the Model breaks shows as a counterexample of the Query `<machine>.<law>`.
    Where the server does not keep the law for this entity, waive it with `except` or `overriding`
@@ -1178,6 +1199,6 @@ Runs reproduce the same failure again. An incomplete or unreproduced failure pro
 `TestTestpilotNexusControlReplaysThroughTheCommand` run both against an in-process server; set
 `UMPIRE_EXPLORATION_DIR` to keep their Cases, Runs, reports and HTML traces.
 
-The control machine `Control.forgedCompletion` (`model/temporal/features/nexuscaller/Model.scala`)
+The control machine `Control.forgedCompletion` (`model/temporal/features/nexuscaller/NexusCaller.scala`)
 deliberately admits a forged success beside the real failed callback. It is a negative control that
 shows a violated Verdict being found and replayed, not a server defect.

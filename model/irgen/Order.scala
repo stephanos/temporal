@@ -14,8 +14,9 @@ import scala.collection.mutable
  *   - (b) a cycle of owners -- objects, files' top levels and the objects nested in them -- each
  *     read while the one before it initializes;
  *   - (c) in a feature file, a declaration out of the reading order of model/README.md;
- *   - (d) in a feature file, a declaration outside the place that order gives its kind, and beside
- *     a feature file, a Model declaration of another file.
+ *   - (d) in a feature file, a declaration outside the place that order gives its kind; beside a
+ *     feature file, a Model declaration of another file; and in a Model package whose folder has
+ *     no feature file, a Model declaration of a file not named after its folder.
  *
  * A read inside a def, a lambda, a by-name argument or a lazy val of the owner itself, and an object
  * declared but not read, initializes nothing. A context function the DSL applies at once, such as
@@ -272,8 +273,8 @@ final private[irgen] class Order(index: Index):
     case c: ClassDef if c.symbol.flags.is(Flags.Module) => Some(c)
     case _                                              => None
 
-  private def featureFile(path: String, trees: List[Tree]): Boolean =
-    val parts = path.split('/')
+  /** Whether a source's package is a Model's, one under `features` or `shared`. */
+  private def modelPackage(trees: List[Tree]): Boolean =
     val pkg = topLevel(trees).headOption.fold("")(d =>
       Iterator
         .iterate(d.symbol)(_.maybeOwner)
@@ -281,9 +282,13 @@ final private[irgen] class Order(index: Index):
         .filter(_.isPackageDef)
         .fold("")(_.fullName)
     )
+    pkg.split('.').exists(Set("features", "shared"))
+
+  private def featureFile(path: String, trees: List[Tree]): Boolean =
+    val parts = path.split('/')
     parts.length >= 2 && parts.last.endsWith(".scala") &&
     parts.last.stripSuffix(".scala").equalsIgnoreCase(parts(parts.length - 2)) &&
-    pkg.split('.').exists(Set("features", "shared"))
+    modelPackage(trees)
 
   /** The declarations at the top level of a source, in order: types, objects, definitions. */
   private def topLevel(trees: List[Tree]): List[Definition] =
@@ -358,17 +363,41 @@ final private[irgen] class Order(index: Index):
       val beside = sources
         .filter(inFolder)
         .filter(other => featureFile(other, index.trees.filter(t => fileOf(t) == other)))
-      for feature <- beside.headOption do
-        def misplaced(d: Definition): Unit =
-          kindOf(d).foreach(k =>
-            refuse(
-              d,
-              s"${d.name} is ${k.written}, which a feature declares in its feature file, " +
-                s"$feature: in ${k.belongs} there"
+      beside.headOption match
+        case Some(feature) =>
+          def misplaced(d: Definition): Unit =
+            kindOf(d).foreach(k =>
+              refuse(
+                d,
+                s"${d.name} is ${k.written}, which a feature declares in its feature file, " +
+                  s"$feature: in ${k.belongs} there"
+              )
             )
-          )
-          objectOf(d).foreach(c => members(c).foreach(misplaced))
-        topLevel(trees).foreach(misplaced)
+            objectOf(d).foreach(c => members(c).foreach(misplaced))
+          // A type's companion is read apart from the top level, and holds no Model either.
+          (topLevel(trees) ++ companions(trees)).foreach(misplaced)
+        // A Model folder with no feature file: its declarations would be held to no reading order.
+        case None if modelPackage(trees) =>
+          val home = "a Model folder declares its Models in its feature file, the file named " +
+            s"after the folder, in $folder"
+          for d <- topLevel(trees) ++ companions(trees) do
+            objectOf(d) match
+              case Some(c) if holdsModelWithin(c) =>
+                refuse(
+                  c,
+                  s"${plain(c.name)} holds a Model declaration in a file not named after its " +
+                    s"folder: $home"
+                )
+              case Some(_) => ()
+              case None    =>
+                kindOf(d).foreach(k =>
+                  refuse(
+                    d,
+                    s"${d.name} is ${k.written}, declared in a file not named after its folder: " +
+                      home
+                  )
+                )
+        case None => ()
 
   private val fileOrder = Seq(
     "its header",

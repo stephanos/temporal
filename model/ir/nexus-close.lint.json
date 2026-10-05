@@ -25,7 +25,7 @@
       "subjects": [
         "refused"
       ],
-      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (closepolicy/Model.scala, rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
+      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (ClosePolicy.scala, RejectAfterClose.effects.rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
     },
     {
       "kind": "unrealized-find",
@@ -87,7 +87,7 @@
       "subjects": [
         "refused"
       ],
-      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (closepolicy/Model.scala, rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
+      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (ClosePolicy.scala, RejectAfterClose.effects.rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
     },
     {
       "kind": "unrealized-find",
@@ -151,7 +151,7 @@
       "subjects": [
         "refused"
       ],
-      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (closepolicy/Model.scala, rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
+      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (ClosePolicy.scala, RejectAfterClose.effects.rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
     },
     {
       "kind": "unrealized-find",
@@ -360,7 +360,7 @@
       "subjects": [
         "refused"
       ],
-      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (closepolicy/Model.scala, rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
+      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (ClosePolicy.scala, RejectAfterClose.effects.rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
     },
     {
       "kind": "unrealized-find",
@@ -440,7 +440,7 @@
       "subjects": [
         "refused"
       ],
-      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (closepolicy/Model.scala, rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
+      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (ClosePolicy.scala, RejectAfterClose.effects.rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
     },
     {
       "kind": "silent-rejection",
@@ -464,7 +464,7 @@
       "subjects": [
         "refused"
       ],
-      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (closepolicy/Model.scala, rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
+      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (ClosePolicy.scala, RejectAfterClose.effects.rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
     },
     {
       "kind": "unrealized-find",
@@ -528,7 +528,7 @@
       "subjects": [
         "refused"
       ],
-      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (closepolicy/Model.scala, rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
+      "because": "refused is the reject-after-close policy's alternative in the shared delivery step (ClosePolicy.scala, RejectAfterClose.effects.rejectedByClosed); this policy keeps a completion that arrives after close, so it never refuses one."
     },
     {
       "kind": "unrealized-find",

@@ -8,11 +8,11 @@
       "Cancelable.requestCancel": "requestCancel"
     },
     "bindings": {
-      "requestCancel": "temporal.features.nexusoperation.Model$package.requestCancel",
+      "requestCancel": "temporal.features.nexusoperation.NexusOperation$package.requestCancel",
       "requested": "temporal.features.nexusoperation.OperationFact.statusCancelRequested"
     },
     "cites": { },
-    "position": "model/temporal/features/nexusoperation/Capabilities.scala:39"
+    "position": "model/temporal/features/nexusoperation/NexusOperation.scala:217"
   }, {
     "machine": "nexusOperation",
     "name": "nexusOperation.closedIsRejectedUniformly",
@@ -27,8 +27,8 @@
     "cites": {
       "rejected": [ "chasm/lib/nexusoperation/operation.go" ]
     },
-    "overriddenBy": "temporal.features.nexusoperation.Properties$package$.closedRejectsOrRepeats",
-    "position": "model/temporal/features/nexusoperation/Capabilities.scala:28"
+    "overriddenBy": "temporal.features.nexusoperation.Operation$.properties$.closedRejectsOrRepeats",
+    "position": "model/temporal/features/nexusoperation/NexusOperation.scala:206"
   }, {
     "machine": "nexusOperation",
     "name": "nexusOperation.terminalStatesAreFinal",
@@ -40,7 +40,7 @@
       "terminal": "temporal.features.nexusoperation.Operation$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/nexusoperation/Capabilities.scala:28"
+    "position": "model/temporal/features/nexusoperation/NexusOperation.scala:206"
   }, {
     "machine": "nexusOperation",
     "name": "nexusOperation.terminateSettles",
@@ -50,19 +50,19 @@
       "Terminable.terminate": "terminate"
     },
     "bindings": {
-      "terminate": "temporal.features.nexusoperation.Model$package.terminate",
+      "terminate": "temporal.features.nexusoperation.NexusOperation$package.terminate",
       "settled": "temporal.features.nexusoperation.OperationFact.statusTerminated"
     },
     "cites": { },
-    "position": "model/temporal/features/nexusoperation/Capabilities.scala:33"
+    "position": "model/temporal/features/nexusoperation/NexusOperation.scala:211"
   } ],
   "waivers": [ {
     "machine": "nexusOperation",
     "law": "closedIsRejectedUniformly",
     "waiver": "overriding",
-    "by": "temporal.features.nexusoperation.Properties$package$.closedRejectsOrRepeats",
+    "by": "temporal.features.nexusoperation.Operation$.properties$.closedRejectsOrRepeats",
     "because": "a repeated request id is answered OK after close: operation.go RequestCancel and Terminate",
-    "position": "model/temporal/features/nexusoperation/Capabilities.scala:46"
+    "position": "model/temporal/features/nexusoperation/NexusOperation.scala:225"
   } ],
   "catalog": [ {
     "law": "cancelIsRequested",

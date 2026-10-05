@@ -1,7 +1,7 @@
 /* Temporal's capabilities: what an entity can do, as the laws of this folder read it. Each is a
  * binding of a protocol's parameters to the entity's own vocabulary, and its companion is the kind
  * the catalog (Catalog.scala) keys the laws it brings by. An entity declares the ones it has with
- * `capabilities(m, limits)(…)` in its Model folder's Capabilities.scala.
+ * `capabilities(m, limits)(…)` in the `laws` section of its machine's object.
  */
 package temporal.capabilities
 
