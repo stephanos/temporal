@@ -422,11 +422,11 @@ The IR generator reads what an author wrote, as written:
 - **Realization script helpers** (core, `umpire/realize/Scripts.scala`): `script(id, activation)`
   of `everyCase(command)`, `onPath(classes*)(command)` and `perform(step -> command, …)` items;
   `command(instruction, …)`; `rpc(role, method) { … }`, `readUntil(…) { … }` and
-  `call.withFields { … }`,
-  which appends assignments and keeps the call's name; `statusTable(fact -> value, …)`. A command
-  is named after its `val` in kebab case (`val pauseActivity` is `pause-activity`) unless written
-  out as `Command(id, …)`. A declaration referred to by value is written as its id, a monitor as
-  its name (`MonitorExpectation(terminalFinality, …)` in a Query's expected Run), and a fact as
+  `call.withFields { … }`, which appends assignments and keeps the call's name;
+  `statusTable(fact -> value, …)`. A command is named after its `val` in kebab case
+  (`val pauseActivity` is `pause-activity`) unless written out as `Command(id, …)`. A declaration
+  referred to by value is written as its id, a monitor as its name
+  (`MonitorExpectation(terminalFinality, …)` in a Query's expected Run), and a fact as
   its enum case, or the companion of a case with fields. A lookup `table(fact)` is resolved when
   the IR generator lifts. The IR generator refuses a command no `val` declares, a `perform` or `onPath` with no
   class, a lookup of a fact its table lists twice or not at all, a request-scope line of an `rpc`

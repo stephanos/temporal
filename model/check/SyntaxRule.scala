@@ -34,6 +34,7 @@ private[check] object SyntaxRule:
     "in",
     "records",
     "enter",
+    "Ok",
     "stay",
     "disabled",
     "once",

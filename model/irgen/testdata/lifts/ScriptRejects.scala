@@ -100,7 +100,7 @@ private val inputInPoll = await(described, workflowService)(
   Inputs.scheduleToStart := Timeout.expires
 }
 
-/** A line of a poll's request scope that assigns no field of the request. */
+/** A line of a `readUntil`'s request scope that assigns no field of the request. */
 val notAPolledField: Realization = realizing(everyCase(inputInPoll))
 
 /** Evidence of a case of another enum than the facts the machine records. */
