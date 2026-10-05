@@ -132,3 +132,12 @@ Migration: 3 features + `shared/` ≈ 15 files merged into ~6, one golden-config
 - **The existing vocabulary objects become the module objects**, so the function symbols of the status sets do not move.
 - **The feature section is an object.** The module objects read the top-level signature, so top-level vals that read the module objects would re-create fn-112's init cycle. Capabilities that read the realization (`protocolCapabilities`) live in this object.
 - **The lint covers more than order inside one object.** It also refuses initialization cycles between owners and misplaced declarations.
+
+Later the same day, the owner widened fn-126 beyond layout. See `.plans/DSL_SIMPLIFICATION.md`, "Owner decisions":
+
+- The machine object is the machine (`object ActivitySystem extends Machine[…]`), not a vocabulary object holding a `val` machine.
+- Rules say when actions fire, and effects say what they do.
+- Every kind of member sits in a section object that is transparent to Definition IDs.
+- Actions are grouped by actor at the feature level.
+- The feature section holds only the IR files.
+- The levels are named Product and System.
