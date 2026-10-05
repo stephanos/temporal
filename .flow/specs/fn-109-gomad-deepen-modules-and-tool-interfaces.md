@@ -695,6 +695,22 @@ Every original requirement remains with its owner.
 The BASE probe supplies ordinary developmental-host observations; source-file
 selection, capacity, descendant, pin and native qualification remain separate.
 
+Task40's inherited-lint amendment admits checked deferred pipe cleanup and the
+existing process-death helper's timer/ticker polling. Nil-cleanup outcomes retain
+their original Result and error objects, explicit first closes and resource
+lifetimes. A genuine previously discarded deferred Close failure now surfaces
+as infrastructure failure, including for default callers. Only expected repeated
+writer-close errors are ignored. This is the sole intentional default-error
+correction; all other command contracts remain preserved. The actual analyzer
+findings supply the causal lint RED. Ordinary process controls prove normal
+behavior, not genuine OS-close faults, which remain unproved without a safe
+reproducer. Root may admit this bounded source correction from the integrated
+reviewed candidate while keeping native/full/formal completion requirements
+open. Task9/task21 aggregate ownership and every existing dependency remain
+unchanged. Linux execution remains nonblocking under fn128.
+
+Maintainability (plan review): duplication - tasks 28-31, 35, 37, 39 and 40 repeat nil-cleanup/direct-sole-error/primary-first-join decisions; structure - hostexec.Run receives four deferred cleanup-error branches. Preserve the single-writer admission rule for overlapping correction owners.
+
 ## Finding coverage
 
 Secondary IDs identify the five opportunities in the assessment's order.

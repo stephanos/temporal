@@ -1,0 +1,16 @@
+{
+  "type": "plan_review",
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "mode": "codex",
+  "verdict": "SHIP",
+  "model": "gpt-6.1-sol",
+  "effort": "high",
+  "spec": "codex:gpt-6.1-sol:high",
+  "session_id": "01a10bbb-15ae-7fe0-8a42-9356a64a8756",
+  "timestamp": "2026-10-05T11:07:59.055300Z",
+  "review": "I’ll read the epic and task specs, then trace the relevant code to check feasibility and consistency against your rubric.\nThe plan retains Darwin qualification and static checks for both source sets, while transferring Linux execution to fn-128. I’m checking task dependencies and the new command-cleanup amendment against the existing error and resource-lifetime contracts.\nThe cleanup amendment fits the current command seam: it preserves the explicit writer closes, suppresses only expected repeated writer-close errors, and keeps genuine cleanup errors ahead of command-outcome projection. The specs include test and evidence requirements for those contracts; native and genuine OS-close-fault proof remain open. I’m finishing the dependency and maintainability checks.\nSeverity: P2\nConfidence: 100\nClassification: pre_existing\nFile:Line: .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.24.md:13\nR-IDs: [R19]\nLocation: Overlapping dependency-independent corrective tasks.\nProblem: Tasks 23/24 overlap in lintcode tests; 26/34 overlap in CLI characterization; 29/31 overlap in artifact store code; 30/33 overlap in opened-handle tests. Their dependency lists do not enforce serialization. This is FYI: the recorded single-writer decision already prevents concurrent edits.\nSuggestion: Preserve explicit serial admission for these pairs, including when resuming their remaining acceptance work.\n\nNo blocking findings identified. The cleanup amendment matches the current hostexec/gocommand contracts and explicitly bounds its intentional error correction. Test strategy, existing progress/journal reporting, bounded diagnostics, resource limits and filesystem/process guards are covered. Native qualification and genuine cleanup-fault execution remain disclosed proof obligations.\n\nmaintainability:\n  duplication: Tasks 28–31, 35, 37, 39 and 40 repeat the nil-cleanup, direct sole-error and primary-first join decision.\n  structure: hostexec.Run, already the command module’s largest orchestration function, receives four deferred cleanup-error branches.\n\n```json\n{\"classification_counts\":{\"pre_existing\":1},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>",
+  "scope": "plan amendment only; no implementation verdict",
+  "base_commit": "d5e97b51d987861e4d216c485ac5e3890f8f7a1f",
+  "family": "same-family independent Codex CLI session",
+  "execution_metadata": "CLI receipt reports model and effort; no hidden model inference"
+}
