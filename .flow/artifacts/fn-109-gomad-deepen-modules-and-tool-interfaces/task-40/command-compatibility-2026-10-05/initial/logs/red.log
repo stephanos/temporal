@@ -1,0 +1,7 @@
+--- FAIL: TestCompatibilityPreservesRawExitAndRejectsFailedStdout (0.00s)
+    command_test.go:24: compatibility error = *gocommand.ExitError exit status 7, want actual exit 7
+--- FAIL: TestCompatibilityPreservesLegacyStartupPrecedence (0.00s)
+    command_test.go:37: compatibility missing PATH command = *errors.errorString working directory is required
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/target/internal/gocommand	0.002s
+FAIL

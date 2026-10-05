@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -16,6 +17,24 @@ import (
 	"testing"
 	"time"
 )
+
+func TestRunPreservesCommandErrorOnlyWhenRequested(t *testing.T) {
+	request := testRequest("printf 'diagnostic' >&2; exit 7")
+	request.PreserveCommandError = true
+	result, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var exit *exec.ExitError
+	if !errors.As(result.CommandError, &exit) || exit.ExitCode() != 7 || exit.Pid() != result.PID || string(result.Stderr.RawBytes) != "diagnostic" || !result.GroupGone {
+		t.Fatalf("raw command outcome = %#v", result)
+	}
+	request.PreserveCommandError = false
+	result, err = Run(context.Background(), request)
+	if err != nil || result.CommandError != nil || result.ExitCode != 7 {
+		t.Fatalf("default outcome = %#v, %v", result, err)
+	}
+}
 
 func TestClassifyGroupSignal(t *testing.T) {
 	for name, signal := range map[string]struct {

@@ -1,0 +1,8 @@
+ok  	go.temporal.io/server/tools/gomad3/internal/hostexec	0.290s
+--- FAIL: TestCompatibilityStartupErrorsAndDirectories (0.00s)
+    --- FAIL: TestCompatibilityStartupErrorsAndDirectories/directory (0.00s)
+        command_test.go:73: startup error = *fs.PathError fork/exec /bin/sh: no such file or directory, want original chdir /home/agent/.cache/codex-build/tmp/TestCompatibilityStartupErrorsAndDirectories1887926001/001/missing no such file or directory
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/target/internal/gocommand	3.052s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/capabilityreview	0.031s
+FAIL

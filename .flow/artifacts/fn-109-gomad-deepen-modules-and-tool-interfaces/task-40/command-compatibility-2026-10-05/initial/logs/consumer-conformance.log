@@ -1,0 +1,5 @@
+--- FAIL: TestRuntimeOwnedControlProbe (0.10s)
+    runtime_owned_test.go:31: run gomad3 fixture runtime-owned-build: start command "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go": fork/exec /Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/bin/go: no such file or directory
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance	0.110s
+FAIL

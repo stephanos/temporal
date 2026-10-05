@@ -15,13 +15,14 @@ const (
 )
 
 type Request struct {
-	Command        []string
-	Dir            string
-	Env            []string
-	Stdin          io.Reader
-	Timeout        time.Duration
-	TerminateGrace time.Duration
-	OutputLimit    uint64
+	Command              []string
+	Dir                  string
+	Env                  []string
+	Stdin                io.Reader
+	Timeout              time.Duration
+	TerminateGrace       time.Duration
+	OutputLimit          uint64
+	PreserveCommandError bool
 }
 
 type Result struct {
@@ -36,13 +37,14 @@ type Result struct {
 	GroupGone       bool
 	Stdout          Output
 	Stderr          Output
+	CommandError    error
 }
 
 func validateRequest(request Request) error {
-	if len(request.Command) == 0 || request.Command[0] == "" {
+	if !request.PreserveCommandError && (len(request.Command) == 0 || request.Command[0] == "") {
 		return fmt.Errorf("command is required")
 	}
-	if request.Dir == "" {
+	if !request.PreserveCommandError && request.Dir == "" {
 		return fmt.Errorf("working directory is required")
 	}
 	if request.Timeout <= 0 {

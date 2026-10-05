@@ -45,6 +45,12 @@ go test -count=1 -tags test_dep . -run '^TestPackageArchitecture$'
 ```
 
 Retain actual unfiltered lint baseline/final and every residual; no suppression, filtered gate, rule/pin change or whole-scope subtraction. Add frozen source/tool/config command bindings, logs/exits, focused consumer controls, errortype, formatting and generator checks. Independent source review covers default-consumer stability and every unexecuted path. Formal implementation review and task completion require all required source-owned gates to pass.
+
+### Current source progress
+
+The five-file command compatibility candidate and C1/C2 corrective regressions have fresh source-progress reviews with zero introduced findings. Conductor focused tests pass with 56 test results and no failures/skips; both corrective controls pass 25 repeated runs. Applicable architecture, race, errortype, formatting, validation and consumer controls pass. Actual unfiltered lint remains red with its five inherited findings. Original source-owned acceptance remains open.
+
+Retained evidence and typed blockers are in [task40 progress](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-40/command-compatibility-2026-10-05/progress.md). Task9 retains its original dependencies and helper integration. No aggregate R10 pass or native qualification is claimed. Transferred Linux execution remains with fn128 and is nonblocking.
 ## Acceptance
 - [ ] Real BASE/final controls preserve startup/context/cwd/relative executable ordering, exact errors and actual Start/Wait objects, stderr and ProcessState. After-start cancel/deadline preserve SIGKILL/ExitCode -1 without context-sentinel replacement; completed outcomes retain their original precedence.
 - [ ] The opted-in operation shares existing bounded capture and process-group ownership; actual stream overflow and real descendant termination tests pass. Infrastructure/cleanup, stdout overflow, stderr overflow and raw-outcome precedence is verified; failed/truncated stdout cannot be decoded. The finite watchdog is disclosed and tested separately from legacy caller cancellation.
@@ -52,8 +58,14 @@ Retain actual unfiltered lint baseline/final and every residual; no suppression,
 - [ ] A fresh independent review finds no actionable introduced defect; root commits source, tests and owned evidence before the helper writer. Task9 retains adapter integration and task21 retains final qualification. No public API, grant, module/pin or approval/publication policy changes.
 - [ ] Task40's mechanism-owned R10/R18/R19 contracts and required predecessor/matched-first-baseline, full/default/functional/affected-consumer/formal/native Darwin and static both-source-set verification are proved before its completion. Missing/red source-owned gates keep this owner open. Aggregate adapter integration, nonempty source-set and pin evidence and complete R10 fulfillment remain with task9/fn113/task21; task40 completion requires no task9 integration or completion and claims no aggregate R10 pass. Those owners retain every original requirement. Transferred Linux execution under fn128 is nonblocking.
 ## Done summary
-TBD
+Blocked:
+Task 40 has reviewed command-compatibility source progress with C1/C2 corrected. The frozen evidence and zero-introduced-finding source reviews are retained in .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-40/command-compatibility-2026-10-05/progress.md.
 
+Required source-owned acceptance remains red or unavailable. Actual unfiltered lint still reports four inherited unchecked pipe Close defers and one inherited test-helper sleep. Predecessor/matched-first-baseline, complete original patched/full/default/functional/smoke/affected-native gates, native Darwin qualification and full exact-input adapter regeneration remain unproved. Formal implementation review is withheld until those gates are green. This developmental linux/arm64 host has no patched runtime.
+
+Revive this task when a lawful correction for the inherited lint failures is admitted and the original source-owned baseline/qualification inputs become available on native Darwin. Do not rerun unchanged missing-toolchain or native-host failures. Source progress does not unblock dependency-gated task 9 or waive its helper integration and aggregate requirements.
+
+Transferred Linux execution remains under fn-128 and is nonblocking. No formal SHIP, task completion, actual OS cleanup-fault proof or aggregate R10 pass is claimed.
 ## Evidence
 - Commits:
 - Tests:

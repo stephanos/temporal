@@ -1,0 +1,7 @@
+1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64  /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go
+83ecb88aa19246f24d28a91a107c6774af21b416e7ab69609612cf44107e99f3  /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/gofmt
+acacd04faf1d17489a890a4589ae36a62484c1076cf5fbcb7a33274cbc6a6bdc  /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0
+db481b4086fb85962e98ae625984f2560a883dce91f8b7d8c705414c207be8cc  /tmp/fn109-lint-tools.ZdNe1t50/errortype
+2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43  .github/.golangci.yml
+5fbae20edbc0cde0c1d6b8a0e974ed7791a87404d5ec91b0ea13eb5f97ecce9f  tools/gomad3/go.mod
+d438e0b5972c523df1a73e37a6b3d6a7523019e1ec18c2fd6cbb503d1c196960  tools/gomad3/go.sum

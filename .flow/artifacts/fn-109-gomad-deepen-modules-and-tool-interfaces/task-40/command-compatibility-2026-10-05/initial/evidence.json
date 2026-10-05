@@ -1,0 +1,46 @@
+{
+  "commits": [],
+  "base_commit": "29e12b5e473de0aa4e7b3df4db8626d421ed8891",
+  "tests": [
+    "go test -count=1 -tags test_dep ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+    "go test -count=1 -tags test_dep . -run '^TestPackageArchitecture$'",
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+    "go test -count=1 -tags test_dep ./target/internal/gocommand -run '^TestCompatibility'",
+    "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+    "make validate",
+    "go test -count=1 -tags test_dep ./toolchain -run '^(TestBuild|TestValidate|TestMaterialize)'",
+    "go test -tags test_dep -count=1 ./internal/gomadtool/conformance -run '^(TestRun|TestResolve|TestRequireStockCompatibilitySelectsPinnedToolchain$)'",
+    "go test -count=1 -tags test_dep ./internal/gomadtool/conformance -run '^(TestRun(Upstream|Builder|LiveCapability|Accepts|Rejects|Reports|Interception)|TestResolve|TestRequireStockCompatibilitySelectsPinnedToolchain$)'",
+    "go test -tags test_dep -count=1 ./qualification/set ./qualification/soak",
+    "go test -tags test_dep -count=1 ./upgrade -run '^TestRun(Publishes|KeepsPriorDossier|ReplacesExistingDossier)'",
+    "go test -tags test_dep -count=1 ./upgrade/pinimpact -run '^TestGoResolver'",
+    "go test -tags test_dep -count=1 ./upgrade/adapterregen -run '^(TestDefaultGeneratorsAreTheModuleLocalMakeGenerateSteps|TestUnifiedDiff|TestStalePacksNameBindingsOfThePreviousIdentity)$'",
+    "go run -tags test_dep ../../.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-9/adapter-command-gap-2026-10-05/base-process-probe/probe.go /tmp/fn109-task40-handover.n9ferk/public-helper-controls",
+    "gofmt -l internal/hostexec/command.go internal/hostexec/command_unix.go internal/hostexec/command_unix_test.go target/internal/gocommand/command.go target/internal/gocommand/command_test.go",
+    "git diff --check",
+    "sha256sum -c /tmp/fn109-task40-handover.n9ferk/logs/source-freeze.sha256"
+  ],
+  "prs": [],
+  "status": "in_progress",
+  "outcome": "implemented-source-progress",
+  "baseline": "red (unfiltered lint failed pre-edit with five inherited findings; focused tests and architecture green)",
+  "review": "deferred to root; no verdict",
+  "logs_directory": "/tmp/fn109-task40-handover.n9ferk/logs",
+  "final_gates": {
+    "focused": {"exit_code": 0, "elapsed_seconds": 4, "log": "final-fixed-focused.log"},
+    "architecture": {"exit_code": 0, "elapsed_seconds": 2, "log": "final-fixed-architecture.log"},
+    "lint": {"exit_code": 1, "elapsed_seconds": 0, "log": "final-fixed-lint.log", "findings": "four inherited errcheck defers and one inherited forbidigo test sleep"},
+    "errortype": {"exit_code": 0, "elapsed_seconds": 0, "log": "final-fixed-errortype.log"},
+    "validate": {"exit_code": 0, "elapsed_seconds": 5, "log": "validation.log"},
+    "format": {"exit_code": 0, "log": "format.log", "output_empty": true},
+    "unchanged_public_helper": {"exit_code": 0, "elapsed_seconds": 2, "cases": 29, "started": 18, "all_observed_children_and_gopaths_gone": true, "normalized_base_comparison_exit": 0}
+  },
+  "required_unproved": [
+    "green actual unfiltered lint",
+    "predecessor full and matched original full-gate baseline",
+    "complete original patched-toolchain full/default/functional/smoke/affected-native gates",
+    "native Darwin qualification",
+    "independent source review and formal root implementation review",
+    "complete affected adapterregen controls requiring unproved exact cached inputs"
+  ]
+}

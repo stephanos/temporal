@@ -1,0 +1,18 @@
+tools/gomad3/internal/hostexec/command_unix.go:43:24: Error return value of `stdoutRead.Close` is not checked (errcheck)
+	defer stdoutRead.Close()
+	                      ^
+tools/gomad3/internal/hostexec/command_unix.go:44:25: Error return value of `stdoutWrite.Close` is not checked (errcheck)
+	defer stdoutWrite.Close()
+	                       ^
+tools/gomad3/internal/hostexec/command_unix.go:49:24: Error return value of `stderrRead.Close` is not checked (errcheck)
+	defer stderrRead.Close()
+	                      ^
+tools/gomad3/internal/hostexec/command_unix.go:50:25: Error return value of `stderrWrite.Close` is not checked (errcheck)
+	defer stderrWrite.Close()
+	                       ^
+tools/gomad3/internal/hostexec/command_unix_test.go:194:3: use of `time.Sleep` forbidden because "Please use await.Require / s.Await unless there's no better option" (forbidigo)
+		time.Sleep(10 * time.Millisecond)
+		^
+5 issues:
+* errcheck: 4
+* forbidigo: 1

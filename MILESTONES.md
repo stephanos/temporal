@@ -222,7 +222,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-109.37](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.37.md) | ⛔ Blocked | Preserve qualification report cleanup and publication paths |
 | [fn-109.38](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.38.md) | ⛔ Blocked | Eight target lint findings repaired; original qualification remains open |
 | [fn-109.39](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.39.md) | ⛔ Blocked | Cleanup lint repaired; fault, pin and original qualification remain open |
-| [fn-109.40](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.40.md) | ⬜ Todo | Preserve raw adapter command errors through bounded execution |
+| [fn-109.40](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.40.md) | ⛔ Blocked | Raw command compatibility reviewed; lint and original qualification remain open |
 
 <a id="runtime-patch-minimization-fn-110"></a>
 

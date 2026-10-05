@@ -1,0 +1,587 @@
+[
+  {
+    "Name": "success_valid_json",
+    "Digest": "sha256:2d1d7ba39a9b940ad19d0e739e4d4d01e1c14b3aa19b1ff11309260484dec980",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [],
+    "PathError": null,
+    "ExitError": null,
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "exit7_valid_json",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*exec.ExitError"
+    ],
+    "PathError": null,
+    "ExitError": {
+      "exit_code": 7,
+      "exited": true,
+      "success": false,
+      "stderr": "",
+      "signaled": false,
+      "signal_number": -1
+    },
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "exit7_malformed_json",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*exec.ExitError"
+    ],
+    "PathError": null,
+    "ExitError": {
+      "exit_code": 7,
+      "exited": true,
+      "success": false,
+      "stderr": "",
+      "signaled": false,
+      "signal_number": -1
+    },
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "exit7_listed_error",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*exec.ExitError"
+    ],
+    "PathError": null,
+    "ExitError": {
+      "exit_code": 7,
+      "exited": true,
+      "success": false,
+      "stderr": "",
+      "signaled": false,
+      "signal_number": -1
+    },
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "exit0_malformed_json",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*json.SyntaxError"
+    ],
+    "PathError": null,
+    "ExitError": null,
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "exit0_trailing_json",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*json.SyntaxError"
+    ],
+    "PathError": null,
+    "ExitError": null,
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "exit0_listed_error",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*errors.errorString"
+    ],
+    "PathError": null,
+    "ExitError": null,
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "exit0_missing_fields",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*errors.errorString"
+    ],
+    "PathError": null,
+    "ExitError": null,
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "ordinary_sigterm",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*exec.ExitError"
+    ],
+    "PathError": null,
+    "ExitError": {
+      "exit_code": -1,
+      "exited": false,
+      "success": false,
+      "stderr": "",
+      "signaled": true,
+      "signal_number": 15
+    },
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "canceled_before",
+    "Digest": "",
+    "IsCanceled": true,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*errors.errorString"
+    ],
+    "PathError": null,
+    "ExitError": null,
+    "Started": false,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": false,
+    "GOPATHRemoved": false
+  },
+  {
+    "Name": "expired_before",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": true,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "context.deadlineExceededError"
+    ],
+    "PathError": null,
+    "ExitError": null,
+    "Started": false,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": false,
+    "GOPATHRemoved": false
+  },
+  {
+    "Name": "canceled_after",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*exec.ExitError"
+    ],
+    "PathError": null,
+    "ExitError": {
+      "exit_code": -1,
+      "exited": false,
+      "success": false,
+      "stderr": "",
+      "signaled": true,
+      "signal_number": 9
+    },
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "deadline_after",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*exec.ExitError"
+    ],
+    "PathError": null,
+    "ExitError": {
+      "exit_code": -1,
+      "exited": false,
+      "success": false,
+      "stderr": "",
+      "signaled": true,
+      "signal_number": 9
+    },
+    "Started": true,
+    "MarkerBeforeDeadline": true,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "missing_executable",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": true,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*fs.PathError",
+      "syscall.Errno"
+    ],
+    "PathError": {
+      "op": "fork/exec",
+      "errno_number": 2
+    },
+    "ExitError": null,
+    "Started": false,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": false,
+    "GOPATHRemoved": false
+  },
+  {
+    "Name": "nonexecutable",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": true,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*fs.PathError",
+      "syscall.Errno"
+    ],
+    "PathError": {
+      "op": "fork/exec",
+      "errno_number": 13
+    },
+    "ExitError": null,
+    "Started": false,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": false,
+    "GOPATHRemoved": false
+  },
+  {
+    "Name": "invalid_format",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": true,
+    "Chain": [
+      "*fmt.wrapError",
+      "*fs.PathError",
+      "syscall.Errno"
+    ],
+    "PathError": {
+      "op": "fork/exec",
+      "errno_number": 8
+    },
+    "ExitError": null,
+    "Started": false,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": false,
+    "GOPATHRemoved": false
+  },
+  {
+    "Name": "invalid_directory",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": true,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*fs.PathError",
+      "syscall.Errno"
+    ],
+    "PathError": {
+      "op": "chdir",
+      "errno_number": 2
+    },
+    "ExitError": null,
+    "Started": false,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": false,
+    "GOPATHRemoved": false
+  },
+  {
+    "Name": "empty_command",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*errors.errorString"
+    ],
+    "PathError": null,
+    "ExitError": null,
+    "Started": false,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": false,
+    "GOPATHRemoved": false
+  },
+  {
+    "Name": "empty_directory",
+    "Digest": "sha256:2d1d7ba39a9b940ad19d0e739e4d4d01e1c14b3aa19b1ff11309260484dec980",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [],
+    "PathError": null,
+    "ExitError": null,
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "dot_directory",
+    "Digest": "sha256:2d1d7ba39a9b940ad19d0e739e4d4d01e1c14b3aa19b1ff11309260484dec980",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [],
+    "PathError": null,
+    "ExitError": null,
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "relative_directory",
+    "Digest": "sha256:2d1d7ba39a9b940ad19d0e739e4d4d01e1c14b3aa19b1ff11309260484dec980",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [],
+    "PathError": null,
+    "ExitError": null,
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "relative_command_from_child_dir",
+    "Digest": "sha256:2d1d7ba39a9b940ad19d0e739e4d4d01e1c14b3aa19b1ff11309260484dec980",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [],
+    "PathError": null,
+    "ExitError": null,
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "relative_command_with_relative_dir",
+    "Digest": "sha256:2d1d7ba39a9b940ad19d0e739e4d4d01e1c14b3aa19b1ff11309260484dec980",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [],
+    "PathError": null,
+    "ExitError": null,
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "relative_command_resolves_child_not_parent",
+    "Digest": "sha256:2d1d7ba39a9b940ad19d0e739e4d4d01e1c14b3aa19b1ff11309260484dec980",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [],
+    "PathError": null,
+    "ExitError": null,
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "bare_command_absolute_path_entry",
+    "Digest": "sha256:2d1d7ba39a9b940ad19d0e739e4d4d01e1c14b3aa19b1ff11309260484dec980",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [],
+    "PathError": null,
+    "ExitError": null,
+    "Started": true,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": true,
+    "GOPATHRemoved": true
+  },
+  {
+    "Name": "missing_executable_canceled_before",
+    "Digest": "",
+    "IsCanceled": true,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*errors.errorString"
+    ],
+    "PathError": null,
+    "ExitError": null,
+    "Started": false,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": false,
+    "GOPATHRemoved": false
+  },
+  {
+    "Name": "bare_missing_canceled_before",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*exec.Error",
+      "*errors.errorString"
+    ],
+    "PathError": null,
+    "ExitError": null,
+    "Started": false,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": false,
+    "GOPATHRemoved": false
+  },
+  {
+    "Name": "missing_executable_expired_before",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": true,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "context.deadlineExceededError"
+    ],
+    "PathError": null,
+    "ExitError": null,
+    "Started": false,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": false,
+    "GOPATHRemoved": false
+  },
+  {
+    "Name": "bare_missing_expired_before",
+    "Digest": "",
+    "IsCanceled": false,
+    "IsDeadline": false,
+    "IsENOENT": false,
+    "IsEACCES": false,
+    "IsENOEXEC": false,
+    "Chain": [
+      "*fmt.wrapError",
+      "*exec.Error",
+      "*errors.errorString"
+    ],
+    "PathError": null,
+    "ExitError": null,
+    "Started": false,
+    "MarkerBeforeDeadline": false,
+    "ChildGone": false,
+    "GOPATHRemoved": false
+  }
+]

@@ -1,0 +1,74 @@
+{
+  "base_commit": "29e12b5e473de0aa4e7b3df4db8626d421ed8891",
+  "source_freeze": "../corrected/source-freeze.sha256",
+  "environment": "export PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH\nexport GOENV=off GOWORK=off GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off GOFLAGS=\nunset GOMADSEED GOMAD3_CHILD_SEED GOMAD3_SEED\n",
+  "focused": {
+    "command": "go test -json -count=1 -tags test_dep ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+    "chunk_id": "ce2d3e",
+    "wall_time_seconds": 3.774420918,
+    "exit_code": 0,
+    "original_token_count": 0,
+    "output": "",
+    "passed_tests": 56,
+    "failed_tests": 0,
+    "skipped_tests": 0
+  },
+  "checks": [
+    {
+      "name": "architecture",
+      "command": "go test -count=1 -tags test_dep . -run '^TestPackageArchitecture$'",
+      "chunk_id": "f5e4be",
+      "wall_time_seconds": 1.096163959,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    },
+    {
+      "name": "lint",
+      "command": "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+      "chunk_id": "d88c2c",
+      "wall_time_seconds": 0.033895792,
+      "exit_code": 1,
+      "original_token_count": 0,
+      "output": ""
+    },
+    {
+      "name": "errortype",
+      "command": "go vet -tags test_dep -vettool=/tmp/fn109-lint-tools.ZdNe1t50/errortype ./internal/hostexec ./target/internal/gocommand ./target/internal/capabilityreview",
+      "chunk_id": "0557e4",
+      "wall_time_seconds": 0.000006958,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    },
+    {
+      "name": "repeat",
+      "command": "go test -count=25 -tags test_dep ./target/internal/gocommand -run '^TestCompatibility(StdinFailureWinsOverRealOverflow|CompletedExitSurvivesWatchdogWhileStdinCopyIsBlocked)$'",
+      "chunk_id": "25db58",
+      "wall_time_seconds": 5.274392336,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  ],
+  "format": {
+    "command": "gofmt -l internal/hostexec/command.go internal/hostexec/command_unix.go internal/hostexec/command_unix_test.go target/internal/gocommand/command.go target/internal/gocommand/command_test.go",
+    "chunk_id": "eb50cc",
+    "wall_time_seconds": 0.000010083,
+    "exit_code": 0,
+    "original_token_count": 0,
+    "output": "",
+    "output_empty": true
+  },
+  "preservation": {
+    "command": "set -e\nset -o pipefail\ncmp /tmp/fn109-task40-correction.u0nfso/baseline-lint.log /tmp/fn109-task40-conductor.HIjegz/lint.log\ntest ! -s /tmp/fn109-task40-conductor.HIjegz/format.log\ntest ! -s /tmp/fn109-task40-conductor.HIjegz/focused.err\ngit show 29e12b5e473de0aa4e7b3df4db8626d421ed8891:tools/gomad3/internal/hostexec/command_unix_test.go | rg -q '^func TestClassifyGroupSignal'\ngit show 29e12b5e473de0aa4e7b3df4db8626d421ed8891:tools/gomad3/target/internal/gocommand/command_test.go | rg -q '^func TestStructuredRejects'\ncmp <(git show 29e12b5e473de0aa4e7b3df4db8626d421ed8891:tools/gomad3/internal/hostexec/command_unix_test.go | sed -n '/^func TestClassifyGroupSignal/,$p') <(sed -n '/^func TestClassifyGroupSignal/,$p' tools/gomad3/internal/hostexec/command_unix_test.go)\ncmp <(git show 29e12b5e473de0aa4e7b3df4db8626d421ed8891:tools/gomad3/target/internal/gocommand/command_test.go | sed -n '/^func TestStructuredRejects/,$p') <(sed -n '/^func TestStructuredRejects/,$p' tools/gomad3/target/internal/gocommand/command_test.go)\ngit diff --exit-code -- tools/gomad3/target/adapter_source_set.go .github go.mod go.sum tools/gomad3/go.mod tools/gomad3/go.sum tools/gomad3/version tools/gomad3/boundary tools/gomad3/schema\ngit diff --check",
+    "exit_code": 0,
+    "claims": [
+      "actual unfiltered lint byte-identical to corrective baseline; original initial baseline differs only by insertion-induced source lines",
+      "format and focused stderr empty",
+      "entire original hostexec/gocommand test suffixes byte-identical with nonempty anchors verified",
+      "protected helper/config/module/pin paths unchanged",
+      "git diff --check clean"
+    ]
+  }
+}

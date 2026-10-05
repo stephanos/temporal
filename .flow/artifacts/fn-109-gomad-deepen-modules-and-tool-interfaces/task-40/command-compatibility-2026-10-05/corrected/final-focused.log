@@ -1,0 +1,3 @@
+ok  	go.temporal.io/server/tools/gomad3/internal/hostexec	0.279s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/gocommand	3.774s
+ok  	go.temporal.io/server/tools/gomad3/target/internal/capabilityreview	0.033s

@@ -24,9 +24,13 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	if err := validateRequest(request); err != nil {
 		return Result{}, err
 	}
-	timeout, err := effectiveTimeout(ctx, request.Timeout)
-	if err != nil {
-		return Result{}, err
+	timeout := request.Timeout
+	if !request.PreserveCommandError {
+		var err error
+		timeout, err = effectiveTimeout(ctx, request.Timeout)
+		if err != nil {
+			return Result{}, err
+		}
 	}
 	stdout, err := New(request.OutputLimit)
 	if err != nil {
@@ -49,14 +53,44 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	defer stderrRead.Close()
 	defer stderrWrite.Close()
 
-	command := exec.Command(request.Command[0], request.Command[1:]...)
+	name := ""
+	var arguments []string
+	if len(request.Command) > 0 {
+		name, arguments = request.Command[0], request.Command[1:]
+	}
+	var command *exec.Cmd
+	callerCancellationDelivered := false
+	if request.PreserveCommandError {
+		command = exec.CommandContext(ctx, name, arguments...)
+		cancel := command.Cancel
+		command.Cancel = func() error {
+			err := cancel()
+			callerCancellationDelivered = err == nil
+			return err
+		}
+	} else {
+		command = exec.Command(name, arguments...)
+	}
 	command.Dir = request.Dir
 	command.Env = append([]string(nil), request.Env...)
 	command.Stdin = request.Stdin
 	command.Stdout = stdoutWrite
 	command.Stderr = stderrWrite
+	if request.PreserveCommandError && command.Err == nil && name != "" && ctx.Err() == nil && request.Dir != "" {
+		// Setpgid bypasses os.StartProcess's upstream directory preflight.
+		if _, err := os.Stat(request.Dir); err != nil {
+			var pathErr *os.PathError
+			if errors.As(err, &pathErr) {
+				pathErr.Op = "chdir"
+			}
+			return Result{CommandError: err}, nil
+		}
+	}
 	ConfigureProcessGroup(command)
 	if err := command.Start(); err != nil {
+		if request.PreserveCommandError {
+			return Result{CommandError: err}, nil
+		}
 		return Result{}, fmt.Errorf("start command %q: %w", request.Command[0], err)
 	}
 	pid := command.Process.Pid
@@ -83,6 +117,22 @@ func Run(ctx context.Context, request Request) (Result, error) {
 		result.WatchdogTimeout = true
 	case <-ctx.Done():
 		result.Cancelled = true
+	}
+	if request.PreserveCommandError && !leaderReaped {
+		killErr := command.Process.Kill()
+		if killErr != nil && !errors.Is(killErr, os.ErrProcessDone) {
+			return Result{}, errors.Join(killErr, killAndReapIfNeeded(command, waits, leaderReaped, pgid, cleanupLimit))
+		}
+		select {
+		case waitErr = <-waits:
+			leaderReaped = true
+		case <-time.After(cleanupLimit):
+			return Result{}, errors.Join(fmt.Errorf("command could not be reaped after leader kill"), KillGroupBounded(pgid, cleanupLimit))
+		}
+		if waitErr == nil || errors.Is(killErr, os.ErrProcessDone) {
+			result.WatchdogTimeout = false
+			result.Cancelled = false
+		}
 	}
 
 	groupPresent, probeErr := GroupExists(pgid)
@@ -115,7 +165,18 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	}
 	result.Stdout = stdout.Result()
 	result.Stderr = stderr.Result()
-	if err := classifyWait(command, waitErr, &result); err != nil {
+	classificationErr := waitErr
+	if request.PreserveCommandError {
+		var exit *exec.ExitError
+		// Wait receives watchCtx's result before sending waits, synchronizing Cancel.
+		callerOutcome := callerCancellationDelivered && waitErr == ctx.Err()
+		if waitErr != nil && !errors.As(waitErr, &exit) && !callerOutcome {
+			return result, waitErr
+		}
+		result.CommandError = waitErr
+		classificationErr = nil
+	}
+	if err := classifyWait(command, classificationErr, &result); err != nil {
 		return Result{}, err
 	}
 	return result, nil

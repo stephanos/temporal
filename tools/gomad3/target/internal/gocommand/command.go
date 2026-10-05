@@ -82,6 +82,50 @@ func (runner Runner) Structured(ctx context.Context, request Request) (Structure
 	return structured, exitError(result)
 }
 
+type WatchdogError struct {
+	Timeout time.Duration
+	Cause   error
+}
+
+func (err *WatchdogError) Error() string {
+	return fmt.Sprintf("command watchdog exceeded %s: %v", err.Timeout, err.Cause)
+}
+
+func (err *WatchdogError) Unwrap() error { return err.Cause }
+
+func (runner Runner) Compatibility(ctx context.Context, request Request) (StructuredResult, error) {
+	timeout := request.Timeout
+	if timeout == 0 {
+		timeout = defaultTimeout
+	}
+	result, err := runner.run(ctx, hostexec.Request{
+		Command: request.Command, Dir: request.Dir, Env: request.Env,
+		Timeout: timeout, TerminateGrace: terminationGrace, OutputLimit: request.OutputLimit,
+		PreserveCommandError: true,
+	})
+	structured := StructuredResult{}
+	if !result.Stderr.Truncated {
+		structured.Stderr = result.Stderr.RawBytes
+	}
+	if err != nil {
+		return structured, err
+	}
+	if result.Stdout.Truncated {
+		return structured, &OverflowError{Stream: "stdout", Limit: request.OutputLimit}
+	}
+	if result.Stderr.Truncated {
+		return structured, &OverflowError{Stream: "stderr", Limit: request.OutputLimit}
+	}
+	if result.WatchdogTimeout {
+		return structured, &WatchdogError{Timeout: timeout, Cause: result.CommandError}
+	}
+	if result.CommandError != nil {
+		return structured, result.CommandError
+	}
+	structured.Stdout = result.Stdout.RawBytes
+	return structured, nil
+}
+
 func (runner Runner) Diagnostic(ctx context.Context, request Request) (DiagnosticResult, error) {
 	result, err := runner.execute(ctx, request)
 	diagnostic := DiagnosticResult{Stdout: result.Stdout, Stderr: result.Stderr}
