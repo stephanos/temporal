@@ -811,6 +811,11 @@ class Fixtures extends munit.FunSuite:
       for d <- declared.elements().asScala do
         val id = d.path("id").asText()
         assert(id.startsWith(owner), s"$id is not pinned to $owner")
+    // Two owners pin the one former owner, the file and `object Watched`: each keeps its ID.
+    assertEquals(
+      model.path("monitors").elements().asScala.map(_.path("id").asText()).toList.sorted,
+      List("storedOnce", "storedTwice").map(owner + _)
+    )
     val types = model.path("types").elements().asScala.map(_.path("name").asText()).toList
     assert(types.nonEmpty, "Captured.scala declares no types")
     for name <- types do assert(name.startsWith("fixture.spelled."), s"$name left fixture.spelled")

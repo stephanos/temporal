@@ -1,10 +1,10 @@
 // A Model with every name taken from its val: the family is a given, the machines state their
 // types once, the composition names its members, syncs and Scenario classes by field selectors, the
 // Scenarios start where their machines do, the evidence lists only the fact whose evidence is not
-// its name, and the refined read needs no given. One DefinitionScope keeps every symbol-based
-// Definition ID the owner fixture.spelled.Spelled$package$ gives, and every top-level type's name
-// in fixture.spelled. The lifter's tests compare its IR with expected/captured.json and check those
-// IDs and names.
+// its name, and the refined read needs no given. The file's DefinitionScope, and the one of
+// `object Watched` beside it, keep every symbol-based Definition ID the owner
+// fixture.spelled.Spelled$package$ gives, and every top-level type's name in fixture.spelled. The
+// lifter's tests compare its IR with expected/captured.json and check those IDs and names.
 package fixture.captured
 
 import umpire.*
@@ -92,11 +92,19 @@ def countStored(seen: Seen, before: Disk, after: Step[Disk, Outcome, Fact]): See
 val storedOnce =
   monitor[Disk, Outcome, Fact, Seen](Seen.never)(countStored)(seen => seen == Seen.twice)
 
+// A second owner that pins the same former owner, as a feature's machine object does beside its
+// file (fn-126 R6): its monitor keeps the ID that owner gives, apart from the file's by its name.
+object Watched:
+  given DefinitionScope = DefinitionScope("fixture.spelled.Spelled$package$")
+
+  val storedTwice =
+    monitor[Disk, Outcome, Fact, Seen](Seen.never)(countStored)(seen => seen == Seen.twice)
+
 /** The detailed provider, its types stated once as its val's type. */
 val disk: Machine[Disk, Outcome, Fact] = machine {
   refines(store)(stored)
   visible(f => f == Fact.stored)
-  monitors(storedOnce)
+  monitors(storedOnce, Watched.storedTwice)
   starts(Disk(Stage.empty))
   ends(d => d.stage != Stage.staged)
   evidence { case Fact.lost(_) => "lostData" }
