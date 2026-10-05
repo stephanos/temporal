@@ -1,7 +1,6 @@
 package umpire
 
 import scala.annotation.unused
-import scala.collection.mutable
 
 /**
  * One result of an action: the outcome, the next state and the facts it records. `because` is an
@@ -347,16 +346,15 @@ abstract class Machine[S, O, F](using
   /** The owner its `rules` and other sections read its types from. */
   protected given machineOwner: Owner[S, O, F] = Owner(this)
 
-  Machine.made.synchronized(Machine.made += this): Unit
-
   /** What each action is bound to, in the order its first rule names it. */
   private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] = rules.table
 
   /**
-   * The machines this one is made from, which constructing it constructs as well: a derivation's
-   * source and the machine a `refining` names (IrFile.construct).
+   * The machines this one is made from, which constructing it constructs as well
+   * (IrFile.construct): the machine its `object refinement` refines, and for a derivation its
+   * source and the machine a `refining` names.
    */
-  private[umpire] def reaches: Seq[Model] = Nil
+  private[umpire] def reaches: Seq[Model] = Refinement.declaredBy(this).toSeq
 
   /** One step function per action: the rules of each, lowered (Rules.lowered). */
   private[umpire] def bindings: List[StepBinding[S, O, F]] =
@@ -435,16 +433,6 @@ abstract class Machine[S, O, F](using
    */
   def unmonitored(using family: Family): Machine[S, O, F] = built(table)
 
-object Machine:
-  private[umpire] val made = mutable.ArrayBuffer.empty[Machine[?, ?, ?]]
-
-  /** The machine object or derived machine of this name initialized so far, if any. */
-  private[umpire] def named(name: String): Option[Machine[?, ?, ?]] =
-    made.synchronized(made.find {
-      case _: Built[?, ?, ?] => false
-      case m                 => m.name == name
-    })
-
 /**
  * A machine derived from another, declared as an object that is it:
  * `object LateRecord extends Derived(OrderRecord.rebind(...))`, named after the object. The
@@ -459,7 +447,8 @@ abstract class Derived[S, O, F](derivation: Machine[S, O, F])
   final def rules: RuleBook[S, O, F] = derivation.rules
   final override private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     derivation.table
-  final override private[umpire] def reaches: Seq[Model] = Seq(derivation)
+  final override private[umpire] def reaches: Seq[Model] =
+    derivation +: Refinement.declaredBy(this).toSeq
 
 /**
  * A machine a derivation makes from another: its name, its starts and ends, what it binds each

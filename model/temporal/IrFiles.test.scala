@@ -32,47 +32,21 @@ class IrFilesTest extends munit.FunSuite:
         .toSet
     finally stream.close()
 
-  /**
-   * The names of the machines an IR file lifts: each element of its top-level `machines` array
-   * names one with its own `name`, ahead of any nested object's.
-   */
+  /** The names of the machines an IR file lifts: its `machines`, each by its `name`. */
   def liftedMachines(file: String): Set[String] =
-    val json = Files.readString(Path.of(s"model/ir/$file.json"))
-    val name = "\"name\": \""
-    // Reads from `i` at nesting depth `depth` of the array, inside a string or not, to its end.
-    @scala.annotation.tailrec
-    def scan(i: Int, depth: Int, inString: Boolean, names: List[String]): List[String] =
-      if i >= json.length then names
-      else
-        val c = json.charAt(i)
-        if inString then
-          if c == '\\' then scan(i + 2, depth, true, names)
-          else scan(i + 1, depth, c != '"', names)
-        else if depth == 1 && json.startsWith(name, i) then
-          val from = i + name.length
-          val to = json.indexOf('"', from)
-          scan(to + 1, depth, false, json.substring(from, to) :: names)
-        else
-          c match
-            case '"'               => scan(i + 1, depth, true, names)
-            case '{' | '['         => scan(i + 1, depth + 1, false, names)
-            case '}'               => scan(i + 1, depth - 1, false, names)
-            case ']' if depth == 0 => names
-            case ']'               => scan(i + 1, depth - 1, false, names)
-            case _                 => scan(i + 1, depth, false, names)
-    val start = json.indexOf("\"machines\": [")
-    if start < 0 then Set.empty else scan(json.indexOf('[', start) + 1, 0, false, Nil).toSet
+    import org.json4s.*
+    val ir = org.json4s.jackson.JsonMethods.parse(Files.readString(Path.of(s"model/ir/$file.json")))
+    (ir \ "machines" \ "name").children.collect { case JString(n) => n }.toSet
 
   test("every IR file is declared by a feature's exports, and every root of each constructs") {
     assertEquals(declaring.size, 4)
     val declared = IrFile.declared
     assertEquals(declared.map(_.name).toSet, checkedIn)
     for file <- declared do
-      val lifted = liftedMachines(file.name)
-      val unconstructed = lifted -- file.construct(lifted)
+      val unconstructed = liftedMachines(file.name) -- file.construct()
       assert(
         unconstructed.isEmpty,
-        s"${file.name}.json lifts ${unconstructed.toSeq.sorted.mkString(", ")}, which no root reaches " +
-          "and no machine object initialized names, so no rule overlap of theirs is checked"
+        s"${file.name}.json lifts ${unconstructed.toSeq.sorted.mkString(", ")}, which constructing " +
+          "its roots never reaches, so no rule overlap of theirs is checked"
       )
   }

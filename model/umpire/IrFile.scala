@@ -21,15 +21,13 @@ import umpire.realize.Realization
 final class IrFile private[umpire] (val name: String, val roots: Seq[IrRoot]):
   /**
    * Constructs every root and what it reaches, as the gate does for every IR file (a Model test
-   * beside the Models): each machine's rules, so an overlap of two of them is refused
-   * here, the members of each composition, the source of each derivation, and the machines each
-   * Query, capability declaration, progress claim and realization names; then each machine of
-   * `lifted`, the names of the machines the file's IR holds, that is none of those, such as the
-   * machine a refinement section names, from the machine objects initialized so far. It gives the
-   * names of the machines and compositions constructed, which the gate's test holds to `lifted`, so
-   * no machine an IR file lifts escapes the check of its rules.
+   * beside the Models): each machine's rules, so an overlap of two of them is refused here, the
+   * members of each composition, the machine each machine refines, the source of each derivation,
+   * and the machines each Query, capability declaration, progress claim and realization names. It
+   * gives the names of the machines and compositions constructed, which the gate's test holds to
+   * every machine the file's IR lifts, so no lifted machine escapes the check of its rules.
    */
-  def construct(lifted: Set[String] = Set.empty): Set[String] =
+  def construct(): Set[String] =
     val seen = mutable.LinkedHashSet.empty[Model]
     def model(m: Model): Unit =
       if seen.add(m) then
@@ -50,7 +48,6 @@ final class IrFile private[umpire] (val name: String, val roots: Seq[IrRoot]):
       case p: Progress[?]     => model(p.machine)
       case r: Realization     => model(r.machine)
       case c: Capabilities[?] => model(c.model)
-    for n <- lifted -- seen.map(_.name); m <- Machine.named(n) do model(m)
     seen.map(_.name).toSet
 
 object IrFile:
