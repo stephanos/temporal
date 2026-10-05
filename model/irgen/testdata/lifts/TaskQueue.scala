@@ -90,7 +90,9 @@ val queueAny = JobOverQueue.scenario("any").free
 
 final case class OverMatching(job: JobState, queue: QueueDetail)
 
-object JobOverMatching extends Composition[OverMatching](_.job -> Job, _.queue -> MatchingQueue):
+object JobOverMatching
+    extends Composition[OverMatching](_.job -> Job, _.queue -> MatchingQueue),
+      FailureModel:
   def end(s: State) = s.job.phase == JobPhase.settled
   object syncs extends Syncs:
     sync(_.job -> send, _.queue -> queue.enqueue)
@@ -98,8 +100,13 @@ object JobOverMatching extends Composition[OverMatching](_.job -> Job, _.queue -
     sync(_.job -> settle, _.queue -> queue.acknowledge)
     replaces(_.queue, DispatchQueue)
 
-/** The negative control: the replacement is what must fail. */
-object JobOverForgetful extends Composition(JobOverMatching.withMember(_.queue -> ForgetfulQueue))
+/**
+ * The negative control: the replacement is what must fail. No Query asks it; the check of the
+ * member that stands in for the opaque queue refutes it.
+ */
+object JobOverForgetful
+    extends Composition(JobOverMatching.withMember(_.queue -> ForgetfulQueue)),
+      NegativeControl
 
 def overMatchingQueries(c: Composition[OverMatching]): Vector[Query] =
   val settles = c.property.whenAction(c.synced(_.job -> settle)) holds

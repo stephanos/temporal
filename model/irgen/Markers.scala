@@ -7,16 +7,21 @@ import io.temporal.server.api.umpire.v1 as ir
  * what one IR file lifts with it (fn-126 decision 20). The markers are transparent: nothing here
  * changes the IR, so a marker is read from the object that declares the machine.
  *
- *   - A negative control is a deliberately wrong design the checks must refuse. A Query lifted with
- *     it asks something that can refute it: a `verify`, whose answer may be a counterexample, or a
- *     Query whose Run is expected to violate its Property. No machine refines it (a composition
+ *   - A negative control is a deliberately wrong design the checks must refuse. Something the run
+ *     checks can refute it: a Query of it that is a `verify`, whose answer may be a counterexample,
+ *     or whose Run is expected to violate its Property; or a refinement check, of a refinement it
+ *     keeps from the design it derives from, or of a composition member that stands in for another
+ *     machine. These rules are weak by construction: the IR holds no expected check answer, so they
+ *     say a refutation can happen, and the Go tests that pin each answer say it does. No machine
+ *     refines it (a composition
  *     puts a provider in place only of a machine it refines), and it declares no refinement of its
  *     own, as a feature's System does: it is no feature's Product or System.
  *   - A failure model is the real design under a fault the environment can cause. It binds a fault,
  *     an action of the party `fault` or of a `faults` section (a composition binds its members'),
  *     and its promise holds: its Queries expect it to, unless one declares otherwise, so not every
  *     Query of it expects its Run violated.
- *   - A machine that binds a fault says what it is for: it is marked one or the other.
+ *   - A machine or composition that binds a fault says what it is for: it is marked one or the
+ *     other.
  *
  * A fault an action is bound to is one some state enables: an action `disabled` binds no fault.
  */
@@ -27,7 +32,7 @@ import io.temporal.server.api.umpire.v1 as ir
 final private[irgen] case class Refutation(control: String, at: String, refuted: Boolean)
 
 /**
- * The refusal of each negative control no Query of the run can refute, once.
+ * The refusal of each negative control nothing the run checks can refute, once.
  */
 private[irgen] def unrefuted(all: Seq[Refutation]): Seq[LiftError] =
   all
@@ -38,8 +43,9 @@ private[irgen] def unrefuted(all: Seq[Refutation]): Seq[LiftError] =
       case (name, rs) if !rs.exists(_.refuted) =>
         LiftError(
           rs.head.at,
-          s"$name is a negative control that no Query of the run can refute: ask a `verify` of it, " +
-            "whose answer may be a counterexample, or a Query whose Run is expected violated"
+          s"$name is a negative control that nothing the run checks can refute: ask a `verify` of " +
+            "it, whose answer may be a counterexample, or a Query whose Run is expected violated, " +
+            "or check it against a refinement"
         )
     }
 
@@ -85,10 +91,16 @@ private[irgen] trait Markers:
       q.expectedRun.exists(_.property == ir.RunExpectation.Outcome.OUTCOME_VIOLATED)
     def refutable(q: ir.Query): Boolean = q.form == ir.Query.Form.FORM_VERIFY || violated(q)
 
-    def negativeControl(name: String, at: Option[ir.Position], cls: Option[Symbol]): Unit =
-      if everyLifted || over(name).nonEmpty then
+    def negativeControl(
+        name: String,
+        at: Option[ir.Position],
+        cls: Option[Symbol],
+        refinementChecked: Boolean
+    ): Unit =
+      if everyLifted || over(name).nonEmpty || refinementChecked then
         val p = at.getOrElse(ir.Position())
-        refutations += Refutation(name, s"${p.file}:${p.line}", over(name).exists(refutable))
+        val refuted = refinementChecked || over(name).exists(refutable)
+        refutations += Refutation(name, s"${p.file}:${p.line}", refuted)
       for m <- machines.values if m.refines.exists(_.product == name) do
         refuse(
           at,
@@ -127,7 +139,7 @@ private[irgen] trait Markers:
       val negative = marked(cls, negativeControlClass)
       if failure && negative then
         refuse(m.position, s"${m.name} is marked a failure model and a negative control: it is one")
-      if negative then negativeControl(m.name, m.position, cls)
+      if negative then negativeControl(m.name, m.position, cls, m.refines.nonEmpty)
       if failure then failureModel(m.name, m.position, faultsOf(m))
       if !failure && !negative && faultsOf(m).nonEmpty then
         refuse(
@@ -142,8 +154,17 @@ private[irgen] trait Markers:
       val negative = marked(cls, negativeControlClass)
       if failure && negative then
         refuse(c.position, s"${c.name} is marked a failure model and a negative control: it is one")
-      if negative then negativeControl(c.name, c.position, None)
+      if negative then
+        negativeControl(c.name, c.position, None, c.members.exists(_.replaces.nonEmpty))
       if failure then failureModel(c.name, c.position, compositionFaults(c))
+      if !failure && !negative && compositionFaults(c).nonEmpty then
+        refuse(
+          c.position,
+          s"${c.name} composes a member that binds the fault " +
+            s"${compositionFaults(c).map(actions(_).name).mkString(", ")} and is marked neither a " +
+            "FailureModel, the real design under the fault, nor a NegativeControl, a deliberately " +
+            "wrong one: mix in the one it is"
+        )
     (refused.result(), refutations.result())
 
   /**

@@ -619,11 +619,19 @@ environment can cause, mixes in `FailureModel`, and a negative control, a delibe
 the checks must refuse, `NegativeControl` (`object StaleAdmission extends Derived(...),
 NegativeControl`); the IR generator holds each to what it is for:
 
-- a negative control is refuted by some Query of the run (a `verify`, or a Query whose Run is
-  expected violated), nothing refines it and it declares no refinement of its own;
+- a negative control is something the run checks can refute: a Query of it that is a `verify` or
+  whose Run is expected violated, or a refinement check, of a refinement it keeps from the design
+  it derives from or of a composition member standing in for another machine; nothing refines it,
+  and it declares no refinement of its own;
 - a failure model binds a fault, an action of the party `fault` or of a `faults` section that some
-  state enables, and not every Query of it expects its Run violated;
-- a machine object that binds a fault and is marked neither is refused.
+  state enables (a composition, through its members), and not every Query of it expects its Run
+  violated;
+- a machine or composition object that binds a fault and is marked neither is refused.
+
+These rules are weak by construction. The IR holds no expected check answer, so the IR generator
+can see only that a check able to refute a negative control exists, not that it does refute it; the
+Go tests that pin each Query's answer and each refinement's receipt (`tools/umpire/model`, such as
+`activity_system_test.go` and `nexus_close_baseline_test.go`) are the guarantee.
 
 The markers change no ID, name or line of the IR. The core of a machine's rules, its step functions
 bound by hand, `object rules extends Bindings(a ~> f, …)`, is the spelling of the IR generator's core

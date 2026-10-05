@@ -140,7 +140,7 @@
     "name": "detailedPair.property.frontHeld",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 150
+      "line": 152
     },
     "params": [ {
       "name": "after",
@@ -151,32 +151,32 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Declarations.scala",
-        "line": 150
+        "line": 152
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 150
+            "line": 152
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Declarations.scala",
-                "line": 150
+                "line": 152
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Declarations.scala",
-                    "line": 150
+                    "line": 152
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Declarations.scala",
-                        "line": 150
+                        "line": 152
                       },
                       "var": "after"
                     },
@@ -192,7 +192,7 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 150
+            "line": 152
           },
           "literal": {
             "enum": {
@@ -333,7 +333,7 @@
     "name": "disk.property.durableStays",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 140
+      "line": 142
     },
     "params": [ {
       "name": "before",
@@ -349,27 +349,27 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Declarations.scala",
-        "line": 141
+        "line": 143
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 141
+            "line": 143
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Declarations.scala",
-                "line": 141
+                "line": 143
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Declarations.scala",
-                    "line": 141
+                    "line": 143
                   },
                   "var": "before"
                 },
@@ -379,7 +379,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Declarations.scala",
-                "line": 141
+                "line": 143
               },
               "literal": {
                 "enum": {
@@ -393,26 +393,26 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 141
+            "line": 143
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Declarations.scala",
-                "line": 141
+                "line": 143
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Declarations.scala",
-                    "line": 141
+                    "line": 143
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Declarations.scala",
-                        "line": 141
+                        "line": 143
                       },
                       "var": "after"
                     },
@@ -425,7 +425,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Declarations.scala",
-                "line": 141
+                "line": 143
               },
               "literal": {
                 "enum": {
@@ -442,7 +442,7 @@
     "name": "disk.property.putAccepted",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 146
+      "line": 148
     },
     "params": [ {
       "name": "after",
@@ -453,20 +453,20 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Declarations.scala",
-        "line": 146
+        "line": 148
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 146
+            "line": 148
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Declarations.scala",
-                "line": 146
+                "line": 148
               },
               "var": "after"
             },
@@ -476,7 +476,7 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 146
+            "line": 148
           },
           "literal": {
             "enum": {
@@ -1536,7 +1536,7 @@
     "name": "pair.property.keptTogether",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 148
+      "line": 150
     },
     "params": [ {
       "name": "after",
@@ -1547,32 +1547,32 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Declarations.scala",
-        "line": 148
+        "line": 150
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 148
+            "line": 150
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Declarations.scala",
-                "line": 148
+                "line": 150
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Declarations.scala",
-                    "line": 148
+                    "line": 150
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Declarations.scala",
-                        "line": 148
+                        "line": 150
                       },
                       "var": "after"
                     },
@@ -1588,25 +1588,25 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 148
+            "line": 150
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Declarations.scala",
-                "line": 148
+                "line": 150
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Declarations.scala",
-                    "line": 148
+                    "line": 150
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Declarations.scala",
-                        "line": 148
+                        "line": 150
                       },
                       "var": "after"
                     },
@@ -1653,7 +1653,7 @@
     "name": "store.property.putStores",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 144
+      "line": 146
     },
     "params": [ {
       "name": "after",
@@ -1664,14 +1664,14 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/Declarations.scala",
-        "line": 144
+        "line": 146
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 144
+            "line": 146
           },
           "literal": {
             "enum": {
@@ -1683,13 +1683,13 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 144
+            "line": 146
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Declarations.scala",
-                "line": 144
+                "line": 146
               },
               "var": "after"
             },
@@ -2194,7 +2194,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/Declarations.scala",
-        "line": 135
+        "line": 137
       },
       "lambda": {
         "params": [ {
@@ -2206,26 +2206,26 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 135
+            "line": 137
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Declarations.scala",
-                "line": 135
+                "line": 137
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/Declarations.scala",
-                    "line": 135
+                    "line": 137
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/Declarations.scala",
-                        "line": 135
+                        "line": 137
                       },
                       "var": "p"
                     },
@@ -2238,7 +2238,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/Declarations.scala",
-                "line": 135
+                "line": 137
               },
               "literal": {
                 "enum": {
@@ -2356,7 +2356,7 @@
     "name": "frontHeld",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 150
+      "line": 152
     },
     "holds": "detailedPair.property.frontHeld"
   }, {
@@ -2364,7 +2364,7 @@
     "name": "durableStays",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 140
+      "line": 142
     },
     "holds": "disk.property.durableStays",
     "transition": true
@@ -2373,7 +2373,7 @@
     "name": "putAccepted",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 146
+      "line": 148
     },
     "whenAction": "put",
     "holds": "disk.property.putAccepted"
@@ -2382,7 +2382,7 @@
     "name": "keptTogether",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 148
+      "line": 150
     },
     "holds": "pair.property.keptTogether"
   }, {
@@ -2390,7 +2390,7 @@
     "name": "putStores",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 144
+      "line": 146
     },
     "whenClass": {
       "action": "fixture.declarations.Declarations$package$.put"
@@ -2402,26 +2402,26 @@
     "name": "bothPut",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 159
+      "line": 161
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Declarations.scala",
-        "line": 160
+        "line": 162
       },
       "construct": {
         "type": "fixture.declarations.DetailedPairState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 160
+            "line": 162
           },
           "construct": {
             "type": "fixture.declarations.StoreState",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Declarations.scala",
-                "line": 160
+                "line": 162
               },
               "literal": {
                 "enum": {
@@ -2434,14 +2434,14 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 160
+            "line": 162
           },
           "construct": {
             "type": "fixture.declarations.DiskState",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Declarations.scala",
-                "line": 160
+                "line": 162
               },
               "literal": {
                 "enum": {
@@ -2460,19 +2460,19 @@
     "name": "any",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 154
+      "line": 156
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Declarations.scala",
-        "line": 154
+        "line": 156
       },
       "construct": {
         "type": "fixture.declarations.DiskState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 154
+            "line": 156
           },
           "literal": {
             "enum": {
@@ -2489,19 +2489,19 @@
     "name": "putThenFlush",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 153
+      "line": 155
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Declarations.scala",
-        "line": 153
+        "line": 155
       },
       "construct": {
         "type": "fixture.declarations.DiskState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 153
+            "line": 155
           },
           "literal": {
             "enum": {
@@ -2522,26 +2522,26 @@
     "name": "any",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 157
+      "line": 159
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Declarations.scala",
-        "line": 157
+        "line": 159
       },
       "construct": {
         "type": "fixture.declarations.PairState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 157
+            "line": 159
           },
           "construct": {
             "type": "fixture.declarations.StoreState",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Declarations.scala",
-                "line": 157
+                "line": 159
               },
               "literal": {
                 "enum": {
@@ -2554,14 +2554,14 @@
         }, {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 157
+            "line": 159
           },
           "construct": {
             "type": "fixture.declarations.StoreState",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/Declarations.scala",
-                "line": 157
+                "line": 159
               },
               "literal": {
                 "enum": {
@@ -2580,19 +2580,19 @@
     "name": "putOnce",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 155
+      "line": 157
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/Declarations.scala",
-        "line": 155
+        "line": 157
       },
       "construct": {
         "type": "fixture.declarations.StoreState",
         "args": [ {
           "position": {
             "file": "model/irgen/testdata/lifts/Declarations.scala",
-            "line": 155
+            "line": 157
           },
           "literal": {
             "enum": {
@@ -2611,7 +2611,7 @@
     "name": "bothPut",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 173
+      "line": 175
     },
     "form": "FORM_FIND",
     "property": {
@@ -2633,7 +2633,7 @@
     "name": "durableStays",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 166
+      "line": 168
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -2655,7 +2655,7 @@
     "name": "keptTogether",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 172
+      "line": 174
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -2677,7 +2677,7 @@
     "name": "putAccepted",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 167
+      "line": 169
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -2699,7 +2699,7 @@
     "name": "putStores",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 168
+      "line": 170
     },
     "form": "FORM_FIND",
     "property": {
@@ -2721,7 +2721,7 @@
     "name": "putStoresThroughDisk",
     "position": {
       "file": "model/irgen/testdata/lifts/Declarations.scala",
-      "line": 169
+      "line": 171
     },
     "form": "FORM_VERIFY",
     "property": {

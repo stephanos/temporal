@@ -168,7 +168,8 @@ object StaleOverQueue
 // that provider. Each later design swaps one member of the first for a provider of its interface.
 
 object CurrentOverMatching
-    extends Composition[OverMatching](_.activity -> CurrentRecord, _.queue -> MatchingQueue):
+    extends Composition[OverMatching](_.activity -> CurrentRecord, _.queue -> MatchingQueue),
+      FailureModel:
   def end(s: State) = CurrentAdmission.end(s.activity)
 
   object syncs extends Syncs:
@@ -273,14 +274,17 @@ object StaleOverMatching
 // ### The corrected design over each violating provider: the replacement is what must fail.
 
 object CurrentOverForgetful
-    extends Composition(CurrentOverMatching.withMember(_.queue -> ForgetfulQueue))
+    extends Composition(CurrentOverMatching.withMember(_.queue -> ForgetfulQueue)),
+      NegativeControl
 
 object CurrentOverVolatile
-    extends Composition(CurrentOverMatching.withMember(_.queue -> VolatileQueue))
+    extends Composition(CurrentOverMatching.withMember(_.queue -> VolatileQueue)),
+      NegativeControl
 
 /** The corrected design where storage loss is assumed, over the interface that allows it. */
 object CurrentOverLossyMatching
-    extends Composition(CurrentOverMatching.withMember(_.queue -> LossyMatchingQueue)):
+    extends Composition(CurrentOverMatching.withMember(_.queue -> LossyMatchingQueue)),
+      FailureModel:
   object queries extends Section:
     val currentOverLossyMatchingQueries =
       CurrentOverMatching.queries.overMatchingQueries(CurrentOverLossyMatching, anyTotal = 246240)

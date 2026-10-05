@@ -333,7 +333,10 @@ class Fixtures extends munit.FunSuite:
       "ControlRefiner",
       "RefinedControl$.queries$.askedRefinedControl",
       "SystemicControl$.queries$.askedSystemicControl",
-      "TornMarkers$.queries$.askedTornMarkers"
+      "TornMarkers$.queries$.askedTornMarkers",
+      "UnmarkedPair",
+      "FaultlessPair",
+      "DerivedControl$.queries$.foundDerivedControl"
     ).map("fixture.markers." + _)
 
   // A root of lifts/Rejects.scala: a machine or composition object, or an object nested in one of its

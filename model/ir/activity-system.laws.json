@@ -85,7 +85,7 @@
       "running": "temporal.features.standaloneactivity.withTaskQueue.OverMatching.through.activity.temporal.features.standaloneactivity.record.CurrentAdmission$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:201"
+    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:202"
   }, {
     "machine": "currentOverLossyMatching",
     "name": "currentOverLossyMatching.terminalStatesAreFinal",
@@ -97,7 +97,7 @@
       "terminal": "temporal.features.standaloneactivity.record.CurrentAdmission$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:196"
+    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:197"
   }, {
     "machine": "currentOverMatching",
     "name": "currentOverMatching.pausedIsNotDispatched",
@@ -113,7 +113,7 @@
       "running": "temporal.features.standaloneactivity.withTaskQueue.OverMatching.through.activity.temporal.features.standaloneactivity.record.CurrentAdmission$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:201"
+    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:202"
   }, {
     "machine": "currentOverMatching",
     "name": "currentOverMatching.terminalStatesAreFinal",
@@ -125,7 +125,7 @@
       "terminal": "temporal.features.standaloneactivity.record.CurrentAdmission$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:196"
+    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:197"
   }, {
     "machine": "currentOverQueue",
     "name": "currentOverQueue.pausedIsNotDispatched",
@@ -197,7 +197,7 @@
       "running": "temporal.features.standaloneactivity.withTaskQueue.OverMatching.through.activity.temporal.features.standaloneactivity.record.CurrentAdmission$.states$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:201"
+    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:202"
   }, {
     "machine": "staleOverMatching",
     "name": "staleOverMatching.terminalStatesAreFinal",
@@ -209,7 +209,7 @@
       "terminal": "temporal.features.standaloneactivity.record.CurrentAdmission$.states$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:196"
+    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:197"
   }, {
     "machine": "staleOverQueue",
     "name": "staleOverQueue.pausedIsNotDispatched",
@@ -250,13 +250,13 @@
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:210"
+    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:211"
   }, {
     "machine": "currentOverMatching",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:210"
+    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:211"
   }, {
     "machine": "currentOverQueue",
     "law": "closedIsRejectedUniformly",
@@ -274,7 +274,7 @@
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:210"
+    "position": "model/temporal/features/standaloneactivity/withTaskQueue/WithTaskQueue.scala:211"
   }, {
     "machine": "staleOverQueue",
     "law": "closedIsRejectedUniformly",

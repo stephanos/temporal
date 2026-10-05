@@ -1237,7 +1237,7 @@
     "name": "jobOverForgetful.property.settledLeavesNothing",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 107
+      "line": 114
     },
     "params": [ {
       "name": "after",
@@ -1248,21 +1248,21 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-        "line": 107
+        "line": 114
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-            "line": 107
+            "line": 114
           },
           "call": {
             "function": "jobOverForgetful.property.settledLeavesNothing.never",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 107
+                "line": 114
               },
               "var": "after"
             } ]
@@ -1274,7 +1274,7 @@
     "name": "jobOverForgetful.property.settledLeavesNothing.never",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 108
+      "line": 115
     },
     "params": [ {
       "name": "after",
@@ -1285,39 +1285,39 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-        "line": 109
+        "line": 116
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-            "line": 109
+            "line": 116
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 109
+                "line": 116
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                    "line": 109
+                    "line": 116
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                        "line": 109
+                        "line": 116
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                            "line": 109
+                            "line": 116
                           },
                           "var": "after"
                         },
@@ -1333,7 +1333,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 109
+                "line": 116
               },
               "literal": {
                 "enum": {
@@ -1347,32 +1347,32 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-            "line": 109
+            "line": 116
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 109
+                "line": 116
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                    "line": 109
+                    "line": 116
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                        "line": 109
+                        "line": 116
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                            "line": 109
+                            "line": 116
                           },
                           "var": "after"
                         },
@@ -1388,7 +1388,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 109
+                "line": 116
               },
               "literal": {
                 "enum": {
@@ -1405,7 +1405,7 @@
     "name": "jobOverForgetful.property.settles",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 106
+      "line": 113
     },
     "params": [ {
       "name": "step",
@@ -1416,32 +1416,32 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-        "line": 106
+        "line": 113
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-            "line": 106
+            "line": 113
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 106
+                "line": 113
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                    "line": 106
+                    "line": 113
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                        "line": 106
+                        "line": 113
                       },
                       "var": "step"
                     },
@@ -1457,7 +1457,7 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-            "line": 106
+            "line": 113
           },
           "literal": {
             "enum": {
@@ -1472,7 +1472,7 @@
     "name": "jobOverMatching.property.settledLeavesNothing",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 107
+      "line": 114
     },
     "params": [ {
       "name": "after",
@@ -1483,21 +1483,21 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-        "line": 107
+        "line": 114
       },
       "unary": {
         "op": "OP_NOT",
         "operand": {
           "position": {
             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-            "line": 107
+            "line": 114
           },
           "call": {
             "function": "jobOverMatching.property.settledLeavesNothing.never",
             "args": [ {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 107
+                "line": 114
               },
               "var": "after"
             } ]
@@ -1509,7 +1509,7 @@
     "name": "jobOverMatching.property.settledLeavesNothing.never",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 108
+      "line": 115
     },
     "params": [ {
       "name": "after",
@@ -1520,39 +1520,39 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-        "line": 109
+        "line": 116
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-            "line": 109
+            "line": 116
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 109
+                "line": 116
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                    "line": 109
+                    "line": 116
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                        "line": 109
+                        "line": 116
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                            "line": 109
+                            "line": 116
                           },
                           "var": "after"
                         },
@@ -1568,7 +1568,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 109
+                "line": 116
               },
               "literal": {
                 "enum": {
@@ -1582,32 +1582,32 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-            "line": 109
+            "line": 116
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 109
+                "line": 116
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                    "line": 109
+                    "line": 116
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                        "line": 109
+                        "line": 116
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                            "line": 109
+                            "line": 116
                           },
                           "var": "after"
                         },
@@ -1623,7 +1623,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 109
+                "line": 116
               },
               "literal": {
                 "enum": {
@@ -1640,7 +1640,7 @@
     "name": "jobOverMatching.property.settles",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 106
+      "line": 113
     },
     "params": [ {
       "name": "step",
@@ -1651,32 +1651,32 @@
     "body": {
       "position": {
         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-        "line": 106
+        "line": 113
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-            "line": 106
+            "line": 113
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 106
+                "line": 113
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                    "line": 106
+                    "line": 113
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                        "line": 106
+                        "line": 113
                       },
                       "var": "step"
                     },
@@ -1692,7 +1692,7 @@
         "right": {
           "position": {
             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-            "line": 106
+            "line": 113
           },
           "literal": {
             "enum": {
@@ -5996,7 +5996,7 @@
     "name": "jobOverForgetful",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 102
+      "line": 108
     },
     "stateType": "fixture.taskqueue.OverMatching",
     "members": [ {
@@ -6041,7 +6041,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-        "line": 94
+        "line": 96
       },
       "lambda": {
         "params": [ {
@@ -6053,26 +6053,26 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-            "line": 94
+            "line": 96
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 94
+                "line": 96
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                    "line": 94
+                    "line": 96
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                        "line": 94
+                        "line": 96
                       },
                       "var": "s"
                     },
@@ -6085,7 +6085,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 94
+                "line": 96
               },
               "literal": {
                 "enum": {
@@ -6148,7 +6148,7 @@
     "ends": {
       "position": {
         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-        "line": 94
+        "line": 96
       },
       "lambda": {
         "params": [ {
@@ -6160,26 +6160,26 @@
         "body": {
           "position": {
             "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-            "line": 94
+            "line": 96
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 94
+                "line": 96
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                    "line": 94
+                    "line": 96
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                        "line": 94
+                        "line": 96
                       },
                       "var": "s"
                     },
@@ -6192,7 +6192,7 @@
             "right": {
               "position": {
                 "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-                "line": 94
+                "line": 96
               },
               "literal": {
                 "enum": {
@@ -6317,7 +6317,7 @@
     "name": "settledLeavesNothing",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 107
+      "line": 114
     },
     "holds": "jobOverForgetful.property.settledLeavesNothing"
   }, {
@@ -6325,7 +6325,7 @@
     "name": "settles",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 105
+      "line": 112
     },
     "whenAction": "settle",
     "holds": "jobOverForgetful.property.settles"
@@ -6334,7 +6334,7 @@
     "name": "settledLeavesNothing",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 107
+      "line": 114
     },
     "holds": "jobOverMatching.property.settledLeavesNothing"
   }, {
@@ -6342,7 +6342,7 @@
     "name": "settles",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 105
+      "line": 112
     },
     "whenAction": "settle",
     "holds": "jobOverMatching.property.settles"
@@ -6369,12 +6369,12 @@
     "name": "any",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 122
+      "line": 129
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-        "line": 122
+        "line": 129
       },
       "construct": {
         "type": "fixture.taskqueue.OverMatching",
@@ -6446,12 +6446,12 @@
     "name": "crashAfterInvocation",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 112
+      "line": 119
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-        "line": 112
+        "line": 119
       },
       "construct": {
         "type": "fixture.taskqueue.OverMatching",
@@ -6523,12 +6523,12 @@
     "name": "any",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 122
+      "line": 129
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-        "line": 122
+        "line": 129
       },
       "construct": {
         "type": "fixture.taskqueue.OverMatching",
@@ -6600,12 +6600,12 @@
     "name": "crashAfterInvocation",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 112
+      "line": 119
     },
     "start": {
       "position": {
         "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-        "line": 112
+        "line": 119
       },
       "construct": {
         "type": "fixture.taskqueue.OverMatching",
@@ -6793,7 +6793,7 @@
     "name": "jobOverForgetful.any.settledLeavesNothing",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 126
+      "line": 133
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -6815,7 +6815,7 @@
     "name": "jobOverForgetful.crashAfterInvocation",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 124
+      "line": 131
     },
     "form": "FORM_FIND",
     "property": {
@@ -6837,7 +6837,7 @@
     "name": "jobOverMatching.any.settledLeavesNothing",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 126
+      "line": 133
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -6859,7 +6859,7 @@
     "name": "jobOverMatching.crashAfterInvocation",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 124
+      "line": 131
     },
     "form": "FORM_FIND",
     "property": {
@@ -6881,7 +6881,7 @@
     "name": "jobOverQueue.any.settledLeavesNothing",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 133
+      "line": 140
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -6903,7 +6903,7 @@
     "name": "jobOverQueue.duplicateDelivery",
     "position": {
       "file": "model/irgen/testdata/lifts/TaskQueue.scala",
-      "line": 131
+      "line": 138
     },
     "form": "FORM_FIND",
     "property": {

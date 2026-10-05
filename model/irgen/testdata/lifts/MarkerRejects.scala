@@ -1,9 +1,10 @@
 // What a machine is for, as its markers say (fn-126 decision 20), refused at the line of the object
 // that declares it: a negative control nothing can refute, one a machine refines and one that
 // declares a refinement of its own; a failure model that binds no fault, and one whose every Query
-// expects its Run violated; a machine that binds a fault and is marked neither; and one marked
-// both. The lifter's tests lift them with the other rejected declarations and compare the
-// diagnostics with expected/rejects.txt.
+// expects its Run violated; a machine that binds a fault and is marked neither; one marked both; a
+// composition whose member binds a fault, unmarked, and one marked a failure model that binds
+// none; and a derived negative control nothing refutes. The lifter's tests lift them with the
+// other rejected declarations and compare the diagnostics with expected/rejects.txt.
 package fixture.markers
 
 import umpire.*
@@ -131,5 +132,37 @@ object TornMarkers extends Machine[Lamp, Outcome, Nothing], FailureModel, Negati
   object queries extends Section:
     val askedTornMarkers =
       query verify properties.lit in scenario("flipped").actions(
+        hand.flip
+      ) limits markedLimits total 2
+
+final case class Lamps(left: Lamp, right: Lamp)
+
+/** A failure model a composition puts beside a lamp. */
+object Blowing extends Machine[Lamp, Outcome, Nothing], FailureModel:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object rules extends Bindings(hand.flip ~> Steps.toggle, faults.blowout ~> Steps.dark)
+
+/** A composition whose member binds a fault, and no marker. */
+object UnmarkedPair extends Composition[Lamps](_.left -> Blowing, _.right -> PlainLamp):
+  def end(s: State) = true
+  object syncs extends Syncs:
+    sync(_.left -> hand.flip, _.right -> hand.flip)
+
+/** A composition marked a failure model whose members bind no fault. */
+object FaultlessPair
+    extends Composition[Lamps](_.left -> PlainLamp, _.right -> PlainLamp),
+      FailureModel:
+  def end(s: State) = true
+  object syncs extends Syncs:
+    sync(_.left -> hand.flip, _.right -> hand.flip)
+
+/** A derived negative control that nothing refutes: no verify, and no refinement it keeps. */
+object DerivedControl extends Derived(PlainLamp.unmonitored), NegativeControl:
+  object properties extends Section:
+    val lit = property when hand.flip holds (_.state.lit)
+  object queries extends Section:
+    val foundDerivedControl =
+      query find properties.lit in scenario("flipped").actions(
         hand.flip
       ) limits markedLimits total 2

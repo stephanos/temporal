@@ -149,7 +149,9 @@ object PutOnly extends Derived(Disk.restrict(client.put))
 final case class DetailedPairState(front: StoreState, back: DiskState)
 
 // Its sync is named after its first member's action, `put`.
-object DetailedPair extends Composition[DetailedPairState](_.front -> Store, _.back -> Disk):
+object DetailedPair
+    extends Composition[DetailedPairState](_.front -> Store, _.back -> Disk),
+      FailureModel:
   def end(p: State) = p.front.kept == Kept.held
   object syncs extends Syncs:
     sync(_.front -> client.put, _.back -> client.put)

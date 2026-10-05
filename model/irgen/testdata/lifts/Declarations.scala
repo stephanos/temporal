@@ -131,7 +131,9 @@ object Pair extends Composition[PairState](_.front -> Store, _.back -> Store):
   object syncs extends Syncs:
     sync("putBoth", _.front -> put, _.back -> put)
 
-object DetailedPair extends Composition[DetailedPairState](_.front -> Store, _.back -> Disk):
+object DetailedPair
+    extends Composition[DetailedPairState](_.front -> Store, _.back -> Disk),
+      FailureModel:
   def end(p: State) = p.front.kept == Kept.held
   object syncs extends Syncs:
     sync("putBoth", _.front -> put, _.back -> put)
