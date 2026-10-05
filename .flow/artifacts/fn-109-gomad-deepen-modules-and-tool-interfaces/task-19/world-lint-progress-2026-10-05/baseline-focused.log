@@ -1,0 +1,56 @@
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_config
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_request
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/unknown_World_request
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_request_state
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_time_regression
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_snapshot
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_capacity_exhausted
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_replay_divergence
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_capacity_exhausted:_雪"_xxxxxxxxxxxxxxxxxxx
+=== RUN   TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_replay_divergence:_transition=5_field=digest
+--- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_config (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_request (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/unknown_World_request (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_request_state (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_time_regression (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/invalid_World_snapshot (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_capacity_exhausted (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_replay_divergence (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_capacity_exhausted:_雪"_xxxxxxxxxxxxxxxxxxx (0.00s)
+    --- PASS: TestOwnedTerminalPreservesAllCategoriesAndRecordingBytes/World_replay_divergence:_transition=5_field=digest (0.00s)
+=== RUN   TestOwnedModelErrorPreservesMessagesAndCauseIdentity
+--- PASS: TestOwnedModelErrorPreservesMessagesAndCauseIdentity (0.00s)
+=== RUN   TestModelGeneratedTransitionContextRemainsRecordable
+--- PASS: TestModelGeneratedTransitionContextRemainsRecordable (0.00s)
+=== RUN   TestWorldSnapshotRestoreContinuesWithIdenticalState
+--- PASS: TestWorldSnapshotRestoreContinuesWithIdenticalState (0.00s)
+=== RUN   TestRestoreRejectsCorruptionWithoutPublishingWorld
+=== RUN   TestRestoreRejectsCorruptionWithoutPublishingWorld/request_order
+=== RUN   TestRestoreRejectsCorruptionWithoutPublishingWorld/event_reference
+=== RUN   TestRestoreRejectsCorruptionWithoutPublishingWorld/payload_accounting
+=== RUN   TestRestoreRejectsCorruptionWithoutPublishingWorld/time
+=== RUN   TestRestoreRejectsCorruptionWithoutPublishingWorld/transition_digest
+=== RUN   TestRestoreRejectsCorruptionWithoutPublishingWorld/schema
+=== RUN   TestRestoreRejectsCorruptionWithoutPublishingWorld/digest
+--- PASS: TestRestoreRejectsCorruptionWithoutPublishingWorld (0.00s)
+    --- PASS: TestRestoreRejectsCorruptionWithoutPublishingWorld/request_order (0.00s)
+    --- PASS: TestRestoreRejectsCorruptionWithoutPublishingWorld/event_reference (0.00s)
+    --- PASS: TestRestoreRejectsCorruptionWithoutPublishingWorld/payload_accounting (0.00s)
+    --- PASS: TestRestoreRejectsCorruptionWithoutPublishingWorld/time (0.00s)
+    --- PASS: TestRestoreRejectsCorruptionWithoutPublishingWorld/transition_digest (0.00s)
+    --- PASS: TestRestoreRejectsCorruptionWithoutPublishingWorld/schema (0.00s)
+    --- PASS: TestRestoreRejectsCorruptionWithoutPublishingWorld/digest (0.00s)
+=== RUN   TestWorldStateDigestGolden
+--- PASS: TestWorldStateDigestGolden (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/world	0.006s
+=== RUN   TestSessionNormalizesDetailBeforeOrderedClassification
+--- PASS: TestSessionNormalizesDetailBeforeOrderedClassification (0.00s)
+=== RUN   TestSessionRetainsJoinedErrorPrecedenceAndUnknownIdentity
+--- PASS: TestSessionRetainsJoinedErrorPrecedenceAndUnknownIdentity (0.00s)
+=== RUN   TestSessionValidatesBeforeCallingErrors
+--- PASS: TestSessionValidatesBeforeCallingErrors (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/world/process	0.006s

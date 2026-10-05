@@ -1,0 +1,12 @@
+065d173b05de29f83babc444818f2fd9491df90fc9d5d073ce495daf5ed78219  tools/gomad3/world/snapshot.go
+cce3686d15374f697ae063bba9a3c748a888a33ce9a4eae56f33690e1a257ae7  tools/gomad3/world/process/session.go
+8c63df0e38bafe7c9da545352d17cf976296de2b96d9690fbcf4ab1077ab81b5  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-lint-progress-2026-10-05/baseline-focused.log
+ea6951b8701dc44714435d0a2997a86508ef8908764c1a2547f0b7f40e51d97f  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-lint-progress-2026-10-05/baseline-lint.log
+710a068bde0f70419bc6ca6d21889ffdc7cfd44a9815d98397b9e2e3f7c07245  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-lint-progress-2026-10-05/baseline-root.log
+23526df5ff015aa7ea83d107d454d6e79f077c768dd884efbc2fb73e7903b679  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-lint-progress-2026-10-05/baseline-validate.log
+2a4375a9abd3f94f89b5b8413fba055e1fa31379bde3dc454faca1a99eb9f648  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-lint-progress-2026-10-05/final-error-boundary.log
+732ce609f18413a47a6061084fedef8407a63dfb041bce37890abe8bc802e40d  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-lint-progress-2026-10-05/final-focused.log
+5c6b4919f7c5a5800cc98ecfe4d24c001232b68743d03854e4b2f637a9386ab3  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-lint-progress-2026-10-05/final-lint.log
+f673089df445752c38404e9fc471ed24bc0f34afd37bfd1cdfe41d338bd98b09  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-lint-progress-2026-10-05/final-packages.log
+acc3548f95ca79cdf1e9eff5e8a856e6a8feb05bc05f7101bab8069ba0bb05e6  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-lint-progress-2026-10-05/final-root.log
+23526df5ff015aa7ea83d107d454d6e79f077c768dd884efbc2fb73e7903b679  .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-lint-progress-2026-10-05/final-validate.log

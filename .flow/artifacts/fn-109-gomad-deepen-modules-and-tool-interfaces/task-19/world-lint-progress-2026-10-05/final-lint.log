@@ -1,0 +1,81 @@
+tools/gomad3/world/mailbox/mailbox.go:115:31: ST1005: error strings should not be capitalized (staticcheck)
+			return world.Quiescence{}, fmt.Errorf("World delivered unknown mailbox event %d", delivery.EventID)
+			                           ^
+tools/gomad3/world/mailbox/mailbox.go:132:23: ST1005: error strings should not be capitalized (staticcheck)
+			return Snapshot{}, fmt.Errorf("World contains an incompatible mailbox-owned request %d", request.ID)
+			                   ^
+tools/gomad3/world/process/config.go:28:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World transition limit must be positive")
+		            ^
+tools/gomad3/world/process/session.go:28:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World child session requires a World")
+		            ^
+tools/gomad3/world/process/session.go:40:27: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, errors.Join(fmt.Errorf("World child file descriptors are unavailable"), cleanupErr)
+		                        ^
+tools/gomad3/world/process/session.go:58:27: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, errors.Join(fmt.Errorf("World seed does not match the execution configuration"), output.Close())
+		                        ^
+tools/gomad3/world/process/session.go:108:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World terminal error is required")
+		       ^
+tools/gomad3/world/process/session.go:115:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World child session is invalid")
+		       ^
+tools/gomad3/world/process/session.go:146:22: ST1005: error strings should not be capitalized (staticcheck)
+		return errors.Join(fmt.Errorf("World recording omitted its header"), session.output.Close())
+		                   ^
+tools/gomad3/world/recording.go:64:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World recording is already active")
+		            ^
+tools/gomad3/world/recording.go:80:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World terminal error is required")
+		                    ^
+tools/gomad3/world/recording.go:95:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World error terminal kind is required")
+		                    ^
+tools/gomad3/world/recording.go:102:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World recorder is invalid")
+		                    ^
+tools/gomad3/world/recording.go:107:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World recorder is not active")
+		                    ^
+tools/gomad3/world/recording.go:121:23: ST1005: error strings should not be capitalized (staticcheck)
+		return Recording{}, fmt.Errorf("World recording byte accounting changed")
+		                    ^
+tools/gomad3/world/recording.go:148:11: ST1005: error strings should not be capitalized (staticcheck)
+			return fmt.Errorf("World quiescence terminal has error detail")
+			       ^
+tools/gomad3/world/recording.go:152:11: ST1005: error strings should not be capitalized (staticcheck)
+			return fmt.Errorf("World error terminal omitted detail")
+			       ^
+tools/gomad3/world/recording.go:175:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World terminal has no matching quiescence transition")
+		       ^
+tools/gomad3/world/recording.go:179:10: ST1005: error strings should not be capitalized (staticcheck)
+		return fmt.Errorf("World terminal does not match the final quiescence transition")
+		       ^
+tools/gomad3/world/recording.go:228:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World recording exceeds its size bound")
+		            ^
+tools/gomad3/world/replay.go:62:15: ST1005: error strings should not be capitalized (staticcheck)
+		return nil, fmt.Errorf("World replay plan exceeds its bound")
+		            ^
+tools/gomad3/world/replay.go:69:24: ST1005: error strings should not be capitalized (staticcheck)
+		return ReplayPlan{}, fmt.Errorf("World replay plan exceeds its bound")
+		                     ^
+tools/gomad3/world/replay.go:72:24: ST1005: error strings should not be capitalized (staticcheck)
+		return ReplayPlan{}, fmt.Errorf("World replay plan is not valid UTF-8")
+		                     ^
+tools/gomad3/world/replay.go:94:24: ST1005: error strings should not be capitalized (staticcheck)
+		return ReplayPlan{}, fmt.Errorf("World replay plan is not canonical")
+		                     ^
+tools/gomad3/world/world.go:202:3: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+		panic("invalid request state")
+		^
+tools/gomad3/world/world.go:216:5: use of `panic` forbidden because "Please avoid using panic in application code" (forbidigo)
+				panic("queued request has no queued event")
+				^
+26 issues:
+* forbidigo: 2
+* staticcheck: 24

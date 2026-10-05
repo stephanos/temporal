@@ -141,11 +141,11 @@ func (session *Session) finish(terminalErr error) error {
 	if err != nil {
 		return errors.Join(err, session.output.Close())
 	}
-	header := world.RecordingHeader()
-	if len(encoded) < len(header) {
+	headerSize := len(world.RecordingHeader())
+	if len(encoded) < headerSize {
 		return errors.Join(fmt.Errorf("World recording omitted its header"), session.output.Close())
 	}
-	if err := writeAll(session.output, encoded[len(header):]); err != nil {
+	if err := writeAll(session.output, encoded[headerSize:]); err != nil {
 		return errors.Join(err, session.output.Close())
 	}
 	err = session.output.Close()

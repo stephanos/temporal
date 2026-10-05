@@ -201,7 +201,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-109.16](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.16.md) | ⛔ Blocked | Implement the simulation progress lifecycle owner and remove caller-side accounting |
 | [fn-109.17](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.17.md) | ⛔ Blocked | Select backend-specific network listener and connection implementations at creation |
 | [fn-109.18](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.18.md) | ⛔ Blocked | Select backend-specific filesystem handle and mapping implementations at creation |
-| [fn-109.19](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.19.md) | ⛔ Blocked | Enforce architecture package coverage, host-effect and public-signature rules (D4). |
+| [fn-109.19](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.19.md) | ⛔ Blocked | Architecture checks; two World lint findings repaired, qualification pending |
 | [fn-109.20](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.20.md) | ⛔ Blocked | Reconcile architectural guidance with delivered owners and interfaces (D5). |
 | [fn-109.21](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.md) | ⛔ Blocked | Run final qualification and retain the finding completion matrix |
 | [fn-109.22](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.22.md) | ✅ Done | Repair the simulation-exploration target path so a real campaign completes |

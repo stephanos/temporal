@@ -1,0 +1,179 @@
+=== RUN   TestPureMemoryFormattingAndJSON
+--- PASS: TestPureMemoryFormattingAndJSON (0.61s)
+=== RUN   TestErrorProvenanceUnwrap
+=== RUN   TestErrorProvenanceUnwrap/single-named-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.003s
+    error_provenance_test.go:34: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceUnwrapsingle-named-slice3174649217/001/internal/canonicaljson/helper.go:1:256 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Is -> time.Now}]
+    error_provenance_test.go:34: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceUnwrapsingle-named-slice3174649217/001/internal/canonicaljson/helper.go:1:256 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Is -> time.Now}]
+=== RUN   TestErrorProvenanceUnwrap/joined-named-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:34: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceUnwrapjoined-named-slice1094099249/001/internal/canonicaljson/helper.go:1:256 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Is -> time.Now}]
+    error_provenance_test.go:34: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceUnwrapjoined-named-slice1094099249/001/internal/canonicaljson/helper.go:1:256 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Is -> time.Now}]
+=== RUN   TestErrorProvenanceUnwrap/wrapped-named-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:34: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceUnwrapwrapped-named-slice2018796577/001/internal/canonicaljson/helper.go:1:256 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Is -> time.Now}]
+    error_provenance_test.go:34: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceUnwrapwrapped-named-slice2018796577/001/internal/canonicaljson/helper.go:1:256 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Is -> time.Now}]
+=== RUN   TestErrorProvenanceUnwrap/as-named-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:34: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceUnwrapas-named-slice972627173/001/internal/canonicaljson/helper.go:1:254 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.As -> time.Now}]
+    error_provenance_test.go:34: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceUnwrapas-named-slice972627173/001/internal/canonicaljson/helper.go:1:254 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.As -> time.Now}]
+=== RUN   TestErrorProvenanceUnwrap/direct-named-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:34: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceUnwrapdirect-named-slice81735909/001/internal/canonicaljson/helper.go:1:154 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Is -> time.Now}]
+    error_provenance_test.go:34: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceUnwrapdirect-named-slice81735909/001/internal/canonicaljson/helper.go:1:154 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Is -> time.Now}]
+=== RUN   TestErrorProvenanceUnwrap/true-multi
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:34: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceUnwraptrue-multi207176742/001/internal/canonicaljson/helper.go:1:267 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Is -> time.Now}]
+    error_provenance_test.go:34: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceUnwraptrue-multi207176742/001/internal/canonicaljson/helper.go:1:267 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Is -> time.Now}]
+=== RUN   TestErrorProvenanceUnwrap/single-only
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:34: metadata {linux amd64} package edges=0 effects=[]
+    error_provenance_test.go:34: metadata {darwin arm64} package edges=0 effects=[]
+=== RUN   TestErrorProvenanceUnwrap/clean-slice
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:34: metadata {linux amd64} package edges=0 effects=[]
+    error_provenance_test.go:34: metadata {darwin arm64} package edges=0 effects=[]
+=== RUN   TestErrorProvenanceUnwrap/nil-child
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:34: metadata {linux amd64} package edges=0 effects=[]
+    error_provenance_test.go:34: metadata {darwin arm64} package edges=0 effects=[]
+=== RUN   TestErrorProvenanceUnwrap/empty-multi
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:34: metadata {linux amd64} package edges=0 effects=[]
+    error_provenance_test.go:34: metadata {darwin arm64} package edges=0 effects=[]
+=== RUN   TestErrorProvenanceUnwrap/nil-slice-node
+    error_provenance_test.go:34: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:34: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceUnwrapnil-slice-node819595471/001/internal/canonicaljson/helper.go:1:258 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Is -> time.Now}]
+    error_provenance_test.go:34: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceUnwrapnil-slice-node819595471/001/internal/canonicaljson/helper.go:1:258 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Is -> time.Now}]
+--- PASS: TestErrorProvenanceUnwrap (9.05s)
+    --- PASS: TestErrorProvenanceUnwrap/single-named-slice (1.23s)
+    --- PASS: TestErrorProvenanceUnwrap/joined-named-slice (1.02s)
+    --- PASS: TestErrorProvenanceUnwrap/wrapped-named-slice (0.78s)
+    --- PASS: TestErrorProvenanceUnwrap/as-named-slice (0.73s)
+    --- PASS: TestErrorProvenanceUnwrap/direct-named-slice (0.74s)
+    --- PASS: TestErrorProvenanceUnwrap/true-multi (0.74s)
+    --- PASS: TestErrorProvenanceUnwrap/single-only (0.76s)
+    --- PASS: TestErrorProvenanceUnwrap/clean-slice (0.72s)
+    --- PASS: TestErrorProvenanceUnwrap/nil-child (0.74s)
+    --- PASS: TestErrorProvenanceUnwrap/empty-multi (0.75s)
+    --- PASS: TestErrorProvenanceUnwrap/nil-slice-node (0.85s)
+=== RUN   TestErrorProvenanceWriter
+=== RUN   TestErrorProvenanceWriter/fprint
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=7
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:68: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceWriterfprint733996166/001/internal/canonicaljson/helper.go:1:118 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Error -> time.Now}]
+    error_provenance_test.go:68: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceWriterfprint733996166/001/internal/canonicaljson/helper.go:1:118 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Error -> time.Now}]
+=== RUN   TestErrorProvenanceWriter/fprintf
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=7
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:68: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceWriterfprintf3820950917/001/internal/canonicaljson/helper.go:1:118 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Error -> time.Now}]
+    error_provenance_test.go:68: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceWriterfprintf3820950917/001/internal/canonicaljson/helper.go:1:118 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Error -> time.Now}]
+=== RUN   TestErrorProvenanceWriter/fprintln
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=7
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:68: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceWriterfprintln1258850140/001/internal/canonicaljson/helper.go:1:118 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Error -> time.Now}]
+    error_provenance_test.go:68: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceWriterfprintln1258850140/001/internal/canonicaljson/helper.go:1:118 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Error -> time.Now}]
+=== RUN   TestErrorProvenanceWriter/wrapped-is
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=1 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:68: metadata {linux amd64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceWriterwrapped-is719472201/001/internal/canonicaljson/helper.go:1:157 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Is -> time.Now}]
+    error_provenance_test.go:68: metadata {darwin arm64} package edges=0 effects=[{host-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceWriterwrapped-is719472201/001/internal/canonicaljson/helper.go:1:157 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/internal/canonicaljson.Leaf.Is -> time.Now}]
+=== RUN   TestErrorProvenanceWriter/nil-return
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=7
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:68: metadata {linux amd64} package edges=0 effects=[]
+    error_provenance_test.go:68: metadata {darwin arm64} package edges=0 effects=[]
+=== RUN   TestErrorProvenanceWriter/clean-return
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:68: metadata {linux amd64} package edges=0 effects=[]
+    error_provenance_test.go:68: metadata {darwin arm64} package edges=0 effects=[]
+=== RUN   TestErrorProvenanceWriter/noninvoked-return
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.001s
+    error_provenance_test.go:68: metadata {linux amd64} package edges=0 effects=[]
+    error_provenance_test.go:68: metadata {darwin arm64} package edges=0 effects=[]
+=== RUN   TestErrorProvenanceWriter/unknown-return
+    error_provenance_test.go:68: stock-host causal fixture: === RUN   TestBehavior
+            pure_test.go:1: actual callbacks=0 writer count=0
+        --- PASS: TestBehavior (0.00s)
+        PASS
+        ok  	example.invalid/errorprovenance/record	0.002s
+    error_provenance_test.go:68: metadata {linux amd64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceWriterunknown-return3444581321/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unknown dynamic callback receiver error}]
+    error_provenance_test.go:68: metadata {darwin arm64} package edges=0 effects=[{unresolved-effect  /home/agent/.cache/codex-build/tmp/TestErrorProvenanceWriterunknown-return3444581321/001/record/pure.go:1:200 example.invalid/errorprovenance/record.Check -> example.invalid/errorprovenance/record.Check -> unknown dynamic callback receiver error}]
+--- PASS: TestErrorProvenanceWriter (6.82s)
+    --- PASS: TestErrorProvenanceWriter/fprint (0.95s)
+    --- PASS: TestErrorProvenanceWriter/fprintf (0.99s)
+    --- PASS: TestErrorProvenanceWriter/fprintln (1.07s)
+    --- PASS: TestErrorProvenanceWriter/wrapped-is (0.91s)
+    --- PASS: TestErrorProvenanceWriter/nil-return (0.74s)
+    --- PASS: TestErrorProvenanceWriter/clean-return (0.72s)
+    --- PASS: TestErrorProvenanceWriter/noninvoked-return (0.70s)
+    --- PASS: TestErrorProvenanceWriter/unknown-return (0.75s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture	16.487s

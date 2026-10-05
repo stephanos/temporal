@@ -65,6 +65,21 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 - [ ] Existing ownership checks still pass; valid platform files and the explicit overlay/fixture exclusions remain accepted; no check relies on filename presence alone.
 - [ ] fn-105.4 is closed by reference to this task (one owner).
 
+## Source progress - bounded World lint correction (2026-10-05)
+
+The task-owned World correction removes S1025 from `invalidSnapshot` and SA4006 from process Session Finish. It passes the builtin string directly to the existing classified-error constructor and keeps only the immutable recording header length at the existing bounds and slice positions. No public API, error text, canonical recording bytes, cleanup ordering, test, comment, policy or generator input changed.
+
+Artifacts are retained under `../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/world-lint-progress-2026-10-05/`. Nine existing preservation controls pass before and after. The final ordinary World/process/mailbox run passes 45 top-level tests. Baseline/final ordinary root architecture suites, generator validation and three focused error-provenance/formatting controls pass on stock Go 1.27.1 linux/arm64. The conductor independently reran the ordinary three-package suite, nine controls and validation, verified both source hashes and all ten raw-log hashes, and reproduced the exact diagnostic comparison.
+
+Pinned, unfiltered scoped lint remains exit 1. Findings fall from 28 to 26. Removing exactly the two resolved diagnostic blocks and updating their aggregate counts leaves a byte-identical final report with all 24 ST1005 and two forbidigo findings unchanged. The lint baseline supplies RED; behavior controls already passed before editing.
+
+The fresh same-family Codex source-progress reviewer found no introduced Critical, Important or Minor issues and approved the source-progress commit. See `source-review.md`. This approval supplies no formal SHIP or native qualification.
+
+This checkpoint retains task-18 dependencies and complete original R8/R18/R19, preservation, affected-consumer, current native Darwin/full/default/functional gates and formal review. Historical `sidecar_publish_failed` produced no verdict. Linux qualification remains deferred under fn-128 and does not block this source task.
+
+stage: impl-review - skipped(policy: configured product lint remains red; fresh source-progress review is separate from formal SHIP)
+stage: plan-sync - skipped(policy: planSync disabled and no task completed)
+
 ## Done summary
 Blocked:
 # Task 19 acceptance remains open
@@ -139,7 +154,6 @@ stage: plan-sync - skipped(policy: no task reached accepted done)
 - Tests:
 - PRs:
 
-## Linux ownership blocker (2026-10-04)
+## Current acceptance blocker (2026-10-05)
 
-Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.
-The recorded formal-review dispatch failed with sidecar_publish_failed; no passing verdict exists for that dispatch.
+Task 19 has a bounded verified World lint source correction. Original task-18/predecessor acceptance, complete R8/R18/R19 preservation and affected-consumer requirements, current Darwin/full/default/functional gates and formal review remain open. Actual scoped lint remains exit 1 with 26 unchanged ST1005/forbidigo findings. The historical formal dispatch sidecar_publish_failed supplied no verdict. A fresh source-progress review does not replace formal SHIP. Missing transferred Linux evidence is not a blocker; fn-128 owns that qualification.
