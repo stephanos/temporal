@@ -28,7 +28,7 @@ const (
 	// The fields no frozen migration input sets.
 	schemaSupplement = `{"version":1,"functions":[{"name":"f","params":[{"name":"p","type":{"intRange":{"low":"-3","high":"4"}}}],"body":{"match":{"scrutinee":{"literal":{"record":{"type":"r","fields":[{"list":{"items":[{"int":"-1"},{"bool":true}]}}]}}},"cases":[{"pattern":{"wildcard":{}},"guard":{"literal":{"bool":true}},"body":{"literal":{"text":"x"}}}]}}}]}`
 	// The fields schemaAdded lists, each set. It is current, not captured: no historical bytes have them.
-	schemaAddedSupplement = `{"queries":[{"name":"q","total":"48","expectedRun":{"reason":"REASON_HOLE","disposition":"DISPOSITION_COMPLETED","cleanup":"CLEANUP_SUCCEEDED","monitors":[{"reason":"REASON_HOLE"}]}}],"functions":[{"name":"g","body":{"construct":{"type":"umpire.Step","choice":"committed"}}}],"realizations":[{"requiredSettings":[{"key":"k","value":"v"}],` +
+	schemaAddedSupplement = `{"queries":[{"name":"q","total":"48","expectedRun":{"reason":"REASON_HOLE","conformanceReason":"REASON_INCOMPLETE","disposition":"DISPOSITION_COMPLETED","cleanup":"CLEANUP_SUCCEEDED","monitors":[{"reason":"REASON_HOLE"}]}}],"functions":[{"name":"g","body":{"construct":{"type":"umpire.Step","choice":"committed"}}}],"realizations":[{"requiredSettings":[{"key":"k","value":"v"}],` +
 		`"behavior":{"visibility":[{"id":"v","position":{"file":"f"},"method":"/s/W","read":"/s/R","eventuallyWithin":{"position":{"file":"f"},"intervalMs":"1","atMostMs":"2"}},{"cause":"CAUSE_KIND_TIMER"}],` +
 		`"causes":[{"id":"c","position":{"file":"f"},"kind":"CAUSE_KIND_TIMER","bound":{"intervalMs":"1"}}],` +
 		`"attemptNumbering":{"position":{"file":"f"},"first":"1","oneRun":true},` +
@@ -133,6 +133,8 @@ var (
 		// How an expected Run ends and how its cleanup ends, declared (fn-124.5).
 		{message: "RunExpectation", field: schemaFieldOf("disposition", 6, schemaOptional, schemaEnum, "RunExpectation.Disposition", "disposition")},
 		{message: "RunExpectation", field: schemaFieldOf("cleanup", 7, schemaOptional, schemaEnum, "RunExpectation.Cleanup", "cleanup")},
+		// Why an expected Run's conformance is not conformant, by the judge's id (fn-124.6).
+		{message: "RunExpectation", field: schemaFieldOf("conformance_reason", 9, schemaOptional, schemaEnum, "RunExpectation.Reason", "conformanceReason")},
 	}
 	// An expected Run's reasons, prose at the capture, are the judge's ids since fn-124.5. The frozen
 	// migration inputs were declared in the new schema then (golden.DeclaredRuns), so the captured wire

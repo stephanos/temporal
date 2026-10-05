@@ -1170,6 +1170,11 @@ func (v *validator) expectedRun(q *umpirespb.Query) {
 	if !known(umpirespb.RunExpectation_Conformance_name, int32(expected.GetConformance())) {
 		v.report(at, "query %s expected Run has no known conformance", q.GetName())
 	}
+	// Conformance short of conformant may name the judge's reason; conformant names none.
+	if why := expected.GetConformanceReason(); why != umpirespb.RunExpectation_REASON_UNSPECIFIED &&
+		(!known(umpirespb.RunExpectation_Reason_name, int32(why)) || expected.GetConformance() == umpirespb.RunExpectation_CONFORMANCE_CONFORMANT) {
+		v.report(at, "query %s expected Run has an invalid conformance reason", q.GetName())
+	}
 	// An outcome short of satisfied names the judge's reason; a satisfied one names none.
 	outcome := func(status umpirespb.RunExpectation_Outcome, reason umpirespb.RunExpectation_Reason) {
 		named := reason != umpirespb.RunExpectation_REASON_UNSPECIFIED
