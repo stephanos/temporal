@@ -1,5 +1,5 @@
-// (a): a val read while its object initializes, before the object declares it. Beside the one read
-// the lint refuses, the reads that initialize nothing yet: in a def, a lambda, a by-name argument, a
+// (a): a val read while its object initializes, before the object declares it. Beside the reads
+// the lint refuses, those that initialize nothing yet: in a def, a lambda, a by-name argument, a
 // lazy val and an object declared but not read, and a constant the compiler writes in place.
 package fixture.features.initorder
 
@@ -18,3 +18,6 @@ object Forward:
   val late = 1
 
 def applied(body: Int ?=> Int): Int = body(using 0)
+
+// (d): a Model declaration beside the feature file.
+def stray = Switch.switch.scenario.actions(flip)

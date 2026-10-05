@@ -1,10 +1,11 @@
 // The feature file of a fixture feature (fn-126 R2, R3), lifted with the files beside it. Its
-// Switch reads as a feature file is read; the other objects do not, at the lines the lint refuses:
-// (c) a type after a machine object and a section out of its order; (d) a Property in its machine's
-// object rather than its `properties`, one over another object's machine, a machine in a type's
-// companion or in an object of the signature, and a Property in an object of a machine object that
-// is none of its sections. (b): Switch's `laws` reads the realization (Realization.scala), which
-// reads it back.
+// Switch reads as a feature file is read; the rest do not, at the lines the lint refuses. (c): a
+// type after a machine object, a section out of its order, a Scenario after a Query. (d): a
+// Property at the top level, in its machine's object rather than its `properties`, or over another
+// object's machine; a machine in a type's companion or in an object of the signature; a Property in
+// an object of a machine object that is none of its sections; a Query over another object's
+// Scenario; a val in Files that is no IR file. (b): Switch's `laws` reads the realization
+// (Realization.scala), which reads it back.
 package fixture.features.initorder
 
 import umpire.*
@@ -24,6 +25,9 @@ object Bulb:
 
 val flip = action(Party("fixture"))
 val one = Limits(steps = 1, actions = 1, search = 8)
+
+// A Model declaration at the top level.
+def loose: Property[Lamp] = Switch.switch.property holds (after => after.state.lit)
 
 // An object of the signature holds no machine object.
 object Holder:
@@ -81,5 +85,18 @@ object Misplaced:
   object properties:
     val switchLit = Switch.switch.property holds (after => after.state.lit)
 
+// A Scenario after a Query, and a Query over another object's Scenario.
+object Asked:
+  val asked = machine[Lamp, Outcome, Nothing] { starts(Lamp(false)); ends(_ => true) }
+
+  object properties:
+    val stays = asked.property holds (after => !after.state.lit)
+
+  object queries:
+    val first = query verify properties.stays in asked.scenario("any").free limits one total 2
+    val late = asked.scenario.free
+    val borrowed = query verify properties.stays in Switch.queries.flipped limits one total 2
+
 object Files:
   val switchFile = irFile("switch")(Switch.switch)
+  val note = "the switch" // Files holds IR files alone

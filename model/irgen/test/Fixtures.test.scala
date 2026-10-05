@@ -746,31 +746,44 @@ class Fixtures extends munit.FunSuite:
         // (a)
         forward(7),
         forward(17),
-        // (d): a machine in a type's companion and in an object of the signature
-        s"lift: $feature:23: bulb is a machine or composition, declared inside Bulb, the " +
+        // (d): a Model declaration beside the feature file
+        s"lift: ${at}Forward.scala:23: stray is a Scenario, which a feature declares in its " +
+          s"feature file, $feature: in the `queries` object of its machine's object there",
+        // (d): a machine in a type's companion, a Property at the top level, a machine object in
+        // an object of the signature
+        s"lift: $feature:24: bulb is a machine or composition, declared inside Bulb, the " +
           "companion of a type: it belongs in an object of its own",
-        s"lift: $feature:30: Inner holds a Model declaration inside Holder, an object of the " +
+        s"lift: $feature:30: loose is a Property, declared at the top level of a feature file: " +
+          "it belongs in the `properties` object of its machine's object",
+        s"lift: $feature:34: Inner holds a Model declaration inside Holder, an object of the " +
           "signature: a machine object sits at the top level of a feature file, and its " +
           "sections directly in it",
         // (b)
-        s"lift: $feature:50: an initialization cycle: Switch.laws -> SwitchRealization -> " +
+        s"lift: $feature:54: an initialization cycle: Switch.laws -> SwitchRealization -> " +
           "Switch.laws, each read while the one before it initializes, so one of them is read " +
           "half made: read it in a def, a lambda or a lazy val, or move what is read into an " +
           "object of its own",
         // (c)
-        s"lift: $feature:65: properties belongs before queries at $feature:62: object Backwards " +
+        s"lift: $feature:69: properties belongs before queries at $feature:66: object Backwards " +
           "reads its vocabulary, then effects, then its monitors, then its machine, then " +
           "properties, then laws, then queries",
-        s"lift: $feature:68: Late belongs before Backwards at $feature:56: a feature file reads " +
+        s"lift: $feature:72: Late belongs before Backwards at $feature:60: a feature file reads " +
           "its header, then its types, then its signature, then its machine and composition " +
           "objects, then object Files",
         // (d)
-        s"lift: $feature:71: extras holds a Model declaration in Misplaced, and is none of its " +
+        s"lift: $feature:75: extras holds a Model declaration in Misplaced, and is none of its " +
           "sections, effects, properties, laws, queries: its declarations belong in them",
-        s"lift: $feature:79: lit is a Property, and belongs in the `properties` object of its " +
+        s"lift: $feature:83: lit is a Property, and belongs in the `properties` object of its " +
           "machine's object, not in Misplaced",
-        s"lift: $feature:82: switchLit is declared over switch, which Switch declares: it " +
-          "belongs in Switch.properties"
+        s"lift: $feature:86: switchLit is declared over switch, which Switch declares: it " +
+          "belongs in Switch.properties",
+        // (c): a Scenario after a Query; (d): a Query over another object's Scenario
+        s"lift: $feature:97: late belongs before first at $feature:96: Asked.queries reads its " +
+          "Scenarios, then its Queries",
+        s"lift: $feature:98: borrowed is declared over flipped, which Switch.queries declares: " +
+          "it belongs in Switch.queries",
+        // (d): a val in Files that is no IR file
+        s"lift: $feature:102: note is declared in Files, which holds the feature's IR files alone"
       )
     )
 
