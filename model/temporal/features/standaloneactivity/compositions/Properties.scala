@@ -5,7 +5,7 @@ package compositions
 import umpire.*
 import temporal.capabilities.pausedIsNotDispatched
 import shared.taskqueue.Outstanding
-import admission.AdmissionFact
+import admission.{Admission, AdmissionFact}
 
 /**
  * The claims a design over the opaque queue is held to: the laws its capabilities bring, the
@@ -27,7 +27,7 @@ def overQueueClaims(c: Composition[OverQueue]) =
   )
   OverQueueClaims(
     declared.claim(pausedIsNotDispatched),
-    atMostOneActive(c)(OverQueue.twoActive),
+    atMostOneActive(c)(through(_.activity, Admission.twoActive)),
     failedCommitKeepsTheMessage
   )
 
@@ -40,5 +40,5 @@ def overMatchingClaims(c: Composition[OverMatching]) =
   val declared = overMatchingCapabilities(c)
   OverMatchingClaims(
     declared.claim(pausedIsNotDispatched),
-    atMostOneActive(c)(OverMatching.twoActive)
+    atMostOneActive(c)(through(_.activity, Admission.twoActive))
   )

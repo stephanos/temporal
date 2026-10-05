@@ -29,13 +29,20 @@ val queueStepsOn =
  * `activity` member's projection. Its free Queries run within `five`.
  */
 def overQueueCapabilities(c: Composition[OverQueue]) = capabilities(c, limits = five)(
-  Closable(status = OverQueue.phase, terminal = Admission.terminal, rejected = closedAnswer),
+  Closable(
+    status = through(_.activity, Admission.phase),
+    terminal = Admission.terminal,
+    rejected = closedAnswer
+  ),
   Pausable(
     pause = c.own(_.activity, control(Control.pause)),
     unpause = c.own(_.activity, control(Control.unpause)),
-    paused = OverQueue.paused
+    paused = through(_.activity, Admission.paused)
   ),
-  Pollable(dispatch = c.synced(_.activity -> attemptStart), running = OverQueue.running)
+  Pollable(
+    dispatch = c.synced(_.activity -> attemptStart),
+    running = through(_.activity, Admission.running)
+  )
 ).except(closedIsRejectedUniformly, because = queueStepsOn)
 
 /**
@@ -43,11 +50,18 @@ def overQueueCapabilities(c: Composition[OverQueue]) = capabilities(c, limits = 
  * Its free Queries run within `twelve`, the detailed provider's depth.
  */
 def overMatchingCapabilities(c: Composition[OverMatching]) = capabilities(c, limits = twelve)(
-  Closable(status = OverMatching.phase, terminal = Admission.terminal, rejected = closedAnswer),
+  Closable(
+    status = through(_.activity, Admission.phase),
+    terminal = Admission.terminal,
+    rejected = closedAnswer
+  ),
   Pausable(
     pause = c.own(_.activity, control(Control.pause)),
     unpause = c.own(_.activity, control(Control.unpause)),
-    paused = OverMatching.paused
+    paused = through(_.activity, Admission.paused)
   ),
-  Pollable(dispatch = c.synced(_.activity -> attemptStart), running = OverMatching.running)
+  Pollable(
+    dispatch = c.synced(_.activity -> attemptStart),
+    running = through(_.activity, Admission.running)
+  )
 ).except(closedIsRejectedUniformly, because = queueStepsOn)

@@ -81,11 +81,11 @@
       "Pollable.dispatch": "admit"
     },
     "bindings": {
-      "paused": "temporal.features.standaloneactivity.compositions.OverMatching$.paused",
-      "running": "temporal.features.standaloneactivity.compositions.OverMatching$.running"
+      "paused": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.paused",
+      "running": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:47"
+    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:58"
   }, {
     "machine": "currentOverLossyMatching",
     "name": "currentOverLossyMatching.terminalStatesAreFinal",
@@ -93,11 +93,11 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.standaloneactivity.compositions.OverMatching$.phase",
+      "status": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
       "terminal": "temporal.features.standaloneactivity.admission.Admission$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:46"
+    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:53"
   }, {
     "machine": "currentOverMatching",
     "name": "currentOverMatching.pausedIsNotDispatched",
@@ -109,11 +109,11 @@
       "Pollable.dispatch": "admit"
     },
     "bindings": {
-      "paused": "temporal.features.standaloneactivity.compositions.OverMatching$.paused",
-      "running": "temporal.features.standaloneactivity.compositions.OverMatching$.running"
+      "paused": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.paused",
+      "running": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:47"
+    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:58"
   }, {
     "machine": "currentOverMatching",
     "name": "currentOverMatching.terminalStatesAreFinal",
@@ -121,11 +121,11 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.standaloneactivity.compositions.OverMatching$.phase",
+      "status": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
       "terminal": "temporal.features.standaloneactivity.admission.Admission$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:46"
+    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:53"
   }, {
     "machine": "currentOverQueue",
     "name": "currentOverQueue.pausedIsNotDispatched",
@@ -137,11 +137,11 @@
       "Pollable.dispatch": "admit"
     },
     "bindings": {
-      "paused": "temporal.features.standaloneactivity.compositions.OverQueue$.paused",
-      "running": "temporal.features.standaloneactivity.compositions.OverQueue$.running"
+      "paused": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.paused",
+      "running": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:33"
+    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:37"
   }, {
     "machine": "currentOverQueue",
     "name": "currentOverQueue.terminalStatesAreFinal",
@@ -149,7 +149,7 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.standaloneactivity.compositions.OverQueue$.phase",
+      "status": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
       "terminal": "temporal.features.standaloneactivity.admission.Admission$.terminal"
     },
     "cites": { },
@@ -193,11 +193,11 @@
       "Pollable.dispatch": "admit"
     },
     "bindings": {
-      "paused": "temporal.features.standaloneactivity.compositions.OverMatching$.paused",
-      "running": "temporal.features.standaloneactivity.compositions.OverMatching$.running"
+      "paused": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.paused",
+      "running": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:47"
+    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:58"
   }, {
     "machine": "staleOverMatching",
     "name": "staleOverMatching.terminalStatesAreFinal",
@@ -205,11 +205,11 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.standaloneactivity.compositions.OverMatching$.phase",
+      "status": "temporal.features.standaloneactivity.compositions.OverMatching.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
       "terminal": "temporal.features.standaloneactivity.admission.Admission$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:46"
+    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:53"
   }, {
     "machine": "staleOverQueue",
     "name": "staleOverQueue.pausedIsNotDispatched",
@@ -221,11 +221,11 @@
       "Pollable.dispatch": "admit"
     },
     "bindings": {
-      "paused": "temporal.features.standaloneactivity.compositions.OverQueue$.paused",
-      "running": "temporal.features.standaloneactivity.compositions.OverQueue$.running"
+      "paused": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.paused",
+      "running": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:33"
+    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:37"
   }, {
     "machine": "staleOverQueue",
     "name": "staleOverQueue.terminalStatesAreFinal",
@@ -233,7 +233,7 @@
     "capabilities": [ "Closable" ],
     "actions": { },
     "bindings": {
-      "status": "temporal.features.standaloneactivity.compositions.OverQueue$.phase",
+      "status": "temporal.features.standaloneactivity.compositions.OverQueue.through.activity.temporal.features.standaloneactivity.admission.Admission$.phase",
       "terminal": "temporal.features.standaloneactivity.admission.Admission$.terminal"
     },
     "cites": { },
@@ -250,19 +250,19 @@
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:53"
+    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:67"
   }, {
     "machine": "currentOverMatching",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:53"
+    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:67"
   }, {
     "machine": "currentOverQueue",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:39"
+    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:46"
   }, {
     "machine": "staleAdmission",
     "law": "closedIsRejectedUniformly",
@@ -274,13 +274,13 @@
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:53"
+    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:67"
   }, {
     "machine": "staleOverQueue",
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "the queue member keeps stepping after the record closes; admissionCapabilities holds the record",
-    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:39"
+    "position": "model/temporal/features/standaloneactivity/compositions/Capabilities.scala:46"
   } ],
   "catalog": [ {
     "law": "closedIsRejectedUniformly",
