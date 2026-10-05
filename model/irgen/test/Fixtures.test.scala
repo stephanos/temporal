@@ -417,7 +417,8 @@ class Fixtures extends munit.FunSuite:
     "EndedTwice",
     "LooseRefinement",
     "LookalikePair",
-    "NilEffect"
+    "NilEffect",
+    "WatchesElsewhere"
   ).map(rejectsRoot) ++ scriptRejects ++ capabilityRejects ++ hintRejects ++
     markerRejects
 

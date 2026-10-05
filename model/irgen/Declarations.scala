@@ -415,6 +415,16 @@ private[irgen] trait Declarations:
               case r: Ref if path(r) => resolveSymbol(r)
               case _                 => v.symbol
             val tpe = v.tpt.tpe
+            // A monitor reads the steps of the machine that watches it, so it is of its states.
+            for
+              watched <- tpe.widen.dealias.typeArgs.headOption
+              if isNamed(tpe, "umpire.Monitor") && !(watched =:= s)
+            do
+              fail(
+                v,
+                s"${v.name} is a monitor of ${watched.show}, and $name's states are ${s.show}: a " +
+                  "machine watches monitors of its own state type"
+              )
             if isNamed(tpe, "umpire.Monitor") then b.addMonitors(monitorOf(sym, v))
             else if isNamed(tpe, "umpire.Assumption") then b.addAssumes(assumptionOf(sym, v))
             else b

@@ -1284,3 +1284,14 @@ object NilEffect extends Machine[Bulb, Outcome, Nothing]:
       if s.glow == Glow.bright then Nil else enter[Bulb, Outcome, Nothing](Bulb(Glow.bright))
   object rules extends Rules:
     when(_ => true)(bulbHand.squeeze ~> effects.brighten)
+
+/** A monitor of another state type than the machine that watches it. */
+val flagWatch =
+  monitor[Flag, Outcome, Nothing, Boolean](false)((seen, _, _) => seen)(seen => seen)
+
+object WatchesElsewhere extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  object monitors extends Section:
+    val elsewhere = flagWatch
+  object rules extends Bindings(flip ~> lampStep)

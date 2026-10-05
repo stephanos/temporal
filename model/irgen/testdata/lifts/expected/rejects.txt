@@ -151,6 +151,7 @@ lift: model/irgen/testdata/lifts/Rejects.scala:143: visible is a member of unref
 lift: model/irgen/testdata/lifts/Rejects.scala:158: visibleOutcomes is a member of unrefinedOutcomes's refinement: declare it in `object refinement extends Refinement(product)`, which holds the machine's refinement
 lift: model/irgen/testdata/lifts/Rejects.scala:30: channel closed holds at most 0 messages; a channel holds at least one
 lift: model/irgen/testdata/lifts/Rejects.scala:128: two monitors are named twice: fixture.rejects.Rejects$package$.twiceFirst and fixture.rejects.Rejects$package$.twiceSecond, and would share one Definition ID
+lift: model/irgen/testdata/lifts/Rejects.scala:1296: elsewhere is a monitor of fixture.rejects.Flag, and watchesElsewhere's states are fixture.rejects.Lamp: a machine watches monitors of its own state type
 lift: model/irgen/testdata/lifts/Rejects.scala:573: left of spareless holds a fixture.rejects.Lamp, and first is a machine of fixture.rejects.Flag: a member is a machine of its field's type
 lift: model/irgen/testdata/lifts/Rejects.scala:572: withMember names spare, which no member of spareless fills: a selector names a member of the composition
 lift: model/irgen/testdata/lifts/Rejects.scala:589: left of standIn stands in for first, and oneStart refines no machine: declare the machine it stands in for with `refines` in oneStart
