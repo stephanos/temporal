@@ -1,5 +1,10 @@
 # Contract evaluation
 
+The judge's generic rules (verdict aggregation, silence, the freeze after the first violation, the
+deadline before transitions, disposition precedence and correlated deduplication) are stated once,
+with their tests, in the Testpilot README's [How a Run is judged](../../README.md#how-a-run-is-judged).
+This document describes how the evaluator carries them out.
+
 `Prepare` binds a Contract to the immutable Program Observation/bounds view under the Profile's
 Contract and correlated ceilings; a Contract declares none of its own. The prepared
 Contract implements the internal execution MonitorFactory; `New` creates a fresh `Evaluator`
@@ -17,8 +22,8 @@ own rule ID; a Rule with instances is never evaluated under its own ID, which st
 `Observe` processes an appended event synchronously. It stages rule transitions, typed captures,
 and supporting sequence references, checks cancellation, then commits the entire event atomically.
 Predicates see pre-transition captures. Event-kind indexes preserve declaration order and only the
-first matching transition runs. The first committed violation returns `Stop`; later drain/cleanup
-events cannot extend or erase the proved bad prefix. Captures retain independent values and their
+first matching transition runs. The first committed violation returns `Stop` and freezes the
+evaluation. Captures retain independent values and their
 producing event sequences. Each Rule instance owns its Run-local state (state, captures, Deadline
 counter and support) and reads its own instance values; Rule instances and Runs never share
 mutable state.
@@ -30,8 +35,8 @@ the immutable runtime copy; both are Profile ceilings. A capture is typed by a `
 message; preparation rejects any other at the capture.
 
 A bounded-liveness rule's `Deadline` sets one positive bound in its `bound` oneof; preparation rejects
-a deadline with no bound or a non-positive one at the rule's deadline. `elapsed_milliseconds` expires before
-transitions at the first recorded elapsed coordinate greater than or equal to its Run-relative
+a deadline with no bound or a non-positive one at the rule's deadline. `elapsed_milliseconds` expires
+at the first recorded elapsed coordinate greater than or equal to its Run-relative
 deadline; it depends on the clock of the host that produced the Run. `rule_events` expires after
 exactly that many Run Events the Rule instance evaluated since its last transition, which is a count of what
 the Run recorded and nothing else. One helper owns the counter, and the online `Evaluator.Observe`
@@ -39,8 +44,7 @@ path and the offline `PreparedContract.Evaluate` path both reach it through that
 can tick on its own terms. Each Rule instance has its own counter, and one instance's transition
 does not reset another's. The counter resets on each transition into a new state, stops once the
 Rule instance reaches a terminal state, and freezes with every other rule effect once execution becomes
-incomplete, so no expiry is ever concluded from a truncated Run. A witness must be
-strictly earlier than expiry. Early completed closure is inconclusive. `RunEvent.execution_incomplete` takes effect before expiry and remains effective
+incomplete, so no expiry is ever concluded from a truncated Run. `RunEvent.execution_incomplete` takes effect before expiry and remains effective
 for later events, even when they omit the flag. Pending rules then stay inconclusive past their
 deadline; time and late witnesses cannot manufacture a result.
 
