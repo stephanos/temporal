@@ -103,7 +103,7 @@ Gates: task 3 after fn-118; task 4 beside task 3; task 5 after fn-127.1 and befo
 | fn-124.1 | ✅ done | `tools/umpire0`, `model0` and the empty command deleted |
 | fn-124.2 | ✅ done | Duplicate refinement and test-only APIs removed |
 | fn-124.3 | 🔄 in progress | Temporal facts the judge hard-codes declared in the realization |
-| fn-124.4 | 🔄 in progress | Verdict aggregation defined once; judge rules documented |
+| fn-124.4 | ✅ done | Verdict aggregation defined once; judge rules documented |
 | fn-124.5 | ⬜ todo | Generated-Case outcomes compared by declared ids |
 | fn-124.6 | ⬜ todo | Model assessment as the command-line judge; Evaluation Profile derived or retired |
 | fn-124.7 | ⬜ todo | Migration harness and frozen snapshots retired |
