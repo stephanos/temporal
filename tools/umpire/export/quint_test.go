@@ -251,7 +251,7 @@ func TestQuintExportRejectsWhatItDoesNotTranslate(t *testing.T) {
 		// A match with a case removed leaves a value no case matches: an undeclared hole, which Go reads
 		// as hole rows.
 		"a value no case matches": {"activity-system", func(m *umpirespb.Model) {
-			match := function(m, "temporal.features.standaloneactivity.admission.Admission$.control").GetBody().GetMatch()
+			match := function(m, "temporal.features.standaloneactivity.record.Admission$.effects$.control").GetBody().GetMatch()
 			match.Cases = match.GetCases()[:1]
 		}, "an undeclared hole at the row"},
 		"a hole in a machine's ends": {"", func(m *umpirespb.Model) {
@@ -296,7 +296,7 @@ func function(m *umpirespb.Model, name string) *umpirespb.Function {
 // phase, to both memberships at once: an activity is over only when it is completed and timed out, which no
 // state is, so terminal finality is never closed and never reopened.
 func overAtOnce(m *umpirespb.Model) {
-	body := function(m, "temporal.features.standaloneactivity.admission.Admission$.terminal").GetBody()
+	body := function(m, "temporal.features.standaloneactivity.record.Admission$.terminal").GetBody()
 	in := body.GetBinary()
 	is := func(item *umpirespb.Expr) *umpirespb.Expr {
 		return &umpirespb.Expr{Position: item.GetPosition(), Kind: &umpirespb.Expr_Binary{Binary: &umpirespb.Binary{
@@ -524,7 +524,7 @@ func TestQuintDisagreesOnAnotherModel(t *testing.T) {
 		subject string
 	}{
 		"a step's condition inverted": {"activity-system", func(m *umpirespb.Model) {
-			branch := function(m, "temporal.features.standaloneactivity.admission.Admission$.dispatch").GetBody().GetIf()
+			branch := function(m, "temporal.features.standaloneactivity.record.Admission$.effects$.dispatch").GetBody().GetIf()
 			branch.Then, branch.Else = branch.GetElse(), branch.GetThen()
 		}, TransitionAgreement, "currentAdmission"},
 		"a Property negated": {"activity-system", func(m *umpirespb.Model) {
@@ -532,7 +532,7 @@ func TestQuintDisagreesOnAnotherModel(t *testing.T) {
 			holds.Body = &umpirespb.Expr{Kind: &umpirespb.Expr_Unary{Unary: &umpirespb.Unary{Op: umpirespb.Unary_OP_NOT, Operand: holds.GetBody()}}}
 		}, PropertyAgreement, "staleAdmission"},
 		"a step's condition inverted, in a composition": {"activity-system", func(m *umpirespb.Model) {
-			branch := function(m, "temporal.features.standaloneactivity.admission.Admission$.dispatch").GetBody().GetIf()
+			branch := function(m, "temporal.features.standaloneactivity.record.Admission$.effects$.dispatch").GetBody().GetIf()
 			branch.Then, branch.Else = branch.GetElse(), branch.GetThen()
 		}, TransitionAgreement, "currentOverMatching"},
 		"a composition's Property negated": {"activity-system", func(m *umpirespb.Model) {
@@ -820,7 +820,7 @@ func TestAgreementRejectsATamperedComposition(t *testing.T) {
 // the order its result list holds them.
 func admittedSteps(m *umpirespb.Model) []*umpirespb.Construct {
 	var out []*umpirespb.Construct
-	for _, item := range function(m, "temporal.features.standaloneactivity.admission.Admission$.admitted").GetBody().GetList().GetItems() {
+	for _, item := range function(m, "temporal.features.standaloneactivity.record.Admission$.effects$.admitted").GetBody().GetList().GetItems() {
 		out = append(out, item.GetConstruct())
 	}
 	return out
@@ -963,7 +963,7 @@ func TestQuintRefusesANameItCannotWrite(t *testing.T) {
 			m := proto.Clone(loadModel(t, "activity-system")).(*umpirespb.Model)
 			steps := admittedSteps(m)
 			steps[0].Choice, steps[1].Choice = "accepts", name
-			at := function(m, "temporal.features.standaloneactivity.admission.Admission$.admitted").GetBody().GetList().GetItems()[1].GetPosition()
+			at := function(m, "temporal.features.standaloneactivity.record.Admission$.effects$.admitted").GetBody().GetList().GetItems()[1].GetPosition()
 			s, err := Open(m)
 			require.NoError(t, err)
 			_, err = s.Quint()

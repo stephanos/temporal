@@ -56,22 +56,27 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
   def inspect(using Quotes)(tastys: List[Tasty[quotes.type]]): Unit =
     try
       val index = Index(tastys, prefixes)
-      target match
-        case Target.Roots(roots)  => liftFile(index, "", roots)
-        case Target.IrFiles(only) =>
-          val declared = Lifting(Context(index)).irFiles(errors += "" -> _)
-          // A declaration the lifter cannot read may be the one asked for, so nothing is lifted.
-          if errors.isEmpty then
-            for name <- only.distinct.sorted if !declared.exists(_._1 == name) do
-              errors += "" -> LiftError(
-                s"IR file $name",
-                "no irFile of the lifted sources declares it"
-              )
-            if declared.isEmpty then
-              errors += "" -> LiftError("IR files", "the lifted sources declare no irFile")
-            // Each file is lifted over the one index, with state of its own.
-            val chosen = declared.filter((name, _) => only.isEmpty || only.contains(name))
-            for (name, roots) <- chosen.sortBy(_._1) do liftFile(index, name, roots)
+      // The declaration-order lint reads every inspected source first: a Model it refuses would
+      // be null or half made where it runs, so nothing of it is lifted.
+      val order = Order(index).refusals
+      if order.nonEmpty then errors ++= order.map("" -> _)
+      else
+        target match
+          case Target.Roots(roots)  => liftFile(index, "", roots)
+          case Target.IrFiles(only) =>
+            val declared = Lifting(Context(index)).irFiles(errors += "" -> _)
+            // A declaration the lifter cannot read may be the one asked for, so nothing is lifted.
+            if errors.isEmpty then
+              for name <- only.distinct.sorted if !declared.exists(_._1 == name) do
+                errors += "" -> LiftError(
+                  s"IR file $name",
+                  "no irFile of the lifted sources declares it"
+                )
+              if declared.isEmpty then
+                errors += "" -> LiftError("IR files", "the lifted sources declare no irFile")
+              // Each file is lifted over the one index, with state of its own.
+              val chosen = declared.filter((name, _) => only.isEmpty || only.contains(name))
+              for (name, roots) <- chosen.sortBy(_._1) do liftFile(index, name, roots)
     catch case e: LiftError => errors += "" -> e
 
   private def liftFile(index: Index, file: String, roots: Seq[String]): Unit =
