@@ -215,7 +215,8 @@ private def declare[S, O, F](family: Family, name: String, body: MachineScope[S,
     name,
     scope.starts,
     scope.ends,
-    scope.bindings.toVector.map(b => b.decl -> Bound.Function[S, O, F](b.function))
+    scope.bindings.toVector.map(b => b.decl -> Bound.Function[S, O, F](b.function)),
+    Nil
   )(using family)
 
 /** Names the entity the machine keeps state for. */
@@ -443,17 +444,25 @@ abstract class Machine[S, O, F](using
   /** The owner its `rules` and other sections read its types from. */
   protected given machineOwner: Owner[S, O, F] = Owner(this)
 
+  Machine.made.synchronized(Machine.made += this): Unit
+
   /** What each action is bound to, in the order its first rule names it. */
   private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] = rules.table
+
+  /**
+   * The machines this one is made from, which constructing it constructs as well: a derivation's
+   * source and the machine a `refining` names (IrFile.construct).
+   */
+  private[umpire] def reaches: Seq[Model] = Nil
 
   /** One step function per action: the rules of each, lowered (Rules.lowered). */
   private[umpire] def bindings: List[StepBinding[S, O, F]] =
     table.map((decl, bound) => StepBinding[S, O, F](decl, stepFunction(decl, bound))).toList
 
-  private def built(table: => Vector[(ActionDecl, Bound[S, O, F])])(using
+  private def built(table: => Vector[(ActionDecl, Bound[S, O, F])], also: Model*)(using
       family: Family
   ): Machine[S, O, F] =
-    Built(objectName(this), List(init), end, table)(using family, fs, fo, ff)
+    Built(objectName(this), List(init), end, table, this +: also)(using family, fs, fo, ff)
 
   /**
    * A machine that keeps the rows of the named actions and drops the rest, named after the object
@@ -510,9 +519,9 @@ abstract class Machine[S, O, F](using
    * A machine that refines `product` through `map` in place of the refinement this one declares,
    * and keeps the facts and outcomes that refinement lets the refined machine see.
    */
-  def refining[PS, PO, PF](@unused product: Machine[PS, PO, PF])(@unused map: S => PS)(using
+  def refining[PS, PO, PF](product: Machine[PS, PO, PF])(@unused map: S => PS)(using
       family: Family
-  ): Machine[S, O, F] = built(table)
+  ): Machine[S, O, F] = built(table, product)
 
   /** A machine whose checks also make the assumptions named, each once, after this one's. */
   def assuming(@unused added: Assumption*)(using family: Family): Machine[S, O, F] = built(table)
@@ -522,6 +531,13 @@ abstract class Machine[S, O, F](using
    * a member's monitors may not watch (model/SEMANTICS.md leaves that undefined).
    */
   def unmonitored(using family: Family): Machine[S, O, F] = built(table)
+
+object Machine:
+  private[umpire] val made = mutable.ArrayBuffer.empty[Machine[?, ?, ?]]
+
+  /** The machine object or derived machine of this name initialized so far, if any. */
+  private[umpire] def named(name: String): Option[Machine[?, ?, ?]] =
+    made.synchronized(made.find(m => m.name == name && !m.isInstanceOf[Built[?, ?, ?]]))
 
 /**
  * A machine derived from another, declared as an object that is it:
@@ -537,6 +553,7 @@ abstract class Derived[S, O, F](derivation: Machine[S, O, F])
   final def rules: RuleBook[S, O, F] = derivation.rules
   final override private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     derivation.table
+  final override private[umpire] def reaches: Seq[Model] = Seq(derivation)
 
 /**
  * A machine declared by the `machine[S, O, F] { ... }` builder, or derived from another: its name, its
@@ -546,7 +563,8 @@ final private[umpire] class Built[S, O, F](
     override val name: String,
     starts: List[S],
     isEnd: S => Boolean,
-    bound: => Vector[(ActionDecl, Bound[S, O, F])]
+    bound: => Vector[(ActionDecl, Bound[S, O, F])],
+    from: Seq[Model]
 )(using Family, Finite[S], Finite[O], Finite[F])
     extends Machine[S, O, F]:
   def init: S = starts.head
@@ -554,3 +572,4 @@ final private[umpire] class Built[S, O, F](
   object rules extends RuleBook[S, O, F]:
     private[umpire] def table: Vector[(ActionDecl, Bound[S, O, F])] = Vector.empty
   final override private[umpire] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] = bound
+  final override private[umpire] def reaches: Seq[Model] = from
