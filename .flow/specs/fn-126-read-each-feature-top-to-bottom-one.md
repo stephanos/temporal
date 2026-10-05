@@ -508,6 +508,18 @@ Decided 2026-10-05.
 9. **Product and System; the system contract becomes the history record.** The System level does not absorb the record's machines. That would merge machine objects across the `record/` subject folder against R1's one object per machine, so the record level is renamed instead (R18, R19).
 10. **Derived machines are `Derived` objects**, not vals in a `variants` section. One declaration form for every machine, and each design's Queries sit with it. The close policy's 116-line `designQueries` splits across its ten objects.
 
+### Later owner decisions (2026-10-05, during task 4)
+
+These amend R2, R15, R18 and the API sketch where they differ.
+
+11. **`init`, not `start`.** A machine object's initial state is `val init`, as in Quint and TLA+; `start` is Temporal's own word (StartActivityExecution, `caller.start`). `def end(s)` stays.
+12. **`object states`.** A machine's vocabulary (named state sets, projections and constants: `phase`, `terminal`, `paused`, `running`, …) is a section, `object states`, first after the header members.
+13. **`object adopts`, not `laws`.** The capabilities section is `object adopts`. "Capabilities" stays the noun for what is adopted (`Closable`, `Pausable`, …) and "laws" for what they bring (`<machine>.<law>`, `*.laws.json`). R2's machine order becomes: header, `states`, `effects`, `monitors`, `rules`, `properties`, `adopts`, `queries`.
+14. **`object refinement`.** A machine that refines another groups its refinement in `object refinement`: the abstract machine, the mapping (`toProduct`, renamed from `productOf`), and `visible`/`unobservable` where declared. One refinement per machine, as the IR holds today. It replaces R15's loose `refines`, `visible` and `unobservable` members.
+15. **`object IrFiles`, not `Files`,** for a feature's `irFile` roots.
+16. **Split the feature file by level (reverses R1's one file per folder, for folders with two levels).** In `standaloneactivity/` and `nexuscaller/`, the Product machine and the System machine each get a file of their own, `Product.scala` and `System.scala`, because different people read them. The feature file named after the folder keeps the types, the signature, the composition(s) and `object IrFiles`. The lint and the R10 layout test accept exactly these two level files beside a feature file. Task 6 does it with the R18 renames, so files and names change once.
+17. **The Nexus caller's `object Control` is renamed** (it is a negative control, a deliberately wrong caller design, and it collides with the activity's `enum Control` and shadows the feature's `caller`). Task 5 renames it to `ForgedCaller` with its machine-object conversion; its pin keeps every Definition ID.
+
 ## Ordering
 
 - **Entry:** fn-114, fn-118 and fn-122 are closed, and fn-127 (Simplify the DSL's words) is closed. That spec renames `accept` → `enter` across every Model and the realization words in every `Realization.scala`. Landing it first means the layout move carries renamed code and is never rebased onto a word rename.

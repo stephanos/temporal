@@ -6,6 +6,8 @@ satisfies: [R9, R10, R11, R18, R19]
 ## Description
 The spec's last task: one batch of renames (R18), the levels named Product and System and the system contract renamed the history record (R19), retired names checked (R10), and the spec closed with its evidence (R11). This task accepts new Definition IDs, re-captures the golden baseline once and regenerates once.
 
+**Owner decisions 11-17 (spec, "Later owner decisions").** With the R18 renames, split `standaloneactivity/` and `nexuscaller/` into the feature file plus `Product.scala` and `System.scala` (decision 16), teaching the lint and the R10 layout test those two level files. Carry-forward constraints: `.flow/tmp/fn-126/carry-forward.md`.
+
 **Cross-spec entry gate:**
 - Task 5 is done.
 - Never alongside fn-124.8.

@@ -6,6 +6,8 @@ satisfies: [R5, R9, R13, R15, R16, R17]
 ## Description
 Convert every remaining Model to the object forms of task 4 (R15-R17), inline its single-use Scenarios (R13), retire the builder forms, and bring the docs to the final declaration shape (R9).
 
+**Owner decisions 11-17 (spec, "Later owner decisions").** Convert the remaining Models with `init`, `states`, `adopts`, `refinement` and `IrFiles` as task 4 built them, and rename the Nexus caller's `object Control` to `ForgedCaller` (pin unchanged).
+
 **Cross-spec entry gate:**
 - Task 4 is done.
 - Never alongside fn-124.8.
