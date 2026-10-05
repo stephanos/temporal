@@ -141,3 +141,12 @@ Later the same day, the owner widened fn-126 beyond layout. See `.plans/DSL_SIMP
 - Actions are grouped by actor at the feature level.
 - The feature section holds only the IR files.
 - The levels are named Product and System.
+
+**Landed.** The layout of option (a), in today's declaration forms:
+
+- fn-126.1: the standalone activity, `record/` and `withTaskQueue/`, and the declaration-order lint;
+- fn-126.2: the Nexus caller, its close policy, the Nexus operation, `shared/taskqueue` and
+  `shared/worker`. No Model folder holds a per-kind file any more, the layout test keeps them
+  retired, and the lint refuses a Model in a folder whose file is not named after it.
+
+The machine objects, rules and sections of the owner's later decisions are fn-126's tasks 3 to 5.
