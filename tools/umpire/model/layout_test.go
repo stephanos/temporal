@@ -52,8 +52,19 @@ var retiredModelNames = regexp.MustCompile(strings.Join([]string{
 }, "|"))
 
 // retiredZoomInFolders matches a flattened zoom-in folder named from its feature's folder, as prose
-// names it: `record/`, `withTaskQueue/` or `closepolicy/`, not as the tail of a longer path.
+// names it: `record/`, `withTaskQueue/` or `closepolicy/`, not as the tail of a longer path. A bare
+// `record/` is also ordinary prose elsewhere ("the record/replay harness"), so it is read only in
+// model/ and the layout documents (zoomInProse); every other live file is held to
+// retiredZoomInMarked: the folder in backticks or under its feature's folder.
 var retiredZoomInFolders = regexp.MustCompile(`(?:^|[^\w/.-])(?:record|withTaskQueue|closepolicy)/`)
+
+// retiredZoomInMarked matches a flattened zoom-in folder that no prose names by accident: in
+// backticks (`record/`) or under its feature's folder (standaloneactivity/record).
+var retiredZoomInMarked = regexp.MustCompile(
+	"`(?:record|withTaskQueue|closepolicy)/|\\b(?:standaloneactivity/(?:record|withTaskQueue)|nexuscaller/closepolicy)\\b")
+
+// zoomInProse are the live files outside model/ that describe the Models' layout in prose.
+var zoomInProse = []string{"AGENTS.md", ".plans/UMPIRE_MODULES.md", ".plans/UMPIRE4_VISION.md"}
 
 // retiredModelRelatives matches, inside model/, a moved folder named from model/: temporal/taskqueue.
 // Outside model/ the same words name other trees, such as Testpilot's temporal/worker package.
@@ -146,9 +157,13 @@ var liveLayoutRoots = []string{
 func retiredModelMentions(path, content string) []string {
 	var found []string
 	scala, inModel := strings.HasSuffix(path, ".scala"), strings.HasPrefix(path, modelRoot+"/")
+	zoomIn := retiredZoomInMarked
+	if inModel || slices.Contains(zoomInProse, path) {
+		zoomIn = retiredZoomInFolders
+	}
 	for i, line := range strings.Split(content, "\n") {
 		if retiredModelNames.MatchString(line) || inModel && retiredModelRelatives.MatchString(line) ||
-			retiredZoomInFolders.MatchString(line) ||
+			zoomIn.MatchString(line) ||
 			scala && retiredScalaPackages.MatchString(line) || retiredFeatureFilePaths.MatchString(line) ||
 			retiredFeatureFileProseIn(path, line) {
 			found = append(found, fmt.Sprintf("%s:%d", path, i+1))
@@ -306,6 +321,13 @@ func TestRetiredModelMentionsAreFound(t *testing.T) {
 	// folder named from model/; neither is one.
 	require.Empty(t, retiredModelMentions("common/testing/testpilot/temporal/worker/api.go", "package worker"))
 	require.Empty(t, retiredModelMentions("common/testing/testpilot/README.md", "(`temporal/worker/outage.go`)"))
+	// A bare zoom-in folder name is prose outside model/ and the layout documents, unless it is
+	// marked as a path.
+	require.Empty(t, retiredModelMentions("common/testing/testpilot/README.md", "the record/replay harness"))
+	require.Empty(t, retiredModelMentions("tools/umpire/lower/race_test.go", "a run's record/verdict pair"))
+	require.NotEmpty(t, retiredModelMentions(".plans/UMPIRE_MODULES.md", "the record/replay harness"))
+	require.NotEmpty(t, retiredModelMentions("tools/umpire/lower/race_test.go", "read off `record/`"))
+	require.NotEmpty(t, retiredModelMentions("tools/umpire/lower/race_test.go", "features/standaloneactivity/withTaskQueue/"))
 }
 
 // Each retired per-kind name is found in a Model folder, at any depth, and nowhere else.
