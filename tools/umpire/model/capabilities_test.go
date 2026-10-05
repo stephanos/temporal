@@ -38,6 +38,7 @@ func TestCapabilitiesGeneratedClaims(t *testing.T) {
 		"query legacyJob legacyJob.closedIsRejectedUniformly": Verified,
 		"query keptJob keptJob.statusStaysClosed":             Verified,
 		"query pair pair.pausedIsNotDispatched":               Verified,
+		"query pair rightNeverHeld":                           Verified,
 		"query job killedWhileQueued":                         Found,
 		"query rogueJob rogueJob.pausedIsNotDispatched":       Counterexample,
 	}, kinds(c.report))
