@@ -1,0 +1,23 @@
+tools/gomad3/internal/compatibilitypack/authoring/discover.go:10:1: File is not properly formatted (goimports)
+	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+^
+tools/gomad3/internal/compatibilitypack/authoring/discover_test.go:8:1: File is not properly formatted (goimports)
+	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+^
+tools/gomad3/internal/compatibilitypack/authoring/qualify_test.go:7:1: File is not properly formatted (goimports)
+	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+^
+tools/gomad3/internal/compatibilitypack/authoring/refresh.go:12:1: File is not properly formatted (goimports)
+	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+^
+tools/gomad3/internal/compatibilitypack/authoring/refresh_test.go:17:1: File is not properly formatted (goimports)
+	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+^
+tools/gomad3/internal/compatibilitypack/authoring/request.go:11:1: File is not properly formatted (goimports)
+	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+^
+tools/gomad3/internal/compatibilitypack/authoring/request_test.go:9:1: File is not properly formatted (goimports)
+	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+^
+7 issues:
+* goimports: 7

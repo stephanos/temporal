@@ -1,0 +1,91 @@
+diff --git a/tools/gomad3/internal/compatibilitypack/authoring/discover.go b/tools/gomad3/internal/compatibilitypack/authoring/discover.go
+index a94bf703b4..b029c93b0b 100644
+--- a/tools/gomad3/internal/compatibilitypack/authoring/discover.go
++++ b/tools/gomad3/internal/compatibilitypack/authoring/discover.go
+@@ -7,7 +7,7 @@ import (
+ 	"slices"
+ 	"strings"
+ 
+-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
++	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+ 	"go.temporal.io/server/tools/gomad3/target"
+ 	"golang.org/x/mod/module"
+ )
+diff --git a/tools/gomad3/internal/compatibilitypack/authoring/discover_test.go b/tools/gomad3/internal/compatibilitypack/authoring/discover_test.go
+index 110c04f8d4..d0b96c9917 100644
+--- a/tools/gomad3/internal/compatibilitypack/authoring/discover_test.go
++++ b/tools/gomad3/internal/compatibilitypack/authoring/discover_test.go
+@@ -5,7 +5,7 @@ import (
+ 	"strings"
+ 	"testing"
+ 
+-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
++	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+ 	"go.temporal.io/server/tools/gomad3/target"
+ )
+ 
+diff --git a/tools/gomad3/internal/compatibilitypack/authoring/qualify_test.go b/tools/gomad3/internal/compatibilitypack/authoring/qualify_test.go
+index 8312474ae6..a7ef0d9c1d 100644
+--- a/tools/gomad3/internal/compatibilitypack/authoring/qualify_test.go
++++ b/tools/gomad3/internal/compatibilitypack/authoring/qualify_test.go
+@@ -4,7 +4,7 @@ import (
+ 	"strings"
+ 	"testing"
+ 
+-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
++	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+ )
+ 
+ func TestQualifyRejectsCurrentReviewDrift(t *testing.T) {
+diff --git a/tools/gomad3/internal/compatibilitypack/authoring/refresh.go b/tools/gomad3/internal/compatibilitypack/authoring/refresh.go
+index d2de5ec762..38c35519b5 100644
+--- a/tools/gomad3/internal/compatibilitypack/authoring/refresh.go
++++ b/tools/gomad3/internal/compatibilitypack/authoring/refresh.go
+@@ -9,7 +9,7 @@ import (
+ 	"sort"
+ 
+ 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
++	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+ 	"go.temporal.io/server/tools/gomad3/target"
+ )
+ 
+diff --git a/tools/gomad3/internal/compatibilitypack/authoring/refresh_test.go b/tools/gomad3/internal/compatibilitypack/authoring/refresh_test.go
+index 7c93cc83ff..9828228392 100644
+--- a/tools/gomad3/internal/compatibilitypack/authoring/refresh_test.go
++++ b/tools/gomad3/internal/compatibilitypack/authoring/refresh_test.go
+@@ -14,7 +14,7 @@ import (
+ 	"strings"
+ 	"testing"
+ 
+-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
++	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+ 	"go.temporal.io/server/tools/gomad3/target"
+ )
+ 
+diff --git a/tools/gomad3/internal/compatibilitypack/authoring/request.go b/tools/gomad3/internal/compatibilitypack/authoring/request.go
+index 31531f972a..ee14cd782e 100644
+--- a/tools/gomad3/internal/compatibilitypack/authoring/request.go
++++ b/tools/gomad3/internal/compatibilitypack/authoring/request.go
+@@ -8,7 +8,7 @@ import (
+ 	"strings"
+ 
+ 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
++	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+ 	"go.temporal.io/server/tools/gomad3/record"
+ 	"go.temporal.io/server/tools/gomad3/target"
+ 	"golang.org/x/mod/module"
+diff --git a/tools/gomad3/internal/compatibilitypack/authoring/request_test.go b/tools/gomad3/internal/compatibilitypack/authoring/request_test.go
+index 5ffdf86f5b..5bf1540794 100644
+--- a/tools/gomad3/internal/compatibilitypack/authoring/request_test.go
++++ b/tools/gomad3/internal/compatibilitypack/authoring/request_test.go
+@@ -6,7 +6,7 @@ import (
+ 	"testing"
+ 
+ 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
++	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+ 	"go.temporal.io/server/tools/gomad3/target"
+ )
+ 

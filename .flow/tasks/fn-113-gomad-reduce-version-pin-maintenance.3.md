@@ -48,6 +48,19 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 - [ ] Other-platform requests are reported and untouched
 - [ ] Each removed variant has retained evidence that nothing selects it; pack, request, report, and Makefile entry go together
 - [ ] `make -C tools/gomad3 validate compatibility-pack-qualification` passes on darwin/arm64; linux status recorded
+## Source progress - authoring import lint (2026-10-05)
+
+Seven explicit `compatibility` import aliases repair all seven current authoring goimports findings. The imported package already declares that name. All other source bytes, import paths, bodies, assertions, comments, approvals, pins and generated outputs remain unchanged.
+
+The source checkpoint is bound to base `8a8b57e8dc42202e8b5bb3dd974d6f306a913ea2` under `../artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/import-alias-progress-2026-10-05/`. `checks.json` retains exact commands, exits, raw-log hashes and before/after source hashes. Both baseline and final ordinary authoring, selected CLI and architecture controls pass. The same pinned unfiltered scoped lint changes from seven goimports findings, exit 1, to zero issues, exit 0. Final `make validate` passes on the frozen source because authoring files are generator-validation inputs.
+
+The conductor independently reran ordinary authoring, all five named CLI controls with verbose execution, architecture and actual pinned unfiltered scoped lint. It verified all 19 final source/log/config/patch bindings, seven Git-base hashes and seven byte-preservation comparisons. A fresh same-family Codex source reviewer found no introduced Critical, Important or Minor issue and approved this source-progress commit. See `source-review.md` and `conductor-verification.md`.
+
+The checkpoint retains .1/.2 dependencies, complete current-source R4 reconciliation, original acceptance, native Darwin pack qualification and formal review. Historical Done/Evidence remains historical and byte-unchanged. No native qualification or formal SHIP is claimed. Transferred Linux execution remains under fn-128.4/.7.
+
+stage: impl-review - skipped(policy: required native and broader product gates remain open; bounded source-progress review recorded separately)
+stage: plan-sync - skipped(policy: planSync disabled; no accepted task completion)
+
 ## Done summary
 # fn-113 task 3: pack refresh and stale variant retirement
 
@@ -77,3 +90,7 @@ Tracker sync: n/a (sync active=false).
 - Commits:
 - Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./cmd/gomadtool ./internal/compatibilitypack/... ./upgrade (focused-bound-final.log; exit0), go -C tools/gomad3 vet -tags test_dep ./cmd/gomadtool ./internal/compatibilitypack/... ./upgrade (vet-final.log; exit0), make -C tools/gomad3 validate compatibility-pack-qualification (8 Darwin requests; exit0), real CLI refresh in root and corpus mappings; approve one via generate --approve-review; rerun reports only other; Linux request unchanged; unmapped CLI exits2, selector audit:16Go modules, no remaining v041 selectors; retired pack/request/report/fixture and migrated same coverage to v047, codex implementation review: SHIP,R4met,16path bindings including6deletions and patch digest verified, gofmt and git diff --check clean; scopedlint17pre-existing findings none newrefresh files; nativeLinux unavailable, finalgates task4
 - PRs:
+
+## Current acceptance blocker (2026-10-05)
+
+Task 3's seven authoring import findings are repaired and its scoped lint, ordinary authoring, selected CLI, architecture and generator validation checks pass. Task-1/task-2 acceptance dependencies, complete R4 current-source reconciliation, required native Darwin validate/compatibility-pack qualification and formal review remain open. Developmental linux/arm64 evidence cannot satisfy those native gates. Missing transferred Linux qualification is not a blocker; fn-128.4/.7 own it.

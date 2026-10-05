@@ -1,0 +1,169 @@
+{
+  "task": "fn-113-gomad-reduce-version-pin-maintenance.3",
+  "date": "2026-10-05",
+  "status": "in_progress",
+  "scope": "source progress only; seven import aliases",
+  "branch": "gomad",
+  "base_commit": "8a8b57e8dc42202e8b5bb3dd974d6f306a913ea2",
+  "commits": [],
+  "host": "linux/arm64 (uname Linux aarch64)",
+  "toolchain": "stock Go 1.27.1",
+  "lint": "golangci-lint 2.13.0 built with go1.27.1",
+  "baseline": "red (unfiltered authoring lint exit 1, seven goimports findings); focused controls green",
+  "final": "unfiltered authoring lint exit 0, zero issues; focused controls and validate exit 0",
+  "sources": [
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/discover.go",
+      "base_sha256": "0148f2f88cc3756da6496366ea41474d039b2bdfda440558f61a7e092ed08a4f",
+      "final_sha256": "0eb4ed12f5110f08177c5adb858b0f7c38c476414ee6705f47401dbc4f264459",
+      "only_change": "add compatibility alias to existing import; all other bytes cmp-equal to base"
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/discover_test.go",
+      "base_sha256": "6b1bf73e90a5022895ee17f9a19277b85e0672c631527c19bf5feb5b73db161c",
+      "final_sha256": "43ccf6a9862ab4186fae44a75d91eac82cccd5cf3668e792f21353a777a0cba9",
+      "only_change": "add compatibility alias to existing import; all other bytes cmp-equal to base"
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/qualify_test.go",
+      "base_sha256": "53138d1b4d4a4599cddf9568b38e410246569732e878221b3e2e01685a2b4fc8",
+      "final_sha256": "cd0d9e6e4fed5f089f523472a83b29a2e5b423841b41753a41baa3558b1e90ea",
+      "only_change": "add compatibility alias to existing import; all other bytes cmp-equal to base"
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/refresh.go",
+      "base_sha256": "b22864410b2fea8c219ab85fca5f3ae031f946e286cea8f010b1120939d9d075",
+      "final_sha256": "eb3afb562a1d56bf9d7ba95b4734f633104725a0c695d05fc88e1f101fb03e90",
+      "only_change": "add compatibility alias to existing import; all other bytes cmp-equal to base"
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/refresh_test.go",
+      "base_sha256": "a8aae4991941a1e58963b3c557b5c5819e6dd5d1147d79d14358ccadf1c40496",
+      "final_sha256": "eee56683da565225acf33ee9a8f96061476204595c47a2e0f1d7597ac270ab23",
+      "only_change": "add compatibility alias to existing import; all other bytes cmp-equal to base"
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/request.go",
+      "base_sha256": "930c3f7b9b041f372da7d7aaddb9b63d4f996b0375ed731d140b97dca6aa82ae",
+      "final_sha256": "726e2aa61343275c92e2640d0c77d97dc2462f7f984a8df2a6598e60e99a170c",
+      "only_change": "add compatibility alias to existing import; all other bytes cmp-equal to base"
+    },
+    {
+      "path": "tools/gomad3/internal/compatibilitypack/authoring/request_test.go",
+      "base_sha256": "1b8e91579e90bf26093d1c76db7bb19dfa0c543921525ebb0aa9fcfccf980207",
+      "final_sha256": "2bb3eba653a5a78125346b88388618b0fc12b96bc7ecd47c5fd0ada31494fc4a",
+      "only_change": "add compatibility alias to existing import; all other bytes cmp-equal to base"
+    }
+  ],
+  "unchanged_lint_config": {
+    "path": ".github/.golangci.yml",
+    "sha256": "2abff492b6a1aeaaded801bccc2d8ab85ed366608862b0b9a5dd5311ae0fed43"
+  },
+  "patch": {
+    "path": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/import-alias-progress-2026-10-05/source.diff",
+    "sha256": "daf314c34201825df5ccb3700496514b9624ab3c693fb37b6c52ae1916aa49c7"
+  },
+  "checks": [
+    {
+      "phase": "baseline",
+      "gate": "lint",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "GOTOOLCHAIN=go1.27.1 GOWORK=off /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./internal/compatibilitypack/authoring",
+      "execution": "timeout 600s bash -c <command>; combined stdout/stderr captured once",
+      "exit_code": 1,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/import-alias-progress-2026-10-05/baseline-lint.log",
+      "log_sha256": "af4e59dd1647ff853caa359008ba7937619e101e06299eef4fb5b7d7c64b8896"
+    },
+    {
+      "phase": "baseline",
+      "gate": "authoring",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "GOTOOLCHAIN=go1.27.1 GOWORK=off go test -tags test_dep -count=1 ./internal/compatibilitypack/authoring",
+      "execution": "timeout 600s bash -c <command>; combined stdout/stderr captured once",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/import-alias-progress-2026-10-05/baseline-authoring.log",
+      "log_sha256": "2cdc2202f2ce94657f577c833b6cc22cc48fca272c9addc4e6e6c53cfd0a2258"
+    },
+    {
+      "phase": "baseline",
+      "gate": "cli",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "GOTOOLCHAIN=go1.27.1 GOWORK=off go test -tags test_dep -count=1 -run '^(TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes|TestRunCompatibilityPackCheckRequiresTheRepositoryWorkingDirectoryTable|TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas|TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree|TestSavedReportCannotSuppressAnotherMappedModule)$' ./cmd/gomadtool",
+      "execution": "timeout 600s bash -c <command>; combined stdout/stderr captured once",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/import-alias-progress-2026-10-05/baseline-cli.log",
+      "log_sha256": "2eeb407c40b14705aeb2d9f606f9bdc8f974a71510533b8bc38e9661fcc2398f"
+    },
+    {
+      "phase": "baseline",
+      "gate": "architecture",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "GOTOOLCHAIN=go1.27.1 GOWORK=off go test -tags test_dep -count=1 -run '^TestPackageArchitecture$' .",
+      "execution": "timeout 600s bash -c <command>; combined stdout/stderr captured once",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/import-alias-progress-2026-10-05/baseline-architecture.log",
+      "log_sha256": "0b95504a223f26cce82e078c70b1422f4472a19b59a67a27fc33d1c0473f66cf"
+    },
+    {
+      "phase": "final",
+      "gate": "lint",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "GOTOOLCHAIN=go1.27.1 GOWORK=off /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./internal/compatibilitypack/authoring",
+      "execution": "timeout 600s bash -c <command>; combined stdout/stderr captured once",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/import-alias-progress-2026-10-05/final-lint.log",
+      "log_sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
+    },
+    {
+      "phase": "final",
+      "gate": "authoring",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "GOTOOLCHAIN=go1.27.1 GOWORK=off go test -tags test_dep -count=1 ./internal/compatibilitypack/authoring",
+      "execution": "timeout 600s bash -c <command>; combined stdout/stderr captured once",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/import-alias-progress-2026-10-05/final-authoring.log",
+      "log_sha256": "efe2fff6f4422bd903b37d23e410c88683e0ee2fa4941d0ae8e2c284c80c9b05"
+    },
+    {
+      "phase": "final",
+      "gate": "cli",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "GOTOOLCHAIN=go1.27.1 GOWORK=off go test -tags test_dep -count=1 -run '^(TestRunCompatibilityPackRefreshStopsAtApprovalAndResumes|TestRunCompatibilityPackCheckRequiresTheRepositoryWorkingDirectoryTable|TestCompatibilityPackRefreshAcceptsSavedPinImpactSchemas|TestCompatibilityPackRefreshInfrastructureErrorsUseStatusThree|TestSavedReportCannotSuppressAnotherMappedModule)$' ./cmd/gomadtool",
+      "execution": "timeout 600s bash -c <command>; combined stdout/stderr captured once",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/import-alias-progress-2026-10-05/final-cli.log",
+      "log_sha256": "7bfc75616d1d40ef030cf68bae07d6a413e439a795adfba395ad49b15a06122d"
+    },
+    {
+      "phase": "final",
+      "gate": "architecture",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "GOTOOLCHAIN=go1.27.1 GOWORK=off go test -tags test_dep -count=1 -run '^TestPackageArchitecture$' .",
+      "execution": "timeout 600s bash -c <command>; combined stdout/stderr captured once",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/import-alias-progress-2026-10-05/final-architecture.log",
+      "log_sha256": "9854bff6d3d71169a7d4036630fe5d4b0d1438e5ef366b505de53ad7bde7a77c"
+    },
+    {
+      "phase": "final",
+      "gate": "validate",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "command": "GOTOOLCHAIN=go1.27.1 GOWORK=off make validate",
+      "execution": "timeout 600s bash -c <command>; combined stdout/stderr captured once",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/import-alias-progress-2026-10-05/final-validate.log",
+      "log_sha256": "d7c52a5ccd90aeac74e0a50e7b8ef1efc63a7d4b99643c205f00700389188364"
+    },
+    {
+      "phase": "final",
+      "gate": "scope-proof",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "command": "set -e\nfor file in discover.go discover_test.go qualify_test.go refresh.go refresh_test.go request.go request_test.go; do\n  source_path=\"tools/gomad3/internal/compatibilitypack/authoring/$file\"\n  cmp <(git show \"8a8b57e8dc42202e8b5bb3dd974d6f306a913ea2:$source_path\") <(sed 's/compatibility \"go.temporal.io\\/server\\/tools\\/gomad3\\/internal\\/compatibilitypack\"/\"go.temporal.io\\/server\\/tools\\/gomad3\\/internal\\/compatibilitypack\"/' \"$source_path\")\n  printf '%s byte-preservation=pass\\n' \"$source_path\"\ndone\ngit diff --check\ntest \"$(git diff --name-only | wc -l)\" -eq 7\ntest -z \"$(git diff --cached --name-only)\"\ntest \"$(git rev-parse HEAD)\" = 8a8b57e8dc42202e8b5bb3dd974d6f306a913ea2\nprintf 'seven-path-only=pass; diff-check=pass; index-empty=pass; base-unchanged=pass\\n'",
+      "exit_code": 0,
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-3/import-alias-progress-2026-10-05/scope-proof.log",
+      "log_sha256": "d89b3b42b86fb3e704d4ceb21e5dcf9d34de8f20ce2fb8ed6cef5e7ee8a3a3cd"
+    }
+  ],
+  "limits": "Native Darwin task acceptance, R4 source reconciliation, predecessor acceptance, full/native gates and formal review remain open. Linux native obligations remain under fn-128. No lifecycle write, stage, commit, bridge, worktree, native patched build or qualification was performed.",
+  "commands_terminal": true
+}

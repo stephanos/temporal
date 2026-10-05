@@ -1,0 +1,8 @@
+tools/gomad3/internal/compatibilitypack/authoring/discover.go byte-preservation=pass
+tools/gomad3/internal/compatibilitypack/authoring/discover_test.go byte-preservation=pass
+tools/gomad3/internal/compatibilitypack/authoring/qualify_test.go byte-preservation=pass
+tools/gomad3/internal/compatibilitypack/authoring/refresh.go byte-preservation=pass
+tools/gomad3/internal/compatibilitypack/authoring/refresh_test.go byte-preservation=pass
+tools/gomad3/internal/compatibilitypack/authoring/request.go byte-preservation=pass
+tools/gomad3/internal/compatibilitypack/authoring/request_test.go byte-preservation=pass
+seven-path-only=pass; diff-check=pass; index-empty=pass; base-unchanged=pass
