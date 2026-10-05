@@ -663,7 +663,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-122-capabilities-and-their-laws.md",
-  "status": "open",
+  "status": "done",
   "title": "Capabilities and their laws",
   "tracker": {
     "baseHashFlow": null,
@@ -676,5 +676,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T04:17:31.409534Z"
+  "updated_at": "2026-10-05T04:21:25.741828Z"
 }
