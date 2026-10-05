@@ -140,6 +140,8 @@ func ReadPinImpact(root, candidatePath, baselinePath string) (PinImpact, error) 
 	for _, pin := range report.Pins {
 		class := string(pin.Class)
 		switch pin.Class {
+		case pinimpact.ClassAdapter:
+			class = "adapter"
 		case pinimpact.ClassPackRule:
 			class = "pack_rule"
 		case pinimpact.ClassInterception:

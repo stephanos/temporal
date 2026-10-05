@@ -1,0 +1,11 @@
+--- FAIL: TestAdaptedPackDuplicateSumIsInvalidated (0.04s)
+    --- FAIL: TestAdaptedPackDuplicateSumIsInvalidated/duplicate=true (0.01s)
+        pinimpact_test.go:97: pack rule modernc-libc-xsys-v047 github.com/mattn/go-isatty status=unaffected, want invalidated
+        pinimpact_test.go:97: pack rule modernc-libc-xsys-v047 github.com/remyoudompheng/bigfft status=unaffected, want invalidated
+        pinimpact_test.go:97: pack rule modernc-libc-xsys-v047 golang.org/x/sys/unix status=unaffected, want invalidated
+        pinimpact_test.go:97: pack rule modernc-libc-xsys-v047 modernc.org/libc status=unaffected, want invalidated
+        pinimpact_test.go:97: pack rule modernc-libc-xsys-v047 modernc.org/memory status=unaffected, want invalidated
+        pinimpact_test.go:97: pack rule modernc-libc-xsys-v047 modernc.org/sqlite status=unaffected, want invalidated
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	0.043s
+FAIL

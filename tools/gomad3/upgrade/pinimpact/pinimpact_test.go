@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -19,6 +20,90 @@ import (
 	"go.temporal.io/server/tools/gomad3/upgrade/pinimpact"
 	"golang.org/x/mod/modfile"
 )
+
+func TestAdapterModuleSumRecords(t *testing.T) {
+	contents, err := os.ReadFile(filepath.Join(gomadRoot(t), "deterministicio/testdata/adapter-module-sums.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cases []struct {
+		Name   string
+		Sums   string
+		Status pinimpact.Status
+	}
+	if err := json.Unmarshal(contents, &cases); err != nil {
+		t.Fatal(err)
+	}
+	baseline := moduleFiles(t, []requirement{{path: sentryModule, version: "v0.46.0", sum: "h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0="}}, "")
+	for _, test := range cases {
+		t.Run(test.Name, func(t *testing.T) {
+			candidate := baseline
+			candidate.GoSum = []byte(test.Sums)
+			report, err := pinimpact.Evaluate(context.Background(), pinimpact.Spec{Root: gomadRoot(t), Baseline: baseline, Candidate: candidate, Resolver: goModResolver{}, IncludeAll: true})
+			if err != nil {
+				t.Fatal(err)
+			}
+			index := slices.IndexFunc(report.Pins, func(pin pinimpact.Pin) bool {
+				return pin.Class == pinimpact.ClassAdapter && pin.ID == sentryModule+"@v0.46.0"
+			})
+			if index < 0 || report.Pins[index].Status != test.Status || report.Invalidated != (test.Status != pinimpact.StatusUnaffected) {
+				t.Fatalf("adapter report = %+v, want %s", report, test.Status)
+			}
+			if string(candidate.GoSum) != test.Sums || string(candidate.GoMod) != string(baseline.GoMod) {
+				t.Fatal("report changed its inputs")
+			}
+		})
+	}
+}
+
+func TestPackOnlyDuplicateSumRemainsSelected(t *testing.T) {
+	requirements := baselineRequirements(t)[1:]
+	baseline := moduleFiles(t, requirements, "")
+	candidate := baseline
+	candidate.GoSum = append(slices.Clone(candidate.GoSum), candidate.GoSum...)
+	report := evaluate(t, baseline, candidate, goModResolver{})
+	if report.Invalidated || len(report.Pins) != 0 {
+		t.Fatalf("duplicate identical pack-only sums = %+v", report)
+	}
+	requirePackDecisions(t, loadPack(t, xxhashPack), requirements, true)
+}
+
+func TestAdaptedPackDuplicateSumIsInvalidated(t *testing.T) {
+	pack := loadPack(t, "modernc-libc-xsys-v047")
+	var requirements []requirement
+	for _, rule := range pack.Rules {
+		if !slices.ContainsFunc(requirements, func(required requirement) bool { return required.path == rule.Module.Path }) {
+			requirements = append(requirements, requirement{path: rule.Module.Path, version: rule.Module.Version, sum: rule.Module.Sum})
+		}
+	}
+	baseline := moduleFiles(t, requirements, "")
+	for _, duplicate := range []bool{false, true} {
+		t.Run(fmt.Sprintf("duplicate=%t", duplicate), func(t *testing.T) {
+			candidate := baseline
+			want := pinimpact.StatusUnaffected
+			if duplicate {
+				candidate.GoSum = append(slices.Clone(candidate.GoSum), []byte("modernc.org/libc v1.72.3 h1:ZnDF4tXn4NBXFutMMQC4vtbTFSXhhKzR73fv0beZEAU=\n")...)
+				want = pinimpact.StatusInvalidated
+			}
+			report, err := pinimpact.Evaluate(context.Background(), pinimpact.Spec{Root: gomadRoot(t), Baseline: baseline, Candidate: candidate, Resolver: goModResolver{}, IncludeAll: true})
+			if err != nil {
+				t.Fatal(err)
+			}
+			count := 0
+			for _, pin := range report.Pins {
+				if pin.Pack == pack.ID {
+					count++
+					if pin.Status != want {
+						t.Errorf("pack rule %s status=%s, want %s", pin.ID, pin.Status, want)
+					}
+				}
+			}
+			if count != len(pack.Rules) {
+				t.Fatalf("pack rule count=%d, want %d", count, len(pack.Rules))
+			}
+		})
+	}
+}
 
 const (
 	sentryModule   = "github.com/getsentry/sentry-go"
@@ -531,10 +616,10 @@ func requirePackDecisions(t *testing.T, pack compatibility.Pack, requirements []
 			Module: compatibility.Module{Path: rule.Module.Path, Version: requirements[index].version, Sum: requirements[index].sum},
 		}
 		for _, source := range rule.GoSources {
-			pkg.GoSources = append(pkg.GoSources, compatibility.Source{Name: source.Name, SHA256: source.SHA256})
+			pkg.GoSources = append(pkg.GoSources, compatibility.Source(source))
 		}
 		for _, source := range rule.ForeignSources {
-			pkg.ForeignSources = append(pkg.ForeignSources, compatibility.ForeignSource{Kind: source.Kind, Name: source.Name, SHA256: source.SHA256})
+			pkg.ForeignSources = append(pkg.ForeignSources, compatibility.ForeignSource(source))
 		}
 		packages = append(packages, pkg)
 	}

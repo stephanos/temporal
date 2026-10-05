@@ -140,10 +140,9 @@ func (target moduleState) observed(path string) (string, string) {
 	return versions[0], sums[0]
 }
 
-// match reports whether the module pins path at exactly version and sum. It
-// follows the adapter registry's check: a replacement of the path, a
-// duplicated or different requirement, or any recorded sum other than the
-// pinned one is a mismatch. It also requires the module graph to select the
+// match reports whether the module pins path at exactly version and sum. A
+// replacement, duplicated or different requirement, or any recorded sum other
+// than the pinned one is a mismatch. It also requires the module graph to select the
 // required version, which an untidy go.mod would not.
 func (target moduleState) match(path, version, sum string) moduleMatch {
 	if target.replaced[path] {
@@ -174,6 +173,14 @@ func (target moduleState) match(path, version, sum string) moduleMatch {
 		}
 	}
 	return moduleMatch{ok: true}
+}
+
+func (target moduleState) matchAdapter(path, version, sum string) moduleMatch {
+	match := target.match(path, version, sum)
+	if match.ok && len(target.sums[path][version]) != 1 {
+		return moduleMatch{reason: fmt.Sprintf("candidate go.sum records %s@%s more than once", path, version)}
+	}
+	return match
 }
 
 // GoResolver resolves module graphs with the go command in a scratch copy of

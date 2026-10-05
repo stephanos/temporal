@@ -140,7 +140,17 @@ type boundaryReceiver struct {
 	Pointer bool   `json:"pointer"`
 }
 
-func Run(ctx context.Context, options Spec) error {
+func Run(ctx context.Context, options Spec) (retErr error) {
+	var renderingFailure error
+	defer func() {
+		if renderingFailure != nil {
+			if retErr == nil {
+				retErr = renderingFailure
+			} else {
+				retErr = errors.Join(retErr, renderingFailure)
+			}
+		}
+	}()
 	if options.Root == "" || options.Output == "" {
 		return errors.New("upgrade dossier requires root and output paths")
 	}
@@ -214,9 +224,14 @@ func Run(ctx context.Context, options Spec) error {
 		}
 		seenGates[gate.Name] = struct{}{}
 		if options.Writer != nil {
-			fmt.Fprintf(options.Writer, "gomad3 qualification gate: %s\n", gate.Name)
+			_, err := fmt.Fprintf(options.Writer, "gomad3 qualification gate: %s\n", gate.Name)
+			renderingFailure = errors.Join(renderingFailure, err)
 		}
-		result, runErr := runGate(ctx, options.Root, gate, options.Writer)
+		result, runErr := runGate(ctx, options.Root, gate)
+		if options.Writer != nil && result.Output != "" {
+			_, err := io.WriteString(options.Writer, result.Output)
+			renderingFailure = errors.Join(renderingFailure, err)
+		}
 		dossier.Gates = append(dossier.Gates, result)
 		if runErr != nil {
 			gateFailure = fmt.Errorf("qualification gate %s: %w", gate.Name, runErr)
@@ -249,7 +264,7 @@ func boundaryDiffEmpty(difference BoundaryDiff) bool {
 	return len(difference.Added) == 0 && len(difference.Removed) == 0 && len(difference.Changed) == 0
 }
 
-func runGate(ctx context.Context, root string, gate Gate, output io.Writer) (GateResult, error) {
+func runGate(ctx context.Context, root string, gate Gate) (GateResult, error) {
 	executed, err := hostexec.Run(ctx, hostexec.Request{
 		Command: gate.Command, Dir: root, Env: os.Environ(), Timeout: maximumGateDuration,
 		TerminateGrace: gateTerminationGrace, OutputLimit: maximumGateOutput,
@@ -257,9 +272,6 @@ func runGate(ctx context.Context, root string, gate Gate, output io.Writer) (Gat
 	combined := make([]byte, 0, len(executed.Stdout.Bytes)+len(executed.Stderr.Bytes))
 	combined = append(combined, executed.Stdout.Bytes...)
 	combined = append(combined, executed.Stderr.Bytes...)
-	if output != nil && len(combined) != 0 {
-		_, _ = output.Write(combined)
-	}
 	result := GateResult{
 		Name: gate.Name, Command: append([]string(nil), gate.Command...), Output: string(combined),
 		OutputSHA256: digest(combined), OutputTruncated: executed.Stdout.Truncated || executed.Stderr.Truncated,
@@ -443,7 +455,7 @@ func boundaryTarget(entry boundaryInterceptIdentity) string {
 	return "(" + prefix + entry.Receiver.Name + ")." + entry.Symbol
 }
 
-func inspectOverlayCollision(root string, descriptor gomadversion.Descriptor) (OverlayCollisionEvidence, error) {
+func inspectOverlayCollision(root string, descriptor gomadversion.Descriptor) (result OverlayCollisionEvidence, retErr error) {
 	archivePath := filepath.Join(root, ".toolchain", "downloads", filepath.FromSlash(descriptor.Archive.Name))
 	archive, err := os.ReadFile(archivePath)
 	if err != nil {
@@ -456,7 +468,16 @@ func inspectOverlayCollision(root string, descriptor gomadversion.Descriptor) (O
 	if err != nil {
 		return OverlayCollisionEvidence{}, fmt.Errorf("open qualified Go archive: %w", err)
 	}
-	defer zipper.Close()
+	defer func() {
+		if err := zipper.Close(); err != nil {
+			result = OverlayCollisionEvidence{}
+			if retErr == nil {
+				retErr = err
+			} else {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}()
 	upstream := make(map[string]struct{})
 	reader := tar.NewReader(zipper)
 	for {
@@ -467,13 +488,13 @@ func inspectOverlayCollision(root string, descriptor gomadversion.Descriptor) (O
 		if nextErr != nil {
 			return OverlayCollisionEvidence{}, fmt.Errorf("read qualified Go archive: %w", nextErr)
 		}
-		if header.Typeflag != tar.TypeReg && header.Typeflag != tar.TypeRegA {
+		if header.Typeflag != tar.TypeReg {
 			continue
 		}
 		name := strings.TrimPrefix(filepath.ToSlash(header.Name), "go/")
 		upstream[name] = struct{}{}
 	}
-	result := OverlayCollisionEvidence{
+	result = OverlayCollisionEvidence{
 		Checked: true, ArchiveSHA256: "sha256:" + descriptor.Archive.SHA256,
 		OverlayPaths: append([]string(nil), descriptor.OverlayAllowlist...), Collisions: []string{},
 	}

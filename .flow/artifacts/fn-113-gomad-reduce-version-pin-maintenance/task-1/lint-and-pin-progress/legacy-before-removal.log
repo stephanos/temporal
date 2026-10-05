@@ -1,0 +1,10 @@
+=== RUN   TestLegacyRegularOverlayArchive
+=== RUN   TestLegacyRegularOverlayArchive/go/src/os/gomad.go
+=== RUN   TestLegacyRegularOverlayArchive/go/src/runtime/proc.go
+=== RUN   TestLegacyRegularOverlayArchive/go/src/os/gomad.go/
+--- PASS: TestLegacyRegularOverlayArchive (0.01s)
+    --- PASS: TestLegacyRegularOverlayArchive/go/src/os/gomad.go (0.00s)
+    --- PASS: TestLegacyRegularOverlayArchive/go/src/runtime/proc.go (0.00s)
+    --- PASS: TestLegacyRegularOverlayArchive/go/src/os/gomad.go/ (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/upgrade	0.016s

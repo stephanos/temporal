@@ -1,0 +1,98 @@
+=== RUN   TestAdapterModuleSumRecords
+=== RUN   TestAdapterModuleSumRecords/exact
+=== RUN   TestAdapterModuleSumRecords/go.mod_is_separate
+=== RUN   TestAdapterModuleSumRecords/identical_duplicate
+=== RUN   TestAdapterModuleSumRecords/changed_duplicate
+=== RUN   TestAdapterModuleSumRecords/missing_zip_sum
+--- PASS: TestAdapterModuleSumRecords (0.00s)
+    --- PASS: TestAdapterModuleSumRecords/exact (0.00s)
+    --- PASS: TestAdapterModuleSumRecords/go.mod_is_separate (0.00s)
+    --- PASS: TestAdapterModuleSumRecords/identical_duplicate (0.00s)
+    --- PASS: TestAdapterModuleSumRecords/changed_duplicate (0.00s)
+    --- PASS: TestAdapterModuleSumRecords/missing_zip_sum (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	0.011s
+=== RUN   TestRunRenderingFailurePreservesGateEvidence
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/qualified
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/qualified/write1
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/qualified/write2
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/gate
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/gate/write1
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/gate/write2
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/host
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/host/write1
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/host/write2
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/publication
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/publication/write1
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/publication/write2
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/corpus
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/corpus/write1
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/corpus/write2
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/baseline
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/baseline/write1
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/baseline/write2
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/boundary
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/boundary/write1
+=== RUN   TestRunRenderingFailurePreservesGateEvidence/boundary/write2
+--- PASS: TestRunRenderingFailurePreservesGateEvidence (0.19s)
+    --- PASS: TestRunRenderingFailurePreservesGateEvidence/qualified (0.03s)
+        --- PASS: TestRunRenderingFailurePreservesGateEvidence/qualified/write1 (0.01s)
+        --- PASS: TestRunRenderingFailurePreservesGateEvidence/qualified/write2 (0.01s)
+    --- PASS: TestRunRenderingFailurePreservesGateEvidence/gate (0.02s)
+        --- PASS: TestRunRenderingFailurePreservesGateEvidence/gate/write1 (0.00s)
+        --- PASS: TestRunRenderingFailurePreservesGateEvidence/gate/write2 (0.00s)
+    --- PASS: TestRunRenderingFailurePreservesGateEvidence/host (0.04s)
+        --- PASS: TestRunRenderingFailurePreservesGateEvidence/host/write1 (0.01s)
+        --- PASS: TestRunRenderingFailurePreservesGateEvidence/host/write2 (0.00s)
+    --- PASS: TestRunRenderingFailurePreservesGateEvidence/publication (0.01s)
+        --- PASS: TestRunRenderingFailurePreservesGateEvidence/publication/write1 (0.00s)
+        --- PASS: TestRunRenderingFailurePreservesGateEvidence/publication/write2 (0.00s)
+    --- PASS: TestRunRenderingFailurePreservesGateEvidence/corpus (0.03s)
+        --- PASS: TestRunRenderingFailurePreservesGateEvidence/corpus/write1 (0.01s)
+        --- PASS: TestRunRenderingFailurePreservesGateEvidence/corpus/write2 (0.01s)
+    --- PASS: TestRunRenderingFailurePreservesGateEvidence/baseline (0.03s)
+        --- PASS: TestRunRenderingFailurePreservesGateEvidence/baseline/write1 (0.01s)
+        --- PASS: TestRunRenderingFailurePreservesGateEvidence/baseline/write2 (0.01s)
+    --- PASS: TestRunRenderingFailurePreservesGateEvidence/boundary (0.03s)
+        --- PASS: TestRunRenderingFailurePreservesGateEvidence/boundary/write1 (0.01s)
+        --- PASS: TestRunRenderingFailurePreservesGateEvidence/boundary/write2 (0.01s)
+=== RUN   TestOverlayArchiveCleanupFailure
+=== RUN   TestOverlayArchiveCleanupFailure/read_and_close_fail
+=== RUN   TestOverlayArchiveCleanupFailure/tar_ends_before_stored_deflate_error
+--- PASS: TestOverlayArchiveCleanupFailure (0.00s)
+    --- PASS: TestOverlayArchiveCleanupFailure/read_and_close_fail (0.00s)
+    --- PASS: TestOverlayArchiveCleanupFailure/tar_ends_before_stored_deflate_error (0.00s)
+=== RUN   TestOverlayArchiveNilCleanupPreservesReadError
+--- PASS: TestOverlayArchiveNilCleanupPreservesReadError (0.00s)
+=== RUN   TestLegacyRegularOverlayArchive
+=== RUN   TestLegacyRegularOverlayArchive/go/src/os/gomad.go
+=== RUN   TestLegacyRegularOverlayArchive/go/src/runtime/proc.go
+=== RUN   TestLegacyRegularOverlayArchive/go/src/os/gomad.go/
+--- PASS: TestLegacyRegularOverlayArchive (0.01s)
+    --- PASS: TestLegacyRegularOverlayArchive/go/src/os/gomad.go (0.00s)
+    --- PASS: TestLegacyRegularOverlayArchive/go/src/runtime/proc.go (0.00s)
+    --- PASS: TestLegacyRegularOverlayArchive/go/src/os/gomad.go/ (0.00s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/upgrade	0.201s
+=== RUN   TestAdapterModuleSumRecords
+=== RUN   TestAdapterModuleSumRecords/exact
+=== RUN   TestAdapterModuleSumRecords/go.mod_is_separate
+=== RUN   TestAdapterModuleSumRecords/identical_duplicate
+=== RUN   TestAdapterModuleSumRecords/changed_duplicate
+=== RUN   TestAdapterModuleSumRecords/missing_zip_sum
+--- PASS: TestAdapterModuleSumRecords (0.03s)
+    --- PASS: TestAdapterModuleSumRecords/exact (0.01s)
+    --- PASS: TestAdapterModuleSumRecords/go.mod_is_separate (0.01s)
+    --- PASS: TestAdapterModuleSumRecords/identical_duplicate (0.01s)
+    --- PASS: TestAdapterModuleSumRecords/changed_duplicate (0.01s)
+    --- PASS: TestAdapterModuleSumRecords/missing_zip_sum (0.01s)
+=== RUN   TestPackOnlyDuplicateSumRemainsSelected
+--- PASS: TestPackOnlyDuplicateSumRemainsSelected (0.03s)
+=== RUN   TestAdaptedPackDuplicateSumIsInvalidated
+=== RUN   TestAdaptedPackDuplicateSumIsInvalidated/duplicate=false
+=== RUN   TestAdaptedPackDuplicateSumIsInvalidated/duplicate=true
+--- PASS: TestAdaptedPackDuplicateSumIsInvalidated (0.02s)
+    --- PASS: TestAdaptedPackDuplicateSumIsInvalidated/duplicate=false (0.01s)
+    --- PASS: TestAdaptedPackDuplicateSumIsInvalidated/duplicate=true (0.01s)
+PASS
+ok  	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	0.082s

@@ -1,0 +1,3 @@
+ok  	go.temporal.io/server/tools/gomad3/deterministicio	0.006s
+ok  	go.temporal.io/server/tools/gomad3/upgrade	0.149s
+ok  	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	0.066s

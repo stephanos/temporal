@@ -1,0 +1,7 @@
+[
+  {"name":"exact","sums":"github.com/getsentry/sentry-go v0.46.0 h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=\n","accepted":true,"status":"unaffected"},
+  {"name":"go.mod is separate","sums":"github.com/getsentry/sentry-go v0.46.0 h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=\ngithub.com/getsentry/sentry-go v0.46.0/go.mod h1:other\n","accepted":true,"status":"unaffected"},
+  {"name":"identical duplicate","sums":"github.com/getsentry/sentry-go v0.46.0 h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=\ngithub.com/getsentry/sentry-go v0.46.0 h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=\n","accepted":false,"status":"invalidated"},
+  {"name":"changed duplicate","sums":"github.com/getsentry/sentry-go v0.46.0 h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0=\ngithub.com/getsentry/sentry-go v0.46.0 h1:changed\n","accepted":false,"status":"invalidated"},
+  {"name":"missing zip sum","sums":"github.com/getsentry/sentry-go v0.46.0/go.mod h1:other\n","accepted":false,"status":"unknown"}
+]

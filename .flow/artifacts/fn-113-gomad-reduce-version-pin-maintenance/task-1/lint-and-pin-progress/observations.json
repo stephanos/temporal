@@ -1,0 +1,193 @@
+{
+  "task": "fn-113-gomad-reduce-version-pin-maintenance.1",
+  "base_commit": "c4858fefc4b4e1f449d431e59bbe2dbf83730b2f",
+  "source_revision": "c4858fefc4b4e1f449d431e59bbe2dbf83730b2f",
+  "source_state": "uncommitted scoped repair; conductor owns commits and lifecycle",
+  "host": "linux/arm64",
+  "toolchain": "stock go1.27.1; GOWORK=off for direct Go and lint commands",
+  "recorded_at": "2026-10-05T07:03:15Z",
+  "elapsed_method": "Bash SECONDS, whole-second precision; zero denotes less than one second, not an empty suite",
+  "source_sha256": {
+    "tools/gomad3/deterministicio/adapter_registry.go": "657ea0a8b44726ea13baaa4b65dcafcb210f450a5bf60f319bcc1914027401c4",
+    "tools/gomad3/deterministicio/adapter_registry_test.go": "878b925ea4c63db8c9f03cd477d38b8e68e3b09f38c60c0d442ff1b67aaec435",
+    "tools/gomad3/deterministicio/testdata/adapter-module-sums.json": "79ced5faa8ed50dd8d8eff03080e3afcfc3456d82b59cb50d61d38357079a2b2",
+    "tools/gomad3/upgrade/maintenance_compat.go": "05460e511ef0a7f2d4ccf136868b26172e6fbb28ae135aed2bf5389536435a2f",
+    "tools/gomad3/upgrade/pinimpact/modules.go": "d166ddad7d20519e9128c15626df6275855523dd4c0c58fe2b3febd332528d70",
+    "tools/gomad3/upgrade/pinimpact/pinimpact.go": "c8d1bdc43e57e825bd66cfb7c269a674027a763d8266ff6d144e0c5501c825b5",
+    "tools/gomad3/upgrade/pinimpact/pinimpact_test.go": "f83535808d2996da0b88b04699e2e60327df7673c189ff7cf5e293ee9fd568c6",
+    "tools/gomad3/upgrade/upgrade.go": "7f2b03366658d68d41d7d3097eb93d5b9899c8184db77ea452dce05d10d8a290",
+    "tools/gomad3/upgrade/upgrade_io_test.go": "5d6dae5f9d6527caa885080c06004cff5fcf910d4de34603285c029fc7945078"
+  },
+  "base_production_sha256": {
+    "tools/gomad3/deterministicio/adapter_registry.go": "657ea0a8b44726ea13baaa4b65dcafcb210f450a5bf60f319bcc1914027401c4",
+    "tools/gomad3/upgrade/upgrade.go": "212d05ea157779a4149e60b1f9fa023e191d8c1eba87674ac90ece0ea043ae05",
+    "tools/gomad3/upgrade/pinimpact/pinimpact.go": "c5c50c61cb7b4f71b8fee306449acd3017a85ee9fd8f8e4aa206a022d481737d",
+    "tools/gomad3/upgrade/pinimpact/modules.go": "f716ef662ee8127b50f4070127322fe21c9bd47de86370f96f12ac19a6d1da3d"
+  },
+  "observations": [
+    {
+      "name": "baseline-quick",
+      "command": "timeout 600s env GOTOOLCHAIN=go1.27.1 GOWORK=off go -C tools/gomad3 test -tags test_dep -count=1 ./cmd/gomadtool ./upgrade/...",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 1,
+      "elapsed_seconds": 10,
+      "source": "base",
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/baseline-quick.log",
+      "log_sha256": "dbd8f238dcbfaee55b3c9ecf9f2fee889827719e45709e51ec8fafdcc33846cd"
+    },
+    {
+      "name": "baseline-validate",
+      "command": "timeout 600s make -C tools/gomad3 validate",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 0,
+      "elapsed_seconds": 3,
+      "source": "base",
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/baseline-validate.log",
+      "log_sha256": "14f0f6898d1f2f53f9554d007882d37feccca09025cfa71566ed9c8e482d019e"
+    },
+    {
+      "name": "baseline-lint",
+      "command": "timeout 600s env GOTOOLCHAIN=go1.27.1 GOWORK=off /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./upgrade ./upgrade/pinimpact",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 1,
+      "elapsed_seconds": 1,
+      "source": "base",
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/baseline-lint.log",
+      "log_sha256": "19f12462dcd2f3b07affd477924f464e071e1e259ef406ba728f71930fa2ebda"
+    },
+    {
+      "name": "red-adapter",
+      "command": "timeout 600s env GOTOOLCHAIN=go1.27.1 GOWORK=off go -C tools/gomad3 test -tags test_dep -count=1 -run 'Test(AdapterModuleSumRecords|PackOnlyDuplicateSumRemainsSelected)$' ./deterministicio ./upgrade/pinimpact",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 1,
+      "elapsed_seconds": 0,
+      "source": "base production plus regression tests",
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/red-adapter.log",
+      "log_sha256": "987384f518f53c78750894259105aa99a62d926ef9cd3dd15d2dea921a8b2008"
+    },
+    {
+      "name": "red-upgrade-io",
+      "command": "timeout 600s env GOTOOLCHAIN=go1.27.1 GOWORK=off go -C tools/gomad3 test -tags test_dep -count=1 -run 'Test(RunRenderingFailurePreservesGateEvidence|OverlayArchiveCleanupFailure|LegacyRegularOverlayArchive)$' ./upgrade",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 1,
+      "elapsed_seconds": 2,
+      "source": "base upgrade production plus initial regression tests; adapter repair already present",
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/red-upgrade-io.log",
+      "log_sha256": "39b3427b039399bf5f917c0deb63bf8e48743bf835d3cb17c5658e89a011665f"
+    },
+    {
+      "name": "green-regressions",
+      "command": "timeout 600s env GOTOOLCHAIN=go1.27.1 GOWORK=off go -C tools/gomad3 test -tags test_dep -count=1 -run 'Test(AdapterModuleSumRecords|PackOnlyDuplicateSumRemainsSelected|RunRenderingFailurePreservesGateEvidence|OverlayArchiveCleanupFailure|LegacyRegularOverlayArchive)$' ./deterministicio ./upgrade ./upgrade/pinimpact",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 0,
+      "elapsed_seconds": 0,
+      "source": "intermediate repair; before added adapted-pack and nil-cleanup controls",
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/green-regressions.log",
+      "log_sha256": "783357cfebc5db9eb6375337971376e878300ac4fcb51723bfc2febc8a610682"
+    },
+    {
+      "name": "legacy-before-removal",
+      "command": "timeout 600s env GOTOOLCHAIN=go1.27.1 GOWORK=off go -C tools/gomad3 test -tags test_dep -count=1 -v -run '^TestLegacyRegularOverlayArchive$' ./upgrade",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 0,
+      "elapsed_seconds": 1,
+      "source": "repaired raw legacy fixture with original TypeReg/TypeRegA production branch temporarily retained",
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/legacy-before-removal.log",
+      "log_sha256": "3447d31cde3937375db71533aaccd7fe5607ec5751c8d44b9da9be8b9ce79971"
+    },
+    {
+      "name": "red-adapted-pack",
+      "command": "timeout 600s env GOTOOLCHAIN=go1.27.1 GOWORK=off go -C tools/gomad3 test -tags test_dep -count=1 -run '^TestAdaptedPackDuplicateSumIsInvalidated$' ./upgrade/pinimpact",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 1,
+      "elapsed_seconds": 1,
+      "source": "final report production except packModule adapter-specific duplicate guard temporarily absent",
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/red-adapted-pack.log",
+      "log_sha256": "00f019fcf43348e20d28680762cb2d608414d97674c1f44b7b0bf1e82b8c303b"
+    },
+    {
+      "name": "final-regressions",
+      "command": "timeout 600s env GOTOOLCHAIN=go1.27.1 GOWORK=off go -C tools/gomad3 test -tags test_dep -count=1 -v -run 'Test(AdapterModuleSumRecords|PackOnlyDuplicateSumRemainsSelected|AdaptedPackDuplicateSumIsInvalidated|RunRenderingFailurePreservesGateEvidence|OverlayArchiveCleanupFailure|OverlayArchiveNilCleanupPreservesReadError|LegacyRegularOverlayArchive)$' ./deterministicio ./upgrade ./upgrade/pinimpact",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 0,
+      "elapsed_seconds": 1,
+      "source": "final source",
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/final-regressions.log",
+      "log_sha256": "8331da16ee5328e400ab7ca5a353ff198d627be1de970fe45b18a881a7b13029"
+    },
+    {
+      "name": "final-lint",
+      "command": "timeout 600s env GOTOOLCHAIN=go1.27.1 GOWORK=off /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./upgrade ./upgrade/pinimpact",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+      "exit_code": 0,
+      "elapsed_seconds": 1,
+      "source": "final source",
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/final-lint.log",
+      "log_sha256": "e92606b0bf483111dff0a120c315ea165821348f31365020e2468a0059095c47"
+    },
+    {
+      "name": "final-quick",
+      "command": "timeout 600s env GOTOOLCHAIN=go1.27.1 GOWORK=off go -C tools/gomad3 test -tags test_dep -count=1 ./cmd/gomadtool ./upgrade/...",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 1,
+      "elapsed_seconds": 9,
+      "source": "final source",
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/final-quick.log",
+      "log_sha256": "d77ca03afb35109422d8ae5b81dabd73c0f30ba6eeacc4ad5576b8872d2cd105"
+    },
+    {
+      "name": "final-validate",
+      "command": "timeout 600s make -C tools/gomad3 validate",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 0,
+      "elapsed_seconds": 4,
+      "source": "final source",
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/final-validate.log",
+      "log_sha256": "0d5aa3105e4fbd11ce89317c80c4faa7f452a8b9cc18f4820fe7f7ec5dcfa69f"
+    },
+    {
+      "name": "final-vet",
+      "command": "timeout 600s env GOTOOLCHAIN=go1.27.1 GOWORK=off go -C tools/gomad3 vet -tags test_dep ./upgrade ./upgrade/pinimpact ./deterministicio",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 0,
+      "elapsed_seconds": 1,
+      "source": "final source",
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/final-vet.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "final-architecture",
+      "command": "timeout 600s env GOTOOLCHAIN=go1.27.1 GOWORK=off go -C tools/gomad3 test -tags test_dep -count=1 -run '^TestPackageArchitecture$' .",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 0,
+      "elapsed_seconds": 4,
+      "source": "final source",
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/final-architecture.log",
+      "log_sha256": "2fd5f666751d6c905b463124e0994e419301820cf7c457f87eb2312b03d8fd8f"
+    },
+    {
+      "name": "final-diffcheck",
+      "command": "git diff --check -- tools/gomad3 .flow/tasks",
+      "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+      "exit_code": 0,
+      "elapsed_seconds": 0,
+      "source": "final source",
+      "log": ".flow/artifacts/fn-113-gomad-reduce-version-pin-maintenance/task-1/lint-and-pin-progress/final-diffcheck.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "scope_notes": [
+    "Shared literal five-case sum fixture independently exercises private requireAdapterSums and public Evaluate; production registry remains byte-identical to base.",
+    "Pack-only duplicate sum positive control retains actual pack-selector allowance; adapted-pack rules become invalidated when their adapted activation module has duplicate sums.",
+    "red-upgrade-io.log proves rendering and real flate cleanup failures. Its legacy trailing-slash subcase is a fixture-setup error and earns no behavior regression claim. legacy-before-removal.log is the valid legacy characterization with the old branch; final-regressions.log retains identical collision/noncollision/directory expectations after removal.",
+    "Final regressions executed all seven named test functions in three packages. The required Quick executes the entire upgrade package and fails only the three original host-guarded pin/build comparators.",
+    "Raw logs retain tool-generated whitespace. final-diffcheck intentionally checks source and task documents instead of rewriting raw evidence.",
+    "Intermediate test-file snapshots were not retained; intermediate observations describe their actual source state and are not claimed as final-source qualification.",
+    "No native patched-runtime, full-host, Darwin qualification, or formal implementation review is claimed."
+  ],
+  "remaining_blocker": {
+    "category": "EXTERNAL_BLOCKED",
+    "summary": "Required task Quick still fails TestFixtureBumpMatchesBuildRejections, TestSameVersionWithChangedSum and TestReplacedModules at production linux/arm64 refusal before their real pin/build comparisons.",
+    "resolution": "Run the unchanged required task command on a supported Darwin host, retain actual endpoint pin-comparator evidence, then obtain conductor-owned formal review."
+  }
+}

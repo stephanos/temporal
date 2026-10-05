@@ -1,0 +1,12 @@
+ok  	go.temporal.io/server/tools/gomad3/cmd/gomadtool	0.839s
+ok  	go.temporal.io/server/tools/gomad3/upgrade	0.112s
+ok  	go.temporal.io/server/tools/gomad3/upgrade/adapterregen	9.140s
+--- FAIL: TestFixtureBumpMatchesBuildRejections (0.01s)
+    pinimpact_test.go:259: adapter build check error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want rejection containing "unsupported github.com/getsentry/sentry-go version"
+--- FAIL: TestSameVersionWithChangedSum (0.01s)
+    pinimpact_test.go:304: adapter build check error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want rejection containing "module sum"
+--- FAIL: TestReplacedModules (0.02s)
+    pinimpact_test.go:358: adapter build check error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want rejection containing "already replaces github.com/getsentry/sentry-go"
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/upgrade/pinimpact	0.235s
+FAIL

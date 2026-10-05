@@ -2,6 +2,7 @@ package deterministicio
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -11,6 +12,38 @@ import (
 	"go.temporal.io/server/tools/gomad3/target"
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
+
+func TestAdapterModuleSumRecords(t *testing.T) {
+	contents, err := os.ReadFile("testdata/adapter-module-sums.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cases []struct {
+		Name     string
+		Sums     string
+		Accepted bool
+	}
+	if err := json.Unmarshal(contents, &cases); err != nil {
+		t.Fatal(err)
+	}
+	identity := gomadversion.AdapterIdentity{Module: "github.com/getsentry/sentry-go", Version: "v0.46.0", Sum: "h1:mbdDaarbUdOt9X+dx6kDdntkShLEX3/+KyOsVDTPDj0="}
+	for _, test := range cases {
+		t.Run(test.Name, func(t *testing.T) {
+			root := t.TempDir()
+			if err := os.WriteFile(filepath.Join(root, "go.sum"), []byte(test.Sums), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			_, err := requireAdapterSums(root, []adapterDefinition{{identity: identity}})
+			if (err == nil) != test.Accepted || (err != nil && !IsInvalidBuildAdapterConfiguration(err)) {
+				t.Fatalf("adapter sum check = %v, want accepted=%t", err, test.Accepted)
+			}
+			kept, readErr := os.ReadFile(filepath.Join(root, "go.sum"))
+			if readErr != nil || string(kept) != test.Sums {
+				t.Fatalf("go.sum changed: %q, %v", kept, readErr)
+			}
+		})
+	}
+}
 
 func TestAdapterReplacementUsesExplicitModuleRoot(t *testing.T) {
 	root := t.TempDir()

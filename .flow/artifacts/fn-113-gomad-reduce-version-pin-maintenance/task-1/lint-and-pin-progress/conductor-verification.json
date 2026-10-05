@@ -1,0 +1,62 @@
+{
+  "base": "c4858fefc4b4e1f449d431e59bbe2dbf83730b2f",
+  "kind": "source-progress verification; not task completion or native qualification",
+  "focused": [
+    {
+      "chunk_id": "65eb34",
+      "wall_time_seconds": 0.316881459,
+      "exit_code": 0,
+      "original_token_count": 14,
+      "output": "ok  \tgo.temporal.io/server/tools/gomad3/upgrade\t0.174s\n"
+    },
+    {
+      "chunk_id": "610e26",
+      "wall_time_seconds": 0.190908125,
+      "exit_code": 0,
+      "original_token_count": 17,
+      "output": "ok  \tgo.temporal.io/server/tools/gomad3/upgrade/pinimpact\t0.082s\n"
+    },
+    {
+      "chunk_id": "8577e4",
+      "wall_time_seconds": 0.112719917,
+      "exit_code": 0,
+      "original_token_count": 16,
+      "output": "ok  \tgo.temporal.io/server/tools/gomad3/deterministicio\t0.003s\n"
+    }
+  ],
+  "gates": [
+    {
+      "chunk_id": "cb056b",
+      "wall_time_seconds": 7.695911504,
+      "exit_code": 1,
+      "original_token_count": 252,
+      "output": "ok  \tgo.temporal.io/server/tools/gomad3/cmd/gomadtool\t0.930s\nok  \tgo.temporal.io/server/tools/gomad3/upgrade\t0.417s\nok  \tgo.temporal.io/server/tools/gomad3/upgrade/adapterregen\t7.318s\n--- FAIL: TestFixtureBumpMatchesBuildRejections (0.05s)\n    pinimpact_test.go:344: adapter build check error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want rejection containing \"unsupported github.com/getsentry/sentry-go version\"\n--- FAIL: TestSameVersionWithChangedSum (0.02s)\n    pinimpact_test.go:389: adapter build check error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want rejection containing \"module sum\"\n--- FAIL: TestReplacedModules (0.02s)\n    pinimpact_test.go:443: adapter build check error = deterministic I/O requires one of darwin/arm64, linux/amd64; host is linux/arm64, want rejection containing \"already replaces github.com/getsentry/sentry-go\"\nFAIL\nFAIL\tgo.temporal.io/server/tools/gomad3/upgrade/pinimpact\t0.489s\nFAIL\n"
+    },
+    {
+      "chunk_id": "84be0a",
+      "wall_time_seconds": 0.2145945,
+      "exit_code": 0,
+      "original_token_count": 3,
+      "output": "0 issues.\n"
+    },
+    {
+      "chunk_id": "87652c",
+      "wall_time_seconds": 2.258646126,
+      "exit_code": 0,
+      "original_token_count": 541,
+      "output": "make: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3'\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\ngomad3 patch and overlay inputs are valid\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\ngomad3 script ownership is valid\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool compatibility-pack check --root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\ncompatibility packs are current\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go test -count=1 -tags test_dep -run '^TestHostPacksBindCurrentProfile$' ./internal/compatibilitypack\nok  \tgo.temporal.io/server/tools/gomad3/internal/compatibilitypack\t0.002s\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool qualification-manifest-generate --root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/../.. --spec=tools/gomad3integration/qualification/tests.generator.json --output=tools/gomad3integration/qualification/tests.json -check\nmake: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3'\n"
+    },
+    {
+      "chunk_id": "ea21fa",
+      "wall_time_seconds": 0.000006542,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  ],
+  "required_task_quick": "exit1: only TestFixtureBumpMatchesBuildRejections, TestSameVersionWithChangedSum, TestReplacedModules fail on production unsupported linux/arm64 host refusal; original comparisons retained",
+  "raw_logs": "Worker raw logs retained byte-for-byte. Diff whitespace check excludes *.log; no source suppression or normalization.",
+  "source_review": "SOURCE PROGRESS COMMIT READY: independent fresh-context Sol/high reviewer found no source issue and reran focused tests; writer/reviewer same Codex family. See source-review.md. Not formal SHIP.",
+  "source_and_log_bindings": "All nine recorded source SHA256 and all fifteen raw-log SHA256 freshly verified against observations.json after source freeze.",
+  "historical_evidence": "Original Done summary and Evidence retained byte-for-byte; worker/verification snapshots precede conductor-owned blocked status."
+}

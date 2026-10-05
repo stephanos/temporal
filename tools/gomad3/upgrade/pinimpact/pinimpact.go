@@ -226,7 +226,7 @@ func (evaluation *evaluation) evaluateAdapters() {
 			PinnedVersion: identity.Version, PinnedSum: identity.Sum,
 		}
 		pin.CandidateVersion, pin.CandidateSum = evaluation.candidate.observed(identity.Module)
-		match := evaluation.candidate.match(identity.Module, identity.Version, identity.Sum)
+		match := evaluation.candidate.matchAdapter(identity.Module, identity.Version, identity.Sum)
 		switch {
 		case match.ok:
 			pin.Status = StatusUnaffected
@@ -341,6 +341,11 @@ func (evaluation *evaluation) packModule(target moduleState, required compatibil
 	adapterIndex := slices.IndexFunc(evaluation.adapters, func(identity gomadversion.AdapterIdentity) bool {
 		return identity.Module == required.Path
 	})
+	if adapterIndex >= 0 {
+		if match := target.matchAdapter(required.Path, required.Version, required.Sum); !match.ok {
+			return match
+		}
+	}
 	switch required.Replacement.Kind {
 	case compatibility.ReplacementNone:
 		if adapterIndex >= 0 {

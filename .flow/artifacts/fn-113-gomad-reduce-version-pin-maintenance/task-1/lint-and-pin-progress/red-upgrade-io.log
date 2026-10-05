@@ -1,0 +1,47 @@
+--- FAIL: TestRunRenderingFailurePreservesGateEvidence (0.57s)
+    --- FAIL: TestRunRenderingFailurePreservesGateEvidence/qualified (0.10s)
+        --- FAIL: TestRunRenderingFailurePreservesGateEvidence/qualified/write1 (0.03s)
+            upgrade_io_test.go:80: Run error = <nil>, missing rendering failure
+        --- FAIL: TestRunRenderingFailurePreservesGateEvidence/qualified/write2 (0.02s)
+            upgrade_io_test.go:80: Run error = <nil>, missing rendering failure
+    --- FAIL: TestRunRenderingFailurePreservesGateEvidence/gate (0.13s)
+        --- FAIL: TestRunRenderingFailurePreservesGateEvidence/gate/write1 (0.06s)
+            upgrade_io_test.go:80: Run error = qualification gate first: command exited with status 23, missing rendering failure
+        --- FAIL: TestRunRenderingFailurePreservesGateEvidence/gate/write2 (0.03s)
+            upgrade_io_test.go:80: Run error = qualification gate first: command exited with status 23, missing rendering failure
+    --- FAIL: TestRunRenderingFailurePreservesGateEvidence/host (0.11s)
+        --- FAIL: TestRunRenderingFailurePreservesGateEvidence/host/write1 (0.02s)
+            upgrade_io_test.go:80: Run error = qualification host linux/arm64 is unsupported, missing rendering failure
+        --- FAIL: TestRunRenderingFailurePreservesGateEvidence/host/write2 (0.03s)
+            upgrade_io_test.go:80: Run error = qualification host linux/arm64 is unsupported, missing rendering failure
+    --- FAIL: TestRunRenderingFailurePreservesGateEvidence/publication (0.04s)
+        --- FAIL: TestRunRenderingFailurePreservesGateEvidence/publication/write1 (0.01s)
+            upgrade_io_test.go:80: Run error = publish upgrade dossier: create parent directory: mkdir /home/agent/.cache/codex-build/tmp/TestRunRenderingFailurePreservesGateEvidencepublication2808022043/002/dossier.json: not a directory, missing rendering failure
+        --- FAIL: TestRunRenderingFailurePreservesGateEvidence/publication/write2 (0.01s)
+            upgrade_io_test.go:80: Run error = publish upgrade dossier: create parent directory: mkdir /home/agent/.cache/codex-build/tmp/TestRunRenderingFailurePreservesGateEvidencepublication2808022043/002/dossier.json: not a directory, missing rendering failure
+    --- FAIL: TestRunRenderingFailurePreservesGateEvidence/corpus (0.06s)
+        --- FAIL: TestRunRenderingFailurePreservesGateEvidence/corpus/write1 (0.01s)
+            upgrade_io_test.go:80: Run error = a checked core qualification corpus is required, missing rendering failure
+        --- FAIL: TestRunRenderingFailurePreservesGateEvidence/corpus/write2 (0.02s)
+            upgrade_io_test.go:80: Run error = a checked core qualification corpus is required, missing rendering failure
+    --- FAIL: TestRunRenderingFailurePreservesGateEvidence/baseline (0.06s)
+        --- FAIL: TestRunRenderingFailurePreservesGateEvidence/baseline/write1 (0.01s)
+            upgrade_io_test.go:80: Run error = a baseline boundary manifest is required, missing rendering failure
+        --- FAIL: TestRunRenderingFailurePreservesGateEvidence/baseline/write2 (0.03s)
+            upgrade_io_test.go:80: Run error = a baseline boundary manifest is required, missing rendering failure
+    --- FAIL: TestRunRenderingFailurePreservesGateEvidence/boundary (0.07s)
+        --- FAIL: TestRunRenderingFailurePreservesGateEvidence/boundary/write1 (0.02s)
+            upgrade_io_test.go:80: Run error = boundary changes require explicit approval for sha256:f32700e1cbf48617b79a461a2c950010b3af37c7d4de904813c844136c163d62, missing rendering failure
+        --- FAIL: TestRunRenderingFailurePreservesGateEvidence/boundary/write2 (0.02s)
+            upgrade_io_test.go:80: Run error = boundary changes require explicit approval for sha256:f32700e1cbf48617b79a461a2c950010b3af37c7d4de904813c844136c163d62, missing rendering failure
+--- FAIL: TestOverlayArchiveCleanupFailure (0.00s)
+    --- FAIL: TestOverlayArchiveCleanupFailure/read_and_close_fail (0.00s)
+        upgrade_io_test.go:130: read/close errors = read qualified Go archive: flate: corrupt input before offset 1
+    --- FAIL: TestOverlayArchiveCleanupFailure/tar_ends_before_stored_deflate_error (0.00s)
+        upgrade_io_test.go:125: collision evidence = {Checked:true ArchiveSHA256:sha256:ca38f4f94599601f709a7376c751598d1a388af3131d1ed914f78be4e1edd083 OverlayPaths:[src/os/gomad.go] Collisions:[]}, error=<nil>
+--- FAIL: TestLegacyRegularOverlayArchive (0.01s)
+    --- FAIL: TestLegacyRegularOverlayArchive/go/src/os/gomad.go/ (0.00s)
+        upgrade_io_test.go:152: archive/tar: cannot encode header: filename may not have trailing slash
+FAIL
+FAIL	go.temporal.io/server/tools/gomad3/upgrade	0.593s
+FAIL
