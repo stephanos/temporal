@@ -291,7 +291,7 @@ func Agreement(run *testpilotspb.Run, verdict *testpilotspb.Verdict) (bool, stri
 	switch {
 	case (status == testpilotspb.VERDICT_STATUS_VIOLATED) != violated:
 		return false, fmt.Sprintf("verdict %s beside rules of which violated: %t", status, violated)
-	case run.GetDisposition() != disposition || (disposition == testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR) != violated:
+	case run.GetDisposition() != disposition || !violated && disposition == testpilotspb.RUN_DISPOSITION_STOPPED_BY_MONITOR:
 		return false, fmt.Sprintf("disposition %s beside verdict %s", run.GetDisposition(), status)
 	case status == concluded:
 		return true, ""

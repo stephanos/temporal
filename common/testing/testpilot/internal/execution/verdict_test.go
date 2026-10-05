@@ -97,6 +97,7 @@ func TestRunDispositionPrecedence(t *testing.T) {
 		{"incompleteness over a stop without a violation", stopped, true, true, unsettled, succeeded, incomplete, unsettled},
 		{"a stop without a violation", stopped, true, false, unsettled, succeeded, stopped, unsettled},
 		{"a stopped Run is never satisfied", stopped, true, false, satisfied, succeeded, stopped, unsettled},
+		{"an unspecified answer is inconclusive", completed, false, false, testpilotspb.VERDICT_STATUS_UNSPECIFIED, succeeded, completed, unsettled},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			r, _ := recorderFixture(t, &recorderMonitor{close: func(context.Context, *testpilotspb.Run) (*testpilotspb.Verdict, error) {

@@ -37,9 +37,7 @@ func TestEvaluatorVerdictConcludes(t *testing.T) {
 				t.Run(fmt.Sprintf("%v/%s/incomplete=%t", mix, disposition, incomplete), func(t *testing.T) {
 					e := &Evaluator{result: &testpilotspb.Verdict{}, incomplete: incomplete}
 					for i, status := range mix {
-						e.rules = append(e.rules, ruleState{ruleID: fmt.Sprint(i)})
 						e.result.Rules = append(e.result.Rules, &testpilotspb.RuleVerdict{RuleId: fmt.Sprint(i), Status: status})
-						e.violated = e.violated || status == violated
 					}
 					input := disposition
 					if incomplete {

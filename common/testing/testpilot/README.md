@@ -127,7 +127,8 @@ the rule is broken.
    all satisfied, none at all included, is satisfied. Anything else, a rule pending, unspecified or
    inconclusive or a Run that did not complete, is inconclusive and keeps its disposition. The
    evaluator concludes its rules through it, the recorder the Monitor's answer;
-   `recordedrun.Agreement` checks a recorded Verdict against it, and `replay.ViolatedForm` asks it
+   `recordedrun.Agreement` checks a recorded Verdict against it and also refuses a Run stopped
+   without a violation, which `ConcludeVerdict` leaves stopped; `replay.ViolatedForm` asks it
    whether the rules violate. Test: `TestConclude` (`internal/execution/verdict_test.go`).
 2. **Silence is inconclusive.** A rule nothing in the Run resolved is inconclusive, never
    satisfied: a plain rule still pending when a completed Run closes, and a correlated rule whose
