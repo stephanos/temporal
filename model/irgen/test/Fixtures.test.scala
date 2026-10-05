@@ -432,7 +432,10 @@ class Fixtures extends munit.FunSuite:
     "LookalikePair",
     "NilEffect",
     "WatchesElsewhere",
-    "RebindOneClass"
+    "RebindOneClass",
+    "valMachine",
+    "valComposition",
+    "UnobservedRefiner"
   ).map(rejectsRoot) ++ scriptRejects ++ capabilityRejects ++ hintRejects ++
     markerRejects
 
@@ -913,6 +916,9 @@ class Fixtures extends munit.FunSuite:
         s"lift: $f:154: armed is read while Guarded.rules initializes, before it is declared at " +
           s"$f:155, so it is still null here: declare it before the declaration that reads it",
         s"lift: $f:160: a step function is bound by hand, `action ~> step`, in Escaped: a " +
+          "machine object says when each action fires in its `rules`, " +
+          "`when(g) { action ~> effects.x }`, and a derivation binds one in `rebind`",
+        s"lift: $f:167: a step function is bound by hand, `action ~> step`, in Cored: a " +
           "machine object says when each action fires in its `rules`, " +
           "`when(g) { action ~> effects.x }`, and a derivation binds one in `rebind`"
       )

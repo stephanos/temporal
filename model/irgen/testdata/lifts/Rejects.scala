@@ -1313,3 +1313,18 @@ object ClassRuled extends Machine[Bulb, Outcome, Nothing]:
 
 /** One effect in place of the different effects of two rules of one class. */
 object RebindOneClass extends Derived(ClassRuled.rebind(dialHand.turn ~> ClassRuled.effects.set))
+
+/** A machine declared by a val, which is no machine object. */
+val valMachine: Machine[Lamp, Outcome, Nothing] = OneStart.restrict(flip)
+
+/** A composition declared by a val, which is no composition object. */
+val valComposition: Composition[Lamps] = FlipPair.withMember(_.left -> OneStart)
+
+/** A machine that refines another and names its unobservable timers outside its refinement. */
+object UnobservedRefiner extends Machine[Lamp, Outcome, Nothing]:
+  val init = Lamp(false)
+  def end(s: State) = true
+  val unobservable = List(flip)
+  object refinement extends Refinement(OneStart):
+    def toProduct(s: Lamp) = s
+  object rules extends Bindings(flip ~> lampStep)

@@ -122,6 +122,8 @@ lift: model/irgen/testdata/lifts/Rejects.scala:306: this Query of flips in secon
 lift: model/irgen/testdata/lifts/Rejects.scala:405: unrelatedRead pairs flips, a Property of second, with lampFlips, a Scenario of oneStart, and reads it through no refinement
 lift: model/irgen/testdata/lifts/Rejects.scala:871: Query untotaled asserts no total: write `.total(n)` with n its static combination count, which model/README.md shows how to compute
 lift: model/irgen/testdata/lifts/Rejects.scala:858: UpTo[-1] has no values: a counter counts from 0 to a bound of at least 0
+lift: model/irgen/testdata/lifts/Rejects.scala:1321: fixture.rejects.Rejects$package$.valComposition is not a composition object of the lifted sources: a composition is an object, `object C extends Composition[S](...)`
+lift: model/irgen/testdata/lifts/Rejects.scala:1318: fixture.rejects.Rejects$package$.valMachine is not a machine object of the lifted sources: a machine is an object, `object M extends Machine[S, O, F]` or `object M extends Derived(...)`
 lift: model/irgen/testdata/lifts/Rejects.scala:702: elsewhereWatch is a monitor second does not watch: name one the Query's machine lists under `monitors`
 lift: model/irgen/testdata/lifts/Rejects.scala:664: a monitor is named by the val that declares it, not fixture.rejects.Rejects$package.flipWatch: declare it with a val and refer to it by value
 lift: model/irgen/testdata/lifts/Rejects.scala:679: unwatched is a monitor no lifted machine watches: name one the Query's machine lists under `monitors`
@@ -148,6 +150,7 @@ lift: model/irgen/testdata/lifts/Rejects.scala:393: evidence names no line for f
 lift: model/irgen/testdata/lifts/Rejects.scala:1032: a step that can go more than one way names each result: write `choose(a -> step, b -> step)` with a token per alternative, `val a = choice`, not an unnamed list of 2 steps
 lift: model/irgen/testdata/lifts/Rejects.scala:1024: a step that can go more than one way names each result: write `choose(a -> step, b -> step)` with a token per alternative, `val a = choice`, not steps joined with `++`
 lift: model/irgen/testdata/lifts/Rejects.scala:1017: a step that can go more than one way names each result: write `choose(a -> step, b -> step)` with a token per alternative, `val a = choice`, not an unnamed list of 2 steps
+lift: model/irgen/testdata/lifts/Rejects.scala:1327: unobservable is a member of unobservedRefiner's refinement: declare it in `object refinement extends Refinement(product)`, which holds the machine's refinement
 lift: model/irgen/testdata/lifts/Rejects.scala:143: visible is a member of unrefined's refinement: declare it in `object refinement extends Refinement(product)`, which holds the machine's refinement
 lift: model/irgen/testdata/lifts/Rejects.scala:158: visibleOutcomes is a member of unrefinedOutcomes's refinement: declare it in `object refinement extends Refinement(product)`, which holds the machine's refinement
 lift: model/irgen/testdata/lifts/Rejects.scala:30: channel closed holds at most 0 messages; a channel holds at least one
