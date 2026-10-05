@@ -13,7 +13,8 @@ final private[irgen] class Lifting(val ctx: Context)
       Compositions,
       Claims,
       Capabilities,
-      Syntax:
+      Syntax,
+      Markers:
   import ctx.*
   import ctx.quotes.reflect.*
 

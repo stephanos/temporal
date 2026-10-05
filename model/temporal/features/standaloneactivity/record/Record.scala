@@ -443,7 +443,7 @@ object HeldAdmission extends Machine[AdmissionState, Outcome, AdmissionFact]:
 // supplies the durable decision and realizes the committed arm.
 
 object AdmissionResponseLoss
-    extends Machine[AdmissionResponseState, Outcome, AdmissionResponseFact]:
+    extends Machine[AdmissionResponseState, Outcome, AdmissionResponseFact], FailureModel:
   val entity = activity
   val init = AdmissionResponseState(CurrentAdmission.init, true)
   def end(s: State) = !s.lossAvailable

@@ -108,6 +108,9 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
           errors += file -> e
           lifting.clear()
 
+    // What a machine is for, as its markers say, is held to what this file lifted with it.
+    errors ++= concerns.markerRefusals().map(file -> _)
+
     def sorted[K: Ordering, V](m: collection.Map[K, V]): Seq[V] = m.toSeq.sortBy(_._1).map(_._2)
     models(file) = ir.Model(
       source = "model: " + roots.toList.sorted.mkString(", "),

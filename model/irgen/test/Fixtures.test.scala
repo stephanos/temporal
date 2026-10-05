@@ -324,6 +324,19 @@ class Fixtures extends munit.FunSuite:
   private val hintRejects: Seq[String] =
     Seq("builtWrite", "builtRead").map("fixture.hintrejects.HintRejects$package$." + _)
 
+  // fn-126 decision 20: what a machine is for, as its markers say (lifts/MarkerRejects.scala).
+  private val markerRejects: Seq[String] =
+    Seq(
+      "FaultUnmarked",
+      "FaultlessFailure",
+      "HopelessFailure$.queries$.brokenHopelessFailure",
+      "UnrefutedControl$.queries$.foundUnrefutedControl",
+      "ControlRefiner",
+      "RefinedControl$.queries$.askedRefinedControl",
+      "SystemicControl$.queries$.askedSystemicControl",
+      "TornMarkers$.queries$.askedTornMarkers"
+    ).map("fixture.markers." + _)
+
   private val rejected = Seq(
     "unbounded",
     "waiting",
@@ -406,7 +419,8 @@ class Fixtures extends munit.FunSuite:
     "LooseRefinement",
     "LookalikePair",
     "NilEffect"
-  ).map("fixture.rejects." + _) ++ scriptRejects ++ capabilityRejects ++ hintRejects
+  ).map("fixture.rejects." + _) ++ scriptRejects ++ capabilityRejects ++ hintRejects ++
+    markerRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
   private lazy val liftsJars = s"$liftsJar=${stored("lifts")},$modelJar=model/"

@@ -166,3 +166,10 @@ lift: model/irgen/testdata/lifts/ScriptRejects.scala:38: perform names at least 
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:47: the status table lists statusPaused twice
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:71: the status table lists no statusCompleted: add `statusCompleted -> value` to it
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:35: a command is named after the val that declares it: declare it as a val and refer to it by value
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:85: refinedControl is a negative control, and controlRefiner refines it: a deliberately wrong design is no machine's Product, so nothing refines it
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:37: faultUnmarked binds the fault blowout and is marked neither a FailureModel, the real design under the fault, nor a NegativeControl, a deliberately wrong one: mix in the one it is
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:43: faultlessFailure is a failure model and binds no fault: bind an action of the party `fault` or of a `faults` section that some state enables
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:49: hopelessFailure is a failure model, and every Query of it expects its Run to violate the promise: a failure model's promise holds under its fault; a design the checks must refuse is a negative control
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:105: systemicControl is a negative control, and declares a refinement of its own, as a feature's System does: a deliberately wrong design derives from the design it gets wrong
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:125: tornMarkers is marked a failure model and a negative control: it is one
+lift: model/irgen/testdata/lifts/MarkerRejects.scala:72: unrefutedControl is a negative control that no Query lifted with it can refute: ask a `verify` of it, whose answer may be a counterexample, or a Query whose Run is expected violated
