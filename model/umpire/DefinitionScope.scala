@@ -13,9 +13,9 @@ package umpire
  *   given DefinitionScope = DefinitionScope("example.orders.Model$package$")
  * }}}
  *
- * The lifter reads it (model/lifter): an owner pins at most once, a pin inside an owner that pins is
- * refused, and so is a pin of the owner itself or two declarations that would share an ID. Owners
- * nested in a pinned one keep their own IDs.
+ * The IR generator reads it (model/irgen): an owner pins at most once, a pin inside an owner that
+ * pins is refused, and so is a pin of the owner itself or two declarations that would share an ID.
+ * Owners nested in a pinned one keep their own IDs.
  *
  * Type names follow a pin of a former file owner: a type at the top level of a pinning file belongs
  * to its package, not the file, so it takes the IR name `pkg.<Type>` it had beside

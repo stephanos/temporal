@@ -8,7 +8,7 @@ import (
 )
 
 // short is the name an author wrote for a lifted name: what follows its last `.` or `$`, so
-// `temporal.standaloneactivity.Protocol$.terminal` reads `terminal`.
+// `temporal.features.standaloneactivity.Protocol$.terminal` reads `terminal`.
 func short(name string) string {
 	if i := strings.LastIndexAny(name, ".$"); i >= 0 && i < len(name)-1 {
 		return name[i+1:]

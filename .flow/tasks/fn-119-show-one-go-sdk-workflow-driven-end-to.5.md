@@ -7,8 +7,8 @@ satisfies: [R4, R5, R8]
 Show failure and enforce the no-manual-Go claim.
 
 **Size:** M
-**Files:** `model/examples/activityworkflow/` faulty variant (mirror `model/temporal/nexuscaller/Control.scala`: a deliberately wrong machine, a `find` Query expecting `contract = violated`, its own IR file); a source-scan test beside `tools/umpire/model/isolation_test.go` (`modelFiles` :216, `TestModelNamesNoRetiredFrontEnd` :245) run by name from the gate (`Gate.scala:296-310`).
-**Touches:** [model/examples/**, model/ir/**, model/cases/**, tools/umpire/model/isolation_test.go, tools/umpire/model/*_test.go, model/gate/**]
+**Files:** `model/examples/activityworkflow/` faulty variant (mirror `object Control` in `model/temporal/features/nexuscaller/Model.scala`: a deliberately wrong machine, a `find` Query expecting `contract = violated`, its own IR file); a source-scan test beside `tools/umpire/model/isolation_test.go` (`modelFiles` :216, `TestModelNamesNoRetiredFrontEnd` :245) run by name from the gate (`Gate.scala:296-310`).
+**Touches:** [model/examples/**, model/ir/**, model/cases/**, tools/umpire/model/isolation_test.go, tools/umpire/model/*_test.go, model/check/**]
 
 ### Approach
 - Faulty variant: one Query yields a model-level counterexample, declared on the Scala side (do not pin it in Go by name as `activity_system_test.go:117-179` does - that would break R4), and a violated Verdict at run level, run by the generic live runner.
@@ -17,9 +17,9 @@ Show failure and enforce the no-manual-Go claim.
 
 ### Investigation targets
 **Required:**
-- `model/temporal/nexuscaller/Control.scala`, `tests/testpilot_nexus_control_case_test.go:33`
+- `object Control` in `model/temporal/features/nexuscaller/Model.scala`, `tests/testpilot_nexus_control_case_test.go:33`
 - `tools/umpire/model/isolation_test.go:200-280`
-- `model/gate/Gate.scala:290-315`
+- `model/check/Gate.scala:290-315`
 
 ### Quick commands
 ```bash

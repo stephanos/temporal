@@ -1,6 +1,6 @@
 # Semantics of the Umpire IR
 
-The IR's meaning is defined here, not by the lifter that writes it or the Go interpreter that reads
+The IR's meaning is defined here, not by the IR generator that writes it or the Go interpreter that reads
 it. `proto/internal/temporal/server/api/umpire/v1/ir.proto` is the schema;
 `tools/umpire/model` is the Go evaluator of these rules, and its goldens hold what it derives.
 
@@ -20,7 +20,7 @@ the fields `outcome`, `state`, `facts` (a list) and `because` (a string). The de
 message a channel holds, and how many more times than once it has been delivered.
 
 An optional value is an ordinary enum: a front end declares one type per value type, with the cases
-`None` and `Some(value)` in that order. The lifter names it `scala.Option[T]`.
+`None` and `Some(value)` in that order. The IR generator names it `scala.Option[T]`.
 
 ## Catalogs
 
@@ -104,12 +104,12 @@ Only a step makes a step record. A `construct` of `umpire.Step`, or a call of a 
 step records, belongs to the function a step binding names and the functions it calls; anywhere
 else it is at the wrong level, as an `ends` that asks whether a step function gives a step, or a
 Property that calls the step function on the state after its step, would be. The IR does not mark
-levels; the lifter keeps them, refusing at its line an expression that makes a step in a function
+levels; the IR generator keeps them, refusing at its line an expression that makes a step in a function
 that gives anything else, in a function's precondition or in a declared value. Its fixtures hold one
 refusal for each place whose Scala type admits one: a machine's start, `ends`, evidence and
 refinement, a monitor, a precondition, a same-step Property, a transition Property, a claim
 pattern, a progress claim, a composition's `ends` and a Scenario's start (`level*` in
-`model/lifter/testdata/lifts/Rejects.scala`). The Scala types rule out every other wrong level, so
+`model/irgen/testdata/lifts/Rejects.scala`). The Scala types rule out every other wrong level, so
 it has no fixture:
 
 - a value reads no state and no step record: these enter an expression only as parameters of the
@@ -185,10 +185,10 @@ constrains and a Property only a `find` asks.
 
 A step that can go more than one way may name each of its results. The name rides on the step
 record's construct: `construct(umpire.Step, "", outcome, state, facts, because)` with `choice` set
-to the alternative's name, as the lifter writes each alternative of a Scala `choose`. An alternative
+to the alternative's name, as the IR generator writes each alternative of a Scala `choose`. An alternative
 that calls a function is lifted as a call of a copy of it, `<function>$<choice>`, whose every step
 record carries the name; the choose is then the concatenation of its alternatives' lists in the
-order written. The lifter writes every branching of a Model this way: it refuses several results
+order written. The IR generator writes every branching of a Model this way: it refuses several results
 written without names. Evaluation ignores the name. The construct's value is the four-field record
 above, and the name is metadata the record carries: no key, equality, Property, monitor or
 refinement reads it, and it travels with the record through lists, `let`s, calls and branches. A
@@ -208,7 +208,7 @@ step function, picks one result of that list.
 
 A channel declares a message type `T`, a capacity `n` of at least 1, an order, FIFO or unordered,
 whether it is lossy, and a number of duplicates `d` of at least 0. `T` is a finite type: a named type,
-the Booleans or an integer range. The lifter takes an `Int` message's range from the `Finite.upTo(n)`
+the Booleans or an integer range. The IR generator takes an `Int` message's range from the `Finite.upTo(n)`
 the channel is declared with, `0..n`, and an opaque type's from its own given; it refuses any other
 `Int` catalog, a list of messages, and an order or loss that is computed rather than named.
 
@@ -448,7 +448,7 @@ with assignments appended, under the call's command id, so the commands of one c
 performances bind read as one name; commands of one script share an id only as performances, never
 with a command that is not a performance. A declaration other declarations refer to by value, a
 role, script, actuator, learned value, kind of evidence or command, is written as its id, and a fact
-as its name. A status table, `statusTable(fact -> value, …)`, is read when the lifter lifts: a
+as its name. A status table, `statusTable(fact -> value, …)`, is read when the IR generator lifts: a
 lookup `table(fact)` writes the value the table lists for the fact, and the table itself adds
 nothing to the IR. None of these forms has an IR field of its own.
 
@@ -539,14 +539,14 @@ hold keeps the type its descriptor gives it, so what is wrong with a guard's typ
 every event, and only the absence of a value it compares depends on the event.
 
 Scala authors name protobuf messages by generated types, unary methods by generated method
-constants, and fields and enum values through typed selections. The lifter writes their descriptor
+constants, and fields and enum values through typed selections. The IR generator writes their descriptor
 names into the same IR paths and operands defined above: nested fields use dots, repeated elements
 use `[*]`, and a oneof arm uses `<member>`. A constant message still writes only its declared
 fields; a map key such as `Payload.metadata`'s `encoding` is data, not a field selection. A Run
 Event's payload arrives dynamically, so its author names `InstructionOutcome` as the root of
 its guard and key selections. These types constrain authoring but do not change the IR's meaning.
 Scala does not instantiate or send Temporal messages. Go independently validates descriptors and
-paths when it lowers an IR, including one edited by hand or emitted by an older lifter, and Testpilot
+paths when it lowers an IR, including one edited by hand or emitted by an older IR generator, and Testpilot
 executes the resulting Case.
 
 What a Run's evidence says of the machine is the same for every reader that assesses a Run against
@@ -685,7 +685,7 @@ A reader rejects, before any check and at the position the IR gives, a Model tha
   path of what is no message, polls until what is no condition, or guards the Run's own record by
   what is no condition or by a path written as no field or oneof member.
 
-The lifter refuses the ones it can see at the Scala line that declares them; a Model written some
+The IR generator refuses the ones it can see at the Scala line that declares them; a Model written some
 other way meets the same rules at its reader.
 
 ## What the reader implements

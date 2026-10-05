@@ -1,7 +1,7 @@
 package model
 
 // The claims capability declarations generate, lifted from
-// model/lifter/testdata/lifts/Capabilities.scala: each law the catalog brings a job, a pair of
+// model/irgen/testdata/lifts/Capabilities.scala: each law the catalog brings a job, a pair of
 // jobs, a legacy job and a job under the fixture's own catalog, named `<machine>.<law>`, with the
 // total the lifter computed for its Query.
 
@@ -47,7 +47,7 @@ func TestCapabilitiesGeneratedClaims(t *testing.T) {
 // the rogue job's poll dispatches a paused job, so its generated pausedIsNotDispatched fails, and the
 // report reads the law, both capabilities and their bindings from the sidecar.
 func TestCapabilitiesViolationNamesTheLawAndItsBindings(t *testing.T) {
-	path := filepath.Join("..", "..", "..", "model", "lifter", "testdata", "lifts", "expected", "capabilities.json")
+	path := filepath.Join("..", "..", "..", "model", "irgen", "testdata", "lifts", "expected", "capabilities.json")
 	c, err := checkedOnce(lifted(t, "capabilities"))
 	require.NoError(t, err)
 	sidecar, err := ReadLawSidecar(path)

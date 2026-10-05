@@ -8,8 +8,8 @@
  * opens a scope with its request type fixed, and the request's fields are assigned inside it.
  *
  * Each helper is core: it writes the IR record its scaladoc names (Script, Item, Performance,
- * Command, Rpc, Poll), which the lifter writes by name (model/lifter/Realizations.scala). No body
- * here runs.
+ * Command, Rpc, Poll), which the IR generator writes by name (model/irgen/Realizations.scala). No
+ * body here runs.
  */
 package umpire.realize
 

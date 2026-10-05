@@ -1,7 +1,7 @@
 /* The Temporal kit's sugar: definitions whose meaning a core realization declaration already
- * expresses, kept for readability. Each names the core form it stands for, and the lifter
- * (model/lifter/Syntax.scala) lowers it to the IR that core form lifts to. No core file of the kit
- * uses them.
+ * expresses, kept for readability. Each names the core form it stands for, and the IR
+ * generator (model/irgen/Syntax.scala) lowers it to the IR that core form lifts to. No core file
+ * of the kit uses them.
  */
 package temporal.realize
 

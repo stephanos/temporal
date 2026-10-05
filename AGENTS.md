@@ -44,7 +44,7 @@ Before starting the implementation of any request, you MUST REVIEW the following
 - `/common/testing/testpilot`: Testpilot, the runtime that prepares, runs and evaluates a Case
 - `/config`: configuration files and templates
 - `/docs`: documentation
-- `/model`: the Scala behavior model (DSL, Temporal Models, lifter, checked-in IR and Cases) and its gate; it holds no Go
+- `/model`: the Scala behavior model (DSL, Temporal Models, IR generator, checked-in IR and Cases) and its gate; it holds no Go
 - `/proto`: proto definitions for internal services
 - `/schema`: database schema definitions for core databases store and visibility store
 - `/service`: main services (frontend, history, matching, worker, etc.)

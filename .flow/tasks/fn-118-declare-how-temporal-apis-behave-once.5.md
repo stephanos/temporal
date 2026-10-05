@@ -7,8 +7,8 @@ satisfies: [R4, R6, R8]
 Delete the hand-written waits from both realizations, regenerate Cases, prove every Contract unchanged with the Program differences listed, and run the closing gates.
 
 **Size:** M
-**Files:** `model/temporal/standaloneactivity/Realization.scala` (`awaitStatus` and its callers), `model/temporal/nexuscaller/Realization.scala` (the two 250 ms polls and the two `timeoutMs = 5000` commands; line numbers in task 1's inventory predate fn-112.9 and fn-114.3, so re-locate them), `model/ir/**`, `model/cases/**`, lowering migration goldens' allowed-Program-delta list, `model/README.md`, `model/SEMANTICS.md`, `.plans/API_BEHAVIOR_HINTS.md` (after-numbers), `.flow/tmp/fn118-5/**`.
-**Touches:** [model/temporal/standaloneactivity/Realization.scala, model/temporal/nexuscaller/Realization.scala, model/temporal/realize/**, model/ir/**, model/cases/**, tools/umpire/lower/testdata/**, tools/umpire/model/testdata/**, model/README.md, model/SEMANTICS.md, .plans/API_BEHAVIOR_HINTS.md, .flow/tmp/fn118-5/**]
+**Files:** `model/temporal/features/standaloneactivity/Realization.scala` (`awaitStatus` and its callers), `model/temporal/features/nexuscaller/Realization.scala` (the two 250 ms polls and the two `timeoutMs = 5000` commands; line numbers in task 1's inventory predate fn-112.9 and fn-114.3, so re-locate them), `model/ir/**`, `model/cases/**`, lowering migration goldens' allowed-Program-delta list, `model/README.md`, `model/SEMANTICS.md`, `.plans/API_BEHAVIOR_HINTS.md` (after-numbers), `.flow/tmp/fn118-5/**`.
+**Touches:** [model/temporal/features/standaloneactivity/Realization.scala, model/temporal/features/nexuscaller/Realization.scala, model/temporal/realize/**, model/ir/**, model/cases/**, tools/umpire/lower/testdata/**, tools/umpire/model/testdata/**, model/README.md, model/SEMANTICS.md, .plans/API_BEHAVIOR_HINTS.md, .flow/tmp/fn118-5/**]
 
 ### Approach
 - Replace each explicit poll/interval/timeout covered by a hint with the plain read + condition; a wait no hint covers keeps its explicit form and is listed with its reason (R4). Keep task 4's final rule for explicit polls (accepted only with a recorded reason).

@@ -485,12 +485,14 @@ func TestMigrationProjectionKeepsLoweredCases(t *testing.T) {
 
 	original := new(umpirespb.Model)
 	require.NoError(t, protojson.Unmarshal(expected["original/inputs/ir/nexus-caller.json"], original))
-	moved := "temporal.nexuscaller.Protocol$.completeStep"
+	moved := "temporal.features.nexuscaller.Protocol$.completeStep"
 	if i := slices.IndexFunc(cfg.Projection.Functions, func(s golden.Substitution) bool { return s.Old == kernel }); i >= 0 {
 		moved = cfg.Projection.Functions[i].New
 	} else {
 		cfg.Projection.Functions = append(cfg.Projection.Functions, golden.Substitution{Old: kernel, New: moved})
 	}
+	// The current IR names the Function in the package it moved to since (fn-114.9).
+	moved = cfg.MovedPackage(moved)
 	// Each substitution renames a Function of the frozen IR that declares it, the Nexus caller's or
 	// another's.
 	originals, err := golden.FrozenModels(expected, "original/inputs/ir/")
@@ -619,19 +621,19 @@ func compareLoweredCases(cfg golden.Config, expected, actual map[string][]byte, 
 			}
 			var err error
 			current := actual[name]
-			// A path under a merged directory names the directory on both sides, a file split out of
-			// another names that file, and a Case whose paths that changes is identified as putCase
-			// identifies it.
+			// A path under a moved directory names the old one, a path under a merged directory names
+			// the directory on both sides, a file split out of another names that file, and a Case whose
+			// paths that changes is identified as putCase identifies it.
 			if file != "identity.json" {
 				original = cfg.MergeSources(cfg.RenameSources(original))
-				current = cfg.MergeSources(cfg.UnsplitSources(current))
+				current = cfg.MergeSources(cfg.UnsplitSources(cfg.UnmoveSources(current)))
 			} else {
 				if renamed := cfg.MergeSources(cfg.RenameSources(expected[dir+"/case.json"])); !bytes.Equal(renamed, expected[dir+"/case.json"]) {
 					if original, err = renamedIdentity(renamed); err != nil {
 						return fmt.Errorf("%s: %w", name, err)
 					}
 				}
-				if merged := cfg.MergeSources(cfg.UnsplitSources(actual[dir+"/case.json"])); !bytes.Equal(merged, actual[dir+"/case.json"]) {
+				if merged := cfg.MergeSources(cfg.UnsplitSources(cfg.UnmoveSources(actual[dir+"/case.json"]))); !bytes.Equal(merged, actual[dir+"/case.json"]) {
 					if current, err = renamedIdentity(merged); err != nil {
 						return fmt.Errorf("%s: %w", name, err)
 					}

@@ -24,11 +24,11 @@ workflow history records its completion. The example runs through the whole page
 A **Model** is the description of one feature: its state machines and everything declared about
 them. A **machine** is a finite state machine: its states, the actions that can happen, and a step
 function per action that says what the next state is and which facts the step records. The Nexus
-caller Model is in `model/temporal/nexuscaller`, and its machine `nexusProtocol` is declared in
+caller Model is in `model/temporal/features/nexuscaller`, and its machine `nexusProtocol` is declared in
 `Model.scala`.
 
 A **Property** is one promise a machine makes: a condition its steps must meet. This is the
-example's Property (`model/temporal/nexuscaller/Properties.scala`, line 22), named after its
+example's Property (`model/temporal/features/nexuscaller/Properties.scala`, line 22), named after its
 `val`:
 
 ```scala
@@ -40,7 +40,7 @@ val syncSucceeds = nexusProtocol.property when handlerReply(Reply.syncSuccess) h
 
 A **Scenario** is a path through a machine: a start state and a sequence of actions. Here the
 caller schedules the operation and the handler replies synchronously
-(`model/temporal/nexuscaller/Queries.scala`, line 28):
+(`model/temporal/features/nexuscaller/Queries.scala`, line 28):
 
 ```scala
 val syncReplied = nexusProtocol.scenario.actions(schedule(), handlerReply(Reply.syncSuccess))
@@ -68,7 +68,7 @@ Model's `RunExpectation(Conformance.conformant, Outcome.satisfied)`; see
 
 A **realization** says how to act a path out on a real server: which API calls perform each
 action, and which recorded events are evidence of each fact. The Nexus caller's realization is
-`model/temporal/nexuscaller/Realization.scala`.
+`model/temporal/features/nexuscaller/Realization.scala`.
 
 The remaining terms name what the tools produce:
 
@@ -84,7 +84,7 @@ The remaining terms name what the tools produce:
 
 ## The layers
 
-Scala declares a Model, the lifter reads its compiled declarations, and Go evaluates the resulting
+Scala declares a Model, the IR generator reads its compiled declarations, and Go evaluates the resulting
 IR. The Scala DSL supplies types and step functions for authoring; Go is the single Model evaluator.
 
 ```mermaid
@@ -97,7 +97,7 @@ flowchart TD
     assessment["Model assessment<br/>tools/umpire/conformance"]
     other["Quint and P<br/>tools/umpire/export"]
 
-    scala -->|"lifting: model/lifter"| uir
+    scala -->|"lifting: model/irgen"| uir
     uir -->|"reading and checking"| reader
     reader -->|"lowering: tools/umpire/lower"| tir
     tir -->|"running against Temporal"| run
@@ -108,7 +108,7 @@ flowchart TD
 
 Two IRs sit between the layers, and each has one writer side and one reader side:
 
-- The **Umpire IR** is a lifted Model. Scala writes it (the lifter); Go reads it (the reader,
+- The **Umpire IR** is a lifted Model. Scala writes it (the IR generator); Go reads it (the reader,
   lowering, conformance, export and exploration under `tools/umpire`). Its schema is
   `proto/internal/temporal/server/api/umpire/v1/ir.proto`, and the checked-in files are
   `model/ir/*.json`. Go never runs Scala code: everything it knows about a Model comes from
@@ -120,7 +120,7 @@ Two IRs sit between the layers, and each has one writer side and one reader side
 | Layer | What happens | Module | Command |
 | --- | --- | --- | --- |
 | Authoring | Models are written in Scala with a small DSL (a library of declarations such as `machine`, `property` and `query`) | DSL `model/umpire`, Models `model/temporal` | `make lint-model`, `make fmt-model` |
-| Lifting | The compiled Models are translated to the Umpire IR, built as the ScalaPB classes of its schema and written as ProtoJSON. A construct outside the supported subset is refused at its source line | `model/lifter`, run by the gate `model/gate` | `make umpire-gen-model` writes `model/ir`; `make umpire-check-model` requires it to be current |
+| Lifting | The compiled Models are translated to the Umpire IR, built as the ScalaPB classes of its schema and written as ProtoJSON. A construct outside the supported subset is refused at its source line | `model/irgen`, run by the gate `model/check` | `make umpire-gen-model` writes `model/ir`; `make umpire-check-model` requires it to be current |
 | Umpire IR | The checked-in lifted Models | `model/ir`; schema in `api/umpire/v1` | `make protoc` after a schema change |
 | Reading and checking | Go loads and validates the IR, builds each machine's table, and answers every Property, Query and refinement | `tools/umpire/model` | `go test -tags test_dep ./tools/umpire/model/...` |
 | Lowering | A `find` Query's witness becomes a Case through its realization | `tools/umpire/lower` | `make umpire-gen-cases` writes `model/cases`; `make umpire-check-cases` requires it to be current |
@@ -137,9 +137,9 @@ The gate is the one command that checks the whole model pipeline:
 make umpire-check-model
 ```
 
-It is a Scala program, `model/gate`. In order, it checks that the files under `model/` keep to the
-model's own vocabulary, compiles and tests the DSL and the Models, runs the lifter's own tests,
-lifts every IR file the Models declare in one lifter run, requires every file of `model/ir` and
+It is a Scala program, `model/check`. In order, it checks that the files under `model/` keep to the
+model's own vocabulary, compiles and tests the DSL and the Models, runs the IR generator's own tests,
+lifts every IR file the Models declare in one IR generator run, requires every file of `model/ir` and
 `model/cases` to equal what it just produced, lints every IR file, and runs `go vet` and `go test` over `./tools/umpire/...`. It stops at the first failure
 and changes no checked-in file. scala-cli, the JDK, protoc and Go come from the repository's
 `mise.toml`.
@@ -164,7 +164,7 @@ the Scala line the sidecar records:
 | Kind | Reported for | Fix |
 | --- | --- | --- |
 | `waived-law` | a law a declaration waives with `except` or `overriding` and a reason | nothing: the gate's update forwards the reason into `<file>.lint.json`, keyed `<machine>.<law>` |
-| `law-waived-without-reason` | a waiver with an empty reason (the lifter refuses one, so the sidecar was edited) | regenerate the sidecar |
+| `law-waived-without-reason` | a waiver with an empty reason (the IR generator refuses one, so the sidecar was edited) | regenerate the sidecar |
 | `reason-names-no-law` | a waiver of a law the sidecar's catalog does not bring | remove the waiver, or declare the capability that brings the law |
 | `parameter-without-citation` | a binding of a parameter its law lists in `Law(parameters = …)`, written without `cited(value, "<server file>")` | cite the server code that answers it so |
 | `law-with-one-instance` | a catalog law fewer than two machines with their own state types instantiate, across every sidecar of `model/ir` | take the law out of the catalog until a second machine declares it |
@@ -184,14 +184,14 @@ val nexusControlFile =
 A root is a machine, a composition, a Query, a list of Queries, a progress claim or a realization;
 the file holds it and everything it reaches. A root that names nothing does not compile. A
 declaration may be a root of several files and is lifted into each, and one that no file names
-stays out of `model/ir`, so a design can be kept out of the checked files. The lifter reads the
+stays out of `model/ir`, so a design can be kept out of the checked files. The IR generator reads the
 compiled Models once and lifts every file apart, with nothing carried from one to the next; a
 refusal follows a line naming the file it was lifting. `lift --ir <jar=prefix> <classpath file>
 <directory> [name...]` is that run, and `lift <jar=prefix> <classpath file> <out.json> <root>...`
-lifts the roots named by their fully qualified names, as the lifter's fixtures do.
+lifts the roots named by their fully qualified names, as the IR generator's fixtures do.
 
 The gate packages the linked Temporal API, Testpilot and well-known ScalaPB classes in
-`model/gen/api-scalapb.jar`. Its descriptor and tool stamp is checked before a build; editing a
+`model/build/api-scalapb.jar`. Its descriptor and tool stamp is checked before a build; editing a
 Model reuses that jar. If the gate reports a missing or stale `proto/api.binpb`, run the named
 `make proto/api.binpb` target; if it reports stale generated internal protobuf code, run
 `make protoc`. The gate reports the declaration's source line when a typed selection cannot be
@@ -211,7 +211,7 @@ entry there, without the `exploration` field:
 {
   "name": "syncCompletion",
   "position": {
-    "file": "model/temporal/nexuscaller/Queries.scala",
+    "file": "model/temporal/features/nexuscaller/Queries.scala",
     "line": 106
   },
   "form": "FORM_FIND",
@@ -324,15 +324,15 @@ requires exactly that of a live Run and of its replay.
 | Path | What it holds |
 | --- | --- |
 | `model/umpire` | The DSL: what an author writes a Model with. It names no Temporal concept. Realization declarations any system needs, the open traits a system's kit extends and the script helpers are in `umpire/realize` |
-| `model/temporal` | The Models, one folder per feature: `nexuscaller`, `standaloneactivity`, `worker`; `taskqueue`, the shared task-queue entity features compose; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and the shared Temporal realization kit (`Kit.scala`) |
-| `model/lifter` | The lifter. `testdata` holds Models it must lift and Models it must refuse |
+| `model/temporal` | The Models: `features`, one folder per feature (`nexuscaller`, `nexusoperation`, `standaloneactivity`); `shared`, the entities features compose (`taskqueue`, `worker`); `capabilities`, the laws stated once for every entity; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and the shared Temporal realization kit (`Kit.scala`) |
+| `model/irgen` | The IR generator. `testdata` holds Models it must lift and Models it must refuse |
 | `model/ir` | The checked-in Umpire IR, one file per `irFile` the Models declare |
 | `model/cases` | The checked-in Cases and `manifest.json` |
-| `model/gate` | The gate program. It generates the IR's ScalaPB classes from the schema into `model/gen` (`--generate-ir`) and runs the lifter once over every IR file the Models declare |
+| `model/check` | The gate program. It generates the IR's ScalaPB classes from the schema into `model/build` (`--generate-ir`) and runs the IR generator once over every IR file the Models declare. Its second entry point, `umpire.check.metrics`, prints the source metrics of the Model folders it is given |
 | `model/project.scala` | The build settings of the DSL and the Models |
 | [SEMANTICS.md](SEMANTICS.md) | The evaluation rules of the Umpire IR: what every construct means |
 | [Known bugs](../.plans/UMPIRE4_VISION.md#known-bugs-knownbugs) | Vision for acknowledging a known bug; not implemented |
-| `model/gen` | Build output of the gate; ignored by git |
+| `model/build` | Build output of the gate; ignored by git |
 
 The framework, `model/umpire`, names no Temporal concept, in its prose or its identifiers, so a
 Model of another system could be written in it. What a system has of its own its realization kit
@@ -346,7 +346,7 @@ with `WaitBound`, `Visible` and `CauseKind`. `TestFrameworkNamesNoTemporal` in `
 fails when a file under `model/umpire` names a Temporal term; a mention stays only under an
 allowance that states its reason, and today only `model/umpire/Capabilities.scala` and
 `model/umpire/laws/` have one, until the capabilities and their laws move to `model/temporal`. The
-tooling downstream of the DSL is Temporal's driver tooling by design: the lifter matches the kit's
+tooling downstream of the DSL is Temporal's driver tooling by design: the IR generator matches the kit's
 vocabulary by fully qualified name and writes it into the IR's realization messages, whose names are
 Temporal's, and lowering turns a Query into a Testpilot Case the Temporal Driver runs.
 
@@ -363,12 +363,12 @@ its public interface and what it may import. Each module outside this directory 
 
 ## Writing a Model
 
-`make lint-model` checks formatting and lint rules for the DSL, the Models, the lifter and the
+`make lint-model` checks formatting and lint rules for the DSL, the Models, the IR generator and the
 gate; `make fmt-model` formats them and `make fix-model` applies the lint rewrites. A construct a
 lint rule forbids where no rewrite keeps the behavior carries a line-scoped
 `// scalafix:ok <rule>`.
 
-Model lint reads what the lifter made of a Model, not its Scala. After `make umpire-gen-model`,
+Model lint reads what the IR generator made of a Model, not its Scala. After `make umpire-gen-model`,
 `make umpire-check-lint` lints every file of `model/ir` as the gate does: each finding at its Scala
 line, then each machine's coverage summary. `go run ./tools/umpire/cmd/umpire-lint --tables
 model/ir/<file>.json` adds each machine's table by class in the terms of model/SEMANTICS.md
@@ -381,9 +381,9 @@ acceptance that matches none.
 A Model writes a declaration's type only where inference would give a different one, such as a
 step function whose body is `disabled` or `stay(s)` (inferred with no facts), a `Long` written as
 an `Int` literal, or a call whose type argument or `given` the expected type decides, or where the
-lifter needs it; the lifter reads an inferred type as it reads a written one.
+IR generator needs it; the IR generator reads an inferred type as it reads a written one.
 
-The lifter reads what an author wrote, as written:
+The IR generator reads what an author wrote, as written:
 
 - **Declarations:** `machine[S, O, F] { … }` blocks, with `forEntity`, `starts`, `ends`,
   `evidence`, `unobservable`, `refines` and `steps(a ~> f, …)`; the derivations `restrict`,
@@ -402,7 +402,7 @@ The lifter reads what an author wrote, as written:
 - **Shared claims:** `property` and `scenario` are declared on `Declares[S]`, the supertype of a
   machine and a composition, so one function over `m: Declares[S]` declares a Property on either.
   A function-valued argument of such a function names a def of the lifted sources, which the
-  lifter binds where the function is called, as it binds a machine argument; a type parameter
+  IR generator binds where the function is called, as it binds a machine argument; a type parameter
   reads as the type the call applies it to. A case class whose every field is a Property, Scenario
   or Query bundles claims: built by its constructor in such a function, it lifts as its claims, and
   `x.field` reads one back. The laws such functions state once for every entity are lifted sources
@@ -417,7 +417,7 @@ The lifter reads what an author wrote, as written:
   functions; `Step(…)` and `steps.because("…")` on steps written out, and named choices,
   `choose(committed -> …, redelivered -> …)` over tokens `val committed = choice`. `require`
   becomes the function's precondition; `ensuring` is not lifted. Only a step function, and a
-  function it calls that gives steps, makes a step: the lifter refuses `Step(…)`, `accept`, `stay`
+  function it calls that gives steps, makes a step: the IR generator refuses `Step(…)`, `accept`, `stay`
   or a call of a step function at its line in a start, an `ends`, evidence, a refinement, a
   monitor, a Property, a progress claim or a Scenario's start (model/SEMANTICS.md, "Levels").
 - **Realization script helpers** (core, `umpire/realize/Scripts.scala`): `script(id, activation)`
@@ -428,11 +428,11 @@ The lifter reads what an author wrote, as written:
   out as `Command(id, …)`. A declaration referred to by value is written as its id, a monitor as
   its name (`MonitorExpectation(terminalFinality, …)` in a Query's expected Run), and a fact as
   its enum case, or the companion of a case with fields. A lookup `table(fact)` is resolved when
-  the lifter lifts. The lifter refuses a command no `val` declares, a `perform` or `onPath` with no
+  the IR generator lifts. The IR generator refuses a command no `val` declares, a `perform` or `onPath` with no
   class, a lookup of a fact its table lists twice or not at all, a request-scope line of an `rpc`
   or a `poll` that is neither `field(_.x) := v` nor `Assignment.typed(…)`, and evidence that
   records a case of another enum than the facts its machine records.
-- **Sugar** (`umpire/Syntax.scala`, lifted by `lifter/Syntax.scala`): `accept(state, facts*)`,
+- **Sugar** (`umpire/Syntax.scala`, lifted by `irgen/Syntax.scala`): `accept(state, facts*)`,
   `stay(s)`, `disabled`, `x.in(a, b, …)`, `a implies b` and `after.records(fact)`. Each is lifted to
   the IR its core form lifts to, and nothing else: `List(Step(accepted, state, List(facts*)))`,
   `List(Step(accepted, s))`, `Nil`, `List(a, b, …).contains(x)`, `!a || b` and
@@ -558,7 +558,7 @@ val plainLamp = lamp.unmonitored                       // drops the monitors and
 ```
 
 Each keeps everything else its source declares: starts, ends, evidence, unobservable timers,
-monitors, assumptions and refinement. The lifter refuses rebinding an action the source does not
+monitors, assumptions and refinement. The IR generator refuses rebinding an action the source does not
 bind, extending by one it binds, binding one action twice, an assumption named twice, replacing a
 refinement the source does not declare or by a machine of other state, outcome or fact types, and
 a machine derived from or aliased to itself.
@@ -583,12 +583,12 @@ A selector, a sync and a member's action are resolved by the field and the actio
 not by the strings the IR keys them with: `synced` finds the one sync that pairs that member's
 action, and `own` an action that member binds and no sync pairs. `withMember` keeps the syncs, ends and member order and names
 the derived composition after its `val`; a member that replaces a machine replaces, in the derived
-one, the machine its new machine declares it refines. The lifter refuses a selector that names no
+one, the machine its new machine declares it refines. The IR generator refuses a selector that names no
 field or no member, a member of another state type, a sync of an action the member does not bind,
 a `synced` that matches no sync or several, an `own` of a paired or foreign action, and a
 replacement of a replacing member by a machine that refines nothing.
 
-The queue in that example is the task queue, `model/temporal/taskqueue`: a shared entity
+The queue in that example is the task queue, `model/temporal/shared/taskqueue`: a shared entity
 (`taskQueue`, keyed by the queue's name) that a feature composes by synchronizing its own actions
 with `enqueue`, `deliver` and `acknowledge`, and that imports nothing of any feature. It owns the
 opaque contract `dispatchQueue`, the providers that refine it (`matchingQueue`, the lossy one and
@@ -648,9 +648,9 @@ that class; any other is verified over the free Scenario from the start under `l
 total is computed as below; a find expects of a server the Run its capability's `RunExpectation`
 field names (Terminable and Cancelable carry one). A field of an action class names an action the
 machine must bind. A capability is a case class extending `CapabilityOf` whose companion extends
-`CapabilityKind`, which the catalog keys its laws by; the lifter refuses any other. `except` lifts nothing for its law. A Query of
+`CapabilityKind`, which the catalog keys its laws by; the IR generator refuses any other. `except` lifts nothing for its law. A Query of
 the entity's own reads a generated Property by its law, `declared.claim(pausedIsNotDispatched)`, as
-the activity's pinned paths do; a law the declaration waives has none. The lifter writes what
+the activity's pinned paths do; a law the declaration waives has none. The IR generator writes what
 it expanded beside the IR file, as `<file>.laws.json`: each generated claim with its law,
 bindings and the citations of its cited bindings, each waiver with its reason and position, and the
 catalog's laws with what they say, the parameters each instance must cite, where the catalog brings
@@ -668,7 +668,7 @@ compiler refuses a predicate of another state type, a declaration without `limit
 without `because`, and a declaration where no `Catalog` is given.
 
 Such a function returns several claims as a bundle, a case class whose every field is a Property,
-Scenario or Query. The lifter folds the constructor's call to its claims, and a field read to the
+Scenario or Query. The IR generator folds the constructor's call to its claims, and a field read to the
 one claim it names, as `providerQueries` reads `laws.delivers`:
 
 ```scala
@@ -695,8 +695,8 @@ already says: `implies`, `in`, `records`, `accept`, `stay`, `disabled`, the clai
 `keeps`, `never`, `from`, `stays`, `unless`), the monitor pattern (`sticky`, `stickyAcross`) and
 both spellings of `:=`, named inputs and request
 fields. It lives in the `Syntax.scala` files of the DSL (`umpire/Syntax.scala`), the kit
-(`temporal/realize/Syntax.scala`) and the lifter (`lifter/Syntax.scala`). Each form is documented
-with `Core form:` and the core spelling it stands for, and a lifter fixture lifts it beside that
+(`temporal/realize/Syntax.scala`) and the IR generator (`irgen/Syntax.scala`). Each form is documented
+with `Core form:` and the core spelling it stands for, and an IR generator fixture lifts it beside that
 spelling and requires the same IR. No core file imports sugar, and a sugar word is defined in no
 other file; `make lint-model` checks these three rules.
 
@@ -708,7 +708,7 @@ and a request's field. A named call `start(scheduleToStart := expires)` is sugar
 `start(unset, expires, unset)`: the supplied inputs take the action's declaration order, and an
 omitted input takes its domain's first value, here `unset`. `start()`, which omits every input, is
 core: the class of every input at its first value, `start(unset, unset, unset)`, and the one class of
-an action with no input. The lifter refuses, at the call's line, a token that is no input of the
+an action with no input. The IR generator refuses, at the call's line, a token that is no input of the
 action, a token supplied twice and an omitted input whose domain has no value. A value of the wrong type for its
 token is a compile error.
 
@@ -735,13 +735,13 @@ another action shares (`forged -> Protocol.completeStep(s, Resolution.succeeded)
 function gives no step, the alternative is not taken. The IR calls a copy of the function,
 `<function>$<choice>`, whose every step carries the name, so the function's other calls keep their
 unnamed steps. Each name is the simple name of its token's `val`. A choose of one alternative does
-not compile; the lifter refuses, at the alternative's line, a name given twice in one choose (one
+not compile; the IR generator refuses, at the alternative's line, a name given twice in one choose (one
 token twice, or two tokens whose `val`s share a simple name), an alternative that is not one step
 written out (`Nil` or `disabled`, two steps, an `if`), a called function that gives several steps
 or a step it does not write out, a token no `val` declares, and an alternative kept in a `val`
 rather than written in the call.
 
-Every branching of a Model is a `choose`. The lifter refuses, at its line, a step function's
+Every branching of a Model is a `choose`. The IR generator refuses, at its line, a step function's
 several results written without one: a `List(Step(…), Step(…))` of two or more steps, and steps
 joined with `++`, in a step function or any function it calls. A step function with one result
 needs no `choose`.
@@ -789,7 +789,7 @@ count 0, and a total changes no table, fingerprint, answer, Case or exploration 
 A Query declared inside a `def` over a machine argument, such as a list of Queries applied to several
 providers, takes the total of each Query whose count differs between instances as an `Int` parameter,
 and each call supplies the literal: `providerQueries(lossyMatchingQueue, anyTotal = 3240)`. A literal
-in the body is right only when every instance counts the same. The lifter refuses a Query with no
+in the body is right only when every instance counts the same. The IR generator refuses a Query with no
 total, a second `total` on one Query, a negative one, and a total that is not an integer literal or a
 parameter supplied as one, each at its line. A total that is not the count is refused by the reader
 at the Query's line with both numbers and the factors, for example
@@ -797,7 +797,7 @@ at the Query's line with both numbers and the factors, for example
 scheduled slots (the least of 2 steps and 2 scheduled actions) = 384`. IR lifted before totals
 existed has none and is still read; generating Cases from `model/ir` requires one on every Query.
 
-Anything else, such as a `var` or a loop, stops the lift with its source line. The lifter works on
+Anything else, such as a `var` or a loop, stops the lift with its source line. The IR generator works on
 the compiler's typed trees (TASTy) and not as a macro, because a macro sees a function's body only
 inside its own compilation run and only after pattern matching has been compiled away. The cost is
 that a refusal arrives from the lift step, a few seconds after compiling, and not as a compile
@@ -806,9 +806,9 @@ error.
 Scala compilation rejects type errors such as binding a step to an action with different inputs.
 Positional calls are typed per position, so a value of another type, or another number of values
 than the action has inputs, does not compile.
-The lifter rejects constructs it cannot express in the IR. Go then reports Model problems such as
+The IR generator rejects constructs it cannot express in the IR. Go then reports Model problems such as
 a start outside the state domain, a stuck state, a class bound twice or a failed refinement from
-the IR at the Scala source line recorded by the lifter. These semantic errors surface through
+the IR at the Scala source line recorded by the IR generator. These semantic errors surface through
 `make umpire-check-model`, rather than a Scala unit test.
 
 A Query that should become a Case needs two more things: a realization on its machine, and
@@ -827,7 +827,7 @@ says differently. The standalone activity and the Nexus caller realizations both
 that reads a status back declares what each fact reads as once, `statusTable(fact -> value, …)`
 beside its realization, and its `awaitStatus` reads the status it polls for from that table. The
 table is the realization-side form of the `Describable` status map of
-[.plans/SEMANTIC_PROTOCOLS.md](../.plans/SEMANTIC_PROTOCOLS.md); the lifter reads it when it lifts,
+[.plans/SEMANTIC_PROTOCOLS.md](../.plans/SEMANTIC_PROTOCOLS.md); the IR generator reads it when it lifts,
 and it adds nothing to the IR.
 
 A realization whose system serves the feature only behind a flag says so,
@@ -854,7 +854,7 @@ CauseKind.delivery.boundedBy(WaitBound(intervalMs = 250, atMostMs = 3000))
 A realization names the steps no command performs and the kind of cause each is,
 `serverSteps = Vector(ServerStep(attemptStart, CauseKind.delivery), ServerStep(scheduleToStart,
 CauseKind.timer, deadlineMs))`, a timer with the kit's deadline its request sets. A hint names only
-generated method constants, so one the API does not have does not compile, and the lifter refuses a
+generated method constants, so one the API does not have does not compile, and the IR generator refuses a
 method that is no generated constant at its line; the Go reader refuses a missing or non-positive
 bound at the hint's line. The lowering ignores both until fn-118.4.
 
@@ -879,7 +879,7 @@ val startActivity = rpc(workflowService, METHOD_START_ACTIVITY_EXECUTION) {
 
 The call is the command `start-activity`, after its `val`. The scope `rpc` opens fixes the request
 type, `StartActivityExecutionRequest`, so each line selects a field of it and no line repeats the
-type. It stands for the record the lifter writes, whose core form
+type. It stands for the record the IR generator writes, whose core form
 `Instruction.rpc(role, method)(Vector(Assignment.typed(Field[Req, V](_.x), operand)), Vector.empty)`
 still lifts to the same IR.
 
@@ -945,6 +945,6 @@ Runs reproduce the same failure again. An incomplete or unreproduced failure pro
 `TestTestpilotNexusControlReplaysThroughTheCommand` run both against an in-process server; set
 `UMPIRE_EXPLORATION_DIR` to keep their Cases, Runs, reports and HTML traces.
 
-The control machine `Control.forgedCompletion` (`model/temporal/nexuscaller/Model.scala`)
+The control machine `Control.forgedCompletion` (`model/temporal/features/nexuscaller/Model.scala`)
 deliberately admits a forged success beside the real failed callback. It is a negative control that
 shows a violated Verdict being found and replayed, not a server defect.

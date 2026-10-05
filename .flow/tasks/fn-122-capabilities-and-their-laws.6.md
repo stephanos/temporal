@@ -7,7 +7,7 @@ satisfies: [R8, R9, R11]
 Docs, the table view's `promises`/`doesNotPromise` column read from the sidecar, the authored-versus-generated counts per Model, the vision's acceptance-test evidence, and the full gates once.
 
 **Size:** S
-**Files:** `model/README.md` (capabilities, laws, `except`, `overriding`, how a new entity gets its laws, the sidecar, the core/sugar rule for this surface); the generated table view (the law's `promises`/`doesNotPromise` beside its Properties, from the sidecar); `.plans/UMPIRE_MODULES.md` (ownership of `umpire/laws`, `temporal/laws`, `temporal/nexusoperation`, the sidecars); `.flow/tmp/fn122-6/**`.
+**Files:** `model/README.md` (capabilities, laws, `except`, `overriding`, how a new entity gets its laws, the sidecar, the core/sugar rule for this surface); the generated table view (the law's `promises`/`doesNotPromise` beside its Properties, from the sidecar); `.plans/UMPIRE_MODULES.md` (ownership of `umpire/laws`, `temporal/laws`, `temporal/features/nexusoperation`, the sidecars); `.flow/tmp/fn122-6/**`.
 **Touches:** [model/README.md, .plans/UMPIRE_MODULES.md, tools/umpire/model/**, .flow/tmp/fn122-6/**]
 
 ### Approach

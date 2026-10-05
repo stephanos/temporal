@@ -9,8 +9,8 @@ Implements R3 (spec Part A). Temporal-agnostic framework: a Model setting is a n
 **Cross-spec entry gate:** fn-114 closed (paths after fn-114.9 and its Case freeze). Not concurrent with fn-124.8 (the `tools/umpire/model` package split); whichever lands second rebases onto the other's paths. Tasks 2 and 5 both edit `ir.proto`; the second takes the next free field numbers.
 
 **Size:** L
-**Files:** `model/umpire/` (new `Setting.scala` beside `Action.scala`'s `input[T]`, `Machine.scala`, plain-Scala tests); `model/lifter/**`; `proto/internal/temporal/server/api/umpire/v1/ir.proto` and generated `api/umpire/v1/*`; `tools/umpire/model/**` (IR reader, validation, machine build); lifter and Go fixtures; `model/SEMANTICS.md` (Settings section).
-**Touches:** [model/umpire/**, model/lifter/**, model/gate/**, model/ir/**, proto/internal/temporal/server/api/umpire/v1/**, api/umpire/v1/**, tools/umpire/model/**, tools/umpire/checker/**, model/SEMANTICS.md]
+**Files:** `model/umpire/` (new `Setting.scala` beside `Action.scala`'s `input[T]`, `Machine.scala`, plain-Scala tests); `model/irgen/**`; `proto/internal/temporal/server/api/umpire/v1/ir.proto` and generated `api/umpire/v1/*`; `tools/umpire/model/**` (IR reader, validation, machine build); lifter and Go fixtures; `model/SEMANTICS.md` (Settings section).
+**Touches:** [model/umpire/**, model/irgen/**, model/check/**, model/ir/**, proto/internal/temporal/server/api/umpire/v1/**, api/umpire/v1/**, tools/umpire/model/**, tools/umpire/checker/**, model/SEMANTICS.md]
 
 ### Approach
 - Scala: `setting[T](using Finite[T])`, mirroring `input[T]` (`model/umpire/Action.scala:90-176`), read as `s.value` under a `given Valuation`. Step functions, guards, `ends` and starts may read it; reading with no valuation in scope does not compile. Plain step-function tests supply a `given Valuation`. Settle spellings within `.plans/DSL_OPERATORS.md`.
@@ -22,7 +22,7 @@ Implements R3 (spec Part A). Temporal-agnostic framework: a Model setting is a n
 ### Investigation targets
 **Required:**
 - `model/umpire/Action.scala:80-180` (`input[T]`, `Finite`); `model/umpire/Machine.scala`
-- `model/lifter/` expression translation and its refusal reporting
+- `model/irgen/` expression translation and its refusal reporting
 - `proto/internal/temporal/server/api/umpire/v1/ir.proto` (expressions, IR file catalogs)
 - `tools/umpire/model/machine.go`, `schema_test.go`
 **Optional:**

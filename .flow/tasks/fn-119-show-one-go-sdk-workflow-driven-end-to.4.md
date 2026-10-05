@@ -9,8 +9,8 @@ Author the example Model in the finished DSL and wire it into the model gate and
 **Cross-spec entry gate:** start only after fn-118 and fn-120 are both closed (and therefore fn-112/fn-114): the example uses the final DSL, named choices, Scala-owned roots and declared API behavior, with no proto name as a string and no literal wait.
 
 **Size:** M
-**Files:** `model/examples/activityworkflow/{Model,Properties,Queries,Realization}.scala` and its IR-file declaration (module map reserves `model/examples` for fn-119; the spec records this location); Makefile `MODEL_SOURCES` (:670), `MODEL_JAR` find (:702), scalafix roots; `model/gate/Gate.scala` `models` (:50-54); `model/ir/<example>.json`; `model/cases/**`; `.plans/UMPIRE_MODULES.md`.
-**Touches:** [model/examples/**, model/temporal/realize/**, tests/testpilot_generated_test.go, tests/testcore/testpilot/**, Makefile, model/gate/**, model/ir/**, model/cases/**, .plans/UMPIRE_MODULES.md, .flow/specs/fn-119-show-one-go-sdk-workflow-driven-end-to.md]
+**Files:** `model/examples/activityworkflow/{Model,Properties,Queries,Realization}.scala` and its IR-file declaration (module map reserves `model/examples` for fn-119; the spec records this location); Makefile `MODEL_SOURCES` (:670), `MODEL_JAR` find (:702), scalafix roots; `model/check/Gate.scala` `models` (:50-54); `model/ir/<example>.json`; `model/cases/**`; `.plans/UMPIRE_MODULES.md`.
+**Touches:** [model/examples/**, model/temporal/realize/**, tests/testpilot_generated_test.go, tests/testcore/testpilot/**, Makefile, model/check/**, model/ir/**, model/cases/**, .plans/UMPIRE_MODULES.md, .flow/specs/fn-119-show-one-go-sdk-workflow-driven-end-to.md]
 
 ### Approach
 - Product machine for workflow + one activity with completion, retry-then-completion and timeout; at least those three `find` Queries with authored totals and `RunExpectation`s; realization via task 3's DSL and fn-118 hints. Keep it to a few screens.
@@ -22,9 +22,9 @@ Author the example Model in the finished DSL and wire it into the model gate and
 
 ### Investigation targets
 **Required:**
-- `model/temporal/standaloneactivity/` (final fn-112 form) - style
+- `model/temporal/features/standaloneactivity/` (final fn-112 form) - style
 - `tests/testpilot_generated_test.go:100-210`, `tests/testcore/testpilot/model_fixture.go:80-115`
-- `model/gate/Gate.scala:40-60,290-380`
+- `model/check/Gate.scala:40-60,290-380`
 - `Makefile:665-740`
 
 ### Quick commands

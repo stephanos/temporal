@@ -21,7 +21,7 @@ Implements R11. Every implicit assumption in `.plans/DYNAMIC_CONFIG.md` section 
 ### Investigation targets
 **Required:**
 - `.plans/DYNAMIC_CONFIG.md` section 3
-- `model/temporal/features/standaloneactivity/{Model,Realization}.scala` (attempt bound, backoff); `nexuscaller/Realization.scala:370-410`
+- `model/temporal/features/standaloneactivity/{Model,Realization}.scala` (attempt bound, backoff); `nexuscaller/Realization.scala:373-413`
 **Optional:**
 - `tests/testcore/dynamic_config_overrides.go` (behavior-neutral by assumption; no audit beyond section 3)
 

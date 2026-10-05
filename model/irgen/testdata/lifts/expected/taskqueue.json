@@ -1,0 +1,6409 @@
+{
+  "source": "model: fixture.taskqueue.TaskQueue$package$.forgetfulQueries, fixture.taskqueue.TaskQueue$package$.matchingQueries, fixture.taskqueue.TaskQueue$package$.queueQueries",
+  "types": [ {
+    "name": "fixture.taskqueue.Job",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 18
+    },
+    "record": {
+      "fields": [ {
+        "name": "phase",
+        "type": {
+          "named": "fixture.taskqueue.JobPhase"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.taskqueue.JobOutcome",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 20
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      } ]
+    }
+  }, {
+    "name": "fixture.taskqueue.JobPhase",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 15
+    },
+    "enum": {
+      "cases": [ {
+        "name": "idle"
+      }, {
+        "name": "sent"
+      }, {
+        "name": "started"
+      }, {
+        "name": "settled"
+      } ]
+    }
+  }, {
+    "name": "fixture.taskqueue.OverMatching",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 87
+    },
+    "record": {
+      "fields": [ {
+        "name": "job",
+        "type": {
+          "named": "fixture.taskqueue.Job"
+        }
+      }, {
+        "name": "queue",
+        "type": {
+          "named": "temporal.standaloneactivity.QueueDetail"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.taskqueue.OverQueue",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 55
+    },
+    "record": {
+      "fields": [ {
+        "name": "job",
+        "type": {
+          "named": "fixture.taskqueue.Job"
+        }
+      }, {
+        "name": "queue",
+        "type": {
+          "named": "temporal.standaloneactivity.QueueView"
+        }
+      } ]
+    }
+  }, {
+    "name": "temporal.standaloneactivity.Custody",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 156
+    },
+    "enum": {
+      "cases": [ {
+        "name": "nowhere"
+      }, {
+        "name": "history"
+      }, {
+        "name": "invoked"
+      }, {
+        "name": "reserved"
+      }, {
+        "name": "persisted"
+      } ]
+    }
+  }, {
+    "name": "temporal.standaloneactivity.Delivered",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 159
+    },
+    "enum": {
+      "cases": [ {
+        "name": "never"
+      }, {
+        "name": "once"
+      }, {
+        "name": "twice"
+      } ]
+    }
+  }, {
+    "name": "temporal.standaloneactivity.Outstanding",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 49
+    },
+    "enum": {
+      "cases": [ {
+        "name": "empty"
+      }, {
+        "name": "committed"
+      }, {
+        "name": "deliveredOnce"
+      }, {
+        "name": "deliveredTwice"
+      } ]
+    }
+  }, {
+    "name": "temporal.standaloneactivity.QueueDetail",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 163
+    },
+    "record": {
+      "fields": [ {
+        "name": "custody",
+        "type": {
+          "named": "temporal.standaloneactivity.Custody"
+        }
+      }, {
+        "name": "polled",
+        "type": {
+          "bool": { }
+        }
+      }, {
+        "name": "delivered",
+        "type": {
+          "named": "temporal.standaloneactivity.Delivered"
+        }
+      } ]
+    }
+  }, {
+    "name": "temporal.standaloneactivity.QueueFact",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 65
+    },
+    "enum": {
+      "cases": [ {
+        "name": "enqueueCommitted"
+      }, {
+        "name": "enqueueFailed"
+      }, {
+        "name": "delivered"
+      }, {
+        "name": "acknowledged"
+      }, {
+        "name": "storageLost"
+      }, {
+        "name": "addInvoked"
+      }, {
+        "name": "taskPersisted"
+      }, {
+        "name": "matchReserved"
+      }, {
+        "name": "crashed"
+      }, {
+        "name": "ackLost"
+      } ]
+    }
+  }, {
+    "name": "temporal.standaloneactivity.QueueOutcome",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 55
+    },
+    "enum": {
+      "cases": [ {
+        "name": "committed"
+      }, {
+        "name": "failed"
+      }, {
+        "name": "delivered"
+      }, {
+        "name": "acknowledged"
+      }, {
+        "name": "lost"
+      }, {
+        "name": "internal"
+      } ]
+    }
+  }, {
+    "name": "temporal.standaloneactivity.QueueView",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 52
+    },
+    "record": {
+      "fields": [ {
+        "name": "outstanding",
+        "type": {
+          "named": "temporal.standaloneactivity.Outstanding"
+        }
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "dispatchQueue.evidence",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 124
+    },
+    "params": [ {
+      "name": "queueFact",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueFact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 124
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 124
+          },
+          "var": "queueFact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "enqueueCommitted"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 124
+            },
+            "literal": {
+              "text": "enqueueCommitted"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "enqueueFailed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 124
+            },
+            "literal": {
+              "text": "enqueueFailed"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "delivered"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 124
+            },
+            "literal": {
+              "text": "delivered"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "acknowledged"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 124
+            },
+            "literal": {
+              "text": "acknowledged"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "storageLost"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 124
+            },
+            "literal": {
+              "text": "storageLost"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "addInvoked"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 124
+            },
+            "literal": {
+              "text": "addInvoked"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "taskPersisted"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 124
+            },
+            "literal": {
+              "text": "taskPersisted"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "matchReserved"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 124
+            },
+            "literal": {
+              "text": "matchReserved"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "crashed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 124
+            },
+            "literal": {
+              "text": "crashed"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "ackLost"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 124
+            },
+            "literal": {
+              "text": "ackLost"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.taskqueue.TaskQueue$package$.sendStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 35
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.taskqueue.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 36
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 36
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 36
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 36
+                  },
+                  "var": "j"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 36
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 36
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.taskqueue.JobPhase",
+                      "case": "idle"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 36
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.taskqueue.JobPhase",
+                      "case": "sent"
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 36
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 36
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 23
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.taskqueue.JobOutcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 36
+                  },
+                  "construct": {
+                    "type": "fixture.taskqueue.Job",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                        "line": 36
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.taskqueue.JobPhase",
+                          "case": "sent"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 36
+                  },
+                  "list": { }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 36
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 36
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.taskqueue.TaskQueue$package$.settleStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 44
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.taskqueue.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 45
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 45
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 45
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 45
+                  },
+                  "var": "j"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 45
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.taskqueue.JobPhase",
+                  "case": "started"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 45
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 45
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 23
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.taskqueue.JobOutcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 45
+                  },
+                  "construct": {
+                    "type": "fixture.taskqueue.Job",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                        "line": 45
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.taskqueue.JobPhase",
+                          "case": "settled"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 45
+                  },
+                  "list": { }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 45
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 45
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.taskqueue.TaskQueue$package$.startStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 39
+    },
+    "params": [ {
+      "name": "j",
+      "type": {
+        "named": "fixture.taskqueue.Job"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 39
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 39
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 39
+              },
+              "var": "j"
+            },
+            "field": "phase"
+          }
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.taskqueue.JobPhase",
+                "case": "sent"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+              "line": 40
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                  "line": 40
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                      "line": 23
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.taskqueue.JobOutcome",
+                        "case": "accepted"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                      "line": 40
+                    },
+                    "construct": {
+                      "type": "fixture.taskqueue.Job",
+                      "args": [ {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                          "line": 40
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.taskqueue.JobPhase",
+                            "case": "started"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                      "line": 40
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                      "line": 40
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.taskqueue.JobPhase",
+                "case": "started"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+              "line": 41
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                  "line": 41
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                      "line": 23
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.taskqueue.JobOutcome",
+                        "case": "accepted"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                      "line": 41
+                    },
+                    "var": "j"
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                      "line": 41
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                      "line": 41
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "alternatives": {
+              "patterns": [ {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.taskqueue.JobPhase",
+                    "case": "idle"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.taskqueue.JobPhase",
+                    "case": "settled"
+                  }
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+              "line": 42
+            },
+            "list": { }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "jobOverForgetful.property.settledLeavesNothing",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 104
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 104
+      },
+      "unary": {
+        "op": "OP_NOT",
+        "operand": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 104
+          },
+          "call": {
+            "function": "jobOverForgetful.property.settledLeavesNothing.never",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 104
+              },
+              "var": "after"
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "jobOverForgetful.property.settledLeavesNothing.never",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 105
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 106
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 106
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 106
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 106
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                        "line": 106
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                            "line": 106
+                          },
+                          "var": "after"
+                        },
+                        "field": "state"
+                      }
+                    },
+                    "field": "job"
+                  }
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 106
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.taskqueue.JobPhase",
+                  "case": "settled"
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 106
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 106
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 106
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                        "line": 106
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                            "line": 106
+                          },
+                          "var": "after"
+                        },
+                        "field": "state"
+                      }
+                    },
+                    "field": "queue"
+                  }
+                },
+                "field": "custody"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 106
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "nowhere"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "jobOverForgetful.property.settles",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 103
+    },
+    "params": [ {
+      "name": "step",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 103
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 103
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 103
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 103
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                        "line": 103
+                      },
+                      "var": "step"
+                    },
+                    "field": "state"
+                  }
+                },
+                "field": "job"
+              }
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 103
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.taskqueue.JobPhase",
+              "case": "settled"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "jobOverMatching.property.settledLeavesNothing",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 104
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 104
+      },
+      "unary": {
+        "op": "OP_NOT",
+        "operand": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 104
+          },
+          "call": {
+            "function": "jobOverMatching.property.settledLeavesNothing.never",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 104
+              },
+              "var": "after"
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "jobOverMatching.property.settledLeavesNothing.never",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 105
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 106
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 106
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 106
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 106
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                        "line": 106
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                            "line": 106
+                          },
+                          "var": "after"
+                        },
+                        "field": "state"
+                      }
+                    },
+                    "field": "job"
+                  }
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 106
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.taskqueue.JobPhase",
+                  "case": "settled"
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 106
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 106
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 106
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                        "line": 106
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                            "line": 106
+                          },
+                          "var": "after"
+                        },
+                        "field": "state"
+                      }
+                    },
+                    "field": "queue"
+                  }
+                },
+                "field": "custody"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 106
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "nowhere"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "jobOverMatching.property.settles",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 103
+    },
+    "params": [ {
+      "name": "step",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 103
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 103
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 103
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 103
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                        "line": 103
+                      },
+                      "var": "step"
+                    },
+                    "field": "state"
+                  }
+                },
+                "field": "job"
+              }
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 103
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.taskqueue.JobPhase",
+              "case": "settled"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "jobOverQueue.property.settledLeavesNothing",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 69
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 69
+      },
+      "unary": {
+        "op": "OP_NOT",
+        "operand": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 69
+          },
+          "call": {
+            "function": "jobOverQueue.property.settledLeavesNothing.never",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 69
+              },
+              "var": "after"
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "jobOverQueue.property.settledLeavesNothing.never",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 71
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 72
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 72
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 72
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 72
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                        "line": 72
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                            "line": 72
+                          },
+                          "var": "after"
+                        },
+                        "field": "state"
+                      }
+                    },
+                    "field": "job"
+                  }
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 72
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.taskqueue.JobPhase",
+                  "case": "settled"
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 72
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 72
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 72
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                        "line": 72
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                            "line": 72
+                          },
+                          "var": "after"
+                        },
+                        "field": "state"
+                      }
+                    },
+                    "field": "queue"
+                  }
+                },
+                "field": "outstanding"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 72
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Outstanding",
+                  "case": "empty"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "jobOverQueue.property.settles",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 66
+    },
+    "params": [ {
+      "name": "step",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 66
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 66
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 66
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 66
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                        "line": 66
+                      },
+                      "var": "step"
+                    },
+                    "field": "state"
+                  }
+                },
+                "field": "job"
+              }
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 66
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.taskqueue.JobPhase",
+              "case": "settled"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "matchingQueue.evidence",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 268
+    },
+    "params": [ {
+      "name": "queueFact",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueFact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 268
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 268
+          },
+          "var": "queueFact"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "enqueueCommitted"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 268
+            },
+            "literal": {
+              "text": "enqueueCommitted"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "enqueueFailed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 268
+            },
+            "literal": {
+              "text": "enqueueFailed"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "delivered"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 268
+            },
+            "literal": {
+              "text": "delivered"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "acknowledged"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 268
+            },
+            "literal": {
+              "text": "acknowledged"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "storageLost"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 268
+            },
+            "literal": {
+              "text": "storageLost"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "addInvoked"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 268
+            },
+            "literal": {
+              "text": "addInvoked"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "taskPersisted"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 268
+            },
+            "literal": {
+              "text": "taskPersisted"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "matchReserved"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 268
+            },
+            "literal": {
+              "text": "matchReserved"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "crashed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 268
+            },
+            "literal": {
+              "text": "crashed"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.QueueFact",
+                "case": "ackLost"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 268
+            },
+            "literal": {
+              "text": "ackLost"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.ackLossDetail",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 234
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueDetail"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 235
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 235
+          },
+          "unary": {
+            "op": "OP_NOT",
+            "operand": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 235
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 235
+                  },
+                  "var": "d"
+                },
+                "field": "polled"
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 235
+          },
+          "list": { }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 236
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 236
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 236
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 236
+                      },
+                      "var": "d"
+                    },
+                    "field": "custody"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 236
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.Custody",
+                      "case": "reserved"
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 237
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 237
+                  },
+                  "construct": {
+                    "type": "umpire.Step",
+                    "args": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 62
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.QueueOutcome",
+                          "case": "internal"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 237
+                      },
+                      "copy": {
+                        "base": {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/Model.scala",
+                            "line": 237
+                          },
+                          "var": "d"
+                        },
+                        "updates": [ {
+                          "name": "custody",
+                          "value": {
+                            "position": {
+                              "file": "model/temporal/shared/taskqueue/Model.scala",
+                              "line": 237
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "temporal.standaloneactivity.Custody",
+                                "case": "invoked"
+                              }
+                            }
+                          }
+                        }, {
+                          "name": "polled",
+                          "value": {
+                            "position": {
+                              "file": "model/temporal/shared/taskqueue/Model.scala",
+                              "line": 237
+                            },
+                            "literal": {
+                              "bool": false
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 237
+                      },
+                      "list": {
+                        "items": [ {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/Model.scala",
+                            "line": 237
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "temporal.standaloneactivity.QueueFact",
+                              "case": "ackLost"
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 237
+                      },
+                      "literal": {
+                        "text": ""
+                      }
+                    } ]
+                  }
+                } ]
+              }
+            },
+            "else": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 238
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 238
+                  },
+                  "construct": {
+                    "type": "umpire.Step",
+                    "args": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 62
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.QueueOutcome",
+                          "case": "internal"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 238
+                      },
+                      "copy": {
+                        "base": {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/Model.scala",
+                            "line": 238
+                          },
+                          "var": "d"
+                        },
+                        "updates": [ {
+                          "name": "polled",
+                          "value": {
+                            "position": {
+                              "file": "model/temporal/shared/taskqueue/Model.scala",
+                              "line": 238
+                            },
+                            "literal": {
+                              "bool": false
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 238
+                      },
+                      "list": {
+                        "items": [ {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/Model.scala",
+                            "line": 238
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "temporal.standaloneactivity.QueueFact",
+                              "case": "ackLost"
+                            }
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 238
+                      },
+                      "literal": {
+                        "text": ""
+                      }
+                    } ]
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.acknowledgeDetail",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 225
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueDetail"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 226
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 226
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 226
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 226
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 226
+                      },
+                      "var": "d"
+                    },
+                    "field": "polled"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 226
+                  },
+                  "binary": {
+                    "op": "OP_NE",
+                    "left": {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 226
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/Model.scala",
+                            "line": 226
+                          },
+                          "var": "d"
+                        },
+                        "field": "custody"
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 226
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.Custody",
+                          "case": "nowhere"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 226
+              },
+              "binary": {
+                "op": "OP_NE",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 226
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 226
+                      },
+                      "var": "d"
+                    },
+                    "field": "delivered"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 226
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.Delivered",
+                      "case": "never"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 227
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 227
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 227
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.QueueOutcome",
+                      "case": "acknowledged"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 167
+                  },
+                  "construct": {
+                    "type": "temporal.standaloneactivity.QueueDetail",
+                    "args": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 167
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.Custody",
+                          "case": "nowhere"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 167
+                      },
+                      "literal": {
+                        "bool": false
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 167
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.Delivered",
+                          "case": "never"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 227
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 227
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.QueueFact",
+                          "case": "acknowledged"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 227
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 228
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.acknowledgeView",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 100
+    },
+    "params": [ {
+      "name": "q",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueView"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 100
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 100
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 100
+              },
+              "var": "q"
+            },
+            "field": "outstanding"
+          }
+        },
+        "cases": [ {
+          "pattern": {
+            "alternatives": {
+              "patterns": [ {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Outstanding",
+                    "case": "deliveredOnce"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Outstanding",
+                    "case": "deliveredTwice"
+                  }
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 102
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/temporal/shared/taskqueue/Model.scala",
+                  "line": 103
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 103
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.standaloneactivity.QueueOutcome",
+                        "case": "acknowledged"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 103
+                    },
+                    "construct": {
+                      "type": "temporal.standaloneactivity.QueueView",
+                      "args": [ {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 103
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.Outstanding",
+                            "case": "empty"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 103
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 103
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.QueueFact",
+                            "case": "acknowledged"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 103
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "alternatives": {
+              "patterns": [ {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Outstanding",
+                    "case": "empty"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Outstanding",
+                    "case": "committed"
+                  }
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 105
+            },
+            "list": { }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.crashDetail",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 245
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueDetail"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 245
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 245
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 245
+              },
+              "var": "d"
+            },
+            "field": "custody"
+          }
+        },
+        "cases": [ {
+          "pattern": {
+            "alternatives": {
+              "patterns": [ {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Custody",
+                    "case": "invoked"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Custody",
+                    "case": "reserved"
+                  }
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 247
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/temporal/shared/taskqueue/Model.scala",
+                  "line": 247
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 62
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.standaloneactivity.QueueOutcome",
+                        "case": "internal"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 247
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 247
+                        },
+                        "var": "d"
+                      },
+                      "updates": [ {
+                        "name": "custody",
+                        "value": {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/Model.scala",
+                            "line": 247
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "temporal.standaloneactivity.Custody",
+                              "case": "history"
+                            }
+                          }
+                        }
+                      }, {
+                        "name": "polled",
+                        "value": {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/Model.scala",
+                            "line": 247
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 247
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 247
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.QueueFact",
+                            "case": "crashed"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 247
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "alternatives": {
+              "patterns": [ {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Custody",
+                    "case": "nowhere"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Custody",
+                    "case": "history"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Custody",
+                    "case": "persisted"
+                  }
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 249
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/temporal/shared/taskqueue/Model.scala",
+                  "line": 249
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 62
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.standaloneactivity.QueueOutcome",
+                        "case": "internal"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 249
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 249
+                        },
+                        "var": "d"
+                      },
+                      "updates": [ {
+                        "name": "polled",
+                        "value": {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/Model.scala",
+                            "line": 249
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 249
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 249
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.QueueFact",
+                            "case": "crashed"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 249
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.deliverDetail",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 213
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueDetail"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 214
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 214
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 214
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 214
+                  },
+                  "call": {
+                    "function": "temporal.shared.taskqueue.Model$package$.matchable",
+                    "args": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 214
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/Model.scala",
+                            "line": 214
+                          },
+                          "var": "d"
+                        },
+                        "field": "custody"
+                      }
+                    } ]
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 214
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 214
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/Model.scala",
+                            "line": 214
+                          },
+                          "var": "d"
+                        },
+                        "field": "polled"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 214
+              },
+              "binary": {
+                "op": "OP_NE",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 214
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 214
+                      },
+                      "var": "d"
+                    },
+                    "field": "delivered"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 214
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.Delivered",
+                      "case": "twice"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 215
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 216
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 217
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.QueueOutcome",
+                      "case": "delivered"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 218
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 218
+                      },
+                      "var": "d"
+                    },
+                    "updates": [ {
+                      "name": "polled",
+                      "value": {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 218
+                        },
+                        "literal": {
+                          "bool": true
+                        }
+                      }
+                    }, {
+                      "name": "delivered",
+                      "value": {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 218
+                        },
+                        "call": {
+                          "function": "temporal.shared.taskqueue.Model$package$.oneMoreDelivery",
+                          "args": [ {
+                            "position": {
+                              "file": "model/temporal/shared/taskqueue/Model.scala",
+                              "line": 218
+                            },
+                            "field": {
+                              "base": {
+                                "position": {
+                                  "file": "model/temporal/shared/taskqueue/Model.scala",
+                                  "line": 218
+                                },
+                                "var": "d"
+                              },
+                              "field": "delivered"
+                            }
+                          } ]
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 219
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 219
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.QueueFact",
+                          "case": "delivered"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 216
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 222
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.deliverView",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 89
+    },
+    "params": [ {
+      "name": "q",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueView"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 89
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 89
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 89
+              },
+              "var": "q"
+            },
+            "field": "outstanding"
+          }
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.Outstanding",
+                "case": "committed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 91
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/temporal/shared/taskqueue/Model.scala",
+                  "line": 92
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 92
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.standaloneactivity.QueueOutcome",
+                        "case": "delivered"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 92
+                    },
+                    "construct": {
+                      "type": "temporal.standaloneactivity.QueueView",
+                      "args": [ {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 92
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.Outstanding",
+                            "case": "deliveredOnce"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 92
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 92
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.QueueFact",
+                            "case": "delivered"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 92
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.Outstanding",
+                "case": "deliveredOnce"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 95
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/temporal/shared/taskqueue/Model.scala",
+                  "line": 96
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 96
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.standaloneactivity.QueueOutcome",
+                        "case": "delivered"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 96
+                    },
+                    "construct": {
+                      "type": "temporal.standaloneactivity.QueueView",
+                      "args": [ {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 96
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.Outstanding",
+                            "case": "deliveredTwice"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 96
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 96
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.QueueFact",
+                            "case": "delivered"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 95
+                    },
+                    "literal": {
+                      "text": "a message not yet acknowledged may be delivered again"
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "alternatives": {
+              "patterns": [ {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Outstanding",
+                    "case": "empty"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Outstanding",
+                    "case": "deliveredTwice"
+                  }
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 98
+            },
+            "list": { }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.enqueueDetail",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 178
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueDetail"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 179
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 179
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 179
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 179
+                  },
+                  "var": "d"
+                },
+                "field": "custody"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 179
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "nowhere"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 179
+          },
+          "list": { }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 181
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 183
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 184
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.QueueOutcome",
+                      "case": "committed"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 185
+                  },
+                  "construct": {
+                    "type": "temporal.standaloneactivity.QueueDetail",
+                    "args": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 185
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.Custody",
+                          "case": "history"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 185
+                      },
+                      "literal": {
+                        "bool": false
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 185
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.Delivered",
+                          "case": "never"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 186
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 186
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.QueueFact",
+                          "case": "enqueueCommitted"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 183
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ],
+                "choice": "enqueueCommits"
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 189
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 189
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.QueueOutcome",
+                      "case": "failed"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 189
+                  },
+                  "var": "d"
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 189
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 189
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.QueueFact",
+                          "case": "enqueueFailed"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 189
+                  },
+                  "literal": {
+                    "text": "the durable write fails and no message is outstanding"
+                  }
+                } ],
+                "choice": "enqueueFails"
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.enqueueView",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 74
+    },
+    "params": [ {
+      "name": "q",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueView"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 75
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 75
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 75
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 75
+                  },
+                  "var": "q"
+                },
+                "field": "outstanding"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 75
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Outstanding",
+                  "case": "empty"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 75
+          },
+          "list": { }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 77
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 79
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 80
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.QueueOutcome",
+                      "case": "committed"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 81
+                  },
+                  "construct": {
+                    "type": "temporal.standaloneactivity.QueueView",
+                    "args": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 81
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.Outstanding",
+                          "case": "committed"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 82
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 82
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.QueueFact",
+                          "case": "enqueueCommitted"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 79
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ],
+                "choice": "enqueueCommits"
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 85
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 85
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.QueueOutcome",
+                      "case": "failed"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 85
+                  },
+                  "var": "q"
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 85
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 85
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.QueueFact",
+                          "case": "enqueueFailed"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 85
+                  },
+                  "literal": {
+                    "text": "the durable write fails and no message is outstanding"
+                  }
+                } ],
+                "choice": "enqueueFails"
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.forgetfulCrash",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 306
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueDetail"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 306
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 306
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 306
+              },
+              "var": "d"
+            },
+            "field": "custody"
+          }
+        },
+        "cases": [ {
+          "pattern": {
+            "alternatives": {
+              "patterns": [ {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Custody",
+                    "case": "invoked"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Custody",
+                    "case": "reserved"
+                  }
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 307
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/temporal/shared/taskqueue/Model.scala",
+                  "line": 307
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 62
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.standaloneactivity.QueueOutcome",
+                        "case": "internal"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 167
+                    },
+                    "construct": {
+                      "type": "temporal.standaloneactivity.QueueDetail",
+                      "args": [ {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 167
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.Custody",
+                            "case": "nowhere"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 167
+                        },
+                        "literal": {
+                          "bool": false
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 167
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.Delivered",
+                            "case": "never"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 307
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 307
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.QueueFact",
+                            "case": "crashed"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 307
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "alternatives": {
+              "patterns": [ {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Custody",
+                    "case": "nowhere"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Custody",
+                    "case": "history"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Custody",
+                    "case": "persisted"
+                  }
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 309
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/temporal/shared/taskqueue/Model.scala",
+                  "line": 309
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 62
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.standaloneactivity.QueueOutcome",
+                        "case": "internal"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 309
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 309
+                        },
+                        "var": "d"
+                      },
+                      "updates": [ {
+                        "name": "polled",
+                        "value": {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/Model.scala",
+                            "line": 309
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 309
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 309
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.QueueFact",
+                            "case": "crashed"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 309
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.interfaceAnswers",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 263
+    },
+    "params": [ {
+      "name": "o",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueOutcome"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 263
+      },
+      "binary": {
+        "op": "OP_NE",
+        "left": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 263
+          },
+          "var": "o"
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 263
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.QueueOutcome",
+              "case": "internal"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.interfaceSees",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 255
+    },
+    "params": [ {
+      "name": "f",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueFact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 255
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 255
+          },
+          "var": "f"
+        },
+        "cases": [ {
+          "pattern": {
+            "alternatives": {
+              "patterns": [ {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.QueueFact",
+                    "case": "enqueueCommitted"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.QueueFact",
+                    "case": "enqueueFailed"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.QueueFact",
+                    "case": "delivered"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.QueueFact",
+                    "case": "acknowledged"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.QueueFact",
+                    "case": "storageLost"
+                  }
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 258
+            },
+            "literal": {
+              "bool": true
+            }
+          }
+        }, {
+          "pattern": {
+            "alternatives": {
+              "patterns": [ {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.QueueFact",
+                    "case": "addInvoked"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.QueueFact",
+                    "case": "taskPersisted"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.QueueFact",
+                    "case": "matchReserved"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.QueueFact",
+                    "case": "crashed"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.QueueFact",
+                    "case": "ackLost"
+                  }
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 261
+            },
+            "literal": {
+              "bool": false
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.invokeDetail",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 194
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueDetail"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 195
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 195
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 195
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 195
+                  },
+                  "var": "d"
+                },
+                "field": "custody"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 195
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "history"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 195
+          },
+          "list": { }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 196
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 196
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 62
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.QueueOutcome",
+                      "case": "internal"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 196
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 196
+                      },
+                      "var": "d"
+                    },
+                    "updates": [ {
+                      "name": "custody",
+                      "value": {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 196
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.Custody",
+                            "case": "invoked"
+                          }
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 196
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 196
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.QueueFact",
+                          "case": "addInvoked"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 196
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.matchable",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 211
+    },
+    "params": [ {
+      "name": "c",
+      "type": {
+        "named": "temporal.standaloneactivity.Custody"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 211
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 211
+          },
+          "var": "c"
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 211
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 211
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "reserved"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 211
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "persisted"
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.oneMoreDelivery",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 206
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "temporal.standaloneactivity.Delivered"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 206
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 206
+          },
+          "var": "d"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.Delivered",
+                "case": "never"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 207
+            },
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.Delivered",
+                "case": "once"
+              }
+            }
+          }
+        }, {
+          "pattern": {
+            "wildcard": { }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/Model.scala",
+              "line": 208
+            },
+            "literal": {
+              "enum": {
+                "type": "temporal.standaloneactivity.Delivered",
+                "case": "twice"
+              }
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.persistDetail",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 198
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueDetail"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 199
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 199
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 199
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 199
+                  },
+                  "var": "d"
+                },
+                "field": "custody"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 199
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "invoked"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 199
+          },
+          "list": { }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 200
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 200
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 62
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.QueueOutcome",
+                      "case": "internal"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 200
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 200
+                      },
+                      "var": "d"
+                    },
+                    "updates": [ {
+                      "name": "custody",
+                      "value": {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 200
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.Custody",
+                            "case": "persisted"
+                          }
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 200
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 200
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.QueueFact",
+                          "case": "taskPersisted"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 200
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.queueEnds",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 265
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueDetail"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 265
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 265
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 265
+              },
+              "var": "d"
+            },
+            "field": "custody"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 265
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.Custody",
+              "case": "nowhere"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.reserveDetail",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 202
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueDetail"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 203
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 203
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 203
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 203
+                  },
+                  "var": "d"
+                },
+                "field": "custody"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 203
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "invoked"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 203
+          },
+          "list": { }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 204
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 204
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 62
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.QueueOutcome",
+                      "case": "internal"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 204
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 204
+                      },
+                      "var": "d"
+                    },
+                    "updates": [ {
+                      "name": "custody",
+                      "value": {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/Model.scala",
+                          "line": 204
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.Custody",
+                            "case": "reserved"
+                          }
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 204
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/Model.scala",
+                        "line": 204
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.QueueFact",
+                          "case": "matchReserved"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 204
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.Model$package$.viewOf",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 170
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueDetail"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 171
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 171
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 171
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 171
+                  },
+                  "var": "d"
+                },
+                "field": "custody"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 171
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "nowhere"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 171
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueView",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 171
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Outstanding",
+                  "case": "empty"
+                }
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 173
+          },
+          "match": {
+            "scrutinee": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 173
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 173
+                  },
+                  "var": "d"
+                },
+                "field": "delivered"
+              }
+            },
+            "cases": [ {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Delivered",
+                    "case": "never"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/temporal/shared/taskqueue/Model.scala",
+                  "line": 174
+                },
+                "construct": {
+                  "type": "temporal.standaloneactivity.QueueView",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 174
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.standaloneactivity.Outstanding",
+                        "case": "committed"
+                      }
+                    }
+                  } ]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Delivered",
+                    "case": "once"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/temporal/shared/taskqueue/Model.scala",
+                  "line": 175
+                },
+                "construct": {
+                  "type": "temporal.standaloneactivity.QueueView",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 175
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.standaloneactivity.Outstanding",
+                        "case": "deliveredOnce"
+                      }
+                    }
+                  } ]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Delivered",
+                    "case": "twice"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/temporal/shared/taskqueue/Model.scala",
+                  "line": 176
+                },
+                "construct": {
+                  "type": "temporal.standaloneactivity.QueueView",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/Model.scala",
+                      "line": 176
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.standaloneactivity.Outstanding",
+                        "case": "deliveredTwice"
+                      }
+                    }
+                  } ]
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.taskqueue.TaskQueue$package$.send",
+    "name": "send",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 27
+    },
+    "party": "system",
+    "internal": true
+  }, {
+    "id": "fixture.taskqueue.TaskQueue$package$.settle",
+    "name": "settle",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 29
+    },
+    "party": "system",
+    "internal": true
+  }, {
+    "id": "fixture.taskqueue.TaskQueue$package$.start",
+    "name": "start",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 28
+    },
+    "party": "system",
+    "internal": true
+  }, {
+    "id": "temporal.standaloneactivity.System$package$.ackLoss",
+    "name": "ackLoss",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 149
+    },
+    "party": "fault"
+  }, {
+    "id": "temporal.standaloneactivity.System$package$.acknowledge",
+    "name": "acknowledge",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 46
+    },
+    "party": "system",
+    "on": "taskQueue",
+    "internal": true
+  }, {
+    "id": "temporal.standaloneactivity.System$package$.addActivityTask",
+    "name": "addActivityTask",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 143
+    },
+    "party": "system",
+    "on": "taskQueue",
+    "internal": true
+  }, {
+    "id": "temporal.standaloneactivity.System$package$.crash",
+    "name": "crash",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 148
+    },
+    "party": "fault"
+  }, {
+    "id": "temporal.standaloneactivity.System$package$.deliver",
+    "name": "deliver",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 45
+    },
+    "party": "system",
+    "on": "taskQueue",
+    "internal": true
+  }, {
+    "id": "temporal.standaloneactivity.System$package$.enqueue",
+    "name": "enqueue",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 44
+    },
+    "party": "system",
+    "on": "taskQueue",
+    "internal": true
+  }, {
+    "id": "temporal.standaloneactivity.System$package$.persistTask",
+    "name": "persistTask",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 144
+    },
+    "party": "system",
+    "on": "taskQueue",
+    "internal": true
+  }, {
+    "id": "temporal.standaloneactivity.System$package$.syncMatch",
+    "name": "syncMatch",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 145
+    },
+    "party": "system",
+    "on": "taskQueue",
+    "internal": true
+  } ],
+  "machines": [ {
+    "family": "temporal.activity.standalone.system",
+    "name": "dispatchQueue",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 124
+    },
+    "entity": "taskQueue",
+    "stateType": "temporal.standaloneactivity.QueueView",
+    "outcomeType": "temporal.standaloneactivity.QueueOutcome",
+    "factType": "temporal.standaloneactivity.QueueFact",
+    "starts": [ {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 121
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.QueueView",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 121
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.Outstanding",
+              "case": "empty"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 128
+      },
+      "lambda": {
+        "params": [ {
+          "name": "q",
+          "type": {
+            "named": "temporal.standaloneactivity.QueueView"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 128
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 128
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/Model.scala",
+                    "line": 128
+                  },
+                  "var": "q"
+                },
+                "field": "outstanding"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 128
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Outstanding",
+                  "case": "empty"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "temporal.standaloneactivity.System$package$.enqueue",
+      "function": "temporal.shared.taskqueue.Model$package$.enqueueView",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 129
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.deliver",
+      "function": "temporal.shared.taskqueue.Model$package$.deliverView",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 129
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.acknowledge",
+      "function": "temporal.shared.taskqueue.Model$package$.acknowledgeView",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 129
+      }
+    } ],
+    "evidence": "dispatchQueue.evidence",
+    "assumes": [ "temporal.standaloneactivity.System$package$.queueOpaque" ]
+  }, {
+    "family": "temporal.activity.standalone.system",
+    "name": "forgetfulQueue",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 311
+    },
+    "entity": "taskQueue",
+    "stateType": "temporal.standaloneactivity.QueueDetail",
+    "outcomeType": "temporal.standaloneactivity.QueueOutcome",
+    "factType": "temporal.standaloneactivity.QueueFact",
+    "starts": [ {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 167
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.QueueDetail",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 167
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.Custody",
+              "case": "nowhere"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 167
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 167
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.Delivered",
+              "case": "never"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 274
+      },
+      "lambda": {
+        "params": [ {
+          "name": "d",
+          "type": {
+            "named": "temporal.standaloneactivity.QueueDetail"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 274
+          },
+          "call": {
+            "function": "temporal.shared.taskqueue.Model$package$.queueEnds",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 274
+              },
+              "var": "d"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "temporal.standaloneactivity.System$package$.enqueue",
+      "function": "temporal.shared.taskqueue.Model$package$.enqueueDetail",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 276
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.addActivityTask",
+      "function": "temporal.shared.taskqueue.Model$package$.invokeDetail",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 277
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.persistTask",
+      "function": "temporal.shared.taskqueue.Model$package$.persistDetail",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 278
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.syncMatch",
+      "function": "temporal.shared.taskqueue.Model$package$.reserveDetail",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 279
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.deliver",
+      "function": "temporal.shared.taskqueue.Model$package$.deliverDetail",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 280
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.acknowledge",
+      "function": "temporal.shared.taskqueue.Model$package$.acknowledgeDetail",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 281
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.ackLoss",
+      "function": "temporal.shared.taskqueue.Model$package$.ackLossDetail",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 282
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.crash",
+      "function": "temporal.shared.taskqueue.Model$package$.forgetfulCrash",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 311
+      }
+    } ],
+    "evidence": "matchingQueue.evidence",
+    "refines": {
+      "product": "dispatchQueue",
+      "map": "temporal.shared.taskqueue.Model$package$.viewOf",
+      "visible": "temporal.shared.taskqueue.Model$package$.interfaceSees",
+      "visibleOutcomes": "temporal.shared.taskqueue.Model$package$.interfaceAnswers"
+    }
+  }, {
+    "family": "fixture.taskqueue",
+    "name": "job",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 47
+    },
+    "stateType": "fixture.taskqueue.Job",
+    "outcomeType": "fixture.taskqueue.JobOutcome",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 48
+      },
+      "construct": {
+        "type": "fixture.taskqueue.Job",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 48
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.taskqueue.JobPhase",
+              "case": "idle"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 49
+      },
+      "lambda": {
+        "params": [ {
+          "name": "j",
+          "type": {
+            "named": "fixture.taskqueue.Job"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 49
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 49
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 49
+                  },
+                  "var": "j"
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 49
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.taskqueue.JobPhase",
+                  "case": "settled"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.taskqueue.TaskQueue$package$.send",
+      "function": "fixture.taskqueue.TaskQueue$package$.sendStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 50
+      }
+    }, {
+      "action": "fixture.taskqueue.TaskQueue$package$.start",
+      "function": "fixture.taskqueue.TaskQueue$package$.startStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 50
+      }
+    }, {
+      "action": "fixture.taskqueue.TaskQueue$package$.settle",
+      "function": "fixture.taskqueue.TaskQueue$package$.settleStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 50
+      }
+    } ]
+  }, {
+    "family": "temporal.activity.standalone.system",
+    "name": "matchingQueue",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 268
+    },
+    "entity": "taskQueue",
+    "stateType": "temporal.standaloneactivity.QueueDetail",
+    "outcomeType": "temporal.standaloneactivity.QueueOutcome",
+    "factType": "temporal.standaloneactivity.QueueFact",
+    "starts": [ {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 167
+      },
+      "construct": {
+        "type": "temporal.standaloneactivity.QueueDetail",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 167
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.Custody",
+              "case": "nowhere"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 167
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 167
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.standaloneactivity.Delivered",
+              "case": "never"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 274
+      },
+      "lambda": {
+        "params": [ {
+          "name": "d",
+          "type": {
+            "named": "temporal.standaloneactivity.QueueDetail"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 274
+          },
+          "call": {
+            "function": "temporal.shared.taskqueue.Model$package$.queueEnds",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 274
+              },
+              "var": "d"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "temporal.standaloneactivity.System$package$.enqueue",
+      "function": "temporal.shared.taskqueue.Model$package$.enqueueDetail",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 276
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.addActivityTask",
+      "function": "temporal.shared.taskqueue.Model$package$.invokeDetail",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 277
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.persistTask",
+      "function": "temporal.shared.taskqueue.Model$package$.persistDetail",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 278
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.syncMatch",
+      "function": "temporal.shared.taskqueue.Model$package$.reserveDetail",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 279
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.deliver",
+      "function": "temporal.shared.taskqueue.Model$package$.deliverDetail",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 280
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.acknowledge",
+      "function": "temporal.shared.taskqueue.Model$package$.acknowledgeDetail",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 281
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.ackLoss",
+      "function": "temporal.shared.taskqueue.Model$package$.ackLossDetail",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 282
+      }
+    }, {
+      "action": "temporal.standaloneactivity.System$package$.crash",
+      "function": "temporal.shared.taskqueue.Model$package$.crashDetail",
+      "position": {
+        "file": "model/temporal/shared/taskqueue/Model.scala",
+        "line": 283
+      }
+    } ],
+    "evidence": "matchingQueue.evidence",
+    "refines": {
+      "product": "dispatchQueue",
+      "map": "temporal.shared.taskqueue.Model$package$.viewOf",
+      "visible": "temporal.shared.taskqueue.Model$package$.interfaceSees",
+      "visibleOutcomes": "temporal.shared.taskqueue.Model$package$.interfaceAnswers"
+    }
+  } ],
+  "assumptions": [ {
+    "id": "temporal.standaloneactivity.System$package$.queueOpaque",
+    "name": "dispatchQueue.opaque",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/Model.scala",
+      "line": 112
+    }
+  } ],
+  "compositions": [ {
+    "family": "fixture.taskqueue",
+    "name": "jobOverForgetful",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 99
+    },
+    "stateType": "fixture.taskqueue.OverMatching",
+    "members": [ {
+      "field": "job",
+      "machine": "job"
+    }, {
+      "field": "queue",
+      "machine": "forgetfulQueue",
+      "replaces": "dispatchQueue"
+    } ],
+    "syncs": [ {
+      "name": "send",
+      "first": {
+        "member": "job",
+        "action": "send"
+      },
+      "second": {
+        "member": "queue",
+        "action": "enqueue"
+      }
+    }, {
+      "name": "start",
+      "first": {
+        "member": "job",
+        "action": "start"
+      },
+      "second": {
+        "member": "queue",
+        "action": "deliver"
+      }
+    }, {
+      "name": "settle",
+      "first": {
+        "member": "job",
+        "action": "settle"
+      },
+      "second": {
+        "member": "queue",
+        "action": "acknowledge"
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 95
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.taskqueue.OverMatching"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 95
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 95
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 95
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                        "line": 95
+                      },
+                      "var": "s"
+                    },
+                    "field": "job"
+                  }
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 95
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.taskqueue.JobPhase",
+                  "case": "settled"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.taskqueue",
+    "name": "jobOverMatching",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 90
+    },
+    "stateType": "fixture.taskqueue.OverMatching",
+    "members": [ {
+      "field": "job",
+      "machine": "job"
+    }, {
+      "field": "queue",
+      "machine": "matchingQueue",
+      "replaces": "dispatchQueue"
+    } ],
+    "syncs": [ {
+      "name": "send",
+      "first": {
+        "member": "job",
+        "action": "send"
+      },
+      "second": {
+        "member": "queue",
+        "action": "enqueue"
+      }
+    }, {
+      "name": "start",
+      "first": {
+        "member": "job",
+        "action": "start"
+      },
+      "second": {
+        "member": "queue",
+        "action": "deliver"
+      }
+    }, {
+      "name": "settle",
+      "first": {
+        "member": "job",
+        "action": "settle"
+      },
+      "second": {
+        "member": "queue",
+        "action": "acknowledge"
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 95
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.taskqueue.OverMatching"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 95
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 95
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 95
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                        "line": 95
+                      },
+                      "var": "s"
+                    },
+                    "field": "job"
+                  }
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 95
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.taskqueue.JobPhase",
+                  "case": "settled"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "family": "fixture.taskqueue",
+    "name": "jobOverQueue",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 58
+    },
+    "stateType": "fixture.taskqueue.OverQueue",
+    "members": [ {
+      "field": "job",
+      "machine": "job"
+    }, {
+      "field": "queue",
+      "machine": "dispatchQueue"
+    } ],
+    "syncs": [ {
+      "name": "send",
+      "first": {
+        "member": "job",
+        "action": "send"
+      },
+      "second": {
+        "member": "queue",
+        "action": "enqueue"
+      }
+    }, {
+      "name": "start",
+      "first": {
+        "member": "job",
+        "action": "start"
+      },
+      "second": {
+        "member": "queue",
+        "action": "deliver"
+      }
+    }, {
+      "name": "settle",
+      "first": {
+        "member": "job",
+        "action": "settle"
+      },
+      "second": {
+        "member": "queue",
+        "action": "acknowledge"
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 62
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.taskqueue.OverQueue"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 62
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 62
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                    "line": 62
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                        "line": 62
+                      },
+                      "var": "s"
+                    },
+                    "field": "job"
+                  }
+                },
+                "field": "phase"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 62
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.taskqueue.JobPhase",
+                  "case": "settled"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  } ],
+  "properties": [ {
+    "machine": "jobOverForgetful",
+    "name": "settledLeavesNothing",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 104
+    },
+    "holds": "jobOverForgetful.property.settledLeavesNothing"
+  }, {
+    "machine": "jobOverForgetful",
+    "name": "settles",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 102
+    },
+    "whenAction": "settle",
+    "holds": "jobOverForgetful.property.settles"
+  }, {
+    "machine": "jobOverMatching",
+    "name": "settledLeavesNothing",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 104
+    },
+    "holds": "jobOverMatching.property.settledLeavesNothing"
+  }, {
+    "machine": "jobOverMatching",
+    "name": "settles",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 102
+    },
+    "whenAction": "settle",
+    "holds": "jobOverMatching.property.settles"
+  }, {
+    "machine": "jobOverQueue",
+    "name": "settledLeavesNothing",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 69
+    },
+    "holds": "jobOverQueue.property.settledLeavesNothing"
+  }, {
+    "machine": "jobOverQueue",
+    "name": "settles",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 65
+    },
+    "whenAction": "settle",
+    "holds": "jobOverQueue.property.settles"
+  } ],
+  "scenarios": [ {
+    "machine": "jobOverForgetful",
+    "name": "any",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 119
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 119
+      },
+      "construct": {
+        "type": "fixture.taskqueue.OverMatching",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 48
+          },
+          "construct": {
+            "type": "fixture.taskqueue.Job",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 48
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.taskqueue.JobPhase",
+                  "case": "idle"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 167
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueDetail",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "nowhere"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "bool": false
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Delivered",
+                  "case": "never"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "jobOverForgetful",
+    "name": "crashAfterInvocation",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 109
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 109
+      },
+      "construct": {
+        "type": "fixture.taskqueue.OverMatching",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 48
+          },
+          "construct": {
+            "type": "fixture.taskqueue.Job",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 48
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.taskqueue.JobPhase",
+                  "case": "idle"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 167
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueDetail",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "nowhere"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "bool": false
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Delivered",
+                  "case": "never"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "keys": [ "send", "queue_addActivityTask", "queue_crash", "queue_addActivityTask", "queue_persistTask", "start", "settle" ]
+  }, {
+    "machine": "jobOverMatching",
+    "name": "any",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 119
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 119
+      },
+      "construct": {
+        "type": "fixture.taskqueue.OverMatching",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 48
+          },
+          "construct": {
+            "type": "fixture.taskqueue.Job",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 48
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.taskqueue.JobPhase",
+                  "case": "idle"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 167
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueDetail",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "nowhere"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "bool": false
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Delivered",
+                  "case": "never"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "jobOverMatching",
+    "name": "crashAfterInvocation",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 109
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 109
+      },
+      "construct": {
+        "type": "fixture.taskqueue.OverMatching",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 48
+          },
+          "construct": {
+            "type": "fixture.taskqueue.Job",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 48
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.taskqueue.JobPhase",
+                  "case": "idle"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 167
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueDetail",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Custody",
+                  "case": "nowhere"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "bool": false
+              }
+            }, {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 167
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Delivered",
+                  "case": "never"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "keys": [ "send", "queue_addActivityTask", "queue_crash", "queue_addActivityTask", "queue_persistTask", "start", "settle" ]
+  }, {
+    "machine": "jobOverQueue",
+    "name": "any",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 83
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 83
+      },
+      "construct": {
+        "type": "fixture.taskqueue.OverQueue",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 48
+          },
+          "construct": {
+            "type": "fixture.taskqueue.Job",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 48
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.taskqueue.JobPhase",
+                  "case": "idle"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 121
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueView",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 121
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Outstanding",
+                  "case": "empty"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "free": true
+  }, {
+    "machine": "jobOverQueue",
+    "name": "duplicateDelivery",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 75
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+        "line": 75
+      },
+      "construct": {
+        "type": "fixture.taskqueue.OverQueue",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+            "line": 48
+          },
+          "construct": {
+            "type": "fixture.taskqueue.Job",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+                "line": 48
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.taskqueue.JobPhase",
+                  "case": "idle"
+                }
+              }
+            } ]
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/Model.scala",
+            "line": 121
+          },
+          "construct": {
+            "type": "temporal.standaloneactivity.QueueView",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/Model.scala",
+                "line": 121
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.standaloneactivity.Outstanding",
+                  "case": "empty"
+                }
+              }
+            } ]
+          }
+        } ]
+      }
+    },
+    "keys": [ "send", "start", "start", "settle" ]
+  } ],
+  "queries": [ {
+    "name": "jobOverForgetful.any.settledLeavesNothing",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 123
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "jobOverForgetful",
+      "name": "settledLeavesNothing"
+    },
+    "scenario": {
+      "machine": "jobOverForgetful",
+      "name": "any"
+    },
+    "limits": {
+      "name": "twelve",
+      "steps": 12,
+      "actions": 12,
+      "search": 262144
+    },
+    "total": "11520"
+  }, {
+    "name": "jobOverForgetful.crashAfterInvocation",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 121
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "jobOverForgetful",
+      "name": "settles"
+    },
+    "scenario": {
+      "machine": "jobOverForgetful",
+      "name": "crashAfterInvocation"
+    },
+    "limits": {
+      "name": "seven",
+      "steps": 7,
+      "actions": 7,
+      "search": 262144
+    },
+    "total": "840"
+  }, {
+    "name": "jobOverMatching.any.settledLeavesNothing",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 123
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "jobOverMatching",
+      "name": "settledLeavesNothing"
+    },
+    "scenario": {
+      "machine": "jobOverMatching",
+      "name": "any"
+    },
+    "limits": {
+      "name": "twelve",
+      "steps": 12,
+      "actions": 12,
+      "search": 262144
+    },
+    "total": "11520"
+  }, {
+    "name": "jobOverMatching.crashAfterInvocation",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 121
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "jobOverMatching",
+      "name": "settles"
+    },
+    "scenario": {
+      "machine": "jobOverMatching",
+      "name": "crashAfterInvocation"
+    },
+    "limits": {
+      "name": "seven",
+      "steps": 7,
+      "actions": 7,
+      "search": 262144
+    },
+    "total": "840"
+  }, {
+    "name": "jobOverQueue.any.settledLeavesNothing",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 130
+    },
+    "form": "FORM_VERIFY",
+    "property": {
+      "machine": "jobOverQueue",
+      "name": "settledLeavesNothing"
+    },
+    "scenario": {
+      "machine": "jobOverQueue",
+      "name": "any"
+    },
+    "limits": {
+      "name": "seven",
+      "steps": 7,
+      "actions": 7,
+      "search": 262144
+    },
+    "total": "336"
+  }, {
+    "name": "jobOverQueue.duplicateDelivery",
+    "position": {
+      "file": "model/irgen/testdata/lifts/TaskQueue.scala",
+      "line": 128
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "jobOverQueue",
+      "name": "settles"
+    },
+    "scenario": {
+      "machine": "jobOverQueue",
+      "name": "duplicateDelivery"
+    },
+    "limits": {
+      "name": "seven",
+      "steps": 7,
+      "actions": 7,
+      "search": 262144
+    },
+    "total": "64"
+  } ]
+}

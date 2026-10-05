@@ -26,13 +26,13 @@ the functional fixtures and the canary.
 | Module and destination | One job | Public interface | Permitted domain dependencies |
 | --- | --- | --- | --- |
 | Umpire IR, `api/umpire/v1`, `proto/internal/temporal/server/api/umpire/v1` | Represent a lifted Model. | Existing protobuf messages under the new package names. | Protobuf support; no Testpilot schema dependency added. |
-| DSL, `model/umpire` | Declare finite Models in Scala. | Authoring and realization declarations, with the realization script helpers and the open traits a system's kit extends (`Addressee`, `Activation`, `Instruction`, `Recorded`, `Setting`) in `umpire/realize`; no native evaluator. | Scala standard library and generic ScalaPB typing/runtime metadata; no Temporal-specific, lifter or gate import, and no Temporal name (`TestFrameworkNamesNoTemporal`). |
-| Models, `model/temporal` | Declare Temporal behavior. A feature splits its files by kind (`Model.scala`, `Properties.scala`, `Queries.scala`) and its subjects into subpackage folders that repeat them, as `standaloneactivity/admission` and `standaloneactivity/compositions` do. | Existing machine, claim, Query and realization roots, and one `irFile` declaration per checked-in IR file (each folder's `IrFiles.scala`). | DSL and shared feature kit; generated Temporal API, Testpilot and well-known message classes with their ScalaPB/gRPC compile-time runtime. |
-| Standalone Nexus operation, `model/temporal/nexusoperation` | Declare one operation started through StartNexusOperationExecution, the laws' second entity. | `nexusOperation`, `operationCapabilities` (Closable, Terminable, Cancelable, Describable, overriding closedIsRejectedUniformly), `OperationRealization.standalone`, `irFile("nexus-operation")`. | DSL, the laws and the shared realization kit; no feature import. |
-| Task queue, `model/temporal/taskqueue` (shared Temporal kit) | Declare the durable task queue a feature composes as an entity of its own. | The opaque contract `dispatchQueue`, the providers refining it (`matchingQueue`, `lossyMatchingQueue`, the violating controls), `queueLaws`, `storageLossDrops` and the provider Queries. | DSL only; no feature import. |
+| DSL, `model/umpire` | Declare finite Models in Scala. | Authoring and realization declarations, with the realization script helpers and the open traits a system's kit extends (`Addressee`, `Activation`, `Instruction`, `Recorded`, `Setting`) in `umpire/realize`; no native evaluator. | Scala standard library and generic ScalaPB typing/runtime metadata; no Temporal-specific, IR generator or gate import, and no Temporal name (`TestFrameworkNamesNoTemporal`). |
+| Models, `model/temporal` | Declare Temporal behavior. Features live under `features/`, the entities they share under `shared/`. A feature splits its files by kind (`Model.scala`, `Properties.scala`, `Queries.scala`) and its subjects into subpackage folders that repeat them, as `features/standaloneactivity/admission` and `features/standaloneactivity/compositions` do. | Existing machine, claim, Query and realization roots, and one `irFile` declaration per checked-in IR file (each folder's `IrFiles.scala`). | DSL and shared feature kit; generated Temporal API, Testpilot and well-known message classes with their ScalaPB/gRPC compile-time runtime. |
+| Standalone Nexus operation, `model/temporal/features/nexusoperation` | Declare one operation started through StartNexusOperationExecution, the laws' second entity. | `nexusOperation`, `operationCapabilities` (Closable, Terminable, Cancelable, Describable, overriding closedIsRejectedUniformly), `OperationRealization.standalone`, `irFile("nexus-operation")`. | DSL, the laws and the shared realization kit; no feature import. |
+| Task queue, `model/temporal/shared/taskqueue` (shared Temporal kit) | Declare the durable task queue a feature composes as an entity of its own. | The opaque contract `dispatchQueue`, the providers refining it (`matchingQueue`, `lossyMatchingQueue`, the violating controls), `queueLaws`, `storageLossDrops` and the provider Queries. | DSL only; no feature import. |
 | Realization kit, `model/temporal/realize` (shared Temporal kit) | Declare what every Temporal realization says alike, once. | Temporal's realization vocabulary in `Realize.scala`: `Role`, `RoleKind`, `RequiredSetting`, `WorkerActivation`, `WorkerInstruction`, `FaultKind`, `WorkflowHistory`. In `Kit.scala`: roles, environment bindings, the correlation window, the controller script, the kit's poll interval and deadlines, run-record evidence helpers, `temporalRealization`; sugar `field(_.name) :=` in its `Syntax.scala`. | DSL and its realization declarations, generated Temporal API and Testpilot messages; no feature import. |
-| Lifter, `model/lifter` | Translate typed trees into Umpire IR. | `Lifter`, `LiftError`, existing CLI root/prefix arguments, and `--ir`, which lifts every declared IR file (or the ones named) in one run. | Generated ScalaPB IR and linked API metadata, ScalaPB runtime/ProtoJSON support, TASTy/Quotes and compiler libraries; Models and the Temporal kit read as TASTy, never source imports; the kit's vocabulary matched by fully qualified name. |
-| Gate, `model/gate` | Verify the authored model pipeline. | One Scala program, `--update`; internal schema-generation modes `--generate-ir [--if-stale]` and `--generate-api [--if-stale]`. It names no Model declaration: one `lift --ir` run writes every IR file the Models declare. | Processes/files, stamped ScalaPB generation, lifter outputs, Go checks; no authoring dependency on the gate. |
+| IR generator, `model/irgen` | Translate typed trees into Umpire IR. | `Lifter`, `LiftError`, existing CLI root/prefix arguments, and `--ir`, which lifts every declared IR file (or the ones named) in one run. | Generated ScalaPB IR and linked API metadata, ScalaPB runtime/ProtoJSON support, TASTy/Quotes and compiler libraries; Models and the Temporal kit read as TASTy, never source imports; the kit's vocabulary matched by fully qualified name. |
+| Gate, `model/check` | Verify the authored model pipeline. | One Scala program, `--update`; internal schema-generation modes `--generate-ir [--if-stale]` and `--generate-api [--if-stale]`. It names no Model declaration: one `lift --ir` run writes every IR file the Models declare. A second entry point, `umpire.check.metrics`, prints source metrics. | Processes/files, stamped ScalaPB generation, IR generator outputs, Go checks; no authoring dependency on the gate. |
 | Reader, `tools/umpire/model` | Interpret the meaning of one admitted Model. | `Load`, `Validate`, `Check`, `Build`, `NewInterpreter` (with `Why` and `Reads`, the decision trace), `NewRealizer` (with `Refinement`, the refinement Check reads), `TypeOf`, `PayloadFields`, `GuardProblem`, `Unknown`; existing value, receipt, scope, table and bound-claim data needed by consumers. | Umpire IR and its private checker; no Testpilot package or schema. |
 | Checker, `tools/umpire/model/internal/checker` | Evaluate finite table claims. | Private to the reader; retained implementation declarations only. | No Testpilot or lower/conformance/export imports. |
 | Lowering, `tools/umpire/lower` | Produce a Case from a Query's witness. | `NewProducer`, `Producer.Lower`, `Realizable`, `EvidenceElement`, `FieldAt`, `Identity`, `IdentityFor`, `GenerateCases`, `DecodeManifest`, `SyncCases`; lowering standings, inventories and manifest data. | Reader, Testpilot facade/schema and private producer. |
@@ -64,7 +64,7 @@ The Model author contract now permits generated Temporal API, Testpilot and well
 message classes, generated unary gRPC method constants, and the ScalaPB runtime needed to compile
 them in `model/temporal`. The DSL exposes typed schema, selector, operand and constant-message
 constructors; it has no public string form for protobuf messages, methods, paths or enum names.
-The gate checks Model source for remaining proto-name literals. The lifter writes those typed
+The gate checks Model source for remaining proto-name literals. The IR generator writes those typed
 selections back into the unchanged text-bearing IR, which Go validates independently at lowering.
 
 The framework `model/umpire` names no Temporal concept (fn-114.12). Its `umpire/realize` keeps what
@@ -80,7 +80,7 @@ list only shrinks. Its two entries are temporary: `model/umpire/Capabilities.sca
 
 Temporal's driver tooling names Temporal concepts by design:
 
-- The lifter as a whole writes Temporal realizations into the IR. `Realizations.scala` accepts
+- The IR generator as a whole writes Temporal realizations into the IR. `Realizations.scala` accepts
   `umpire.realize.` and `temporal.realize.` as the realization vocabulary (`vocabularyPackages`),
   matches the kit's `WorkflowHistory.event` by fully qualified name, and writes each vocabulary
   class by its simple name to the IR oneof member of that name, which is Temporal's
@@ -214,12 +214,12 @@ scoped; `Query.Replay` already belongs to the public Query method closure.
 
 The reader's `load.go` retains file decoding; `validate.go` owns whole-IR admission, with key and
 identity admission in `validate_keys.go` and realization admission in `validate_realization.go`; operand typing
-and protobuf paths live in separate concern files, with focused tests. The lifter first gains one
+and protobuf paths live in separate concern files, with focused tests. The IR generator first gains one
 typed context carrying `Quotes`, definition/symbol indexes, source-prefix mapping and declaration
 accumulators. Extract types, expressions, declarations, realizations, compositions and claims into
 concern files around that context; the entry point only arranges inspection and output. This is
 structure work, not a second interpretation of the Model. Task 8 delivered it as ten files in
-`model/lifter`: `Context`, `Types`, `Constants` (values folded at lift time), `Expressions`,
+what is now `model/irgen`: `Context`, `Types`, `Constants` (values folded at lift time), `Expressions`,
 `Declarations`, `Realizations`, `Compositions`, `Claims`, `Lifting` (the class the concern traits mix
 into) and the entry point `Lift.scala`.
 
@@ -311,14 +311,14 @@ exceptions, so fixture trees need no ignore exception.
 
 `model/project.scala` is the shared directive file copied from `scala/project.scala`. Compile the
 DSL with exactly that file and `model/umpire`; compile/test/package Models with that file plus
-`model/umpire` and `model/temporal`. Authoring tests are co-located with their Models; compiler and lifter
-refusal fixtures live under `lifter/testdata`. The lifter and gate have independent `project.scala`
+`model/umpire` and `model/temporal`. Authoring tests are co-located with their Models; compiler and IR generator
+refusal fixtures live under `irgen/testdata`. The IR generator and gate have independent `project.scala`
 files. Their generated jars, fixtures
-and stamps live under ignored `model/gen`; the gate names source roots explicitly, so a broad
-recursive Scala compile never merges the authoring, lifter and gate projects. Lint/format commands
+and stamps live under ignored `model/build`; the gate names source roots explicitly, so a broad
+recursive Scala compile never merges the authoring, IR generator and gate projects. Lint/format commands
 visit these explicit roots. fn-113 removed the native Scala evaluator and transferred its independent
 checks to Go tests over the IR; the audit is `umpire-scala-evaluator-audit.md`. The Nexus domains and
-step functions live in `model/temporal/nexuscaller/Nexus.scala`, with no kernel or prelude package.
+step functions live in `model/temporal/features/nexuscaller/Model.scala`, with no kernel or prelude package.
 Owner-approved early cleanup in task7, immediately after relocation, removes only the unused
 `Canonical.scala`, `Lower.scala` and `Alterer` plumbing from fn113 Part A / R1 after checking callers;
 this does not retire the evaluator. Task 7 delivered it: the two files, `Alterer` and the helpers left without
@@ -332,7 +332,7 @@ into Scala: each IR file is an `irFile` val beside its Models, and the gate's `R
 
 | Command after migration | Existing source / behavior |
 | --- | --- |
-| `make umpire-check-model` | `umpire-check-scala`; runs `mise exec -- scala-cli run model/gate`. |
+| `make umpire-check-model` | `umpire-check-scala`; runs `mise exec -- scala-cli run model/check`. |
 | `make umpire-gen-model` | `umpire-gen-scala`; same program with `-- --update`. |
 | `make lint-model`, `fmt-model`, `fix-model` | Model formatting and language checks, explicit new roots; IR jar prerequisite uses the gate's schema-generation mode. |
 | `make umpire-check-cases`, `umpire-gen-cases` | Run `umpire-gen-cases` without/with `--update`; default managed tree is `model/cases`. |
@@ -350,20 +350,20 @@ into Scala: each IR file is an `irFile` val beside its Models, and the gate's `R
 | `make canary-build` and other live canary build/run targets | Preserve production canary build and existing operator interfaces. |
 | `make umpire-rerecord-pinned-runs` | Remains an explicit operator action targeting current live fixture identities; never runs automatically as part of this migration or ordinary tests. |
 
-Since task 10 the model Make entrypoints run the Scala gate at `model/gate`, preceded by the gate's
-own test suite. The lifter's `project.scala` compiles `gate/Tools.scala` so the lifter's tests share
+Since task 10 the model Make entrypoints run the Scala gate, now at `model/check`, preceded by the gate's
+own test suite. The IR generator's `project.scala` compiles `check/Tools.scala` so its tests share
 the gate's process seam; scala-cli has no test-scoped file directive, so this one test-time
-dependency of the lifter on the gate is a recorded exception. The lifter suite rewrites its expected
+dependency of the IR generator on the gate is a recorded exception. The IR generator suite rewrites its expected
 files only when the gate passes `UMPIRE_LIFTER_UPDATE`.
 
-Since task 14 the lifter's fixtures are plain `.scala` files in `model/lifter/testdata`, which
-`//> using exclude` keeps out of the lifter's build; the tests copy a fixture to scratch before
+Since task 14 the IR generator's fixtures are plain `.scala` files in `model/irgen/testdata`, which
+`//> using exclude` keeps out of the IR generator's build; the tests copy a fixture to scratch before
 building it. Scalafmt checks all fixtures; fn-113 formatted the five formerly excluded `lifts`
 sources after its golden comparison began projecting positions by file. Scalafix runs on `testdata/lifts` as its own
 root with all rules (`-Werror:false`, because the unused parameters it keeps are fixture content);
 the refusal fixtures `unsupported`, `werror`, `crossed`, `nonfinite`, `samestate` and
 `realizationRefusals` stay outside it. `lint-model` and
-`fix-model` depend on `model/gen/model-scala.jar`, packaged by the gate's command.
+`fix-model` depend on `model/build/model-scala.jar`, packaged by the gate's command.
 A documented `--skip-go-checks` option may omit only its embedded Go test invocation when combined
 verification runs the complete live Go suite separately with `test_dep`; default invocation still
 runs Go checks. Record the check/update commands and that covering suite together. Scala checks,
@@ -460,6 +460,8 @@ catalog with an actual listed type substitution is re-sorted by its resulting na
 order, enum cases and record fields remain strict. Exploration Case IDs may vary because they hash
 the whole candidate IR. Tables, Definition IDs, refinement rows, fingerprints, Query answers,
 Query Case bytes and every other exploration Case byte retain the independent frozen baseline.
+fn-114.9's folder moves are two more append-only lists there, `source_path_moves` and
+`source_package_moves`; a test fails if an old path reappears.
 
 Recompute hashes in the manifest's dependency order. Ordinary generated Cases retain the same
 `IdentityFor` inputs and IDs while mapped provenance changes their canonical checksum. Exploration

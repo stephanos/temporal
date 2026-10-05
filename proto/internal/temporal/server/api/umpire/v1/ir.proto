@@ -1,5 +1,5 @@
 // The Umpire model IR: a semantic transition system, independent of the language a Model is authored
-// in. A front end (model/lifter lifts Scala) emits it; the Go reader in tools/umpire/model
+// in. A front end (model/irgen lifts Scala) emits it; the Go reader in tools/umpire/model
 // validates it, interprets it, and derives every table, identity and fingerprint from it. Like the
 // Testpilot protocol, it is an internal wire with no compatibility promise. The
 // evaluation rules are written in model/SEMANTICS.md; neither front end nor interpreter

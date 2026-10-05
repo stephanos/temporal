@@ -47,7 +47,7 @@ func TestActivityEvidenceIsInCatalogOrder(t *testing.T) {
 // declared there. A capability declaration declares, for each law of the catalog whose capabilities
 // it names, the law's Property, Scenario and Query, each named `<machine>.<law>`.
 func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
-	dir := filepath.Join("..", "..", "..", "model", "temporal", "standaloneactivity")
+	dir := filepath.Join("..", "..", "..", "model", "temporal", "features", "standaloneactivity")
 	files := []string{"Properties.scala", "Queries.scala", "Capabilities.scala"}
 	var source []byte
 	at := map[string]bool{}
@@ -55,7 +55,7 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 		text, err := os.ReadFile(filepath.Join(dir, file))
 		require.NoError(t, err)
 		source = append(append(source, text...), '\n')
-		at["model/temporal/standaloneactivity/"+file] = true
+		at["model/temporal/features/standaloneactivity/"+file] = true
 	}
 	declared := []string{}
 	for _, match := range regexp.MustCompile(`(?:\.|\b)(property|scenario|query)\(\s*"([^"\n]+)"`).FindAllStringSubmatch(string(source), -1) {

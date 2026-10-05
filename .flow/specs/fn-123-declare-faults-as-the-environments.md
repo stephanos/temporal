@@ -20,7 +20,7 @@ The reader it serves is the model author who adds a fault to an entity, and the 
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-This spec builds on the author surface fn-112 leaves: the shared `temporal/taskqueue` package with matching, lossy, forgetful and volatile providers, `rebind`, `extend` and `assuming`, and name capture from the `val`. Line numbers below cite today's `System.scala`. fn-112 moves that code.
+This spec builds on the author surface fn-112 leaves: the shared `temporal/shared/taskqueue` package with matching, lossy, forgetful and volatile providers, `rebind`, `extend` and `assuming`, and name capture from the `val`. Line numbers below cite today's `System.scala`. fn-112 moves that code.
 
 **Part A. Fault declarations.** A fault is an action of the framework's `fault` party (the IR string stays `"fault"`), declared with one of three kinds:
 
@@ -42,7 +42,7 @@ The queue's `custody` needs the third form. `invoked` and `reserved` are held on
 
 **Part C. Budgets.** A budget is a state field the author writes. `f.budgetedBy(_.b)` on a binding names a field of the machine's state type as `f`'s budget: a Boolean (`true` is available, a budget of 1) or an `Int` with catalog `0..n` (a budget of `n`). Step functions keep reading and writing it, so plain-Scala tests see it, and state keys, catalogs and `Query.total` do not change. Go checks the binding over the machine's table: no row raises the field, each row of `f` lowers it by one, no other action's row lowers it, and `f` has no row from a state where it is exhausted (`false` or `0`). A violation is refused at the binding, naming the state and action of the first offending row. A budget of zero is a start state with the field exhausted. A fault with no budget is bounded only by the Query's step limit, as every fault is today, because a budget is a field and adding one changes tables. A composition member's budget is a field of its own state.
 
-**Part D. Realization.** A realization performs a fault with the existing `Fault(role, FaultKind)` command (`model/temporal/standaloneactivity/Realization.scala:793-796`). The runtime has five kinds (`proto/internal/temporal/server/api/testpilot/v1/instruction.proto:143-159`). A fault's authored alternatives are fn-120 named choices, like any step's. A performance that names no choices performs all of them. One that names choices with `choosing(…)` leaves the others model-only for that realization. Lowering refuses a witness that takes a model-only fault or choice, at its step, with the declared reason and its Scala position. The Query's manifest standing names that reason.
+**Part D. Realization.** A realization performs a fault with the existing `Fault(role, FaultKind)` command (`model/temporal/features/standaloneactivity/Realization.scala:793-796`). The runtime has five kinds (`proto/internal/temporal/server/api/testpilot/v1/instruction.proto:143-159`). A fault's authored alternatives are fn-120 named choices, like any step's. A performance that names no choices performs all of them. One that names choices with `choosing(…)` leaves the others model-only for that realization. Lowering refuses a witness that takes a model-only fault or choice, at its step, with the declared reason and its Scala position. The Query's manifest standing names that reason.
 
 **Part E. Report.** One command lists, per IR file, each machine's fault bindings with kind, budget, rows (derived, authored, or authored over a derived crash) and realization: performed by which realization, FaultKind and choices, model-only with its reason, or unperformed.
 
@@ -98,7 +98,7 @@ umpire faults model/ir/activity.json
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
-- **Behavior is frozen.** The baseline goldens (`tools/umpire/model/testdata/migration`, `tools/umpire/lower/testdata/migration`) pass across every task. The harness admits only these recorded deltas: the new fault, durability and budget-field metadata; the removal of `crashDetail` as an IR function, its rows now derived from the declaration; the `storageLossAssumed` assumption's id, which becomes the derived assumption's (its name stays `storageLoss`), with its entry in `tools/umpire/internal/golden/testdata/original/owners.json` mapped to it; the lifter fixture `model/lifter/testdata/lifts/Declarations.scala`, whose `crash` gains a fault declaration, and its lift golden. Tables, rows, state keys, catalogs, Query answers, Definition IDs and Case bytes stay exact otherwise. Where a derivation cannot reproduce a row, the difference is a finding listed for the owner, never accepted silently.
+- **Behavior is frozen.** The baseline goldens (`tools/umpire/model/testdata/migration`, `tools/umpire/lower/testdata/migration`) pass across every task. The harness admits only these recorded deltas: the new fault, durability and budget-field metadata; the removal of `crashDetail` as an IR function, its rows now derived from the declaration; the `storageLossAssumed` assumption's id, which becomes the derived assumption's (its name stays `storageLoss`), with its entry in `tools/umpire/internal/golden/testdata/original/owners.json` mapped to it; the lifter fixture `model/irgen/testdata/lifts/Declarations.scala`, whose `crash` gains a fault declaration, and its lift golden. Tables, rows, state keys, catalogs, Query answers, Definition IDs and Case bytes stay exact otherwise. Where a derivation cannot reproduce a row, the difference is a finding listed for the owner, never accepted silently.
 - **Faulty providers stay expressible.** `forgetfulCrash` and `volatileCrash` also reset `delivered` (through `idleQueue`), but only for some custody values. No per-field or per-value classification says that. They stay authored crashes bound with `rebind` over the derived one. The IR records the binding as authored over a derived crash, and fn-120's lint reports it as `fault-overridden`, accepted with its reason in the accepted-findings file. Their counterexamples and refinement targets stay the same.
 - **Every field, explicitly.** On a machine that binds a crash, a field with no classification is refused, naming the field. A classification on a machine with no crash is refused too. A product-valued field is classified as a whole or by inner path, never both.
 - **Fallback values are durable.** An in-memory value that falls back to another in-memory value, a value listed twice, and a reset value outside the field's domain are refused at their line.
@@ -112,7 +112,7 @@ umpire faults model/ir/activity.json
 
 | Phase handoff | Completion gate | Next work |
 | --- | --- | --- |
-| Queue entity and author surface | fn-112 closed (incl. fn-112.12) | fault declarations, durability and budgets may land in `temporal/taskqueue` |
+| Queue entity and author surface | fn-112 closed (incl. fn-112.12) | fault declarations, durability and budgets may land in `temporal/shared/taskqueue` |
 | Named-choice schema | fn-120.1 done | choice-level fault performance in realizations |
 | Lint | fn-120.3 done | `fault-overridden` kind and its acceptances |
 | Explorer | fn-120.4 done | R7's budget and changed-field display |
@@ -120,7 +120,7 @@ umpire faults model/ir/activity.json
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** `umpire` declares a fault with a kind (`crash`, `responseLoss`, `storageLoss`) and an optional `modelOnly` reason. The lifter records it on the IR `Action`. The faults of `temporal/taskqueue`, of the response-loss machine and of the lifter fixture `Declarations.scala` are declared this way. Errors: an action of the `fault` party with no fault declaration, a `modelOnly` with no reason, and a second declaration of one fault are refused at their line.
+- **R1:** `umpire` declares a fault with a kind (`crash`, `responseLoss`, `storageLoss`) and an optional `modelOnly` reason. The lifter records it on the IR `Action`. The faults of `temporal/shared/taskqueue`, of the response-loss machine and of the lifter fixture `Declarations.scala` are declared this way. Errors: an action of the `fault` party with no fault declaration, a `modelOnly` with no reason, and a second declaration of one fault are refused at their line.
 - **R2:** A machine that binds a crash classifies every field as `durable`, `ephemeral(resetTo)` or `inMemory` with durable fallbacks. The lifter records the classification in the IR. Errors: an unclassified or doubly classified field, an in-memory fallback, a reset value outside the domain, and a classification on a machine with no crash are refused at their line, naming the field.
 - **R3:** Go derives the crash row from the classification as `SEMANTICS.md`'s new Faults section states, and the queue's derived rows equal `crashDetail`'s. Errors: a machine that binds a crash with `crashes(…)` and no classification is an admission error at the binding.
 - **R4:** `rebind` of a derived crash binds an authored step, recorded as overriding the derived crash. The forgetful and volatile providers use it, and their Queries give the same counterexamples. Errors: lint reports `fault-overridden` for each such binding, and the gate fails unless it is accepted with a reason.
@@ -143,7 +143,7 @@ umpire faults model/ir/activity.json
 - No new Testpilot runtime FaultKind. No lowered Query needs one.
 - No change in production Model behavior. The recorded deltas are representation only.
 - No general rely-guarantee contracts. An assumption stays a name.
-- Nexus `network` transport faults (`model/temporal/nexuscaller/Nexus.scala:97`) and the worker's `workerStop` are not converted here. The report lists an action a realization performs with a `Fault` command and no fault declaration as undeclared, which covers `workerStop`.
+- Nexus `network` transport faults (`model/temporal/features/nexuscaller/Model.scala:92`) and the worker's `workerStop` are not converted here. The report lists an action a realization performs with a `Fault` command and no fault declaration as undeclared, which covers `workerStop`.
 - No durability class beyond durable and in-memory.
 
 ## Decision Context

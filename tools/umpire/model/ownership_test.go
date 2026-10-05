@@ -179,8 +179,8 @@ func liveGoFiles(root string, visit func(rel, pkg string, imports []string)) err
 			return err
 		}
 		if entry.IsDir() {
-			// model/gen is the Scala build's output; generated Go elsewhere is live code.
-			if rel != "." && (strings.HasPrefix(entry.Name(), ".") || filepath.ToSlash(rel) == "model/gen" || entry.Name() == "vendor") {
+			// model/build is the Scala build's output; generated Go elsewhere is live code.
+			if rel != "." && (strings.HasPrefix(entry.Name(), ".") || filepath.ToSlash(rel) == "model/build" || entry.Name() == "vendor") {
 				return filepath.SkipDir
 			}
 			if rel != "." {

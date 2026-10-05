@@ -25,7 +25,7 @@ class CatalogTest extends munit.FunSuite:
     // Reads the record through its `activity` member: the record's entity again.
     Declaring("currentOverQueue", "AdmissionState", Set(Closable, Pausable, Pollable)),
     Declaring("activityProtocol", "ProtocolState", Set(Terminable, Cancelable, Describable)),
-    // The standalone Nexus operation (model/temporal/nexusoperation).
+    // The standalone Nexus operation (model/temporal/features/nexusoperation).
     Declaring(
       "nexusOperation",
       "OperationState",

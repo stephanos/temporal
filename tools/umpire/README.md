@@ -55,7 +55,7 @@ make umpire-check-backends                  # Quint and P against the reader; ne
 ```
 
 A finding is accepted in `<file>.lint.json` beside its IR file, by its kind, its machine or
-composition and its subject, each acceptance with the reason it is accepted. The lifter writes no
+composition and its subject, each acceptance with the reason it is accepted. The IR generator writes no
 such file; an author does, and one beside no IR file fails the run.
 
 The tests under `model/testdata/migration` and `lower/testdata/migration` hold the reader's and the

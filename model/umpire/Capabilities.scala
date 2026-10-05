@@ -3,15 +3,17 @@
  *
  * `capabilities(m, limits)(…)` names the machine, the Limits its generated `verify` Queries run under,
  * and its capabilities; the given `Catalog` brings the laws of each capability and of each unordered
- * pair it declares both of. The lifter (model/lifter/Capabilities.scala) expands the declaration
- * into a Property, a Scenario and a Query per law, each named `<machine>.<law>`, and writes what it
- * expanded into the law sidecar beside the IR file. A function-valued field names a def of the lifted
- * sources, never a lambda, as a shared def's function-valued argument does.
+ * pair it declares both of. The IR generator (model/irgen/Capabilities.scala) expands the
+ * declaration into a Property, a Scenario and a Query per law, each named `<machine>.<law>`, and
+ * writes what it expanded into the law sidecar beside the IR file. A function-valued field names a
+ * def of the lifted sources, never a lambda, as a shared def's function-valued argument does.
  *
  * The framework names no capability: a feature kit declares its kinds and laws (model/umpire/Catalog.scala).
  * Everything here is core: it declares what the IR and the sidecar need.
  */
 package umpire
+
+import scala.annotation.unused
 
 /**
  * A capability of a machine whose steps are `Step[S, O, F]`: a predicate of another state type, an
@@ -65,10 +67,11 @@ final class Capabilities[S] private[umpire] (
 /**
  * A capability field's value, backed by the server code that answers it so, e.g.
  * `rejected = cited(Answer.gone, "server/jobs.go")`: each citation is a file path from the
- * repository's root, as a law's `cites` are. The lifter binds the value alone and records the
- * citations in the law sidecar beside each claim that binds the field.
+ * repository's root, as a law's `cites` are. The IR generator binds the value alone and records
+ * the citations in the law sidecar beside each claim that binds the field, so Scala reads no
+ * citation.
  */
-def cited[A](value: A, cites: String*): A = value
+def cited[A](value: A, @unused cites: String*): A = value
 
 /**
  * Declares the capabilities of `m`, whose generated `verify` Queries run under `limits`, and receives

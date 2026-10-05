@@ -40,7 +40,7 @@ const (
 
 func lifted(t testing.TB, name string) *umpirespb.Model {
 	t.Helper()
-	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "lifter", "testdata", "lifts", "expected", name+".json"))
+	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "irgen", "testdata", "lifts", "expected", name+".json"))
 	require.NoError(t, err)
 	return m
 }

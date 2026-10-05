@@ -1,6 +1,6 @@
 package model
 
-// The source-derived Models the lifter's tests pin in model/lifter/testdata/lifts/expected,
+// The source-derived Models the lifter's tests pin in model/irgen/testdata/lifts/expected,
 // read as any other Model: admitted, then interpreted.
 
 import (
@@ -13,7 +13,7 @@ import (
 
 func lifted(t *testing.T, name string) *umpirespb.Model {
 	t.Helper()
-	m, err := Load(filepath.Join("..", "..", "..", "model", "lifter", "testdata", "lifts", "expected", name+".json"))
+	m, err := Load(filepath.Join("..", "..", "..", "model", "irgen", "testdata", "lifts", "expected", name+".json"))
 	require.NoError(t, err)
 	return m
 }

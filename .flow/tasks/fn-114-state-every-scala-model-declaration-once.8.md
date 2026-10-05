@@ -8,7 +8,7 @@ Count, classify and gate once at the end, and update the module map for the new 
 
 **Size:** S
 **Files:** `.flow/tmp/fn114-8/**` evidence; small literal fixes in Models; `.plans/UMPIRE_MODULES.md` ("Root lists keep their present meaning until fn-114"), `model/README.md`.
-**Touches:** [model/temporal/nexuscaller/**, model/temporal/worker/**, model/README.md, .plans/UMPIRE_MODULES.md, .flow/tmp/fn114-8/**]
+**Touches:** [model/temporal/features/nexuscaller/**, model/temporal/shared/worker/**, model/README.md, .plans/UMPIRE_MODULES.md, .flow/tmp/fn114-8/**]
 
 ### Approach
 - Re-run task 1's literal and line counting command; classify each remaining literal into fn-112 R18's three kinds; list any other literal with its line and reason (R11). Remove literals that turn out to be avoidable.

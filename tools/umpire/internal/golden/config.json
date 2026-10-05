@@ -622,5 +622,45 @@
         "new": "temporal.nexuscaller.TimeoutType"
       }
     ]
-  }
+  },
+  "source_path_moves": [
+    {
+      "old": "model/lifter/",
+      "new": "model/irgen/"
+    },
+    {
+      "old": "model/temporal/standaloneactivity/",
+      "new": "model/temporal/features/standaloneactivity/"
+    },
+    {
+      "old": "model/temporal/nexuscaller/",
+      "new": "model/temporal/features/nexuscaller/"
+    },
+    {
+      "old": "model/temporal/taskqueue/",
+      "new": "model/temporal/shared/taskqueue/"
+    },
+    {
+      "old": "model/temporal/worker/",
+      "new": "model/temporal/shared/worker/"
+    }
+  ],
+  "source_package_moves": [
+    {
+      "old": "temporal.standaloneactivity.",
+      "new": "temporal.features.standaloneactivity."
+    },
+    {
+      "old": "temporal.nexuscaller.",
+      "new": "temporal.features.nexuscaller."
+    },
+    {
+      "old": "temporal.taskqueue.",
+      "new": "temporal.shared.taskqueue."
+    },
+    {
+      "old": "temporal.worker.",
+      "new": "temporal.shared.worker."
+    }
+  ]
 }

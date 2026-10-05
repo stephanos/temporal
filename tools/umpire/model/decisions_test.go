@@ -29,7 +29,7 @@ func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
 	require.True(t, last.Match())
 	require.False(t, last.Wildcard)
 	require.True(t, last.State)
-	require.Contains(t, last.Position, "model/temporal/standaloneactivity/Model.scala:")
+	require.Contains(t, last.Position, "model/temporal/features/standaloneactivity/Model.scala:")
 	// The control's own match decided first, on the input alone.
 	var input Decision
 	for _, d := range w.Decisions {
@@ -52,7 +52,7 @@ func TestWhyNamesTheDecisionThatDisabledAPair(t *testing.T) {
 	w = whyIn(t, m, "activityProtocol", "completed-1-unset-unset-unset", "control-pause")
 	require.Len(t, w.Steps, 1)
 	first := w.Decisions[0]
-	require.Equal(t, []string{"temporal.standaloneactivity.Protocol$.terminal"}, first.Calls)
+	require.Equal(t, []string{"temporal.features.standaloneactivity.Protocol$.terminal"}, first.Calls)
 	require.True(t, first.State)
 	require.False(t, first.Nested)
 }
@@ -98,7 +98,7 @@ func TestWhyMarksAWildcardArm(t *testing.T) {
 		}
 	}
 	for _, f := range m.GetFunctions() {
-		if f.GetName() == "temporal.standaloneactivity.Protocol$.control" {
+		if f.GetName() == "temporal.features.standaloneactivity.Protocol$.control" {
 			visit(f.GetBody())
 		}
 	}

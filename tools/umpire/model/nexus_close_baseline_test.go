@@ -186,7 +186,7 @@ var closeDefaultQuery = regexp.MustCompile(`query\s+(?:verify|find)\s+claims\.(\
 // closeSource is every name the Scala sources of the designs declare, as "<kind> <name>".
 func closeSource(t *testing.T) []string {
 	t.Helper()
-	files, err := filepath.Glob(filepath.Join("..", "..", "..", "model", "temporal", "nexuscaller", "closepolicy", "*.scala"))
+	files, err := filepath.Glob(filepath.Join("..", "..", "..", "model", "temporal", "features", "nexuscaller", "closepolicy", "*.scala"))
 	require.NoError(t, err)
 	require.NotEmpty(t, files)
 	found := map[string]bool{}
@@ -327,7 +327,10 @@ type closeClaim struct {
 // assumptions it is conditional on, and an assumption makes fair only what its name says.
 func TestNexusCloseProgressClaimsAreTheSpecimens(t *testing.T) {
 	m := closeModel(t).model
-	const model, properties = "temporal.nexuscaller.closepolicy.Model$package$.", "temporal.nexuscaller.closepolicy.Properties$package$."
+	// An action keeps the Definition ID of the package the Model was written in; a Function takes the
+	// compiler's name, in the package the Model moved to (fn-114.9).
+	const model = "temporal.nexuscaller.closepolicy.Model$package$."
+	const functions, properties = "temporal.features.nexuscaller.closepolicy.Model$package$.", "temporal.features.nexuscaller.closepolicy.Properties$package$."
 	names := map[string]string{}
 	fair := map[string][]string{}
 	for _, a := range m.GetAssumptions() {
@@ -345,7 +348,7 @@ func TestNexusCloseProgressClaimsAreTheSpecimens(t *testing.T) {
 		"scheduleToCloseExpires":               nil,
 	}, fair)
 
-	reaches := closeClaim{model + "isDone", model + "settled", 6, []string{reporting, delivery}}
+	reaches := closeClaim{functions + "isDone", functions + "settled", 6, []string{reporting, delivery}}
 	retained := closeClaim{properties + "awaitingOwner", properties + "ownerKnowsOutcome", 2, []string{delivery, recovery}}
 	unrecovered := retained
 	unrecovered.Assumptions = []string{delivery}

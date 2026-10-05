@@ -8,7 +8,7 @@ The lowering reads the hints and emits a bounded wait for a read after an eventu
 
 **Size:** M
 **Files:** `tools/umpire/lower/realization.go` (commands :495-532, poll :822-853), `lower/internal/producer/build.go:89-104`, lowering tests and fixtures.
-**Touches:** [tools/umpire/lower/**, tools/umpire/model/**, model/lifter/testdata/**]
+**Touches:** [tools/umpire/lower/**, tools/umpire/model/**, model/irgen/testdata/**]
 
 ### Approach
 - For each path, find what each read waits on in path order across scripts, using task 1's classification: a preceding write (look up its visibility: at once -> task 3's read-once form, eventually -> bounded condition wait) or an asynchronous cause (bounded condition wait with the cause kind's declared bound). Emit task 3's instruction fields with the bound and hint position.

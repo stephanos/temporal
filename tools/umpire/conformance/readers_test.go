@@ -40,7 +40,7 @@ func guardIn(of *umpirespb.Operand, path string) *umpirespb.Operand {
 func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 	const (
 		pushed  = "evidence fixture.realizations.tally.evidence.pushed: its guard "
-		fixture = "model/lifter/testdata/lifts/Realizations.scala:"
+		fixture = "model/irgen/testdata/lifts/Realizations.scala:"
 		alone   = "; a Run Event's guard reads the event's payload alone"
 		unknown = "writes out a value that is no text, flag, number or enum value"
 		v1      = "temporal.server.api.testpilot.v1."
@@ -154,7 +154,7 @@ func TestAGuardIsWellFormedForEveryReaderOrForNone(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			// The declaration: the tally fixture's Run Event kind, under this guard.
-			encoded, err := os.ReadFile(filepath.Join("..", "..", "..", "model", "lifter", "testdata", "lifts", "expected", "realizations.json"))
+			encoded, err := os.ReadFile(filepath.Join("..", "..", "..", "model", "irgen", "testdata", "lifts", "expected", "realizations.json"))
 			require.NoError(t, err)
 			m := &umpirespb.Model{}
 			require.NoError(t, protojson.Unmarshal(encoded, m))

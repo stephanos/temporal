@@ -15,7 +15,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-const admRealizationAt = "model/temporal/nexuscaller/Realization.scala:"
+const admRealizationAt = "model/temporal/features/nexuscaller/Realization.scala:"
 
 // admKitAt is where the shared Temporal kit (model/temporal/realize) writes the declarations of the
 // realizations it builds: their roles and correlation, the evidence of the Run's own record, and the
@@ -799,10 +799,10 @@ func TestARealizerGivesOnlyTheQueriesOfAnAdmittedModel(t *testing.T) {
 		{"another name", ClaimKey{Family: key.Family, Owner: key.Owner, Name: "syncCompletionAgain"}, "no Query syncCompletionAgain", m.GetSource()},
 		{"another machine", ClaimKey{Family: key.Family, Owner: "nexusProduct", Name: key.Name},
 			"query syncCompletion runs on nexusProtocol of temporal.nexus.caller, not on nexusProduct of temporal.nexus.caller",
-			"model/temporal/nexuscaller/Queries.scala:"},
+			"model/temporal/features/nexuscaller/Queries.scala:"},
 		{"another family", ClaimKey{Family: "temporal.worker", Owner: key.Owner, Name: key.Name},
 			"query syncCompletion runs on nexusProtocol of temporal.nexus.caller, not on nexusProtocol of temporal.worker",
-			"model/temporal/nexuscaller/Queries.scala:"},
+			"model/temporal/features/nexuscaller/Queries.scala:"},
 		{"no name", ClaimKey{Family: key.Family, Owner: key.Owner}, "no Query ", m.GetSource()},
 	} {
 		t.Run(c.name, func(t *testing.T) {
@@ -875,7 +875,7 @@ func TestTheAttemptARunEventRecordsIsOfAnActivitysScript(t *testing.T) {
 				return
 			}
 			require.ErrorContains(t, err, test.want)
-			requireLocated(t, err, "model/temporal/standaloneactivity/Realization.scala:")
+			requireLocated(t, err, "model/temporal/features/standaloneactivity/Realization.scala:")
 		})
 	}
 }

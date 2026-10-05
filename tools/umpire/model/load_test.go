@@ -23,7 +23,7 @@ func writeModel(t *testing.T, encoded string) string {
 }
 
 func TestLoadDecodesTheFileItAdmits(t *testing.T) {
-	path := filepath.Join("..", "..", "..", "model", "lifter", "testdata", "lifts", "expected", "presence.json")
+	path := filepath.Join("..", "..", "..", "model", "irgen", "testdata", "lifts", "expected", "presence.json")
 	encoded, err := os.ReadFile(path)
 	require.NoError(t, err)
 	want := &umpirespb.Model{}

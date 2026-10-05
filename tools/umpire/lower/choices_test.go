@@ -91,7 +91,7 @@ func TestNamedChoicesLowerTheSameCases(t *testing.T) {
 	branches := map[string]bool{"model/ir/activity-race.json": true}
 	for _, path := range []string{
 		"model/ir/activity.json", "model/ir/activity-race.json", "model/ir/nexus-caller.json", "model/ir/nexus-control.json",
-		"model/lifter/testdata/lifts/expected/realizations.json",
+		"model/irgen/testdata/lifts/expected/realizations.json",
 	} {
 		t.Run(filepath.Base(path), func(t *testing.T) {
 			plain, err := umpiremodel.Load(filepath.Join("..", "..", "..", path))

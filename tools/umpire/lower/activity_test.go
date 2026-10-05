@@ -2,8 +2,8 @@ package lower
 
 // An activity's script, the evidence a realization declares beyond a kind and a source, and what the
 // standalone activity Model's own realization declares. The fixtures are in
-// model/lifter/testdata/lifts/Realizations.scala; the activity realization is
-// model/temporal/standaloneactivity/Realization.scala, and its Cases are in
+// model/irgen/testdata/lifts/Realizations.scala; the activity realization is
+// model/temporal/features/standaloneactivity/Realization.scala, and its Cases are in
 // activity_cases_test.go.
 
 import (
@@ -26,7 +26,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-const activityRealizationAt = "model/temporal/standaloneactivity/Realization.scala"
+const activityRealizationAt = "model/temporal/features/standaloneactivity/Realization.scala"
 
 // kitAt is where the shared Temporal kit (model/temporal/realize) writes the declarations of the
 // realizations it builds: their roles and correlation, the evidence of the Run's own record, and the
@@ -739,7 +739,7 @@ func TestAPathThatEndsInAStepNothingConfirmsIsAnError(t *testing.T) {
 	var refused *cp.Error
 	require.ErrorAs(t, err, &refused)
 	require.Equal(t, &cp.Error{Definition: "temporal.activity.standalone.action.activityProtocol.workerStop", Construct: "evidence.action-unmapped"}, refused)
-	require.ErrorContains(t, err, "model/temporal/standaloneactivity/Queries.scala:")
+	require.ErrorContains(t, err, "model/temporal/features/standaloneactivity/Queries.scala:")
 }
 
 // A path that takes a class again with no kind of evidence that names the second step is an error of

@@ -1,6 +1,6 @@
 /* Sugar: definitions whose meaning a core declaration already expresses, kept for readability. Each
- * names the core form it stands for, and the lifter (model/lifter/Syntax.scala) lowers it to the IR
- * that core form lifts to. No other file of the framework uses them.
+ * names the core form it stands for, and the IR generator (model/irgen/Syntax.scala) lowers it to
+ * the IR that core form lifts to. No other file of the framework uses them.
  */
 package umpire
 

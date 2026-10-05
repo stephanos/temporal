@@ -390,7 +390,7 @@ func TestOriginalBaselineExplorationsRejectChanges(t *testing.T) {
 	moved := proto.CloneOf(in.baselines[key])
 	moved.Source = "model: moved roots"
 	for _, q := range moved.GetQueries() {
-		q.Position = &umpirespb.Position{File: "model/temporal/nexuscaller/Queries.scala", Line: 7}
+		q.Position = &umpirespb.Position{File: "model/temporal/features/nexuscaller/Queries.scala", Line: 7}
 	}
 	require.Equal(t, archived["explorations/"+key], digest(moved, in.delta.ProjectCurrent))
 	changed := proto.CloneOf(moved)

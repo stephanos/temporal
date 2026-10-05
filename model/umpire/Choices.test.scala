@@ -1,6 +1,6 @@
 package umpire
-// Named choices, run as Scala. The lifter's fixtures (lifter/testdata/lifts/Choices.scala) prove the
-// IR; these pin the framework's own values.
+// Named choices, run as Scala. The IR generator's fixtures (irgen/testdata/lifts/Choices.scala) prove
+// the IR; these pin the framework's own values.
 
 class Choices extends munit.FunSuite:
   enum Outcome:

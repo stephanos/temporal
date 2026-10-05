@@ -15,7 +15,7 @@ import (
 var (
 	activityIR     = loaded("../../../model/ir/activity.json")
 	nexusControlIR = loaded("../../../model/ir/nexus-control.json")
-	capturedIR     = loaded("../../../model/lifter/testdata/lifts/expected/captured.json")
+	capturedIR     = loaded("../../../model/irgen/testdata/lifts/expected/captured.json")
 )
 
 func loaded(path string) func() (*umpirespb.Model, error) {
@@ -157,7 +157,7 @@ func TestUntakenChoices(t *testing.T) {
 	// reachable state takes it.
 	r = run(t, read(t, nexusControlIR, func(ir *umpirespb.Model) {
 		for _, f := range ir.GetFunctions() {
-			if f.GetName() != "temporal.nexuscaller.Control$.forgedComplete" {
+			if f.GetName() != "temporal.features.nexuscaller.Control$.forgedComplete" {
 				continue
 			}
 			join := f.GetBody().GetIf().GetThen().GetBinary()

@@ -322,7 +322,7 @@ func TestTheControllersInstructionsRecordEvidenceInThePathsOrder(t *testing.T) {
 			require.ErrorContains(t, err, test.want)
 			var located *umpiremodel.Error
 			require.ErrorAs(t, err, &located)
-			require.Contains(t, located.Position, "model/temporal/standaloneactivity/")
+			require.Contains(t, located.Position, "model/temporal/features/standaloneactivity/")
 		})
 	}
 }

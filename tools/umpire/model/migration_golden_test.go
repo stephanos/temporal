@@ -496,7 +496,8 @@ func readMigration(t *testing.T, m *umpirespb.Model, locates ...func(string) str
 }
 
 // locationProjection maps every source path a located string names, frozen or current, to its
-// current spelling, and drops the line and column after it, as Match compares positions by file.
+// current spelling before PathMoves, and drops the line and column after it, as Match compares
+// positions by file.
 func locationProjection(cfg golden.Config) func(string) string {
 	current := map[string]string{}
 	for _, path := range cfg.Paths {
@@ -540,7 +541,8 @@ func locationProjection(cfg golden.Config) func(string) string {
 	}
 	located := regexp.MustCompile(`(` + strings.Join(files, "|") + `)(?::[0-9]+)*`)
 	return func(s string) string {
-		return located.ReplaceAllStringFunc(s, func(at string) string {
+		// A path under a moved directory is first spelled under the old one, as Match reads it.
+		return located.ReplaceAllStringFunc(cfg.UnmovedText(s), func(at string) string {
 			path := located.FindStringSubmatch(at)[1]
 			if to, ok := current[path]; ok {
 				return to
@@ -626,12 +628,14 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 	cfg, models := migrationInputs(t)
 	current := models[path]
 	require.NotNil(t, functionNamed(original, kernel))
-	moved := "temporal.nexuscaller.Protocol$.completeStep"
+	moved := "temporal.features.nexuscaller.Protocol$.completeStep"
 	if i := slices.IndexFunc(cfg.Projection.Functions, func(s golden.Substitution) bool { return s.Old == kernel }); i >= 0 {
 		moved = cfg.Projection.Functions[i].New
 	} else {
 		cfg.Projection.Functions = append(cfg.Projection.Functions, golden.Substitution{Old: kernel, New: moved})
 	}
+	// The current IR names the Function in the package it moved to since (fn-114.9).
+	moved = cfg.MovedPackage(moved)
 	// Each substitution renames a Function of the frozen IR that declares it, the Nexus caller's or
 	// another's.
 	originals, err := golden.FrozenModels(frozen, "ir/")
@@ -698,7 +702,7 @@ func TestMigrationGoldensAdmitOnlyTheProjection(t *testing.T) {
 		})
 	}
 	t.Run("position in an unlisted file", func(t *testing.T) {
-		changed := migrationRewrite(t, admitted, rename("model/temporal/nexuscaller/Queries.scala", "model/temporal/nexuscaller/Query.scala"))
+		changed := migrationRewrite(t, admitted, rename("model/temporal/features/nexuscaller/Queries.scala", "model/temporal/features/nexuscaller/Query.scala"))
 		_, err := cfg.Match(original, changed)
 		require.Error(t, err)
 	})

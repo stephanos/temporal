@@ -1,7 +1,7 @@
 package model
 
 // An independent consumer of the shared task queue, lifted from
-// model/lifter/testdata/lifts/TaskQueue.scala: a job of its own over the opaque queue, over the
+// model/irgen/testdata/lifts/TaskQueue.scala: a job of its own over the opaque queue, over the
 // matching provider that replaces it, and over the forgetful provider, the negative control. It names
 // nothing of the standalone activity, so these answers are the queue's as any feature relies on it.
 

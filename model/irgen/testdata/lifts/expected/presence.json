@@ -1,0 +1,1280 @@
+{
+  "source": "model: fixture.presence.Presence$package$.presence",
+  "types": [ {
+    "name": "fixture.presence.Outcome",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Presence.scala",
+      "line": 37
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      }, {
+        "name": "ignored"
+      } ]
+    }
+  }, {
+    "name": "fixture.presence.Report",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Presence.scala",
+      "line": 14
+    },
+    "enum": {
+      "cases": [ {
+        "name": "unsent"
+      }, {
+        "name": "sent",
+        "fields": [ {
+          "name": "result",
+          "type": {
+            "named": "fixture.presence.Result"
+          }
+        }, {
+          "name": "retried",
+          "type": {
+            "bool": { }
+          }
+        } ]
+      } ]
+    }
+  }, {
+    "name": "fixture.presence.Result",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Presence.scala",
+      "line": 10
+    },
+    "enum": {
+      "cases": [ {
+        "name": "succeeded"
+      }, {
+        "name": "failed"
+      } ]
+    }
+  }, {
+    "name": "fixture.presence.State",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Presence.scala",
+      "line": 31
+    },
+    "record": {
+      "fields": [ {
+        "name": "report",
+        "type": {
+          "named": "fixture.presence.Report"
+        }
+      }, {
+        "name": "kept",
+        "type": {
+          "named": "scala.Option[fixture.presence.Result]"
+        }
+      }, {
+        "name": "retries",
+        "type": {
+          "intRange": {
+            "high": "2"
+          }
+        }
+      }, {
+        "name": "polls",
+        "type": {
+          "intRange": {
+            "high": "1"
+          }
+        }
+      } ]
+    }
+  }, {
+    "name": "scala.Option[fixture.presence.Result]",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Presence.scala",
+      "line": 72
+    },
+    "enum": {
+      "cases": [ {
+        "name": "None"
+      }, {
+        "name": "Some",
+        "fields": [ {
+          "name": "value",
+          "type": {
+            "named": "fixture.presence.Result"
+          }
+        } ]
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "fixture.presence.Presence$package$.forgetStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Presence.scala",
+      "line": 65
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.presence.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Presence.scala",
+        "line": 65
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Presence.scala",
+            "line": 65
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Presence.scala",
+                "line": 65
+              },
+              "var": "s"
+            },
+            "field": "kept"
+          }
+        },
+        "cases": [ {
+          "pattern": {
+            "case": {
+              "type": "scala.Option[fixture.presence.Result]",
+              "case": "Some",
+              "fields": [ {
+                "wildcard": { }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Presence.scala",
+              "line": 66
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Presence.scala",
+                  "line": 66
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 66
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.presence.Outcome",
+                        "case": "accepted"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 66
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Presence.scala",
+                          "line": 66
+                        },
+                        "var": "s"
+                      },
+                      "updates": [ {
+                        "name": "kept",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/Presence.scala",
+                            "line": 66
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "scala.Option[fixture.presence.Result]",
+                              "case": "None"
+                            }
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 66
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 66
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "scala.Option[fixture.presence.Result]",
+                "case": "None"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Presence.scala",
+              "line": 67
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Presence.scala",
+                  "line": 67
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 67
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.presence.Outcome",
+                        "case": "ignored"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 67
+                    },
+                    "var": "s"
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 67
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 67
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.presence.Presence$package$.keepStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Presence.scala",
+      "line": 59
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.presence.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Presence.scala",
+        "line": 60
+      },
+      "let": {
+        "name": "sent",
+        "value": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Presence.scala",
+            "line": 60
+          },
+          "match": {
+            "scrutinee": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Presence.scala",
+                "line": 60
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Presence.scala",
+                    "line": 60
+                  },
+                  "var": "s"
+                },
+                "field": "report"
+              }
+            },
+            "cases": [ {
+              "pattern": {
+                "case": {
+                  "type": "fixture.presence.Report",
+                  "case": "sent",
+                  "fields": [ {
+                    "bind": {
+                      "name": "r",
+                      "pattern": {
+                        "wildcard": { }
+                      }
+                    }
+                  }, {
+                    "wildcard": { }
+                  } ]
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Presence.scala",
+                  "line": 61
+                },
+                "construct": {
+                  "type": "scala.Option[fixture.presence.Result]",
+                  "case": "Some",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 61
+                    },
+                    "var": "r"
+                  } ]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.presence.Report",
+                    "case": "unsent"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Presence.scala",
+                  "line": 62
+                },
+                "literal": {
+                  "enum": {
+                    "type": "scala.Option[fixture.presence.Result]",
+                    "case": "None"
+                  }
+                }
+              }
+            } ]
+          }
+        },
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Presence.scala",
+            "line": 63
+          },
+          "if": {
+            "condition": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Presence.scala",
+                "line": 63
+              },
+              "binary": {
+                "op": "OP_OR",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Presence.scala",
+                    "line": 63
+                  },
+                  "binary": {
+                    "op": "OP_EQ",
+                    "left": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Presence.scala",
+                        "line": 63
+                      },
+                      "var": "sent"
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Presence.scala",
+                        "line": 63
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "scala.Option[fixture.presence.Result]",
+                          "case": "None"
+                        }
+                      }
+                    }
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Presence.scala",
+                    "line": 63
+                  },
+                  "binary": {
+                    "op": "OP_EQ",
+                    "left": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Presence.scala",
+                        "line": 63
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/Presence.scala",
+                            "line": 63
+                          },
+                          "var": "s"
+                        },
+                        "field": "kept"
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Presence.scala",
+                        "line": 63
+                      },
+                      "var": "sent"
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Presence.scala",
+                "line": 63
+              },
+              "list": { }
+            },
+            "else": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Presence.scala",
+                "line": 63
+              },
+              "list": {
+                "items": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Presence.scala",
+                    "line": 63
+                  },
+                  "construct": {
+                    "type": "umpire.Step",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Presence.scala",
+                        "line": 63
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.presence.Outcome",
+                          "case": "accepted"
+                        }
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Presence.scala",
+                        "line": 63
+                      },
+                      "copy": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/Presence.scala",
+                            "line": 63
+                          },
+                          "var": "s"
+                        },
+                        "updates": [ {
+                          "name": "kept",
+                          "value": {
+                            "position": {
+                              "file": "model/irgen/testdata/lifts/Presence.scala",
+                              "line": 63
+                            },
+                            "var": "sent"
+                          }
+                        } ]
+                      }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Presence.scala",
+                        "line": 63
+                      },
+                      "list": { }
+                    }, {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Presence.scala",
+                        "line": 63
+                      },
+                      "literal": {
+                        "text": ""
+                      }
+                    } ]
+                  }
+                } ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.presence.Presence$package$.pollStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Presence.scala",
+      "line": 69
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.presence.State"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Presence.scala",
+        "line": 70
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Presence.scala",
+            "line": 70
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Presence.scala",
+                "line": 70
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Presence.scala",
+                    "line": 70
+                  },
+                  "var": "s"
+                },
+                "field": "polls"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Presence.scala",
+                "line": 70
+              },
+              "literal": {
+                "int": "0"
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Presence.scala",
+            "line": 70
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Presence.scala",
+                "line": 70
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Presence.scala",
+                    "line": 70
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.presence.Outcome",
+                      "case": "accepted"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Presence.scala",
+                    "line": 70
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Presence.scala",
+                        "line": 70
+                      },
+                      "var": "s"
+                    },
+                    "updates": [ {
+                      "name": "polls",
+                      "value": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Presence.scala",
+                          "line": 70
+                        },
+                        "literal": {
+                          "int": "1"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Presence.scala",
+                    "line": 70
+                  },
+                  "list": { }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Presence.scala",
+                    "line": 70
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Presence.scala",
+            "line": 70
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.presence.Presence$package$.sendStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Presence.scala",
+      "line": 45
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.presence.State"
+      }
+    }, {
+      "name": "r",
+      "type": {
+        "named": "fixture.presence.Result"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Presence.scala",
+        "line": 45
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Presence.scala",
+            "line": 45
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Presence.scala",
+                "line": 45
+              },
+              "var": "s"
+            },
+            "field": "report"
+          }
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.presence.Report",
+                "case": "unsent"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Presence.scala",
+              "line": 46
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Presence.scala",
+                  "line": 46
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 46
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.presence.Outcome",
+                        "case": "accepted"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 46
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Presence.scala",
+                          "line": 46
+                        },
+                        "var": "s"
+                      },
+                      "updates": [ {
+                        "name": "report",
+                        "value": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/Presence.scala",
+                            "line": 46
+                          },
+                          "construct": {
+                            "type": "fixture.presence.Report",
+                            "case": "sent",
+                            "args": [ {
+                              "position": {
+                                "file": "model/irgen/testdata/lifts/Presence.scala",
+                                "line": 46
+                              },
+                              "var": "r"
+                            }, {
+                              "position": {
+                                "file": "model/irgen/testdata/lifts/Presence.scala",
+                                "line": 46
+                              },
+                              "literal": {
+                                "bool": false
+                              }
+                            } ]
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 46
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 46
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "case": {
+              "type": "fixture.presence.Report",
+              "case": "sent",
+              "fields": [ {
+                "wildcard": { }
+              }, {
+                "literal": {
+                  "bool": true
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Presence.scala",
+              "line": 47
+            },
+            "list": { }
+          }
+        }, {
+          "pattern": {
+            "case": {
+              "type": "fixture.presence.Report",
+              "case": "sent",
+              "fields": [ {
+                "bind": {
+                  "name": "first",
+                  "pattern": {
+                    "wildcard": { }
+                  }
+                }
+              }, {
+                "literal": {
+                  "bool": false
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Presence.scala",
+              "line": 49
+            },
+            "if": {
+              "condition": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Presence.scala",
+                  "line": 49
+                },
+                "binary": {
+                  "op": "OP_EQ",
+                  "left": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 49
+                    },
+                    "field": {
+                      "base": {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Presence.scala",
+                          "line": 49
+                        },
+                        "var": "s"
+                      },
+                      "field": "retries"
+                    }
+                  },
+                  "right": {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 25
+                    },
+                    "literal": {
+                      "int": "2"
+                    }
+                  }
+                }
+              },
+              "then": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Presence.scala",
+                  "line": 49
+                },
+                "list": { }
+              },
+              "else": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Presence.scala",
+                  "line": 51
+                },
+                "list": {
+                  "items": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Presence.scala",
+                      "line": 52
+                    },
+                    "construct": {
+                      "type": "umpire.Step",
+                      "args": [ {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Presence.scala",
+                          "line": 52
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.presence.Outcome",
+                            "case": "accepted"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Presence.scala",
+                          "line": 52
+                        },
+                        "copy": {
+                          "base": {
+                            "position": {
+                              "file": "model/irgen/testdata/lifts/Presence.scala",
+                              "line": 52
+                            },
+                            "var": "s"
+                          },
+                          "updates": [ {
+                            "name": "report",
+                            "value": {
+                              "position": {
+                                "file": "model/irgen/testdata/lifts/Presence.scala",
+                                "line": 52
+                              },
+                              "construct": {
+                                "type": "fixture.presence.Report",
+                                "case": "sent",
+                                "args": [ {
+                                  "position": {
+                                    "file": "model/irgen/testdata/lifts/Presence.scala",
+                                    "line": 52
+                                  },
+                                  "var": "first"
+                                }, {
+                                  "position": {
+                                    "file": "model/irgen/testdata/lifts/Presence.scala",
+                                    "line": 52
+                                  },
+                                  "literal": {
+                                    "bool": true
+                                  }
+                                } ]
+                              }
+                            }
+                          }, {
+                            "name": "retries",
+                            "value": {
+                              "position": {
+                                "file": "model/irgen/testdata/lifts/Presence.scala",
+                                "line": 52
+                              },
+                              "call": {
+                                "function": "fixture.presence.bounded$.Retries$.next",
+                                "args": [ {
+                                  "position": {
+                                    "file": "model/irgen/testdata/lifts/Presence.scala",
+                                    "line": 52
+                                  },
+                                  "field": {
+                                    "base": {
+                                      "position": {
+                                        "file": "model/irgen/testdata/lifts/Presence.scala",
+                                        "line": 52
+                                      },
+                                      "var": "s"
+                                    },
+                                    "field": "retries"
+                                  }
+                                } ]
+                              }
+                            }
+                          } ]
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Presence.scala",
+                          "line": 52
+                        },
+                        "list": { }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Presence.scala",
+                          "line": 52
+                        },
+                        "literal": {
+                          "text": ""
+                        }
+                      } ]
+                    }
+                  } ]
+                }
+              }
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.presence.bounded$.Retries$.next",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Presence.scala",
+      "line": 26
+    },
+    "params": [ {
+      "name": "r",
+      "type": {
+        "intRange": {
+          "high": "2"
+        }
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Presence.scala",
+        "line": 26
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Presence.scala",
+            "line": 26
+          },
+          "binary": {
+            "op": "OP_LE",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Presence.scala",
+                "line": 26
+              },
+              "binary": {
+                "op": "OP_ADD",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Presence.scala",
+                    "line": 26
+                  },
+                  "var": "r"
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Presence.scala",
+                    "line": 26
+                  },
+                  "literal": {
+                    "int": "1"
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Presence.scala",
+                "line": 26
+              },
+              "literal": {
+                "int": "2"
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Presence.scala",
+            "line": 26
+          },
+          "binary": {
+            "op": "OP_ADD",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Presence.scala",
+                "line": 26
+              },
+              "var": "r"
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Presence.scala",
+                "line": 26
+              },
+              "literal": {
+                "int": "1"
+              }
+            }
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Presence.scala",
+            "line": 26
+          },
+          "literal": {
+            "int": "2"
+          }
+        }
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.presence.Presence$package$.forget",
+    "name": "forget",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Presence.scala",
+      "line": 42
+    },
+    "party": "fixture"
+  }, {
+    "id": "fixture.presence.Presence$package$.keep",
+    "name": "keep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Presence.scala",
+      "line": 41
+    },
+    "party": "fixture"
+  }, {
+    "id": "fixture.presence.Presence$package$.poll",
+    "name": "poll",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Presence.scala",
+      "line": 43
+    },
+    "party": "system",
+    "timer": true
+  }, {
+    "id": "fixture.presence.Presence$package$.send",
+    "name": "send",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Presence.scala",
+      "line": 40
+    },
+    "party": "fixture",
+    "inputs": [ {
+      "name": "result",
+      "type": {
+        "named": "fixture.presence.Result"
+      }
+    } ]
+  } ],
+  "machines": [ {
+    "family": "fixture.presence",
+    "name": "presence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Presence.scala",
+      "line": 72
+    },
+    "stateType": "fixture.presence.State",
+    "outcomeType": "fixture.presence.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Presence.scala",
+        "line": 73
+      },
+      "construct": {
+        "type": "fixture.presence.State",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Presence.scala",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.presence.Report",
+              "case": "unsent"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Presence.scala",
+            "line": 73
+          },
+          "literal": {
+            "enum": {
+              "type": "scala.Option[fixture.presence.Result]",
+              "case": "None"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Presence.scala",
+            "line": 24
+          },
+          "literal": {
+            "int": "0"
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Presence.scala",
+            "line": 73
+          },
+          "literal": {
+            "int": "0"
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Presence.scala",
+        "line": 74
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.presence.State"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Presence.scala",
+            "line": 74
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Presence.scala",
+                "line": 74
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Presence.scala",
+                    "line": 74
+                  },
+                  "var": "s"
+                },
+                "field": "kept"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Presence.scala",
+                "line": 74
+              },
+              "literal": {
+                "enum": {
+                  "type": "scala.Option[fixture.presence.Result]",
+                  "case": "None"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.presence.Presence$package$.send",
+      "function": "fixture.presence.Presence$package$.sendStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Presence.scala",
+        "line": 75
+      }
+    }, {
+      "action": "fixture.presence.Presence$package$.keep",
+      "function": "fixture.presence.Presence$package$.keepStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Presence.scala",
+        "line": 75
+      }
+    }, {
+      "action": "fixture.presence.Presence$package$.forget",
+      "function": "fixture.presence.Presence$package$.forgetStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Presence.scala",
+        "line": 75
+      }
+    }, {
+      "action": "fixture.presence.Presence$package$.poll",
+      "function": "fixture.presence.Presence$package$.pollStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Presence.scala",
+        "line": 75
+      }
+    } ]
+  } ]
+}

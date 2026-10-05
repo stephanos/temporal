@@ -148,7 +148,7 @@ type nexusWitness struct {
 	why             string
 }
 
-// Each expectation is read off model/temporal/nexuscaller (Claims.scala and the
+// Each expectation is read off model/temporal/features/nexuscaller (Claims.scala and the
 // kernel's step functions), which the comment beside it cites.
 var nexusWitnesses = []nexusWitness{
 	// A completed event is also what a completion of an operation the handler never answered

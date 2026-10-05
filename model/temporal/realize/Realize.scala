@@ -6,7 +6,7 @@
  * Each declaration extends an open trait of the framework's realization vocabulary
  * (model/umpire/realize), which knows no system. As there, the lifter emits a declaration into the
  * IR as written, each class by its simple name and each parameter by its own
- * (model/lifter/Realizations.scala), and a default is the empty value, which the IR leaves unset.
+ * (model/irgen/Realizations.scala), and a default is the empty value, which the IR leaves unset.
  */
 package temporal.realize
 

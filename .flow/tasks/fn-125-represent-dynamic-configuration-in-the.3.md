@@ -9,8 +9,8 @@ Implements R4 (spec Part A). A Query binds settings with `under`: `s := v` fixes
 **Cross-spec entry gate:** fn-114 closed; not concurrent with fn-124.8. Depends on task 2.
 
 **Size:** M
-**Files:** `model/umpire/` Query DSL (`under`); `model/lifter/**`; `ir.proto` (`Query.under`, repeated `SettingBinding {setting, values, position}`) and generated Go; `tools/umpire/model/**` and `tools/umpire/checker/**` (per-valuation Query expansion, keys, totals); results, witnesses and receipts (valuation key); `tools/umpire/lower/**` (per-valuation key passes through); `model/SEMANTICS.md` (Query totals multiplier).
-**Touches:** [model/umpire/**, model/lifter/**, model/ir/**, proto/internal/temporal/server/api/umpire/v1/**, api/umpire/v1/**, tools/umpire/model/**, tools/umpire/checker/**, tools/umpire/explore/**, tools/umpire/lower/**, model/SEMANTICS.md]
+**Files:** `model/umpire/` Query DSL (`under`); `model/irgen/**`; `ir.proto` (`Query.under`, repeated `SettingBinding {setting, values, position}`) and generated Go; `tools/umpire/model/**` and `tools/umpire/checker/**` (per-valuation Query expansion, keys, totals); results, witnesses and receipts (valuation key); `tools/umpire/lower/**` (per-valuation key passes through); `model/SEMANTICS.md` (Query totals multiplier).
+**Touches:** [model/umpire/**, model/irgen/**, model/ir/**, proto/internal/temporal/server/api/umpire/v1/**, api/umpire/v1/**, tools/umpire/model/**, tools/umpire/checker/**, tools/umpire/explore/**, tools/umpire/lower/**, model/SEMANTICS.md]
 
 ### Approach
 - `under` takes fixes and ranges; several bound settings cover the product. `total` is the per-valuation count times the number of valuations.

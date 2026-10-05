@@ -9,24 +9,24 @@ Give realizations the generic way to say "the workflow schedules this activity, 
 **Cross-spec entry gate:** start after fn-114 and fn-118 are closed: the realization DSL, lifter, IR schema and `tools/umpire/lower/realization.go` stop moving, and the new lowering must sit under fn-118's read-after-write visibility refusal. Does not need fn-120.
 
 **Size:** M
-**Files:** `model/umpire/realize/Realize.scala` (`Activation` :329, `Instruction` :424-462, `Operand` :481), `model/lifter/Realizations.scala`, `tools/umpire/lower/realization.go` (activity :483, WorkflowCommand :601), `tools/umpire/model/validate_realization.go`, lifter and lowering fixtures, spec Architecture section.
-**Touches:** [model/umpire/realize/**, model/lifter/**, tools/umpire/lower/**, tools/umpire/model/**, proto/internal/temporal/server/api/umpire/v1/**, api/umpire/v1/**, .flow/specs/fn-119-show-one-go-sdk-workflow-driven-end-to.md]
+**Files:** `model/umpire/realize/Realize.scala` (`Activation` :329, `Instruction` :424-462, `Operand` :481), `model/irgen/Realizations.scala`, `tools/umpire/lower/realization.go` (activity :483, WorkflowCommand :601), `tools/umpire/model/validate_realization.go`, lifter and lowering fixtures, spec Architecture section.
+**Touches:** [model/umpire/realize/**, model/irgen/**, tools/umpire/lower/**, tools/umpire/model/**, proto/internal/temporal/server/api/umpire/v1/**, api/umpire/v1/**, .flow/specs/fn-119-show-one-go-sdk-workflow-driven-end-to.md]
 
 ### Approach
 - Add an `Operand` for the outcome of an earlier command and an `Activation.Activity` whose starts come from a workflow command, reusing existing realization declarations if they suffice; add IR fields only if the existing ones cannot carry it (then regenerate bindings/jar and extend `schema_test.go` coverage as fn-112.11 did).
-- Lower to the Testpilot instructions of tasks 1-2; fixtures in `model/lifter/testdata` and `tools/umpire/lower` use generic fixture names.
+- Lower to the Testpilot instructions of tasks 1-2; fixtures in `model/irgen/testdata` and `tools/umpire/lower` use generic fixture names.
 - Record the answer in the spec's Architecture section; every missing capability found goes to an R9 findings list in `.flow/tmp/fn119-3/findings.md` for task 6's done summary.
 
 ### Investigation targets
 **Required:**
 - `model/umpire/realize/Realize.scala:320-490`
-- `model/temporal/nexuscaller/Realization.scala:380-545` - workflow-command realization example
-- `model/temporal/standaloneactivity/Realization.scala:500-530` - attempt answers
+- `model/temporal/features/nexuscaller/Realization.scala:383-548` - workflow-command realization example
+- `model/temporal/features/standaloneactivity/Realization.scala:500-530` - attempt answers
 - `tools/umpire/lower/realization.go:470-620`
 
 ### Quick commands
 ```bash
-scala-cli test model/lifter
+scala-cli test model/irgen
 go test -count=1 -tags test_dep ./tools/umpire/lower/... ./tools/umpire/model/...
 make umpire-check-model
 ```

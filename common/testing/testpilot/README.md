@@ -176,7 +176,7 @@ first planned use.
 3. **The Producer.** Add the builder the lowering writes the element with
    (`tools/umpire/lower/internal/producer/build.go`) and a lowering test beside it. An element a Model
    has to ask for also needs its realization declaration in `model/umpire/realize`, its field in the
-   Umpire IR and its case in the lifter and in `tools/umpire/lower/realization.go`;
+   Umpire IR and its case in the IR generator and in `tools/umpire/lower/realization.go`;
    `model/SEMANTICS.md` (Realizations) says what each declaration lowers to.
 4. **Go interpreter or evaluator.** Instructions bind in `internal/execution` and run in its scheduler
    or the worker interpreter; references and paths bind in `internal/ir`; Contracts evaluate in
@@ -347,7 +347,7 @@ it, and only the renamer and the context probe tables named it.
    added.
 3. **The Producer.** A realization asks for it as `Fault(role, FaultKind.workerStop)`
    (`model/umpire/realize/Realize.scala`); the Nexus caller's realization stops the handler's worker
-   that way (`model/temporal/nexuscaller/Realization.scala`). It lifts to the IR's
+   that way (`model/temporal/features/nexuscaller/Realization.scala`). It lifts to the IR's
    `Fault.Kind.KIND_WORKER_STOP`, and the lowering's `faultKinds`
    (`tools/umpire/lower/realization.go`) maps that to the protocol's kind.
 4. **Go interpreter and evaluator.** `admission.bindFault` (`internal/execution/dataflow.go`) admits

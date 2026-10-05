@@ -65,7 +65,7 @@ func rewrite(function string, change func(c *umpirespb.MatchCase) bool, ifs func
 }
 
 // pauseOfCancelRequestedByDefault writes the pause arm for cancelRequested as `case _ => Nil`.
-var pauseOfCancelRequestedByDefault = rewrite("temporal.standaloneactivity.Protocol$.control", func(c *umpirespb.MatchCase) bool {
+var pauseOfCancelRequestedByDefault = rewrite("temporal.features.standaloneactivity.Protocol$.control", func(c *umpirespb.MatchCase) bool {
 	if c.GetPattern().GetLiteral().GetEnum().GetCase() != "cancelRequested" || c.GetBody().GetList() == nil {
 		return false
 	}
@@ -80,7 +80,7 @@ func TestDisabledByDefault(t *testing.T) {
 	tables, holes := holesOf(t, Options{}, pauseOfCancelRequestedByDefault)
 	found := holes[DisabledByDefault]["activityProtocol"]
 	require.Equal(t, []string{"control-pause in cancelRequested"}, subjectsOf(found))
-	require.Contains(t, found[0].Position, "model/temporal/standaloneactivity/Model.scala:")
+	require.Contains(t, found[0].Position, "model/temporal/features/standaloneactivity/Model.scala:")
 	require.Contains(t, found[0].Message, "s.phase is _")
 
 	// The default arm shows as `?` in the table, with its hole.
@@ -91,7 +91,7 @@ func TestDisabledByDefault(t *testing.T) {
 	require.Contains(t, protocol.Rules[i].Holes, DisabledByDefault)
 
 	// An `if` whose condition names no field of the state decides by default too.
-	_, holes = holesOf(t, Options{}, rewrite("temporal.standaloneactivity.Protocol$.attemptResult", nil, func(x *umpirespb.If) bool {
+	_, holes = holesOf(t, Options{}, rewrite("temporal.features.standaloneactivity.Protocol$.attemptResult", nil, func(x *umpirespb.If) bool {
 		if x.GetCondition().GetBinary().GetRight().GetLiteral().GetEnum().GetCase() != "cancelRequested" || x.GetElse().GetList() == nil {
 			return false
 		}
@@ -116,7 +116,7 @@ func TestSilentRejection(t *testing.T) {
 	i := slices.IndexFunc(protocol.Rules, func(r Rule) bool { return r.Class == "backoff" && r.Modality == MustNot })
 	require.GreaterOrEqual(t, i, 0)
 	require.Equal(t, "s.phase != backingOff", protocol.Rules[i].Text)
-	require.Contains(t, protocol.Rules[i].Position, "model/temporal/standaloneactivity/Model.scala:")
+	require.Contains(t, protocol.Rules[i].Position, "model/temporal/features/standaloneactivity/Model.scala:")
 }
 
 func TestUnconstrainedResult(t *testing.T) {
@@ -178,5 +178,5 @@ func TestTablesAreWrittenByMachineAndClass(t *testing.T) {
 	require.Contains(t, text, "rules activity.json activityProtocol by phase\n")
 	require.Contains(t, text, "\n  control-pause\n")
 	require.Regexp(t, `\n    scheduled, backingOff +MAY +accepted -> paused \[statusPaused\]`, text)
-	require.Regexp(t, `\n    cancelRequested +\? +s\.phase is _ +model/temporal/standaloneactivity/Model\.scala:\d+ +disabled-by-default +silent-rejection`, text)
+	require.Regexp(t, `\n    cancelRequested +\? +s\.phase is _ +model/temporal/features/standaloneactivity/Model\.scala:\d+ +disabled-by-default +silent-rejection`, text)
 }

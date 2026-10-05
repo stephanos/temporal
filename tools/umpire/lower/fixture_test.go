@@ -1,6 +1,6 @@
 package lower
 
-// The realizations of model/lifter/testdata/lifts/Realizations.scala, lifted into
+// The realizations of model/irgen/testdata/lifts/Realizations.scala, lifted into
 // expected/realizations.json: a run id one command binds and two branches read, and a held race,
 // which declares what Testpilot cannot run yet.
 
@@ -23,13 +23,13 @@ import (
 )
 
 const (
-	liftsDir       = "model/lifter/testdata/lifts/"
+	liftsDir       = "model/irgen/testdata/lifts/"
 	realizationsAt = liftsDir + "Realizations.scala"
 )
 
 func liftedRealizations(t *testing.T) *umpirespb.Model {
 	t.Helper()
-	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "lifter", "testdata", "lifts", "expected", "realizations.json"))
+	m, err := umpiremodel.Load(filepath.Join("..", "..", "..", "model", "irgen", "testdata", "lifts", "expected", "realizations.json"))
 	require.NoError(t, err)
 	return m
 }
@@ -171,7 +171,7 @@ func TestAStepNoScriptPerformsIsRefused(t *testing.T) {
 	require.NoError(t, err)
 	_, err = p.Lower("syncCompletion", nexusIdentity("syncCompletion"))
 	require.ErrorContains(t, err, "scenario syncReplied takes handlerReply-syncSuccess, a step of handler, and no script of realization asyncNexus performs it")
-	require.ErrorContains(t, err, "model/temporal/nexuscaller/Queries.scala:")
+	require.ErrorContains(t, err, "model/temporal/features/nexuscaller/Queries.scala:")
 	_, err = p.Lower("asyncCompletion", nexusIdentity("asyncCompletion"))
 	require.NoError(t, err, "a path that takes only performed steps still lowers")
 }

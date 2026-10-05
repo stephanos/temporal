@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	admLifts        = "model/lifter/testdata/lifts/"
+	admLifts        = "model/irgen/testdata/lifts/"
 	admChannelsAt   = admLifts + "Channels.scala:"
 	admDeclaredAt   = admLifts + "Declarations.scala:"
 	admPresenceAt   = admLifts + "Presence.scala:"

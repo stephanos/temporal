@@ -5,58 +5,58 @@
     "law": "closedIsRejectedUniformly",
     "capabilities": [ "Closable" ],
     "bindings": {
-      "status": "temporal.standaloneactivity.Product$.phase",
-      "terminal": "temporal.standaloneactivity.Product$.terminal",
-      "rejected": "temporal.standaloneactivity.Outcome.notFound"
+      "status": "temporal.features.standaloneactivity.Product$.phase",
+      "terminal": "temporal.features.standaloneactivity.Product$.terminal",
+      "rejected": "temporal.features.standaloneactivity.Outcome.notFound"
     },
     "cites": {
       "rejected": [ "chasm/lib/activity/activity.go" ]
     },
-    "position": "model/temporal/standaloneactivity/Capabilities.scala:19"
+    "position": "model/temporal/features/standaloneactivity/Capabilities.scala:19"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.pausedIsNotDispatched",
     "law": "pausedIsNotDispatched",
     "capabilities": [ "Pausable", "Pollable" ],
     "bindings": {
-      "paused": "temporal.standaloneactivity.Product$.paused",
-      "running": "temporal.standaloneactivity.Product$.running"
+      "paused": "temporal.features.standaloneactivity.Product$.paused",
+      "running": "temporal.features.standaloneactivity.Product$.running"
     },
     "cites": { },
-    "position": "model/temporal/standaloneactivity/Capabilities.scala:20"
+    "position": "model/temporal/features/standaloneactivity/Capabilities.scala:20"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.terminalStatesAreFinal",
     "law": "terminalStatesAreFinal",
     "capabilities": [ "Closable" ],
     "bindings": {
-      "status": "temporal.standaloneactivity.Product$.phase",
-      "terminal": "temporal.standaloneactivity.Product$.terminal"
+      "status": "temporal.features.standaloneactivity.Product$.phase",
+      "terminal": "temporal.features.standaloneactivity.Product$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/standaloneactivity/Capabilities.scala:19"
+    "position": "model/temporal/features/standaloneactivity/Capabilities.scala:19"
   }, {
     "machine": "activityProtocol",
     "name": "activityProtocol.cancelIsRequested",
     "law": "cancelIsRequested",
     "capabilities": [ "Cancelable" ],
     "bindings": {
-      "requestCancel": "temporal.standaloneactivity.Model$package.control.apply(temporal.standaloneactivity.Control.requestCancel)",
-      "requested": "temporal.standaloneactivity.ProtocolFact.statusCancelRequested"
+      "requestCancel": "temporal.features.standaloneactivity.Model$package.control.apply(temporal.features.standaloneactivity.Control.requestCancel)",
+      "requested": "temporal.features.standaloneactivity.ProtocolFact.statusCancelRequested"
     },
     "cites": { },
-    "position": "model/temporal/standaloneactivity/Capabilities.scala:43"
+    "position": "model/temporal/features/standaloneactivity/Capabilities.scala:43"
   }, {
     "machine": "activityProtocol",
     "name": "activityProtocol.terminateSettles",
     "law": "terminateSettles",
     "capabilities": [ "Terminable" ],
     "bindings": {
-      "terminate": "temporal.standaloneactivity.Model$package.control.apply(temporal.standaloneactivity.Control.terminate)",
-      "settled": "temporal.standaloneactivity.ProtocolFact.statusTerminated"
+      "terminate": "temporal.features.standaloneactivity.Model$package.control.apply(temporal.features.standaloneactivity.Control.terminate)",
+      "settled": "temporal.features.standaloneactivity.ProtocolFact.statusTerminated"
     },
     "cites": { },
-    "position": "model/temporal/standaloneactivity/Capabilities.scala:37"
+    "position": "model/temporal/features/standaloneactivity/Capabilities.scala:37"
   } ],
   "waivers": [ ],
   "catalog": [ {

@@ -64,6 +64,19 @@ type Config struct {
 	// entry that names a position applies.
 	Merges     []Substitution `json:"source_path_merges"`
 	Projection Projection     `json:"projection"`
+	// PathMoves are the directories moved after the goldens were captured, from the directory (ending
+	// in "/") to the one it moved to, such as "model/temporal/nexuscaller/" to
+	// "model/temporal/features/nexuscaller/" (fn-114.9): an inventory path under the old directory is
+	// read under the new one, and a position or Case source path under the new one compares as the same
+	// path under the old one, before Splits and Merges apply. The first entry that names a path applies.
+	PathMoves []Substitution `json:"source_path_moves"`
+	// PackageMoves are the Scala packages moved after the goldens were captured, from the package
+	// (ending in ".") to the one it moved to, such as "temporal.nexuscaller." to
+	// "temporal.features.nexuscaller." (fn-114.9): a current Model's source names each root of a moved
+	// package under the old one, before RootMoves apply. Definition IDs and type names keep their
+	// spelling through the Models' DefinitionScope pins, so only the source's roots, which name Scala
+	// declarations by their full names, are read this way; Functions are compared by reference.
+	PackageMoves []Substitution `json:"source_package_moves"`
 	// Reduced are the IR inventory paths of the original baseline's reduced fixtures, which
 	// Configuration reads from original.json (Delta.Reduced) rather than a list of its own: one decision
 	// about one file, at the original-baseline key MatchAt already reads the delta at. Its inventory
@@ -241,6 +254,125 @@ func Root() (string, error) {
 	}
 }
 
+// moved gives the inventory paths of underBase under the directories PathMoves moved them to.
+func (c Config) moved(paths map[string]string) map[string]string {
+	out := make(map[string]string, len(paths))
+	for path, entry := range paths {
+		out[c.MovedPath(path)] = entry
+	}
+	return out
+}
+
+// MovedPath gives path under the directory PathMoves moved it to, or path when none did.
+func (c Config) MovedPath(path string) string {
+	for _, m := range c.PathMoves {
+		if rest, ok := strings.CutPrefix(path, m.Old); ok {
+			return m.New + rest
+		}
+	}
+	return path
+}
+
+// unmovedPath gives a current path under the directory it had before PathMoves moved it.
+func (c Config) unmovedPath(path string) string {
+	for _, m := range c.PathMoves {
+		if rest, ok := strings.CutPrefix(path, m.New); ok {
+			return m.Old + rest
+		}
+	}
+	return path
+}
+
+// MovedPackage gives a Scala full name of a moved package's declaration under the package PackageMoves
+// moved it to, such as a Function name the substitutions spell as it was before the move.
+func (c Config) MovedPackage(name string) string {
+	for _, m := range c.PackageMoves {
+		if rest, ok := strings.CutPrefix(name, m.Old); ok {
+			return m.New + rest
+		}
+	}
+	return name
+}
+
+// unmovedRoot gives a current root under the package it had before PackageMoves moved it.
+func (c Config) unmovedRoot(name string) string {
+	for _, m := range c.PackageMoves {
+		if rest, ok := strings.CutPrefix(name, m.New); ok {
+			return m.Old + rest
+		}
+	}
+	return name
+}
+
+// movesApply refuses a path move that is not of one directory to another, a package move that is not
+// of one package to another, and an entry listed twice.
+func (c Config) movesApply() error {
+	for _, moves := range []struct {
+		list []Substitution
+		end  string
+		kind string
+	}{{c.PathMoves, "/", "source path move"}, {c.PackageMoves, ".", "source package move"}} {
+		seen := map[string]bool{}
+		for _, m := range moves.list {
+			if !strings.HasSuffix(m.Old, moves.end) || !strings.HasSuffix(m.New, moves.end) || m.Old == m.New ||
+				seen[m.Old] || seen[m.New] {
+				return fmt.Errorf("%s of %q to %q is not a move of one %q-terminated name to another", moves.kind, m.Old, m.New, moves.end)
+			}
+			seen[m.Old], seen[m.New] = true, true
+		}
+	}
+	return nil
+}
+
+// Unmoved gives a current Model as it was spelled before PathMoves and PackageMoves: every position
+// under a moved directory names the old one, and its source names each root of a moved package under
+// the old package, in the sorted order the lifter lists roots in.
+func (c Config) Unmoved(current *umpirespb.Model) (*umpirespb.Model, error) {
+	if err := c.movesApply(); err != nil {
+		return nil, err
+	}
+	if len(c.PathMoves) == 0 && len(c.PackageMoves) == 0 {
+		return current, nil
+	}
+	m := proto.CloneOf(current)
+	if roots, ok := strings.CutPrefix(m.GetSource(), "model: "); ok && len(c.PackageMoves) > 0 {
+		names := strings.Split(roots, ", ")
+		for i, name := range names {
+			names[i] = c.unmovedRoot(name)
+		}
+		slices.Sort(names)
+		m.Source = "model: " + strings.Join(names, ", ")
+	}
+	err := positions(m.ProtoReflect(), func(p protoreflect.Message) error {
+		field := p.Descriptor().Fields().ByName("file")
+		p.Set(field, protoreflect.ValueOfString(c.unmovedPath(p.Get(field).String())))
+		return nil
+	})
+	return m, err
+}
+
+// UnmoveSources applies PathMoves backwards to the source paths a lowered Case, Program or Contract of
+// the current IR names: each is a JSON string that is a path under a moved directory, which becomes the
+// same path under the old one. Nothing else changes.
+func (c Config) UnmoveSources(encoded []byte) []byte {
+	for _, m := range c.PathMoves {
+		quoted := regexp.MustCompile(`"` + regexp.QuoteMeta(m.New) + `[\w./-]*"`)
+		encoded = quoted.ReplaceAllFunc(encoded, func(path []byte) []byte {
+			return append([]byte(`"`+m.Old), path[len(m.New)+1:]...)
+		})
+	}
+	return encoded
+}
+
+// UnmovedText applies PathMoves backwards to free text that names current source paths, such as a
+// located diagnostic: each path under a moved directory names the same path under the old one.
+func (c Config) UnmovedText(text string) string {
+	for _, m := range c.PathMoves {
+		text = strings.ReplaceAll(text, m.New, m.Old)
+	}
+	return text
+}
+
 // underBase maps each inventory path, spelled under model/scalav2, to its path under base.
 func underBase(paths []string, base string) map[string]string {
 	out := make(map[string]string, len(paths))
@@ -290,16 +422,25 @@ func (c Config) Inputs(root string) (map[string]*umpirespb.Model, error) {
 	if err := c.inventoried(); err != nil {
 		return nil, err
 	}
+	if err := c.movesApply(); err != nil {
+		return nil, err
+	}
 	base := "model/scalav2"
 	if _, err := os.Stat(filepath.Join(root, base)); errors.Is(err, fs.ErrNotExist) {
 		base = "model"
 	} else if err != nil {
 		return nil, err
 	}
-	expected, later := underBase(c.Inventory, base), underBase(c.Later, base)
+	// Each move names a directory the checkout has. That the old one is gone is TestRetiredModelPaths's.
+	for _, m := range c.PathMoves {
+		if _, err := os.Stat(filepath.Join(root, m.New)); err != nil {
+			return nil, fmt.Errorf("source path move to %s: %w", m.New, err)
+		}
+	}
+	expected, later := c.moved(underBase(c.Inventory, base)), c.moved(underBase(c.Later, base))
 	found := map[string]bool{}
-	for _, dir := range []string{"ir", "lifter/testdata/lifts/expected"} {
-		paths, err := IRFiles(filepath.Join(root, base, dir))
+	for _, dir := range []string{base + "/ir/", base + "/lifter/testdata/lifts/expected/"} {
+		paths, err := IRFiles(filepath.Join(root, c.MovedPath(dir)))
 		if err != nil {
 			return nil, err
 		}
@@ -449,6 +590,10 @@ func (c Config) MatchAt(key string, original, current *umpirespb.Model) (bool, e
 	if proto.Equal(original, current) {
 		return false, nil
 	}
+	current, err := c.Unmoved(current)
+	if err != nil {
+		return false, err
+	}
 	mapped, err := c.Migrate(original)
 	if err != nil {
 		return false, err
@@ -537,9 +682,14 @@ func (c Config) RootsApply(originals, currents map[string]*umpirespb.Model) erro
 	if err != nil {
 		return err
 	}
-	current, err := c.sourceRoots(currents, false)
+	moved, err := c.sourceRoots(currents, false)
 	if err != nil {
 		return err
+	}
+	// A root of a moved package is read under the package it had, as Unmoved reads it.
+	current := map[string]bool{}
+	for name := range moved {
+		current[c.unmovedRoot(name)] = true
 	}
 	var errs []error
 	for _, name := range c.RootRetirements {
@@ -555,6 +705,11 @@ func (c Config) RootsApply(originals, currents map[string]*umpirespb.Model) erro
 	for _, move := range c.RootMoves {
 		if !current[move.New] {
 			errs = append(errs, fmt.Errorf("source root move to %q, which no current Model names", move.New))
+		}
+	}
+	for _, move := range c.PackageMoves {
+		if !slices.ContainsFunc(slices.Collect(maps.Keys(moved)), func(name string) bool { return strings.HasPrefix(name, move.New) }) {
+			errs = append(errs, fmt.Errorf("source package move to %q, which no root of a current Model is in", move.New))
 		}
 	}
 	return errors.Join(errs...)

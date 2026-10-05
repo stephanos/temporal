@@ -1,7 +1,7 @@
 package lower
 
 // The Cases of the standalone activity Model. Every expectation is read off
-// model/temporal/standaloneactivity: Queries.scala's Scenarios say which classes a path
+// model/temporal/features/standaloneactivity: Queries.scala's Scenarios say which classes a path
 // takes, Model.scala's protocol machine what each step records, and Realization.scala which command
 // performs a class, which command a Case carries for one, and which kind of evidence confirms a step.
 

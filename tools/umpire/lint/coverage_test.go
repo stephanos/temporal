@@ -17,14 +17,14 @@ var updateCoverage = flag.Bool("update-coverage", false, "rewrite testdata/cover
 var coverageFixtures = []string{
 	"model/ir/activity.json",
 	"model/ir/nexus-control.json",
-	"model/lifter/testdata/lifts/expected/admission.json",
-	"model/lifter/testdata/lifts/expected/capabilities.json",
-	"model/lifter/testdata/lifts/expected/captured.json",
-	"model/lifter/testdata/lifts/expected/channels.json",
-	"model/lifter/testdata/lifts/expected/declarations.json",
-	"model/lifter/testdata/lifts/expected/presence.json",
-	"model/lifter/testdata/lifts/expected/realizations.json",
-	"model/lifter/testdata/lifts/expected/taskqueue.json",
+	"model/irgen/testdata/lifts/expected/admission.json",
+	"model/irgen/testdata/lifts/expected/capabilities.json",
+	"model/irgen/testdata/lifts/expected/captured.json",
+	"model/irgen/testdata/lifts/expected/channels.json",
+	"model/irgen/testdata/lifts/expected/declarations.json",
+	"model/irgen/testdata/lifts/expected/presence.json",
+	"model/irgen/testdata/lifts/expected/realizations.json",
+	"model/irgen/testdata/lifts/expected/taskqueue.json",
 }
 
 func fixtureLowering() Lowering {

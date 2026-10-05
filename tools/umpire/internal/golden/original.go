@@ -55,7 +55,7 @@ const (
 // The current trees the archive freezes, by archive key prefix.
 var originalTrees = map[string]string{
 	OriginalIR:    "model/ir",
-	OriginalLifts: "model/lifter/testdata/lifts/expected",
+	OriginalLifts: "model/irgen/testdata/lifts/expected",
 	OriginalCases: "model/cases",
 }
 

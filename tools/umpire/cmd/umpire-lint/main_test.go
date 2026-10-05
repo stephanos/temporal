@@ -16,7 +16,7 @@ import (
 
 // fixture is a lifter fixture with machines, Properties and find Queries and no realization, small
 // enough to lint in a test.
-const fixture = "../../../../model/lifter/testdata/lifts/expected/declarations.json"
+const fixture = "../../../../model/irgen/testdata/lifts/expected/declarations.json"
 
 // answer is what one run printed and its exit status.
 type answer struct {
@@ -172,7 +172,7 @@ func TestAnUnknownFlagIsBadUsage(t *testing.T) {
 
 // capabilities is the lifter fixture whose capability declarations write a law sidecar, with a law
 // overridden and a law excepted.
-const capabilities = "../../../../model/lifter/testdata/lifts/expected/capabilities.json"
+const capabilities = "../../../../model/irgen/testdata/lifts/expected/capabilities.json"
 
 // copiedWithLaws is the capabilities fixture and its law sidecar copied into a directory of their own.
 func copiedWithLaws(t *testing.T) string {

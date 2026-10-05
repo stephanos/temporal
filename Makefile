@@ -681,7 +681,8 @@ umpire-check-exploration-bridge:
 umpire-check-replay-bridge:
 	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-ir-bridge -run '^TestIRBridgeProtocol$$/replay$$'
 
-# Scala model tooling uses explicit source roots so authoring, the lifter and the gate stay separate projects.
+# Scala model tooling uses explicit source roots so authoring, the IR generator and the check stay
+# separate projects.
 MODEL_ROOT := model
 MODEL_CLI := mise exec -- scala-cli
 MODEL_GATE_ARGS ?=
@@ -691,33 +692,32 @@ MODEL_SCALAFIX = $(MODEL_CLI) --power fix --enable-built-in=false \
 MODEL_SOURCES := $(MODEL_ROOT)/project.scala $(MODEL_ROOT)/umpire $(MODEL_ROOT)/temporal
 model_scalafix_files = $(foreach source,$(1),--scalafix-arg=--files --scalafix-arg="$(CURDIR)/$(source)")
 MODEL_SCALAFIX_FILES = $(call model_scalafix_files,$(MODEL_SOURCES))
-# scala-cli hands scalafix every file under a project's directory, so the lifter names its own sources
-# to leave out the fixtures under testdata, which its build excludes.
-MODEL_LIFTER_SOURCES := $(wildcard $(MODEL_ROOT)/lifter/*.scala) $(MODEL_ROOT)/lifter/test
-# The lifter's fixtures that lift are a build of their own against the packaged Models. The refusal
-# fixtures stay outside scalafix: unsupported's `var` and `while` are what the lifter must refuse,
+# scala-cli hands scalafix every file under a project's directory, so the IR generator names its own
+# sources to leave out the fixtures under testdata, which its build excludes.
+MODEL_IRGEN_SOURCES := $(wildcard $(MODEL_ROOT)/irgen/*.scala) $(MODEL_ROOT)/irgen/test
+# The IR generator's fixtures that lift are a build of their own against the packaged Models. The
+# refusal fixtures stay outside scalafix: unsupported's `var` and `while` are what it must refuse,
 # and werror and crossed must not compile, so RemoveUnused has nothing to read. The fixtures' build
 # makes warnings errors, and -Wunused:all also warns of the parameters RemoveUnused keeps
 # (params = false), so the lint keeps warnings as warnings.
-MODEL_LIFTS := $(MODEL_ROOT)/lifter/testdata/lifts
+MODEL_LIFTS := $(MODEL_ROOT)/irgen/testdata/lifts
 MODEL_LIFTS_SCALAFIX = $(MODEL_SCALAFIX) --scalac-option -Werror:false \
 	$(call model_scalafix_files,$(wildcard $(MODEL_LIFTS)/*.scala))
-# The metrics project compiles gate sources beside its own; lint-model-gate lints those.
-MODEL_METRICS_SOURCES := $(wildcard $(MODEL_ROOT)/metrics/*.scala)
-MODEL_PROTO_JARS := $(MODEL_ROOT)/gen/ir-scalapb.jar $(MODEL_ROOT)/gen/api-scalapb.jar
-MODEL_JAR := $(MODEL_ROOT)/gen/model-scala.jar
-# The gate is one Scala program; its own arguments follow.
-MODEL_GATE = $(MODEL_CLI) run --suppress-outdated-dependency-warning $(MODEL_ROOT)/gate --
+MODEL_BUILD := $(MODEL_ROOT)/build
+MODEL_PROTO_JARS := $(MODEL_BUILD)/ir-scalapb.jar $(MODEL_BUILD)/api-scalapb.jar
+MODEL_JAR := $(MODEL_BUILD)/model-scala.jar
+# The gate is one Scala program, model/check; its own arguments follow.
+MODEL_GATE = $(MODEL_CLI) run --suppress-outdated-dependency-warning $(MODEL_ROOT)/check --
 # The gate's own tests run it against stand-in tools, so they need no jar and no real tool.
-MODEL_GATE_TEST = $(MODEL_CLI) test --suppress-outdated-dependency-warning $(MODEL_ROOT)/gate
+MODEL_GATE_TEST = $(MODEL_CLI) test --suppress-outdated-dependency-warning $(MODEL_ROOT)/check
 
 # make sees only the schema; after the generator's version changes in the gate, the gate's own run
 # repackages the jar.
-$(MODEL_ROOT)/gen/ir-scalapb.jar: proto/internal/temporal/server/api/umpire/v1/ir.proto
+$(MODEL_BUILD)/ir-scalapb.jar: proto/internal/temporal/server/api/umpire/v1/ir.proto
 	@printf $(COLOR) "Package model IR classes..."
 	@$(MODEL_GATE) --generate-ir
 
-$(MODEL_ROOT)/gen/api-scalapb.jar: $(MODEL_ROOT)/gen/ir-scalapb.jar proto/api.binpb cmd/tools/getproto/main.go cmd/tools/getproto/files.go model/gate/Gate.scala model/gate/project.scala go.mod go.sum mise.toml
+$(MODEL_BUILD)/api-scalapb.jar: $(MODEL_BUILD)/ir-scalapb.jar proto/api.binpb cmd/tools/getproto/main.go cmd/tools/getproto/files.go model/check/Gate.scala model/check/project.scala go.mod go.sum mise.toml
 	@printf $(COLOR) "Package model API classes..."
 	@$(MODEL_GATE) --generate-api --if-stale
 
@@ -728,42 +728,38 @@ $(MODEL_JAR): $(MODEL_PROTO_JARS) $(MODEL_ROOT)/project.scala $(shell find $(MOD
 
 fmt-model:
 	@printf $(COLOR) "Formatting model files..."
-	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate $(MODEL_ROOT)/metrics
+	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCES) $(MODEL_ROOT)/irgen $(MODEL_ROOT)/check
 
-# The five scalafix runs build separate projects, so they run side by side; output-sync prints each
-# run's output whole, after its title. The sugar check builds the gate, which lint-model-gate builds
+# The four scalafix runs build separate projects, so they run side by side; output-sync prints each
+# run's output whole, after its title. The sugar check builds the gate, which lint-model-check builds
 # with other options, so it runs after them.
-MODEL_LINTS := lint-model-models lint-model-lifter lint-model-lifts lint-model-gate lint-model-metrics
+MODEL_LINTS := lint-model-models lint-model-irgen lint-model-irgen-lifts lint-model-check
 .PHONY: $(MODEL_LINTS) lint-model-syntax
 
 lint-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@printf $(COLOR) "Checking model formatting..."
-	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf --check $(MODEL_SOURCES) $(MODEL_ROOT)/lifter $(MODEL_ROOT)/gate $(MODEL_ROOT)/metrics
-	@$(MAKE) --no-print-directory -j5 --output-sync=target $(MODEL_LINTS)
+	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf --check $(MODEL_SOURCES) $(MODEL_ROOT)/irgen $(MODEL_ROOT)/check
+	@$(MAKE) --no-print-directory -j4 --output-sync=target $(MODEL_LINTS)
 	@$(MAKE) --no-print-directory lint-model-syntax
 
 lint-model-models:
 	@printf $(COLOR) "Linting model files..."
 	@$(MODEL_SCALAFIX) $(MODEL_SCALAFIX_FILES) --check $(MODEL_SOURCES)
 
-lint-model-lifter:
-	@printf $(COLOR) "Linting the lifter..."
-	@cd $(MODEL_ROOT)/lifter && $(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_LIFTER_SOURCES)) --check .
+lint-model-irgen:
+	@printf $(COLOR) "Linting the IR generator..."
+	@cd $(MODEL_ROOT)/irgen && $(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_IRGEN_SOURCES)) --check .
 
-lint-model-lifts:
-	@printf $(COLOR) "Linting the lifter's lifting fixtures..."
+lint-model-irgen-lifts:
+	@printf $(COLOR) "Linting the IR generator's lifting fixtures..."
 	@cd $(MODEL_LIFTS) && $(MODEL_LIFTS_SCALAFIX) --check .
 
-lint-model-gate:
-	@printf $(COLOR) "Linting the gate..."
-	@cd $(MODEL_ROOT)/gate && $(MODEL_SCALAFIX) --check .
-
-lint-model-metrics:
-	@printf $(COLOR) "Linting the source metrics..."
-	@cd $(MODEL_ROOT)/metrics && $(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_METRICS_SOURCES)) --check .
+lint-model-check:
+	@printf $(COLOR) "Linting the check..."
+	@cd $(MODEL_ROOT)/check && $(MODEL_SCALAFIX) --check .
 
 # Sugar is defined only in a Syntax.scala, each definition documented with its `Core form:`, and no
-# core file of the framework or the lifter imports or names it.
+# core file of the framework or the IR generator imports or names it.
 lint-model-syntax:
 	@printf $(COLOR) "Checking the model's sugar..."
 	@$(MODEL_GATE) --check-syntax
@@ -772,10 +768,9 @@ lint-model-syntax:
 fix-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@printf $(COLOR) "Applying model lint fixes..."
 	@$(MODEL_SCALAFIX) $(MODEL_SCALAFIX_FILES) $(MODEL_SOURCES)
-	@cd $(MODEL_ROOT)/lifter && $(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_LIFTER_SOURCES)) .
+	@cd $(MODEL_ROOT)/irgen && $(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_IRGEN_SOURCES)) .
 	@cd $(MODEL_LIFTS) && $(MODEL_LIFTS_SCALAFIX) .
-	@cd $(MODEL_ROOT)/gate && $(MODEL_SCALAFIX) .
-	@cd $(MODEL_ROOT)/metrics && $(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_METRICS_SOURCES)) .
+	@cd $(MODEL_ROOT)/check && $(MODEL_SCALAFIX) .
 
 # The gate packages the IR classes itself when the schema changed.
 umpire-check-model:
@@ -790,7 +785,7 @@ umpire-gen-model:
 
 # Removes scala-cli build state (.bsp/, .scala-build/) anywhere in the checkout and the given
 # scratch directories under .flow/tmp (UMPIRE_SCRATCH="fn112-3 fn114-1"). Agents use this target
-# instead of running rm directly; model/gen and evidence they did not name are left alone.
+# instead of running rm directly; model/build and evidence they did not name are left alone.
 UMPIRE_SCRATCH ?=
 .PHONY: umpire-clean-scratch
 umpire-clean-scratch:

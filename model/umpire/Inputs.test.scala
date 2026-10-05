@@ -1,6 +1,6 @@
 package umpire
-// Input tokens, inputs supplied by name and bounded counters, run as Scala. The lifter's fixtures
-// (lifter/testdata/lifts/Inputs.scala) prove the IR; these pin the framework's own values.
+// Input tokens, inputs supplied by name and bounded counters, run as Scala. The IR generator's
+// fixtures (irgen/testdata/lifts/Inputs.scala) prove the IR; these pin the framework's own values.
 
 class Inputs extends munit.FunSuite:
   enum Timeout derives Finite:

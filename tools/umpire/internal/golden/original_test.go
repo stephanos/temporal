@@ -426,23 +426,23 @@ func TestOriginalDeltaIsClosed(t *testing.T) {
 func TestOriginalLocatedDropsOnlyPositions(t *testing.T) {
 	require.Equal(t,
 		"path <source>; note <source>: no Query x; at <source>; rows model/ir/a.json",
-		string(Located([]byte("path model/temporal/a/Claims.scala; note model: roots a, b: no Query x; at model/lifter/testdata/lifts/Rejects.scala:12:4; rows model/ir/a.json"), "model: roots a, b")))
+		string(Located([]byte("path model/temporal/a/Claims.scala; note model: roots a, b: no Query x; at model/irgen/testdata/lifts/Rejects.scala:12:4; rows model/ir/a.json"), "model: roots a, b")))
 }
 
 func TestOriginalInventoryIsClosed(t *testing.T) {
 	archived := map[string][]byte{
 		"ir/a.json": nil, "lifts/b.json": nil, "cases/c.json": nil,
-		OriginalRejects: []byte("lift: model/lifter/testdata/lifts/Rejects.scala:3: one\nlift: root x: none\n"),
+		OriginalRejects: []byte("lift: model/irgen/testdata/lifts/Rejects.scala:3: one\nlift: root x: none\n"),
 	}
 	require.NoError(t, Delta{}.Inventory(archived, archived))
 	moved := maps.Clone(archived)
-	moved[OriginalRejects] = []byte("lift: root x: none\nlift: model/lifter/testdata/lifts/Rejects.scala:9: one\nlift: model/lifter/testdata/lifts/Rejects.scala:20: a later refusal\n")
+	moved[OriginalRejects] = []byte("lift: root x: none\nlift: model/irgen/testdata/lifts/Rejects.scala:9: one\nlift: model/irgen/testdata/lifts/Rejects.scala:20: a later refusal\n")
 	moved["lifts/later.json"] = nil
 	require.NoError(t, Delta{}.Inventory(archived, moved), "moved refusals and later fixtures")
 	for name, change := range map[string]func(map[string][]byte){
 		"refusal gone": func(m map[string][]byte) { m[OriginalRejects] = []byte("lift: root x: none\n") },
 		"refusal reworded": func(m map[string][]byte) {
-			m[OriginalRejects] = []byte("lift: model/lifter/testdata/lifts/Rejects.scala:3: two\nlift: root x: none\n")
+			m[OriginalRejects] = []byte("lift: model/irgen/testdata/lifts/Rejects.scala:3: two\nlift: root x: none\n")
 		},
 		"IR gone":      func(m map[string][]byte) { delete(m, "ir/a.json") },
 		"IR added":     func(m map[string][]byte) { m["ir/other.json"] = nil },
@@ -777,7 +777,7 @@ func TestOriginalReducedFixturesAreClosed(t *testing.T) {
 		"nested":           {"lifts/b/c.json"},
 		"not a fixture":    {"lifts/b.txt"},
 		"listed twice":     {"lifts/b.json", "lifts/b.json"},
-		"spelled as input": {"model/lifter/testdata/lifts/expected/b.json"},
+		"spelled as input": {"model/irgen/testdata/lifts/expected/b.json"},
 	} {
 		require.Error(t, Delta{Reduced: keys}.check(), name)
 	}

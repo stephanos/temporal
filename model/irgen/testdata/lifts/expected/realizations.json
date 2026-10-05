@@ -1,0 +1,3932 @@
+{
+  "source": "model: fixture.realizations.Realizations$package$.doorOpens, fixture.realizations.Realizations$package$.doorRealization, fixture.realizations.Realizations$package$.errandRealization, fixture.realizations.Realizations$package$.errandRetry, fixture.realizations.Realizations$package$.errandWithdrawn, fixture.realizations.Realizations$package$.learnedRun, fixture.realizations.Realizations$package$.pauseRace, fixture.realizations.Realizations$package$.pauseRaceQuery, fixture.realizations.Realizations$package$.runOpens, fixture.realizations.Realizations$package$.tallyOpens, fixture.realizations.Realizations$package$.tallyRealization",
+  "types": [ {
+    "name": "fixture.realizations.DoorFact",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 51
+    },
+    "enum": {
+      "cases": [ {
+        "name": "doorOpened"
+      } ]
+    }
+  }, {
+    "name": "fixture.realizations.DoorOutcome",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 48
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      } ]
+    }
+  }, {
+    "name": "fixture.realizations.DoorState",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 45
+    },
+    "enum": {
+      "cases": [ {
+        "name": "closed"
+      }, {
+        "name": "open"
+      } ]
+    }
+  }, {
+    "name": "fixture.realizations.ErrandAnswer",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 559
+    },
+    "enum": {
+      "cases": [ {
+        "name": "failed"
+      }, {
+        "name": "completed"
+      }, {
+        "name": "canceled"
+      } ]
+    }
+  }, {
+    "name": "fixture.realizations.ErrandFact",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 566
+    },
+    "enum": {
+      "cases": [ {
+        "name": "errandListed"
+      }, {
+        "name": "errandClosed"
+      }, {
+        "name": "errandWithdrawn"
+      } ]
+    }
+  }, {
+    "name": "fixture.realizations.ErrandOutcome",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 562
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      } ]
+    }
+  }, {
+    "name": "fixture.realizations.ErrandState",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 555
+    },
+    "enum": {
+      "cases": [ {
+        "name": "idle"
+      }, {
+        "name": "queued"
+      }, {
+        "name": "held"
+      }, {
+        "name": "retrying"
+      }, {
+        "name": "done"
+      }, {
+        "name": "withdrawn"
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "door.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 75
+    },
+    "params": [ {
+      "name": "f",
+      "type": {
+        "named": "fixture.realizations.DoorFact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 75
+      },
+      "call": {
+        "function": "fixture.realizations.Realizations$package$.doorEvidence",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 75
+          },
+          "var": "f"
+        } ]
+      }
+    }
+  }, {
+    "name": "door.property.opensBecauseTheLatchGives",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 81
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 82
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 82
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 82
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 82
+                  },
+                  "var": "s"
+                },
+                "field": "because"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 82
+              },
+              "literal": {
+                "text": "the latch gives"
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 82
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 82
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.DoorFact",
+                  "case": "doorOpened"
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 82
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 82
+                  },
+                  "var": "s"
+                },
+                "field": "facts"
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "errand.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 614
+    },
+    "params": [ {
+      "name": "f",
+      "type": {
+        "named": "fixture.realizations.ErrandFact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 614
+      },
+      "call": {
+        "function": "fixture.realizations.Realizations$package$.errandEvidence",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 614
+          },
+          "var": "f"
+        } ]
+      }
+    }
+  }, {
+    "name": "errand.property.closesOnCompletion",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 619
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 620
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 620
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 620
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 620
+                  },
+                  "var": "s"
+                },
+                "field": "state"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 620
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.ErrandState",
+                  "case": "done"
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 620
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 620
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.ErrandFact",
+                  "case": "errandClosed"
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 620
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 620
+                  },
+                  "var": "s"
+                },
+                "field": "facts"
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "errand.property.withdrawsOnCancel",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 638
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 639
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 639
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 639
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 639
+                  },
+                  "var": "s"
+                },
+                "field": "state"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 639
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.ErrandState",
+                  "case": "withdrawn"
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 639
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 639
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.ErrandFact",
+                  "case": "errandWithdrawn"
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 639
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 639
+                  },
+                  "var": "s"
+                },
+                "field": "facts"
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.realizations.Realizations$package$.answerStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 594
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.realizations.ErrandState"
+      }
+    }, {
+      "name": "a",
+      "type": {
+        "named": "fixture.realizations.ErrandAnswer"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 595
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 595
+          },
+          "binary": {
+            "op": "OP_NE",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 595
+              },
+              "var": "s"
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 595
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.ErrandState",
+                  "case": "held"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 595
+          },
+          "list": { }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 597
+          },
+          "match": {
+            "scrutinee": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 597
+              },
+              "var": "a"
+            },
+            "cases": [ {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.realizations.ErrandAnswer",
+                    "case": "failed"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 598
+                },
+                "list": {
+                  "items": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Realizations.scala",
+                      "line": 598
+                    },
+                    "construct": {
+                      "type": "umpire.Step",
+                      "args": [ {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Realizations.scala",
+                          "line": 598
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.realizations.ErrandOutcome",
+                            "case": "accepted"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Realizations.scala",
+                          "line": 598
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.realizations.ErrandState",
+                            "case": "retrying"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Realizations.scala",
+                          "line": 598
+                        },
+                        "list": { }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Realizations.scala",
+                          "line": 598
+                        },
+                        "literal": {
+                          "text": ""
+                        }
+                      } ]
+                    }
+                  } ]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.realizations.ErrandAnswer",
+                    "case": "completed"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 600
+                },
+                "list": {
+                  "items": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Realizations.scala",
+                      "line": 600
+                    },
+                    "construct": {
+                      "type": "umpire.Step",
+                      "args": [ {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Realizations.scala",
+                          "line": 600
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.realizations.ErrandOutcome",
+                            "case": "accepted"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Realizations.scala",
+                          "line": 600
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.realizations.ErrandState",
+                            "case": "done"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Realizations.scala",
+                          "line": 600
+                        },
+                        "list": {
+                          "items": [ {
+                            "position": {
+                              "file": "model/irgen/testdata/lifts/Realizations.scala",
+                              "line": 600
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "fixture.realizations.ErrandFact",
+                                "case": "errandClosed"
+                              }
+                            }
+                          } ]
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Realizations.scala",
+                          "line": 600
+                        },
+                        "literal": {
+                          "text": ""
+                        }
+                      } ]
+                    }
+                  } ]
+                }
+              }
+            }, {
+              "pattern": {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.realizations.ErrandAnswer",
+                    "case": "canceled"
+                  }
+                }
+              },
+              "body": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 602
+                },
+                "list": {
+                  "items": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Realizations.scala",
+                      "line": 602
+                    },
+                    "construct": {
+                      "type": "umpire.Step",
+                      "args": [ {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Realizations.scala",
+                          "line": 602
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.realizations.ErrandOutcome",
+                            "case": "accepted"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Realizations.scala",
+                          "line": 602
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.realizations.ErrandState",
+                            "case": "withdrawn"
+                          }
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Realizations.scala",
+                          "line": 602
+                        },
+                        "list": {
+                          "items": [ {
+                            "position": {
+                              "file": "model/irgen/testdata/lifts/Realizations.scala",
+                              "line": 602
+                            },
+                            "literal": {
+                              "enum": {
+                                "type": "fixture.realizations.ErrandFact",
+                                "case": "errandWithdrawn"
+                              }
+                            }
+                          } ]
+                        }
+                      }, {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Realizations.scala",
+                          "line": 602
+                        },
+                        "literal": {
+                          "text": ""
+                        }
+                      } ]
+                    }
+                  } ]
+                }
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.realizations.Realizations$package$.deliverStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 585
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.realizations.ErrandState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 585
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 585
+          },
+          "var": "s"
+        },
+        "cases": [ {
+          "pattern": {
+            "alternatives": {
+              "patterns": [ {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.realizations.ErrandState",
+                    "case": "queued"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "fixture.realizations.ErrandState",
+                    "case": "retrying"
+                  }
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 587
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 587
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Realizations.scala",
+                      "line": 587
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.realizations.ErrandOutcome",
+                        "case": "accepted"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Realizations.scala",
+                      "line": 587
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.realizations.ErrandState",
+                        "case": "held"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Realizations.scala",
+                      "line": 587
+                    },
+                    "list": { }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Realizations.scala",
+                      "line": 587
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "wildcard": { }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 588
+            },
+            "list": { }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.realizations.Realizations$package$.doorEvidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 67
+    },
+    "params": [ {
+      "name": "f",
+      "type": {
+        "named": "fixture.realizations.DoorFact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 67
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 67
+          },
+          "var": "f"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.realizations.DoorFact",
+                "case": "doorOpened"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 68
+            },
+            "literal": {
+              "text": "doorOpened"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.realizations.Realizations$package$.errandEvidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 604
+    },
+    "params": [ {
+      "name": "f",
+      "type": {
+        "named": "fixture.realizations.ErrandFact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 604
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 604
+          },
+          "var": "f"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.realizations.ErrandFact",
+                "case": "errandListed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 605
+            },
+            "literal": {
+              "text": "errandListed"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.realizations.ErrandFact",
+                "case": "errandClosed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 606
+            },
+            "literal": {
+              "text": "errandClosed"
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.realizations.ErrandFact",
+                "case": "errandWithdrawn"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 607
+            },
+            "literal": {
+              "text": "errandWithdrawn"
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.realizations.Realizations$package$.pushStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 62
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.realizations.DoorState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 62
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 62
+          },
+          "var": "s"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.realizations.DoorState",
+                "case": "closed"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 64
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 64
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Realizations.scala",
+                      "line": 64
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.realizations.DoorOutcome",
+                        "case": "accepted"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Realizations.scala",
+                      "line": 64
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.realizations.DoorState",
+                        "case": "open"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Realizations.scala",
+                      "line": 64
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Realizations.scala",
+                          "line": 64
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.realizations.DoorFact",
+                            "case": "doorOpened"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Realizations.scala",
+                      "line": 64
+                    },
+                    "literal": {
+                      "text": "the latch gives"
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.realizations.DoorState",
+                "case": "open"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 65
+            },
+            "list": { }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.realizations.Realizations$package$.requestStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 579
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "fixture.realizations.ErrandState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 579
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 579
+          },
+          "var": "s"
+        },
+        "cases": [ {
+          "pattern": {
+            "literal": {
+              "enum": {
+                "type": "fixture.realizations.ErrandState",
+                "case": "idle"
+              }
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 581
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 581
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Realizations.scala",
+                      "line": 581
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.realizations.ErrandOutcome",
+                        "case": "accepted"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Realizations.scala",
+                      "line": 581
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "fixture.realizations.ErrandState",
+                        "case": "queued"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Realizations.scala",
+                      "line": 581
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/irgen/testdata/lifts/Realizations.scala",
+                          "line": 581
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "fixture.realizations.ErrandFact",
+                            "case": "errandListed"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/irgen/testdata/lifts/Realizations.scala",
+                      "line": 581
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "wildcard": { }
+          },
+          "body": {
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 582
+            },
+            "list": { }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "race.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 384
+    },
+    "params": [ {
+      "name": "f",
+      "type": {
+        "named": "fixture.realizations.DoorFact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 384
+      },
+      "call": {
+        "function": "fixture.realizations.Realizations$package$.doorEvidence",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 384
+          },
+          "var": "f"
+        } ]
+      }
+    }
+  }, {
+    "name": "race.property.pushedWhileHeld",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 389
+    },
+    "params": [ {
+      "name": "step",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 389
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 389
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.realizations.DoorFact",
+              "case": "doorOpened"
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 389
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 389
+              },
+              "var": "step"
+            },
+            "field": "facts"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "run.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 217
+    },
+    "params": [ {
+      "name": "f",
+      "type": {
+        "named": "fixture.realizations.DoorFact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 217
+      },
+      "call": {
+        "function": "fixture.realizations.Realizations$package$.doorEvidence",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 217
+          },
+          "var": "f"
+        } ]
+      }
+    }
+  }, {
+    "name": "run.property.runOpened",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 221
+    },
+    "params": [ {
+      "name": "step",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 221
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 221
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.realizations.DoorFact",
+              "case": "doorOpened"
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 221
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 221
+              },
+              "var": "step"
+            },
+            "field": "facts"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "tally.evidence",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 864
+    },
+    "params": [ {
+      "name": "f",
+      "type": {
+        "named": "fixture.realizations.DoorFact"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 864
+      },
+      "call": {
+        "function": "fixture.realizations.Realizations$package$.doorEvidence",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 864
+          },
+          "var": "f"
+        } ]
+      }
+    }
+  }, {
+    "name": "tally.property.tallyOpened",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 869
+    },
+    "params": [ {
+      "name": "step",
+      "type": {
+        "named": "umpire.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 869
+      },
+      "binary": {
+        "op": "OP_CONTAINS",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 869
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.realizations.DoorFact",
+              "case": "doorOpened"
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 869
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 869
+              },
+              "var": "step"
+            },
+            "field": "facts"
+          }
+        }
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.realizations.Realizations$package$.answer",
+    "name": "answer",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 577
+    },
+    "party": "runner",
+    "inputs": [ {
+      "name": "answer",
+      "type": {
+        "named": "fixture.realizations.ErrandAnswer"
+      }
+    } ],
+    "on": "errand"
+  }, {
+    "id": "fixture.realizations.Realizations$package$.deliver",
+    "name": "deliver",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 576
+    },
+    "party": "runner",
+    "on": "errand"
+  }, {
+    "id": "fixture.realizations.Realizations$package$.push",
+    "name": "push",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 59
+    },
+    "party": "doorkeeper",
+    "on": "door"
+  }, {
+    "id": "fixture.realizations.Realizations$package$.request",
+    "name": "request",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 575
+    },
+    "party": "requester",
+    "creates": "errand"
+  } ],
+  "machines": [ {
+    "family": "fixture.realizations.door",
+    "name": "door",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 71
+    },
+    "entity": "door",
+    "stateType": "fixture.realizations.DoorState",
+    "outcomeType": "fixture.realizations.DoorOutcome",
+    "factType": "fixture.realizations.DoorFact",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 73
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.DoorState",
+          "case": "closed"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 74
+      },
+      "lambda": {
+        "params": [ {
+          "name": "doorState",
+          "type": {
+            "named": "fixture.realizations.DoorState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 74
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 74
+              },
+              "var": "doorState"
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 74
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.DoorState",
+                  "case": "open"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.realizations.Realizations$package$.push",
+      "function": "fixture.realizations.Realizations$package$.pushStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 76
+      }
+    } ],
+    "evidence": "door.evidence"
+  }, {
+    "family": "fixture.realizations.errand",
+    "name": "errand",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 610
+    },
+    "entity": "errand",
+    "stateType": "fixture.realizations.ErrandState",
+    "outcomeType": "fixture.realizations.ErrandOutcome",
+    "factType": "fixture.realizations.ErrandFact",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 612
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.ErrandState",
+          "case": "idle"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 613
+      },
+      "lambda": {
+        "params": [ {
+          "name": "s",
+          "type": {
+            "named": "fixture.realizations.ErrandState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 613
+          },
+          "binary": {
+            "op": "OP_OR",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 613
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 613
+                  },
+                  "var": "s"
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 613
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.realizations.ErrandState",
+                      "case": "done"
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 613
+              },
+              "binary": {
+                "op": "OP_EQ",
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 613
+                  },
+                  "var": "s"
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 613
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.realizations.ErrandState",
+                      "case": "withdrawn"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.realizations.Realizations$package$.request",
+      "function": "fixture.realizations.Realizations$package$.requestStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 615
+      }
+    }, {
+      "action": "fixture.realizations.Realizations$package$.deliver",
+      "function": "fixture.realizations.Realizations$package$.deliverStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 615
+      }
+    }, {
+      "action": "fixture.realizations.Realizations$package$.answer",
+      "function": "fixture.realizations.Realizations$package$.answerStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 615
+      }
+    } ],
+    "evidence": "errand.evidence"
+  }, {
+    "family": "fixture.realizations.door",
+    "name": "race",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 380
+    },
+    "entity": "door",
+    "stateType": "fixture.realizations.DoorState",
+    "outcomeType": "fixture.realizations.DoorOutcome",
+    "factType": "fixture.realizations.DoorFact",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 382
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.DoorState",
+          "case": "closed"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 383
+      },
+      "lambda": {
+        "params": [ {
+          "name": "doorState",
+          "type": {
+            "named": "fixture.realizations.DoorState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 383
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 383
+              },
+              "var": "doorState"
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 383
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.DoorState",
+                  "case": "open"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.realizations.Realizations$package$.push",
+      "function": "fixture.realizations.Realizations$package$.pushStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 385
+      }
+    } ],
+    "evidence": "race.evidence"
+  }, {
+    "family": "fixture.realizations.door",
+    "name": "run",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 213
+    },
+    "entity": "door",
+    "stateType": "fixture.realizations.DoorState",
+    "outcomeType": "fixture.realizations.DoorOutcome",
+    "factType": "fixture.realizations.DoorFact",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 215
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.DoorState",
+          "case": "closed"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 216
+      },
+      "lambda": {
+        "params": [ {
+          "name": "doorState",
+          "type": {
+            "named": "fixture.realizations.DoorState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 216
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 216
+              },
+              "var": "doorState"
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 216
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.DoorState",
+                  "case": "open"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.realizations.Realizations$package$.push",
+      "function": "fixture.realizations.Realizations$package$.pushStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 218
+      }
+    } ],
+    "evidence": "run.evidence"
+  }, {
+    "family": "fixture.realizations.door",
+    "name": "tally",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 860
+    },
+    "entity": "door",
+    "stateType": "fixture.realizations.DoorState",
+    "outcomeType": "fixture.realizations.DoorOutcome",
+    "factType": "fixture.realizations.DoorFact",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 862
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.DoorState",
+          "case": "closed"
+        }
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 863
+      },
+      "lambda": {
+        "params": [ {
+          "name": "doorState",
+          "type": {
+            "named": "fixture.realizations.DoorState"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 863
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 863
+              },
+              "var": "doorState"
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 863
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.realizations.DoorState",
+                  "case": "open"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.realizations.Realizations$package$.push",
+      "function": "fixture.realizations.Realizations$package$.pushStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 865
+      }
+    } ],
+    "evidence": "tally.evidence"
+  } ],
+  "channels": [ {
+    "id": "fixture.realizations.Realizations$package$.dispatchChannel",
+    "name": "dispatchChannel",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 371
+    },
+    "message": {
+      "named": "fixture.realizations.DoorFact"
+    },
+    "capacity": 1,
+    "order": "ORDER_UNORDERED"
+  } ],
+  "properties": [ {
+    "machine": "door",
+    "name": "opensBecauseTheLatchGives",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 81
+    },
+    "whenClass": {
+      "action": "fixture.realizations.Realizations$package$.push"
+    },
+    "holds": "door.property.opensBecauseTheLatchGives"
+  }, {
+    "machine": "errand",
+    "name": "closesOnCompletion",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 619
+    },
+    "whenClass": {
+      "action": "fixture.realizations.Realizations$package$.answer",
+      "inputs": [ {
+        "enum": {
+          "type": "fixture.realizations.ErrandAnswer",
+          "case": "completed"
+        }
+      } ]
+    },
+    "holds": "errand.property.closesOnCompletion"
+  }, {
+    "machine": "errand",
+    "name": "withdrawsOnCancel",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 638
+    },
+    "whenClass": {
+      "action": "fixture.realizations.Realizations$package$.answer",
+      "inputs": [ {
+        "enum": {
+          "type": "fixture.realizations.ErrandAnswer",
+          "case": "canceled"
+        }
+      } ]
+    },
+    "holds": "errand.property.withdrawsOnCancel"
+  }, {
+    "machine": "race",
+    "name": "pushedWhileHeld",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 389
+    },
+    "whenClass": {
+      "action": "fixture.realizations.Realizations$package$.push"
+    },
+    "holds": "race.property.pushedWhileHeld"
+  }, {
+    "machine": "run",
+    "name": "runOpened",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 221
+    },
+    "whenClass": {
+      "action": "fixture.realizations.Realizations$package$.push"
+    },
+    "holds": "run.property.runOpened"
+  }, {
+    "machine": "tally",
+    "name": "tallyOpened",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 869
+    },
+    "whenClass": {
+      "action": "fixture.realizations.Realizations$package$.push"
+    },
+    "holds": "tally.property.tallyOpened"
+  } ],
+  "scenarios": [ {
+    "machine": "door",
+    "name": "pushed",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 85
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 85
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.DoorState",
+          "case": "closed"
+        }
+      }
+    },
+    "actions": [ {
+      "action": "fixture.realizations.Realizations$package$.push"
+    } ]
+  }, {
+    "machine": "errand",
+    "name": "canceledOnce",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 642
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 643
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.ErrandState",
+          "case": "idle"
+        }
+      }
+    },
+    "actions": [ {
+      "action": "fixture.realizations.Realizations$package$.request"
+    }, {
+      "action": "fixture.realizations.Realizations$package$.deliver"
+    }, {
+      "action": "fixture.realizations.Realizations$package$.answer",
+      "inputs": [ {
+        "enum": {
+          "type": "fixture.realizations.ErrandAnswer",
+          "case": "canceled"
+        }
+      } ]
+    } ]
+  }, {
+    "machine": "errand",
+    "name": "retriedOnce",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 623
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 624
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.ErrandState",
+          "case": "idle"
+        }
+      }
+    },
+    "actions": [ {
+      "action": "fixture.realizations.Realizations$package$.request"
+    }, {
+      "action": "fixture.realizations.Realizations$package$.deliver"
+    }, {
+      "action": "fixture.realizations.Realizations$package$.answer",
+      "inputs": [ {
+        "enum": {
+          "type": "fixture.realizations.ErrandAnswer",
+          "case": "failed"
+        }
+      } ]
+    }, {
+      "action": "fixture.realizations.Realizations$package$.deliver"
+    }, {
+      "action": "fixture.realizations.Realizations$package$.answer",
+      "inputs": [ {
+        "enum": {
+          "type": "fixture.realizations.ErrandAnswer",
+          "case": "completed"
+        }
+      } ]
+    } ]
+  }, {
+    "machine": "race",
+    "name": "heldRace",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 391
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 391
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.DoorState",
+          "case": "closed"
+        }
+      }
+    },
+    "actions": [ {
+      "action": "fixture.realizations.Realizations$package$.push"
+    } ]
+  }, {
+    "machine": "run",
+    "name": "started",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 223
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 223
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.DoorState",
+          "case": "closed"
+        }
+      }
+    },
+    "actions": [ {
+      "action": "fixture.realizations.Realizations$package$.push"
+    } ]
+  }, {
+    "machine": "tally",
+    "name": "tallied",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 871
+    },
+    "start": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 871
+      },
+      "literal": {
+        "enum": {
+          "type": "fixture.realizations.DoorState",
+          "case": "closed"
+        }
+      }
+    },
+    "actions": [ {
+      "action": "fixture.realizations.Realizations$package$.push"
+    } ]
+  } ],
+  "queries": [ {
+    "name": "door.opens",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 88
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "door",
+      "name": "opensBecauseTheLatchGives"
+    },
+    "scenario": {
+      "machine": "door",
+      "name": "pushed"
+    },
+    "limits": {
+      "name": "one",
+      "steps": 1,
+      "actions": 1,
+      "search": 16
+    },
+    "total": "2"
+  }, {
+    "name": "errand.retry",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 628
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "errand",
+      "name": "closesOnCompletion"
+    },
+    "scenario": {
+      "machine": "errand",
+      "name": "retriedOnce"
+    },
+    "limits": {
+      "name": "five",
+      "steps": 5,
+      "actions": 5,
+      "search": 4096
+    },
+    "total": "30"
+  }, {
+    "name": "errand.withdrawn",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 647
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "errand",
+      "name": "withdrawsOnCancel"
+    },
+    "scenario": {
+      "machine": "errand",
+      "name": "canceledOnce"
+    },
+    "limits": {
+      "name": "three",
+      "steps": 3,
+      "actions": 3,
+      "search": 4096
+    },
+    "total": "18"
+  }, {
+    "name": "race.paused",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 394
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "race",
+      "name": "pushedWhileHeld"
+    },
+    "scenario": {
+      "machine": "race",
+      "name": "heldRace"
+    },
+    "limits": {
+      "name": "one",
+      "steps": 1,
+      "actions": 1,
+      "search": 16
+    },
+    "total": "2"
+  }, {
+    "name": "run.opens",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 225
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "run",
+      "name": "runOpened"
+    },
+    "scenario": {
+      "machine": "run",
+      "name": "started"
+    },
+    "limits": {
+      "name": "one",
+      "steps": 1,
+      "actions": 1,
+      "search": 16
+    },
+    "total": "2"
+  }, {
+    "name": "tally.opens",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 874
+    },
+    "form": "FORM_FIND",
+    "property": {
+      "machine": "tally",
+      "name": "tallyOpened"
+    },
+    "scenario": {
+      "machine": "tally",
+      "name": "tallied"
+    },
+    "limits": {
+      "name": "one",
+      "steps": 1,
+      "actions": 1,
+      "search": 16
+    },
+    "total": "2"
+  } ],
+  "realizations": [ {
+    "id": "fixture.realizations.Realizations$package$.doorRealization",
+    "name": "doorRealization",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 95
+    },
+    "machine": "door",
+    "producer": "fixture.realizations",
+    "producerVersion": "1",
+    "roles": [ {
+      "id": "temporal.workflow-service",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 38
+      },
+      "kind": "KIND_ENDPOINT"
+    }, {
+      "id": "temporal.worker",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 39
+      },
+      "kind": "KIND_WORKER",
+      "namespace": "temporal.worker.namespace"
+    }, {
+      "id": "temporal.task-queue",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 40
+      },
+      "kind": "KIND_TASK_QUEUE",
+      "namespace": "temporal.worker.namespace",
+      "resource": "temporal.task-queue.resource"
+    } ],
+    "observations": [ {
+      "id": "correlated-evidence",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 175
+      },
+      "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+    } ],
+    "evidence": [ {
+      "id": "fixture.realizations.door.evidence.opened",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 177
+      },
+      "records": "doorOpened",
+      "source": "fixture.realizations.door.source.history",
+      "history": "workflow_execution_started_event_attributes",
+      "operation": "event_id",
+      "commitment": "COMMITMENT_REPORTED"
+    } ],
+    "correlation": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 100
+      },
+      "projection": "fixture.realizations.door.projection",
+      "run": "fixture.realizations.door.scope.run",
+      "operation": "fixture.realizations.door.scope.door",
+      "observation": "correlated-evidence",
+      "events": "8",
+      "buffered": "8",
+      "keys": "2",
+      "support": "16",
+      "work": "1000",
+      "eventSize": "512"
+    },
+    "scripts": [ {
+      "id": "controller",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 113
+      },
+      "controller": { },
+      "items": [ {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 117
+        },
+        "performs": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 119
+          },
+          "step": {
+            "action": "fixture.realizations.Realizations$package$.push"
+          },
+          "command": {
+            "id": "push-door",
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 121
+            },
+            "rpc": {
+              "role": "temporal.workflow-service",
+              "method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
+              "assign": [ {
+                "target": "namespace",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 130
+                  },
+                  "environment": "temporal.worker.namespace"
+                }
+              }, {
+                "target": "workflow_id",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 134
+                  },
+                  "run": { }
+                }
+              } ]
+            }
+          }
+        } ]
+      }, {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 143
+        },
+        "command": {
+          "id": "history",
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 145
+          },
+          "rpc": {
+            "role": "temporal.workflow-service",
+            "method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
+            "assign": [ {
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 152
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }, {
+              "target": "execution.workflow_id",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 156
+                },
+                "run": { }
+              }
+            } ],
+            "reads": [ {
+              "path": "history.events[*]",
+              "cardinality": "CARDINALITY_EACH",
+              "targets": [ {
+                "lift": "correlated-evidence"
+              } ]
+            } ]
+          }
+        }
+      } ]
+    } ]
+  }, {
+    "id": "fixture.realizations.Realizations$package$.errandRealization",
+    "name": "errandRealization",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 702
+    },
+    "machine": "errand",
+    "producer": "fixture.realizations",
+    "producerVersion": "1",
+    "roles": [ {
+      "id": "temporal.workflow-service",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 38
+      },
+      "kind": "KIND_ENDPOINT"
+    }, {
+      "id": "temporal.worker",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 39
+      },
+      "kind": "KIND_WORKER",
+      "namespace": "temporal.worker.namespace"
+    }, {
+      "id": "temporal.task-queue",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 40
+      },
+      "kind": "KIND_TASK_QUEUE",
+      "namespace": "temporal.worker.namespace",
+      "resource": "temporal.task-queue.resource"
+    } ],
+    "observations": [ {
+      "id": "correlated-evidence",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 851
+      },
+      "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+    } ],
+    "evidence": [ {
+      "id": "fixture.realizations.errand.evidence.errandListed",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 667
+      },
+      "records": "errandListed",
+      "source": "fixture.realizations.errand.source.errandListed",
+      "read": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/ListActivityExecutions",
+        "path": "executions"
+      },
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED"
+    }, {
+      "id": "fixture.realizations.errand.evidence.errandClosed",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 667
+      },
+      "records": "errandClosed",
+      "source": "fixture.realizations.errand.source.errandClosed",
+      "read": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/ListActivityExecutions",
+        "path": "executions"
+      },
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED"
+    }, {
+      "id": "fixture.realizations.errand.evidence.errandWithdrawn",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 667
+      },
+      "records": "errandWithdrawn",
+      "source": "fixture.realizations.errand.source.errandWithdrawn",
+      "read": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/ListActivityExecutions",
+        "path": "executions"
+      },
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED"
+    } ],
+    "correlation": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 707
+      },
+      "projection": "fixture.realizations.errand.projection",
+      "run": "fixture.realizations.errand.scope.run",
+      "operation": "fixture.realizations.errand.scope.errand",
+      "observation": "correlated-evidence",
+      "events": "8",
+      "buffered": "8",
+      "keys": "2",
+      "support": "16",
+      "work": "1000",
+      "eventSize": "512"
+    },
+    "scripts": [ {
+      "id": "controller",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 720
+      },
+      "controller": { },
+      "items": [ {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 724
+        },
+        "performs": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 726
+          },
+          "step": {
+            "action": "fixture.realizations.Realizations$package$.request"
+          },
+          "command": {
+            "id": "start-activity",
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 728
+            },
+            "rpc": {
+              "role": "temporal.workflow-service",
+              "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+              "assign": [ {
+                "target": "namespace",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 737
+                  },
+                  "environment": "temporal.worker.namespace"
+                }
+              }, {
+                "target": "activity_id",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 741
+                  },
+                  "run": { }
+                }
+              }, {
+                "target": "activity_type.name",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 745
+                  },
+                  "literal": {
+                    "named": {
+                      "prefix": "umpire-",
+                      "fixture": true,
+                      "suffix": "-errand"
+                    }
+                  }
+                }
+              }, {
+                "target": "task_queue.name",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 749
+                  },
+                  "environment": "temporal.task-queue.resource"
+                }
+              }, {
+                "target": "request_id",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 753
+                  },
+                  "run": { }
+                }
+              }, {
+                "target": "start_to_close_timeout.seconds",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 757
+                  },
+                  "literal": {
+                    "number": "300"
+                  }
+                }
+              } ]
+            }
+          }
+        } ]
+      }, {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 767
+        },
+        "command": {
+          "id": "await-listed",
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 688
+          },
+          "poll": {
+            "evidence": "fixture.realizations.errand.evidence.errandListed",
+            "role": "temporal.workflow-service",
+            "assign": [ {
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 694
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            } ],
+            "until": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 772
+              },
+              "all": {
+                "operands": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 773
+                  },
+                  "present": {
+                    "of": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Realizations.scala",
+                        "line": 773
+                      },
+                      "path": {
+                        "of": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/Realizations.scala",
+                            "line": 773
+                          },
+                          "projected": { }
+                        },
+                        "path": "schedule_time"
+                      }
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 778
+                  },
+                  "greater": {
+                    "left": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Realizations.scala",
+                        "line": 778
+                      },
+                      "path": {
+                        "of": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/Realizations.scala",
+                            "line": 778
+                          },
+                          "projected": { }
+                        },
+                        "path": "state_transition_count"
+                      }
+                    },
+                    "right": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Realizations.scala",
+                        "line": 780
+                      },
+                      "literal": {
+                        "number": "0"
+                      }
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 782
+                  },
+                  "not": {
+                    "of": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Realizations.scala",
+                        "line": 783
+                      },
+                      "equal": {
+                        "left": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/Realizations.scala",
+                            "line": 783
+                          },
+                          "path": {
+                            "of": {
+                              "position": {
+                                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                                "line": 783
+                              },
+                              "projected": { }
+                            },
+                            "path": "activity_id"
+                          }
+                        },
+                        "right": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/Realizations.scala",
+                            "line": 785
+                          },
+                          "literal": {
+                            "text": ""
+                          }
+                        }
+                      }
+                    }
+                  }
+                } ]
+              }
+            },
+            "intervalMs": "250"
+          }
+        }
+      }, {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 792
+        },
+        "command": {
+          "id": "await-closed",
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 688
+          },
+          "poll": {
+            "evidence": "fixture.realizations.errand.evidence.errandClosed",
+            "role": "temporal.workflow-service",
+            "assign": [ {
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 694
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            } ],
+            "until": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 797
+              },
+              "equal": {
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 797
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Realizations.scala",
+                        "line": 797
+                      },
+                      "projected": { }
+                    },
+                    "path": "status"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 799
+                  },
+                  "literal": {
+                    "enumName": "ACTIVITY_EXECUTION_STATUS_COMPLETED"
+                  }
+                }
+              }
+            },
+            "intervalMs": "250"
+          }
+        }
+      }, {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 804
+        },
+        "command": {
+          "id": "await-withdrawn",
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 688
+          },
+          "poll": {
+            "evidence": "fixture.realizations.errand.evidence.errandWithdrawn",
+            "role": "temporal.workflow-service",
+            "assign": [ {
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 694
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            } ],
+            "until": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 809
+              },
+              "equal": {
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 809
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Realizations.scala",
+                        "line": 809
+                      },
+                      "projected": { }
+                    },
+                    "path": "status"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 811
+                  },
+                  "literal": {
+                    "enumName": "ACTIVITY_EXECUTION_STATUS_CANCELED"
+                  }
+                }
+              }
+            },
+            "intervalMs": "250"
+          }
+        },
+        "when": [ {
+          "action": "fixture.realizations.Realizations$package$.answer",
+          "inputs": [ {
+            "enum": {
+              "type": "fixture.realizations.ErrandAnswer",
+              "case": "canceled"
+            }
+          } ]
+        } ]
+      } ]
+    }, {
+      "id": "errand",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 819
+      },
+      "activity": {
+        "activityType": {
+          "prefix": "umpire-",
+          "fixture": true,
+          "suffix": "-errand"
+        },
+        "worker": "temporal.worker",
+        "taskQueue": "temporal.task-queue",
+        "starts": [ {
+          "action": "fixture.realizations.Realizations$package$.deliver"
+        } ]
+      },
+      "items": [ {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 823
+        },
+        "performs": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 825
+          },
+          "step": {
+            "action": "fixture.realizations.Realizations$package$.answer",
+            "inputs": [ {
+              "enum": {
+                "type": "fixture.realizations.ErrandAnswer",
+                "case": "failed"
+              }
+            } ]
+          },
+          "command": {
+            "id": "fail-attempt",
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 827
+            },
+            "attemptFailure": {
+              "failure": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 830
+                },
+                "message": "temporal.api.failure.v1.Failure",
+                "fields": [ {
+                  "name": "message",
+                  "value": {
+                    "text": "not yet"
+                  }
+                }, {
+                  "name": "application_failure_info",
+                  "value": {
+                    "message": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Realizations.scala",
+                        "line": 657
+                      },
+                      "message": "temporal.api.failure.v1.ApplicationFailureInfo",
+                      "fields": [ {
+                        "name": "type",
+                        "value": {
+                          "text": "NotYet"
+                        }
+                      } ]
+                    }
+                  }
+                } ]
+              }
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 841
+          },
+          "step": {
+            "action": "fixture.realizations.Realizations$package$.answer",
+            "inputs": [ {
+              "enum": {
+                "type": "fixture.realizations.ErrandAnswer",
+                "case": "completed"
+              }
+            } ]
+          },
+          "command": {
+            "id": "complete-attempt",
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 843
+            },
+            "finish": {
+              "result": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 843
+                },
+                "literal": {
+                  "text": "done"
+                }
+              }
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 845
+          },
+          "step": {
+            "action": "fixture.realizations.Realizations$package$.answer",
+            "inputs": [ {
+              "enum": {
+                "type": "fixture.realizations.ErrandAnswer",
+                "case": "canceled"
+              }
+            } ]
+          },
+          "command": {
+            "id": "cancel-attempt",
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 845
+            },
+            "attemptCanceled": { }
+          }
+        } ]
+      } ]
+    } ],
+    "cleanup": "cleanup"
+  }, {
+    "id": "fixture.realizations.Realizations$package$.learnedRun",
+    "name": "learnedRun",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 341
+    },
+    "machine": "run",
+    "producer": "fixture.realizations",
+    "producerVersion": "1",
+    "roles": [ {
+      "id": "temporal.workflow-service",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 38
+      },
+      "kind": "KIND_ENDPOINT"
+    }, {
+      "id": "temporal.worker",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 39
+      },
+      "kind": "KIND_WORKER",
+      "namespace": "temporal.worker.namespace"
+    }, {
+      "id": "temporal.task-queue",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 40
+      },
+      "kind": "KIND_TASK_QUEUE",
+      "namespace": "temporal.worker.namespace",
+      "resource": "temporal.task-queue.resource"
+    } ],
+    "learned": [ {
+      "id": "workflow-run",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 359
+      },
+      "kind": "KIND_TEXT"
+    } ],
+    "observations": [ {
+      "id": "history-event",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 361
+      },
+      "message": "temporal.api.history.v1.HistoryEvent"
+    }, {
+      "id": "correlated-evidence",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 362
+      },
+      "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+    } ],
+    "evidence": [ {
+      "id": "fixture.realizations.run.evidence.opened",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 246
+      },
+      "records": "doorOpened",
+      "source": "fixture.realizations.run.source.history",
+      "read": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
+        "path": "history.events[*]"
+      },
+      "operation": "event_id",
+      "commitment": "COMMITMENT_REPORTED"
+    } ],
+    "correlation": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 196
+      },
+      "projection": "fixture.realizations.run.projection",
+      "run": "fixture.realizations.run.scope.run",
+      "operation": "fixture.realizations.run.scope.door",
+      "observation": "correlated-evidence",
+      "events": "8",
+      "buffered": "8",
+      "keys": "2",
+      "support": "16",
+      "work": "1000",
+      "eventSize": "512"
+    },
+    "scripts": [ {
+      "id": "controller",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 348
+      },
+      "controller": { },
+      "items": [ {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 352
+        },
+        "performs": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 352
+          },
+          "step": {
+            "action": "fixture.realizations.Realizations$package$.push"
+          },
+          "command": {
+            "id": "start-workflow",
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 261
+            },
+            "rpc": {
+              "role": "temporal.workflow-service",
+              "method": "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
+              "assign": [ {
+                "target": "namespace",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 267
+                  },
+                  "environment": "temporal.worker.namespace"
+                }
+              }, {
+                "target": "workflow_id",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 269
+                  },
+                  "run": { }
+                }
+              }, {
+                "target": "workflow_type.name",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 272
+                  },
+                  "literal": {
+                    "named": {
+                      "prefix": "umpire-",
+                      "fixture": true,
+                      "suffix": "-workflow"
+                    }
+                  }
+                }
+              }, {
+                "target": "task_queue.name",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 276
+                  },
+                  "environment": "temporal.task-queue.resource"
+                }
+              } ],
+              "reads": [ {
+                "path": "run_id",
+                "cardinality": "CARDINALITY_ONE",
+                "targets": [ {
+                  "bind": "workflow-run"
+                } ]
+              } ]
+            }
+          }
+        } ]
+      }, {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 353
+        },
+        "command": {
+          "id": "await-started",
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 290
+          },
+          "after": {
+            "commands": [ "start-workflow" ]
+          },
+          "poll": {
+            "evidence": "fixture.realizations.run.evidence.opened",
+            "role": "temporal.workflow-service",
+            "assign": [ {
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 234
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }, {
+              "target": "execution.workflow_id",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 238
+                },
+                "run": { }
+              }
+            }, {
+              "target": "execution.run_id",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 242
+                },
+                "learnedValue": "workflow-run"
+              }
+            } ],
+            "until": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 294
+              },
+              "present": {
+                "of": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 294
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Realizations.scala",
+                        "line": 294
+                      },
+                      "projected": { }
+                    },
+                    "path": "attributes<workflow_execution_started_event_attributes>"
+                  }
+                }
+              }
+            },
+            "intervalMs": "250"
+          }
+        }
+      }, {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 354
+        },
+        "command": {
+          "id": "await-close",
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 305
+          },
+          "after": {
+            "commands": [ "start-workflow" ]
+          },
+          "rpc": {
+            "role": "temporal.workflow-service",
+            "method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
+            "assign": [ {
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 234
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }, {
+              "target": "execution.workflow_id",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 238
+                },
+                "run": { }
+              }
+            }, {
+              "target": "execution.run_id",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 242
+                },
+                "learnedValue": "workflow-run"
+              }
+            }, {
+              "target": "wait_new_event",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 311
+                },
+                "literal": {
+                  "flag": true
+                }
+              }
+            }, {
+              "target": "history_event_filter_type",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 315
+                },
+                "literal": {
+                  "enumName": "HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT"
+                }
+              }
+            } ]
+          }
+        }
+      }, {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 355
+        },
+        "command": {
+          "id": "history",
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 324
+          },
+          "after": {
+            "commands": [ "await-started", "await-close" ]
+          },
+          "rpc": {
+            "role": "temporal.workflow-service",
+            "method": "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
+            "assign": [ {
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 234
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }, {
+              "target": "execution.workflow_id",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 238
+                },
+                "run": { }
+              }
+            }, {
+              "target": "execution.run_id",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 242
+                },
+                "learnedValue": "workflow-run"
+              }
+            } ],
+            "reads": [ {
+              "path": "history.events[*]",
+              "cardinality": "CARDINALITY_EACH",
+              "targets": [ {
+                "observe": "history-event"
+              }, {
+                "lift": "correlated-evidence"
+              } ]
+            } ]
+          }
+        }
+      } ]
+    } ],
+    "cleanup": "cleanup"
+  }, {
+    "id": "fixture.realizations.Realizations$package$.pauseRace",
+    "name": "pauseRace",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 412
+    },
+    "machine": "race",
+    "producer": "fixture.realizations",
+    "producerVersion": "1",
+    "roles": [ {
+      "id": "temporal.workflow-service",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 38
+      },
+      "kind": "KIND_ENDPOINT"
+    }, {
+      "id": "temporal.worker",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 39
+      },
+      "kind": "KIND_WORKER",
+      "namespace": "temporal.worker.namespace"
+    }, {
+      "id": "temporal.task-queue",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 40
+      },
+      "kind": "KIND_TASK_QUEUE",
+      "namespace": "temporal.worker.namespace",
+      "resource": "temporal.task-queue.resource"
+    } ],
+    "learned": [ {
+      "id": "activity-run",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 482
+      },
+      "kind": "KIND_TEXT"
+    } ],
+    "observations": [ {
+      "id": "correlated-evidence",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 483
+      },
+      "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+    } ],
+    "evidence": [ {
+      "id": "fixture.realizations.race.evidence.doorOpened",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 400
+      },
+      "records": "doorOpened",
+      "source": "fixture.realizations.race.source.doorOpened",
+      "read": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/ListActivityExecutions",
+        "path": "executions"
+      },
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED"
+    }, {
+      "id": "fixture.realizations.race.evidence.dispatchEnqueued",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 400
+      },
+      "records": "dispatchEnqueued",
+      "source": "fixture.realizations.race.source.dispatchEnqueued",
+      "read": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/ListActivityExecutions",
+        "path": "executions"
+      },
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_DURABLE"
+    } ],
+    "correlation": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 196
+      },
+      "projection": "fixture.realizations.race.projection",
+      "run": "fixture.realizations.race.scope.run",
+      "operation": "fixture.realizations.race.scope.door",
+      "observation": "correlated-evidence",
+      "events": "8",
+      "buffered": "8",
+      "keys": "2",
+      "support": "16",
+      "work": "1000",
+      "eventSize": "512"
+    },
+    "controls": [ {
+      "id": "hold-dispatch",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 490
+      },
+      "holdDelivery": "fixture.realizations.Realizations$package$.dispatchChannel"
+    } ],
+    "scripts": [ {
+      "id": "controller",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 419
+      },
+      "controller": { },
+      "items": [ {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 423
+        },
+        "command": {
+          "id": "hold-dispatch-before-start",
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 423
+          },
+          "hold": "hold-dispatch"
+        }
+      }, {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 424
+        },
+        "command": {
+          "id": "start-activity",
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 426
+          },
+          "rpc": {
+            "role": "temporal.workflow-service",
+            "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+            "assign": [ {
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 432
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }, {
+              "target": "activity_id",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 436
+                },
+                "run": { }
+              }
+            } ],
+            "reads": [ {
+              "path": "run_id",
+              "cardinality": "CARDINALITY_ONE",
+              "targets": [ {
+                "bind": "activity-run"
+              } ]
+            } ]
+          }
+        }
+      }, {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 450
+        },
+        "performs": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 452
+          },
+          "step": {
+            "action": "fixture.realizations.Realizations$package$.push"
+          },
+          "command": {
+            "id": "pause-activity",
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 454
+            },
+            "rpc": {
+              "role": "temporal.workflow-service",
+              "method": "/temporal.api.workflowservice.v1.WorkflowService/PauseActivityExecution",
+              "assign": [ {
+                "target": "namespace",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 461
+                  },
+                  "environment": "temporal.worker.namespace"
+                }
+              }, {
+                "target": "activity_id",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 465
+                  },
+                  "run": { }
+                }
+              }, {
+                "target": "run_id",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 469
+                  },
+                  "learnedValue": "activity-run"
+                }
+              } ]
+            }
+          }
+        } ]
+      }, {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 478
+        },
+        "command": {
+          "id": "release-dispatch",
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 478
+          },
+          "release": "hold-dispatch"
+        }
+      } ]
+    } ]
+  }, {
+    "id": "fixture.realizations.Realizations$package$.tallyRealization",
+    "name": "tallyRealization",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Realizations.scala",
+      "line": 912
+    },
+    "machine": "tally",
+    "producer": "fixture.realizations",
+    "producerVersion": "1",
+    "roles": [ {
+      "id": "temporal.workflow-service",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 38
+      },
+      "kind": "KIND_ENDPOINT"
+    }, {
+      "id": "temporal.worker",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 39
+      },
+      "kind": "KIND_WORKER",
+      "namespace": "temporal.worker.namespace"
+    }, {
+      "id": "temporal.task-queue",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 40
+      },
+      "kind": "KIND_TASK_QUEUE",
+      "namespace": "temporal.worker.namespace",
+      "resource": "temporal.task-queue.resource"
+    } ],
+    "observations": [ {
+      "id": "correlated-evidence",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 985
+      },
+      "message": "temporal.server.api.testpilot.v1.CorrelatedEvidence"
+    } ],
+    "evidence": [ {
+      "id": "fixture.realizations.tally.evidence.opened",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 882
+      },
+      "records": "doorOpened",
+      "source": "fixture.realizations.tally.source.describe",
+      "single": {
+        "method": "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution",
+        "path": "info"
+      },
+      "operation": "activity_id",
+      "commitment": "COMMITMENT_REPORTED",
+      "fields": [ {
+        "id": "run",
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 893
+        },
+        "path": "run_id",
+        "role": "ROLE_OPERATION"
+      }, {
+        "id": "attempt",
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 898
+        },
+        "path": "attempt",
+        "role": "ROLE_ATTEMPT"
+      }, {
+        "id": "identity",
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 903
+        },
+        "path": "last_worker_identity",
+        "redacted": true
+      } ],
+      "exhaustive": true
+    }, {
+      "id": "fixture.realizations.tally.evidence.pushed",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 990
+      },
+      "records": "doorPushed",
+      "source": "fixture.realizations.tally.source.pushed",
+      "runEvent": {
+        "kind": "KIND_INSTRUCTION_COMPLETED",
+        "script": "controller",
+        "command": "push-door",
+        "key": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 998
+          },
+          "run": { }
+        },
+        "guard": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 1000
+          },
+          "equal": {
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 1000
+              },
+              "path": {
+                "of": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 1000
+                  },
+                  "projected": { }
+                },
+                "path": "status"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 1002
+              },
+              "literal": {
+                "enumName": "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"
+              }
+            }
+          }
+        }
+      },
+      "commitment": "COMMITMENT_REPORTED"
+    } ],
+    "correlation": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 917
+      },
+      "projection": "fixture.realizations.tally.projection",
+      "run": "fixture.realizations.tally.scope.run",
+      "operation": "fixture.realizations.tally.scope.door",
+      "observation": "correlated-evidence",
+      "events": "8",
+      "buffered": "8",
+      "keys": "2",
+      "support": "16",
+      "work": "1000",
+      "eventSize": "512"
+    },
+    "scripts": [ {
+      "id": "controller",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Realizations.scala",
+        "line": 930
+      },
+      "controller": { },
+      "items": [ {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 934
+        },
+        "performs": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 936
+          },
+          "step": {
+            "action": "fixture.realizations.Realizations$package$.push"
+          },
+          "command": {
+            "id": "push-door",
+            "position": {
+              "file": "model/irgen/testdata/lifts/Realizations.scala",
+              "line": 938
+            },
+            "rpc": {
+              "role": "temporal.workflow-service",
+              "method": "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution",
+              "assign": [ {
+                "target": "namespace",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 947
+                  },
+                  "environment": "temporal.worker.namespace"
+                }
+              }, {
+                "target": "activity_id",
+                "value": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 951
+                  },
+                  "run": { }
+                }
+              } ]
+            }
+          }
+        } ]
+      }, {
+        "position": {
+          "file": "model/irgen/testdata/lifts/Realizations.scala",
+          "line": 960
+        },
+        "command": {
+          "id": "await-opened",
+          "position": {
+            "file": "model/irgen/testdata/lifts/Realizations.scala",
+            "line": 962
+          },
+          "poll": {
+            "evidence": "fixture.realizations.tally.evidence.opened",
+            "role": "temporal.workflow-service",
+            "assign": [ {
+              "target": "namespace",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 968
+                },
+                "environment": "temporal.worker.namespace"
+              }
+            }, {
+              "target": "activity_id",
+              "value": {
+                "position": {
+                  "file": "model/irgen/testdata/lifts/Realizations.scala",
+                  "line": 972
+                },
+                "run": { }
+              }
+            } ],
+            "until": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Realizations.scala",
+                "line": 975
+              },
+              "equal": {
+                "left": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 975
+                  },
+                  "path": {
+                    "of": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Realizations.scala",
+                        "line": 975
+                      },
+                      "projected": { }
+                    },
+                    "path": "attempt"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Realizations.scala",
+                    "line": 975
+                  },
+                  "literal": {
+                    "number": "1"
+                  }
+                }
+              }
+            },
+            "intervalMs": "250"
+          },
+          "closes": [ "fixture.realizations.tally.evidence.opened" ]
+        }
+      } ]
+    } ]
+  } ]
+}

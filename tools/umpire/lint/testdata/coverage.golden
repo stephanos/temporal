@@ -17,98 +17,98 @@ coverage model/ir/nexus-control.json forgedCompletion
   facts                7, 7 with evidence
   named choices        2, 2 taken by a reachable state
   observations         2, 2 read
-coverage model/lifter/testdata/lifts/expected/admission.json activityProduct
+coverage model/irgen/testdata/lifts/expected/admission.json activityProduct
   properties           1 declared, 1 named by a Query
   verify Queries       2, 1 whose Property fired
-coverage model/lifter/testdata/lifts/expected/admission.json currentAdmission
+coverage model/irgen/testdata/lifts/expected/admission.json currentAdmission
   properties           3 declared, 3 named by a Query
   verify Queries       6, 6 whose Property fired
   named choices        2, 2 taken by a reachable state
   refinements          1 declared, 1 read through by a Query
-coverage model/lifter/testdata/lifts/expected/admission.json staleAdmission
+coverage model/irgen/testdata/lifts/expected/admission.json staleAdmission
   properties           3 declared, 3 named by a Query
   verify Queries       6, 6 whose Property fired
   named choices        2, 2 taken by a reachable state
   refinements          1 declared, 1 read through by a Query
-coverage model/lifter/testdata/lifts/expected/capabilities.json job
+coverage model/irgen/testdata/lifts/expected/capabilities.json job
   properties           5 declared, 5 named by a Query
   verify Queries       3, 3 whose Property fired
-coverage model/lifter/testdata/lifts/expected/capabilities.json keptJob
+coverage model/irgen/testdata/lifts/expected/capabilities.json keptJob
   properties           1 declared, 1 named by a Query
   verify Queries       1, 1 whose Property fired
-coverage model/lifter/testdata/lifts/expected/capabilities.json legacyJob
+coverage model/irgen/testdata/lifts/expected/capabilities.json legacyJob
   properties           1 declared, 1 named by a Query
   verify Queries       1, 1 whose Property fired
-coverage model/lifter/testdata/lifts/expected/capabilities.json pair
+coverage model/irgen/testdata/lifts/expected/capabilities.json pair
   properties           1 declared, 1 named by a Query
   verify Queries       1, 1 whose Property fired
-coverage model/lifter/testdata/lifts/expected/capabilities.json rogueJob
+coverage model/irgen/testdata/lifts/expected/capabilities.json rogueJob
   properties           1 declared, 1 named by a Query
   verify Queries       1, 1 whose Property fired
-coverage model/lifter/testdata/lifts/expected/captured.json detailedPair
+coverage model/irgen/testdata/lifts/expected/captured.json detailedPair
   properties           1 declared, 1 named by a Query
-coverage model/lifter/testdata/lifts/expected/captured.json disk
+coverage model/irgen/testdata/lifts/expected/captured.json disk
   properties           3 declared, 3 named by a Query
   verify Queries       3, 3 whose Property fired
   refinements          1 declared, 1 read through by a Query
-coverage model/lifter/testdata/lifts/expected/captured.json store
+coverage model/irgen/testdata/lifts/expected/captured.json store
   properties           1 declared, 1 named by a Query
   verify Queries       1, 1 whose Property fired
   non-system actions   1, 0 performed by a realization
   facts                3, 0 with evidence
   observations         1, 1 read
-coverage model/lifter/testdata/lifts/expected/declarations.json detailedPair
+coverage model/irgen/testdata/lifts/expected/declarations.json detailedPair
   properties           1 declared, 1 named by a Query
-coverage model/lifter/testdata/lifts/expected/declarations.json disk
+coverage model/irgen/testdata/lifts/expected/declarations.json disk
   properties           2 declared, 2 named by a Query
   verify Queries       2, 2 whose Property fired
   refinements          1 declared, 1 read through by a Query
-coverage model/lifter/testdata/lifts/expected/declarations.json pair
+coverage model/irgen/testdata/lifts/expected/declarations.json pair
   properties           1 declared, 1 named by a Query
   verify Queries       1, 1 whose Property fired
-coverage model/lifter/testdata/lifts/expected/declarations.json store
+coverage model/irgen/testdata/lifts/expected/declarations.json store
   properties           1 declared, 1 named by a Query
   verify Queries       1, 1 whose Property fired
-coverage model/lifter/testdata/lifts/expected/realizations.json door
+coverage model/irgen/testdata/lifts/expected/realizations.json door
   properties           1 declared, 1 named by a Query
   non-system actions   1, 1 performed by a realization
   facts                1, 1 with evidence
   observations         1, 1 read
-coverage model/lifter/testdata/lifts/expected/realizations.json errand
+coverage model/irgen/testdata/lifts/expected/realizations.json errand
   properties           2 declared, 2 named by a Query
   non-system actions   3, 3 performed by a realization
   facts                3, 3 with evidence
   observations         1, 1 read
   API values           7 tested, 2 mapped to a fact
-coverage model/lifter/testdata/lifts/expected/realizations.json race
+coverage model/irgen/testdata/lifts/expected/realizations.json race
   properties           1 declared, 1 named by a Query
   non-system actions   1, 1 performed by a realization
   facts                1, 1 with evidence
   observations         1, 1 read
-coverage model/lifter/testdata/lifts/expected/realizations.json run
+coverage model/irgen/testdata/lifts/expected/realizations.json run
   properties           1 declared, 1 named by a Query
   non-system actions   1, 1 performed by a realization
   facts                1, 1 with evidence
   observations         2, 2 read
-coverage model/lifter/testdata/lifts/expected/realizations.json tally
+coverage model/irgen/testdata/lifts/expected/realizations.json tally
   properties           1 declared, 1 named by a Query
   non-system actions   1, 1 performed by a realization
   facts                1, 1 with evidence
   observations         1, 1 read
-coverage model/lifter/testdata/lifts/expected/taskqueue.json dispatchQueue
+coverage model/irgen/testdata/lifts/expected/taskqueue.json dispatchQueue
   named choices        2, 2 taken by a reachable state
-coverage model/lifter/testdata/lifts/expected/taskqueue.json forgetfulQueue
+coverage model/irgen/testdata/lifts/expected/taskqueue.json forgetfulQueue
   named choices        2, 2 taken by a reachable state
   refinements          1 declared, 0 read through by a Query
-coverage model/lifter/testdata/lifts/expected/taskqueue.json jobOverForgetful
+coverage model/irgen/testdata/lifts/expected/taskqueue.json jobOverForgetful
   properties           2 declared, 2 named by a Query
   verify Queries       1, 0 whose Property fired
-coverage model/lifter/testdata/lifts/expected/taskqueue.json jobOverMatching
+coverage model/irgen/testdata/lifts/expected/taskqueue.json jobOverMatching
   properties           2 declared, 2 named by a Query
   verify Queries       1, 1 whose Property fired
-coverage model/lifter/testdata/lifts/expected/taskqueue.json jobOverQueue
+coverage model/irgen/testdata/lifts/expected/taskqueue.json jobOverQueue
   properties           2 declared, 2 named by a Query
   verify Queries       1, 1 whose Property fired
-coverage model/lifter/testdata/lifts/expected/taskqueue.json matchingQueue
+coverage model/irgen/testdata/lifts/expected/taskqueue.json matchingQueue
   named choices        2, 2 taken by a reachable state
   refinements          1 declared, 0 read through by a Query

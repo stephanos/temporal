@@ -733,3 +733,90 @@ func TestReducedInventoryIsNotCompared(t *testing.T) {
 		require.Equal(t, delta.Reduced[i], OriginalKey(path))
 	}
 }
+
+// A Model whose directory and package moved (fn-114.9) compares as it was spelled before: its
+// positions name the old directory, and its source the old package's roots, before root moves apply.
+// A position or root outside the moves still fails.
+func TestUnmovedNamesTheDirectoryAndPackageAModelLeft(t *testing.T) {
+	cfg := Config{
+		Paths:        []Substitution{{Old: "old/a/System.scala", New: "model/a/System.scala"}},
+		Labels:       []Substitution{{Old: "old model", New: "model: a.System$package$.queue, a.System$package$.record"}},
+		RootMoves:    []Substitution{{Old: "a.System$package$.queue", New: "a.Queue$package$.queue"}},
+		PathMoves:    []Substitution{{Old: "model/a/", New: "model/shared/a/"}},
+		PackageMoves: []Substitution{{Old: "a.", New: "shared.a."}},
+	}
+	original := &umpirespb.Model{Source: "old model", Machines: []*umpirespb.Machine{
+		{Name: "queue", Position: &umpirespb.Position{File: "old/a/System.scala", Line: 3}},
+	}}
+	current := &umpirespb.Model{Source: "model: shared.a.Queue$package$.queue, shared.a.System$package$.record", Machines: []*umpirespb.Machine{
+		{Name: "queue", Position: &umpirespb.Position{File: "model/shared/a/System.scala", Line: 3}},
+	}}
+	unmoved, err := cfg.Unmoved(current)
+	require.NoError(t, err)
+	require.Equal(t, "model: a.Queue$package$.queue, a.System$package$.record", unmoved.GetSource())
+	require.Equal(t, "model/a/System.scala", unmoved.GetMachines()[0].GetPosition().GetFile())
+	require.Equal(t, "model/shared/a/System.scala", current.GetMachines()[0].GetPosition().GetFile(), "the current Model is kept")
+	moved, err := cfg.Match(original, current)
+	require.NoError(t, err)
+	require.True(t, moved)
+	require.NoError(t, cfg.RootsApply(map[string]*umpirespb.Model{"a": original}, map[string]*umpirespb.Model{"a": current}))
+
+	for name, change := range map[string]func(*umpirespb.Model){
+		"a position outside the moved directory":  func(m *umpirespb.Model) { m.Machines[0].Position.File = "model/shared/b/System.scala" },
+		"a position in a directory no move names": func(m *umpirespb.Model) { m.Machines[0].Position.File = "model/other/a/System.scala" },
+		"a root of another package": func(m *umpirespb.Model) {
+			m.Source = "model: shared.a.Queue$package$.queue, other.a.System$package$.record"
+		},
+	} {
+		changed := proto.CloneOf(current)
+		change(changed)
+		_, err := cfg.Match(original, changed)
+		require.Error(t, err, name)
+	}
+
+	stale := cfg
+	stale.PackageMoves = []Substitution{{Old: "b.", New: "shared.b."}}
+	require.ErrorContains(t, stale.RootsApply(map[string]*umpirespb.Model{"a": original}, map[string]*umpirespb.Model{"a": current}),
+		`source package move to "shared.b."`)
+	for name, moves := range map[string][2][]Substitution{
+		"a path move of a file":     {{{Old: "model/a/System.scala", New: "model/shared/a/System.scala"}}, nil},
+		"a package move of a name":  {nil, {{Old: "a", New: "shared.a"}}},
+		"a move to itself":          {{{Old: "model/a/", New: "model/a/"}}, nil},
+		"two moves of one package":  {nil, {{Old: "a.", New: "shared.a."}, {Old: "a.", New: "other.a."}}},
+		"two moves to one location": {{{Old: "model/a/", New: "model/c/"}, {Old: "model/b/", New: "model/c/"}}, nil},
+	} {
+		invalid := cfg
+		invalid.PathMoves, invalid.PackageMoves = moves[0], moves[1]
+		_, err := invalid.Unmoved(current)
+		require.ErrorContains(t, err, "is not a move", name)
+	}
+}
+
+func TestUnmoveSourcesRewritesOnlyQuotedPathsUnderTheDirectory(t *testing.T) {
+	cfg := Config{PathMoves: []Substitution{{Old: "model/a/", New: "model/shared/a/"}}}
+	require.JSONEq(t, `{"path":"model/a/Model.scala","other":"model/b/Model.scala","note":"at model/shared/a/Model.scala:3"}`,
+		string(cfg.UnmoveSources([]byte(`{"path":"model/shared/a/Model.scala","other":"model/b/Model.scala","note":"at model/shared/a/Model.scala:3"}`))))
+	require.Equal(t, "lift: model/a/Model.scala:3: refused", cfg.UnmovedText("lift: model/shared/a/Model.scala:3: refused"))
+	require.Equal(t, "model/shared/a/Model.scala", cfg.MovedPath("model/a/Model.scala"))
+	require.Equal(t, "model/b/Model.scala", cfg.MovedPath("model/b/Model.scala"))
+}
+
+// The inventory names the files the goldens froze where they were; a moved directory is read where
+// it moved to, and a move to a directory the checkout does not have fails.
+func TestIRInventoryReadsMovedDirectories(t *testing.T) {
+	root := t.TempDir()
+	for _, dir := range []string{"model/ir", "model/irgen/testdata/lifts/expected"} {
+		require.NoError(t, os.MkdirAll(filepath.Join(root, dir), 0755))
+	}
+	require.NoError(t, os.WriteFile(filepath.Join(root, "model/irgen/testdata/lifts/expected/one.json"), []byte(`{}`), 0644))
+	cfg := Config{
+		Inventory: []string{"model/scalav2/lifter/testdata/lifts/expected/one.json"},
+		PathMoves: []Substitution{{Old: "model/lifter/", New: "model/irgen/"}},
+	}
+	inputs, err := cfg.Inputs(root)
+	require.NoError(t, err)
+	require.Equal(t, []string{"model/scalav2/lifter/testdata/lifts/expected/one.json"}, slices.Collect(maps.Keys(inputs)))
+	cfg.PathMoves = append(cfg.PathMoves, Substitution{Old: "model/gone/", New: "model/nowhere/"})
+	_, err = cfg.Inputs(root)
+	require.ErrorContains(t, err, "source path move to model/nowhere/")
+}

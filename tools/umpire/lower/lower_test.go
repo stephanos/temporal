@@ -21,9 +21,9 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 )
 
-const realizationAt = "model/temporal/nexuscaller/Realization.scala:"
+const realizationAt = "model/temporal/features/nexuscaller/Realization.scala:"
 
-// functionalQueries is the functional set of model/temporal/nexuscaller/Queries.scala,
+// functionalQueries is the functional set of model/temporal/features/nexuscaller/Queries.scala,
 // in its declaration order.
 var functionalQueries = []string{"syncCompletion", "asyncCompletion", "asyncFailure", "handlerError", "retry",
 	"scheduleToStartTimeout", "startToCloseTimeout"}
@@ -260,7 +260,7 @@ var offPathKinds = map[string][]string{
 // counterpart where the IR names the Scala file, which is not behaviour. The test gives the comparative
 // Case the Scala source and compares the rest whole.
 func TestALoweredCaseIsTheComparativeGoModelsCase(t *testing.T) {
-	written := &testpilotspb.SourceLocation{Path: "model/temporal/nexuscaller/Queries.scala", Line: 1, Column: 1,
+	written := &testpilotspb.SourceLocation{Path: "model/temporal/features/nexuscaller/Queries.scala", Line: 1, Column: 1,
 		Provenance: "scala-model"}
 	rewritten := func(c *testpilotspb.Case) *testpilotspb.Case {
 		for i := range c.GetProvenance().GetSources() {
