@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-05T17:40:07.885201Z",
+  "depends_on": [
+    "fn-126-read-each-feature-top-to-bottom-one.6"
+  ],
+  "id": "fn-126-read-each-feature-top-to-bottom-one.7",
+  "priority": null,
+  "spec": "fn-126-read-each-feature-top-to-bottom-one",
+  "spec_path": ".flow/tasks/fn-126-read-each-feature-top-to-bottom-one.7.md",
+  "status": "todo",
+  "title": "Definition IDs are fully qualified Scala names; pins and families removed",
+  "updated_at": "2026-10-05T17:40:07.885201Z"
+}

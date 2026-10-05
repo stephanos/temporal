@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-05T17:40:08.803719Z",
+  "depends_on": [
+    "fn-126-read-each-feature-top-to-bottom-one.7"
+  ],
+  "id": "fn-126-read-each-feature-top-to-bottom-one.8",
+  "priority": null,
+  "spec": "fn-126-read-each-feature-top-to-bottom-one",
+  "spec_path": ".flow/tasks/fn-126-read-each-feature-top-to-bottom-one.8.md",
+  "status": "todo",
+  "title": "Rename batch, level-name lint, Product and System docs; close",
+  "updated_at": "2026-10-05T17:40:08.803719Z"
+}
