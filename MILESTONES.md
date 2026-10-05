@@ -101,14 +101,6 @@ Gate: started before fn-114 closed (its remaining tasks are cleanup).
 | fn-118.4 | ⬜ todo | Lowering derives Case waits from hints; undeclared visibility refused |
 | fn-118.5 | ⬜ todo | Realizations migrated to derived waits; close |
 
-### fn-120: Adopt what Quint does well (named choices and model lint)
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-120.1 | ✅ done | Named choices, inert IR names, Quint export |
-| fn-120.2 | ✅ done | Unnamed branching refused; `choose` accepts helper calls |
-| fn-120.3 | ✅ done | Model lint, specification holes, coverage summary, accepted findings |
-| fn-120.5 | 🔄 in progress | SEMANTICS levels and Modalities paragraph; README lint; close |
 
 ### fn-122: Capabilities and their laws
 
@@ -125,7 +117,7 @@ Gate: started before fn-114 closed (its remaining tasks are cleanup).
 
 ### fn-124: Shrink and simplify the Umpire Go tooling
 
-Gates: task 3 after fn-118; task 7 after fn-114, fn-120 and fn-122 close; task 8 last.
+Gates: task 3 after fn-118; task 7 after fn-114 and fn-122 close (fn-120 is closed); task 8 last.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -145,7 +137,7 @@ Deferred by the owner on 2026-10-04 as not needed for the code deliverable (the 
 fn-119 (Go SDK workflow showcase; tasks 1-2 done, 3-6 blocked), fn-122.7, fn-123 (faults as environment
 actions, not planned). Deferred on 2026-10-05: fn-125 (dynamic configuration in the Models; task 1, the
 HSM/CHASM switch fixes, is done; evidence in `.plans/DYNAMIC_CONFIG.md`). The IR explorer (fn-120.4) was removed. Also deferred: `make umpire-check-backends` in CI (it runs
-locally after `make umpire-install-backends`). fn-112 and fn-121 are closed.
+locally after `make umpire-install-backends`). fn-112, fn-120 and fn-121 are closed.
 
 ## Open for the owner
 
