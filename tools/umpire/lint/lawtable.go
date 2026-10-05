@@ -167,21 +167,10 @@ func (v *view) asks(machine, name string) bool {
 }
 
 // pins is the rules a claim pins of the classes its capabilities' actions name, noting each class's
-// fields in acting. A law whose capabilities name no action pins its cells on every class: its rules
-// are read by label, one line per label naming the classes it pins there, as every class, every
-// class but the few it does not pin, or the classes it does.
+// fields in acting. A law whose capabilities name no action pins its cells on every class, read by
+// label (everyClass).
 func (v *view) pins(t *Table, c model.LawClaim, acting map[string][]string) []LawCell {
-	classes := map[string][]string{}
-	for _, field := range slices.Sorted(maps.Keys(c.Actions)) {
-		for _, class := range v.mm.Classes {
-			if class.Key == c.Actions[field] || class.Action.GetName() == c.Actions[field] {
-				classes[class.Key] = append(classes[class.Key], field)
-				if !slices.Contains(acting[class.Key], field) {
-					acting[class.Key] = append(acting[class.Key], field)
-				}
-			}
-		}
-	}
+	classes := v.actionClasses(c, acting)
 	var out []LawCell
 	var labels []string
 	byLabel := map[string][]string{}
@@ -202,6 +191,31 @@ func (v *view) pins(t *Table, c model.LawClaim, acting map[string][]string) []La
 	if len(c.Actions) > 0 {
 		return out
 	}
+	return v.everyClass(labels, byLabel)
+}
+
+// actionClasses is the capability fields naming each class of the machine a claim's actions name, a
+// class by its key or an action with inputs by its name, each also noted in acting.
+func (v *view) actionClasses(c model.LawClaim, acting map[string][]string) map[string][]string {
+	classes := map[string][]string{}
+	for _, field := range slices.Sorted(maps.Keys(c.Actions)) {
+		for _, class := range v.mm.Classes {
+			if class.Key != c.Actions[field] && class.Action.GetName() != c.Actions[field] {
+				continue
+			}
+			classes[class.Key] = append(classes[class.Key], field)
+			if !slices.Contains(acting[class.Key], field) {
+				acting[class.Key] = append(acting[class.Key], field)
+			}
+		}
+	}
+	return classes
+}
+
+// everyClass is one line per label of the classes a law pins there: every class, every class but the
+// few it does not pin, or the classes it does.
+func (v *view) everyClass(labels []string, byLabel map[string][]string) []LawCell {
+	out := make([]LawCell, 0, len(labels))
 	for _, label := range labels {
 		var missing []string
 		for _, class := range v.mm.Classes {
@@ -246,74 +260,82 @@ func (c LawCell) class() string {
 	return c.Class + " (" + strings.Join(c.Fields, ", ") + ")"
 }
 
-// writeLawTable writes an owner's laws: per law its claim, what it promises and does not, how it is
-// overridden, and the cells it pins with the modality it pins there beside the cell's own; then the
-// cells of the capabilities' actions no law pins, and the laws waived with `except`.
+// writeLawTable writes an owner's laws: each law (writeLaw), then the cells of the capabilities'
+// actions no law pins, and the laws waived with `except`.
 func writeLawTable(w io.Writer, file string, lt *LawTable, table bool) error {
 	suffix := ""
 	if !table {
 		suffix = " (a composition: no per-operation table of its own)"
 	}
-	if _, err := fmt.Fprintf(w, "laws %s %s%s\n", file, lt.Owner, suffix); err != nil {
+	if err := writeLines(w, fmt.Sprintf("laws %s %s%s", file, lt.Owner, suffix)); err != nil {
 		return err
 	}
-	var lines []string
-	cells := func(cs []LawCell, modality func(LawCell) string, text func(LawCell) string) error {
-		tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
-		for _, c := range cs {
-			row := "    " + c.class() + "\t" + c.Label + "\t" + modality(c)
-			if t := text(c); t != "" {
-				row += "\t" + t
-			}
-			if _, err := fmt.Fprintln(tw, row); err != nil {
-				return err
-			}
-		}
-		return tw.Flush()
-	}
-	flush := func() error {
-		for _, l := range lines {
-			if _, err := fmt.Fprintln(w, l); err != nil {
-				return err
-			}
-		}
-		lines = nil
-		return nil
-	}
 	for _, lv := range lt.Laws {
-		lines = append(lines, fmt.Sprintf("  %s  %s", lv.heading(), lv.Claim.Position))
-		if lv.Entry != nil {
-			lines = append(lines, "    promises: "+lv.Entry.Promises, "    does not promise: "+lv.Entry.DoesNotPromise)
-		}
-		if lv.Overridden != nil {
-			lines = append(lines, fmt.Sprintf("    overridden by %s: %s", short(lv.Overridden.By), lv.Overridden.Because))
-		}
-		if table && len(lv.Pins) == 0 {
-			lines = append(lines, "    pins no cell of its capabilities' actions")
-		}
-		if err := flush(); err != nil {
-			return err
-		}
-		if err := cells(lv.Pins, func(LawCell) string { return string(lv.Modality) }, func(c LawCell) string {
-			if c.Modality == "" {
-				return ""
-			}
-			return "cell: " + strings.TrimSpace(string(c.Modality)+" "+c.Text)
-		}); err != nil {
+		if err := writeLaw(w, lv, table); err != nil {
 			return err
 		}
 	}
 	if len(lt.Unpinned) > 0 {
-		lines = append(lines, "  no law pins")
-		if err := flush(); err != nil {
+		if err := writeLines(w, "  no law pins"); err != nil {
 			return err
 		}
-		if err := cells(lt.Unpinned, func(c LawCell) string { return string(c.Modality) }, func(c LawCell) string { return c.Text }); err != nil {
+		if err := writeCells(w, lt.Unpinned, func(c LawCell) (string, string) { return string(c.Modality), c.Text }); err != nil {
 			return err
 		}
 	}
+	var excepted []string
 	for _, x := range lt.Excepted {
-		lines = append(lines, fmt.Sprintf("  %s.%s  excepted: %s  %s", x.Machine, x.Law, x.Because, x.Position))
+		excepted = append(excepted, fmt.Sprintf("  %s.%s  excepted: %s  %s", x.Machine, x.Law, x.Because, x.Position))
 	}
-	return flush()
+	return writeLines(w, excepted...)
+}
+
+// writeLaw writes one law: its claim, what it promises and does not, how it is overridden, and the
+// cells it pins with the modality it pins there beside the cell's own.
+func writeLaw(w io.Writer, lv LawView, table bool) error {
+	lines := []string{fmt.Sprintf("  %s  %s", lv.heading(), lv.Claim.Position)}
+	if lv.Entry != nil {
+		lines = append(lines, "    promises: "+lv.Entry.Promises, "    does not promise: "+lv.Entry.DoesNotPromise)
+	}
+	if lv.Overridden != nil {
+		lines = append(lines, fmt.Sprintf("    overridden by %s: %s", short(lv.Overridden.By), lv.Overridden.Because))
+	}
+	if table && len(lv.Pins) == 0 {
+		lines = append(lines, "    pins no cell of its capabilities' actions")
+	}
+	if err := writeLines(w, lines...); err != nil {
+		return err
+	}
+	return writeCells(w, lv.Pins, func(c LawCell) (string, string) {
+		if c.Modality == "" {
+			return string(lv.Modality), ""
+		}
+		return string(lv.Modality), "cell: " + strings.TrimSpace(string(c.Modality)+" "+c.Text)
+	})
+}
+
+func writeLines(w io.Writer, lines ...string) error {
+	for _, l := range lines {
+		if _, err := fmt.Fprintln(w, l); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// writeCells writes one aligned line per cell: its class, its label, then the modality and text
+// columns, the text left out where it is empty.
+func writeCells(w io.Writer, cells []LawCell, columns func(LawCell) (modality, text string)) error {
+	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
+	for _, c := range cells {
+		modality, text := columns(c)
+		row := "    " + c.class() + "\t" + c.Label + "\t" + modality
+		if text != "" {
+			row += "\t" + text
+		}
+		if _, err := fmt.Fprintln(tw, row); err != nil {
+			return err
+		}
+	}
+	return tw.Flush()
 }
