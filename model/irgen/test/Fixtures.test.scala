@@ -142,7 +142,8 @@ class Fixtures extends munit.FunSuite:
       "pairCapabilities",
       "keptCapabilities",
       "killedWhileQueued",
-      "rogueCapabilities"
+      "rogueCapabilities",
+      "rightNeverHeld"
     )
       .map("fixture.capabilities.Capabilities$package$." + _),
     "captured" -> Seq(
@@ -305,7 +306,8 @@ class Fixtures extends munit.FunSuite:
     "computedCitation",
     "unknownParameter",
     "throughComputed",
-    "throughLambda"
+    "throughLambda",
+    "overridingThrough"
   ).map("fixture.capabilityrejects.CapabilityRejects$package$." + _)
 
   // The refusals of fn-118.2's API behavior hints (lifts/HintRejects.scala).

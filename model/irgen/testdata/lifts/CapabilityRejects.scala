@@ -10,7 +10,7 @@ import umpire.*
 import temporal.capabilities.{closedIsRejectedUniformly, terminalStatesAreFinal}
 import temporal.capabilities.{given, *}
 import fixture.capabilities.{job, kill, poll, three, Answer, Job, Jobs, Note, Phase}
-import fixture.capabilities.{pair, pause, resume}
+import fixture.capabilities.{pair, pause, resume, Pair}
 
 given Family = Family("fixture.capabilityrejects")
 
@@ -137,4 +137,17 @@ val throughLambda = capabilities(pair, limits = three)(
     unpause = pair.own(_.left, resume),
     paused = through(_.left, j => j.phase == Phase.paused)
   )
+)
+
+// An overriding def that is a member's def read with `through`, which takes no law's parameters.
+val overridingThrough = capabilities(pair, limits = three)(
+  Pausable(
+    pause = pair.own(_.left, pause),
+    unpause = pair.own(_.left, resume),
+    paused = through(_.left, Jobs.paused)
+  ),
+  Pollable(dispatch = pair.own(_.left, poll), running = through(_.left, Jobs.running))
+).overriding(
+  pausedIsNotDispatched -> through((p: Pair) => p.left, Jobs.paused),
+  because = "a member's def overrides no law"
 )

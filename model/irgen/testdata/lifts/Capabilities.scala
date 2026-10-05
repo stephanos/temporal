@@ -205,3 +205,14 @@ val rogueCapabilities = capabilities(rogueJob, limits = three)(
 
 /** The server code the jobs' cited bindings name: a closed job's answer, and which phases close. */
 val jobsCode = "model/irgen/testdata/lifts/Capabilities.scala"
+
+// ### A declaring function's function-valued argument read with `through`
+
+/** The member a selector reads is never held: a shared claim, as `atMostOneActive` is. */
+def neverHeld[S](m: Declares[S])(held: S => Boolean): Property[S] =
+  m.property("neverHeld").never(s => held(s.state))
+
+// 25 states x (6 + 3) classes x 3 steps = 675; the right job binds no pause.
+val pairAny = pair.scenario("pairAny").free
+val rightNeverHeld =
+  query verify neverHeld(pair)(through(_.right, Jobs.paused)) in pairAny limits three total 675
