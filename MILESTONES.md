@@ -71,23 +71,10 @@ Listed in delivery order. Flow records dependencies only within a spec, so each 
 cross-spec gates the conductor holds.
 
 
-### fn-118: Declare how Temporal APIs behave once
-
-Gate: started before fn-114 closed (its remaining tasks are cleanup).
-
-| Task | Status | What |
-| --- | --- | --- |
-| fn-118.1 | ✅ done | Wait inventory and hint-aware helper interface |
-| fn-118.2 | ✅ done | Hints declared in the kit, lifted to the IR, validated in Go |
-| fn-118.3 | ✅ done | Testpilot waits by condition within declared bounds |
-| fn-118.4 | ✅ done | Lowering derives Case waits from hints; undeclared visibility refused |
-| fn-118.5 | 🔄 in progress | Realizations migrated to derived waits; close |
-
-
 
 ### fn-127: Simplify the DSL's words
 
-Gate: starts after fn-114, fn-118 and fn-122 close; never alongside fn-124.8; closes before fn-126 starts and before fn-125 resumes.
+Gate: fn-114, fn-118 and fn-122 are closed; never alongside fn-124.8; closes before fn-126 starts and before fn-125 resumes.
 
 | Task | Status | What |
 | --- | --- | --- |
@@ -167,7 +154,7 @@ Deferred 2026-10-05. Evidence: `.plans/DYNAMIC_CONFIG.md`.
 
 - fn-122.7 (Pausable on fn-119's example) waits for fn-119; fn-122 itself is closed.
 - `make umpire-check-backends` in CI; it runs locally after `make umpire-install-backends`.
-- The IR explorer (fn-120.4) was removed. fn-112, fn-114, fn-120, fn-121 and fn-122 are closed.
+- The IR explorer (fn-120.4) was removed. fn-112, fn-114, fn-118, fn-120, fn-121 and fn-122 are closed.
 
 ## Open for the owner
 
