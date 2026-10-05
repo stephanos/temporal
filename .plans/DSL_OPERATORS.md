@@ -128,7 +128,7 @@ Keep as settled. Two rules to add: `@targetName("set")`, and `:=` means "this na
 value" and nothing else, so that candidate 5 may reuse it with the same meaning and no other
 operator may. Cost as planned by fn-112.5.
 
-### 5. `_.field := operand` inside a typed `rpc`/`poll` (accept for fn-112.9, owner's call)
+### 5. `_.field := operand` inside a typed `rpc`/`readUntil` (accept for fn-112.9, owner's call)
 
 ```scala
 // standaloneactivity/Realization.scala, startBinding — before
@@ -149,11 +149,26 @@ positive and one refusal fixture (selector of another request type does not comp
 **low**. If the context-function form proves awkward in TASTy, the fallback is `field(_.namespace)
 := ...` with `Req` still inferred from the scope; do not fall back to a symbol with another meaning.
 
-### 6. `accept`, `stay`, `disabled`, `.because(...)`, `perform`, `onPath`, `always`, `choose` (accept as words; already specified)
+### 6. `enter`, `stay`, `disabled`, `.because(...)`, `perform`, `onPath`, `everyCase`, `choose` (accept as words; already specified)
 
-No operator. `stay(s).recording(fact)` (fn-120 sketch) and `accept(state, facts*)` read as
+No operator. `stay(s).recording(fact)` (fn-120 sketch) and `enter(state, facts*)` read as
 sentences; they lower to the `Step` construct the lifter already builds. Keep `disabled` a `val`
-(not `disabled()`), as the spec writes it.
+(not `disabled()`), as the spec writes it. fn-127 renamed two of these words; see Words renamed.
+
+### Words renamed (fn-127, 2026-10-05)
+
+A word the DSL shares with Temporal's own vocabulary, or with an operator this note reserves, is
+read with the wrong meaning by the people the Models are written for. fn-127 renamed each such
+word; nothing it lowers to changed, so the IR, the Cases and the Contracts are the same.
+
+| Was | Is | Why |
+| --- | --- | --- |
+| `accept` | `enter(state, facts*)` | Temporal says an Update or a Nexus operation is *accepted* (`WorkflowExecutionUpdateAccepted`); a step function's verb read as that event. A step enters its state. |
+| `Accepted`, the given `enter` and `stay` read | `given Ok[O] = Ok(o)` | The same collision. "Ok" is the gRPC word every reader owns for the answer that is not an error. Each Model's `Outcome.accepted` stays: it is Model vocabulary, in the IR type catalogs, the fingerprints and the Case bytes. |
+| the realization's `poll` and `Instruction.poll` | `readUntil(evidence, role, …) { … }`, `Instruction.readUntil` | The worker's long poll (`PollActivityTaskQueue`) is something the Models model; the instruction reads evidence until a condition holds. The IR record keeps its name, Poll. |
+| `.setting` on a call | `call.withFields { field := … }` | fn-125's `setting[T]` declares dynamic configuration, a *setting*; the method appends request fields. |
+| `always` | `everyCase(command)` | `always` is the temporal operator Do-not-do 7 reserves with its TLA meaning; the item is a command every Case carries. |
+| `umpire.realize.Outcome` | `umpire.realize.PropertyOutcome` | Each Model declares its own `enum Outcome`, so a Queries file imported the realization's one renamed (`Outcome as RunOutcome`). It is the outcome a Run gives a Property. |
 
 ### Rejected candidates (real temptations, each fails the legend test)
 
@@ -202,7 +217,7 @@ sentences; they lower to the `Step` construct the lifter already builds. Keep `d
 | --- | --- | --- |
 | 1 `implies` | fn-112.3 | API Contracts, Step helpers: after `a implies b` add "an `infix` extension of `Boolean` with a by-name right side, lowered to `or(not a, b)` so the right side is read only when the left holds". fn-112.3 Approach: name the lowering. |
 | 2 `in` | fn-112.3 | API Contracts: `phase.in(a, b, c)` → "`phase.in(a, b, c)` (dotted, at least one member; lowered to `OP_CONTAINS` over a list literal)". R5 unchanged. |
-| 3 `records` on Step | fn-112.3 (define), fn-112.4 (composition form) | API Contracts, Step helpers: add `after.records(fact)  // the step records the fact; the composition form is after.records(_.member, fact)`. R5: "`accept`, `disabled`, `stay`, `in`, `implies` and `records`". R3's composition `records` then shares the definition. |
+| 3 `records` on Step | fn-112.3 (define), fn-112.4 (composition form) | API Contracts, Step helpers: add `after.records(fact)  // the step records the fact; the composition form is after.records(_.member, fact)`. R5: "`enter`, `disabled`, `stay`, `in`, `implies` and `records`". R3's composition `records` then shares the definition. |
 | 4 `:=` rules | fn-112.5 | Settled planning decisions, named-inputs bullet: add "`:=` carries `@targetName("set")` and means only 'this named slot gets this value'; no other operator takes that meaning and `:=` takes no other." |
 | 5 `:=` in scripts | fn-112.9 | API Contracts, Realization script helpers: add one line to the `perform(start(...) -> startActivity(scheduleToStart = deadline))` example showing a typed assignment `_.namespace := environment(workerNamespace)` inside `rpc(role, method) { ... }`, and to R13 "…and writes request fields with `:=` against the method's request type". Owner decides; if declined, record in Decision Context that fn-117's `:=` sketch was superseded by `Assignment.typed`. |
 | 6 words | fn-112.3, .9, fn-120.1 | No text change; fn-120.1 `choose(name -> steps)` already obeys the `->` rule. |
