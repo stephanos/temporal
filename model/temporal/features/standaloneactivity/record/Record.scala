@@ -459,6 +459,7 @@ object ResponseLoss:
   object queries:
     val oneLostResponse =
       admissionResponseLoss.scenario.actions(history.dispatch, shared.taskqueue.faults.ackLoss)
+
     val lostAdmissionResponseQuery =
       (query("admissionResponseLoss.committed") find properties.committedDespiteLostResponse in
         oneLostResponse limits three total 144)
