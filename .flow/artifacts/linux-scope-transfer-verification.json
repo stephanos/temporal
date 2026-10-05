@@ -59,5 +59,46 @@
     }
   },
   "native_linux_execution": "not run; deferred, unverified",
-  "source_code_changed": false
+  "source_code_changed": false,
+  "final_check": {
+    "checked_at": "2026-10-05 06:05:44 UTC",
+    "command": "node .flow/tmp/linux-scope-transfer/verify.mjs --done",
+    "exit_code": 0,
+    "verification": {
+      "valid": true,
+      "source_specs": 6,
+      "affected_open_tasks": 59,
+      "mixed_tasks": 57,
+      "linux_only_transfers": 2,
+      "residual_completed_task": 1,
+      "deferred_linux_tasks": 7,
+      "milestone_rows": 117,
+      "source_histories_preserved": 57,
+      "source_dependencies_unchanged": true,
+      "static_both_source_set_R8_unchanged": true,
+      "closed_fn107_fn108_unchanged": true,
+      "D6_D15_unchanged": true,
+      "completed_transfer_receipts": true
+    },
+    "flow_validate_all": {
+      "valid": true,
+      "root_errors": []
+    },
+    "linux_spec": {
+      "id": "fn-128-gomad-deferred-linux-qualification-and",
+      "status": "open",
+      "ready": false,
+      "plan_review_status": "ship",
+      "tasks": 7,
+      "blocked": 7
+    },
+    "completed_source_records": {
+      "fn-105.11": "administrative D11 handoff only; audit remains deferred under fn-128.3",
+      "fn-105.12": "administrative D12 handoff only; causal fix and qualification remain deferred under fn-128.2"
+    },
+    "unrelated_untracked_files_preserved": [
+      ".turbo/plans/gomad3-glossary-update.md",
+      ".turbo/technical-debt.md"
+    ]
+  }
 }

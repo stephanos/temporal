@@ -14,9 +14,12 @@ Administrative handoff to [fn-128.2](../tasks/fn-128-gomad-deferred-linux-qualif
 - [x] The source task's milestone and completion record explicitly identify this as an administrative transfer.
 
 ## Done summary
-TBD
+Recorded the owner-authorized administrative transfer of D12 to fn-128.2. The receiving task retains native first-divergence diagnosis, an actual causal fix and regression, traced F5/F6 seeds 11/17 repeated under host load with exact replay, and restoration of qualified expectations and strict dispatch/smoke CI only after verification passes.
 
+The receiving ownership, source scope amendments and milestone/agent policy are committed in 76c0bdd667a2896b219756c01ced3356e49aa0e6. Linux execution remains deferred under fn-128.2. No divergence fix, successful Linux replay, CI restoration or Linux qualification pass is claimed. Missing transferred Linux evidence no longer holds the source specs open; their independent acceptance remains intact.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 76c0bdd667a2896b219756c01ced3356e49aa0e6
+- Tests: /home/agent/.codex/scripts/flowctl validate --all --json, /home/agent/.codex/scripts/flowctl validate --spec fn-128 --coverage --json, node .flow/tmp/linux-scope-transfer/verify.mjs, git diff --check
 - PRs:

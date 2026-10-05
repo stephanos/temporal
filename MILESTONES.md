@@ -155,7 +155,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-105.9](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.9.md) | ⬜ Todo | D9: shared and Darwin downstream packs and qualification; Linux moved to fn-128.6 |
 | [fn-105.10](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.10.md) | ⬜ Todo | D10: downstream-seam guide |
 | [fn-105.11](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.11.md) | ✅ Done | D11: transfer conditional Linux audit to fn-128.3 (audit remains deferred) |
-| [fn-105.12](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.12.md) | ⬜ Todo | D12: transfer Linux replay correction to fn-128.2 (fix remains deferred) |
+| [fn-105.12](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.12.md) | ✅ Done | D12: transfer Linux replay correction to fn-128.2 (fix remains deferred) |
 | [fn-105.13](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.13.md) | ✅ Done | D13: make choice tracing opt-in for routine qualification |
 | [fn-105.14](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.14.md) | ✅ Done | D14: fix Darwin Chasm replay divergence and restore qualification |
 | [fn-105.15](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.15.md) | ⬜ Todo | D15: support larger choice traces when a workload needs them |
