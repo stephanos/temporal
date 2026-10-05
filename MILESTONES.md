@@ -78,7 +78,7 @@ Gate: fn-114, fn-118 and fn-122 are closed; never alongside fn-124.8; closes bef
 
 | Task | Status | What |
 | --- | --- | --- |
-| fn-127.1 | 🔄 in progress | `accept`/`Accepted` → `enter`/`Ok`; realize `poll` → `readUntil`, `.setting` → `.withFields`, `always` → `everyCase`, `Outcome` → `PropertyOutcome`; no IR change |
+| fn-127.1 | ✅ done | `accept`/`Accepted` → `enter`/`Ok`; realize `poll` → `readUntil`, `.setting` → `.withFields`, `always` → `everyCase`, `Outcome` → `PropertyOutcome`; no IR change |
 | fn-127.2 | ⬜ todo | `through(selector)(predicate)` replaces the compositions' forwarding objects; close |
 
 ### fn-126: Read each feature top to bottom: one object per machine
