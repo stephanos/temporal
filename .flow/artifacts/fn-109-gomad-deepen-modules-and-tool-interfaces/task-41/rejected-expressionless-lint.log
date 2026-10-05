@@ -1,0 +1,5 @@
+tools/gomad3/internal/canonicaljson/canonical.go:120:2: QF1002: could use tagged switch on kind (staticcheck)
+	switch kind := value.Kind(); {
+	^
+1 issues:
+* staticcheck: 1

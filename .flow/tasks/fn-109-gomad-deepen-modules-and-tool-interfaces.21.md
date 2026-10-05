@@ -58,7 +58,7 @@ flowctl validate --spec fn-109-gomad-deepen-modules-and-tool-interfaces
 
 ### Canonical JSON correction evidence owner, 2026-10-05
 
-Task41 owns the seven-selector canonical JSON validation switch correction and literal BASE/final characterization. Consume its source, consumer, generator and integrated-lint evidence through the direct acceptance dependency. The existing visited-slice key omits length; task41 preserves and discloses that behavior rather than claiming complete UTF-8 rejection. The attempted Runner-fixture baseline at source a683e64af560322014e14f3a1ef3953b27cad96a failed before fixture execution under the linux/arm64 preparation guard, so those fixtures remain unchanged and unadmitted. Preserve every original qualification and dependency requirement.
+Task41 owns one grouped terminal case covering the canonical JSON validator's 20 previously omitted reflect.Kind members, preserving its original tagged switch and seven existing branches, plus literal BASE/final characterization. The earlier expressionless-switch candidate was rejected by actual QF1002 lint; its evidence is historical RED, not a final pass. Consume the revised candidate's source, consumer, generator and integrated-lint evidence through the direct acceptance dependency. The existing visited-slice key omits length; task41 preserves and discloses that behavior rather than claiming complete UTF-8 rejection. The attempted Runner-fixture baseline at source a683e64af560322014e14f3a1ef3953b27cad96a failed before fixture execution under the linux/arm64 preparation guard, so those fixtures remain unchanged and unadmitted. Preserve every original qualification and dependency requirement.
 
 ### Target lint corrective ownership
 
