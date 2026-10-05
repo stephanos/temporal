@@ -86,7 +86,7 @@ Gate: task 9 runs after fn-118.2 and fn-120.3 have merged (both done); task 8 cl
 | fn-114.10 | ✅ done | Lifter fixtures reduced to fixture-local Models |
 | fn-114.11 | ✅ done | Redundant type annotations dropped |
 | fn-114.12 | ✅ done | `model/umpire` Temporal-agnostic, guarded by a test |
-| fn-114.9 | ⬜ todo | Rename tool folders (`irgen`, `check`, `build`); group `model/temporal` into `features/` and `shared/` |
+| fn-114.9 | ✅ done | Rename tool folders (`irgen`, `check`, `build`); group `model/temporal` into `features/` and `shared/` |
 | fn-114.8 | ⬜ todo | Close: counts and full gates |
 
 ### fn-118: Declare how Temporal APIs behave once
