@@ -96,7 +96,7 @@ Gates: task 7 after fn-126 closes (fn-114, fn-120 and fn-122 are closed); task 8
 | fn-124.3 | ✅ done | Temporal facts the judge hard-codes declared in the realization |
 | fn-124.4 | ✅ done | Verdict aggregation defined once; judge rules documented |
 | fn-124.5 | ✅ done | Generated-Case outcomes compared by declared ids |
-| fn-124.6 | 🔄 in progress | Model assessment as the command-line judge; Evaluation Profile derived or retired |
+| fn-124.6 | ✅ done | Model assessment as the command-line judge; Evaluation Profile derived or retired |
 | fn-124.7 | ⬜ todo | Migration harness and frozen snapshots retired |
 | fn-124.8 | ⬜ todo | `tools/umpire/model` split into `ir`, `interp`, `check`, `realization` |
 
