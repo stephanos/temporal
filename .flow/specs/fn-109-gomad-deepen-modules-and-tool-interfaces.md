@@ -711,6 +711,8 @@ reviewed candidate while keeping native/full/formal completion requirements
 open. Task9/task21 aggregate ownership and every existing dependency remain
 unchanged. Linux execution remains nonblocking under fn128.
 
+Task38 additionally owns the two explicit compatibility import aliases in target/internal/capabilitypolicy/policy.go and policy_test.go. Admit only those import declarations from the integrated reviewed candidate; preserve all other bytes and historical receipts. Matched policy/canonical/digest controls, private-package architecture, unfiltered scoped lint and fresh source review precede a progress commit. Retain the real integrated lint gate's measured remaining findings and its unreached errortype stage; original full/native/formal acceptance stays open. Task11's semantic ownership and all dependencies remain unchanged.
+
 Maintainability (plan review): duplication - tasks 28-31, 35, 37, 39 and 40 repeat nil-cleanup/direct-sole-error/primary-first-join decisions; structure - hostexec.Run receives four deferred cleanup-error branches. Preserve the single-writer admission rule for overlapping correction owners.
 
 ## Finding coverage

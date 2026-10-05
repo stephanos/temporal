@@ -1,0 +1,13 @@
+{
+  "effort": "high",
+  "id": "fn-109-gomad-deepen-modules-and-tool-interfaces",
+  "mode": "codex",
+  "model": "gpt-6.1-sol",
+  "review": "Prior finding: not-fixed\n\nSeverity: P2\nConfidence: 100\nClassification: pre_existing\nFile:Line: .flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.24.md:13\nR-IDs: [R19]\nLocation: Task pairs 23/24, 26/34, 29/31 and 30/33.\nProblem: Touches still overlap without dependency edges. This remains FYI because explicit single-writer admission prevents concurrent edits.\nSuggestion: Preserve serial admission for these pairs.\n\nNo new blocking finding. Task38\u2019s amendment matches the epic and current `compatibility` package namespace, limits edits to two import aliases, and retains verification, historical evidence and original qualification requirements.\n\nmaintainability:\n  duplication: Tasks 28\u201331, 35, 37, 39 and 40 repeat the nil-cleanup/direct-sole-error/primary-first-join decision.\n  structure: hostexec.Run contains the four admitted deferred cleanup-error branches.\n\n```json\n{\"classification_counts\":{\"pre_existing\":1},\"unaddressed\":[]}\n```\n\n<verdict>SHIP</verdict>\n",
+  "review_reservation_id": "637ec914a7b3424785e948468013299e",
+  "session_id": "01a10bbb-15ae-7fe0-8a42-9356a64a8756",
+  "spec": "codex:gpt-6.1-sol:high",
+  "timestamp": "2026-10-05T12:08:38.466796Z",
+  "type": "plan_review",
+  "verdict": "SHIP"
+}

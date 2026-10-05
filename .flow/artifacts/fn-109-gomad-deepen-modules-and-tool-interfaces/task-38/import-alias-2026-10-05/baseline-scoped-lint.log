@@ -1,0 +1,8 @@
+tools/gomad3/target/internal/capabilitypolicy/policy.go:11:1: File is not properly formatted (goimports)
+	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+^
+tools/gomad3/target/internal/capabilitypolicy/policy_test.go:8:1: File is not properly formatted (goimports)
+	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
+^
+2 issues:
+* goimports: 2
