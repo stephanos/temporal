@@ -1,0 +1,139 @@
+{
+  "verified": true,
+  "tracked_scoped_files": 1219,
+  "protected_files": 1214,
+  "generated_or_pin_files": 51,
+  "candidate_files": 6,
+  "captures": [
+    {
+      "name": "baseline-packages",
+      "exit": 0,
+      "counts": {
+        "pass": 331,
+        "fail": 0,
+        "skip": 1
+      },
+      "sha256": "5955a8bf3379556e8d3b417cb391c6e2161e91ee07490d607a04d0d210d228b3"
+    },
+    {
+      "name": "baseline-lint",
+      "exit": 1,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "sha256": "3b144790f6d7dfc1bfc5e519c0dcf2f55ddf340b9cc5f5f5bcdd228fe5229a47"
+    },
+    {
+      "name": "red-final",
+      "exit": 1,
+      "counts": {
+        "pass": 38,
+        "fail": 25,
+        "skip": 0
+      },
+      "sha256": "9b6879e0ec3cf212a801a8d510c79574732d59f0e3f04751f9c183acbc3bc805"
+    },
+    {
+      "name": "final-validate",
+      "exit": 0,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "sha256": "ca72fb7d37affd6a745b38ce3a43e0bfb7fa54c68da7eff53b8a70bbbdce8fa4"
+    },
+    {
+      "name": "final-packages",
+      "exit": 0,
+      "counts": {
+        "pass": 598,
+        "fail": 0,
+        "skip": 1
+      },
+      "sha256": "ccfbd7d6cac83eb35e176d15edd99820835324b2c95bcaf56d7db832d77b3c05"
+    },
+    {
+      "name": "target-consumers",
+      "exit": 0,
+      "counts": {
+        "pass": 37,
+        "fail": 0,
+        "skip": 0
+      },
+      "sha256": "7aae1a80a6928ad40f5ff89f769dec2b66c58b70f2b949cbb0062af7196ed0d0"
+    },
+    {
+      "name": "architecture-purity",
+      "exit": 0,
+      "counts": {
+        "pass": 6,
+        "fail": 0,
+        "skip": 0
+      },
+      "sha256": "d6420739d99431b91d4f2c223b388c622dcffebda5b70948a7725228d1d926f9"
+    },
+    {
+      "name": "final-focused",
+      "exit": 0,
+      "counts": {
+        "pass": 63,
+        "fail": 0,
+        "skip": 0
+      },
+      "sha256": "7a51c72a51764c9bb6f7d197d9aba34a38c9c6e49169050065863e08dc7a4096"
+    },
+    {
+      "name": "formatting",
+      "exit": 0,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "sha256": "9a1ae79d96a1e2e1aaeb280f2357fd70ff0c08074ff73bb7a9170b2a470cd91f"
+    },
+    {
+      "name": "errortype",
+      "exit": 0,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "sha256": "e851e363a76377bd37c26f1b9a718504eb7434930aa86c2368fc5a4d2944c773"
+    },
+    {
+      "name": "final-lint",
+      "exit": 1,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "sha256": "58496d1aec550e65c7bd7311802d32212a6b12660567e5fda14f6a6d9e1e20fd"
+    },
+    {
+      "name": "source-diff-check",
+      "exit": 0,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "sha256": "acf77e8a877af147e8406e45a795cfb8c06c34f41cf88bc83939214695cd11cd"
+    },
+    {
+      "name": "preservation-final",
+      "exit": 0,
+      "counts": {
+        "pass": 0,
+        "fail": 0,
+        "skip": 0
+      },
+      "sha256": "c8734dc20a6799d502fbca5ebbaac5d68c6b9d717bc6725b949a1de8cca6ddf5"
+    }
+  ]
+}

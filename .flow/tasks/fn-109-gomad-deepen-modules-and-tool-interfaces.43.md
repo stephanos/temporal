@@ -47,8 +47,19 @@ Task21/11 retain original matched-first-baseline, predecessor, preservation, ful
 - [ ] Check-only generator validation, affected package/consumer and architecture/purity tests, formatting and standalone errortype retain actual results. Unfiltered scoped and original integrated lint retain complete inherited residuals and stage reachability; fresh independent progress reviews precede a separate commit.
 - [ ] Task21 consumes this correction through a direct dependency. Original first-baseline, predecessor, preservation, full/default/functional/affected-consumer/formal/native-Darwin/static-both-source-set acceptance remains satisfied or explicitly open under its owner; Linux remains transferred and unverified under fn128.
 ## Done summary
-TBD
+Blocked:
+Blocked on original qualification, not Linux. R21's five-import admission correction is verified source progress. Required integrated lint still has323 findings; formal implementation SHIP and original matched-first-baseline/predecessor/preservation/full/default/functional/affected-consumer/native-Darwin/static-both-source-set acceptance remain open wherever unproved under task11/21.
 
+The shared list now rejects plugin and runtime/cgo through the existing loader, external-loader, token-revalidation and authoring seams. Final literal-approval RED proves both previously published into populated temporary roots; the same five test files pass after the minimal correction. The two authorized task42 loader expectations and owning comment are the only existing behavior/expectation changes. Denied facts and exact syscall/linkname grants remain supported; all1214 protected tracked inputs and51 generated/pin paths retain their hashes.
+
+Actual scoped lint remains7 with no added finding. Actual integrated lint remains323, with319 byte-identical residual blocks and only four one-line schema location shifts from the owning comment. The full integrated errortype stage is unreached; standalone affected-package errortype passes separately. Focused and consumer controls, architecture/purity, formatting and check-only generator validation retain passing outcomes and the one unsupported-host profile skip.
+
+[Worker handover](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-43/handover.md), [root gate and verification](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-43/root-integrated-lint.md), [source review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-43/source-progress-review.md) and [evidence review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-43/evidence-progress-review.md) retain the source-bound evidence and original owner/command handback. Reviews are independent bounded progress checks, not formal SHIP. The worker's pending-root status is an earlier snapshot superseded by the actual root gate and authoritative blocked Flow status.
+
+Task11 keeps sole R17 extraction ownership, and task21 directly consumes task43. Native Linux remains nonblocking and unverified under fn128. No native qualification, plugin/cgo execution or host escape is claimed.
+
+stage: impl-review - deferred(policy: required lint red; original qualification remains open)
+stage: plan-sync - skipped(config: disabled; source-progress task remains blocked)
 ## Evidence
 - Commits:
 - Tests:

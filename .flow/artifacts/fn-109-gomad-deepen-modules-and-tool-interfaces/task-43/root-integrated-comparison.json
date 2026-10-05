@@ -1,0 +1,41 @@
+{
+  "baseline": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-42/root-integrated-final.log",
+    "sha256": "51d765a947eb3a52300ed85195a1d04e09c7009bdf5a7f829e8fc0d7aee3064f",
+    "count": 323
+  },
+  "candidate": {
+    "path": "/Users/stephan/Workspace/skunkworks/gomad/temporal/.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-43/root-integrated.log",
+    "sha256": "358ea9f49ea93999fc2f6fca63ebad6d8beda3cd81731b12851f509facbd3cd7",
+    "count": 323
+  },
+  "counts": {
+    "forbidigo": 11,
+    "staticcheck": 56,
+    "errcheck": 252,
+    "exhaustive": 3,
+    "gci": 1
+  },
+  "removed": [],
+  "added": [],
+  "exact_unchanged_blocks": 319,
+  "comment_only_line_shifts": [
+    {
+      "baseline": "tools/gomad3/internal/compatibilitypack/schema.go:274:10: ST1005: error strings should not be capitalized (staticcheck)",
+      "candidate": "tools/gomad3/internal/compatibilitypack/schema.go:275:10: ST1005: error strings should not be capitalized (staticcheck)"
+    },
+    {
+      "baseline": "tools/gomad3/internal/compatibilitypack/schema.go:291:29: S1016: should convert source (type PackSource) to Source instead of using struct literal (staticcheck)",
+      "candidate": "tools/gomad3/internal/compatibilitypack/schema.go:292:29: S1016: should convert source (type PackSource) to Source instead of using struct literal (staticcheck)"
+    },
+    {
+      "baseline": "tools/gomad3/internal/compatibilitypack/schema.go:315:10: ST1005: error strings should not be capitalized (staticcheck)",
+      "candidate": "tools/gomad3/internal/compatibilitypack/schema.go:316:10: ST1005: error strings should not be capitalized (staticcheck)"
+    },
+    {
+      "baseline": "tools/gomad3/internal/compatibilitypack/schema.go:318:10: ST1005: error strings should not be capitalized (staticcheck)",
+      "candidate": "tools/gomad3/internal/compatibilitypack/schema.go:319:10: ST1005: error strings should not be capitalized (staticcheck)"
+    }
+  ],
+  "shifted_blocks_otherwise_byte_identical": true
+}

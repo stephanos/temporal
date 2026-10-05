@@ -33,11 +33,12 @@ var (
 	workloadPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9._-]{0,255}$`)
 )
 
-// unadmittableCapabilities reach subprocesses, signal delivery, or the host
-// account database, none of which a deterministic target can model; the code
-// that needs them is removed from the build or rewritten by an adapter, so no
-// pack may allow them. A request may still record one as denied.
-var unadmittableCapabilities = []string{"import:os/exec", "import:os/signal", "import:os/user"}
+// unadmittableCapabilities reach subprocesses, signal delivery, the host
+// account database, or plugin/cgo native code. A deterministic target cannot
+// model these capabilities; code that needs them is removed from the build or
+// rewritten by an adapter, so no pack may allow them. A request may still
+// record one as denied.
+var unadmittableCapabilities = []string{"import:os/exec", "import:os/signal", "import:os/user", "import:plugin", "import:runtime/cgo"}
 
 type Pack struct {
 	Schema        string         `json:"schema"`

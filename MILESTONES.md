@@ -225,7 +225,7 @@ recommendation, and move to implementation. Revisit a decision only when new evi
 | [fn-109.40](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.40.md) | ⛔ Blocked | Bounded commands and cleanup reviewed; lint clean, original qualification open |
 | [fn-109.41](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.41.md) | ⛔ Blocked | Canonical JSON exhaustive lint repaired; original qualification remains open |
 | [fn-109.42](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.42.md) | ⛔ Blocked | Exact-pack exhaustive lint repaired; original qualification remains open |
-| [fn-109.43](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.43.md) | ⬜ Todo | Enforce the documented five-import pack admission boundary |
+| [fn-109.43](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.43.md) | ⛔ Blocked | Five-import admission repaired; original qualification remains open |
 
 <a id="runtime-patch-minimization-fn-110"></a>
 

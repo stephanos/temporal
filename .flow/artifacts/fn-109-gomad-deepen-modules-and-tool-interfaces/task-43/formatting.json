@@ -1,0 +1,26 @@
+{
+  "command": [
+    "gofmt",
+    "-l",
+    "tools/gomad3/internal/compatibilitypack/schema.go",
+    "tools/gomad3/internal/compatibilitypack/policy_exhaustive_test.go",
+    "tools/gomad3/internal/compatibilitypack/schema_admission_test.go",
+    "tools/gomad3/internal/compatibilitypack/external_test.go",
+    "tools/gomad3/internal/compatibilitypack/authoring/request_test.go",
+    "tools/gomad3/internal/compatibilitypack/authoring/generate_test.go"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started_at": "2026-10-05T15:19:08.236Z",
+  "finished_at": "2026-10-05T15:19:08.263Z",
+  "elapsed_seconds": 0.025553708,
+  "exit_code": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": "",
+  "test_counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "skips": []
+}

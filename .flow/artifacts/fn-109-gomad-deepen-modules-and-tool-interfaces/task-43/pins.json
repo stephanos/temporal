@@ -1,0 +1,31 @@
+{
+  "command": [
+    "go",
+    "env",
+    "-json",
+    "GOVERSION",
+    "GOOS",
+    "GOARCH",
+    "GOROOT",
+    "GOTOOLCHAIN",
+    "GOENV",
+    "GOWORK",
+    "GOFLAGS",
+    "GOPROXY",
+    "GOSUMDB"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started_at": "2026-10-05T15:22:45.910Z",
+  "finished_at": "2026-10-05T15:22:45.919Z",
+  "elapsed_seconds": 0.00920429200000001,
+  "exit_code": 0,
+  "signal": null,
+  "stdout": "{\n\t\"GOARCH\": \"arm64\",\n\t\"GOENV\": \"\",\n\t\"GOFLAGS\": \"\",\n\t\"GOOS\": \"linux\",\n\t\"GOPROXY\": \"off\",\n\t\"GOROOT\": \"/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64\",\n\t\"GOSUMDB\": \"off\",\n\t\"GOTOOLCHAIN\": \"local\",\n\t\"GOVERSION\": \"go1.27.1\",\n\t\"GOWORK\": \"off\"\n}\n",
+  "stderr": "",
+  "test_counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "skips": []
+}

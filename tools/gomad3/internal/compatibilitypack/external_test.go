@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
 const externalFixtureSource = "reflect2-go126"
@@ -146,5 +148,40 @@ func TestLoadPackDirectoryReadsOnlyThatDirectory(t *testing.T) {
 	writeExternalPack(t, directory, "renamed.json", externalPackFixture(t, "downstream-other", nil))
 	if _, err := LoadPackDirectory(directory); err == nil {
 		t.Fatal("LoadPackDirectory() accepted a pack not named by its ID")
+	}
+}
+
+func TestExternalPackAdmissionRejectsFiveHostImportsWithoutPartialResults(t *testing.T) {
+	for _, test := range []struct{ capability, want string }{
+		{"import:os/exec", "external compatibility pack z-invalid.json: compatibility pack rule 0: capability import:os/exec is never admitted"},
+		{"import:os/signal", "external compatibility pack z-invalid.json: compatibility pack rule 0: capability import:os/signal is never admitted"},
+		{"import:os/user", "external compatibility pack z-invalid.json: compatibility pack rule 0: capability import:os/user is never admitted"},
+		{"import:plugin", "external compatibility pack z-invalid.json: compatibility pack rule 0: capability import:plugin is never admitted"},
+		{"import:runtime/cgo", "external compatibility pack z-invalid.json: compatibility pack rule 0: capability import:runtime/cgo is never admitted"},
+	} {
+		t.Run(test.capability, func(t *testing.T) {
+			directory := t.TempDir()
+			writeExternalPack(t, directory, "a-valid.json", externalPackFixture(t, "a-valid", nil))
+			valid, err := LoadPackDirectory(directory)
+			requireTestNoError(t, err)
+			requireTestEqual(t, 1, len(valid))
+			invalid, err := DecodePack(externalPackFixture(t, "z-invalid", nil))
+			requireTestNoError(t, err)
+			invalid.Rules[0].Capabilities = []string{test.capability}
+			encoded, err := canonicaljson.CanonicalJSON(invalid)
+			requireTestNoError(t, err)
+			writeExternalPack(t, directory, "z-invalid.json", encoded)
+			packs, err := LoadPackDirectory(directory)
+			requireAdmissionError(t, err, test.want)
+			if packs != nil {
+				t.Fatalf("LoadPackDirectory returned partial packs: %#v", packs)
+			}
+			t.Setenv(ExternalPacksEnvironment, directory)
+			packs, err = LoadPacks()
+			requireAdmissionError(t, err, test.want)
+			if packs != nil {
+				t.Fatalf("LoadPacks returned partial packs: %#v", packs)
+			}
+		})
 	}
 }

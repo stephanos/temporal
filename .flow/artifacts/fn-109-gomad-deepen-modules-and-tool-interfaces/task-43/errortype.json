@@ -1,0 +1,22 @@
+{
+  "command": [
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype",
+    "-test=true",
+    "./internal/compatibilitypack",
+    "./internal/compatibilitypack/authoring"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started_at": "2026-10-05T15:21:15.229Z",
+  "finished_at": "2026-10-05T15:21:15.989Z",
+  "elapsed_seconds": 0.75909075,
+  "exit_code": 0,
+  "signal": null,
+  "stdout": "",
+  "stderr": "",
+  "test_counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "skips": []
+}

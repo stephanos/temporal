@@ -105,6 +105,66 @@ func TestValidateRequestRejectsUnadmittableCapabilities(t *testing.T) {
 	}
 }
 
+func TestRequestAdmissionRejectsFiveAllowedHostImports(t *testing.T) {
+	for _, test := range []struct{ capability, want string }{
+		{"import:os/exec", "compatibility-pack capability import:os/exec is never admitted"},
+		{"import:os/signal", "compatibility-pack capability import:os/signal is never admitted"},
+		{"import:os/user", "compatibility-pack capability import:os/user is never admitted"},
+		{"import:plugin", "compatibility-pack capability import:plugin is never admitted"},
+		{"import:runtime/cgo", "compatibility-pack capability import:runtime/cgo is never admitted"},
+	} {
+		t.Run(test.capability, func(t *testing.T) {
+			request := validRequest()
+			request.Packages[0].Facts = []Fact{{Kind: FactCapability, Capability: test.capability, Disposition: DispositionAllow}}
+			requireRequestAdmissionError(t, ValidateRequest(request), test.want)
+			encoded, err := canonicaljson.CanonicalJSON(request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, err = DecodeRequest(encoded)
+			requireRequestAdmissionError(t, err, test.want)
+			_, err = ApprovalSHA256(request)
+			requireRequestAdmissionError(t, err, test.want)
+			_, _, err = RenderReview(request)
+			requireRequestAdmissionError(t, err, test.want)
+		})
+	}
+}
+
+func TestRequestAdmissionPreservesFactValidationPriority(t *testing.T) {
+	for _, test := range []struct {
+		name  string
+		facts []Fact
+		want  string
+	}{
+		{"admission-before-inventory", []Fact{{Kind: FactCapability, Capability: "import:plugin", Disposition: DispositionAllow}}, "compatibility-pack capability import:plugin is never admitted"},
+		{"malformed-before-admission", []Fact{{Kind: FactCapability, Capability: "import:plugin", Source: "runtime.go", Disposition: DispositionAllow}}, "compatibility-pack capability fact is invalid"},
+		{"disposition-before-admission", []Fact{{Kind: FactCapability, Capability: "import:plugin", Disposition: "future"}}, "compatibility-pack request fact disposition is invalid"},
+		{"earlier-fact-before-admission", []Fact{
+			{Kind: FactCapability, Capability: "import:a", Source: "runtime.go", Disposition: DispositionDeny},
+			{Kind: FactCapability, Capability: "import:plugin", Disposition: DispositionAllow},
+		}, "compatibility-pack capability fact is invalid"},
+		{"admission-before-later-fact", []Fact{
+			{Kind: FactCapability, Capability: "import:plugin", Disposition: DispositionAllow},
+			{Kind: FactCapability, Capability: "import:syscall", Source: "runtime.go", Disposition: DispositionDeny},
+		}, "compatibility-pack capability import:plugin is never admitted"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			request := validRequest()
+			request.Packages[0].Facts = test.facts
+			request.Packages[0].Evidence.GoSources = nil
+			requireRequestAdmissionError(t, ValidateRequest(request), test.want)
+		})
+	}
+}
+
+func requireRequestAdmissionError(t *testing.T, err error, want string) {
+	t.Helper()
+	if err == nil || err.Error() != want {
+		t.Fatalf("error = %v, want %q", err, want)
+	}
+}
+
 func validRequest() Request {
 	module := compatibility.PackModule{
 		Path: "example.com/dependency", Version: "v1.2.3", Sum: "h1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",

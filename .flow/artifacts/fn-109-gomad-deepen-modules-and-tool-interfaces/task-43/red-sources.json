@@ -1,0 +1,25 @@
+{
+  "command": [
+    "sha256sum",
+    "tools/gomad3/internal/compatibilitypack/schema.go",
+    "tools/gomad3/internal/compatibilitypack/policy_exhaustive_test.go",
+    "tools/gomad3/internal/compatibilitypack/schema_admission_test.go",
+    "tools/gomad3/internal/compatibilitypack/external_test.go",
+    "tools/gomad3/internal/compatibilitypack/authoring/request_test.go",
+    "tools/gomad3/internal/compatibilitypack/authoring/generate_test.go"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started_at": "2026-10-05T15:17:56.178Z",
+  "finished_at": "2026-10-05T15:17:56.183Z",
+  "elapsed_seconds": 0.00476929100000001,
+  "exit_code": 0,
+  "signal": null,
+  "stdout": "2bef1317ffb8fda0367dc9879a566a7d2155f7b45f52553e6bc2715424d4b247  tools/gomad3/internal/compatibilitypack/schema.go\nc7a696f0ec418faa603cff4a084e155b4bdf676f2dd966910a1a338f443b8cda  tools/gomad3/internal/compatibilitypack/policy_exhaustive_test.go\na486678a0fe8064093c011d70165d8972621835263678a05ec575c067bc6caf0  tools/gomad3/internal/compatibilitypack/schema_admission_test.go\nb83cf2ab1f14bcf2d8d0e563a6d65ac41b3a5c494d6f6199240821cfbd8cdfec  tools/gomad3/internal/compatibilitypack/external_test.go\n98dfc30ec9d760c89d672ecf003dafba3c8742ec9eeba597557248d3398b589e  tools/gomad3/internal/compatibilitypack/authoring/request_test.go\n78edbad5086fd6f04aee45487b5df8eebc88107b371f15682e11f59b2727869e  tools/gomad3/internal/compatibilitypack/authoring/generate_test.go\n",
+  "stderr": "",
+  "test_counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "skips": []
+}

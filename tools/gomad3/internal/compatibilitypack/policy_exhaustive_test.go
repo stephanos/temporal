@@ -83,8 +83,8 @@ func TestEvaluateHostImportDecisions(t *testing.T) {
 		{"import:os/exec", "compatibility pack rule 0: capability import:os/exec is never admitted"},
 		{"import:os/signal", "compatibility pack rule 0: capability import:os/signal is never admitted"},
 		{"import:os/user", "compatibility pack rule 0: capability import:os/user is never admitted"},
-		{"import:plugin", ""},
-		{"import:runtime/cgo", ""},
+		{"import:plugin", "compatibility pack rule 0: capability import:plugin is never admitted"},
+		{"import:runtime/cgo", "compatibility pack rule 0: capability import:runtime/cgo is never admitted"},
 	}
 	for _, test := range tests {
 		t.Run(test.capability, func(t *testing.T) {

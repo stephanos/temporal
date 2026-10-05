@@ -1,0 +1,26 @@
+{
+  "command": [
+    "/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0",
+    "run",
+    "--config=../../.github/.golangci.yml",
+    "--build-tags=test_dep",
+    "--timeout=10m",
+    "--fix=false",
+    "./internal/compatibilitypack",
+    "./internal/compatibilitypack/authoring"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3",
+  "started_at": "2026-10-05T15:11:02.637Z",
+  "finished_at": "2026-10-05T15:11:03.568Z",
+  "elapsed_seconds": 0.930838292,
+  "exit_code": 1,
+  "signal": null,
+  "stdout": "tools/gomad3/internal/compatibilitypack/mutation_test.go:98:23: S1016: should convert source (type PackSource) to Source instead of using struct literal (staticcheck)\n\t\t\tgoSources[index] = Source{Name: source.Name, SHA256: source.SHA256}\n\t\t\t                   ^\ntools/gomad3/internal/compatibilitypack/mutation_test.go:102:28: S1016: should convert source (type PackForeignSource) to ForeignSource instead of using struct literal (staticcheck)\n\t\t\tforeignSources[index] = ForeignSource{Kind: source.Kind, Name: source.Name, SHA256: source.SHA256}\n\t\t\t                        ^\ntools/gomad3/internal/compatibilitypack/schema.go:274:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.New(\"Go source inventory is not sorted and unique\")\n\t\t       ^\ntools/gomad3/internal/compatibilitypack/schema.go:291:29: S1016: should convert source (type PackSource) to Source instead of using struct literal (staticcheck)\n\t\tsources = append(sources, Source{Name: source.Name, SHA256: source.SHA256})\n\t\t                          ^\ntools/gomad3/internal/compatibilitypack/schema.go:315:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn errors.New(\"Go source name is invalid\")\n\t\t       ^\ntools/gomad3/internal/compatibilitypack/schema.go:318:10: ST1005: error strings should not be capitalized (staticcheck)\n\t\treturn fmt.Errorf(\"Go source identity is invalid: %w\", err)\n\t\t       ^\ntools/gomad3/internal/compatibilitypack/schema_timezone_test.go:5:1: File is not properly formatted (gci)\n\t\"go.temporal.io/server/tools/gomad3/internal/canonicaljson\"\n^\n7 issues:\n* gci: 1\n* staticcheck: 6\n",
+  "stderr": "",
+  "test_counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "skips": []
+}

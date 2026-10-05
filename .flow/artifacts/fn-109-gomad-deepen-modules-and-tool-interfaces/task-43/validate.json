@@ -1,0 +1,22 @@
+{
+  "command": [
+    "make",
+    "-C",
+    "tools/gomad3",
+    "validate"
+  ],
+  "cwd": "/Users/stephan/Workspace/skunkworks/gomad/temporal",
+  "started_at": "2026-10-05T15:18:08.018Z",
+  "finished_at": "2026-10-05T15:18:11.302Z",
+  "elapsed_seconds": 3.28398396,
+  "exit_code": 0,
+  "signal": null,
+  "stdout": "make: Entering directory '/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3'\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\ngomad3 patch and overlay inputs are valid\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\ngomad3 script ownership is valid\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool compatibility-pack check --root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3\ncompatibility packs are current\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go test -count=1 -tags test_dep -run '^TestHostPacksBindCurrentProfile$' ./internal/compatibilitypack\nok  \tgo.temporal.io/server/tools/gomad3/internal/compatibilitypack\t0.002s\nGOCACHE=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/.toolchain/generator-cache go run ./cmd/gomadtool qualification-manifest-generate --root=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3/../.. --spec=tools/gomad3integration/qualification/tests.generator.json --output=tools/gomad3integration/qualification/tests.json -check\nmake: Leaving directory '/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad3'\n",
+  "stderr": "",
+  "test_counts": {
+    "pass": 0,
+    "fail": 0,
+    "skip": 0
+  },
+  "skips": []
+}

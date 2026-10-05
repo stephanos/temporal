@@ -1,0 +1,27 @@
+{
+  "commits": [],
+  "tests": [
+    "BASE: go test -count=1 -tags test_dep -json ./internal/compatibilitypack ./internal/compatibilitypack/authoring (exit 0; 331 pass events, 1 skip)",
+    "BASE and final: /tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./internal/compatibilitypack ./internal/compatibilitypack/authoring (exit 1; same seven inherited findings)",
+    "RED and final: go test -count=1 -tags test_dep -json -run 'Test(PackAdmission|ExternalPackAdmission|RequestAdmission|GenerateAdmission|EvaluateHostImportDecisions)' ./internal/compatibilitypack ./internal/compatibilitypack/authoring (RED exit 1, final exit 0; same test bytes)",
+    "make -C tools/gomad3 validate (exit 0; check-only, final source before broader consumers)",
+    "go test -count=1 -tags test_dep -json ./internal/compatibilitypack ./internal/compatibilitypack/authoring ./internal/canonicaljson ./record ./world/... (exit 0; 598 pass events, one unsupported-profile skip)",
+    "go test -count=1 -tags test_dep -json -run 'Test(Evaluate|BuiltInSimulation|CapabilityReviewGoldenCanonicalBytes|PreparedCacheDigest)' ./target ./target/internal/capabilitypolicy (exit 0; 37 pass events)",
+    "go test -count=1 -tags test_dep -json -run 'Test(PackageArchitecture|PureModulesHaveNoHostEffects|ExactModuleEdges|PublicPackagesDoNotExportTypeAliases|DomainModulesDoNotExportWireFraming|RunnerExecutionInjectionIsPrivate)$' . (exit 0; six top-level tests)",
+    "/tmp/fn109-lint-tools.ZdNe1t50/errortype -test=true ./internal/compatibilitypack ./internal/compatibilitypack/authoring (exit 0)",
+    "gofmt -l tools/gomad3/internal/compatibilitypack/schema.go tools/gomad3/internal/compatibilitypack/policy_exhaustive_test.go tools/gomad3/internal/compatibilitypack/schema_admission_test.go tools/gomad3/internal/compatibilitypack/external_test.go tools/gomad3/internal/compatibilitypack/authoring/request_test.go tools/gomad3/internal/compatibilitypack/authoring/generate_test.go (exit 0; empty output)",
+    "node .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-43/preservation.mjs (exit 0; all twelve checks pass)",
+    "git diff --check -- tools/gomad3/internal/compatibilitypack/schema.go tools/gomad3/internal/compatibilitypack/policy_exhaustive_test.go tools/gomad3/internal/compatibilitypack/external_test.go tools/gomad3/internal/compatibilitypack/authoring/request_test.go tools/gomad3/internal/compatibilitypack/authoring/generate_test.go (exit 0)"
+  ],
+  "prs": [],
+  "source_base": "43d264e24cae659ed57b81b9028e14fccb5a1fa3",
+  "admission": "6cd5df49bdaafc43a0585bc3a251caa7081817ac",
+  "summary": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-43/handover.md",
+  "raw_captures": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-43/",
+  "preservation": ".flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-43/preservation-proof.json",
+  "review": "Root-owned fresh bounded progress review pending; formal SHIP deferred on required lint red",
+  "integrated_gate": "Root-owned actual original integrated lint pending after worker return",
+  "platform": "Stock Go1.27.1 developmental linux/arm64; no native qualification claim",
+  "status": "Source implementation and worker-owned executable gates terminal; task acceptance remains open",
+  "live_commands": []
+}
