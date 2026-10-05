@@ -9,9 +9,9 @@ import temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
 import temporal.features.standaloneactivity.{
   activity,
-  control,
+  caller,
+  scheduleToStart,
   Control,
-  Inputs,
   ProtocolFact,
   Timeout
 }
@@ -85,11 +85,11 @@ private val awaitPaused = awaitStatus(twice, ProtocolFact.statusPaused)
 val statusTwice: Realization = realizing(everyCase(awaitPaused))
 
 private val inputInScope = rpc(workflowService, METHOD_PAUSE_ACTIVITY_EXECUTION) {
-  Inputs.scheduleToStart := Timeout.expires
+  scheduleToStart := Timeout.expires
 }
 
 /** A line of a request scope that assigns no field of the request. */
-val notAField: Realization = realizing(perform(control(Control.pause) -> inputInScope))
+val notAField: Realization = realizing(perform(caller.control(Control.pause) -> inputInScope))
 
 private val inputInPoll = await(described, workflowService)(
   Condition.equal(
@@ -97,7 +97,7 @@ private val inputInPoll = await(described, workflowService)(
     Operand.enumValue(ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED)
   )
 ) {
-  Inputs.scheduleToStart := Timeout.expires
+  scheduleToStart := Timeout.expires
 }
 
 /** A line of a `readUntil`'s request scope that assigns no field of the request. */

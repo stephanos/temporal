@@ -63,22 +63,27 @@ type OperationStep = Step[OperationState, Outcome, OperationFact]
 
 // ### Signature
 
-val caller: Party = Party()
-val handler: Party = Party()
-
 /** Named by the id the caller chose: every request and read carries it. */
 val operation: Entity = Entity(key = "operationId")
 
-object Inputs:
-  val reply = input[Reply]
-  val resolution = input[Resolution]
+// The handler's reply to the start and its completion's resolution.
+val reply = input[Reply]
+val resolution = input[Resolution]
 
-val start = action(caller).creates(operation).schema[StartNexusOperationExecutionRequest]
-val requestCancel =
-  action(caller).on(operation).schema[RequestCancelNexusOperationExecutionRequest]
-val terminate = action(caller).on(operation).schema[TerminateNexusOperationExecutionRequest]
-val handlerReply = action(handler).on(operation).input(Inputs.reply)
-val complete = action(handler).on(operation).input(Inputs.resolution)
+// Who acts. Actor objects are transparent to Definition IDs, so every action keeps the ID the
+// file's pin gives it.
+
+/** The caller starts the operation, and requests its cancel or terminates it. */
+object caller extends Actor:
+  val start = action(this).creates(operation).schema[StartNexusOperationExecutionRequest]
+  val requestCancel =
+    action(this).on(operation).schema[RequestCancelNexusOperationExecutionRequest]
+  val terminate = action(this).on(operation).schema[TerminateNexusOperationExecutionRequest]
+
+/** The endpoint's handler replies to the start, and completes an operation it started async. */
+object handler extends Actor:
+  val handlerReply = action(this).on(operation).input(reply)
+  val complete = action(this).on(operation).input(resolution)
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
@@ -151,11 +156,11 @@ object Operation:
     starts(OperationState(Phase.unstarted, false))
     ends(end)
     steps(
-      start ~> effects.start,
-      handlerReply ~> effects.handlerReply,
-      complete ~> effects.complete,
-      requestCancel ~> effects.requestCancel,
-      terminate ~> effects.terminate
+      caller.start ~> effects.start,
+      handler.handlerReply ~> effects.handlerReply,
+      handler.complete ~> effects.complete,
+      caller.requestCancel ~> effects.requestCancel,
+      caller.terminate ~> effects.terminate
     )
   }
 
@@ -209,15 +214,15 @@ object Operation:
         rejected = cited(Outcome.alreadyCompleted, "chasm/lib/nexusoperation/operation.go")
       ),
       Terminable(
-        terminate = terminate,
+        terminate = caller.terminate,
         settled = OperationFact.statusTerminated,
-        reach = Seq(start),
+        reach = Seq(caller.start),
         expect = inconclusive(Reason.explanationsDisagree)
       ),
       Cancelable(
-        requestCancel = requestCancel,
+        requestCancel = caller.requestCancel,
         requested = OperationFact.statusCancelRequested,
-        reach = Seq(start),
+        reach = Seq(caller.start),
         expect = inconclusive(Reason.explanationsDisagree)
       ),
       Describable(status = OperationRealization.operationStatus)

@@ -58,9 +58,9 @@ final case class OverQueue(job: Job, queue: QueueView)
 
 val jobOverQueue: Composition[OverQueue] =
   compose[OverQueue](_.job -> job, _.queue -> dispatchQueue)
-    .sync(_.job -> send, _.queue -> enqueue)
-    .sync(_.job -> start, _.queue -> deliver)
-    .sync(_.job -> settle, _.queue -> acknowledge)
+    .sync(_.job -> send, _.queue -> queue.enqueue)
+    .sync(_.job -> start, _.queue -> queue.deliver)
+    .sync(_.job -> settle, _.queue -> queue.acknowledge)
     .ends(s => s.job.phase == JobPhase.settled)
 
 val queueSettles =
@@ -90,9 +90,9 @@ final case class OverMatching(job: Job, queue: QueueDetail)
 
 val jobOverMatching: Composition[OverMatching] =
   compose[OverMatching](_.job -> job, _.queue -> matchingQueue)
-    .sync(_.job -> send, _.queue -> enqueue)
-    .sync(_.job -> start, _.queue -> deliver)
-    .sync(_.job -> settle, _.queue -> acknowledge)
+    .sync(_.job -> send, _.queue -> queue.enqueue)
+    .sync(_.job -> start, _.queue -> queue.deliver)
+    .sync(_.job -> settle, _.queue -> queue.acknowledge)
     .replaces(_.queue, dispatchQueue)
     .ends(s => s.job.phase == JobPhase.settled)
 
@@ -111,10 +111,10 @@ def overMatchingQueries(c: Composition[OverMatching]): Vector[Query] =
   val crashAfterInvocation = c.scenario
     .actions(
       c.synced(_.job -> send),
-      c.own(_.queue, addActivityTask),
-      c.own(_.queue, crash),
-      c.own(_.queue, addActivityTask),
-      c.own(_.queue, persistTask),
+      c.own(_.queue, queue.addActivityTask),
+      c.own(_.queue, faults.crash),
+      c.own(_.queue, queue.addActivityTask),
+      c.own(_.queue, queue.persistTask),
       c.synced(_.job -> start),
       c.synced(_.job -> settle)
     )

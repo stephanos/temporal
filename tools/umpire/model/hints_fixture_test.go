@@ -24,6 +24,6 @@ func TestLiftedHintsAreRefusedAtTheirLines(t *testing.T) {
 			"an interval is no greater than its bound",
 		at + "113: realization unboundedStep: server step attemptStart is a delivery, and the realization bounds no delivery",
 		at + "122: realization timerNoDeadline: server step scheduleToStart is a timer and names no positive deadline",
-		at + "126: realization deliveryDeadline: server step attemptStart names a deadline of 2000 milliseconds, and only a timer's step has one",
+		at + "127: realization deliveryDeadline: server step attemptStart names a deadline of 2000 milliseconds, and only a timer's step has one",
 	}, strings.Split(err.Error(), "\n"))
 }

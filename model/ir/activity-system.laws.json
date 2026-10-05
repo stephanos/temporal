@@ -13,7 +13,7 @@
     "cites": {
       "rejected": [ "chasm/lib/activity/activity.go" ]
     },
-    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:268"
+    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:280"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.pausedIsNotDispatched",
@@ -29,7 +29,7 @@
       "running": "temporal.features.standaloneactivity.Product$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:273"
+    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:285"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.terminalStatesAreFinal",
@@ -41,7 +41,7 @@
       "terminal": "temporal.features.standaloneactivity.Product$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:268"
+    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:280"
   }, {
     "machine": "currentAdmission",
     "name": "currentAdmission.pausedIsNotDispatched",
@@ -57,7 +57,7 @@
       "running": "temporal.features.standaloneactivity.record.Admission$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/record/Record.scala:297"
+    "position": "model/temporal/features/standaloneactivity/record/Record.scala:299"
   }, {
     "machine": "currentAdmission",
     "name": "currentAdmission.terminalStatesAreFinal",
@@ -69,7 +69,7 @@
       "terminal": "temporal.features.standaloneactivity.record.Admission$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/record/Record.scala:292"
+    "position": "model/temporal/features/standaloneactivity/record/Record.scala:294"
   }, {
     "machine": "currentOverLossyMatching",
     "name": "currentOverLossyMatching.pausedIsNotDispatched",
@@ -169,7 +169,7 @@
       "running": "temporal.features.standaloneactivity.record.Admission$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/record/Record.scala:297"
+    "position": "model/temporal/features/standaloneactivity/record/Record.scala:299"
   }, {
     "machine": "staleAdmission",
     "name": "staleAdmission.terminalStatesAreFinal",
@@ -181,7 +181,7 @@
       "terminal": "temporal.features.standaloneactivity.record.Admission$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/record/Record.scala:292"
+    "position": "model/temporal/features/standaloneactivity/record/Record.scala:294"
   }, {
     "machine": "staleOverMatching",
     "name": "staleOverMatching.pausedIsNotDispatched",
@@ -244,7 +244,7 @@
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted",
-    "position": "model/temporal/features/standaloneactivity/record/Record.scala:303"
+    "position": "model/temporal/features/standaloneactivity/record/Record.scala:305"
   }, {
     "machine": "currentOverLossyMatching",
     "law": "closedIsRejectedUniformly",
@@ -268,7 +268,7 @@
     "law": "closedIsRejectedUniformly",
     "waiver": "except",
     "because": "admission rejects a delivery to a closed record and owes matching its answer: activity.go HandleStarted",
-    "position": "model/temporal/features/standaloneactivity/record/Record.scala:303"
+    "position": "model/temporal/features/standaloneactivity/record/Record.scala:305"
   }, {
     "machine": "staleOverMatching",
     "law": "closedIsRejectedUniformly",

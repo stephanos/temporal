@@ -39,9 +39,9 @@ private[irgen] trait Declarations:
     def captured: ir.Action = named(capturedName(sym, chain, "an action"))
     def walk(t: Term): ir.Action = t match
       case Apply(Ident("action"), List(name, party)) =>
-        named(constString(name)).withParty(constString(party))
+        named(constString(name)).withParty(partyName(party))
       // The forms that take their name from the val.
-      case Apply(Ident("action"), List(party))      => captured.withParty(constString(party))
+      case Apply(Ident("action"), List(party))      => captured.withParty(partyName(party))
       case Ident("timer")                           => captured.withTimer(true)
       case Ident("internal")                        => captured.withInternal(true)
       case Apply(Select(inner, "on"), List(e))      => walk(inner).withOn(constString(e))
@@ -70,6 +70,26 @@ private[irgen] trait Declarations:
     val declared = walk(chain)
     inputTokens(id) = tokens.toVector
     declared
+
+  /**
+   * The name of the party an action names: an actor object's, `object caller extends Actor` named
+   * `caller` and written `this` among its members, with its first letter lowered; or a party
+   * value's.
+   */
+  def partyName(t: Term): String = t match
+    case Typed(e, _)                  => partyName(e)
+    case Inlined(_, Nil, e)           => partyName(e)
+    case This(_) if isActor(t.symbol) => actorName(t.symbol)
+    case r: Ref if r.symbol.flags.is(Flags.Module) && isActor(r.symbol.moduleClass) =>
+      actorName(r.symbol.moduleClass)
+    case _ => constString(t)
+
+  private lazy val actorClass = Symbol.requiredClass("umpire.Actor")
+  private def isActor(cls: Symbol): Boolean =
+    cls.isClassDef && cls.flags.is(Flags.Module) && cls.typeRef.derivesFrom(actorClass)
+  private def actorName(cls: Symbol): String =
+    val name = cls.name.stripSuffix("$")
+    name.take(1).toLowerCase + name.drop(1)
 
   /** The val of an input token, `val scheduleToStart = input[Timeout]`, which names the input. */
   def inputToken(token: Term): Symbol =

@@ -224,7 +224,7 @@
     "name": "dispatchQueue.evidence",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 189
+      "line": 195
     },
     "params": [ {
       "name": "queueFact",
@@ -235,13 +235,13 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 189
+        "line": 195
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 189
+            "line": 195
           },
           "var": "queueFact"
         },
@@ -257,7 +257,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 189
+              "line": 195
             },
             "literal": {
               "text": "enqueueCommitted"
@@ -275,7 +275,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 189
+              "line": 195
             },
             "literal": {
               "text": "enqueueFailed"
@@ -293,7 +293,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 189
+              "line": 195
             },
             "literal": {
               "text": "delivered"
@@ -311,7 +311,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 189
+              "line": 195
             },
             "literal": {
               "text": "acknowledged"
@@ -329,7 +329,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 189
+              "line": 195
             },
             "literal": {
               "text": "storageLost"
@@ -347,7 +347,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 189
+              "line": 195
             },
             "literal": {
               "text": "addInvoked"
@@ -365,7 +365,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 189
+              "line": 195
             },
             "literal": {
               "text": "taskPersisted"
@@ -383,7 +383,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 189
+              "line": 195
             },
             "literal": {
               "text": "matchReserved"
@@ -401,7 +401,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 189
+              "line": 195
             },
             "literal": {
               "text": "crashed"
@@ -419,7 +419,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 189
+              "line": 195
             },
             "literal": {
               "text": "ackLost"
@@ -1604,7 +1604,7 @@
     "name": "matchingQueue.evidence",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 331
+      "line": 337
     },
     "params": [ {
       "name": "queueFact",
@@ -1615,13 +1615,13 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 331
+        "line": 337
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 331
+            "line": 337
           },
           "var": "queueFact"
         },
@@ -1637,7 +1637,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 331
+              "line": 337
             },
             "literal": {
               "text": "enqueueCommitted"
@@ -1655,7 +1655,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 331
+              "line": 337
             },
             "literal": {
               "text": "enqueueFailed"
@@ -1673,7 +1673,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 331
+              "line": 337
             },
             "literal": {
               "text": "delivered"
@@ -1691,7 +1691,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 331
+              "line": 337
             },
             "literal": {
               "text": "acknowledged"
@@ -1709,7 +1709,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 331
+              "line": 337
             },
             "literal": {
               "text": "storageLost"
@@ -1727,7 +1727,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 331
+              "line": 337
             },
             "literal": {
               "text": "addInvoked"
@@ -1745,7 +1745,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 331
+              "line": 337
             },
             "literal": {
               "text": "taskPersisted"
@@ -1763,7 +1763,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 331
+              "line": 337
             },
             "literal": {
               "text": "matchReserved"
@@ -1781,7 +1781,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 331
+              "line": 337
             },
             "literal": {
               "text": "crashed"
@@ -1799,7 +1799,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 331
+              "line": 337
             },
             "literal": {
               "text": "ackLost"
@@ -1812,7 +1812,7 @@
     "name": "temporal.shared.taskqueue.DispatchQueue$.effects$.acknowledgeView",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 167
+      "line": 173
     },
     "params": [ {
       "name": "q",
@@ -1823,19 +1823,19 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 167
+        "line": 173
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 167
+            "line": 173
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 167
+                "line": 173
               },
               "var": "q"
             },
@@ -1865,20 +1865,20 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 169
+              "line": 175
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                  "line": 170
+                  "line": 176
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 171
+                      "line": 177
                     },
                     "literal": {
                       "enum": {
@@ -1889,14 +1889,14 @@
                   }, {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 172
+                      "line": 178
                     },
                     "construct": {
                       "type": "temporal.standaloneactivity.QueueView",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 172
+                          "line": 178
                         },
                         "literal": {
                           "enum": {
@@ -1909,13 +1909,13 @@
                   }, {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 173
+                      "line": 179
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 173
+                          "line": 179
                         },
                         "literal": {
                           "enum": {
@@ -1928,7 +1928,7 @@
                   }, {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 170
+                      "line": 176
                     },
                     "literal": {
                       "text": ""
@@ -1961,7 +1961,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 176
+              "line": 182
             },
             "list": { }
           }
@@ -1972,7 +1972,7 @@
     "name": "temporal.shared.taskqueue.DispatchQueue$.effects$.deliverView",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 148
+      "line": 154
     },
     "params": [ {
       "name": "q",
@@ -1983,19 +1983,19 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 148
+        "line": 154
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 148
+            "line": 154
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 148
+                "line": 154
               },
               "var": "q"
             },
@@ -2014,20 +2014,20 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 150
+              "line": 156
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                  "line": 151
+                  "line": 157
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 152
+                      "line": 158
                     },
                     "literal": {
                       "enum": {
@@ -2038,14 +2038,14 @@
                   }, {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 153
+                      "line": 159
                     },
                     "construct": {
                       "type": "temporal.standaloneactivity.QueueView",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 153
+                          "line": 159
                         },
                         "literal": {
                           "enum": {
@@ -2058,13 +2058,13 @@
                   }, {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 154
+                      "line": 160
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 154
+                          "line": 160
                         },
                         "literal": {
                           "enum": {
@@ -2077,7 +2077,7 @@
                   }, {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 151
+                      "line": 157
                     },
                     "literal": {
                       "text": ""
@@ -2099,20 +2099,20 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 158
+              "line": 164
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                  "line": 159
+                  "line": 165
                 },
                 "construct": {
                   "type": "umpire.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 160
+                      "line": 166
                     },
                     "literal": {
                       "enum": {
@@ -2123,14 +2123,14 @@
                   }, {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 161
+                      "line": 167
                     },
                     "construct": {
                       "type": "temporal.standaloneactivity.QueueView",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 161
+                          "line": 167
                         },
                         "literal": {
                           "enum": {
@@ -2143,13 +2143,13 @@
                   }, {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 162
+                      "line": 168
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 162
+                          "line": 168
                         },
                         "literal": {
                           "enum": {
@@ -2162,7 +2162,7 @@
                   }, {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 158
+                      "line": 164
                     },
                     "literal": {
                       "text": "a message not yet acknowledged may be delivered again"
@@ -2195,7 +2195,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 165
+              "line": 171
             },
             "list": { }
           }
@@ -2206,7 +2206,7 @@
     "name": "temporal.shared.taskqueue.DispatchQueue$.effects$.enqueueView",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 133
+      "line": 139
     },
     "params": [ {
       "name": "q",
@@ -2217,26 +2217,26 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 134
+        "line": 140
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 134
+            "line": 140
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 134
+                "line": 140
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 134
+                    "line": 140
                   },
                   "var": "q"
                 },
@@ -2246,7 +2246,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 134
+                "line": 140
               },
               "literal": {
                 "enum": {
@@ -2260,27 +2260,27 @@
         "then": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 134
+            "line": 140
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 136
+            "line": 142
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 138
+                "line": 144
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 139
+                    "line": 145
                   },
                   "literal": {
                     "enum": {
@@ -2291,14 +2291,14 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 140
+                    "line": 146
                   },
                   "construct": {
                     "type": "temporal.standaloneactivity.QueueView",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 140
+                        "line": 146
                       },
                       "literal": {
                         "enum": {
@@ -2311,13 +2311,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 141
+                    "line": 147
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 141
+                        "line": 147
                       },
                       "literal": {
                         "enum": {
@@ -2330,7 +2330,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 138
+                    "line": 144
                   },
                   "literal": {
                     "text": ""
@@ -2341,14 +2341,14 @@
             }, {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 144
+                "line": 150
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 144
+                    "line": 150
                   },
                   "literal": {
                     "enum": {
@@ -2359,19 +2359,19 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 144
+                    "line": 150
                   },
                   "var": "q"
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 144
+                    "line": 150
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 144
+                        "line": 150
                       },
                       "literal": {
                         "enum": {
@@ -2384,7 +2384,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 144
+                    "line": 150
                   },
                   "literal": {
                     "text": "the durable write fails and no message is outstanding"
@@ -2401,7 +2401,7 @@
     "name": "temporal.shared.taskqueue.MatchingQueue$.effects$.ackLossDetail",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 292
+      "line": 298
     },
     "params": [ {
       "name": "d",
@@ -2412,26 +2412,26 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 293
+        "line": 299
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 293
+            "line": 299
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 293
+                "line": 299
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 293
+                    "line": 299
                   },
                   "var": "d"
                 },
@@ -2443,33 +2443,33 @@
         "then": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 293
+            "line": 299
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 294
+            "line": 300
           },
           "if": {
             "condition": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 294
+                "line": 300
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 294
+                    "line": 300
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 294
+                        "line": 300
                       },
                       "var": "d"
                     },
@@ -2479,7 +2479,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 294
+                    "line": 300
                   },
                   "literal": {
                     "enum": {
@@ -2493,13 +2493,13 @@
             "then": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 295
+                "line": 301
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 295
+                    "line": 301
                   },
                   "construct": {
                     "type": "umpire.Step",
@@ -2517,13 +2517,13 @@
                     }, {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 295
+                        "line": 301
                       },
                       "copy": {
                         "base": {
                           "position": {
                             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                            "line": 295
+                            "line": 301
                           },
                           "var": "d"
                         },
@@ -2532,7 +2532,7 @@
                           "value": {
                             "position": {
                               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                              "line": 295
+                              "line": 301
                             },
                             "literal": {
                               "enum": {
@@ -2546,7 +2546,7 @@
                           "value": {
                             "position": {
                               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                              "line": 295
+                              "line": 301
                             },
                             "literal": {
                               "bool": false
@@ -2557,13 +2557,13 @@
                     }, {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 295
+                        "line": 301
                       },
                       "list": {
                         "items": [ {
                           "position": {
                             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                            "line": 295
+                            "line": 301
                           },
                           "literal": {
                             "enum": {
@@ -2576,7 +2576,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 295
+                        "line": 301
                       },
                       "literal": {
                         "text": ""
@@ -2589,13 +2589,13 @@
             "else": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 296
+                "line": 302
               },
               "list": {
                 "items": [ {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 296
+                    "line": 302
                   },
                   "construct": {
                     "type": "umpire.Step",
@@ -2613,13 +2613,13 @@
                     }, {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 296
+                        "line": 302
                       },
                       "copy": {
                         "base": {
                           "position": {
                             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                            "line": 296
+                            "line": 302
                           },
                           "var": "d"
                         },
@@ -2628,7 +2628,7 @@
                           "value": {
                             "position": {
                               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                              "line": 296
+                              "line": 302
                             },
                             "literal": {
                               "bool": false
@@ -2639,13 +2639,13 @@
                     }, {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 296
+                        "line": 302
                       },
                       "list": {
                         "items": [ {
                           "position": {
                             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                            "line": 296
+                            "line": 302
                           },
                           "literal": {
                             "enum": {
@@ -2658,7 +2658,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 296
+                        "line": 302
                       },
                       "literal": {
                         "text": ""
@@ -2676,7 +2676,7 @@
     "name": "temporal.shared.taskqueue.MatchingQueue$.effects$.acknowledgeDetail",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 283
+      "line": 289
     },
     "params": [ {
       "name": "d",
@@ -2687,33 +2687,33 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 284
+        "line": 290
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 284
+            "line": 290
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 284
+                "line": 290
               },
               "binary": {
                 "op": "OP_AND",
                 "left": {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 284
+                    "line": 290
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 284
+                        "line": 290
                       },
                       "var": "d"
                     },
@@ -2723,20 +2723,20 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 284
+                    "line": 290
                   },
                   "binary": {
                     "op": "OP_NE",
                     "left": {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 284
+                        "line": 290
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                            "line": 284
+                            "line": 290
                           },
                           "var": "d"
                         },
@@ -2746,7 +2746,7 @@
                     "right": {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 284
+                        "line": 290
                       },
                       "literal": {
                         "enum": {
@@ -2762,20 +2762,20 @@
             "right": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 284
+                "line": 290
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 284
+                    "line": 290
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 284
+                        "line": 290
                       },
                       "var": "d"
                     },
@@ -2785,7 +2785,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 284
+                    "line": 290
                   },
                   "literal": {
                     "enum": {
@@ -2801,20 +2801,20 @@
         "then": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 285
+            "line": 291
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 285
+                "line": 291
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 285
+                    "line": 291
                   },
                   "literal": {
                     "enum": {
@@ -2825,14 +2825,14 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 210
+                    "line": 216
                   },
                   "construct": {
                     "type": "temporal.standaloneactivity.QueueDetail",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 210
+                        "line": 216
                       },
                       "literal": {
                         "enum": {
@@ -2843,7 +2843,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 210
+                        "line": 216
                       },
                       "literal": {
                         "bool": false
@@ -2851,7 +2851,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 210
+                        "line": 216
                       },
                       "literal": {
                         "enum": {
@@ -2864,13 +2864,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 285
+                    "line": 291
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 285
+                        "line": 291
                       },
                       "literal": {
                         "enum": {
@@ -2883,7 +2883,510 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 285
+                    "line": 291
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+            "line": 292
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.MatchingQueue$.effects$.crashDetail",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+      "line": 309
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueDetail"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+        "line": 309
+      },
+      "match": {
+        "scrutinee": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+            "line": 309
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                "line": 309
+              },
+              "var": "d"
+            },
+            "field": "custody"
+          }
+        },
+        "cases": [ {
+          "pattern": {
+            "alternatives": {
+              "patterns": [ {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Custody",
+                    "case": "invoked"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Custody",
+                    "case": "reserved"
+                  }
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+              "line": 311
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                  "line": 311
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                      "line": 48
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.standaloneactivity.QueueOutcome",
+                        "case": "internal"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                      "line": 311
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                          "line": 311
+                        },
+                        "var": "d"
+                      },
+                      "updates": [ {
+                        "name": "custody",
+                        "value": {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                            "line": 311
+                          },
+                          "literal": {
+                            "enum": {
+                              "type": "temporal.standaloneactivity.Custody",
+                              "case": "history"
+                            }
+                          }
+                        }
+                      }, {
+                        "name": "polled",
+                        "value": {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                            "line": 311
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                      "line": 311
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                          "line": 311
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.QueueFact",
+                            "case": "crashed"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                      "line": 311
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        }, {
+          "pattern": {
+            "alternatives": {
+              "patterns": [ {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Custody",
+                    "case": "nowhere"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Custody",
+                    "case": "history"
+                  }
+                }
+              }, {
+                "literal": {
+                  "enum": {
+                    "type": "temporal.standaloneactivity.Custody",
+                    "case": "persisted"
+                  }
+                }
+              } ]
+            }
+          },
+          "body": {
+            "position": {
+              "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+              "line": 313
+            },
+            "list": {
+              "items": [ {
+                "position": {
+                  "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                  "line": 313
+                },
+                "construct": {
+                  "type": "umpire.Step",
+                  "args": [ {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                      "line": 48
+                    },
+                    "literal": {
+                      "enum": {
+                        "type": "temporal.standaloneactivity.QueueOutcome",
+                        "case": "internal"
+                      }
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                      "line": 313
+                    },
+                    "copy": {
+                      "base": {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                          "line": 313
+                        },
+                        "var": "d"
+                      },
+                      "updates": [ {
+                        "name": "polled",
+                        "value": {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                            "line": 313
+                          },
+                          "literal": {
+                            "bool": false
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                      "line": 313
+                    },
+                    "list": {
+                      "items": [ {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                          "line": 313
+                        },
+                        "literal": {
+                          "enum": {
+                            "type": "temporal.standaloneactivity.QueueFact",
+                            "case": "crashed"
+                          }
+                        }
+                      } ]
+                    }
+                  }, {
+                    "position": {
+                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                      "line": 313
+                    },
+                    "literal": {
+                      "text": ""
+                    }
+                  } ]
+                }
+              } ]
+            }
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "temporal.shared.taskqueue.MatchingQueue$.effects$.deliverDetail",
+    "position": {
+      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+      "line": 277
+    },
+    "params": [ {
+      "name": "d",
+      "type": {
+        "named": "temporal.standaloneactivity.QueueDetail"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+        "line": 278
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+            "line": 278
+          },
+          "binary": {
+            "op": "OP_AND",
+            "left": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                "line": 278
+              },
+              "binary": {
+                "op": "OP_AND",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                    "line": 278
+                  },
+                  "call": {
+                    "function": "temporal.shared.taskqueue.MatchingQueue$.matchable",
+                    "args": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                        "line": 278
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                            "line": 278
+                          },
+                          "var": "d"
+                        },
+                        "field": "custody"
+                      }
+                    } ]
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                    "line": 278
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                        "line": 278
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                            "line": 278
+                          },
+                          "var": "d"
+                        },
+                        "field": "polled"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                "line": 278
+              },
+              "binary": {
+                "op": "OP_NE",
+                "left": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                    "line": 278
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                        "line": 278
+                      },
+                      "var": "d"
+                    },
+                    "field": "delivered"
+                  }
+                },
+                "right": {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                    "line": 278
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.Delivered",
+                      "case": "twice"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+            "line": 279
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                "line": 280
+              },
+              "construct": {
+                "type": "umpire.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                    "line": 281
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "temporal.standaloneactivity.QueueOutcome",
+                      "case": "delivered"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                    "line": 282
+                  },
+                  "copy": {
+                    "base": {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                        "line": 282
+                      },
+                      "var": "d"
+                    },
+                    "updates": [ {
+                      "name": "polled",
+                      "value": {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                          "line": 282
+                        },
+                        "literal": {
+                          "bool": true
+                        }
+                      }
+                    }, {
+                      "name": "delivered",
+                      "value": {
+                        "position": {
+                          "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                          "line": 282
+                        },
+                        "call": {
+                          "function": "temporal.shared.taskqueue.MatchingQueue$.oneMoreDelivery",
+                          "args": [ {
+                            "position": {
+                              "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                              "line": 282
+                            },
+                            "field": {
+                              "base": {
+                                "position": {
+                                  "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                                  "line": 282
+                                },
+                                "var": "d"
+                              },
+                              "field": "delivered"
+                            }
+                          } ]
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                    "line": 283
+                  },
+                  "list": {
+                    "items": [ {
+                      "position": {
+                        "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                        "line": 283
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "temporal.standaloneactivity.QueueFact",
+                          "case": "delivered"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
+                    "line": 280
                   },
                   "literal": {
                     "text": ""
@@ -2903,513 +3406,10 @@
       }
     }
   }, {
-    "name": "temporal.shared.taskqueue.MatchingQueue$.effects$.crashDetail",
-    "position": {
-      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 303
-    },
-    "params": [ {
-      "name": "d",
-      "type": {
-        "named": "temporal.standaloneactivity.QueueDetail"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 303
-      },
-      "match": {
-        "scrutinee": {
-          "position": {
-            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 303
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 303
-              },
-              "var": "d"
-            },
-            "field": "custody"
-          }
-        },
-        "cases": [ {
-          "pattern": {
-            "alternatives": {
-              "patterns": [ {
-                "literal": {
-                  "enum": {
-                    "type": "temporal.standaloneactivity.Custody",
-                    "case": "invoked"
-                  }
-                }
-              }, {
-                "literal": {
-                  "enum": {
-                    "type": "temporal.standaloneactivity.Custody",
-                    "case": "reserved"
-                  }
-                }
-              } ]
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 305
-            },
-            "list": {
-              "items": [ {
-                "position": {
-                  "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                  "line": 305
-                },
-                "construct": {
-                  "type": "umpire.Step",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 48
-                    },
-                    "literal": {
-                      "enum": {
-                        "type": "temporal.standaloneactivity.QueueOutcome",
-                        "case": "internal"
-                      }
-                    }
-                  }, {
-                    "position": {
-                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 305
-                    },
-                    "copy": {
-                      "base": {
-                        "position": {
-                          "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 305
-                        },
-                        "var": "d"
-                      },
-                      "updates": [ {
-                        "name": "custody",
-                        "value": {
-                          "position": {
-                            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                            "line": 305
-                          },
-                          "literal": {
-                            "enum": {
-                              "type": "temporal.standaloneactivity.Custody",
-                              "case": "history"
-                            }
-                          }
-                        }
-                      }, {
-                        "name": "polled",
-                        "value": {
-                          "position": {
-                            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                            "line": 305
-                          },
-                          "literal": {
-                            "bool": false
-                          }
-                        }
-                      } ]
-                    }
-                  }, {
-                    "position": {
-                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 305
-                    },
-                    "list": {
-                      "items": [ {
-                        "position": {
-                          "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 305
-                        },
-                        "literal": {
-                          "enum": {
-                            "type": "temporal.standaloneactivity.QueueFact",
-                            "case": "crashed"
-                          }
-                        }
-                      } ]
-                    }
-                  }, {
-                    "position": {
-                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 305
-                    },
-                    "literal": {
-                      "text": ""
-                    }
-                  } ]
-                }
-              } ]
-            }
-          }
-        }, {
-          "pattern": {
-            "alternatives": {
-              "patterns": [ {
-                "literal": {
-                  "enum": {
-                    "type": "temporal.standaloneactivity.Custody",
-                    "case": "nowhere"
-                  }
-                }
-              }, {
-                "literal": {
-                  "enum": {
-                    "type": "temporal.standaloneactivity.Custody",
-                    "case": "history"
-                  }
-                }
-              }, {
-                "literal": {
-                  "enum": {
-                    "type": "temporal.standaloneactivity.Custody",
-                    "case": "persisted"
-                  }
-                }
-              } ]
-            }
-          },
-          "body": {
-            "position": {
-              "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 307
-            },
-            "list": {
-              "items": [ {
-                "position": {
-                  "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                  "line": 307
-                },
-                "construct": {
-                  "type": "umpire.Step",
-                  "args": [ {
-                    "position": {
-                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 48
-                    },
-                    "literal": {
-                      "enum": {
-                        "type": "temporal.standaloneactivity.QueueOutcome",
-                        "case": "internal"
-                      }
-                    }
-                  }, {
-                    "position": {
-                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 307
-                    },
-                    "copy": {
-                      "base": {
-                        "position": {
-                          "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 307
-                        },
-                        "var": "d"
-                      },
-                      "updates": [ {
-                        "name": "polled",
-                        "value": {
-                          "position": {
-                            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                            "line": 307
-                          },
-                          "literal": {
-                            "bool": false
-                          }
-                        }
-                      } ]
-                    }
-                  }, {
-                    "position": {
-                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 307
-                    },
-                    "list": {
-                      "items": [ {
-                        "position": {
-                          "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 307
-                        },
-                        "literal": {
-                          "enum": {
-                            "type": "temporal.standaloneactivity.QueueFact",
-                            "case": "crashed"
-                          }
-                        }
-                      } ]
-                    }
-                  }, {
-                    "position": {
-                      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 307
-                    },
-                    "literal": {
-                      "text": ""
-                    }
-                  } ]
-                }
-              } ]
-            }
-          }
-        } ]
-      }
-    }
-  }, {
-    "name": "temporal.shared.taskqueue.MatchingQueue$.effects$.deliverDetail",
-    "position": {
-      "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 271
-    },
-    "params": [ {
-      "name": "d",
-      "type": {
-        "named": "temporal.standaloneactivity.QueueDetail"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 272
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 272
-          },
-          "binary": {
-            "op": "OP_AND",
-            "left": {
-              "position": {
-                "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 272
-              },
-              "binary": {
-                "op": "OP_AND",
-                "left": {
-                  "position": {
-                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 272
-                  },
-                  "call": {
-                    "function": "temporal.shared.taskqueue.MatchingQueue$.matchable",
-                    "args": [ {
-                      "position": {
-                        "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 272
-                      },
-                      "field": {
-                        "base": {
-                          "position": {
-                            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                            "line": 272
-                          },
-                          "var": "d"
-                        },
-                        "field": "custody"
-                      }
-                    } ]
-                  }
-                },
-                "right": {
-                  "position": {
-                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 272
-                  },
-                  "unary": {
-                    "op": "OP_NOT",
-                    "operand": {
-                      "position": {
-                        "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 272
-                      },
-                      "field": {
-                        "base": {
-                          "position": {
-                            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                            "line": 272
-                          },
-                          "var": "d"
-                        },
-                        "field": "polled"
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 272
-              },
-              "binary": {
-                "op": "OP_NE",
-                "left": {
-                  "position": {
-                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 272
-                  },
-                  "field": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 272
-                      },
-                      "var": "d"
-                    },
-                    "field": "delivered"
-                  }
-                },
-                "right": {
-                  "position": {
-                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 272
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.standaloneactivity.Delivered",
-                      "case": "twice"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 273
-          },
-          "list": {
-            "items": [ {
-              "position": {
-                "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 274
-              },
-              "construct": {
-                "type": "umpire.Step",
-                "args": [ {
-                  "position": {
-                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 275
-                  },
-                  "literal": {
-                    "enum": {
-                      "type": "temporal.standaloneactivity.QueueOutcome",
-                      "case": "delivered"
-                    }
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 276
-                  },
-                  "copy": {
-                    "base": {
-                      "position": {
-                        "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 276
-                      },
-                      "var": "d"
-                    },
-                    "updates": [ {
-                      "name": "polled",
-                      "value": {
-                        "position": {
-                          "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 276
-                        },
-                        "literal": {
-                          "bool": true
-                        }
-                      }
-                    }, {
-                      "name": "delivered",
-                      "value": {
-                        "position": {
-                          "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 276
-                        },
-                        "call": {
-                          "function": "temporal.shared.taskqueue.MatchingQueue$.oneMoreDelivery",
-                          "args": [ {
-                            "position": {
-                              "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                              "line": 276
-                            },
-                            "field": {
-                              "base": {
-                                "position": {
-                                  "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                                  "line": 276
-                                },
-                                "var": "d"
-                              },
-                              "field": "delivered"
-                            }
-                          } ]
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 277
-                  },
-                  "list": {
-                    "items": [ {
-                      "position": {
-                        "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 277
-                      },
-                      "literal": {
-                        "enum": {
-                          "type": "temporal.standaloneactivity.QueueFact",
-                          "case": "delivered"
-                        }
-                      }
-                    } ]
-                  }
-                }, {
-                  "position": {
-                    "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 274
-                  },
-                  "literal": {
-                    "text": ""
-                  }
-                } ]
-              }
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 280
-          },
-          "list": { }
-        }
-      }
-    }
-  }, {
     "name": "temporal.shared.taskqueue.MatchingQueue$.effects$.enqueueDetail",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 243
+      "line": 249
     },
     "params": [ {
       "name": "d",
@@ -3420,26 +3420,26 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 244
+        "line": 250
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 244
+            "line": 250
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 244
+                "line": 250
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 244
+                    "line": 250
                   },
                   "var": "d"
                 },
@@ -3449,7 +3449,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 244
+                "line": 250
               },
               "literal": {
                 "enum": {
@@ -3463,27 +3463,27 @@
         "then": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 244
+            "line": 250
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 246
+            "line": 252
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 248
+                "line": 254
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 249
+                    "line": 255
                   },
                   "literal": {
                     "enum": {
@@ -3494,14 +3494,14 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 250
+                    "line": 256
                   },
                   "construct": {
                     "type": "temporal.standaloneactivity.QueueDetail",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 250
+                        "line": 256
                       },
                       "literal": {
                         "enum": {
@@ -3512,7 +3512,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 250
+                        "line": 256
                       },
                       "literal": {
                         "bool": false
@@ -3520,7 +3520,7 @@
                     }, {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 250
+                        "line": 256
                       },
                       "literal": {
                         "enum": {
@@ -3533,13 +3533,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 251
+                    "line": 257
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 251
+                        "line": 257
                       },
                       "literal": {
                         "enum": {
@@ -3552,7 +3552,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 248
+                    "line": 254
                   },
                   "literal": {
                     "text": ""
@@ -3563,14 +3563,14 @@
             }, {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 254
+                "line": 260
               },
               "construct": {
                 "type": "umpire.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 254
+                    "line": 260
                   },
                   "literal": {
                     "enum": {
@@ -3581,19 +3581,19 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 254
+                    "line": 260
                   },
                   "var": "d"
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 254
+                    "line": 260
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 254
+                        "line": 260
                       },
                       "literal": {
                         "enum": {
@@ -3606,7 +3606,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 254
+                    "line": 260
                   },
                   "literal": {
                     "text": "the durable write fails and no message is outstanding"
@@ -3623,7 +3623,7 @@
     "name": "temporal.shared.taskqueue.MatchingQueue$.effects$.forgetfulCrash",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 318
+      "line": 324
     },
     "params": [ {
       "name": "d",
@@ -3634,19 +3634,19 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 318
+        "line": 324
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 318
+            "line": 324
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 318
+                "line": 324
               },
               "var": "d"
             },
@@ -3676,13 +3676,13 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 319
+              "line": 325
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                  "line": 319
+                  "line": 325
                 },
                 "construct": {
                   "type": "umpire.Step",
@@ -3700,14 +3700,14 @@
                   }, {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 210
+                      "line": 216
                     },
                     "construct": {
                       "type": "temporal.standaloneactivity.QueueDetail",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 210
+                          "line": 216
                         },
                         "literal": {
                           "enum": {
@@ -3718,7 +3718,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 210
+                          "line": 216
                         },
                         "literal": {
                           "bool": false
@@ -3726,7 +3726,7 @@
                       }, {
                         "position": {
                           "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 210
+                          "line": 216
                         },
                         "literal": {
                           "enum": {
@@ -3739,13 +3739,13 @@
                   }, {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 319
+                      "line": 325
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 319
+                          "line": 325
                         },
                         "literal": {
                           "enum": {
@@ -3758,7 +3758,7 @@
                   }, {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 319
+                      "line": 325
                     },
                     "literal": {
                       "text": ""
@@ -3798,13 +3798,13 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 321
+              "line": 327
             },
             "list": {
               "items": [ {
                 "position": {
                   "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                  "line": 321
+                  "line": 327
                 },
                 "construct": {
                   "type": "umpire.Step",
@@ -3822,13 +3822,13 @@
                   }, {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 321
+                      "line": 327
                     },
                     "copy": {
                       "base": {
                         "position": {
                           "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 321
+                          "line": 327
                         },
                         "var": "d"
                       },
@@ -3837,7 +3837,7 @@
                         "value": {
                           "position": {
                             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                            "line": 321
+                            "line": 327
                           },
                           "literal": {
                             "bool": false
@@ -3848,13 +3848,13 @@
                   }, {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 321
+                      "line": 327
                     },
                     "list": {
                       "items": [ {
                         "position": {
                           "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 321
+                          "line": 327
                         },
                         "literal": {
                           "enum": {
@@ -3867,7 +3867,7 @@
                   }, {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 321
+                      "line": 327
                     },
                     "literal": {
                       "text": ""
@@ -3884,7 +3884,7 @@
     "name": "temporal.shared.taskqueue.MatchingQueue$.effects$.invokeDetail",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 259
+      "line": 265
     },
     "params": [ {
       "name": "d",
@@ -3895,26 +3895,26 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 260
+        "line": 266
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 260
+            "line": 266
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 260
+                "line": 266
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 260
+                    "line": 266
                   },
                   "var": "d"
                 },
@@ -3924,7 +3924,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 260
+                "line": 266
               },
               "literal": {
                 "enum": {
@@ -3938,20 +3938,20 @@
         "then": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 260
+            "line": 266
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 261
+            "line": 267
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 261
+                "line": 267
               },
               "construct": {
                 "type": "umpire.Step",
@@ -3969,13 +3969,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 261
+                    "line": 267
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 261
+                        "line": 267
                       },
                       "var": "d"
                     },
@@ -3984,7 +3984,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 261
+                          "line": 267
                         },
                         "literal": {
                           "enum": {
@@ -3998,13 +3998,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 261
+                    "line": 267
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 261
+                        "line": 267
                       },
                       "literal": {
                         "enum": {
@@ -4017,7 +4017,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 261
+                    "line": 267
                   },
                   "literal": {
                     "text": ""
@@ -4033,7 +4033,7 @@
     "name": "temporal.shared.taskqueue.MatchingQueue$.effects$.persistDetail",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 263
+      "line": 269
     },
     "params": [ {
       "name": "d",
@@ -4044,26 +4044,26 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 264
+        "line": 270
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 264
+            "line": 270
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 264
+                "line": 270
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 264
+                    "line": 270
                   },
                   "var": "d"
                 },
@@ -4073,7 +4073,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 264
+                "line": 270
               },
               "literal": {
                 "enum": {
@@ -4087,20 +4087,20 @@
         "then": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 264
+            "line": 270
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 265
+            "line": 271
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 265
+                "line": 271
               },
               "construct": {
                 "type": "umpire.Step",
@@ -4118,13 +4118,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 265
+                    "line": 271
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 265
+                        "line": 271
                       },
                       "var": "d"
                     },
@@ -4133,7 +4133,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 265
+                          "line": 271
                         },
                         "literal": {
                           "enum": {
@@ -4147,13 +4147,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 265
+                    "line": 271
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 265
+                        "line": 271
                       },
                       "literal": {
                         "enum": {
@@ -4166,7 +4166,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 265
+                    "line": 271
                   },
                   "literal": {
                     "text": ""
@@ -4182,7 +4182,7 @@
     "name": "temporal.shared.taskqueue.MatchingQueue$.effects$.reserveDetail",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 267
+      "line": 273
     },
     "params": [ {
       "name": "d",
@@ -4193,26 +4193,26 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 268
+        "line": 274
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 268
+            "line": 274
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 268
+                "line": 274
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 268
+                    "line": 274
                   },
                   "var": "d"
                 },
@@ -4222,7 +4222,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 268
+                "line": 274
               },
               "literal": {
                 "enum": {
@@ -4236,20 +4236,20 @@
         "then": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 268
+            "line": 274
           },
           "list": { }
         },
         "else": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 269
+            "line": 275
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 269
+                "line": 275
               },
               "construct": {
                 "type": "umpire.Step",
@@ -4267,13 +4267,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 269
+                    "line": 275
                   },
                   "copy": {
                     "base": {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 269
+                        "line": 275
                       },
                       "var": "d"
                     },
@@ -4282,7 +4282,7 @@
                       "value": {
                         "position": {
                           "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                          "line": 269
+                          "line": 275
                         },
                         "literal": {
                           "enum": {
@@ -4296,13 +4296,13 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 269
+                    "line": 275
                   },
                   "list": {
                     "items": [ {
                       "position": {
                         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                        "line": 269
+                        "line": 275
                       },
                       "literal": {
                         "enum": {
@@ -4315,7 +4315,7 @@
                 }, {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 269
+                    "line": 275
                   },
                   "literal": {
                     "text": ""
@@ -4331,7 +4331,7 @@
     "name": "temporal.shared.taskqueue.MatchingQueue$.interfaceAnswers",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 238
+      "line": 244
     },
     "params": [ {
       "name": "o",
@@ -4342,21 +4342,21 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 238
+        "line": 244
       },
       "binary": {
         "op": "OP_NE",
         "left": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 238
+            "line": 244
           },
           "var": "o"
         },
         "right": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 238
+            "line": 244
           },
           "literal": {
             "enum": {
@@ -4371,7 +4371,7 @@
     "name": "temporal.shared.taskqueue.MatchingQueue$.interfaceSees",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 230
+      "line": 236
     },
     "params": [ {
       "name": "f",
@@ -4382,13 +4382,13 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 230
+        "line": 236
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 230
+            "line": 236
           },
           "var": "f"
         },
@@ -4436,7 +4436,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 233
+              "line": 239
             },
             "literal": {
               "bool": true
@@ -4486,7 +4486,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 236
+              "line": 242
             },
             "literal": {
               "bool": false
@@ -4499,7 +4499,7 @@
     "name": "temporal.shared.taskqueue.MatchingQueue$.matchable",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 228
+      "line": 234
     },
     "params": [ {
       "name": "c",
@@ -4510,27 +4510,27 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 228
+        "line": 234
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 228
+            "line": 234
           },
           "var": "c"
         },
         "right": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 228
+            "line": 234
           },
           "list": {
             "items": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 228
+                "line": 234
               },
               "literal": {
                 "enum": {
@@ -4541,7 +4541,7 @@
             }, {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 228
+                "line": 234
               },
               "literal": {
                 "enum": {
@@ -4558,7 +4558,7 @@
     "name": "temporal.shared.taskqueue.MatchingQueue$.oneMoreDelivery",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 223
+      "line": 229
     },
     "params": [ {
       "name": "d",
@@ -4569,13 +4569,13 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 223
+        "line": 229
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 223
+            "line": 229
           },
           "var": "d"
         },
@@ -4591,7 +4591,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 224
+              "line": 230
             },
             "literal": {
               "enum": {
@@ -4607,7 +4607,7 @@
           "body": {
             "position": {
               "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-              "line": 225
+              "line": 231
             },
             "literal": {
               "enum": {
@@ -4623,7 +4623,7 @@
     "name": "temporal.shared.taskqueue.MatchingQueue$.queueEnds",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 240
+      "line": 246
     },
     "params": [ {
       "name": "d",
@@ -4634,20 +4634,20 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 240
+        "line": 246
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 240
+            "line": 246
           },
           "field": {
             "base": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 240
+                "line": 246
               },
               "var": "d"
             },
@@ -4657,7 +4657,7 @@
         "right": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 240
+            "line": 246
           },
           "literal": {
             "enum": {
@@ -4672,7 +4672,7 @@
     "name": "temporal.shared.taskqueue.MatchingQueue$.viewOf",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 215
+      "line": 221
     },
     "params": [ {
       "name": "d",
@@ -4683,26 +4683,26 @@
     "body": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 216
+        "line": 222
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 216
+            "line": 222
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 216
+                "line": 222
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 216
+                    "line": 222
                   },
                   "var": "d"
                 },
@@ -4712,7 +4712,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 216
+                "line": 222
               },
               "literal": {
                 "enum": {
@@ -4726,14 +4726,14 @@
         "then": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 216
+            "line": 222
           },
           "construct": {
             "type": "temporal.standaloneactivity.QueueView",
             "args": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 216
+                "line": 222
               },
               "literal": {
                 "enum": {
@@ -4747,19 +4747,19 @@
         "else": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 218
+            "line": 224
           },
           "match": {
             "scrutinee": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 218
+                "line": 224
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 218
+                    "line": 224
                   },
                   "var": "d"
                 },
@@ -4778,14 +4778,14 @@
               "body": {
                 "position": {
                   "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                  "line": 219
+                  "line": 225
                 },
                 "construct": {
                   "type": "temporal.standaloneactivity.QueueView",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 219
+                      "line": 225
                     },
                     "literal": {
                       "enum": {
@@ -4808,14 +4808,14 @@
               "body": {
                 "position": {
                   "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                  "line": 220
+                  "line": 226
                 },
                 "construct": {
                   "type": "temporal.standaloneactivity.QueueView",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 220
+                      "line": 226
                     },
                     "literal": {
                       "enum": {
@@ -4838,14 +4838,14 @@
               "body": {
                 "position": {
                   "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                  "line": 221
+                  "line": 227
                 },
                 "construct": {
                   "type": "temporal.standaloneactivity.QueueView",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                      "line": 221
+                      "line": 227
                     },
                     "literal": {
                       "enum": {
@@ -4894,7 +4894,7 @@
     "name": "ackLoss",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 116
+      "line": 122
     },
     "party": "fault"
   }, {
@@ -4902,7 +4902,7 @@
     "name": "acknowledge",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 93
+      "line": 107
     },
     "party": "system",
     "on": "taskQueue",
@@ -4912,7 +4912,7 @@
     "name": "addActivityTask",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 110
+      "line": 109
     },
     "party": "system",
     "on": "taskQueue",
@@ -4922,7 +4922,7 @@
     "name": "crash",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 115
+      "line": 121
     },
     "party": "fault"
   }, {
@@ -4930,7 +4930,7 @@
     "name": "deliver",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 92
+      "line": 106
     },
     "party": "system",
     "on": "taskQueue",
@@ -4940,7 +4940,7 @@
     "name": "enqueue",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 91
+      "line": 105
     },
     "party": "system",
     "on": "taskQueue",
@@ -4950,7 +4950,7 @@
     "name": "persistTask",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 111
+      "line": 110
     },
     "party": "system",
     "on": "taskQueue",
@@ -4960,7 +4960,7 @@
     "name": "syncMatch",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 112
+      "line": 111
     },
     "party": "system",
     "on": "taskQueue",
@@ -4971,7 +4971,7 @@
     "name": "dispatchQueue",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 189
+      "line": 195
     },
     "entity": "taskQueue",
     "stateType": "temporal.standaloneactivity.QueueView",
@@ -4980,14 +4980,14 @@
     "starts": [ {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 130
+        "line": 136
       },
       "construct": {
         "type": "temporal.standaloneactivity.QueueView",
         "args": [ {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 130
+            "line": 136
           },
           "literal": {
             "enum": {
@@ -5001,7 +5001,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 193
+        "line": 199
       },
       "lambda": {
         "params": [ {
@@ -5013,20 +5013,20 @@
         "body": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 193
+            "line": 199
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 193
+                "line": 199
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                    "line": 193
+                    "line": 199
                   },
                   "var": "q"
                 },
@@ -5036,7 +5036,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 193
+                "line": 199
               },
               "literal": {
                 "enum": {
@@ -5054,21 +5054,21 @@
       "function": "temporal.shared.taskqueue.DispatchQueue$.effects$.enqueueView",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 195
+        "line": 201
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.deliver",
       "function": "temporal.shared.taskqueue.DispatchQueue$.effects$.deliverView",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 196
+        "line": 202
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.acknowledge",
       "function": "temporal.shared.taskqueue.DispatchQueue$.effects$.acknowledgeView",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 197
+        "line": 203
       }
     } ],
     "evidence": "dispatchQueue.evidence",
@@ -5078,7 +5078,7 @@
     "name": "forgetfulQueue",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 359
+      "line": 365
     },
     "entity": "taskQueue",
     "stateType": "temporal.standaloneactivity.QueueDetail",
@@ -5087,14 +5087,14 @@
     "starts": [ {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 210
+        "line": 216
       },
       "construct": {
         "type": "temporal.standaloneactivity.QueueDetail",
         "args": [ {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 210
+            "line": 216
           },
           "literal": {
             "enum": {
@@ -5105,7 +5105,7 @@
         }, {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 210
+            "line": 216
           },
           "literal": {
             "bool": false
@@ -5113,7 +5113,7 @@
         }, {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 210
+            "line": 216
           },
           "literal": {
             "enum": {
@@ -5127,7 +5127,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 337
+        "line": 343
       },
       "lambda": {
         "params": [ {
@@ -5139,14 +5139,14 @@
         "body": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 337
+            "line": 343
           },
           "call": {
             "function": "temporal.shared.taskqueue.MatchingQueue$.queueEnds",
             "args": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 337
+                "line": 343
               },
               "var": "d"
             } ]
@@ -5159,56 +5159,56 @@
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.enqueueDetail",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 339
+        "line": 345
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.addActivityTask",
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.invokeDetail",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 340
+        "line": 346
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.persistTask",
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.persistDetail",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 341
+        "line": 347
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.syncMatch",
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.reserveDetail",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 342
+        "line": 348
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.deliver",
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.deliverDetail",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 343
+        "line": 349
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.acknowledge",
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.acknowledgeDetail",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 344
+        "line": 350
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.ackLoss",
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.ackLossDetail",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 345
+        "line": 351
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.crash",
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.forgetfulCrash",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 359
+        "line": 365
       }
     } ],
     "evidence": "matchingQueue.evidence",
@@ -5326,7 +5326,7 @@
     "name": "matchingQueue",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 331
+      "line": 337
     },
     "entity": "taskQueue",
     "stateType": "temporal.standaloneactivity.QueueDetail",
@@ -5335,14 +5335,14 @@
     "starts": [ {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 210
+        "line": 216
       },
       "construct": {
         "type": "temporal.standaloneactivity.QueueDetail",
         "args": [ {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 210
+            "line": 216
           },
           "literal": {
             "enum": {
@@ -5353,7 +5353,7 @@
         }, {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 210
+            "line": 216
           },
           "literal": {
             "bool": false
@@ -5361,7 +5361,7 @@
         }, {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 210
+            "line": 216
           },
           "literal": {
             "enum": {
@@ -5375,7 +5375,7 @@
     "ends": {
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 337
+        "line": 343
       },
       "lambda": {
         "params": [ {
@@ -5387,14 +5387,14 @@
         "body": {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 337
+            "line": 343
           },
           "call": {
             "function": "temporal.shared.taskqueue.MatchingQueue$.queueEnds",
             "args": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 337
+                "line": 343
               },
               "var": "d"
             } ]
@@ -5407,56 +5407,56 @@
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.enqueueDetail",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 339
+        "line": 345
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.addActivityTask",
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.invokeDetail",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 340
+        "line": 346
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.persistTask",
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.persistDetail",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 341
+        "line": 347
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.syncMatch",
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.reserveDetail",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 342
+        "line": 348
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.deliver",
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.deliverDetail",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 343
+        "line": 349
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.acknowledge",
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.acknowledgeDetail",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 344
+        "line": 350
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.ackLoss",
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.ackLossDetail",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 345
+        "line": 351
       }
     }, {
       "action": "temporal.standaloneactivity.System$package$.crash",
       "function": "temporal.shared.taskqueue.MatchingQueue$.effects$.crashDetail",
       "position": {
         "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-        "line": 346
+        "line": 352
       }
     } ],
     "evidence": "matchingQueue.evidence",
@@ -5472,7 +5472,7 @@
     "name": "dispatchQueue.opaque",
     "position": {
       "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-      "line": 183
+      "line": 189
     }
   } ],
   "compositions": [ {
@@ -5885,14 +5885,14 @@
         }, {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 210
+            "line": 216
           },
           "construct": {
             "type": "temporal.standaloneactivity.QueueDetail",
             "args": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 210
+                "line": 216
               },
               "literal": {
                 "enum": {
@@ -5903,7 +5903,7 @@
             }, {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 210
+                "line": 216
               },
               "literal": {
                 "bool": false
@@ -5911,7 +5911,7 @@
             }, {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 210
+                "line": 216
               },
               "literal": {
                 "enum": {
@@ -5962,14 +5962,14 @@
         }, {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 210
+            "line": 216
           },
           "construct": {
             "type": "temporal.standaloneactivity.QueueDetail",
             "args": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 210
+                "line": 216
               },
               "literal": {
                 "enum": {
@@ -5980,7 +5980,7 @@
             }, {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 210
+                "line": 216
               },
               "literal": {
                 "bool": false
@@ -5988,7 +5988,7 @@
             }, {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 210
+                "line": 216
               },
               "literal": {
                 "enum": {
@@ -6039,14 +6039,14 @@
         }, {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 210
+            "line": 216
           },
           "construct": {
             "type": "temporal.standaloneactivity.QueueDetail",
             "args": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 210
+                "line": 216
               },
               "literal": {
                 "enum": {
@@ -6057,7 +6057,7 @@
             }, {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 210
+                "line": 216
               },
               "literal": {
                 "bool": false
@@ -6065,7 +6065,7 @@
             }, {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 210
+                "line": 216
               },
               "literal": {
                 "enum": {
@@ -6116,14 +6116,14 @@
         }, {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 210
+            "line": 216
           },
           "construct": {
             "type": "temporal.standaloneactivity.QueueDetail",
             "args": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 210
+                "line": 216
               },
               "literal": {
                 "enum": {
@@ -6134,7 +6134,7 @@
             }, {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 210
+                "line": 216
               },
               "literal": {
                 "bool": false
@@ -6142,7 +6142,7 @@
             }, {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 210
+                "line": 216
               },
               "literal": {
                 "enum": {
@@ -6193,14 +6193,14 @@
         }, {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 130
+            "line": 136
           },
           "construct": {
             "type": "temporal.standaloneactivity.QueueView",
             "args": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 130
+                "line": 136
               },
               "literal": {
                 "enum": {
@@ -6251,14 +6251,14 @@
         }, {
           "position": {
             "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-            "line": 130
+            "line": 136
           },
           "construct": {
             "type": "temporal.standaloneactivity.QueueView",
             "args": [ {
               "position": {
                 "file": "model/temporal/shared/taskqueue/TaskQueue.scala",
-                "line": 130
+                "line": 136
               },
               "literal": {
                 "enum": {

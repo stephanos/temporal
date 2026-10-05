@@ -13,7 +13,7 @@
     "cites": {
       "rejected": [ "chasm/lib/activity/activity.go" ]
     },
-    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:268"
+    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:280"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.pausedIsNotDispatched",
@@ -29,7 +29,7 @@
       "running": "temporal.features.standaloneactivity.Product$.running"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:273"
+    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:285"
   }, {
     "machine": "activityProduct",
     "name": "activityProduct.terminalStatesAreFinal",
@@ -41,7 +41,7 @@
       "terminal": "temporal.features.standaloneactivity.Product$.terminal"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:268"
+    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:280"
   }, {
     "machine": "activityProtocol",
     "name": "activityProtocol.cancelIsRequested",
@@ -51,11 +51,11 @@
       "Cancelable.requestCancel": "control-requestCancel"
     },
     "bindings": {
-      "requestCancel": "temporal.features.standaloneactivity.StandaloneActivity$package.control.apply(temporal.features.standaloneactivity.Control.requestCancel)",
+      "requestCancel": "temporal.features.standaloneactivity.caller.control.apply(temporal.features.standaloneactivity.Control.requestCancel)",
       "requested": "temporal.features.standaloneactivity.ProtocolFact.statusCancelRequested"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:537"
+    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:549"
   }, {
     "machine": "activityProtocol",
     "name": "activityProtocol.terminateSettles",
@@ -65,11 +65,11 @@
       "Terminable.terminate": "control-terminate"
     },
     "bindings": {
-      "terminate": "temporal.features.standaloneactivity.StandaloneActivity$package.control.apply(temporal.features.standaloneactivity.Control.terminate)",
+      "terminate": "temporal.features.standaloneactivity.caller.control.apply(temporal.features.standaloneactivity.Control.terminate)",
       "settled": "temporal.features.standaloneactivity.ProtocolFact.statusTerminated"
     },
     "cites": { },
-    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:531"
+    "position": "model/temporal/features/standaloneactivity/StandaloneActivity.scala:543"
   } ],
   "waivers": [ ],
   "catalog": [ {

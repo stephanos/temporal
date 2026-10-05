@@ -17,7 +17,7 @@ package features.standaloneactivity
 import umpire.*
 import umpire.realize.*
 import umpire.realize.Instruction.{Finish, Hold, Release}
-import temporal.realize.*
+import temporal.realize.{deadline as requestDeadline, *}
 import temporal.realize.WorkerInstruction.{AttemptCanceled, AttemptFailure, Fault}
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus.*
@@ -27,9 +27,9 @@ import temporal.server.api.testpilot.v1.DeliveryAdmissionDecision.*
 
 import ActivityFamily.given
 import Timeout.expires
-import shared.worker.workerStop
+import shared.worker.worker as process
 import Protocol.activityProtocol
-import record.{dispatch, AdmissionFact, AdmissionResponseFact}
+import record.{history, AdmissionFact, AdmissionResponseFact}
 import record.HeldAdmission.heldAdmission
 import record.ResponseLoss.admissionResponseLoss
 
@@ -122,28 +122,28 @@ object ActivityRealization:
   // nothing, so that release's answer would evidence a scheduling that did not happen. So a path
   // that pauses keeps the worker from polling from before the start until the release.
   private val standaloneController = controller(
-    perform(workerStop -> stopWorker),
-    onPath(control(Control.pause))(stopWorkerUntilReleased),
+    perform(process.workerStop -> stopWorker),
+    onPath(caller.control(Control.pause))(stopWorkerUntilReleased),
     perform(
-      start() -> startUnreached,
-      start(Inputs.scheduleToStart := expires) -> startUnreached.withFields {
-        field(_.getScheduleToStartTimeout.seconds) := deadline
+      caller.start() -> startUnreached,
+      caller.start(scheduleToStart := expires) -> startUnreached.withFields {
+        field(_.getScheduleToStartTimeout.seconds) := requestDeadline
       },
-      start(Inputs.startToClose := expires) -> startActivity.withFields {
-        field(_.getStartToCloseTimeout.seconds) := deadline
+      caller.start(startToClose := expires) -> startActivity.withFields {
+        field(_.getStartToCloseTimeout.seconds) := requestDeadline
       }
     ),
-    perform(control(Control.pause) -> pauseActivity),
-    onPath(control(Control.pause))(awaitPaused),
-    perform(control(Control.unpause) -> unpauseActivity),
-    onPath(control(Control.unpause))(resumeWorker),
-    perform(control(Control.requestCancel) -> requestCancelActivity),
-    perform(control(Control.terminate) -> terminateActivity),
-    onPath(attemptResult(AttemptResult.completed))(awaitCompleted),
-    onPath(attemptResult(AttemptResult.failed(false)))(awaitFailed),
-    onPath(attemptResult(AttemptResult.canceled))(awaitCanceled),
-    onPath(control(Control.terminate))(awaitTerminated),
-    onPath(scheduleToClose, scheduleToStart, startToClose)(awaitTimedOut)
+    perform(caller.control(Control.pause) -> pauseActivity),
+    onPath(caller.control(Control.pause))(awaitPaused),
+    perform(caller.control(Control.unpause) -> unpauseActivity),
+    onPath(caller.control(Control.unpause))(resumeWorker),
+    perform(caller.control(Control.requestCancel) -> requestCancelActivity),
+    perform(caller.control(Control.terminate) -> terminateActivity),
+    onPath(worker.attemptResult(AttemptResult.completed))(awaitCompleted),
+    onPath(worker.attemptResult(AttemptResult.failed(false)))(awaitFailed),
+    onPath(worker.attemptResult(AttemptResult.canceled))(awaitCanceled),
+    onPath(caller.control(Control.terminate))(awaitTerminated),
+    onPath(deadline.scheduleToClose, deadline.scheduleToStart, deadline.startToClose)(awaitTimedOut)
   )
 
   // ### The worker
@@ -172,13 +172,14 @@ object ActivityRealization:
   /** The activity's attempts: each delivery to the worker is an attempt start, answered in order. */
   private val attempts = script(
     "activity",
-    WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(attemptStart))
+    WorkerActivation
+      .Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.attemptStart))
   )(
     perform(
-      attemptResult(AttemptResult.completed) -> completeAttempt,
-      attemptResult(AttemptResult.failed(true)) -> failAttempt,
-      attemptResult(AttemptResult.failed(false)) -> failActivity,
-      attemptResult(AttemptResult.canceled) -> cancelAttempt
+      worker.attemptResult(AttemptResult.completed) -> completeAttempt,
+      worker.attemptResult(AttemptResult.failed(true)) -> failAttempt,
+      worker.attemptResult(AttemptResult.failed(false)) -> failActivity,
+      worker.attemptResult(AttemptResult.canceled) -> cancelAttempt
     )
   )
 
@@ -195,7 +196,13 @@ object ActivityRealization:
     scripts = Vector(standaloneController, attempts),
     evidence = Vector(
       answered(ProtocolFact.statusScheduled, startActivity),
-      delivered(ProtocolFact.statusStarted, attempts, 1, startActivity, Taking(attemptStart, 1)),
+      delivered(
+        ProtocolFact.statusStarted,
+        attempts,
+        1,
+        startActivity,
+        Taking(worker.attemptStart, 1)
+      ),
       status(ProtocolFact.statusPaused),
       answered(ProtocolFact.statusCancelRequested, requestCancelActivity),
       status(ProtocolFact.statusCompleted),
@@ -208,14 +215,14 @@ object ActivityRealization:
         attempts,
         2,
         startActivity,
-        Taking(attemptResult(AttemptResult.failed(true)), 1),
-        Taking(attemptStart, 2)
+        Taking(worker.attemptResult(AttemptResult.failed(true)), 1),
+        Taking(worker.attemptStart, 2)
       ),
       answeredAs(
         "statusScheduledAgain",
         ProtocolFact.statusScheduled,
         unpauseActivity,
-        Taking(control(Control.unpause), 1)
+        Taking(caller.control(Control.unpause), 1)
       )
     ),
     // An attempt starts when the server delivers it, a retry waits out its backoff, and a timeout
@@ -224,10 +231,10 @@ object ActivityRealization:
     // statemachine.go:393-420). No start sets a schedule-to-close deadline, so no path waits for that
     // class.
     serverSteps = Vector(
-      ServerStep(attemptStart, CauseKind.delivery),
-      ServerStep(backoff, CauseKind.timer, firstRetryBackoffMs),
-      ServerStep(scheduleToStart, CauseKind.timer, deadlineMs),
-      ServerStep(startToClose, CauseKind.timer, deadlineMs)
+      ServerStep(worker.attemptStart, CauseKind.delivery),
+      ServerStep(timers.backoff, CauseKind.timer, firstRetryBackoffMs),
+      ServerStep(deadline.scheduleToStart, CauseKind.timer, deadlineMs),
+      ServerStep(deadline.startToClose, CauseKind.timer, deadlineMs)
     )
   )
 
@@ -238,7 +245,7 @@ object ActivityRealization:
   // where its environment runs the server, so the canary refuses the Case before any I/O.
 
   private val dispatchHold =
-    Actuator("hold-dispatch", ControlKind.HoldDispatched(dispatch), taskQueue)
+    Actuator("hold-dispatch", ControlKind.HoldDispatched(history.dispatch), taskQueue)
   private val holdDispatch = Hold(dispatchHold)
 
   // The hold lets no dispatch reach admission before the release, and the release records every
@@ -296,10 +303,10 @@ object ActivityRealization:
     scripts = Vector(
       controller(
         everyCase(startUnreached),
-        perform(dispatch -> holdDispatch),
-        perform(control(Control.pause) -> pauseActivity),
-        onPath(control(Control.pause))(awaitPaused),
-        perform(attemptStart -> releaseDispatch)
+        perform(history.dispatch -> holdDispatch),
+        perform(caller.control(Control.pause) -> pauseActivity),
+        onPath(caller.control(Control.pause))(awaitPaused),
+        perform(worker.attemptStart -> releaseDispatch)
       )
     ),
     evidence = Vector(
@@ -319,8 +326,8 @@ object ActivityRealization:
     scripts = Vector(
       controller(
         everyCase(startUnreached),
-        perform(dispatch -> holdDispatch),
-        perform(shared.taskqueue.ackLoss -> loseAdmissionResponse)
+        perform(history.dispatch -> holdDispatch),
+        perform(shared.taskqueue.faults.ackLoss -> loseAdmissionResponse)
       )
     ),
     evidence = Vector(

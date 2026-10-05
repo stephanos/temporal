@@ -1,0 +1,361 @@
+{
+  "source": "model: fixture.sections.Switch$.switch",
+  "types": [ {
+    "name": "fixture.sections.Light",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Sections.scala",
+      "line": 13
+    },
+    "record": {
+      "fields": [ {
+        "name": "on",
+        "type": {
+          "bool": { }
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.sections.Outcome",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Sections.scala",
+      "line": 15
+    },
+    "enum": {
+      "cases": [ {
+        "name": "accepted"
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "fixture.sections.Switch$.flipStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Sections.scala",
+      "line": 32
+    },
+    "params": [ {
+      "name": "l",
+      "type": {
+        "named": "fixture.sections.Light"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Sections.scala",
+        "line": 32
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Sections.scala",
+            "line": 32
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Sections.scala",
+                "line": 32
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.sections.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Sections.scala",
+                "line": 32
+              },
+              "construct": {
+                "type": "fixture.sections.Light",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Sections.scala",
+                    "line": 32
+                  },
+                  "unary": {
+                    "op": "OP_NOT",
+                    "operand": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/Sections.scala",
+                        "line": 32
+                      },
+                      "field": {
+                        "base": {
+                          "position": {
+                            "file": "model/irgen/testdata/lifts/Sections.scala",
+                            "line": 32
+                          },
+                          "var": "l"
+                        },
+                        "field": "on"
+                      }
+                    }
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Sections.scala",
+                "line": 32
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Sections.scala",
+                "line": 32
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.sections.Switch$.pressStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Sections.scala",
+      "line": 33
+    },
+    "params": [ {
+      "name": "l",
+      "type": {
+        "named": "fixture.sections.Light"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Sections.scala",
+        "line": 33
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Sections.scala",
+            "line": 33
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Sections.scala",
+                "line": 33
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.sections.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Sections.scala",
+                "line": 33
+              },
+              "construct": {
+                "type": "fixture.sections.Light",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Sections.scala",
+                    "line": 33
+                  },
+                  "literal": {
+                    "bool": true
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Sections.scala",
+                "line": 33
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Sections.scala",
+                "line": 33
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  }, {
+    "name": "fixture.sections.Switch$.resetStep",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Sections.scala",
+      "line": 34
+    },
+    "params": [ {
+      "name": "l",
+      "type": {
+        "named": "fixture.sections.Light"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Sections.scala",
+        "line": 34
+      },
+      "list": {
+        "items": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Sections.scala",
+            "line": 34
+          },
+          "construct": {
+            "type": "umpire.Step",
+            "args": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Sections.scala",
+                "line": 34
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.sections.Outcome",
+                  "case": "accepted"
+                }
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Sections.scala",
+                "line": 34
+              },
+              "construct": {
+                "type": "fixture.sections.Light",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/Sections.scala",
+                    "line": 34
+                  },
+                  "literal": {
+                    "bool": false
+                  }
+                } ]
+              }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Sections.scala",
+                "line": 34
+              },
+              "list": { }
+            }, {
+              "position": {
+                "file": "model/irgen/testdata/lifts/Sections.scala",
+                "line": 34
+              },
+              "literal": {
+                "text": ""
+              }
+            } ]
+          }
+        } ]
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.sections.Sections$package$.flip",
+    "name": "flip",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Sections.scala",
+      "line": 25
+    },
+    "party": "panel"
+  }, {
+    "id": "fixture.sections.Sections$package$.reset",
+    "name": "reset",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Sections.scala",
+      "line": 21
+    },
+    "party": "system",
+    "internal": true
+  }, {
+    "id": "fixture.sections.Switch$.press",
+    "name": "press",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Sections.scala",
+      "line": 30
+    },
+    "party": "operator"
+  } ],
+  "machines": [ {
+    "family": "fixture.sections",
+    "name": "switch",
+    "position": {
+      "file": "model/irgen/testdata/lifts/Sections.scala",
+      "line": 36
+    },
+    "stateType": "fixture.sections.Light",
+    "outcomeType": "fixture.sections.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Sections.scala",
+        "line": 37
+      },
+      "construct": {
+        "type": "fixture.sections.Light",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Sections.scala",
+            "line": 37
+          },
+          "literal": {
+            "bool": false
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/Sections.scala",
+        "line": 38
+      },
+      "lambda": {
+        "params": [ {
+          "name": "light",
+          "type": {
+            "named": "fixture.sections.Light"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/Sections.scala",
+            "line": 38
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.sections.Sections$package$.flip",
+      "function": "fixture.sections.Switch$.flipStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Sections.scala",
+        "line": 39
+      }
+    }, {
+      "action": "fixture.sections.Switch$.press",
+      "function": "fixture.sections.Switch$.pressStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Sections.scala",
+        "line": 39
+      }
+    }, {
+      "action": "fixture.sections.Sections$package$.reset",
+      "function": "fixture.sections.Switch$.resetStep",
+      "position": {
+        "file": "model/irgen/testdata/lifts/Sections.scala",
+        "line": 39
+      }
+    } ]
+  } ]
+}

@@ -101,7 +101,7 @@ func TestValidateRejectsAStepWithTheWrongArity(t *testing.T) {
 			}
 		}
 	}
-	require.ErrorContains(t, Validate(m), "model/temporal/features/nexuscaller/NexusCaller.scala:460: temporal.features.nexuscaller.Protocol$.effects$.backoffStep "+
+	require.ErrorContains(t, Validate(m), "model/temporal/features/nexuscaller/NexusCaller.scala:466: temporal.features.nexuscaller.Protocol$.effects$.backoffStep "+
 		"steps handlerReply, which has 1 inputs, so it takes the state and 1 arguments, not 0")
 }
 

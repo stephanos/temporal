@@ -158,6 +158,8 @@ class Fixtures extends munit.FunSuite:
     // fn-118.2: API behavior hints and server steps (lifts/Hints.scala). The reader admits the
     // first and refuses each realization of the second at its line (tools/umpire/model).
     "hints" -> Seq("keptBehavior", "ownBehavior").map("fixture.hints.Hints$package$." + _),
+    // fn-126 R14: sections in a file that pins nothing (lifts/Sections.scala).
+    "sections" -> Seq("fixture.sections.Switch$.switch"),
     "hintsRefused" -> Seq(
       "zeroInterval",
       "nonPositiveBound",
@@ -371,7 +373,16 @@ class Fixtures extends munit.FunSuite:
     "ComputedFamily$.familyComputed",
     "Anonymous$.anonymous",
     "ComputedOk$.computedOk"
-  ).map("fixture.rejects." + _) ++ scriptRejects ++ capabilityRejects ++ hintRejects
+  ).map("fixture.rejects." + _) ++ Seq(
+    // fn-126 R14: a section in a section or in an object of no machine, two sections' members of
+    // one name, and a section that pins.
+    "sectionNested",
+    "sectionMisplaced",
+    "sectionTwins",
+    "sectionPinned"
+  ).map(
+    "fixture.rejects.Rejects$package$." + _
+  ) ++ scriptRejects ++ capabilityRejects ++ hintRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
   private lazy val liftsJars = s"$liftsJar=${stored("lifts")},$modelJar=model/"
@@ -845,7 +856,8 @@ class Fixtures extends munit.FunSuite:
   // Captured.scala takes every name from its val, its family from a given, its starts and evidence by
   // default and reads a refinement with no given; expected/captured.json pins its IR. Its one
   // DefinitionScope pins the owner fixture.spelled.Spelled$package$, so its symbol-based Definition
-  // IDs and the names of its top-level types are that owner's, not its own.
+  // IDs and the names of its top-level types are that owner's, not its own, and so are the IDs of
+  // the actions its actor object and sections hold (fn-126 R14).
   test("a DefinitionScope keeps the captured fixture's IDs and type names its former owner's"):
     val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("captured"))
     val owner = "fixture.spelled.Spelled$package$."
@@ -862,9 +874,44 @@ class Fixtures extends munit.FunSuite:
       model.path("monitors").elements().asScala.map(_.path("id").asText()).toList.sorted,
       List("storedOnce", "storedTwice").map(owner + _)
     )
+    // Its actions sit in an actor object and in sections, which are transparent: each takes the ID
+    // the file's pin gives a top-level val of its name, and the actor object names the party.
+    assertEquals(
+      model
+        .path("actions")
+        .elements()
+        .asScala
+        .map(a => a.path("id").asText() -> a.path("party").asText())
+        .toList
+        .sorted,
+      List(
+        "crash" -> "fault",
+        "expire" -> "system",
+        "flush" -> "system",
+        "put" -> "client",
+        "send" -> "client",
+        "wire.deliver" -> "system",
+        "wire.lose" -> "system"
+      ).map((name, party) => (owner + name) -> party)
+    )
     val types = model.path("types").elements().asScala.map(_.path("name").asText()).toList
     assert(types.nonEmpty, "Captured.scala declares no types")
     for name <- types do assert(name.startsWith("fixture.spelled."), s"$name left fixture.spelled")
+
+  // Sections.scala pins nothing: the member of a top-level section takes the ID of the file's
+  // package object, as the file's own top-level action does, and the member of an actor directly in
+  // the machine's object takes that object's (fn-126 R14).
+  test("a section's member takes its owner's ID in a file that pins nothing"):
+    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("sections"))
+    val actions = model
+      .path("actions")
+      .elements()
+      .asScala
+      .map(a => a.path("name").asText() -> (a.path("id").asText(), a.path("party").asText()))
+      .toMap
+    assertEquals(actions("reset"), ("fixture.sections.Sections$package$.reset", "system"))
+    assertEquals(actions("flip"), ("fixture.sections.Sections$package$.flip", "panel"))
+    assertEquals(actions("press"), ("fixture.sections.Switch$.press", "operator"))
 
   /**
    * The machines and Properties of one lift of `roots` of the lifts fixture `fixture`, by name, each
