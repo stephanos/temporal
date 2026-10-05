@@ -54,7 +54,7 @@ val complete = action(handler).on(operation).input(Inputs.resolution)
 enum Outcome derives Finite:
   case accepted, alreadyCompleted
 
-given Accepted[Outcome] = Accepted(Outcome.accepted)
+given Ok[Outcome] = Ok(Outcome.accepted)
 
 /** The statuses DescribeNexusOperationExecution reports: scheduled and started read RUNNING. */
 enum Phase derives Finite:
@@ -84,7 +84,7 @@ object Operation:
 
   def start(s: OperationState): List[OperationStep] =
     if s.phase != unstarted then disabled
-    else accept(OperationState(scheduled, false), statusScheduled)
+    else enter(OperationState(scheduled, false), statusScheduled)
 
   /**
    * TransitionStarted, or a synchronous completion straight from scheduled; a canceled answer settles
@@ -94,19 +94,19 @@ object Operation:
     if s.phase != scheduled then disabled
     else
       r match
-        case Reply.syncSuccess  => accept(s.copy(phase = succeeded), statusSucceeded)
-        case Reply.syncFailure  => accept(s.copy(phase = failed), statusFailed)
-        case Reply.syncCanceled => accept(s.copy(phase = canceled), statusCanceled)
-        case Reply.async        => accept(s.copy(phase = started), statusStarted)
+        case Reply.syncSuccess  => enter(s.copy(phase = succeeded), statusSucceeded)
+        case Reply.syncFailure  => enter(s.copy(phase = failed), statusFailed)
+        case Reply.syncCanceled => enter(s.copy(phase = canceled), statusCanceled)
+        case Reply.async        => enter(s.copy(phase = started), statusStarted)
 
   /** An async operation's completion; a canceled failure settles it canceled. */
   def complete(s: OperationState, r: Resolution): List[OperationStep] =
     if s.phase != started then disabled
     else
       r match
-        case Resolution.succeeded => accept(s.copy(phase = succeeded), statusSucceeded)
-        case Resolution.failed    => accept(s.copy(phase = failed), statusFailed)
-        case Resolution.canceled  => accept(s.copy(phase = canceled), statusCanceled)
+        case Resolution.succeeded => enter(s.copy(phase = succeeded), statusSucceeded)
+        case Resolution.failed    => enter(s.copy(phase = failed), statusFailed)
+        case Resolution.canceled  => enter(s.copy(phase = canceled), statusCanceled)
 
   /**
    * RequestCancel records the request and leaves the operation live: it is sent to the handler
@@ -117,7 +117,7 @@ object Operation:
     if s.phase == unstarted then disabled
     else if s.cancelRequested then repeated(s)
     else if terminal(s.phase) then closed(s)
-    else accept(s.copy(cancelRequested = true), statusCancelRequested)
+    else enter(s.copy(cancelRequested = true), statusCancelRequested)
 
   /**
    * Terminate settles a live operation terminated (TransitionTerminated); a repeated terminate of a
@@ -128,7 +128,7 @@ object Operation:
     if s.phase == unstarted then disabled
     else if s.phase == terminated then repeated(s)
     else if terminal(s.phase) then closed(s)
-    else accept(s.copy(phase = terminated), statusTerminated)
+    else enter(s.copy(phase = terminated), statusTerminated)
 
 val nexusOperation = machine[OperationState, Outcome, OperationFact] {
   forEntity(operation)

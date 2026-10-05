@@ -33,7 +33,7 @@ private[check] object SyntaxRule:
     "implies",
     "in",
     "records",
-    "accept",
+    "enter",
     "stay",
     "disabled",
     "once",

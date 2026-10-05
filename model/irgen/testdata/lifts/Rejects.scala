@@ -533,12 +533,12 @@ val aliasFirst: Machine[Lamp, Outcome, Nothing] = aliasSecond
 val aliasSecond: Machine[Lamp, Outcome, Nothing] = aliasFirst
 val aliased = compose[Lamps](_.left -> aliasFirst, _.right -> oneStart)
 
-given Accepted[Outcome] = Accepted(Outcome.accepted)
+given Ok[Outcome] = Ok(Outcome.accepted)
 
 /** `in` over a list passed whole, which names no members. */
 val lit = List(true)
 def litStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] =
-  if l.lit.in(false, lit*) then accept(Lamp(true)) else disabled
+  if l.lit.in(false, lit*) then enter(Lamp(true)) else disabled
 val splatted = machine[Lamp, Outcome, Nothing] {
   starts(Lamp(false))
   ends(_ => true)
@@ -553,12 +553,12 @@ val explained = machine[Lamp, Outcome, Nothing] {
   steps(flip ~> explainedStep)
 }
 
-/** An accepted outcome a helper function computes, which `accept` cannot read. */
-object ComputedAccepted:
-  def acceptedOf(o: Outcome): Accepted[Outcome] = Accepted(o)
-  given Accepted[Outcome] = acceptedOf(Outcome.accepted)
-  def computedStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = accept(Lamp(!l.lit))
-  val computedAccept = machine[Lamp, Outcome, Nothing] {
+/** An ok outcome a helper function computes, which `enter` cannot read. */
+object ComputedOk:
+  def okOf(o: Outcome): Ok[Outcome] = Ok(o)
+  given Ok[Outcome] = okOf(Outcome.accepted)
+  def computedStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = enter(Lamp(!l.lit))
+  val computedOk = machine[Lamp, Outcome, Nothing] {
     starts(Lamp(false))
     ends(_ => true)
     steps(flip ~> computedStep)
@@ -682,9 +682,9 @@ def flipWatch: Monitor[Flag, Outcome, Nothing, Boolean] =
 val watchUnnamed: Query = (query verify flips in secondFlips limits one).expect(
   umpire.realize.RunExpectation(
     umpire.realize.Conformance.conformant,
-    umpire.realize.Outcome.satisfied,
+    umpire.realize.PropertyOutcome.satisfied,
     monitors =
-      Vector(umpire.realize.MonitorExpectation(flipWatch, umpire.realize.Outcome.satisfied))
+      Vector(umpire.realize.MonitorExpectation(flipWatch, umpire.realize.PropertyOutcome.satisfied))
   )
 )
 
@@ -694,9 +694,9 @@ val unwatched: Monitor[Flag, Outcome, Nothing, Boolean] =
 val watchUnwatched: Query = (query verify flips in secondFlips limits one).expect(
   umpire.realize.RunExpectation(
     umpire.realize.Conformance.conformant,
-    umpire.realize.Outcome.satisfied,
+    umpire.realize.PropertyOutcome.satisfied,
     monitors =
-      Vector(umpire.realize.MonitorExpectation(unwatched, umpire.realize.Outcome.satisfied))
+      Vector(umpire.realize.MonitorExpectation(unwatched, umpire.realize.PropertyOutcome.satisfied))
   )
 )
 
@@ -722,9 +722,10 @@ val watchElsewhere: Vector[Query] = Vector(
   (query("watchedHere") verify flips in secondFlips limits one total 2).expect(
     umpire.realize.RunExpectation(
       umpire.realize.Conformance.conformant,
-      umpire.realize.Outcome.satisfied,
-      monitors =
-        Vector(umpire.realize.MonitorExpectation(elsewhereWatch, umpire.realize.Outcome.satisfied))
+      umpire.realize.PropertyOutcome.satisfied,
+      monitors = Vector(
+        umpire.realize.MonitorExpectation(elsewhereWatch, umpire.realize.PropertyOutcome.satisfied)
+      )
     )
   )
 )
@@ -913,7 +914,7 @@ object Elsewhere:
 
 /** One token naming two alternatives. */
 def chosenTwiceStep(l: Lamp): List[LampStep] =
-  choose(lampOn -> stay(l), lampOn -> accept(Lamp(!l.lit)))
+  choose(lampOn -> stay(l), lampOn -> enter(Lamp(!l.lit)))
 val chosenTwice = machine[Lamp, Outcome, Nothing] {
   starts(Lamp(false))
   ends(_ => true)
@@ -922,7 +923,7 @@ val chosenTwice = machine[Lamp, Outcome, Nothing] {
 
 /** Two tokens whose vals have one simple name. */
 def spelledTwiceStep(l: Lamp): List[LampStep] =
-  choose(lampOn -> stay(l), Elsewhere.lampOn -> accept(Lamp(!l.lit)))
+  choose(lampOn -> stay(l), Elsewhere.lampOn -> enter(Lamp(!l.lit)))
 val spelledTwice = machine[Lamp, Outcome, Nothing] {
   starts(Lamp(false))
   ends(_ => true)
@@ -940,7 +941,7 @@ val choiceHelper = machine[Lamp, Outcome, Nothing] {
 
 /** An alternative with no step. */
 def choiceDisabledStep(l: Lamp): List[LampStep] =
-  choose(lampOn -> accept(Lamp(true)), lampOff -> disabled)
+  choose(lampOn -> enter(Lamp(true)), lampOff -> disabled)
 val choiceDisabled = machine[Lamp, Outcome, Nothing] {
   starts(Lamp(false))
   ends(_ => true)
@@ -960,7 +961,7 @@ val choiceTwoSteps = machine[Lamp, Outcome, Nothing] {
 
 /** An alternative that is a conditional. */
 def choiceIfStep(l: Lamp): List[LampStep] = choose(
-  lampOn -> (if l.lit then stay(l) else accept(Lamp(true))),
+  lampOn -> (if l.lit then stay(l) else enter(Lamp(true))),
   lampOff -> stay(l)
 )
 val choiceIf = machine[Lamp, Outcome, Nothing] {
@@ -971,7 +972,7 @@ val choiceIf = machine[Lamp, Outcome, Nothing] {
 
 /** Choice tokens no val declares, so they have no name. */
 def choiceUnnamedStep(l: Lamp): List[LampStep] =
-  choose(choice -> stay(l), choice -> accept(Lamp(true)))
+  choose(choice -> stay(l), choice -> enter(Lamp(true)))
 val choiceUnnamed = machine[Lamp, Outcome, Nothing] {
   starts(Lamp(false))
   ends(_ => true)
@@ -1020,11 +1021,11 @@ val movedNameTaken = machine[Gauges, Outcome, Nothing] {
 // ### Functions a choose calls, and unnamed branching (fn-120.2)
 
 /** A function a choose calls that gives two steps, each named already. */
-def lampBothStep(l: Lamp): List[LampStep] = choose(lampOn -> stay(l), lampOff -> accept(Lamp(true)))
+def lampBothStep(l: Lamp): List[LampStep] = choose(lampOn -> stay(l), lampOff -> enter(Lamp(true)))
 
 /** A function a choose calls that gives a step it keeps in a val, not one written out. */
 def lampKeptStep(l: Lamp): List[LampStep] =
-  val kept = accept(Lamp(!l.lit))
+  val kept = enter(Lamp(!l.lit))
   if l.lit then kept else disabled
 def choiceKeptHelperStep(l: Lamp): List[LampStep] =
   choose(lampOn -> lampKeptStep(l), lampOff -> stay(l))

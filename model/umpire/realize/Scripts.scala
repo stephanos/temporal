@@ -1,11 +1,12 @@
 /* The script helpers: what a realization's scripts say, written as steps rather than records.
  *
- * A step is a command every Case carries (`always`), a command only the Cases whose path takes one
- * of some classes carry (`onPath`), or the place where a path's steps of the classes it binds land,
- * in path order (`perform`). A command is a `val`, named after it in kebab case (`val pauseOrder`
- * is the command `pause-order`), and other declarations refer to it by value: an instruction
- * stands for the command with no options, and `command(instruction, …)` is one with options. A call
- * opens a scope with its request type fixed, and the request's fields are assigned inside it.
+ * A step is a command every Case carries (`everyCase`), a command only the Cases whose path takes
+ * one of some classes carry (`onPath`), or the place where a path's steps of the classes it binds
+ * land, in path order (`perform`). A command is a `val`, named after it in kebab case
+ * (`val pauseOrder` is the command `pause-order`), and other declarations refer to it by value: an
+ * instruction stands for the command with no options, and `command(instruction, …)` is one with
+ * options. A call opens a scope with its request type fixed, and the request's fields are assigned
+ * inside it.
  *
  * Each helper is core: it writes the IR record its scaladoc names (Script, Item, Performance,
  * Command, Rpc, Poll), which the IR generator writes by name (model/irgen/Realizations.scala). No
@@ -45,7 +46,7 @@ def onPath(classes: ClassRef*)(command: Command | Instruction): Item =
   Item(command = Some(commanded(command)), when = classes.toVector)
 
 /** A command every Case carries. IR: an Item of `command`. */
-def always(command: Command | Instruction): Item = Item(command = Some(commanded(command)))
+def everyCase(command: Command | Instruction): Item = Item(command = Some(commanded(command)))
 
 /**
  * A command with options, named after the `val` that declares it: the commands it runs `after`, a
@@ -65,8 +66,8 @@ private def commanded(c: Command | Instruction): Command = c match
   case i: Instruction => Command("", i)
 
 /**
- * The scope a call opens for its request of type `Req`: inside `rpc(…) { … }` or `poll(…) { … }`
- * each line assigns one field of that request. Core form of a line:
+ * The scope a call opens for its request of type `Req`: inside `rpc(…) { … }` or
+ * `readUntil(…) { … }` each line assigns one field of that request. Core form of a line:
  * `Assignment.typed(Field[Req, V](_.name), operand)`.
  */
 final class RequestScope[Req] private[realize] ()
@@ -83,10 +84,10 @@ def rpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
   new Instruction.TypedRpc(role, method, Vector.empty, Vector.empty)
 
 /**
- * Polls the read `evidence` names on `role` every `intervalMs` until an element satisfies `until`,
- * its request's fields assigned in the scope it opens. IR: Poll.
+ * Reads what `evidence` names on `role` every `intervalMs` until an element satisfies `until`, its
+ * request's fields assigned in the scope it opens. IR: Poll.
  */
-def poll[Req, Projected](
+def readUntil[Req, Projected](
     evidence: EvidenceRef[Req, Projected],
     role: String | Addressee,
     until: Condition[Projected],
@@ -101,7 +102,7 @@ extension [Req <: GeneratedMessage, Rsp <: GeneratedMessage](call: Instruction.T
    * class of an action adds. It keeps the call's command name. IR: the Rpc with the assignments
    * appended.
    */
-  def setting(assign: RequestScope[Req] ?=> Unit): Instruction.TypedRpc[Req, Rsp] =
+  def withFields(assign: RequestScope[Req] ?=> Unit): Instruction.TypedRpc[Req, Rsp] =
     assign(using RequestScope())
     call
 

@@ -553,7 +553,7 @@ private[irgen] trait Realizations:
                 args.map(Bound(_, b.env))
               )
             )
-          case Some((fn, args)) if factory(fn, "Instruction", "poll") =>
+          case Some((fn, args)) if factory(fn, "Instruction", "readUntil") =>
             (
               "Poll",
               List("evidence", "role", "assign", "until", "intervalMs")
@@ -1108,8 +1108,8 @@ private[irgen] trait Realizations:
             "when" -> atLeastOne(classes, "onPath", "class whose path carries the command")
           )
         )
-      case (_, Some(("always", List(command)))) => ("Item", List("command" -> bound(command)))
-      case (_, Some((other, _)))                =>
+      case (_, Some(("everyCase", List(command)))) => ("Item", List("command" -> bound(command)))
+      case (_, Some((other, _)))                   =>
         fail(b.term, s"$other is no script declaration: write it where a script step is")
       case _ => fail(b.term, s"not a script declaration: ${b.term.show}")
 
@@ -1218,7 +1218,7 @@ private[irgen] trait Realizations:
 
   /**
    * The id of a command: the one it is written out with, or the name of the `val` that declares it
-   * in kebab case. A call with fields `setting` adds keeps the name of the call it extends.
+   * in kebab case. A call with fields `withFields` adds keeps the name of the call it extends.
    */
   def commandName(b0: Bound): String =
     val b = follow(b0)
@@ -1230,12 +1230,12 @@ private[irgen] trait Realizations:
           val sym = r.symbol
           val d = valDef(sym, r, "a command")
           scriptCall(follow(Bound(d.rhs.get, Map.empty)).term) match
-            case Some(("setting", base :: _)) => commandName(Bound(base, Map.empty))
-            case _                            => kebab(capturedName(sym, d, "a command"))
+            case Some(("withFields", base :: _)) => commandName(Bound(base, Map.empty))
+            case _                               => kebab(capturedName(sym, d, "a command"))
         case t =>
           scriptCall(t) match
-            case Some(("setting", base :: _)) => commandName(Bound(base, b.env))
-            case _                            =>
+            case Some(("withFields", base :: _)) => commandName(Bound(base, b.env))
+            case _                               =>
               fail(
                 t,
                 "a command is named after the val that declares it: declare it as a val and " +
@@ -1245,7 +1245,7 @@ private[irgen] trait Realizations:
   /**
    * A command: one written out, `Command(id, instruction, …)`, under its id; otherwise an instruction
    * or `command(instruction, …)`, named after its val. Either way an instruction written in the
-   * scope of a call, `rpc`, `poll` or `setting`, is read as the call it is.
+   * scope of a call, `rpc`, `readUntil` or `withFields`, is read as the call it is.
    */
   private def commandValue(b0: Bound, d: Descriptor): PMessage =
     val b = reduce(b0)
@@ -1267,10 +1267,10 @@ private[irgen] trait Realizations:
           case _ => (b, Nil)
     val i = reduce(instruction)
     scriptCall(i.term) match
-      case Some(("rpc" | "setting", _)) =>
+      case Some(("rpc" | "withFields", _)) =>
         val f = irField(d, "rpc", i.term)
         m.set(f, rpcValue(i, irMessage(f, i.term)))
-      case Some(("poll", _)) =>
+      case Some(("readUntil", _)) =>
         val f = irField(d, "poll", i.term)
         m.set(f, pollValue(i, irMessage(f, i.term)))
       case Some((other, _)) => fail(i.term, s"$other is no instruction")
@@ -1279,15 +1279,15 @@ private[irgen] trait Realizations:
     m.set(irField(d, "position", b.term), pos(b.term).toPMessage)
     m.written
 
-  /** A call written with `rpc(role, method) { … }`, and the fields `setting` adds to it. */
+  /** A call written with `rpc(role, method) { … }`, and the fields `withFields` adds to it. */
   private def rpcValue(b: Bound, d: Descriptor): PMessage =
     def call(c: Bound): (Bound, Bound, List[PMessage]) = scriptCall(c.term) match
       case Some(("rpc", List(role, method, assign))) =>
         (Bound(role, c.env), Bound(method, c.env), scoped(Bound(assign, c.env), d))
-      case Some(("setting", List(base, assign))) =>
+      case Some(("withFields", List(base, assign))) =>
         val (role, method, assigned) = call(reduce(Bound(base, c.env)))
         (role, method, assigned ++ scoped(Bound(assign, c.env), d))
-      case _ => fail(c.term, "setting extends a call written `rpc(role, method) { ... }`")
+      case _ => fail(c.term, "withFields extends a call written `rpc(role, method) { ... }`")
     val (role, method, assigned) = call(b)
     PMessage(
       Map(
@@ -1298,9 +1298,9 @@ private[irgen] trait Realizations:
       )
     )
 
-  /** A read written with `poll(evidence, role, until, intervalMs) { … }`. */
+  /** A read written with `readUntil(evidence, role, until, intervalMs) { … }`. */
   private def pollValue(b: Bound, d: Descriptor): PMessage = scriptCall(b.term) match
-    case Some(("poll", List(evidence, role, until, interval, assign))) =>
+    case Some(("readUntil", List(evidence, role, until, interval, assign))) =>
       val assigned = scoped(Bound(assign, b.env), d)
       def value(name: String, a: Term) =
         irField(d, name, b.term) -> valueOf(irField(d, name, b.term), Bound(a, b.env))
@@ -1315,7 +1315,7 @@ private[irgen] trait Realizations:
             irField(d, "assign", b.term) -> PRepeated(assigned.toVector)
           )
       )
-    case _ => fail(b.term, "expected a poll")
+    case _ => fail(b.term, "expected a readUntil")
 
   private def passedOn(b: Bound): Boolean = follow(b).term match
     case Block(List(_: DefDef), _: Closure) => true

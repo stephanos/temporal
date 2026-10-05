@@ -21,15 +21,15 @@ class SyntaxRuleSuite extends munit.FunSuite:
     """/* Sugar of the framework. */
       |package umpire
       |
-      |/** The accepted outcome of a machine. Core form: the outcome itself, `Outcome.accepted`. */
-      |final case class Accepted[O](outcome: O)
+      |/** The ok outcome of a machine. Core form: the outcome itself, `Outcome.accepted`. */
+      |final case class Ok[O](outcome: O)
       |
       |/**
-      | * One step with the accepted outcome. Core form:
+      | * One step with the ok outcome. Core form:
       | * `List(Step(Outcome.accepted, state, List(facts*)))`.
       | */
-      |def accept[S, O, F](state: S, facts: F*)(using accepted: Accepted[O]): List[Step[S, O, F]] =
-      |  List(Step(accepted.outcome, state, facts.toList))
+      |def enter[S, O, F](state: S, facts: F*)(using ok: Ok[O]): List[Step[S, O, F]] =
+      |  List(Step(ok.outcome, state, facts.toList))
       |
       |/** No step. Core form: `Nil`. */
       |val disabled: List[Nothing] = Nil
@@ -64,7 +64,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
     val source =
       """package umpire
         |
-        |def accept(n: Int): Int = n
+        |def enter(n: Int): Int = n
         |
         |/** One step: what it means, without its core spelling. */
         |def stay(n: Int): Int = n
@@ -89,7 +89,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
       found.map(_.takeWhile(_ != ' ')),
       Vector(3, 6, 9, 13, 18, 20, 21).map(line => s"model/temporal/realize/Syntax.scala:$line:")
     )
-    assert(found.head.contains("`accept` in a Syntax.scala has no scaladoc"), found.head)
+    assert(found.head.contains("`enter` in a Syntax.scala has no scaladoc"), found.head)
     assert(
       found(1).contains("the scaladoc of `stay` in a Syntax.scala names no core form"),
       found(1)
@@ -186,7 +186,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
       """package umpire
         |
         |final class QueryOn[P] private[umpire] (name: String, p: Property[P]):
-        |  /** The scenario clause: `query find p in s`. Sugar words in a doc: accept, implies. */
+        |  /** The scenario clause: `query find p in s`. Sugar words in a doc: enter, implies. */
         |  infix def in[S](s: Scenario[S]): QueryIn = QueryIn(name, p.decl, s.decl)
         |
         |final class Progress[S] private[umpire] (
@@ -205,7 +205,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |  case never, once, twice
         |
         |// def implies(a: Boolean, b: Boolean) = !a || b
-        |val text = "def accept(s: S) = s"
+        |val text = "def enter(s: S) = s"
         |
         |def providerQueries(m: Machine): Vector[Query] =
         |  val stays = m.property("committedStays") holdsAcross committedStays
@@ -255,7 +255,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |
         |import umpire.{
         |  Step,
-        |  accept
+        |  enter
         |}
         |import umpire.Syntax$package.*
         |
@@ -273,7 +273,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
         "model/irgen/Lifting.scala:4: syntax rule: a core file imports the sugar of " +
           "model/irgen/Syntax.scala (`Syntax`): remove the import and write the core form",
         "model/umpire/Core.scala:3: syntax rule: a core file imports the sugar of " +
-          "model/umpire/Syntax.scala (`accept`): remove the import and write the core form",
+          "model/umpire/Syntax.scala (`enter`): remove the import and write the core form",
         "model/umpire/Core.scala:7: syntax rule: a core file imports the sugar of " +
           "model/umpire/Syntax.scala (`Syntax$package`): remove the import and write the core form"
       )
@@ -285,10 +285,10 @@ class SyntaxRuleSuite extends munit.FunSuite:
     val core =
       """package umpire
         |
-        |/** Doc comments may say `accept(s)` and `a implies b`. */
-        |def step[S](s: S)(using Accepted[String]): List[Step[S, String, Nothing]] =
-        |  val accepted = "accept"
-        |  if s.isInstanceOf[Int] implies true then accept(s) else disabled
+        |/** Doc comments may say `enter(s)` and `a implies b`. */
+        |def step[S](s: S)(using Ok[String]): List[Step[S, String, Nothing]] =
+        |  val entered = "enter"
+        |  if s.isInstanceOf[Int] implies true then enter(s) else disabled
         |
         |final class QueryOn[P](name: String):
         |  infix def in[S](s: Scenario[S]): QueryIn = QueryIn(name, s)
@@ -302,7 +302,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
     )
     assertEquals(
       found.map(_.replaceAll(".*uses `([^`]+)`.*", "$1")),
-      Vector("Accepted", "implies", "accept", "disabled")
+      Vector("Ok", "implies", "enter", "disabled")
     )
     assert(found.head.contains("sugar defined in model/umpire/Syntax.scala"), found.head)
 

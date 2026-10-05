@@ -298,8 +298,8 @@ object NexusRealization:
   private def callerController(steps: Item*) = controller(
     (Vector(
       perform(workerStop -> stopHandlerWorker),
-      always(startWorkflow),
-      always(awaitScheduled)
+      everyCase(startWorkflow),
+      everyCase(awaitScheduled)
     ) ++ steps ++ Vector(
       onPath(handlerReply(Reply.handlerError(true)))(pendingAttempts),
       onPath(complete(Resolution.succeeded), complete(Resolution.failed))(
@@ -309,8 +309,8 @@ object NexusRealization:
         complete(Resolution.succeeded) -> completeNexusOperation,
         complete(Resolution.failed) -> failNexusOperation
       ),
-      always(awaitClose),
-      always(history)
+      everyCase(awaitClose),
+      everyCase(history)
     ))*
   )
 
@@ -406,7 +406,7 @@ object NexusRealization:
         schedule(Inputs.scheduleToStart := expires),
         schedule(Inputs.startToClose := expires)
       )(awaitNexusOperation),
-      always(finishWorkflow)
+      everyCase(finishWorkflow)
     )
 
   // ### The handler

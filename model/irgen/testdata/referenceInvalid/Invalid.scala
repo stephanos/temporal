@@ -32,8 +32,8 @@ val started = Evidence.keyed(
 )
 val startNexusOperation = Command("start-nexus-operation", AwaitLearned(completionAuthority.id))
 
-val stepByValue = always(startWorkflow)
-val stepMisspelled = always(startWorkfow)
+val stepByValue = everyCase(startWorkflow)
+val stepMisspelled = everyCase(startWorkfow)
 val performedByValue = perform(start -> startWorkflow)
 val performedMisspelled = perform(start -> startWorkfow)
 val learnedByValue = AwaitLearned(completionAuthority.id)

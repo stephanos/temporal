@@ -75,23 +75,23 @@ object Admission:
     s.copy(phase = AdmissionPhase.started, active = oneMore(s.active), answer = Answer.owed)
 
   def dispatch(s: AdmissionState) =
-    if s.phase != AdmissionPhase.scheduled then disabled else accept(s, dispatchSent)
+    if s.phase != AdmissionPhase.scheduled then disabled else enter(s, dispatchSent)
 
   /** A pause keeps whatever message is in flight: nothing recalls it. */
   def control(s: AdmissionState, c: Control) = c match
     case Control.pause =>
       s.phase match
-        case AdmissionPhase.scheduled => accept(s.copy(phase = AdmissionPhase.paused), statusPaused)
+        case AdmissionPhase.scheduled => enter(s.copy(phase = AdmissionPhase.paused), statusPaused)
         case AdmissionPhase.started   =>
-          accept(s.copy(phase = AdmissionPhase.pausedWhileHeld), statusPaused)
+          enter(s.copy(phase = AdmissionPhase.pausedWhileHeld), statusPaused)
         case AdmissionPhase.paused | AdmissionPhase.pausedWhileHeld => disabled // already paused
         case AdmissionPhase.completed | AdmissionPhase.timedOut     => disabled // over
     case Control.unpause | Control.requestCancel | Control.terminate => disabled // out of scope
 
   /** Its durable update commits or fails; a failed commit owes no answer, so its delivery stays. */
   def admitted(s: AdmissionState) = choose(
-    admissionCommits -> accept(admit(s), statusStarted, attemptAdmitted),
-    admissionCommitFails -> accept(s, admissionCommitFailed)
+    admissionCommits -> enter(admit(s), statusStarted, attemptAdmitted),
+    admissionCommitFails -> enter(s, admissionCommitFailed)
       .because("the durable update fails: nothing is admitted and the message stays deliverable")
   )
 
@@ -101,25 +101,25 @@ object Admission:
    */
   def admitCurrent(s: AdmissionState) =
     if s.phase == AdmissionPhase.scheduled then admitted(s)
-    else accept(s.copy(answer = Answer.owed), admissionRejected)
+    else enter(s.copy(answer = Answer.owed), admissionRejected)
 
   /** The deliberately faulty design: admission trusts the eligibility the message was sent with. */
   def admitStale(s: AdmissionState) = admitted(s)
 
   /** Admission as the corrected design decides it, with no failure of its durable update. */
   def admitHeld(s: AdmissionState) =
-    if s.phase == AdmissionPhase.scheduled then accept(admit(s), statusStarted, attemptAdmitted)
-    else accept(s.copy(answer = Answer.owed), admissionRejected)
+    if s.phase == AdmissionPhase.scheduled then enter(admit(s), statusStarted, attemptAdmitted)
+    else enter(s.copy(answer = Answer.owed), admissionRejected)
 
   def answerDelivery(s: AdmissionState) =
     if s.answer != Answer.owed then disabled
-    else accept(s.copy(answer = Answer.settled), deliveryAnswered)
+    else enter(s.copy(answer = Answer.settled), deliveryAnswered)
 
   def attemptResult(s: AdmissionState, r: AttemptResult) = r match
     case AttemptResult.completed =>
       if s.phase != AdmissionPhase.started then disabled
       else
-        accept(
+        enter(
           s.copy(phase = AdmissionPhase.completed, active = oneLess(s.active)),
           statusCompleted
         )
@@ -135,7 +135,7 @@ object Admission:
     if terminal(s.phase) then disabled else timeOut(s, TimeoutType.scheduleToClose)
 
   def timeOut(s: AdmissionState, t: TimeoutType) =
-    accept(s.copy(phase = AdmissionPhase.timedOut, active = Active.none), statusTimedOut(t))
+    enter(s.copy(phase = AdmissionPhase.timedOut, active = Active.none), statusTimedOut(t))
 
   def productOf(s: AdmissionState) = s.phase match
     case AdmissionPhase.scheduled => ProductState(ProductPhase.scheduled)
@@ -248,17 +248,17 @@ val failedThenLost = choice
 
 object ResponseLoss:
   def dispatch(s: AdmissionResponseState) =
-    if !s.lossAvailable then disabled else accept(s, AdmissionResponseFact.dispatchSent)
+    if !s.lossAvailable then disabled else enter(s, AdmissionResponseFact.dispatchSent)
 
   def ackLoss(s: AdmissionResponseState) =
     if !s.lossAvailable then disabled
     else
       choose(
-        committedThenLost -> accept(
+        committedThenLost -> enter(
           AdmissionResponseState(Admission.admit(s.record), false),
           AdmissionResponseFact.attemptAdmitted
         ),
-        failedThenLost -> accept(s.copy(lossAvailable = false))
+        failedThenLost -> enter(s.copy(lossAvailable = false))
           .because("the durable update failed before its answer was lost")
       )
 

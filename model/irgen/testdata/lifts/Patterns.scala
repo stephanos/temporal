@@ -20,7 +20,7 @@ final case class Job(phase: Phase, active: Active) derives Finite
 enum Outcome derives Finite:
   case accepted
 
-given Accepted[Outcome] = Accepted(Outcome.accepted)
+given Ok[Outcome] = Ok(Outcome.accepted)
 
 enum Fact derives Finite:
   case started, paused, finished, released
@@ -32,12 +32,12 @@ val finish = action(Party("worker"))
 type JobStep = Step[Job, Outcome, Fact]
 
 def startStep(j: Job): List[JobStep] =
-  if j.phase == Phase.idle then accept(Job(Phase.running, Active.one), Fact.started) else disabled
+  if j.phase == Phase.idle then enter(Job(Phase.running, Active.one), Fact.started) else disabled
 def pauseStep(j: Job): List[JobStep] =
-  if j.phase == Phase.running then accept(j.copy(phase = Phase.paused), Fact.paused) else disabled
+  if j.phase == Phase.running then enter(j.copy(phase = Phase.paused), Fact.paused) else disabled
 def finishStep(j: Job): List[JobStep] =
   if j.phase.in(Phase.running, Phase.paused) then
-    accept(Job(Phase.done, Active.none), Fact.finished, Fact.released)
+    enter(Job(Phase.done, Active.none), Fact.finished, Fact.released)
   else disabled
 
 val job = machine[Job, Outcome, Fact] {
@@ -53,7 +53,7 @@ enum LampFact derives Finite:
 
 val flip = action(Party("user"))
 
-def flipStep(l: Lamp): List[Step[Lamp, Outcome, LampFact]] = accept(Lamp(!l.lit), LampFact.flipped)
+def flipStep(l: Lamp): List[Step[Lamp, Outcome, LampFact]] = enter(Lamp(!l.lit), LampFact.flipped)
 
 val lamp = machine[Lamp, Outcome, LampFact] {
   starts(Lamp(false))

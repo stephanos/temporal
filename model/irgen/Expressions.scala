@@ -277,7 +277,7 @@ private[irgen] trait Expressions:
     // A step made where no step function is: the expression is at the wrong level.
     case _: Apply if makesSteps(t.tpe) && !making._1 => wrongLevel(t)
 
-    // `accept`, `stay`, `disabled`, `in`, `implies` and `records`, as their core forms lift.
+    // `enter`, `stay`, `disabled`, `in`, `implies` and `records`, as their core forms lift.
     case _ if sugared(t) => sugar(t)
 
     // The arguments a varargs parameter collects: the list they make.
@@ -477,13 +477,13 @@ private[irgen] trait Expressions:
       fail(
         at,
         "because explains the steps a step function writes out and does not explain, such as " +
-          "`accept(...)` or `List(Step(...))`: give each other step its explanation where it is written"
+          "`enter(...)` or `List(Step(...))`: give each other step its explanation where it is written"
       )
     steps.withList(ir.ListOf(explained.flatten))
 
   /**
    * The step of each alternative of a choose, in the order written, named after its token's val. An
-   * alternative has its choose's type, so each lifts as the step function's steps do, `accept`,
+   * alternative has its choose's type, so each lifts as the step function's steps do, `enter`,
    * `stay`, `List(Step(...))` and `because` included, and must give one step written out, or call a
    * function of the lifted sources that gives at most one: the call is then to a copy of that
    * function whose every step is named (`namedCopy`).
@@ -514,7 +514,7 @@ private[irgen] trait Expressions:
         fail(
           a,
           s"the alternative ${token.name} of a choose is not one step written out: write its " +
-            "step itself, as `accept(...)`, `stay(s)` or `List(Step(...))`, one per alternative, " +
+            "step itself, as `enter(...)`, `stay(s)` or `List(Step(...))`, one per alternative, " +
             "or call a function that gives at most one"
         )
       )

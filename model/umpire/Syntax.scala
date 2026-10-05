@@ -7,25 +7,25 @@ package umpire
 import scala.annotation.{targetName, unused}
 
 /**
- * The outcome `accept` and `stay` answer for a machine whose outcomes are `O`, declared once beside
- * the outcome type: `given Accepted[Outcome] = Accepted(Outcome.accepted)`. Core form: the outcome
- * itself, `Outcome.accepted`, written in each `Step`.
+ * The outcome `enter` and `stay` answer for a machine whose outcomes are `O`, declared once beside
+ * the outcome type: `given Ok[Outcome] = Ok(Outcome.accepted)`. Core form: the outcome itself,
+ * `Outcome.accepted`, written in each `Step`.
  */
-final case class Accepted[O](outcome: O)
+final case class Ok[O](outcome: O)
 
 /**
- * One step with the accepted outcome into `state`, recording `facts`. Core form:
+ * One step with the ok outcome into `state`, recording `facts`. Core form:
  * `List(Step(Outcome.accepted, state, List(facts*)))`.
  */
-def accept[S, O, F](state: S, facts: F*)(using accepted: Accepted[O]): List[Step[S, O, F]] =
-  List(Step(accepted.outcome, state, facts.toList))
+def enter[S, O, F](state: S, facts: F*)(using ok: Ok[O]): List[Step[S, O, F]] =
+  List(Step(ok.outcome, state, facts.toList))
 
 /**
- * One step with the accepted outcome that keeps the state and records nothing. Core form:
+ * One step with the ok outcome that keeps the state and records nothing. Core form:
  * `List(Step(Outcome.accepted, s))`.
  */
-def stay[S, O, F](s: S)(using accepted: Accepted[O]): List[Step[S, O, F]] =
-  List(Step(accepted.outcome, s))
+def stay[S, O, F](s: S)(using ok: Ok[O]): List[Step[S, O, F]] =
+  List(Step(ok.outcome, s))
 
 /** No step: the action is disabled here. Core form: `Nil`. */
 val disabled: List[Nothing] = Nil
