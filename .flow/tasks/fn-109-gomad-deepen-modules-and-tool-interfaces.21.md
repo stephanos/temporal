@@ -66,6 +66,15 @@ Task42 owns the single FactKind exhaustive finding in compatibilitypack Selectio
 
 ### Target lint corrective ownership
 
+Task43 supplies R21's separately admitted five-import policy correction. Consume
+its direct dependency's rejection regressions, unchanged valid-pack decisions,
+pre-publication refusal, generator and consumer evidence. Reconcile only the two
+formerly erroneous plugin/cgo admissions and their loader expectations under
+R21's explicit preservation exception. Task42's historical source/BASE evidence
+remains valid for its former candidate. All original qualification, dependencies
+and non-Linux acceptance remain in force; Linux remains under fn128.
+
+
 Tasks 38 and 39 own the eight target digest/import findings and nine target cleanup findings respectively. Retain their independent source evidence in the final R18/R19 matrix without treating committed source progress as qualification. Both are direct acceptance dependencies of this final gate; neither requires task21 completion for source admission. The original final-gate requirements and historical evidence remain unchanged.
 ### Adapter command correction evidence owner, 2026-10-05
 
