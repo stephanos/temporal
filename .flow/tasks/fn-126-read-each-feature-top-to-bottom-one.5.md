@@ -6,7 +6,7 @@ satisfies: [R5, R9, R13, R15, R16, R17]
 ## Description
 Convert every remaining Model to the object forms of task 4 (R15-R17), inline its single-use Scenarios (R13), retire the builder forms, and bring the docs to the final declaration shape (R9).
 
-**Owner decisions 11-18 (spec, "Later owner decisions").** Members write `s: State` (decision 18). Add the `FailureModel` and `NegativeControl` markers with their lint rules and fixtures, and mark every Model (decision 20). Convert the remaining Models with `init`, `states`, `implements`, `refinement` and `exports` as task 4 built them, and rename the Nexus caller's `object Control` to `Placebo` (pin unchanged).
+**Owner decisions 11-18 (spec, "Later owner decisions").** Members write `s: State` (decision 18). Add the `FailureModel` and `NegativeControl` markers with their lint rules and fixtures, and mark every Model (decision 20). Convert the remaining Models with `init`, `states`, `implements`, `refinement` and `exports` as task 4 built them, and rename the Nexus caller's `object Control` to `TrustingCaller` (pin unchanged).
 
 **Cross-spec entry gate:**
 - Task 4 is done.

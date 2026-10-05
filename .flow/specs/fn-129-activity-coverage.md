@@ -1,0 +1,26 @@
+# Activity coverage
+
+## Goal
+
+Model the standalone activity behaviour that upstream's Go model (`chasm/lib/activity/model`) covers and ours does not. Source: `.plans/ACTIVITY_MODEL_COMPARISON.md` (recommendations P2-5, P2-6, P2-7, P3-13). Owner decision 2026-10-05.
+
+## Requirements
+
+- **R1 Heartbeat.**
+  - A `worker.heartbeat` action, enabled while the worker holds the attempt.
+  - A `deadline.heartbeat` timeout, retryable under the precision spec's retry policy.
+  - An observation of heartbeat details if the realization can read them.
+- **R2 Respond by ID.** An actor (e.g. `service`, decision 26's `Actor`) whose completion, failure and cancel answers go by activity ID rather than task token, and are allowed in the phases the server allows (`model.go`'s `ByID` forms). Realized through the corresponding API calls.
+- **R3 Reset.** A `Control.reset(keepPaused)` class, a `resetRequested` phase for a reset deferred while an attempt is held, and its application on the attempt's settlement, as the Go model's `applyDeferredReset` does. Properties cover keep-paused and the Cancel > Reset > Pause precedence, extending the precision spec's precedence Property.
+- **R4 Exploration.** `.explore` on the activity's `find` Queries where it adds witnesses the pinned Scenarios miss (today only the Nexus control uses it).
+- **R5 Realization and Cases.** Each new behaviour is realized, with at least one live Query per requirement, and the done summary lists the new Cases.
+
+## Boundaries
+
+- Runs after "Close the activity's precision gaps".
+- No workflow-scheduled activity: that stays with fn-119.
+- No change to upstream's Go model or its harness. Driving their harness from our IR (comparison P3-12) is an owner decision recorded in MILESTONES.
+
+## Verification
+
+As the precision spec, plus each new Query's live Case run once.
