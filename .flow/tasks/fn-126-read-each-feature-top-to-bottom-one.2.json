@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-05T02:58:30.846346Z",
+  "depends_on": [
+    "fn-126-read-each-feature-top-to-bottom-one.1"
+  ],
+  "id": "fn-126-read-each-feature-top-to-bottom-one.2",
+  "priority": null,
+  "spec": "fn-126-read-each-feature-top-to-bottom-one",
+  "spec_path": ".flow/tasks/fn-126-read-each-feature-top-to-bottom-one.2.md",
+  "status": "todo",
+  "title": "Write the Nexus folders and shared Models as feature files, share the bounds, and retire the per-kind file names",
+  "updated_at": "2026-10-05T02:58:30.846346Z"
+}
