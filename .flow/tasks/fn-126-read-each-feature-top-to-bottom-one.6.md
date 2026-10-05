@@ -1,10 +1,12 @@
 ---
-satisfies: [R9, R10, R11, R18, R19]
+satisfies: [R20, R9, R10, R11, R18, R19]
 ---
 # fn-126-read-each-feature-top-to-bottom-one.6 Rename in one batch: Product and System, the history record, actions and designs; close
 
 ## Description
 The spec's last task: one batch of renames (R18), the levels named Product and System and the system contract renamed the history record (R19), retired names checked (R10), and the spec closed with its evidence (R11). This task accepts new Definition IDs, re-captures the golden baseline once and regenerates once.
+
+**Owner decisions 11-23 (spec, "Later owner decisions"; decision 19 replaces R18's record and composition names).** With the R18 renames, give `standaloneactivity/`, `nexuscaller/` and `shared/taskqueue/` a `product/` and a `system/` folder (decision 16; the task queue's machines take the R18 level names), flattening `record/` and `withTaskQueue/` into `system/Record.scala` and `system/WithTaskQueue.scala` (decision 22), making every Definition ID the declaration's fully qualified Scala name and the IR family its package, removing `DefinitionScope` pins, `Family` givens and the section transparency rule (decision 23), and teach the R10 layout test the new folders. Then land R20, the structure lint, with its template fixture `model/irgen/testdata/layout/` and the README pointer. Carry-forward constraints: `.flow/tmp/fn-126/carry-forward.md`.
 
 **Cross-spec entry gate:**
 - Task 5 is done.
