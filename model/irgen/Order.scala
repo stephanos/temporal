@@ -28,8 +28,9 @@ import scala.collection.mutable
  *
  * A feature file is a source named after its folder, case aside, in a package under `features` or
  * `shared`, as every Model's is: `features/standaloneactivity/StandaloneActivity.scala`. A file of
- * declarations the lifter must refuse, `*Rejects.scala` among its fixtures, holds specimens of other
- * refusals, a val read before it is declared among them, and is left to those refusals.
+ * declarations the lifter must refuse, `*Rejects.scala` among its fixtures (model/irgen/testdata),
+ * holds specimens of other refusals, a val read before it is declared among them, and is left to
+ * those refusals.
  */
 final private[irgen] class Order(index: Index):
   import index.quotes.reflect.*
@@ -58,7 +59,8 @@ final private[irgen] class Order(index: Index):
   private def refuse(t: Tree, message: String): Unit =
     refused += ((fileOf(t), lineOf(t), LiftError(at(t), message)))
 
-  private def exempt(file: String): Boolean = file.endsWith("Rejects.scala")
+  private def exempt(file: String): Boolean =
+    file.startsWith("model/irgen/testdata/") && file.endsWith("Rejects.scala")
 
   private def treeOf(s: Symbol): Option[Tree] = scala.util.Try(s.tree).toOption
 
