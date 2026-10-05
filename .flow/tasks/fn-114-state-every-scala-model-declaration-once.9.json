@@ -13,7 +13,7 @@
   "priority": null,
   "spec": "fn-114-state-every-scala-model-declaration-once",
   "spec_path": ".flow/tasks/fn-114-state-every-scala-model-declaration-once.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rename model/ tool folders and group model/temporal into features/ and shared/",
   "updated_at": "2026-10-04T19:36:09.444146Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-114-state-every-scala-model-declaration-once",
   "spec_path": ".flow/tasks/fn-114-state-every-scala-model-declaration-once.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rewrite the Nexus caller realization by value with the shared script helpers",
   "updated_at": "2026-10-03T19:46:26.567524Z"
 }

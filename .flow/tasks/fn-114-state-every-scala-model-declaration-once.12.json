@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-114-state-every-scala-model-declaration-once",
   "spec_path": ".flow/tasks/fn-114-state-every-scala-model-declaration-once.12.md",
-  "status": "todo",
+  "status": "done",
   "title": "Keep model/umpire Temporal-agnostic: move the Temporal realization vocabulary to temporal/realize and guard it",
   "updated_at": "2026-10-04T17:53:12.354184Z"
 }

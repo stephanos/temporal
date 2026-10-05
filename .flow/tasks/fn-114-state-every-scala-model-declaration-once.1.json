@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-114-state-every-scala-model-declaration-once",
   "spec_path": ".flow/tasks/fn-114-state-every-scala-model-declaration-once.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Declare IR-file roots in Scala and lift every Model IR file in one run",
   "updated_at": "2026-10-03T19:50:24.994517Z"
 }

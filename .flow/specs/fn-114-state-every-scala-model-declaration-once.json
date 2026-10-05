@@ -819,7 +819,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-114-state-every-scala-model-declaration-once.md",
-  "status": "open",
+  "status": "done",
   "title": "State every Scala Model declaration once",
   "tracker": {
     "baseHashFlow": null,
@@ -832,5 +832,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-05T04:19:35.928906Z"
+  "updated_at": "2026-10-05T04:21:51.203504Z"
 }

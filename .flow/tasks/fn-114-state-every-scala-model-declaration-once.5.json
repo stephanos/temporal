@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-114-state-every-scala-model-declaration-once",
   "spec_path": ".flow/tasks/fn-114-state-every-scala-model-declaration-once.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Split the close-policy Model into the four-file layout",
   "updated_at": "2026-10-03T19:46:27.286908Z"
 }
