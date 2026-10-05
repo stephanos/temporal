@@ -56,6 +56,10 @@ flowctl validate --spec fn-109-gomad-deepen-modules-and-tool-interfaces
 - Run tests with `-tags test_dep`. Baseline the Quick commands before editing so a pre-existing failure is not attributed to this task.
 - Evidence and decision records go under `.flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/`.
 
+### Canonical JSON correction evidence owner, 2026-10-05
+
+Task41 owns the seven-selector canonical JSON validation switch correction and literal BASE/final characterization. Consume its source, consumer, generator and integrated-lint evidence through the direct acceptance dependency. The existing visited-slice key omits length; task41 preserves and discloses that behavior rather than claiming complete UTF-8 rejection. The attempted Runner-fixture baseline at source a683e64af560322014e14f3a1ef3953b27cad96a failed before fixture execution under the linux/arm64 preparation guard, so those fixtures remain unchanged and unadmitted. Preserve every original qualification and dependency requirement.
+
 ### Target lint corrective ownership
 
 Tasks 38 and 39 own the eight target digest/import findings and nine target cleanup findings respectively. Retain their independent source evidence in the final R18/R19 matrix without treating committed source progress as qualification. Both are direct acceptance dependencies of this final gate; neither requires task21 completion for source admission. The original final-gate requirements and historical evidence remain unchanged.

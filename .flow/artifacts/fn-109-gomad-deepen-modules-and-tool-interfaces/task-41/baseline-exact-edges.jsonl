@@ -1,0 +1,8 @@
+{"Time":"2026-10-05T13:00:44.221690614Z","Action":"start","Package":"go.temporal.io/server/tools/gomad3"}
+{"Time":"2026-10-05T13:00:44.223529905Z","Action":"run","Package":"go.temporal.io/server/tools/gomad3","Test":"TestExactModuleEdges"}
+{"Time":"2026-10-05T13:00:44.223573822Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestExactModuleEdges","Output":"=== RUN   TestExactModuleEdges\n","OutputType":"frame"}
+{"Time":"2026-10-05T13:00:45.461686864Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Test":"TestExactModuleEdges","Output":"--- PASS: TestExactModuleEdges (1.24s)\n","OutputType":"frame"}
+{"Time":"2026-10-05T13:00:45.461716239Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Test":"TestExactModuleEdges","Elapsed":1.24}
+{"Time":"2026-10-05T13:00:45.461745239Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"PASS\n","OutputType":"frame"}
+{"Time":"2026-10-05T13:00:45.461948073Z","Action":"output","Package":"go.temporal.io/server/tools/gomad3","Output":"ok  \tgo.temporal.io/server/tools/gomad3\t1.240s\n"}
+{"Time":"2026-10-05T13:00:45.461958489Z","Action":"pass","Package":"go.temporal.io/server/tools/gomad3","Elapsed":1.24}

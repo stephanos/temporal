@@ -1,0 +1,57 @@
+---
+satisfies: [R18, R19]
+---
+# fn-109-gomad-deepen-modules-and-tool-interfaces.41 Preserve canonical JSON validation while repairing exhaustive lint
+
+## Description
+Repair the single canonical-JSON exhaustive-switch finding under R18/R19. Task21 consumes this owner's evidence. Existing corrective owners keep their scopes and original acceptance.
+
+**Size:** M
+**Files:** `tools/gomad3/internal/canonicaljson/canonical.go`, new `tools/gomad3/internal/canonicaljson/canonical_characterization_test.go`, task41 evidence.
+**Touches:** [tools/gomad3/internal/canonicaljson/canonical.go, tools/gomad3/internal/canonicaljson/canonical_characterization_test.go, .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-41/**]
+
+### Approach
+- Before production edits, add literal characterization tests and run them against the unchanged `validateStrings` at `canonical.go:117-186`. Retain raw BASE output. Match final bytes, exact errors, nil output, error wrapping/identity and callback invocation counts against this BASE rather than deriving expectations from the correction.
+- Evaluate `value.Kind()` once in an initializer-bound expressionless switch. Replace only the seven existing selectors with equivalent equality predicates. Preserve every branch body, invalid-value guard, visited-key construction, traversal order, final nil return, public API, import and existing comment. Leave `canonical_test.go` and all other production code unchanged. Do not add cases, defaults, suppression or analyzer exclusions.
+- Characterize all seven handled kinds and every omitted valid kind. Cover signed/unsigned integer limits, uintptr, booleans, integral versus fractional floats, NaN/Inf, complex, channel, function and unsafe-pointer encoder errors; nil interface/pointer/map/slice; empty and populated collections; actual nested interfaces; invalid UTF-8 in map keys/values, pointers/interfaces, arrays/slices and all struct fields including unexported and JSON-ignored fields. Retain typed encoder errors and a sentinel-returning Marshaler's errors.Is/As provenance. Assert invalid reflected strings prevent the callback, and UTF-8 validation precedes an earlier unsupported field.
+- Cover terminating pointer/map/slice cycles and successful shared acyclic aliases. Preserve and disclose the existing visited-slice key's omission of length. Pin short-then-long aliases' current unchecked suffix replacement, reverse-order rejection and differently named slice types sharing storage. Use deterministic struct/array/slice traversal for literal order controls, not MapRange. This task does not fix that pre-existing semantic defect or claim complete UTF-8 rejection.
+- Preserve the remainder of `canonical.go` byte-for-byte. Verify exact source reconstruction from BASE plus the eight selector/header substitutions; retain source/tool/config/module bindings and before/after protected-input checks. Do not regenerate protocol/toolchain/profile pins or generated JSON. Inspect actual generator inputs. CanonicalJSON directly serializes generated requests/packs/state, so run check-only `make validate` for generated-byte preservation.
+- Run matched BASE/final whole-package tests, unfiltered pinned package lint (the actual BASE has exactly one exhaustive finding), scoped errortype and gofmt. Run actual `TestPureCanonicalJSONConcreteArgument`, full architecture analyzer tests and root architecture/purity checks. Run matched consumer controls for record, World, compatibility packs and authoring, plus target canonical/digest/projection controls. Record actual failures without changing other owners or treating unavailable behavior as proved. The root runs the original integrated lint gate against the frozen candidate and retains its actual residual findings and stage reachability; never infer a count from the scoped delta.
+- Scheduling is one source/cache writer in the shared checkout. Research/review may run read-only in parallel. Root is the sole committer and commits independently reviewed verified source progress before another writer starts. No push, worktree, stash, downloads/cache cleanup or history rewrite. Preserve the two unrelated untracked files.
+- All original matched-first-baseline, preservation, predecessor, full/default/functional/affected-consumer/formal and native Darwin requirements remain required wherever unproved; source success does not complete R18/R19/task21 or this task. Native Linux execution remains transferred to fn128 and cannot block source completion. Retain independent source-progress review when red/unavailable original gates prevent formal implementation review; do not request a formal SHIP on a red tree.
+
+### Investigation targets
+**Required:**
+- `tools/gomad3/internal/canonicaljson/canonical.go` and `canonical_test.go`
+- `tools/gomad3/internal/gomadtool/architecture/effects_test.go` and root `architecture_test.go`
+- `tools/gomad3/Makefile` and `internal/compatibilitypack/authoring/generate.go`
+- Parent R18/R19 and task21's qualification/preservation ledger
+- Root baseline receipt under this task's artifacts and the original integrated lint command
+
+### Quick commands
+From `tools/gomad3` with pinned stock Go 1.27.1, offline module resolution and `GOMAXPROCS=2`:
+```bash
+go test -count=1 -tags test_dep -json ./internal/canonicaljson
+go test -count=1 -tags test_dep -json ./record ./world ./internal/compatibilitypack ./internal/compatibilitypack/authoring
+go test -count=1 -tags test_dep -json ./internal/gomadtool/architecture
+go test -count=1 -tags test_dep -json . -run '^(TestPackageArchitecture|TestPureModulesHaveNoHostEffects|TestExactModuleEdges)$'
+/tmp/fn109-lint-tools.ZdNe1t50/golangci-lint-v2.13.0 run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./internal/canonicaljson
+/tmp/fn109-lint-tools.ZdNe1t50/errortype -test=true ./internal/canonicaljson
+make validate
+```
+Inspect existing target test names before choosing canonical/digest/projection controls. Keep commands and outcomes source-bound; unsupported host execution stays unproved rather than bypassed.
+## Acceptance
+- [ ] Literal characterization passes on unchanged production BASE and the final candidate, covering every existing handled/fallthrough kind, traversal/nil/cycle/alias case, exact canonical/error bytes, error provenance and callback precedence. The pre-existing slice-length omission is retained and explicitly disclosed.
+- [ ] Only the initializer-bound, once-evaluated switch header and seven equality selectors change in `canonical.go`; all bodies, visited keys, guards, comments, remaining source, public contracts, existing tests, generated outputs, grants and pins remain unchanged with retained source/input proof.
+- [ ] Actual pinned unfiltered package lint is RED on BASE and GREEN on final; package, scoped errortype, formatting, analyzer/root boundaries, generator validation and matched consumer checks pass where executable. Retain any unexecuted/failing original gate as incomplete, without weakening expectations or changing another owner.
+- [ ] Root retains actual source-frozen integrated lint output, residual ownership and stage reachability, then commits independently reviewed verified task progress separately before the next writer. Original first-baseline/preservation/predecessor/full/default/functional/affected-consumer/formal/native-Darwin acceptance remains open wherever unproved; fn128 owns transferred Linux execution.
+- [ ] Task21 consumes this owner's evidence through its added dependency; parent R18/R19 coverage includes this owner and every old task/dependency/acceptance remains intact. Complete this task only after all requirements it still owns pass, using Flow evidence and verified status.
+
+
+## Done summary
+TBD
+
+## Evidence
+- Commits:
+- Tests:
+- PRs:
