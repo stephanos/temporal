@@ -73,7 +73,8 @@ private[irgen] trait Declarations:
 
   /**
    * The name of the party an action names: an actor object's, `object caller extends Actor` named
-   * `caller` and written `this` among its members, with its first letter lowered; or a party value's.
+   * `caller` and written `this` among its members, with its first letter lowered; or a party
+   * value's.
    */
   def partyName(t: Term): String = t match
     case Typed(e, _)                  => partyName(e)

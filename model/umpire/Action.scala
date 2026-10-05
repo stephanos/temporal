@@ -12,8 +12,8 @@ final case class Family(root: String):
 
 /**
  * Who performs an action, named after the `val` that declares it, `val caller: Party = Party()`, or
- * by `name`. `system` is reserved for timers, which a machine owns. It is open so that an object may
- * be one: an `Actor` is a party named after its object.
+ * by `name`. `system` is reserved for timers, which a machine owns. It is open so that an object
+ * may be one: an `Actor` is a party named after its object.
  */
 case class Party(name: String = "")
 

@@ -291,8 +291,8 @@ final private[irgen] class Context(val index: Index):
     owner.isClassDef && owner.flags.is(Flags.Module) && owner.typeRef.derivesFrom(sectionClass)
 
   /**
-   * The owner whose Definition IDs a section's members take, as its pin or its full name: at the top
-   * level of a file, the file's package object; directly in a machine's object, that object. A
+   * The owner whose Definition IDs a section's members take, as its pin or its full name: at the
+   * top level of a file, the file's package object; directly in a machine's object, that object. A
    * section anywhere else, a section in a section and a section that pins are refused at its line.
    */
   private def sectionOwner(section: Symbol, member: Tree): String =
@@ -308,8 +308,8 @@ final private[irgen] class Context(val index: Index):
     if isSection(enclosing) then
       fail(
         at,
-        s"the section $name sits in the section ${enclosing.name.stripSuffix("$")}: a section sits " +
-          "at the top level of a Model file or directly in a machine's object, never in another"
+        s"the section $name sits in the section ${enclosing.name.stripSuffix("$")}: a section " +
+          "sits at the top level of a Model file or directly in a machine's object, never in another"
       )
     else if enclosing.isPackageDef then
       val file = pos(at).file
@@ -326,8 +326,8 @@ final private[irgen] class Context(val index: Index):
     else
       fail(
         at,
-        s"the section $name sits in ${enclosing.fullName}, which is no machine's object: a section " +
-          "sits at the top level of a Model file or directly in a machine's object"
+        s"the section $name sits in ${enclosing.fullName}, which is no machine's object: a " +
+          "section sits at the top level of a Model file or directly in a machine's object"
       )
 
   /** Whether `owner` is a machine's object: an object at a file's top level holding a machine. */

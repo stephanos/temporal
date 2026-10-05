@@ -34,8 +34,8 @@ val entry: Entity = Entity(key = "entryId", refer = Map("owner" -> owner))
 val lostData: Observation = Observation(on = entry, read = "lost")
 
 // The actions, grouped by who takes them (fn-126 R14). An actor object is the party of its name,
-// and it and the sections are transparent to Definition IDs: each action keeps the ID the file's pin
-// gives it, fixture.spelled.Spelled$package$.<name>, as the lifter's tests check.
+// and it and the sections are transparent to Definition IDs: each action keeps the ID the file's
+// pin gives it, fixture.spelled.Spelled$package$.<name>, as the lifter's tests check.
 
 /** The party `client`, whose members are the actions it takes. */
 object client extends Actor:
