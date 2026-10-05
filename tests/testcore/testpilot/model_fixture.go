@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"time"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
@@ -125,9 +124,7 @@ func GeneratedCases(directory string) ([]lower.GeneratedCase, error) {
 }
 
 func prepareModelCase(model *umpirespb.Model, query umpiremodel.ClaimKey, source *testpilotspb.Case) (*ModelCase, error) {
-	assessment, err := conformance.Prepare(model, query, source, conformance.Limits{
-		MaxEvents: 2048, MaxProperties: 16, MaxDuration: time.Minute, MaxCandidates: 1 << 16, MaxWork: 1 << 22, MaxReadings: 1 << 22,
-	})
+	assessment, err := conformance.Prepare(model, query, source, conformance.DefaultLimits())
 	if err != nil {
 		return nil, err
 	}
